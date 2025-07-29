@@ -15,6 +15,7 @@ import { catchError, filter, map, switchMap, take } from 'rxjs/operators';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
 import { PoamService } from '../../../pages/poam-processing/poams.service';
 import { AuthService } from '../services/auth.service';
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +25,7 @@ export class AuthGuard implements CanActivate {
   private userService = inject(UsersService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private payloadService = inject(PayloadService);
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
     if (route.data['guardType'] === 'admin') {
@@ -54,12 +56,18 @@ export class AuthGuard implements CanActivate {
   canAdmin(): Observable<boolean | UrlTree> {
     return this.authService.authState$.pipe(
       filter((authState) => authState.isAuthenticatedCpat),
-      switchMap(() => this.userService.getCurrentUser()),
-      map((user) => {
-        if (user?.isAdmin) return true;
+      switchMap(() =>
+        this.payloadService.payload$.pipe(
+          filter((payload) => payload !== null),
+          take(1),
+          map((payload) => payload.isAdmin),
+          map((isAdmin) => {
+            if (isAdmin) return true;
 
-        return this.router.parseUrl('/403');
-      }),
+            return this.router.parseUrl('/403');
+          })
+        )
+      ),
       catchError((error) => {
         console.error('Error checking admin status:', error);
 
@@ -69,14 +77,16 @@ export class AuthGuard implements CanActivate {
   }
 
   private checkCollectionAccess(poamId: any, _state: RouterStateSnapshot): Observable<boolean | UrlTree> {
-    return this.userService.getCurrentUser().pipe(
-      switchMap((user) => {
-        if (!user) {
+    return this.payloadService.payload$.pipe(
+      filter((payload) => payload !== null),
+      take(1),
+      switchMap((payload) => {
+        if (!payload) {
           return of(this.router.parseUrl('/403'));
         }
 
         if (poamId === 'ADDPOAM') {
-          const hasAccess = user.permissions.some((permission: any) => permission.accessLevel >= 2);
+          const hasAccess = payload.permissions.some((permission: any) => permission.accessLevel >= 2);
 
           return of(hasAccess ? true : this.router.parseUrl('/403'));
         }
@@ -87,16 +97,16 @@ export class AuthGuard implements CanActivate {
               return of(this.router.parseUrl('/404'));
             }
 
-            const hasAccess = user.permissions.some((permission: any) => permission.collectionId === poam.collectionId && permission.accessLevel >= 1);
+            const hasAccess = payload.permissions.some((permission: any) => permission.collectionId === poam.collectionId && permission.accessLevel >= 1);
 
             if (!hasAccess) {
               return of(this.router.parseUrl('/403'));
             }
 
-            if (hasAccess && user.lastCollectionAccessedId !== poam.collectionId) {
+            if (hasAccess && payload.lastCollectionAccessedId !== poam.collectionId) {
               return this.userService
                 .updateUserLastCollection({
-                  userId: user.userId,
+                  userId: payload.userId,
                   lastCollectionAccessedId: poam.collectionId
                 })
                 .pipe(map(() => true));

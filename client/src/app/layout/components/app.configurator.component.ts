@@ -21,9 +21,10 @@ import { PrimeNG } from 'primeng/config';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { SelectButton } from 'primeng/selectbutton';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { switchMap, take } from 'rxjs';
+import { filter, switchMap, take } from 'rxjs';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { AppConfigService } from '../services/appconfigservice';
+import { PayloadService } from '../../common/services/setPayload.service';
 
 const presets = {
   Aura,
@@ -107,12 +108,6 @@ declare type SurfacesType = {
             <p-toggleswitch id="ripple" name="ripple" [(ngModel)]="ripple" />
           </div>
         </div>
-        <!-- <div class="flex-1">
-                    <div class="config-panel-settings items-end">
-                        <span class="config-panel-label">RTL</span>
-                        <p-toggleswitch id="isRTL" name="isRTL" [ngModel]="isRTL" (ngModelChange)="onRTLChange($event)" />
-                    </div>
-                </div> -->
       </div>
     </div>
   `,
@@ -137,6 +132,8 @@ export class AppConfiguratorComponent implements OnInit {
   config: PrimeNG = inject(PrimeNG);
 
   configService: AppConfigService = inject(AppConfigService);
+
+  private payloadService = inject(PayloadService);
 
   private userService = inject(UsersService);
 
@@ -178,9 +175,11 @@ export class AppConfiguratorComponent implements OnInit {
   }
 
   loadUserPreferences() {
-    this.userService
-      .getCurrentUser()
-      .pipe(take(1))
+    this.payloadService.user$
+      .pipe(
+        filter((user) => user !== null),
+        take(1)
+      )
       .subscribe({
         next: (user) => {
           if (user?.defaultTheme) {
@@ -220,9 +219,9 @@ export class AppConfiguratorComponent implements OnInit {
   }
 
   saveUserPreferences() {
-    this.userService
-      .getCurrentUser()
+    this.payloadService.user$
       .pipe(
+        filter((user) => user !== null),
         take(1),
         switchMap((user) => {
           if (!user) throw new Error('No user found');

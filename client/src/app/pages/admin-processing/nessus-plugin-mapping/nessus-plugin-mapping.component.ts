@@ -24,7 +24,6 @@ import { ToastModule } from 'primeng/toast';
 import { EMPTY, Observable, Subject, catchError, map, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { ImportService } from '../../import-processing/import.service';
-import { UsersService } from '../user-processing/users.service';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 
 @Component({
@@ -38,7 +37,6 @@ import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 export class NessusPluginMappingComponent implements OnInit, OnChanges, OnDestroy {
   private messageService = inject(MessageService);
   private nessusPluginMappingService = inject(NessusPluginMappingService);
-  private userService = inject(UsersService);
   private importService = inject(ImportService);
   private renderer = inject(Renderer2);
 
@@ -46,7 +44,6 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges, OnDestro
   readonly mapButton = viewChild.required<ElementRef>('mapButton');
   @Input() activated: boolean = false;
   tableData: any[] = [];
-  user: any;
   loading: boolean = true;
   totalRecords: number = 0;
   cols: any[] = [];
@@ -61,25 +58,8 @@ export class NessusPluginMappingComponent implements OnInit, OnChanges, OnDestro
   private destroy$ = new Subject<void>();
 
   ngOnInit() {
-    this.userService
-      .getCurrentUser()
-      .pipe(
-        tap((user) => (this.user = user)),
-        catchError((error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to fetch user data: ${getErrorMessage(error)}`
-          });
-
-          return EMPTY;
-        }),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(() => {
-        this.getIAVTableData();
-        this.initColumns();
-      });
+    this.getIAVTableData();
+    this.initColumns();
   }
 
   ngOnChanges(changes: SimpleChanges) {

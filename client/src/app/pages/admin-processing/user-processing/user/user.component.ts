@@ -30,6 +30,8 @@ import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
 import { AssignedTeamService } from '../../assignedTeam-processing/assignedTeam-processing.service';
 import { UsersService } from '../users.service';
+import { PayloadService } from '../../../../common/services/setPayload.service';
+import { filter, firstValueFrom, take } from 'rxjs';
 
 interface Permission {
   userId: number;
@@ -87,6 +89,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private cdr = inject(ChangeDetectorRef);
+  private payloadService = inject(PayloadService);
 
   @Input() user: any;
   @Input() users: any;
@@ -118,26 +121,32 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     { field: 'accessLevelLabel', header: 'Access Level' }
   ];
 
-  async ngOnInit() {
+  ngOnInit() {
     this.marketplaceDisabled = CPAT.Env.features.marketplaceDisabled;
 
     if (this.user && this.user.userId) {
-      await this.loadUserData(this.user.userId);
+      this.loadUserData(this.user.userId);
     } else {
-      (await this.userService.getCurrentUser()).subscribe(
-        async (currentUser) => {
-          this.user = currentUser;
-          await this.loadCollections();
-          await this.loadAssignedTeams();
-        },
-        (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching current user: ${getErrorMessage(error)}`
-          });
-        }
-      );
+      this.payloadService.user$
+        .pipe(
+          filter((user) => user !== null),
+          take(1)
+        )
+        .subscribe({
+          next: (currentUser) => {
+            this.user = currentUser;
+            Promise.all([this.loadCollections(), this.loadAssignedTeams()]).then(() => {
+              this.getData();
+            });
+          },
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching current user: ${getErrorMessage(error)}`
+            });
+          }
+        });
     }
 
     this.cols = [
@@ -146,9 +155,13 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     ];
   }
 
-  private async loadUserData(userId: number, preserveFormData: boolean = false) {
-    (await this.userService.getUser(userId)).subscribe(
-      async (userData) => {
+  ngOnChanges() {
+    this.getData();
+  }
+
+  private loadUserData(userId: number, preserveFormData: boolean = false) {
+    this.userService.getUser(userId).subscribe({
+      next: (userData) => {
         if (preserveFormData) {
           const formFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'officeOrg', 'points'];
           const preservedData = formFields.reduce((acc: any, field) => {
@@ -164,24 +177,24 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           this.user = userData;
         }
 
-        await this.loadCollections();
-        await this.loadAssignedTeams();
-        this.getData();
-        this.checked = this.user.isAdmin === true;
+        Promise.all([this.loadCollections(), this.loadAssignedTeams()]).then(() => {
+          this.getData();
+          this.checked = this.user.isAdmin === true;
+        });
       },
-      (error) => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching user data: ${getErrorMessage(error)}`
         });
       }
-    );
+    });
   }
 
   async loadAssignedTeams() {
     try {
-      const response = await (await this.assignedTeamService.getAssignedTeams()).toPromise();
+      const response = await firstValueFrom(this.assignedTeamService.getAssignedTeams());
 
       this.assignedTeams = response || [];
 
@@ -198,30 +211,29 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  private async loadCollections() {
-    (await this.collectionsService.getAllCollections()).subscribe(
-      (response: any) => {
-        this.collectionList = [];
-        response.forEach((collection: { collectionName: any; collectionId: any }) => {
-          this.collectionList.push({
-            title: collection.collectionName,
-            value: collection.collectionId
+  private loadCollections(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.collectionsService.getAllCollections().subscribe({
+        next: (response: any) => {
+          this.collectionList = [];
+          response.forEach((collection: { collectionName: any; collectionId: any }) => {
+            this.collectionList.push({
+              title: collection.collectionName,
+              value: collection.collectionId
+            });
           });
-        });
-        this.getData();
-      },
-      (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching collections: ${getErrorMessage(error)}`
-        });
-      }
-    );
-  }
-
-  ngOnChanges() {
-    this.getData();
+          resolve();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching collections: ${getErrorMessage(error)}`
+          });
+          reject(error);
+        }
+      });
+    });
   }
 
   getData() {
@@ -304,7 +316,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     permission.editing = true;
   }
 
-  async onSavePermission(permission: Permission) {
+  onSavePermission(permission: Permission) {
     this.onSubmit(false);
 
     if (!permission.accessLevelLabel || !permission.collectionName) {
@@ -314,8 +326,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         accessLevel: permission.accessLevel
       };
 
-      (await this.userService.postPermission(newPermission)).subscribe(
-        (res: any) => {
+      this.userService.postPermission(newPermission).subscribe({
+        next: (res: any) => {
           permission.userId = res.userId;
           permission.collectionId = res.collectionId;
           this.messageService.add({
@@ -326,22 +338,22 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           permission.editing = false;
           this.loadUserData(this.user.userId);
         },
-        (error) => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Failed to add the permission: ${getErrorMessage(error)}`
           });
         }
-      );
+      });
     } else {
       const updatedPermission: Permission = {
         ...permission,
         newCollectionId: permission.collectionId ?? undefined
       };
 
-      (await this.userService.updatePermission(updatedPermission)).subscribe(
-        () => {
+      this.userService.updatePermission(updatedPermission).subscribe({
+        next: () => {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
@@ -351,14 +363,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           delete permission.oldCollectionId;
           this.loadUserData(this.user.userId);
         },
-        (error) => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Failed to update the permission: ${getErrorMessage(error)}`
           });
         }
-      );
+      });
     }
 
     this.updateAvailableCollections();
@@ -380,7 +392,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     this.updateAvailableCollections();
   }
 
-  async onDeletePermission(permission: Permission) {
+  onDeletePermission(permission: Permission) {
     this.onSubmit(false);
 
     if (permission.collectionId === null) {
@@ -394,20 +406,20 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         rejectLabel: 'Cancel',
         acceptButtonStyleClass: 'p-button-outlined p-button-primary',
         rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
-        accept: async () => {
-          (await this.userService.deletePermission(this.user.userId, permission.collectionId)).subscribe(
-            () => {
+        accept: () => {
+          this.userService.deletePermission(this.user.userId, permission.collectionId).subscribe({
+            next: () => {
               this.collectionPermissions = this.collectionPermissions.filter((p) => p.collectionId !== permission.collectionId);
               this.loadUserData(this.user.userId);
             },
-            (error) => {
+            error: (error) => {
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
                 detail: `Error deleting permission: ${getErrorMessage(error)}`
               });
             }
-          );
+          });
         }
       });
     }
@@ -468,14 +480,15 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     const changes = this.analyzePermissionChanges(this.user.permissions, teamData.permissions, assignedTeam.accessLevel);
 
     if (changes.additions.length === 0 && changes.updates.length === 0) {
-      await this.confirmAssignedTeam(assignedTeam);
+      this.confirmAssignedTeam(assignedTeam);
 
       return;
     }
 
-    this.showPermissionChangeConfirmation(changes, async () => {
-      await this.processPermissionChanges(changes);
-      await this.confirmAssignedTeam(assignedTeam);
+    this.showPermissionChangeConfirmation(changes, () => {
+      this.processPermissionChanges(changes).then(() => {
+        this.confirmAssignedTeam(assignedTeam);
+      });
     });
   }
 
@@ -571,7 +584,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       };
 
       try {
-        await (await this.userService.updatePermission(updatePermission)).toPromise();
+        await firstValueFrom(this.userService.updatePermission(updatePermission));
       } catch (error) {
         this.messageService.add({
           severity: 'error',
@@ -589,7 +602,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
       };
 
       try {
-        await (await this.userService.postPermission(newPermission)).toPromise();
+        await firstValueFrom(this.userService.postPermission(newPermission));
       } catch (error) {
         this.messageService.add({
           severity: 'error',
@@ -600,7 +613,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  async confirmAssignedTeam(assignedTeam: AssignedTeam) {
+  confirmAssignedTeam(assignedTeam: AssignedTeam) {
     this.onSubmit(false);
 
     if (!assignedTeam.accessLevelLabel || !assignedTeam.assignedTeamName) {
@@ -610,8 +623,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         accessLevel: assignedTeam.accessLevel
       };
 
-      (await this.userService.postTeamAssignment(newAssignedTeam)).subscribe(
-        (res: any) => {
+      this.userService.postTeamAssignment(newAssignedTeam).subscribe({
+        next: (res: any) => {
           assignedTeam.userId = res.userId;
           assignedTeam.assignedTeamId = res.assignedTeamId;
           this.messageService.add({
@@ -622,14 +635,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           assignedTeam.editing = false;
           this.loadUserData(this.user.userId);
         },
-        (error) => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Failed to add the team assignment: ${getErrorMessage(error)}`
           });
         }
-      );
+      });
     } else {
       const updatedAssignedTeam: AssignedTeam = {
         ...assignedTeam,
@@ -637,8 +650,8 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         newAssignedTeamId: assignedTeam.assignedTeamId ?? undefined
       };
 
-      (await this.userService.putTeamAssignment(updatedAssignedTeam)).subscribe(
-        () => {
+      this.userService.putTeamAssignment(updatedAssignedTeam).subscribe({
+        next: () => {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
@@ -648,14 +661,14 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           delete assignedTeam.oldAssignedTeamId;
           this.loadUserData(this.user.userId);
         },
-        (error) => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Failed to update the team assignment: ${getErrorMessage(error)}`
           });
         }
-      );
+      });
     }
 
     this.updateAvailableTeams();
@@ -677,7 +690,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     this.updateAvailableTeams();
   }
 
-  async onDeleteAssignedTeam(assignedTeam: AssignedTeam) {
+  onDeleteAssignedTeam(assignedTeam: AssignedTeam) {
     this.onSubmit(false);
 
     if (assignedTeam.assignedTeamId === null) {
@@ -691,20 +704,20 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
         rejectLabel: 'Cancel',
         acceptButtonStyleClass: 'p-button-outlined p-button-primary',
         rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
-        accept: async () => {
-          (await this.userService.deleteTeamAssignment(this.user.userId, assignedTeam.assignedTeamId!)).subscribe(
-            () => {
+        accept: () => {
+          this.userService.deleteTeamAssignment(this.user.userId, assignedTeam.assignedTeamId!).subscribe({
+            next: () => {
               this.userAssignedTeams = this.userAssignedTeams.filter((a) => a.assignedTeamId !== assignedTeam.assignedTeamId);
               this.loadUserData(this.user.userId);
             },
-            (error) => {
+            error: (error) => {
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
                 detail: `Error during deleting team assignment: ${getErrorMessage(error)}`
               });
             }
-          );
+          });
         }
       });
     }
@@ -746,7 +759,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
     if (this.user.accountStatus === 'DISABLED') {
       this.userService.disableUser(this.user.userId).subscribe(() => {
         if (final) {
-          // TODO: The 'emit' function requires a mandatory void argument
           this.userChange.emit();
         }
       });
@@ -758,7 +770,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
 
       this.userService.updateUser(this.user).subscribe(() => {
         if (final) {
-          // TODO: The 'emit' function requires a mandatory void argument
           this.userChange.emit();
         }
       });
@@ -766,7 +777,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   resetData() {
-    // TODO: The 'emit' function requires a mandatory void argument
     this.userChange.emit();
   }
 
