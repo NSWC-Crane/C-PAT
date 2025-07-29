@@ -40,6 +40,15 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   @Input() poamAssociatedVulnerabilities: any[] = [];
   readonly vulnerabilitiesChanged = output<string[]>();
 
+  vulnSeverities: any = {};
+  severityToCategoryMap: { [key: string]: string } = {
+    critical: 'CAT I - Critical',
+    high: 'CAT I - High',
+    medium: 'CAT II - Medium',
+    low: 'CAT III - Low',
+    informational: 'CAT III - Informational'
+  };
+
   displayVulnerabilities: any[] = [];
   newVulnerability: string = '';
   selectedVulnerabilities: string[] = [];
@@ -61,11 +70,13 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
         if (typeof vuln === 'string') {
           return {
             associatedVulnerability: vuln,
+            severity: this.getVulnerabilitySeverity(vuln),
             isNew: false
           };
         } else if (typeof vuln === 'object' && vuln.associatedVulnerability) {
           return {
             associatedVulnerability: vuln.associatedVulnerability,
+            severity: this.getVulnerabilitySeverity(vuln.associatedVulnerability),
             isNew: false
           };
         }
@@ -86,6 +97,14 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
 
             return map;
           }, {});
+
+          this.vulnSeverities = response.reduce((map, group) => {
+            map[group.groupId] = group.severity;
+
+            return map;
+          }, {});
+
+          this.updateDisplayVulnerabilitiesWithSeverity();
         },
         error: (error) => {
           this.messageService.add({
@@ -146,6 +165,14 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
 
               return map;
             }, {});
+
+            this.vulnSeverities = (data.response?.results || []).reduce((map, vuln) => {
+              map[vuln.pluginID] = vuln.severity?.name?.toLowerCase() || 'unknown';
+
+              return map;
+            }, {});
+
+            this.updateDisplayVulnerabilitiesWithSeverity();
           },
           error: (error) => {
             this.messageService.add({
@@ -156,6 +183,21 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
           }
         });
     }
+  }
+
+  getVulnerabilitySeverity(vulnerabilityId: string): string {
+    return this.vulnSeverities[vulnerabilityId] || 'unknown';
+  }
+
+  getSeverityCategory(severity: string): string {
+    return this.severityToCategoryMap[severity.toLowerCase()] || 'Unknown';
+  }
+
+  updateDisplayVulnerabilitiesWithSeverity() {
+    this.displayVulnerabilities = this.displayVulnerabilities.map((vuln) => ({
+      ...vuln,
+      severity: this.getVulnerabilitySeverity(vuln.associatedVulnerability)
+    }));
   }
 
   matchVulnerabilityTitle(vulnerabilityId: string): string {
@@ -261,6 +303,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
           if (rowIndex === 0) {
             this.displayVulnerabilities.push({
               associatedVulnerability: vulnId,
+              severity: this.getVulnerabilitySeverity(vulnId),
               isNew: false
             });
           }
