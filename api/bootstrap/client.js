@@ -40,6 +40,7 @@ const CPAT = {
     dod: ${config.settings.dodDeployment},
     version: "${config.version}",
     apiBase: "${config.client.apiBase}",
+    adminInactivityTimeout: ${config.settings.adminInactivityTimeout},
     inactivityTimeout: ${config.settings.inactivityTimeout},
     oauth: {
         authority:  "${config.oauth.authority}",

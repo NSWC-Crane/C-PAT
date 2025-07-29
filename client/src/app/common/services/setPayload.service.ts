@@ -27,10 +27,12 @@ export class PayloadService {
   private userSubject = new BehaviorSubject<any>(null);
   private payloadSubject = new BehaviorSubject<any>(null);
   private accessLevelSubject = new BehaviorSubject<number>(0);
+  private isAdminSubject = new BehaviorSubject<boolean>(false);
 
   user$ = this.userSubject.asObservable();
   payload$ = this.payloadSubject.asObservable();
   accessLevel$ = this.accessLevelSubject.asObservable();
+  isAdmin$ = this.isAdminSubject.asObservable();
 
   setPayload() {
     this.userService
@@ -59,17 +61,20 @@ export class PayloadService {
               }
             }
 
-            return { user, payload, accessLevel };
+            const isAdmin = user.isAdmin || false;
+
+            return { user, payload, accessLevel, isAdmin };
           }
 
           throw new Error('User ID is not available');
         })
       )
       .subscribe({
-        next: ({ user, payload, accessLevel }) => {
+        next: ({ user, payload, accessLevel, isAdmin }) => {
           this.userSubject.next(user);
           this.payloadSubject.next(payload);
           this.accessLevelSubject.next(accessLevel);
+          this.isAdminSubject.next(isAdmin);
         },
         error: (error) => {
           console.error('An error occurred:', error);
