@@ -19,12 +19,14 @@ import { DividerModule } from 'primeng/divider';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ImageModule } from 'primeng/image';
 import { ToastModule } from 'primeng/toast';
-import { forkJoin } from 'rxjs';
+import { filter, forkJoin, switchMap, take } from 'rxjs';
 import { SubSink } from 'subsink';
 import { getErrorMessage } from '../../common/utils/error-utils';
 import { AppConfigService } from '../../layout/services/appconfigservice';
 import { UsersService } from '../admin-processing/user-processing/users.service';
 import { MarketplaceService } from './marketplace.service';
+import { PayloadService } from '../../common/services/setPayload.service';
+
 interface Theme {
   themeId: number;
   themeIdentifier: string;
@@ -47,6 +49,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
   private configService = inject(AppConfigService);
+  private payloadService = inject(PayloadService);
 
   userPoints = 0;
   themes: Theme[] = [];
@@ -227,22 +230,27 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   }
 
   loadUserData() {
-    this.subs.sink = this.userService.getCurrentUser().subscribe({
-      next: (response: any) => {
-        if (response?.userId) {
-          this.user = response;
-          this.loadUserPoints();
-          this.loadThemes();
+    this.subs.sink = this.payloadService.user$
+      .pipe(
+        filter((user) => user !== null),
+        take(1)
+      )
+      .subscribe({
+        next: (response: any) => {
+          if (response?.userId) {
+            this.user = response;
+            this.loadUserPoints();
+            this.loadThemes();
+          }
+        },
+        error: (error: Error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load user data: ${getErrorMessage(error)}`
+          });
         }
-      },
-      error: (error: Error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load user data: ${getErrorMessage(error)}`
-        });
-      }
-    });
+      });
   }
 
   loadUserPoints() {
@@ -349,34 +357,43 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     }));
 
     updateSurfacePalette(surface.palette);
-    const currentState = this.configService.appState();
-    const preferences = {
-      userId: this.user.userId,
-      defaultTheme: JSON.stringify({
-        preset: currentState.preset,
-        primary: currentState.primary,
-        surface: surfaceName,
-        darkTheme: currentState.darkTheme,
-        rtl: currentState.RTL
-      })
-    };
 
-    this.subs.sink = this.userService.updateUserTheme(preferences).subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Theme applied successfully'
-        });
-      },
-      error: (error: Error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to apply theme: ${getErrorMessage(error)}`
-        });
-      }
-    });
+    this.payloadService.user$
+      .pipe(
+        filter((user) => user !== null),
+        take(1),
+        switchMap((user) => {
+          const currentState = this.configService.appState();
+          const preferences = {
+            userId: user.userId,
+            defaultTheme: JSON.stringify({
+              preset: currentState.preset,
+              primary: currentState.primary,
+              surface: surfaceName,
+              darkTheme: currentState.darkTheme,
+              rtl: currentState.RTL
+            })
+          };
+
+          return this.userService.updateUserTheme(preferences);
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Theme applied successfully'
+          });
+        },
+        error: (error: Error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to apply theme: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   getThemeImage(themeId: number | undefined): string {

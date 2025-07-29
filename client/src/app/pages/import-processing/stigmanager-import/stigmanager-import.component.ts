@@ -26,11 +26,11 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription } from 'rxjs';
+import { filter, Subscription, take } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { UsersService } from '../../admin-processing/user-processing/users.service';
+import { PayloadService } from '../../../common/services/setPayload.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
 
@@ -74,7 +74,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private collectionsService = inject(CollectionsService);
   private sharedService = inject(SharedService);
-  private userService = inject(UsersService);
+  private payloadService = inject(PayloadService);
   private messageService = inject(MessageService);
   private poamService = inject(PoamService);
 
@@ -149,23 +149,28 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   private initializeComponent() {
-    this.userService.getCurrentUser().subscribe({
-      next: (user) => {
-        if (user?.userId) {
-          this.user = user;
-          this.validateStigManagerCollection();
-        } else {
-          this.showError('Failed to retrieve current user.');
+    this.payloadService.user$
+      .pipe(
+        filter((user) => user !== null),
+        take(1)
+      )
+      .subscribe({
+        next: (user) => {
+          if (user?.userId) {
+            this.user = user;
+            this.validateStigManagerCollection();
+          } else {
+            this.showError('Failed to retrieve current user.');
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `An error occurred while initializing the component: ${getErrorMessage(error)}`
+          });
         }
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `An error occurred while initializing the component: ${getErrorMessage(error)}`
-        });
-      }
-    });
+      });
   }
 
   getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {

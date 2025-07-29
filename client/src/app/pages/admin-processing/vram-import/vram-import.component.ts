@@ -19,10 +19,9 @@ import { CardModule } from 'primeng/card';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
-import { EMPTY, Subject, catchError, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { VramPopupComponent } from '../../../common/components/vram-popup/vram-popup.component';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { UsersService } from '../user-processing/users.service';
 import { VRAMImportService } from './vram-import.service';
 
 @Component({
@@ -36,36 +35,16 @@ import { VRAMImportService } from './vram-import.service';
 export class VRAMImportComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private vramImportService = inject(VRAMImportService);
-  private userService = inject(UsersService);
 
   readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
   readonly navigateToPluginMapping = output<void>();
   uploadUrl: string = '/api/import/vram';
-  user: any;
   totalSize: string = '0';
   totalSizePercent: number = 0;
   vramUpdatedDate: string = '';
   private destroy$ = new Subject<void>();
 
   ngOnInit() {
-    this.userService
-      .getCurrentUser()
-      .pipe(
-        takeUntil(this.destroy$),
-        catchError((error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to fetch user data: ${getErrorMessage(error)}`
-          });
-
-          return EMPTY;
-        })
-      )
-      .subscribe((user) => {
-        this.user = user;
-      });
-
     this.getVramUpdatedDate();
   }
 

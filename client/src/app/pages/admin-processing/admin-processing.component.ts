@@ -11,12 +11,11 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
 import { ToastModule } from 'primeng/toast';
-import { Subject, takeUntil } from 'rxjs';
-import { getErrorMessage } from '../../common/utils/error-utils';
+import { filter, Subject, takeUntil } from 'rxjs';
+import { PayloadService } from '../../common/services/setPayload.service';
 import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
 import { AppConfigurationComponent } from './app-configuration/app-configuration.component';
 import { AssetDeltaComponent } from './asset-delta/asset-delta.component';
@@ -26,7 +25,6 @@ import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plu
 import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
 import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
-import { UsersService } from './user-processing/users.service';
 import { VRAMImportComponent } from './vram-import/vram-import.component';
 
 @Component({
@@ -49,13 +47,11 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
     UserProcessingComponent,
     AssetDeltaComponent,
     VRAMImportComponent
-  ],
-  providers: [MessageService]
+  ]
 })
 export class AdminProcessingComponent implements OnInit, OnDestroy {
-  private userService = inject(UsersService);
+  private payloadService = inject(PayloadService);
   private router = inject(Router);
-  private messageService = inject(MessageService);
 
   value: number = 0;
   user: any;
@@ -63,24 +59,16 @@ export class AdminProcessingComponent implements OnInit, OnDestroy {
   tenableEnabled = CPAT.Env.features.tenableEnabled;
 
   ngOnInit() {
-    this.user = null;
-    this.userService
-      .getCurrentUser()
-      .pipe(takeUntil(this.destroy$))
+    this.payloadService.isAdmin$
+      .pipe(
+        filter((isAdmin) => isAdmin !== null),
+        takeUntil(this.destroy$)
+      )
       .subscribe({
-        next: (response: any) => {
-          this.user = response;
-
-          if (!this.user.isAdmin) {
+        next: (isAdmin) => {
+          if (!isAdmin) {
             this.router.navigate(['/403']);
           }
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `An error occurred: ${getErrorMessage(error)}`
-          });
         }
       });
   }

@@ -28,15 +28,15 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { EMPTY, Observable, Subject, catchError, finalize, forkJoin, map, of, switchMap, takeUntil } from 'rxjs';
+import { EMPTY, Observable, Subject, catchError, filter, finalize, forkJoin, map, of, switchMap, take, takeUntil } from 'rxjs';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
 import { ImportService } from '../../import-processing/import.service';
 import { CollectionsService } from '../collection-processing/collections.service';
-import { UsersService } from '../user-processing/users.service';
 import { AssetDeltaService } from './asset-delta.service';
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 interface AssetDeltaResponse {
   assets: AssetData[];
@@ -83,10 +83,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   private assetDeltaService = inject(AssetDeltaService);
   private collectionsService = inject(CollectionsService);
   private sharedService = inject(SharedService);
-  private userService = inject(UsersService);
   private configService = inject(AppConfigService);
   private cdr = inject(ChangeDetectorRef);
   private elementRef = inject(ElementRef);
+  private payloadService = inject(PayloadService);
 
   readonly assetDeltaTable = viewChild<any>('assetDeltaTable');
   readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
@@ -207,9 +207,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.initializeColumns();
     this.themeInitialized.set(false);
 
-    this.userService
-      .getCurrentUser()
+    this.payloadService.user$
       .pipe(
+        filter((user) => user !== null),
+        take(1),
         takeUntil(this.destroy$),
         catchError((error) => {
           this.messageService.add({

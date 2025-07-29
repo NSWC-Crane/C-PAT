@@ -23,6 +23,7 @@ import { AuthService } from '../../core/auth/services/auth.service';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { AppConfiguratorComponent } from '../components/app.configurator.component';
 import { AppConfigService } from '../services/appconfigservice';
+import { PayloadService } from '../../common/services/setPayload.service';
 
 @Component({
   selector: 'cpat-topbar',
@@ -135,6 +136,7 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
   private configService = inject(AppConfigService);
   private router = inject(Router);
   private notificationService = inject(NotificationService);
+  private payloadService = inject(PayloadService);
 
   @Input({ transform: booleanAttribute }) showConfigurator = true;
   scrollListener: VoidFunction | null = null;
@@ -215,9 +217,9 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
   }
 
   saveUserPreferences() {
-    this.userService
-      .getCurrentUser()
+    this.payloadService.user$
       .pipe(
+        filter((user) => user !== null),
         take(1),
         switchMap((user) => {
           if (!user) throw new Error('No user found');
