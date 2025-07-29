@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
 import { Subject, Subscription, fromEvent, merge, timer } from 'rxjs';
 import { debounceTime, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { PayloadService } from '../../../common/services/setPayload.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,24 +21,37 @@ import { AuthService } from './auth.service';
 export class InactivityService {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private payloadService = inject(PayloadService);
 
-  private readonly INACTIVITY_TIMEOUT = CPAT.Env.inactivityTimeout || 900000;
+  private readonly DEFAULT_INACTIVITY_TIMEOUT = CPAT.Env.inactivityTimeout || 900000;
+  private readonly ADMIN_INACTIVITY_TIMEOUT = CPAT.Env.adminInactivityTimeout || 600000;
   private readonly COUNTDOWN_DURATION = 60;
 
   private activitySubscription?: Subscription;
   private inactivityTimer?: Subscription;
   private countdownTimer?: Subscription;
+  private isAdminSubscription?: Subscription;
 
   private showWarning$ = new Subject<{ show: boolean; countdown?: number }>();
   public warningState$ = this.showWarning$.asObservable();
 
   private isMonitoring = false;
+  private isAdmin = false;
   protected lastActivity = Date.now();
 
   startMonitoring(): void {
     if (this.isMonitoring) return;
 
     this.isMonitoring = true;
+
+    this.isAdminSubscription = this.payloadService.isAdmin$.subscribe((isAdmin) => {
+      this.isAdmin = isAdmin;
+
+      if (this.isMonitoring) {
+        this.resetInactivityTimer();
+      }
+    });
+
     this.setupActivityListeners();
     this.startInactivityTimer();
   }
@@ -46,6 +60,11 @@ export class InactivityService {
     this.isMonitoring = false;
     this.clearTimers();
     this.activitySubscription?.unsubscribe();
+    this.isAdminSubscription?.unsubscribe();
+  }
+
+  private getActiveTimeout(): number {
+    return this.isAdmin ? this.ADMIN_INACTIVITY_TIMEOUT : this.DEFAULT_INACTIVITY_TIMEOUT;
   }
 
   private setupActivityListeners(): void {
@@ -80,7 +99,9 @@ export class InactivityService {
   private startInactivityTimer(): void {
     this.clearInactivityTimer();
 
-    this.inactivityTimer = timer(this.INACTIVITY_TIMEOUT - this.COUNTDOWN_DURATION * 1000).subscribe(() => {
+    const timeout = this.getActiveTimeout();
+
+    this.inactivityTimer = timer(timeout - this.COUNTDOWN_DURATION * 1000).subscribe(() => {
       this.showWarningDialog();
     });
   }

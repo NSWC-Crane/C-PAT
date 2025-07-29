@@ -21,6 +21,7 @@ let config = {
         lastAccessResolution: 60,
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || 'none',
         dodDeployment: process.env.CPAT_DOD_DEPLOYMENT !== 'false',
+        adminInactivityTimeout: process.env.CPAT_ADMIN_INACTIVITY_TIMEOUT ? parseInt(process.env.CPAT_ADMIN_INACTIVITY_TIMEOUT) * 60 * 1000 : 10 * 60 * 1000,
         inactivityTimeout: process.env.CPAT_INACTIVITY_TIMEOUT ? parseInt(process.env.CPAT_INACTIVITY_TIMEOUT) * 60 * 1000 : 15 * 60 * 1000,
     },
     client: {
