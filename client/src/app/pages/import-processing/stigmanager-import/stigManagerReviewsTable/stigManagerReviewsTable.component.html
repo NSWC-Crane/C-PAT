@@ -13,9 +13,26 @@
     <div class="p-fluid">
       <div class="toolbar mb-4 mt-4">
         <div class="flex items-center justify-between">
-          <p-select class="ml-4" [options]="benchmarkOptions" [(ngModel)]="selectedBenchmarkId"
-            (onChange)="onBenchmarkChange()" placeholder="Select Benchmark..."
-            [disabled]="isLoading && !showBenchmarkSelector" appendTo="body" />
+          <p-multiselect #benchmarkMs class="ml-4" [options]="benchmarkOptions" [(ngModel)]="selectedBenchmarkIds"
+            placeholder="Select Benchmarks..." [disabled]="isLoading && !showBenchmarkSelector" appendTo="body"
+            [showClear]="false" [filter]="true" filterPlaceHolder="Search benchmarks..." [showToggleAll]="true"
+            optionLabel="label" optionValue="value" [maxSelectedLabels]="3" selectedItemsLabel="{0} benchmarks selected"
+            display="chip" [style]="{'min-width': '300px'}">
+            <ng-template #dropdownicon>
+              <i class="pi pi-chevron-down"></i>
+            </ng-template>
+            <ng-template #filtericon>
+              <i class="pi pi-search"></i>
+            </ng-template>
+            <ng-template #footer>
+              <div class="p-3 flex justify-between align-items-center border-top-1 surface-border">
+                <p-button label="Clear" severity="secondary" outlined="true" size="small"
+                  (onClick)="clearBenchmarkSelection()" [disabled]="selectedBenchmarkIds.length === 0" />
+                <p-button label="Apply" size="small" (onClick)="applyBenchmarkSelection()"
+                  [disabled]="!hasPendingBenchmarkChanges()" [loading]="isLoading" />
+              </div>
+            </ng-template>
+          </p-multiselect>
           <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4"
             icon="pi pi-filter-slash" (click)="clearFilters()" pTooltip="Clear all filters" />
         </div>
