@@ -54,6 +54,9 @@ export interface ExportColumn {
 export interface PoamAssociation {
   poamId: number;
   status: string;
+  isAssociated?: boolean;
+  parentStatus?: string;
+  parentPoamId?: number;
 }
 
 export interface PremadeFilterOption {

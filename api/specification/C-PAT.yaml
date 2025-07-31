@@ -4718,6 +4718,10 @@ paths:
                       type: string
                     vulnerabilityId:
                       type: string
+                    parentPoamId:
+                      type: string
+                    parentStatus:
+                      type: string
         '400':
           description: Bad Request
           content:
