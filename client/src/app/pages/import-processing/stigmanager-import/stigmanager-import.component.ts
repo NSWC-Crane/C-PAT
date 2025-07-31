@@ -43,6 +43,9 @@ interface STIGManagerFinding {
   assetCount: number;
   hasExistingPoam: boolean;
   poamStatus?: string;
+  isAssociated?: boolean;
+  parentStatus?: string;
+  parentPoamId?: number;
 }
 
 @Component({
@@ -377,15 +380,26 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       const existingPoam = this.existingPoams.find((poam: any) => poam.vulnerabilityId === item.groupId);
 
       item.hasExistingPoam = !!existingPoam;
-      item.poamStatus = existingPoam ? existingPoam.status : 'No Existing POAM';
+
+      if (existingPoam) {
+        item.poamStatus = existingPoam.status;
+        item.isAssociated = existingPoam.status === 'Associated';
+        item.parentStatus = existingPoam.parentStatus;
+        item.parentPoamId = existingPoam.parentPoamId;
+      } else {
+        item.poamStatus = 'No Existing POAM';
+        item.isAssociated = false;
+      }
     });
 
     this.displayDataSource = [...this.dataSource];
     this.findingsCount = this.displayDataSource.length;
   }
 
-  getPoamStatusColor(status: string): string {
-    switch (status?.toLowerCase()) {
+  getPoamStatusColor(status: string, parentStatus?: string): string {
+    const effectiveStatus = status === 'Associated' && parentStatus ? parentStatus : status;
+
+    switch (effectiveStatus?.toLowerCase()) {
       case 'draft':
         return 'darkorange';
       case 'expired':
@@ -400,14 +414,16 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         return 'black';
       case 'approved':
         return 'green';
-      case 'associated':
-        return 'dimgray';
       default:
         return 'gray';
     }
   }
 
-  getPoamStatusIcon(status: string): string {
+  getPoamStatusIcon(status: string, isAssociated?: boolean): string {
+    if (isAssociated) {
+      return 'pi pi-info-circle';
+    }
+
     switch (status?.toLowerCase()) {
       case 'no existing poam':
         return 'pi pi-plus-circle';
@@ -421,17 +437,21 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       case 'false-positive':
       case 'closed':
       case 'approved':
-      case 'associated':
         return 'pi pi-check-circle';
       default:
         return 'pi pi-question-circle';
     }
   }
 
-  getPoamStatusTooltip(status: string | undefined, hasExistingPoam: boolean): string {
+  getPoamStatusTooltip(status: string | undefined, hasExistingPoam: boolean, parentStatus?: string): string {
     if (!hasExistingPoam) return 'No Existing POAM. Click to create draft POAM.';
     if (!status) return 'POAM Status Unknown. Click to view POAM.';
-    if (hasExistingPoam && status === 'Associated') return 'This vulnerability is associated with an existing master POAM. Click icon to view POAM.';
+
+    if (hasExistingPoam && status === 'Associated') {
+      const parentStatusText = parentStatus ? ` (Parent POAM Status: ${parentStatus})` : '';
+
+      return `This vulnerability is associated with an existing POAM${parentStatusText}. Click icon to view POAM.`;
+    }
 
     return `POAM Status: ${status}. Click to view POAM.`;
   }

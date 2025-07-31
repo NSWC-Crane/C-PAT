@@ -1323,6 +1323,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               poam: !!poamAssociation,
               poamId: poamAssociation?.poamId || null,
               poamStatus: poamAssociation?.status ? poamAssociation.status : 'No Existing POAM',
+              isAssociated: poamAssociation?.isAssociated || false,
+              parentStatus: poamAssociation?.parentStatus,
+              parentPoamId: poamAssociation?.parentPoamId,
               iav: iavInfo.iav,
               navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
               pluginName: vuln.name || '',
@@ -2294,8 +2297,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  getPoamStatusColor(status: string): string {
-    switch (status?.toLowerCase()) {
+  getPoamStatusColor(status: string, parentStatus?: string): string {
+    const effectiveStatus = status === 'Associated' && parentStatus ? parentStatus : status;
+
+    switch (effectiveStatus?.toLowerCase()) {
       case 'draft':
         return 'darkorange';
       case 'expired':
@@ -2310,14 +2315,16 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         return 'black';
       case 'approved':
         return 'green';
-      case 'associated':
-        return 'dimgray';
       default:
         return 'gray';
     }
   }
 
-  getPoamStatusIcon(status: string): string {
+  getPoamStatusIcon(status: string, isAssociated?: boolean): string {
+    if (isAssociated) {
+      return 'pi pi-info-circle';
+    }
+
     switch (status?.toLowerCase()) {
       case 'no existing poam':
         return 'pi pi-plus-circle';
@@ -2331,34 +2338,24 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'false-positive':
       case 'closed':
       case 'approved':
-      case 'associated':
         return 'pi pi-check-circle';
       default:
         return 'pi pi-question-circle';
     }
   }
 
-  getPoamStatusTooltip(status: string | null): string {
+  getPoamStatusTooltip(status: string | null, hasExistingPoam?: boolean, parentStatus?: string): string {
     if (!status || status === 'No Existing POAM') {
       return 'No Existing POAM. Click icon to create draft POAM.';
     }
 
-    switch (status?.toLowerCase()) {
-      case 'expired':
-      case 'rejected':
-      case 'draft':
-      case 'submitted':
-      case 'pending cat-i approval':
-      case 'extension requested':
-      case 'false-positive':
-      case 'closed':
-      case 'approved':
-        return `POAM Status: ${status}. Click icon to view POAM.`;
-      case 'associated':
-        return 'This vulnerability is associated with an existing master POAM. Click icon to view POAM.';
-      default:
-        return 'POAM Status Unknown. Click icon to view POAM.';
+    if (hasExistingPoam && status === 'Associated') {
+      const parentStatusText = parentStatus ? ` (Parent POAM Status: ${parentStatus})` : '';
+
+      return `This vulnerability is associated with an existing POAM${parentStatusText}. Click icon to view POAM.`;
     }
+
+    return `POAM Status: ${status}. Click to view POAM.`;
   }
 
   showDetails(vulnerability: any, createPoam: boolean = false): Promise<void> {
@@ -2484,10 +2481,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     return this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).pipe(
       map((poamData) => {
         if (poamData && Array.isArray(poamData)) {
-          this.existingPoamPluginIDs = poamData.reduce((acc: { [key: string]: PoamAssociation }, item: { vulnerabilityId: string; poamId: number; status: string }) => {
+          this.existingPoamPluginIDs = poamData.reduce((acc: { [key: string]: PoamAssociation }, item: { vulnerabilityId: string; poamId: number; status: string; parentPoamId?: number; parentStatus?: string }) => {
             acc[item.vulnerabilityId] = {
               poamId: item.poamId,
-              status: item.status
+              status: item.status,
+              isAssociated: item.status === 'Associated',
+              parentStatus: item.parentStatus,
+              parentPoamId: item.parentPoamId
             };
 
             return acc;

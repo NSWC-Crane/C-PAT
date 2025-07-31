@@ -91,15 +91,11 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
                 poams.forEach((poam, index) => (poam.approvers = approversData[index] || []));
             }
             if (req.query.assets) {
-                const assetsData = await Promise.all(
-                    poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next))
-                );
+                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
                 poams.forEach((poam, index) => (poam.assets = assetsData[index] || []));
             }
             if (req.query.assignedTeams) {
-                const assignedTeamsData = await Promise.all(
-                    poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId))
-                );
+                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => (poam.assignedTeams = assignedTeamsData[index] || []));
             }
             if (req.query.associatedVulnerabilities) {
@@ -117,9 +113,7 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
                 poams.forEach((poam, index) => (poam.milestones = milestoneData[index] || []));
             }
             if (req.query.teamMitigations) {
-                const teamMitigationsData = await Promise.all(
-                    poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId))
-                );
+                const teamMitigationsData = await Promise.all(poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => (poam.teamMitigations = teamMitigationsData[index] || []));
             }
 
@@ -229,15 +223,11 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
                 poams.forEach(poam => (poam.approvers = approversData.filter(approver => approver.poamId === poam.poamId)));
             }
             if (req.query.assets) {
-                const assetsData = await Promise.all(
-                    poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next))
-                );
+                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
                 poams.forEach((poam, index) => (poam.assets = assetsData[index] || []));
             }
             if (req.query.assignedTeams) {
-                const assignedTeamsData = await Promise.all(
-                    poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId))
-                );
+                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => (poam.assignedTeams = assignedTeamsData[index] || []));
             }
             if (req.query.associatedVulnerabilities) {
@@ -255,9 +245,7 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
                 poams.forEach((poam, index) => (poam.milestones = milestoneData[index] || []));
             }
             if (req.query.teamMitigations) {
-                const teamMitigationsData = await Promise.all(
-                    poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId))
-                );
+                const teamMitigationsData = await Promise.all(poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => (poam.teamMitigations = teamMitigationsData[index] || []));
             }
 
@@ -305,15 +293,11 @@ exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next)
                 poams.forEach((poam, index) => (poam.approvers = approversData[index] || []));
             }
             if (req.query.assets) {
-                const assetsData = await Promise.all(
-                    poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next))
-                );
+                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
                 poams.forEach((poam, index) => (poam.assets = assetsData[index] || []));
             }
             if (req.query.assignedTeams) {
-                const assignedTeamsData = await Promise.all(
-                    poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId))
-                );
+                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => (poam.assignedTeams = assignedTeamsData[index] || []));
             }
             if (req.query.associatedVulnerabilities) {
@@ -331,9 +315,7 @@ exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next)
                 poams.forEach((poam, index) => (poam.milestones = milestoneData[index] || []));
             }
             if (req.query.teamMitigations) {
-                const teamMitigationsData = await Promise.all(
-                    poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId))
-                );
+                const teamMitigationsData = await Promise.all(poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId)));
                 poams.forEach((poam, index) => (poam.teamMitigations = teamMitigationsData[index] || []));
             }
 
@@ -372,13 +354,14 @@ exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilit
     try {
         return await withConnection(async connection => {
             let sql = `
-                SELECT poamId, status, vulnerabilityId
+                SELECT poamId, status, vulnerabilityId, NULL as parentPoamId, NULL as parentStatus
                 FROM ${config.database.schema}.poam
                 WHERE collectionId = ?
 
                 UNION ALL
 
-                SELECT pav.poamId, 'Associated' AS status, pav.associatedVulnerability AS vulnerabilityId
+                SELECT pav.poamId, 'Associated' AS status, pav.associatedVulnerability AS vulnerabilityId,
+                       po.poamId as parentPoamId, po.status as parentStatus
                 FROM ${config.database.schema}.poamassociatedvulnerabilities pav
                 JOIN ${config.database.schema}.poam po ON pav.poamId = po.poamId
                 WHERE po.collectionId = ?
@@ -679,9 +662,7 @@ exports.putPoam = async function putPoam(req, res, next) {
             await connection.beginTransaction();
 
             try {
-                const [existingPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [
-                    req.body.poamId,
-                ]);
+                const [existingPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.body.poamId]);
                 const existingPoam = existingPoamRow[0];
 
                 if (!existingPoam) {
@@ -739,9 +720,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                     req.body.poamId,
                 ]);
 
-                const [updatedPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [
-                    req.body.poamId,
-                ]);
+                const [updatedPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.body.poamId]);
                 const updatedPoamComparison = updatedPoamRow[0];
                 const updatedPoam = updatedPoamRow.map(row => ({
                     ...row,
@@ -1007,9 +986,7 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
 
     try {
         return await withConnection(async connection => {
-            const [existingPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [
-                req.params.poamId,
-            ]);
+            const [existingPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.params.poamId]);
 
             if (existingPoamRow.length === 0) {
                 return res.status(404).json({ errors: 'POAM not found' });
@@ -1018,9 +995,7 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
             const sqlUpdatePoam = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
             await connection.query(sqlUpdatePoam, [req.body.status, req.params.poamId]);
 
-            const [updatedPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [
-                req.params.poamId,
-            ]);
+            const [updatedPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.params.poamId]);
 
             const updatedPoam = updatedPoamRow.map(row => ({
                 ...row,
