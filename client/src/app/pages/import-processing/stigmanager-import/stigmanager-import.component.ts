@@ -138,6 +138,27 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   findingsCount: number = 0;
   reviewsCount: number = 0;
+  private processBenchmarkData(benchmarks: any[]): any[] {
+    return benchmarks.map((benchmark) => {
+      const totalAssessments = benchmark.metrics?.assessments || 0;
+      const assessed = benchmark.metrics?.assessed || 0;
+      const submitted = benchmark.metrics?.statuses?.submitted || 0;
+      const accepted = benchmark.metrics?.statuses?.accepted || 0;
+      const rejected = benchmark.metrics?.statuses?.rejected || 0;
+
+      return {
+        ...benchmark,
+        assessedPercentage: totalAssessments > 0 ? (assessed / totalAssessments) * 100 : 0,
+        submittedPercentage: totalAssessments > 0 ? ((submitted + accepted + rejected) / totalAssessments) * 100 : 0,
+        acceptedPercentage: totalAssessments > 0 ? (accepted / totalAssessments) * 100 : 0,
+        rejectedPercentage: totalAssessments > 0 ? (rejected / totalAssessments) * 100 : 0,
+        unassessedPercentage: totalAssessments > 0 ? ((totalAssessments - assessed) / totalAssessments) * 100 : 0,
+        cat3Count: benchmark.metrics?.findings?.low || 0,
+        cat2Count: benchmark.metrics?.findings?.medium || 0,
+        cat1Count: benchmark.metrics?.findings?.high || 0
+      };
+    });
+  }
 
   ngOnInit() {
     this.subscriptions.add(
@@ -243,7 +264,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.benchmarkSummaries = data;
+        this.benchmarkSummaries = this.processBenchmarkData(data);
       },
       error: (error) => {
         this.messageService.add({
