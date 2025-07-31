@@ -915,7 +915,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   async verifySubmitPoam(showDialog: boolean = true): Promise<boolean> {
-    const milestonesInEditMode = this.poamMilestones.filter((m) => m.editing || m.isNew);
+    const milestonesInEditMode = this.poamMilestones ? this.poamMilestones.filter((m) => m.editing || m.isNew) : [];
 
     if (milestonesInEditMode.length > 0) {
       this.messageService.add({
@@ -1094,14 +1094,20 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.teamMitigations[existingMitigationIndex].isActive = true;
         this.teamMitigations[existingMitigationIndex].assignedTeamName = event.team.assignedTeamName;
       }
+
+      if (!this.poam.isGlobalFinding && this.teamMitigations.filter((m) => m.isActive).length === 1) {
+        this.activeTabIndex = 0;
+      }
     } else if (event.action === 'deleted' && event.team?.assignedTeamId) {
       const mitigationIndex = this.teamMitigations.findIndex((m) => m.assignedTeamId === event.team.assignedTeamId);
 
       if (mitigationIndex > -1) {
         this.teamMitigations[mitigationIndex].isActive = false;
 
-        if (this.activeTabIndex > 0 && this.activeTabIndex === mitigationIndex + 1) {
-          this.activeTabIndex = 0;
+        if (!this.poam.isGlobalFinding && this.activeTabIndex === mitigationIndex) {
+          const activeTeams = this.teamMitigations.filter((m) => m.isActive);
+
+          this.activeTabIndex = activeTeams.length > 0 ? 0 : 0;
         }
       }
     }
@@ -1118,8 +1124,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         .filter((team, index, self) => index === self.findIndex((t) => t.assignedTeamId === team.assignedTeamId));
     }
 
-    if (this.activeTabIndex > 0 && this.activeTabIndex > this.teamMitigations.length) {
-      this.activeTabIndex = 0;
+    if (!this.poam.isGlobalFinding) {
+      const activeTeams = this.teamMitigations.filter((m) => m.isActive);
+
+      if (this.activeTabIndex >= activeTeams.length && activeTeams.length > 0) {
+        this.activeTabIndex = 0;
+      }
     }
   }
 
@@ -1226,14 +1236,34 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'info',
         summary: 'Global Finding Mode',
-        detail: 'Team-specific mitigations are now hidden. They will be preserved but not displayed.'
+        detail: 'Team-specific mitigations are now hidden. Use the global mitigation section below.'
       });
+    } else {
+      if (this.teamMitigations && this.teamMitigations.length > 0) {
+        this.activeTabIndex = 0;
+      } else {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Team Assignment Required',
+          detail: 'Please assign teams to this POAM in the Personnel section to enter team-specific mitigations, or enable Global Finding mode.'
+        });
+      }
     }
   }
 
-  onTabChange(_event: any): void {
-    if (this.poam.isGlobalFinding && this.activeTabIndex !== 0) {
+  onTabChange(event: any): void {
+    if (this.poam.isGlobalFinding && event.index !== 0) {
       setTimeout(() => (this.activeTabIndex = 0), 0);
+
+      return;
+    }
+
+    if (!this.poam.isGlobalFinding && this.teamMitigations) {
+      const maxIndex = this.teamMitigations.length - 1;
+
+      if (event.index > maxIndex) {
+        setTimeout(() => (this.activeTabIndex = 0), 0);
+      }
     }
   }
 
