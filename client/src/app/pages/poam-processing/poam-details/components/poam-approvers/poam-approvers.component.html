@@ -16,9 +16,10 @@
         <th scope="col" pSortableColumn="userId">Approver</th>
         <th scope="col" pSortableColumn="approvalStatus">Approval Status</th>
         <th scope="col" pSortableColumn="approvedDate">Approved Date</th>
-        <th scope="col" pSortableColumn="comments">Comments For Approver</th>
+        <th scope="col" pSortableColumn="comments">Approver Comments</th>
         <th scope="col" style="width: 8rem">
-          <p-button icon="pi pi-plus" (onClick)="addApprover()" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
+          <p-button icon="pi pi-plus" (onClick)="addApprover()" [rounded]="true" variant="text"
+            [disabled]="accessLevel < 2" />
         </th>
       </tr>
     </ng-template>
@@ -26,10 +27,12 @@
       <tr>
         <td>
           @if (!approver.isNew) {
-            <span>{{ getApproverName(approver.userId) }}</span>
+          <span>{{ getApproverName(approver.userId) }}</span>
           }
           @if (approver.isNew) {
-            <p-select [options]="collectionApprovers" [(ngModel)]="approver.userId" optionLabel="fullName" optionValue="userId" class="w-full" (onChange)="onApproverChange(approver)" appendTo="body" [disabled]="accessLevel < 2" />
+          <p-select [options]="collectionApprovers" [(ngModel)]="approver.userId" optionLabel="fullName"
+            optionValue="userId" class="w-full" (onChange)="onApproverChange(approver)" appendTo="body"
+            [disabled]="accessLevel < 2" />
           }
         </td>
         <td>{{ approver.approvalStatus }}</td>
@@ -38,14 +41,16 @@
         </td>
         <td>
           @if (!approver.isNew) {
-            <span>{{ approver.comments }}</span>
+          <span>{{ approver.comments }}</span>
           }
           @if (approver.isNew) {
-            <textarea pTextarea class="w-full" [(ngModel)]="approver.comments" [rows]="3" [maxlength]="2000" [disabled]="accessLevel < 2"></textarea>
+          <textarea pTextarea class="w-full" [(ngModel)]="approver.comments" [rows]="3" [maxlength]="2000"
+            [disabled]="accessLevel < 2"></textarea>
           }
         </td>
         <td>
-          <p-button icon="pi pi-trash" (onClick)="deleteApprover(rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
+          <p-button icon="pi pi-trash" (onClick)="deleteApprover(rowIndex)" [rounded]="true" variant="text"
+            severity="danger" [disabled]="accessLevel < 2" />
         </td>
       </tr>
     </ng-template>
