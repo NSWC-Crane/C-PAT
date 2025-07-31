@@ -27,7 +27,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
-import { forkJoin } from 'rxjs';
+import { forkJoin, map } from 'rxjs';
 import { SharedService } from 'src/app/common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 
@@ -93,6 +93,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   readonly reviewsCountChange = output<number>();
   @Input() stigmanCollectionId!: number;
   readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  readonly benchmarkMultiSelect = viewChild.required<MultiSelect>('benchmarkMs');
   readonly treeTable = viewChild.required<TreeTable>('tt');
   readonly filterPopover = viewChild.required<Popover>('filterPopover');
   currentFilterColumn: any = null;
@@ -104,7 +105,8 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   isLoading: boolean = true;
   totalRecords: number = 0;
   benchmarkOptions: BenchmarkOption[] = [];
-  selectedBenchmarkId: string | null = null;
+  appliedBenchmarkIds: string[] = [];
+  selectedBenchmarkIds: string[] = [];
   showBenchmarkSelector: boolean = true;
   labels: Label[] = [];
   resultOptions: { label: string; value: string }[] = [];
@@ -119,7 +121,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     result: 'fail'
   };
 
-  resultMapping: ValueMapping = {
+  readonly resultMapping: ValueMapping = {
     all: 'All',
     notchecked: 'Not checked',
     notapplicable: 'Not Applicable',
@@ -132,40 +134,40 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     fixed: 'Fixed'
   };
 
-  severityMapping: ValueMapping = {
+  readonly severityMapping: ValueMapping = {
     low: 'CAT III - Low',
     medium: 'CAT II - Medium',
     high: 'CAT I - High'
   };
 
-  statusMapping: ValueMapping = {
+  readonly statusMapping: ValueMapping = {
     saved: 'Saved',
     submitted: 'Submitted',
     rejected: 'Rejected',
     accepted: 'Accepted'
   };
 
-  statusIcons = {
+  readonly statusIcons = {
     Accepted: 'pi-star',
     Rejected: 'pi-times-circle',
     Saved: 'pi-bookmark-fill',
     Submitted: 'pi-reply'
   };
 
-  dateFilterOptions: FilterOption[] = [
+  readonly dateFilterOptions: FilterOption[] = [
     { label: 'Date is', value: 'equals' },
     { label: 'Date is not', value: 'notEquals' },
     { label: 'Date before', value: 'before' },
     { label: 'Date after', value: 'after' }
   ];
 
-  severityFilterOptions: FilterOption[] = [
+  readonly severityFilterOptions: FilterOption[] = [
     { label: 'CAT I - High', value: 'high' },
     { label: 'CAT II - Medium', value: 'medium' },
     { label: 'CAT III - Low', value: 'low' }
   ];
 
-  versionFilterOptions: FilterOption[] = [
+  readonly versionFilterOptions: FilterOption[] = [
     { label: 'Version is', value: 'equals' },
     { label: 'Version is not', value: 'notEquals' },
     { label: 'Version is less than', value: 'lt' },
@@ -196,20 +198,63 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   onResultFilterChange(value: string) {
     this.filterState.result = value;
 
-    if (this.selectedBenchmarkId) {
+    if (this.appliedBenchmarkIds.length > 0) {
       this.filterPopover().hide();
       this.loadReviews();
     }
   }
 
+  applyBenchmarkSelection() {
+    if (this.selectedBenchmarkIds.length === 0) {
+      this.clearBenchmarkSelection();
+      this.benchmarkMultiSelect().hide();
+
+      return;
+    }
+
+    const hasChanged = this.hasPendingBenchmarkChanges();
+
+    if (hasChanged) {
+      this.appliedBenchmarkIds = [...this.selectedBenchmarkIds];
+      this.loadReviews();
+    }
+
+    this.benchmarkMultiSelect().hide();
+  }
+
+  clearBenchmarkSelection() {
+    this.selectedBenchmarkIds = [];
+    this.appliedBenchmarkIds = [];
+    this.resetDataState();
+  }
+
+  hasPendingBenchmarkChanges(): boolean {
+    return this.appliedBenchmarkIds.length !== this.selectedBenchmarkIds.length || !this.appliedBenchmarkIds.every((id) => this.selectedBenchmarkIds.includes(id));
+  }
+
+  private resetDataState() {
+    this.treeNodes = [];
+    this.originalTreeNodes = [];
+    this.reviews = [];
+    this.totalRecords = 0;
+    this.assetCount = 0;
+    this.reviewsCountChange.emit(0);
+    this.showBenchmarkSelector = true;
+  }
+
   loadReviews() {
+    if (this.appliedBenchmarkIds.length === 0) {
+      return;
+    }
+
     this.isLoading = true;
     this.showBenchmarkSelector = false;
 
     const savedFilterState = this.cloneFilterState();
+    const reviewRequests = this.appliedBenchmarkIds.map((benchmarkId) => this.sharedService.getReviewsFromSTIGMAN(this.stigmanCollectionId, this.filterState.result, benchmarkId));
 
     forkJoin({
-      reviews: this.sharedService.getReviewsFromSTIGMAN(this.stigmanCollectionId, this.filterState.result, this.selectedBenchmarkId),
+      reviews: forkJoin(reviewRequests).pipe(map((reviewArrays: any[][]) => reviewArrays.flat())),
       labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
     }).subscribe({
       next: ({ reviews, labels }) => {
@@ -283,12 +328,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     });
   }
 
-  onBenchmarkChange() {
-    if (this.selectedBenchmarkId) {
-      this.loadReviews();
-    }
-  }
-
   getStatusIcon(status: string): string {
     return this.statusIcons[status] || 'pi-question';
   }
@@ -312,7 +351,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
     const treeNodes: TreeNode[] = [];
 
-    assetGroups.forEach((assetReviews, _assetName) => {
+    assetGroups.forEach((assetReviews) => {
       const firstReview = assetReviews[0];
       const otherReviews = assetReviews.slice(1);
 
@@ -443,7 +482,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
       this.filterState.result = 'fail';
 
-      if (previousResult !== 'fail' && this.selectedBenchmarkId) {
+      if (previousResult !== 'fail' && this.appliedBenchmarkIds.length > 0) {
         this.loadReviews();
       }
 
@@ -477,7 +516,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       result: 'fail'
     };
 
-    if (needsReload && this.selectedBenchmarkId) {
+    if (needsReload && this.appliedBenchmarkIds.length > 0) {
       this.loadReviews();
     } else {
       this.resetTreeNodes();
@@ -724,13 +763,8 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   }
 
   showFilterPanel(event: Event, col: any) {
-    if (this.currentFilterColumn) {
-      this.currentFilterColumn = col;
-      this.filterPopover().show(event);
-    } else {
-      this.currentFilterColumn = col;
-      this.filterPopover().show(event);
-    }
+    this.currentFilterColumn = col;
+    this.filterPopover().show(event);
   }
 
   toggleAddColumnOverlay() {
