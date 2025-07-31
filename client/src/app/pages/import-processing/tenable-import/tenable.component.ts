@@ -28,6 +28,7 @@ export class TenableComponent {
   readonly vulnerabilitiesComponent = viewChild.required(TenableVulnerabilitiesComponent);
 
   mainTotal: number = 0;
+  thirtyPlusTotal: number = 0;
   exploitableTotal: number = 0;
   iavVulnerabilitiesCount: number = 0;
   taskOrderCount: number = 0;
