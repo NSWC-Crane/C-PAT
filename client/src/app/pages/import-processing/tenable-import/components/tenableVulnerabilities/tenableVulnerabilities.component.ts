@@ -969,6 +969,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     if (this.currentPreset === 'exploitAvailable') {
       this.tempFilters['exploitAvailable'] = 'true';
+    } else if (this.currentPreset === 'thirtyPlus') {
+      this.tempFilters['severity'] = ['1', '2', '3', '4'];
+      this.tempFilters['lastSeen'] = '0:30';
+      this.tempFilters['vulnPublished'] = '30:all';
     } else if (this.currentPreset === 'failedCredential') {
       this.tempFilters['pluginID'] = { operator: '=', value: '117886,10428,21745,24786,26917,102094,104410,110385,110723' };
     } else if (this.currentPreset === 'seol') {
@@ -1938,6 +1942,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     if (this.currentPreset === 'exploitAvailable') {
       this.tempFilters['exploitAvailable'] = 'true';
+    } else if (this.currentPreset === 'thirtyPlus') {
+      this.tempFilters['severity'] = ['1', '2', '3', '4'];
+      this.tempFilters['lastSeen'] = '0:30';
+      this.tempFilters['vulnPublished'] = '30:all';
     } else if (this.currentPreset === 'failedCredential') {
       this.tempFilters['pluginID'] = { operator: '=', value: '117886,10428,21745,24786,26917,102094,104410,110385,110723' };
     } else if (this.currentPreset === 'seol') {
