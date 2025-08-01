@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { ToastModule } from 'primeng/toast';
@@ -34,7 +35,7 @@ import { PoamMainchartComponent } from '../poam-mainchart/poam-mainchart.compone
   styleUrls: ['./poam-manage.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamMainchartComponent, PoamAssignedGridComponent, PoamGridComponent],
+  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamMainchartComponent, PoamAssignedGridComponent, PoamGridComponent],
   providers: [MessageService]
 })
 export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -70,6 +71,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   user = signal<any>(null);
   payload = signal<any>(null);
   accessLevel = signal<number>(0);
+  isGridExpanded = signal<boolean>(false);
   private subs = new SubSink();
 
   private readonly CLOSED_STATUSES = new Set(['Closed', 'Draft', 'False-Positive']);
@@ -839,6 +841,10 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     return chartData;
+  }
+
+  toggleGridExpanded(): void {
+    this.isGridExpanded.set(!this.isGridExpanded());
   }
 
   ngOnDestroy() {

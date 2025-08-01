@@ -19,7 +19,12 @@
     text-align: center;
     padding: 1rem 0 1rem 0;
     color: var(--p-tabs-tab-color);
-    transition: background var(--p-tabs-transition-duration), border-color var(--p-tabs-transition-duration), color var(--p-tabs-transition-duration), outline-color var(--p-tabs-transition-duration), box-shadow var(--p-tabs-transition-duration);
+    transition:
+      background var(--p-tabs-transition-duration),
+      border-color var(--p-tabs-transition-duration),
+      color var(--p-tabs-transition-duration),
+      outline-color var(--p-tabs-transition-duration),
+      box-shadow var(--p-tabs-transition-duration);
   }
 
   .chart-title:hover {
@@ -280,6 +285,29 @@
           border-left: 0 !important;
           border-right: 0 !important;
         }
+      }
+    }
+  }
+}
+
+.grid > div {
+  transition: all 0.3s ease-in-out;
+}
+
+:host ::ng-deep {
+  .p-tablist:has(.p-tablist-nav-button.p-tablist-next-button:not([style*='display: none'])) {
+    .justify-end {
+      padding-top: 0.4rem !important;
+      padding-right: 2.5rem !important;
+    }
+  }
+
+  .assigned-grid {
+    &.p-card {
+      transition: all 0.3s ease-in-out;
+
+      .p-card-header {
+        padding: 0;
       }
     }
   }
