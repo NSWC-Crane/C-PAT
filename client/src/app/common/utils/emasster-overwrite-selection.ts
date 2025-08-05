@@ -11,7 +11,6 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PickListModule } from 'primeng/picklist';
 
@@ -24,7 +23,7 @@ export interface EMassField {
 @Component({
   selector: 'cpat-emasster-field-selection-dialog',
   standalone: true,
-  imports: [FormsModule, CardModule, PickListModule, ButtonModule],
+  imports: [FormsModule, PickListModule, ButtonModule],
   template: `
     <div class="flex flex-col min-w-[800px]">
       <div class="text-xl font-semibold mb-6 text-center">eMASSter POAM Fields to Overwrite</div>
