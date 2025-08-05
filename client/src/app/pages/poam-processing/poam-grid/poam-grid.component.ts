@@ -34,6 +34,7 @@ import { PoamExportService } from '../../../common/utils/poam-export.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
 import { PoamService } from '../poams.service';
+import { PoamExportStatusSelectionComponent } from '../../../common/utils/poam-export-status-selection.component';
 
 @Component({
   selector: 'cpat-poam-grid',
@@ -263,33 +264,45 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   }
 
   exportCollection() {
-    this.messageService.add({
-      severity: 'secondary',
-      summary: 'Export Started',
-      detail: 'Download will automatically start momentarily.'
+    this.dialogRef = this.dialogService.open(PoamExportStatusSelectionComponent, {
+      modal: true,
+      dismissableMask: true
     });
 
-    const collectionId = this.selectedCollectionId();
-    const collection = this.selectedCollection();
-    const poams = this.poamsDataSignal();
+    this.dialogRef.onClose.subscribe((selectedStatuses: string[] | null) => {
+      if (!selectedStatuses || selectedStatuses.length === 0) {
+        return;
+      }
 
-    if (!collectionId || !poams?.length) {
       this.messageService.add({
-        severity: 'error',
-        summary: 'No Data',
-        detail: 'There are no POAMs to export for this collection.'
+        severity: 'secondary',
+        summary: 'Export Started',
+        detail: 'Download will automatically start momentarily.'
       });
 
-      return;
-    }
+      const collectionId = this.selectedCollectionId();
+      const collection = this.selectedCollection();
+      const allPoams = this.poamsDataSignal();
+      const poams = allPoams.filter((poam) => selectedStatuses.includes(poam.status.toLowerCase()));
 
-    if (collection.collectionOrigin === 'STIG Manager') {
-      this.processPoamsWithStigFindings(poams, collection.originCollectionId).then((processedPoams) => this.generateExcelFile(processedPoams));
-    } else if (collection.collectionOrigin === 'Tenable') {
-      this.processPoamsWithTenableFindings(poams).then((processedPoams) => this.generateExcelFile(processedPoams));
-    } else {
-      this.processDefaultPoams(poams, collectionId);
-    }
+      if (!collectionId || !poams?.length) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No Data',
+          detail: 'There are no POAMs with the selected statuses to export for this collection.'
+        });
+
+        return;
+      }
+
+      if (collection.collectionOrigin === 'STIG Manager') {
+        this.processPoamsWithStigFindings(poams, collection.originCollectionId).then((processedPoams) => this.generateExcelFile(processedPoams));
+      } else if (collection.collectionOrigin === 'Tenable') {
+        this.processPoamsWithTenableFindings(poams).then((processedPoams) => this.generateExcelFile(processedPoams));
+      } else {
+        this.processDefaultPoams(poams, collectionId);
+      }
+    });
   }
 
   private processDefaultPoams(poams: any[], collectionId: any) {
