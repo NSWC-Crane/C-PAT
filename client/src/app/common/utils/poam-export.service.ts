@@ -123,22 +123,12 @@ export class PoamExportService {
   private static formatMitigations(poam: Poam): string {
     let formattedMitigations = '';
 
-    const hasActiveTeamMitigations = poam.teamMitigations && poam.teamMitigations.some((tm) => tm.isActive);
-
-    if (poam.mitigations) {
-      if (hasActiveTeamMitigations) {
-        formattedMitigations = `Global Mitigation:\n${poam.mitigations}`;
-      } else {
-        formattedMitigations = poam.mitigations;
-      }
+    if (poam.mitigations && poam.isGlobalFinding) {
+      formattedMitigations = `Global Mitigation:\n${poam.mitigations}`;
     }
 
-    if (hasActiveTeamMitigations) {
-      const activeMitigations = poam.teamMitigations.filter((tm) => tm.isActive);
-
-      if (formattedMitigations) {
-        formattedMitigations += '\n\n';
-      }
+    if (poam?.teamMitigations?.some((tm) => tm.isActive && tm.mitigationText?.trim()) && !poam?.isGlobalFinding) {
+      const activeMitigations = poam.teamMitigations.filter((tm) => tm.isActive && tm.mitigationText?.trim());
 
       activeMitigations.forEach((tm) => {
         formattedMitigations += `${tm.assignedTeamName} Team Mitigation:\n${tm.mitigationText}\n\n`;
@@ -279,8 +269,6 @@ export class PoamExportService {
     };
 
     poams.forEach((poam: Poam) => {
-      if (poam.status === 'Draft') return;
-
       const row = worksheet!.getRow(rowIndex);
 
       Object.entries(excelColumnToDbColumnMapping).forEach(([columnKey, dbKey]) => {
