@@ -323,24 +323,21 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     });
   }
 
-  private generateExcelFile(processedPoams: any[]) {
+  private async generateExcelFile(processedPoams: any[]) {
     try {
-      PoamExportService.convertToExcel(processedPoams, this.user(), this.selectedCollection()).then((excelData) => {
-        const excelURL = window.URL.createObjectURL(excelData);
-        const exportName = this.selectedCollection()?.collectionName.replace(' ', '_');
+      const excelData = await PoamExportService.convertToExcel(processedPoams, this.user(), this.selectedCollection());
 
-        const link = document.createElement('a');
+      const excelURL = window.URL.createObjectURL(excelData);
+      const exportName = this.selectedCollection()?.collectionName.replace(' ', '_');
 
-        link.id = 'download-excel';
-        link.setAttribute('href', excelURL);
-        link.setAttribute('download', `${exportName}_CPAT_Export.xlsx`);
-        document.body.appendChild(link);
-
-        link.click();
-        document.body.removeChild(link);
-
-        window.URL.revokeObjectURL(excelURL);
-      });
+      const link = document.createElement('a');
+      link.id = 'download-excel';
+      link.setAttribute('href', excelURL);
+      link.setAttribute('download', `${exportName}_CPAT_Export.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(excelURL);
     } catch (error) {
       this.messageService.add({
         severity: 'error',
