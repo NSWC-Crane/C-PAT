@@ -11,21 +11,31 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { PoamApproversComponent } from './poam-approvers.component';
+import { MessageService } from 'primeng/api';
 
 describe('PoamApproversComponent', () => {
   let component: PoamApproversComponent;
   let fixture: ComponentFixture<PoamApproversComponent>;
+  let mockMessageService: jasmine.SpyObj<MessageService>;
   let mockPoamService: any;
 
   beforeEach(async () => {
     mockPoamService = {
       getPoamApprovers: jasmine.createSpy('getPoamApprovers').and.returnValue(of([]))
     };
+    mockMessageService = {
+      add: jasmine.createSpy('add'),
+      addAll: jasmine.createSpy('addAll'),
+      clear: jasmine.createSpy('clear'),
+      messageObserver: new Subject().asObservable(),
+      clearObserver: new Subject().asObservable()
+    } as jasmine.SpyObj<MessageService>;
 
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PoamApproversComponent, FormsModule]
+      imports: [NoopAnimationsModule, PoamApproversComponent, FormsModule],
+      providers: [{ provide: MessageService, useValue: mockMessageService }]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PoamApproversComponent);
@@ -245,14 +255,12 @@ describe('PoamApproversComponent', () => {
     });
 
     it('should handle error when fetching approvers', () => {
-      const messageServiceSpy = spyOn(component['messageService'], 'add');
-
       mockPoamService.getPoamApprovers.and.returnValue(throwError(() => new Error('Test error')));
 
       component.getPoamApprovers();
 
       expect(mockPoamService.getPoamApprovers).toHaveBeenCalledWith('12345');
-      expect(messageServiceSpy).toHaveBeenCalledWith({
+      expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'error',
         summary: 'Error',
         detail: 'Failed to load approvers: Test error'
