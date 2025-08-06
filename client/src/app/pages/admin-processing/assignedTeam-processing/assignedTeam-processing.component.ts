@@ -43,8 +43,7 @@ interface AssignedTeam {
   templateUrl: './assignedTeam-processing.component.html',
   styleUrls: ['./assignedTeam-processing.component.scss'],
   standalone: true,
-  imports: [AutoCompleteModule, ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule],
-  providers: [MessageService]
+  imports: [AutoCompleteModule, ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule]
 })
 export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   private assetDeltaService = inject(AssetDeltaService);

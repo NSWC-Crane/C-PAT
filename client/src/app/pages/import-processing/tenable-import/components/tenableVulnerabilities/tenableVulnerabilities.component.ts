@@ -81,8 +81,7 @@ import { TenableFiltersComponent } from '../../components/tenableFilters/tenable
     TooltipModule,
     TenableFiltersComponent,
     TagModule
-  ],
-  providers: [MessageService]
+  ]
 })
 export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   private importService = inject(ImportService);

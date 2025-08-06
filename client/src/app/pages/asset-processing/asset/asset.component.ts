@@ -30,8 +30,7 @@ import { AssetService } from '../assets.service';
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CardModule, DialogModule, Select, FormsModule, InputTextModule, TableModule, ToastModule],
-  providers: [MessageService]
+  imports: [ButtonModule, CardModule, DialogModule, Select, FormsModule, InputTextModule, TableModule, ToastModule]
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   private assetService = inject(AssetService);

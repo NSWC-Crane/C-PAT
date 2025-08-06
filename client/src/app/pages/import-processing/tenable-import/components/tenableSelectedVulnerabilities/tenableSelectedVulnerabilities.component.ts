@@ -57,8 +57,7 @@ interface NavyComplyDateFilter {
   templateUrl: './tenableSelectedVulnerabilities.component.html',
   styleUrls: ['./tenableSelectedVulnerabilities.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, DialogModule, Select, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, SkeletonModule, TableModule, ToastModule, TooltipModule, TagModule],
-  providers: [MessageService]
+  imports: [ButtonModule, CommonModule, DialogModule, Select, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, SkeletonModule, TableModule, ToastModule, TooltipModule, TagModule]
 })
 export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestroy {
   private importService = inject(ImportService);

@@ -29,8 +29,7 @@ import { VRAMImportService } from './vram-import.service';
   templateUrl: './vram-import.component.html',
   styleUrls: ['./vram-import.component.scss'],
   standalone: true,
-  imports: [BadgeModule, ButtonModule, CardModule, CommonModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, VramPopupComponent],
-  providers: [MessageService]
+  imports: [BadgeModule, ButtonModule, CardModule, CommonModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, VramPopupComponent]
 })
 export class VRAMImportComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);

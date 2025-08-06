@@ -23,8 +23,7 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
   selector: 'cpat-poam-approvers',
   templateUrl: './poam-approvers.component.html',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TextareaModule, SelectModule, ToastModule],
-  providers: [MessageService]
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TextareaModule, SelectModule, ToastModule]
 })
 export class PoamApproversComponent implements OnInit {
   @Input() poamId: any;

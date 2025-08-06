@@ -70,8 +70,7 @@ interface STIGManagerFinding {
     IconFieldModule,
     ProgressBarModule,
     TagModule
-  ],
-  providers: [MessageService]
+  ]
 })
 export class STIGManagerImportComponent implements OnInit, OnDestroy {
   private router = inject(Router);

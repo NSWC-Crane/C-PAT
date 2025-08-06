@@ -212,7 +212,6 @@ interface OperationError {
   styleUrls: ['./app-info.component.scss'],
   standalone: true,
   imports: [ButtonModule, ChartModule, CommonModule, TabsModule, ToastModule, CardModule, TableModule, FormsModule, PanelModule],
-  providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppInfoComponent implements OnInit {

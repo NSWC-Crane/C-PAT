@@ -45,8 +45,7 @@ interface TreeNode<T> {
   templateUrl: './collection-processing.component.html',
   styleUrls: ['./collection-processing.component.scss'],
   standalone: true,
-  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, TextareaModule, ToastModule, TreeTableModule],
-  providers: [MessageService]
+  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, TextareaModule, ToastModule, TreeTableModule]
 })
 export class CollectionProcessingComponent implements OnInit, OnDestroy {
   private aaPackageService = inject(AAPackageService);

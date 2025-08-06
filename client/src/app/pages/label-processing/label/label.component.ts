@@ -29,8 +29,7 @@ import { LabelService } from '../label.service';
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, DialogModule, InputTextModule, ToastModule],
-  providers: [MessageService, DialogService]
+  imports: [FormsModule, ButtonModule, DialogModule, InputTextModule, ToastModule]
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   private labelService = inject(LabelService);

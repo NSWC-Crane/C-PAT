@@ -26,8 +26,7 @@ import { AppConfigurationService } from './app-configuration.service';
   templateUrl: './app-configuration.component.html',
   styleUrls: ['./app-configuration.component.scss'],
   standalone: true,
-  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule],
-  providers: [MessageService]
+  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
 })
 export class AppConfigurationComponent implements OnInit {
   private appConfigurationService = inject(AppConfigurationService);

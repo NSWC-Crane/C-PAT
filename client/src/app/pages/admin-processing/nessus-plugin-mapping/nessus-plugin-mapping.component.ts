@@ -31,8 +31,7 @@ import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
   templateUrl: './nessus-plugin-mapping.component.html',
   styleUrls: ['./nessus-plugin-mapping.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule],
-  providers: [MessageService]
+  imports: [ButtonModule, CommonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule]
 })
 export class NessusPluginMappingComponent implements OnInit, OnChanges, OnDestroy {
   private messageService = inject(MessageService);

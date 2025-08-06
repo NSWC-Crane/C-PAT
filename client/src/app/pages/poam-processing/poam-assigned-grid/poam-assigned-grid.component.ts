@@ -12,7 +12,6 @@ import { Component, Input, computed, signal, inject, viewChild } from '@angular/
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { addDays, format } from 'date-fns';
-import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -56,8 +55,7 @@ interface ColumnConfig {
   templateUrl: './poam-assigned-grid.component.html',
   styleUrls: ['./poam-assigned-grid.component.scss'],
   standalone: true,
-  imports: [ButtonModule, FormsModule, TableModule, ProgressSpinnerModule, IconFieldModule, InputIconModule, InputTextModule, TagModule, TooltipModule],
-  providers: [MessageService]
+  imports: [ButtonModule, FormsModule, TableModule, ProgressSpinnerModule, IconFieldModule, InputIconModule, InputTextModule, TagModule, TooltipModule]
 })
 export class PoamAssignedGridComponent {
   private router = inject(Router);

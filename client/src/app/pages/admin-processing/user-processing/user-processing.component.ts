@@ -33,8 +33,7 @@ import { UsersService } from './users.service';
   templateUrl: './user-processing.component.html',
   styleUrls: ['./user-processing.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, Select, FormsModule, InputIconModule, InputTextModule, IconFieldModule, TableModule, TreeTableModule, UserComponent],
-  providers: [ConfirmationService]
+  imports: [ButtonModule, CommonModule, Select, FormsModule, InputIconModule, InputTextModule, IconFieldModule, TableModule, TreeTableModule, UserComponent]
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {
   private collectionsService = inject(CollectionsService);

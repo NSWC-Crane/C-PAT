@@ -74,7 +74,6 @@ interface ChartData {
   styleUrls: ['./asset-delta.component.scss'],
   standalone: true,
   imports: [BadgeModule, ButtonModule, CardModule, ChartModule, CommonModule, DialogModule, FileUploadModule, FloatLabel, FormsModule, InputTextModule, IconField, InputIcon, ProgressBarModule, SelectModule, TableModule, ToastModule, TooltipModule],
-  providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {

@@ -33,8 +33,7 @@ interface STIGManagerCollection {
   templateUrl: './stigmanager-admin.component.html',
   styleUrls: ['./stigmanager-admin.component.scss'],
   standalone: true,
-  imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
-  providers: [ConfirmationService, MessageService]
+  imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule]
 })
 export class STIGManagerAdminComponent implements OnInit, OnDestroy {
   private collectionsService = inject(CollectionsService);
