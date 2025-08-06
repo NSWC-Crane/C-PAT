@@ -38,8 +38,7 @@ interface FilterOption {
   templateUrl: './tenableFilters.component.html',
   styleUrls: ['./tenableFilters.component.scss'],
   standalone: true,
-  imports: [FormsModule, AutoCompleteModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, ToastModule, TooltipModule],
-  providers: [MessageService]
+  imports: [FormsModule, AutoCompleteModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, ToastModule, TooltipModule]
 })
 export class TenableFiltersComponent implements OnInit, OnDestroy {
   private importService = inject(ImportService);

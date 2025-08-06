@@ -16,7 +16,7 @@ import { CardModule } from 'primeng/card';
 import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DividerModule } from 'primeng/divider';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ImageModule } from 'primeng/image';
 import { ToastModule } from 'primeng/toast';
 import { filter, forkJoin, switchMap, take } from 'rxjs';
@@ -40,8 +40,7 @@ interface Theme {
   templateUrl: './marketplace.component.html',
   styleUrls: ['./marketplace.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CardModule, ChipModule, ConfirmDialogModule, DividerModule, ToastModule, ImageModule],
-  providers: [DialogService, ConfirmationService, MessageService]
+  imports: [ButtonModule, CardModule, ChipModule, ConfirmDialogModule, DividerModule, ToastModule, ImageModule]
 })
 export class MarketplaceComponent implements OnInit, OnDestroy {
   private marketplaceService = inject(MarketplaceService);

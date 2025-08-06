@@ -25,6 +25,7 @@ import { AppComponent } from './app/app.component';
 import { authErrorInterceptor } from './app/core/auth/interceptor/auth-error.interceptor';
 import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
 import { environment } from './environments/environment';
+import { DialogService } from 'primeng/dynamicdialog';
 
 if (environment.production) {
   enableProdMode();
@@ -138,6 +139,7 @@ bootstrapApplication(AppComponent, {
     ),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, authErrorInterceptor])),
     MessageService,
-    ConfirmationService
+    ConfirmationService,
+    DialogService
   ]
 }).catch((err) => console.error(err));

@@ -35,8 +35,7 @@ import { PoamMainchartComponent } from '../poam-mainchart/poam-mainchart.compone
   styleUrls: ['./poam-manage.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamMainchartComponent, PoamAssignedGridComponent, PoamGridComponent],
-  providers: [MessageService]
+  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamMainchartComponent, PoamAssignedGridComponent, PoamGridComponent]
 })
 export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
   private collectionsService = inject(CollectionsService);

@@ -30,8 +30,7 @@ interface FSEntry {
   templateUrl: './poam-log.component.html',
   styleUrls: ['./poam-log.component.scss'],
   standalone: true,
-  imports: [DialogModule, TableModule, ToastModule],
-  providers: [MessageService]
+  imports: [DialogModule, TableModule, ToastModule]
 })
 export class PoamLogComponent implements OnInit {
   private router = inject(Router);

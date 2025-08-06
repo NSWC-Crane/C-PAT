@@ -44,7 +44,7 @@ export interface PoamApproval {
   styleUrls: ['./poam-approve.component.scss'],
   standalone: true,
   imports: [FormsModule, ButtonModule, DatePicker, CheckboxModule, DialogModule, Select, TextareaModule, ToastModule],
-  providers: [MessageService, DatePipe]
+  providers: [DatePipe]
 })
 export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   private messageService = inject(MessageService);

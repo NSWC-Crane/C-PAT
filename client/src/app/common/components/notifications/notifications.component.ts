@@ -28,8 +28,7 @@ import { NotificationService } from './notifications.service';
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CardModule, CommonModule, TableModule, ToastModule, Select, FormsModule],
-  providers: [MessageService]
+  imports: [ButtonModule, CardModule, CommonModule, TableModule, ToastModule, Select, FormsModule]
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
   private notificationService = inject(NotificationService);

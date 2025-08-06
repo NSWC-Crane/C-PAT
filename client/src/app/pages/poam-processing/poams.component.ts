@@ -24,8 +24,7 @@ import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.componen
   templateUrl: './poams.component.html',
   styleUrls: ['./poams.component.scss'],
   standalone: true,
-  imports: [PoamMainchartComponent, ToastModule],
-  providers: [MessageService]
+  imports: [PoamMainchartComponent, ToastModule]
 })
 export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   private collectionsService = inject(CollectionsService);

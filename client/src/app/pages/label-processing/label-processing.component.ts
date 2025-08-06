@@ -37,8 +37,7 @@ import { LabelComponent } from './label/label.component';
   templateUrl: './label-processing.component.html',
   styleUrls: ['./label-processing.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, CardModule, DialogModule, Select, InputTextModule, InputIconModule, IconFieldModule, TableModule, ToastModule, TooltipModule, LabelComponent],
-  providers: [DialogService, MessageService]
+  imports: [FormsModule, ButtonModule, CardModule, DialogModule, Select, InputTextModule, InputIconModule, IconFieldModule, TableModule, ToastModule, TooltipModule, LabelComponent]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
   private labelService = inject(LabelService);

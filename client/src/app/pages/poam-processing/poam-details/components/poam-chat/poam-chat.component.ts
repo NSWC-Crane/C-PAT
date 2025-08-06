@@ -25,8 +25,7 @@ import { PoamChatService } from '../../services/poam-chat.service';
   templateUrl: './poam-chat.component.html',
   styleUrls: ['./poam-chat.component.scss'],
   standalone: true,
-  imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule, ToastModule],
-  providers: [MessageService]
+  imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule, ToastModule]
 })
 export class PoamChatComponent implements OnInit {
   private poamChatService = inject(PoamChatService);

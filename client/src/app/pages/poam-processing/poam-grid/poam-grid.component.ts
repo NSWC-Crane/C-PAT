@@ -41,8 +41,7 @@ import { PoamExportStatusSelectionComponent } from '../../../common/utils/poam-e
   templateUrl: './poam-grid.component.html',
   styleUrls: ['./poam-grid.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, CardModule, Select, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, TableModule, TooltipModule, ToastModule, TagModule],
-  providers: [MessageService, DialogService]
+  imports: [FormsModule, ButtonModule, CardModule, Select, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, TableModule, TooltipModule, ToastModule, TagModule]
 })
 export class PoamGridComponent implements OnInit, OnDestroy {
   private dialogService = inject(DialogService);

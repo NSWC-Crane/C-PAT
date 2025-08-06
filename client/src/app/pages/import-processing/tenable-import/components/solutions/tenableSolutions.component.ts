@@ -36,8 +36,7 @@ interface ExportColumn {
   templateUrl: './tenableSolutions.component.html',
   styleUrls: ['./tenableSolutions.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, DialogModule, SkeletonModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule, ToastModule],
-  providers: [MessageService]
+  imports: [FormsModule, ButtonModule, DialogModule, SkeletonModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule, ToastModule]
 })
 export class TenableSolutionsComponent implements OnInit, OnDestroy {
   private importService = inject(ImportService);

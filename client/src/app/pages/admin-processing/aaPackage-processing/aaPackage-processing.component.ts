@@ -26,8 +26,7 @@ import { AAPackageService } from './aaPackage-processing.service';
   templateUrl: './aaPackage-processing.component.html',
   styleUrls: ['./aaPackage-processing.component.scss'],
   standalone: true,
-  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule],
-  providers: [MessageService]
+  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
 })
 export class AAPackageProcessingComponent implements OnInit {
   private aaPackageService = inject(AAPackageService);

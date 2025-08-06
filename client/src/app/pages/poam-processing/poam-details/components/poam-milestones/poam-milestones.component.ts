@@ -40,7 +40,7 @@ export interface Milestone {
   styleUrls: ['./poam-milestones.component.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonModule, DatePicker, TableModule, ToastModule, DialogModule, ConfirmDialogModule, SelectModule, TextareaModule, TooltipModule],
-  providers: [ConfirmationService, DatePipe]
+  providers: [DatePipe]
 })
 export class PoamMilestonesComponent implements OnInit {
   private confirmationService = inject(ConfirmationService);

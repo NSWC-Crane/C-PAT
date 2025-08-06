@@ -15,7 +15,6 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
 import { DialogModule } from 'primeng/dialog';
-import { DialogService } from 'primeng/dynamicdialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
@@ -70,8 +69,7 @@ interface AssetEntry {
     ToastModule,
     TenableHostAssetsTableComponent,
     TooltipModule
-  ],
-  providers: [DialogService, MessageService]
+  ]
 })
 export class AssetProcessingComponent implements OnInit, OnDestroy {
   private assetService = inject(AssetService);
