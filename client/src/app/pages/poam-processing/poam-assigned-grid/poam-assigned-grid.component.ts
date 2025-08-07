@@ -48,6 +48,7 @@ interface ColumnConfig {
   sortable?: boolean;
   tooltip?: string;
   width?: string;
+  customSort?: any;
 }
 
 @Component({
@@ -59,9 +60,41 @@ interface ColumnConfig {
 })
 export class PoamAssignedGridComponent {
   private router = inject(Router);
-
+  private statusSortCycle = signal<number>(0);
+  private readonly STATUS_SORT_CYCLES = 4;
   readonly table = viewChild.required<Table>('dt');
   @Input() userId!: number;
+
+  private readonly statusPriorityGroups = [
+    {
+      groups: []
+    },
+    {
+      name: 'Critical First',
+      icon: 'pi-exclamation-circle',
+      groups: [
+        ['Expired', 'Rejected'],
+        ['Extension Requested', 'Pending CAT-I Approval', 'Submitted'],
+        ['Approved', 'Closed', 'False-Positive'],
+        ['Draft', 'Associated']
+      ]
+    },
+    {
+      name: 'In-Progress First',
+      icon: 'pi-info-circle',
+      groups: [['Draft', 'Submitted', 'Extension Requested'], ['Pending CAT-I Approval', 'Associated'], ['Approved'], ['Expired', 'Rejected', 'Closed', 'False-Positive']]
+    },
+    {
+      name: 'Completed First',
+      icon: 'pi-check-circle',
+      groups: [
+        ['Closed', 'False-Positive', 'Approved'],
+        ['Submitted', 'Pending CAT-I Approval', 'Extension Requested'],
+        ['Rejected', 'Expired'],
+        ['Draft', 'Associated']
+      ]
+    }
+  ];
 
   protected readonly columns: ColumnConfig[] = [
     { field: 'poamId', header: 'POAM ID', sortable: true },
@@ -74,7 +107,7 @@ export class PoamAssignedGridComponent {
       tooltip: 'Date shown includes extension time if applicable'
     },
     { field: 'adjSeverity', header: 'Adjusted Severity', sortable: true },
-    { field: 'status', header: 'Status', sortable: true },
+    { field: 'status', header: 'Status', sortable: true, customSort: true },
     { field: 'owner', header: 'Owner', sortable: true },
     { field: 'assignedTeams', header: 'Assigned Team' },
     { field: 'labels', header: 'Labels' }
@@ -215,5 +248,70 @@ export class PoamAssignedGridComponent {
       default:
         return 'Team has not fulfilled any POAM requirements';
     }
+  }
+
+  getCurrentStatusSortIcon(): string {
+    const cycle = this.statusSortCycle();
+
+    return this.statusPriorityGroups[cycle].icon;
+  }
+
+  getStatusSortIconColor(): string {
+    const cycle = this.statusSortCycle();
+    const colors = ['', '#e74c3c', '#3498db', '#27ae60'];
+
+    return colors[cycle];
+  }
+
+  onStatusHeaderClick(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const currentCycle = this.statusSortCycle();
+    const nextCycle = (currentCycle + 1) % this.STATUS_SORT_CYCLES;
+
+    this.statusSortCycle.set(nextCycle);
+
+    if (nextCycle === 0) {
+      this.table().value = [...this.displayedData()];
+      this.table().cd.detectChanges();
+
+      return;
+    }
+
+    const currentData = [...this.displayedData()];
+    const priorityConfig = this.statusPriorityGroups[nextCycle];
+    const statusPriority = new Map<string, number>();
+
+    priorityConfig.groups.forEach((group, groupIndex) => {
+      group.forEach((status, statusIndex) => {
+        statusPriority.set(status, groupIndex * 100 + statusIndex);
+      });
+    });
+
+    currentData.sort((a, b) => {
+      const priority1 = statusPriority.get(a.status) ?? 9999;
+      const priority2 = statusPriority.get(b.status) ?? 9999;
+
+      if (priority1 !== priority2) {
+        return priority1 - priority2;
+      }
+
+      return a.status.localeCompare(b.status);
+    });
+
+    this.table().value = currentData;
+    this.table().cd.detectChanges();
+  }
+
+  getCurrentStatusSortName(): string {
+    const cycle = this.statusSortCycle();
+
+    return this.statusPriorityGroups[cycle].name;
+  }
+
+  resetStatusSort(): void {
+    this.statusSortCycle.set(0);
   }
 }
