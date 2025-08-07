@@ -53,8 +53,8 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   private poamService = inject(PoamService);
   private messageService = inject(MessageService);
 
-  readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
-  readonly table = viewChild.required<Table>('dt');
+  protected fileUpload = viewChild.required<FileUpload>('fileUpload');
+  protected table = viewChild.required<Table>('dt');
   @Input() allColumns!: string[];
 
   globalFilterSignal = signal<string>('');
@@ -282,7 +282,9 @@ export class PoamGridComponent implements OnInit, OnDestroy {
       const collectionId = this.selectedCollectionId();
       const collection = this.selectedCollection();
       const allPoams = this.poamsDataSignal();
-      const poams = allPoams.filter((poam) => selectedStatuses.includes(poam.status.toLowerCase()));
+      let poams = allPoams.filter((poam) => selectedStatuses.includes(poam.status.toLowerCase()));
+
+      poams = this.addAssociatedVulnerabilitiesToExport(poams);
 
       if (!collectionId || !poams?.length) {
         this.messageService.add({
@@ -302,6 +304,29 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         this.processDefaultPoams(poams, collectionId);
       }
     });
+  }
+
+  private addAssociatedVulnerabilitiesToExport(poams: any[]): any[] {
+    const expandedPoams: any[] = [];
+
+    poams.forEach((poam) => {
+      expandedPoams.push(poam);
+
+      if (poam.associatedVulnerabilities && poam.associatedVulnerabilities.length > 0) {
+        poam.associatedVulnerabilities.forEach((associatedVulnId: string) => {
+          const duplicatePoam = {
+            ...poam,
+            vulnerabilityId: associatedVulnId,
+            isAssociatedVulnerability: true,
+            parentVulnerabilityId: poam.vulnerabilityId
+          };
+
+          expandedPoams.push(duplicatePoam);
+        });
+      }
+    });
+
+    return expandedPoams;
   }
 
   private processDefaultPoams(poams: any[], collectionId: any) {
