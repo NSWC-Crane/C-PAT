@@ -11,6 +11,26 @@
 <p-table #dt [value]="displayedData()" [scrollable]="true" scrollHeight="64rem" sortMode="multiple" class="h-full"
   selectionMode="single"
   [globalFilterFields]="['poamId', 'vulnerabilityId', 'status', 'adjSeverity', 'owner', 'assignedTeams', 'labels']">
+
+  <ng-template pTemplate="header">
+    <tr>
+      @for (col of columns; track col.field) {
+      @if (col.field === 'status' && col.sortable) {
+      <th [pSortableColumn]="col.field" (click)="onStatusHeaderClick($event)" [pTooltip]="getCurrentStatusSortName()"
+        tooltipPosition="top" scope="col" class="cursor-pointer">
+        {{ col.header }}
+        <i [class]="'mt-1 ml-1 p-sortable-column-icon pi ' + getCurrentStatusSortIcon()"
+          [style.color]="getStatusSortIconColor()" [style.opacity]="0.75"></i>
+      </th>
+      } @else {
+      <th [pSortableColumn]="col.sortable ? col.field : null" [pTooltip]="col.tooltip" tooltipPosition="top"
+        (click)="col.sortable ? resetStatusSort() : null" scope="col">
+        {{ col.header }}
+      </th>
+      }
+      }
+    </tr>
+  </ng-template>
   <ng-template pTemplate="caption">
     <div class="flex items-center justify-between">
       <p-iconField iconPosition="left">
@@ -21,17 +41,6 @@
           (ngModelChange)="globalFilterSignal.set($event)" placeholder="Search..." />
       </p-iconField>
     </div>
-  </ng-template>
-
-  <ng-template pTemplate="header">
-    <tr>
-      @for (col of columns; track col.field) {
-      <th [pSortableColumn]="col.sortable ? col.field : null" [pTooltip]="col.tooltip" tooltipPosition="top"
-        scope="col">
-        {{ col.header }}
-      </th>
-      }
-    </tr>
   </ng-template>
 
   <ng-template pTemplate="body" let-row>
