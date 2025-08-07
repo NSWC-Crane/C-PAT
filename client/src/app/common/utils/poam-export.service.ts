@@ -386,6 +386,29 @@ export class PoamExportService {
     return processedPoams;
   }
 
+  private static addAssociatedVulnerabilitiesToExport(poams: Poam[]): Poam[] {
+    const expandedPoams: Poam[] = [];
+
+    poams.forEach((poam) => {
+      expandedPoams.push(poam);
+
+      if (poam.associatedVulnerabilities && poam.associatedVulnerabilities.length > 0) {
+        poam.associatedVulnerabilities.forEach((associatedVulnId: string) => {
+          const duplicatePoam = {
+            ...poam,
+            vulnerabilityId: associatedVulnId,
+            isAssociatedVulnerability: true,
+            parentVulnerabilityId: poam.vulnerabilityId
+          } as Poam;
+
+          expandedPoams.push(duplicatePoam);
+        });
+      }
+    });
+
+    return expandedPoams;
+  }
+
   static async updateEMASSterPoams(
     emassterFile: File,
     poams: Poam[],
@@ -396,7 +419,9 @@ export class PoamExportService {
     poamService: PoamService,
     sharedService: SharedService
   ): Promise<Blob> {
-    const processedPoams = await this.processPoamsWithAssets(poams, collectionId, collectionsService, importService, poamService, sharedService);
+    const expandedPoams = this.addAssociatedVulnerabilitiesToExport(poams);
+
+    const processedPoams = await this.processPoamsWithAssets(expandedPoams, collectionId, collectionsService, importService, poamService, sharedService);
 
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.default.Workbook();
