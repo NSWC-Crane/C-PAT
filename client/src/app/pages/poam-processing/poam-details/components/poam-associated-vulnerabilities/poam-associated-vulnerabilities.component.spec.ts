@@ -96,31 +96,33 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('initializeDisplayVulnerabilities', () => {
     it('should convert string vulnerabilities to objects', () => {
-      component.poamAssociatedVulnerabilities = ['CVE-2023-1234', 'CVE-2023-5678'];
+      component.poamAssociatedVulnerabilities = ['201234', '205678'];
 
       component.initializeDisplayVulnerabilities();
 
       expect(component.displayVulnerabilities.length).toBe(2);
       expect(component.displayVulnerabilities[0]).toEqual({
-        associatedVulnerability: 'CVE-2023-1234',
+        associatedVulnerability: '201234',
+        severity: 'unknown',
         isNew: false
       });
     });
 
     it('should handle object vulnerabilities', () => {
-      component.poamAssociatedVulnerabilities = [{ associatedVulnerability: 'CVE-2023-1234' }];
+      component.poamAssociatedVulnerabilities = [{ associatedVulnerability: '201234' }];
 
       component.initializeDisplayVulnerabilities();
 
       expect(component.displayVulnerabilities.length).toBe(1);
       expect(component.displayVulnerabilities[0]).toEqual({
-        associatedVulnerability: 'CVE-2023-1234',
+        associatedVulnerability: '201234',
+        severity: 'unknown',
         isNew: false
       });
     });
 
     it('should filter out null and invalid vulnerabilities', () => {
-      component.poamAssociatedVulnerabilities = ['CVE-2023-1234', null, { associatedVulnerability: null }, { associatedVulnerability: 'CVE-2023-5678' }];
+      component.poamAssociatedVulnerabilities = ['201234', null, { associatedVulnerability: null }, { associatedVulnerability: '205678' }];
 
       component.initializeDisplayVulnerabilities();
 
@@ -257,13 +259,13 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       const event = new KeyboardEvent('keydown', { key: 'Enter' });
       const inputElement = document.createElement('input');
 
-      inputElement.value = 'cve-2023-1234';
+      inputElement.value = '201234';
       Object.defineProperty(event, 'target', { value: inputElement });
       spyOn(event, 'preventDefault');
 
       component.handleKeydown(event, rowData);
 
-      expect(rowData.selectedVulnerabilities).toContain('CVE-2023-1234');
+      expect(rowData.selectedVulnerabilities).toContain('201234');
       expect(inputElement.value).toBe('');
       expect(event.preventDefault).toHaveBeenCalled();
     });
@@ -283,11 +285,11 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should not add duplicate vulnerabilities', () => {
-      const rowData = { selectedVulnerabilities: ['CVE-2023-1234'] };
+      const rowData = { selectedVulnerabilities: ['201234'] };
       const event = new KeyboardEvent('keydown', { key: 'Enter' });
       const inputElement = document.createElement('input');
 
-      inputElement.value = 'cve-2023-1234';
+      inputElement.value = '201234';
       Object.defineProperty(event, 'target', { value: inputElement });
 
       component.handleKeydown(event, rowData);
@@ -301,24 +303,24 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       const rowData = { selectedVulnerabilities: [] };
       const clipboardData = new DataTransfer();
 
-      clipboardData.setData('text', 'CVE-2023-1234, V-12345 CVE-2023-5678');
+      clipboardData.setData('text', '201234, V-12345 205678');
       const event = new ClipboardEvent('paste', { clipboardData });
 
       spyOn(event, 'preventDefault');
 
       component.handlePaste(event, rowData);
 
-      expect(rowData.selectedVulnerabilities).toContain('CVE-2023-1234');
+      expect(rowData.selectedVulnerabilities).toContain('201234');
       expect(rowData.selectedVulnerabilities).toContain('V-12345');
-      expect(rowData.selectedVulnerabilities).toContain('CVE-2023-5678');
+      expect(rowData.selectedVulnerabilities).toContain('205678');
       expect(event.preventDefault).toHaveBeenCalled();
     });
 
     it('should not add duplicate vulnerabilities from paste', () => {
-      const rowData = { selectedVulnerabilities: ['CVE-2023-1234'] };
+      const rowData = { selectedVulnerabilities: ['201234'] };
       const clipboardData = new DataTransfer();
 
-      clipboardData.setData('text', 'CVE-2023-1234, V-12345');
+      clipboardData.setData('text', '201234, V-12345');
       const event = new ClipboardEvent('paste', { clipboardData });
 
       component.handlePaste(event, rowData);
@@ -343,7 +345,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should add new row at the beginning', async () => {
-      component.displayVulnerabilities = [{ associatedVulnerability: 'CVE-2023-1234', isNew: false }];
+      component.displayVulnerabilities = [{ associatedVulnerability: '201234', isNew: false }];
 
       await component.addAssociatedVulnerability();
 
@@ -368,12 +370,12 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should check for duplicate POAMs and show warning', async () => {
-      const existingPoams = [{ vulnerabilityId: 'CVE-2023-1234', poamId: '99999' }];
+      const existingPoams = [{ vulnerabilityId: '201234', poamId: '99999' }];
 
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.and.returnValue(of(existingPoams));
 
       const rowData = {
-        selectedVulnerabilities: ['cve-2023-1234'],
+        selectedVulnerabilities: ['201234'],
         isNew: true
       };
 
@@ -383,7 +385,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         jasmine.objectContaining({
           severity: 'warn',
           summary: 'Duplicate Vulnerability',
-          detail: 'A POAM (ID: 99999) already exists for vulnerability ID: CVE-2023-1234'
+          detail: 'A POAM (ID: 99999) already exists for vulnerability ID: 201234'
         })
       );
     });
@@ -394,7 +396,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       spyOn(component, 'addAssociatedVulnerability');
 
       const rowData = {
-        selectedVulnerabilities: ['CVE-2023-5678'],
+        selectedVulnerabilities: ['205678'],
         isNew: true
       };
 
@@ -404,10 +406,11 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       expect(component.displayVulnerabilities.length).toBe(1);
       expect(component.displayVulnerabilities[0]).toEqual({
-        associatedVulnerability: 'CVE-2023-5678',
+        associatedVulnerability: '205678',
+        severity: 'unknown',
         isNew: false
       });
-      expect(component.vulnerabilitiesChanged.emit).toHaveBeenCalledWith(['CVE-2023-5678']);
+      expect(component.vulnerabilitiesChanged.emit).toHaveBeenCalledWith(['205678']);
       expect(component.addAssociatedVulnerability).toHaveBeenCalled();
     });
 
@@ -415,7 +418,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.and.returnValue(throwError(() => new Error('Network error')));
 
       const rowData = {
-        selectedVulnerabilities: ['CVE-2023-1234'],
+        selectedVulnerabilities: ['201234'],
         isNew: true
       };
 
@@ -436,23 +439,23 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       spyOn(component.vulnerabilitiesChanged, 'emit');
 
       component.displayVulnerabilities = [
-        { associatedVulnerability: 'CVE-2023-1234', isNew: false },
-        { associatedVulnerability: 'CVE-2023-5678', isNew: false }
+        { associatedVulnerability: '201234', isNew: false },
+        { associatedVulnerability: '205678', isNew: false }
       ];
 
-      await component.deleteAssociatedVulnerability('CVE-2023-1234', 0);
+      await component.deleteAssociatedVulnerability('201234', 0);
 
       expect(component.displayVulnerabilities.length).toBe(1);
-      expect(component.displayVulnerabilities[0].associatedVulnerability).toBe('CVE-2023-5678');
-      expect(component.vulnerabilitiesChanged.emit).toHaveBeenCalledWith(['CVE-2023-5678']);
+      expect(component.displayVulnerabilities[0].associatedVulnerability).toBe('205678');
+      expect(component.vulnerabilitiesChanged.emit).toHaveBeenCalledWith(['205678']);
     });
 
     it('should handle empty list after deletion', async () => {
       spyOn(component.vulnerabilitiesChanged, 'emit');
 
-      component.displayVulnerabilities = [{ associatedVulnerability: 'CVE-2023-1234', isNew: false }];
+      component.displayVulnerabilities = [{ associatedVulnerability: '201234', isNew: false }];
 
-      await component.deleteAssociatedVulnerability('CVE-2023-1234', 0);
+      await component.deleteAssociatedVulnerability('201234', 0);
 
       expect(component.displayVulnerabilities.length).toBe(0);
       expect(component.vulnerabilitiesChanged.emit).toHaveBeenCalledWith([]);
