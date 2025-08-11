@@ -19,7 +19,6 @@ const { generateText } = require('ai');
 const { google } = require('@ai-sdk/google');
 const { groq } = require('@ai-sdk/groq');
 const { mistral } = require('@ai-sdk/mistral');
-const { ollama } = require('ollama-ai-provider');
 const { openai } = require('@ai-sdk/openai');
 const { perplexity } = require('@ai-sdk/perplexity');
 const { replicate } = require('@ai-sdk/replicate');
@@ -39,7 +38,7 @@ const AI_BASE_URLS = {
     groq: 'https://api.groq.com/openai/v1',
     mistral: 'https://api.mistral.ai/v1',
     niprgpt: 'https://api.niprgpt.mil/v1',
-    ollama: 'http://localhost:11434/api',
+    ollama: 'http://localhost:11434/v1',
     openai: 'https://api.openai.com/v1',
     perplexity: 'https://api.perplexity.ai',
     replicate: 'https://api.replicate.com/v1',
@@ -126,7 +125,12 @@ async function getAIModel() {
             });
             return niprgptProvider.chatModel(modelName);
         case 'ollama':
-            return ollama(modelName);
+            const ollamaProvider = createOpenAICompatible({
+                baseURL: AI_BASE_URLS.ollama,
+                name: 'ollama-provider',
+                apiKey: 'ollama',
+            });
+            return ollamaProvider.chatModel(modelName);
         case 'openai':
             return openai(modelName);
         case 'perplexity':
