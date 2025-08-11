@@ -46,7 +46,6 @@
     "multer": "^2.0.2",
     "mysql2": "^3.14.3",
     "net-keepalive": "^4.0.23",
-    "ollama-ai-provider": "^1.2.0",
     "on-finished": "^2.4.1",
     "on-headers": "^1.1.0",
     "path": "^0.12.7",
@@ -58,7 +57,6 @@
   },
   "devDependencies": {
     "npm-check-updates": "^18.0.2",
-    "prettier": "^3.6.2",
-    "zod": "^4.0.17"
+    "prettier": "^3.6.2"
   }
 }
