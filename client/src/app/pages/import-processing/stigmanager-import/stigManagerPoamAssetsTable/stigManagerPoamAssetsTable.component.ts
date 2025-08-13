@@ -87,7 +87,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
     });
   }
 
-
   ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
@@ -244,12 +243,11 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
 
   matchAssetsWithTeams() {
     if (!this.assetDeltaList?.assets || !this.affectedAssets) return;
-
     this.assetsByTeam = {};
-
-    this.affectedAssets.forEach((asset) => {
+    this.affectedAssets = this.affectedAssets.map((asset) => {
       const assetName = asset.assetName?.toLowerCase() || '';
       const fqdn = asset.fqdn?.toLowerCase() || '';
+      const teams: Array<{ assignedTeamId: string; assignedTeamName: string }> = [];
 
       this.assetDeltaList.assets.forEach((deltaAsset) => {
         const deltaKey = deltaAsset.key.toLowerCase();
@@ -257,39 +255,53 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
         if (assetName.includes(deltaKey) || fqdn.includes(deltaKey)) {
           if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
             deltaAsset.assignedTeams.forEach((team) => {
-              const teamId = team.assignedTeamId;
-              const teamName = team.assignedTeamName;
-
-              if (!this.assetsByTeam[teamId]) {
-                this.assetsByTeam[teamId] = [];
-              }
-
-              if (!this.assetsByTeam[teamId].some((a) => a.assetId === asset.assetId)) {
-                this.assetsByTeam[teamId].push({
-                  ...asset,
-                  assignedTeamId: teamId,
-                  assignedTeamName: teamName
+              if (!teams.some((t) => t.assignedTeamId === team.assignedTeamId)) {
+                teams.push({
+                  assignedTeamId: team.assignedTeamId,
+                  assignedTeamName: team.assignedTeamName
                 });
               }
             });
           } else if (deltaAsset.assignedTeam) {
-            const teamId = deltaAsset.assignedTeam.assignedTeamId;
-            const teamName = deltaAsset.assignedTeam.assignedTeamName;
-
-            if (!this.assetsByTeam[teamId]) {
-              this.assetsByTeam[teamId] = [];
-            }
-
-            if (!this.assetsByTeam[teamId].some((a) => a.assetId === asset.assetId)) {
-              this.assetsByTeam[teamId].push({
-                ...asset,
-                assignedTeamId: teamId,
-                assignedTeamName: teamName
+            if (!teams.some((t) => t.assignedTeamId === deltaAsset.assignedTeam.assignedTeamId)) {
+              teams.push({
+                assignedTeamId: deltaAsset.assignedTeam.assignedTeamId,
+                assignedTeamName: deltaAsset.assignedTeam.assignedTeamName
               });
             }
           }
         }
       });
+
+      if (teams.length > 0) {
+        return {
+          ...asset,
+          assignedTeams: teams
+        };
+      }
+
+      return asset;
+    });
+
+    this.affectedAssets.forEach((asset) => {
+      if (asset.assignedTeams && asset.assignedTeams.length > 0) {
+        asset.assignedTeams.forEach((team) => {
+          const teamId = team.assignedTeamId;
+          const teamName = team.assignedTeamName;
+
+          if (!this.assetsByTeam[teamId]) {
+            this.assetsByTeam[teamId] = [];
+          }
+
+          if (!this.assetsByTeam[teamId].some((a) => a.assetId === asset.assetId)) {
+            this.assetsByTeam[teamId].push({
+              ...asset,
+              assignedTeamId: teamId,
+              assignedTeamName: teamName
+            });
+          }
+        });
+      }
     });
 
     this.createTeamTabs();
@@ -335,23 +347,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       dataKey: col.field
     }));
     this.resetColumnSelections();
-  }
-
-  isAssetAssignedToTeam(asset: any): boolean {
-    if (!this.assetDeltaList?.assets) return false;
-
-    const assetName = asset.assetName?.toLowerCase() || '';
-    const fqdn = asset.fqdn?.toLowerCase() || '';
-
-    return this.assetDeltaList.assets.some((deltaAsset) => {
-      const deltaKey = deltaAsset.key.toLowerCase();
-
-      if (assetName === deltaKey || fqdn === deltaKey) {
-        return (deltaAsset.assignedTeams && deltaAsset.assignedTeams.length > 0) || (deltaAsset.assignedTeam && deltaAsset.assignedTeam.assignedTeamId);
-      }
-
-      return false;
-    });
   }
 
   clear() {
