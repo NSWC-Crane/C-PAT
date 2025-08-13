@@ -176,26 +176,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
       title: col.header,
       dataKey: col.field
     }));
-    this.selectedColumns = this.cols.filter((col) =>
-      ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'vprScore', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID', 'teamAssigned'].includes(col.field)
-    );
-  }
-
-  isAssetAssignedToTeam(asset: any): boolean {
-    if (!this.assetDeltaList?.assets) return false;
-
-    const netbiosName = asset.netbiosName?.toLowerCase() || '';
-    const dnsName = asset.dnsName?.toLowerCase() || '';
-
-    return this.assetDeltaList.assets.some((deltaAsset) => {
-      const deltaKey = deltaAsset.key.toLowerCase();
-
-      if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
-        return (deltaAsset.assignedTeams && deltaAsset.assignedTeams.length > 0) || (deltaAsset.assignedTeam && deltaAsset.assignedTeam.assignedTeamId);
-      }
-
-      return false;
-    });
+    this.selectedColumns = this.cols.filter((col) => ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'ips', 'netbiosName', 'dnsName', 'port', 'protocol', 'teamAssigned'].includes(col.field));
   }
 
   loadAssetDeltaList() {
@@ -401,10 +382,10 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   matchAssetsWithTeams() {
     if (!this.assetDeltaList?.assets || !this.affectedAssets) return;
     this.assetsByTeam = {};
-
-    this.affectedAssets.forEach((asset) => {
+    this.affectedAssets = this.affectedAssets.map((asset) => {
       const netbiosName = asset.netbiosName?.toLowerCase() || '';
       const dnsName = asset.dnsName?.toLowerCase() || '';
+      const teams: Array<{ assignedTeamId: string; assignedTeamName: string }> = [];
 
       this.assetDeltaList.assets.forEach((deltaAsset) => {
         const deltaKey = deltaAsset.key.toLowerCase();
@@ -412,32 +393,56 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
           if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
             deltaAsset.assignedTeams.forEach((team) => {
-              this.addAssetToTeam(asset, team.assignedTeamId, team.assignedTeamName);
+              if (!teams.some((t) => t.assignedTeamId === team.assignedTeamId)) {
+                teams.push({
+                  assignedTeamId: team.assignedTeamId,
+                  assignedTeamName: team.assignedTeamName
+                });
+              }
             });
           } else if (deltaAsset.assignedTeam) {
-            this.addAssetToTeam(asset, deltaAsset.assignedTeam.assignedTeamId, deltaAsset.assignedTeam.assignedTeamName);
+            if (!teams.some((t) => t.assignedTeamId === deltaAsset.assignedTeam.assignedTeamId)) {
+              teams.push({
+                assignedTeamId: deltaAsset.assignedTeam.assignedTeamId,
+                assignedTeamName: deltaAsset.assignedTeam.assignedTeamName
+              });
+            }
           }
         }
       });
+
+      if (teams.length > 0) {
+        return {
+          ...asset,
+          assignedTeams: teams
+        };
+      }
+
+      return asset;
+    });
+
+    this.affectedAssets.forEach((asset) => {
+      if (asset.assignedTeams && asset.assignedTeams.length > 0) {
+        asset.assignedTeams.forEach((team) => {
+          const teamId = team.assignedTeamId;
+          const teamName = team.assignedTeamName;
+
+          if (!this.assetsByTeam[teamId]) {
+            this.assetsByTeam[teamId] = [];
+          }
+
+          if (!this.assetsByTeam[teamId].some((a) => a.hostUUID === asset.hostUUID && a.netbiosName === asset.netbiosName && a.dnsName === asset.dnsName && a.macAddress === asset.macAddress)) {
+            this.assetsByTeam[teamId].push({
+              ...asset,
+              assignedTeamId: teamId,
+              assignedTeamName: teamName
+            });
+          }
+        });
+      }
     });
 
     this.createTeamTabs();
-  }
-
-  addAssetToTeam(asset, teamId, teamName) {
-    if (!this.assetsByTeam[teamId]) {
-      this.assetsByTeam[teamId] = [];
-    }
-
-    const isDuplicate = this.assetsByTeam[teamId].some((existingAsset) => JSON.stringify(existingAsset) === JSON.stringify(asset));
-
-    if (!isDuplicate) {
-      this.assetsByTeam[teamId].push({
-        ...asset,
-        assignedTeamId: teamId,
-        assignedTeamName: teamName
-      });
-    }
   }
 
   createTeamTabs() {
@@ -690,7 +695,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter((col) => ['netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID', 'teamAssigned'].includes(col.field));
+    this.selectedColumns = this.cols.filter((col) => ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'ips', 'netbiosName', 'dnsName', 'port', 'protocol', 'teamAssigned'].includes(col.field));
   }
 
   toggleAddColumnOverlay() {
