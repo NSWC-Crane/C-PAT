@@ -246,7 +246,7 @@
           <p-select [options]="severityOptions" [(ngModel)]="poam.rawSeverity" id="rawSeverity" name="rawSeverity"
             placeholder="Raw Severity..." optionLabel="label" optionValue="value" class="w-[25rem]"
             (onChange)="onAdjSeverityChange()"
-            [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3" />
+            [disabled]="accessLevel() < 4 && (this.collectionType !== 'C-PAT' || accessLevel() < 2)" />
         </div>
 
         <!-- Adj Severity -->
