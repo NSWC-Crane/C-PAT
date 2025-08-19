@@ -23,7 +23,7 @@ import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { EMPTY, Subscription, catchError } from 'rxjs';
+import { EMPTY, Subscription, catchError, firstValueFrom } from 'rxjs';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { Permission } from '../../../common/models/permission.model';
 import { SharedService } from '../../../common/services/shared.service';
@@ -31,6 +31,7 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AssetDeltaService } from '../asset-delta/asset-delta.service';
 import { CollectionsService } from '../collection-processing/collections.service';
 import { AssignedTeamService } from './assignedTeam-processing.service';
+
 interface AssignedTeam {
   assignedTeamId: number;
   assignedTeamName: string;
@@ -55,7 +56,6 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   readonly table = viewChild.required<Table>('dt');
   private allCollections: CollectionsBasicList[] = [];
   assignedTeams: AssignedTeam[] = [];
-  assetDeltaList: any;
   uniqueTeams: any;
   filteredTeams: string[] = [];
   availableCollections: CollectionsBasicList[] = [];
@@ -64,17 +64,15 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   teamDialog: boolean = false;
   dialogMode: 'new' | 'edit' = 'new';
   selectedAdTeams: string[] = [];
-  selectedCollection: any;
   private subscriptions = new Subscription();
 
   ngOnInit() {
+    this.loadAssetDeltaList();
+    this.loadCollections();
+
     this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
+      this.sharedService.selectedCollection.subscribe(() => {
         this.loadAssignedTeams();
-        this.loadAssetDeltaList();
-        this.loadCollections();
-        this.filteredTeams = this.uniqueTeams || [];
       })
     );
   }
@@ -174,26 +172,40 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
 
     if (!this.editingAssignedTeam || !collections.length) return;
 
-    if (this.dialogMode === 'new' && this.editingAssignedTeam.assignedTeamId === 0) {
-      if (!this.editingAssignedTeam.permissions) {
-        this.editingAssignedTeam.permissions = [];
-      }
-
+    if (this.dialogMode === 'new') {
       collections.forEach((collection) => {
-        this.editingAssignedTeam!.permissions!.push({
-          collectionId: collection.collectionId,
-          collectionName: collection.collectionName
-        });
-      });
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: `${collections.length} Permission${collections.length > 1 ? 's' : ''} Added`
+        if (!this.assignedCollections.some((c) => c.collectionId === collection.collectionId)) {
+          this.assignedCollections.push(collection);
+        }
       });
 
       return;
     }
 
+    this.addPermissionsToExistingTeam(collections);
+  }
+
+  onMoveToSource(event: any) {
+    const collections = Array.isArray(event.items) ? event.items : [event.items];
+
+    if (!this.editingAssignedTeam || !collections.length) return;
+
+    if (this.dialogMode === 'new') {
+      collections.forEach((collection) => {
+        const index = this.assignedCollections.findIndex((c) => c.collectionId === collection.collectionId);
+
+        if (index !== -1) {
+          this.assignedCollections.splice(index, 1);
+        }
+      });
+
+      return;
+    }
+
+    this.removePermissionsFromExistingTeam(collections);
+  }
+
+  private addPermissionsToExistingTeam(collections: any[]) {
     let successCount = 0;
     let errorCount = 0;
     let completedCount = 0;
@@ -207,8 +219,18 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         .pipe(
           catchError((error) => {
             errorCount++;
-            this.handlePermissionError(collection, error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to add permission for ${collection.collectionName}: ${getErrorMessage(error)}`
+            });
             completedCount++;
+            const index = this.assignedCollections.findIndex((c) => c.collectionId === collection.collectionId);
+
+            if (index !== -1) {
+              this.assignedCollections.splice(index, 1);
+              this.availableCollections.push(collection);
+            }
 
             if (completedCount === collections.length) {
               this.showFinalMessage(successCount, errorCount);
@@ -237,11 +259,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
     });
   }
 
-  onMoveToSource(event: any) {
-    const collections = Array.isArray(event.items) ? event.items : [event.items];
-
-    if (!this.editingAssignedTeam || !collections.length) return;
-
+  private removePermissionsFromExistingTeam(collections: any[]) {
     let successCount = 0;
     let errorCount = 0;
     let completedCount = 0;
@@ -252,8 +270,18 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         .pipe(
           catchError((error) => {
             errorCount++;
-            this.handlePermissionError(collection, error, true);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to remove permission for ${collection.collectionName}: ${getErrorMessage(error)}`
+            });
             completedCount++;
+            const index = this.availableCollections.findIndex((c) => c.collectionId === collection.collectionId);
+
+            if (index !== -1) {
+              this.availableCollections.splice(index, 1);
+              this.assignedCollections.push(collection);
+            }
 
             if (completedCount === collections.length) {
               this.showFinalMessage(successCount, errorCount, true);
@@ -298,17 +326,11 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   saveTeam() {
     if (!this.editingAssignedTeam) return;
 
-    if (this.selectedAdTeams && this.selectedAdTeams.length > 0) {
-      this.editingAssignedTeam.adTeam = this.selectedAdTeams.join(', ');
-    } else {
-      this.editingAssignedTeam.adTeam = null;
-    }
+    this.editingAssignedTeam.adTeam = this.selectedAdTeams?.length > 0 ? this.selectedAdTeams.join(', ') : null;
+    const pendingPermissions = this.dialogMode === 'new' ? [...this.assignedCollections] : [];
+    const saveOperation = this.dialogMode === 'new' ? this.assignedTeamService.postAssignedTeam(this.editingAssignedTeam) : this.assignedTeamService.putAssignedTeam(this.editingAssignedTeam);
 
-    if (this.editingAssignedTeam.permissions) {
-      this.editingAssignedTeam.permissions = this.editingAssignedTeam.permissions.filter((p) => p.collectionId !== 0);
-    }
-
-    (this.dialogMode === 'new' ? this.assignedTeamService.postAssignedTeam(this.editingAssignedTeam) : this.assignedTeamService.putAssignedTeam(this.editingAssignedTeam))
+    saveOperation
       .pipe(
         catchError((error) => {
           this.messageService.add({
@@ -320,23 +342,90 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
           return EMPTY;
         })
       )
-      .subscribe((response) => {
+      .subscribe(async (response) => {
         if (this.dialogMode === 'new') {
-          this.assignedTeams = [...this.assignedTeams, response];
+          await this.handleNewTeamCreated(response, pendingPermissions);
         } else {
-          const index = this.assignedTeams.findIndex((team) => team.assignedTeamId === this.editingAssignedTeam?.assignedTeamId);
-
-          this.assignedTeams[index] = this.editingAssignedTeam!;
-          this.assignedTeams = [...this.assignedTeams];
+          this.handleExistingTeamUpdated();
         }
-
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `Assigned Team ${this.dialogMode === 'new' ? 'Added' : 'Updated'}`
-        });
-        this.hideDialog();
       });
+  }
+
+  private async handleNewTeamCreated(newTeam: AssignedTeam, pendingPermissions: any[]) {
+    if (pendingPermissions.length > 0) {
+      await this.addPermissionsToNewTeam(newTeam, pendingPermissions);
+    } else {
+      this.assignedTeams = [...this.assignedTeams, newTeam];
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Assigned Team Added'
+      });
+      this.hideDialog();
+    }
+  }
+
+  private handleExistingTeamUpdated() {
+    const index = this.assignedTeams.findIndex((team) => team.assignedTeamId === this.editingAssignedTeam?.assignedTeamId);
+
+    if (index !== -1) {
+      this.assignedTeams[index] = this.editingAssignedTeam!;
+      this.assignedTeams = [...this.assignedTeams];
+    }
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Assigned Team Updated'
+    });
+    this.hideDialog();
+  }
+
+  private async addPermissionsToNewTeam(newTeam: AssignedTeam, permissions: any[]) {
+    let successCount = 0;
+    const failedCollections: string[] = [];
+
+    newTeam.permissions = [];
+
+    for (const collection of permissions) {
+      try {
+        await firstValueFrom(
+          this.assignedTeamService.postAssignedTeamPermission({
+            assignedTeamId: newTeam.assignedTeamId,
+            collectionId: collection.collectionId
+          })
+        );
+
+        successCount++;
+        newTeam.permissions.push({
+          collectionId: collection.collectionId,
+          collectionName: collection.collectionName
+        });
+      } catch (error) {
+        failedCollections.push(collection.collectionName);
+        console.error(`Failed to add permission for collection ${collection.collectionId}:`, error);
+      }
+    }
+
+    this.assignedTeams = [...this.assignedTeams, newTeam];
+
+    if (successCount > 0) {
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: `Assigned Team Added with ${successCount} permission${successCount !== 1 ? 's' : ''}`
+      });
+    }
+
+    if (failedCollections.length > 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: `Failed to add permissions for: ${failedCollections.join(', ')}`
+      });
+    }
+
+    this.hideDialog();
   }
 
   getAdTeamsArray(adTeamString: string | null | undefined): string[] {
@@ -349,6 +438,10 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   }
 
   onRowDelete(assignedTeam: AssignedTeam) {
+    if (!confirm(`Are you sure you want to delete the team "${assignedTeam.assignedTeamName}"?`)) {
+      return;
+    }
+
     this.assignedTeamService
       .deleteAssignedTeam(assignedTeam.assignedTeamId)
       .pipe(
@@ -370,30 +463,6 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
           detail: 'Assigned Team Deleted'
         });
       });
-  }
-
-  private handlePermissionError(collection: any, error: Error, isRemoval = false) {
-    if (isRemoval) {
-      const index = this.availableCollections.findIndex((c) => c.collectionId === collection.collectionId);
-
-      if (index !== -1) {
-        this.availableCollections.splice(index, 1);
-        this.assignedCollections.push(collection);
-      }
-    } else {
-      const index = this.assignedCollections.findIndex((c) => c.collectionId === collection.collectionId);
-
-      if (index !== -1) {
-        this.assignedCollections.splice(index, 1);
-        this.availableCollections.push(collection);
-      }
-    }
-
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: `Failed to ${isRemoval ? 'remove' : 'add'} permission: ${getErrorMessage(error)}`
-    });
   }
 
   hideDialog() {
