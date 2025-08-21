@@ -110,7 +110,22 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   collectionList: any = [];
   collectionPermissions: Permission[] = [];
   userAssignedTeams: AssignedTeam[] = [];
-  officeOrgOptions: string[] = ['NAVSEA', 'NSWC CRANE'];
+  officeOrgOptions: string[] = [
+    'NAVSEA',
+    'NSWCCD Carderock',
+    'NSWC Crane',
+    'NSWC Corona',
+    'NSWC Dahlgren',
+    'NSWC Panama City',
+    'NSWC Philadelphia',
+    'NSWC Port Hueneme',
+    'NUWC Keyport',
+    'NSWCDD Dam Neck',
+    'NSWC Indian Head',
+    'NUWC Newport',
+    'NREN',
+    'NREN NOC'
+  ];
   filteredOfficeOrgs: string[];
   showLastClaims: boolean = false;
   marketplaceDisabled: boolean = false;
