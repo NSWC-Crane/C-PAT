@@ -74,6 +74,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
       { field: 'First Name', header: 'First Name' },
       { field: 'Last Name', header: 'Last Name' },
       { field: 'Email', header: 'Email' },
+      { field: 'Last Access', header: 'Last Access' },
       { field: 'Collection', header: 'Collection' },
       { field: 'Access Level', header: 'Access Level' }
     ];
@@ -150,7 +151,8 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
           Status: user.accountStatus,
           'First Name': user.firstName,
           'Last Name': user.lastName,
-          Email: user.email
+          Email: user.email,
+          'Last Access': user.lastAccess ? user.lastAccess.split('T')[0] : ''
         },
         children: children,
         styleClass: user.accountStatus === 'PENDING' ? 'pending-row' : ''
