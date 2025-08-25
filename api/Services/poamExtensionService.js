@@ -62,7 +62,7 @@ exports.putPoamExtension = async function (req, res, next) {
                 req.body.status,
                 req.body.poamId,
             ];
-            const [result] = await connection.query(sql, params);
+            await connection.query(sql, params);
 
             let action = `POAM Updated. Status: ${req.body.status}`;
             if (req.body.extensionTimeAllowed > 0) {
@@ -70,9 +70,7 @@ exports.putPoamExtension = async function (req, res, next) {
                 let [[scheduledCompletionDateResult]] = await connection.query(scheduledCompletionDateQuery, [req.body.poamId]);
                 if (scheduledCompletionDateResult) {
                     let scheduledCompletionDate = new Date(scheduledCompletionDateResult.scheduledCompletionDate);
-                    let deadlineWithExtension = new Date(
-                        scheduledCompletionDate.getTime() + req.body.extensionTimeAllowed * 24 * 60 * 60 * 1000
-                    );
+                    let deadlineWithExtension = new Date(scheduledCompletionDate.getTime() + req.body.extensionTimeAllowed * 24 * 60 * 60 * 1000);
                     let formattedDeadline = deadlineWithExtension.toLocaleDateString('en-US');
                     action += `<br>Extension time requested: ${req.body.extensionTimeAllowed} days<br>Extension Justification: ${req.body.extensionJustification}<br>Deadline with Extension: ${formattedDeadline}`;
                 }
@@ -80,7 +78,23 @@ exports.putPoamExtension = async function (req, res, next) {
             let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
             await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
-            return result;
+            const selectSql = `SELECT 
+                poamId,
+                extensionTimeAllowed,
+                extensionJustification,
+                mitigations,
+                requiredResources,
+                residualRisk,
+                likelihood,
+                localImpact,
+                impactDescription,
+                status
+                FROM ${config.database.schema}.poam 
+                WHERE poamId = ?`;
+
+            const [[updatedPoam]] = await connection.query(selectSql, [req.body.poamId]);
+
+            return updatedPoam;
         } catch (error) {
             return { error: error.message };
         }
