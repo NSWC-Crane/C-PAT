@@ -146,7 +146,7 @@
                         <td style="text-align: center">
                           @if (editing) {
                             <div class="flex justify-center items-center gap-2">
-                              <p-button pSaveEditableRow icon="pi pi-check" (click)="$event.stopPropagation(); (milestone)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel < 2" />
+                              <p-button pSaveEditableRow icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(milestone)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel < 2" />
                               <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
                             </div>
                           } @else {
