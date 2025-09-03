@@ -8,8 +8,8 @@
 !##########################################################################
 -->
 
-<p-table #dt [value]="displayedData()" [scrollable]="true" scrollHeight="64rem" sortMode="multiple" class="h-full"
-  selectionMode="single"
+<p-table #dt [value]="displayedData()" [columns]="columns" [scrollable]="true" scrollHeight="64rem" sortMode="multiple"
+  class="h-full" selectionMode="single"
   [globalFilterFields]="['poamId', 'vulnerabilityId', 'affectedAssets', 'scheduledCompletionDate', 'adjSeverity', 'status', 'owner', 'assignedTeams', 'labels', 'associatedVulnerabilities']">
 
   <ng-template pTemplate="header">
@@ -32,7 +32,7 @@
     </tr>
   </ng-template>
   <ng-template pTemplate="caption">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center">
       <p-iconField iconPosition="left">
         <p-inputIcon>
           <i class="pi pi-search"></i>
@@ -40,6 +40,9 @@
         <input id="poamAssignedGridSearch" name="poamAssignedGridSearch" pInputText type="text" [ngModel]="globalFilter"
           (ngModelChange)="globalFilterSignal.set($event)" placeholder="Search..." />
       </p-iconField>
+
+      <p-button class="ml-2" icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true"
+        (click)="exportToCSV()" pTooltip="Export table data to CSV" tooltipPosition="left" />
     </div>
   </ng-template>
 

@@ -145,15 +145,15 @@
           <p-tabpanel value="0" styleClass="flex flex-1 flex-col">
             <div class="flex-1 overflow-hidden"
               [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-              <cpat-poam-assigned-grid [assignedData]="allPoams()" [affectedAssetCounts]="affectedAssetCounts()"
-                (managePoam)="managePoam($event)" />
+              <cpat-poam-assigned-grid [assignedData]="allPoams()" variant="all"
+                [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
             </div>
           </p-tabpanel>
 
           <p-tabpanel value="1" styleClass="flex flex-1 flex-col">
             <div class="flex-1 overflow-hidden"
               [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-              <cpat-poam-assigned-grid [assignedData]="poamsNeedingAttention()"
+              <cpat-poam-assigned-grid [assignedData]="poamsNeedingAttention()" variant="needs-attention"
                 [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
             </div>
           </p-tabpanel>
@@ -162,8 +162,8 @@
           <p-tabpanel value="2" styleClass="flex flex-1 flex-col">
             <div class="flex-1 overflow-hidden"
               [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-              <cpat-poam-assigned-grid [assignedData]="submittedPoams()" [affectedAssetCounts]="affectedAssetCounts()"
-                (managePoam)="managePoam($event)" />
+              <cpat-poam-assigned-grid [assignedData]="submittedPoams()" variant="my"
+                [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
             </div>
           </p-tabpanel>
           }
@@ -172,8 +172,8 @@
           <p-tabpanel value="3" styleClass="flex flex-1 flex-col">
             <div class="flex-1 overflow-hidden"
               [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-              <cpat-poam-assigned-grid [assignedData]="teamPoams()" [affectedAssetCounts]="affectedAssetCounts()"
-                (managePoam)="managePoam($event)" />
+              <cpat-poam-assigned-grid [assignedData]="teamPoams()" variant="team"
+                [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
             </div>
           </p-tabpanel>
           }
@@ -182,7 +182,7 @@
           <p-tabpanel value="4" styleClass="flex flex-1 flex-col">
             <div class="flex-1 overflow-hidden"
               [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
-              <cpat-poam-assigned-grid [assignedData]="poamsPendingApproval()"
+              <cpat-poam-assigned-grid [assignedData]="poamsPendingApproval()" variant="pending-approval"
                 [affectedAssetCounts]="affectedAssetCounts()" (managePoam)="managePoam($event)" />
             </div>
           </p-tabpanel>

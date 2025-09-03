@@ -66,6 +66,8 @@ export class PoamAssignedGridComponent {
   readonly table = viewChild.required<Table>('dt');
   @Input() userId!: number;
 
+  @Input() variant?: string;
+
   private readonly statusPriorityGroups = [
     {
       groups: []
@@ -323,6 +325,69 @@ export class PoamAssignedGridComponent {
     const cycle = this.statusSortCycle();
 
     return this.statusPriorityGroups[cycle].name;
+  }
+
+  exportToCSV() {
+    const exportData = this.displayedData().map((row) => ({
+      'POAM ID': row.poamId,
+      'Vulnerability ID': row.vulnerabilityId,
+      'Affected Assets': row.isAffectedAssetsMissing ? '' : (row.affectedAssets ?? ''),
+      'Scheduled Completion': row.scheduledCompletionDate,
+      'Adjusted Severity': row.adjSeverity,
+      Status: row.status,
+      Owner: row.owner,
+      'Assigned Teams': row.assignedTeams.map((t) => t.name).join('\n'),
+      Labels: row.labels.join('\n'),
+      'Associated Vulnerabilities': row.associatedVulnerabilities?.join('\n') || ''
+    }));
+
+    const csvContent = this.convertToCSV(exportData);
+    this.downloadCSV(csvContent, `${this.variant ?? 'export'}-poams-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+  }
+
+  private convertToCSV(data: any[]): string {
+    if (!data || data.length === 0) return '';
+
+    const headers = Object.keys(data[0]);
+    const csvRows: string[] = [];
+    csvRows.push(headers.map((h) => this.escapeCSVValue(h)).join(','));
+
+    data.forEach((row) => {
+      const values = headers.map((header) => {
+        const value = row[header];
+        return this.escapeCSVValue(value);
+      });
+      csvRows.push(values.join(','));
+    });
+
+    return csvRows.join('\n');
+  }
+
+  private escapeCSVValue(value: any): string {
+    if (value === null || value === undefined) return '';
+
+    const stringValue = value.toString();
+
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+
+    return stringValue;
+  }
+
+  private downloadCSV(content: string, filename: string): void {
+    const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.style.display = 'none';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => URL.revokeObjectURL(link.href), 100);
   }
 
   resetStatusSort(): void {
