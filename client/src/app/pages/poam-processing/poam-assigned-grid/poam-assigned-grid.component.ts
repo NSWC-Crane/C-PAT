@@ -40,6 +40,7 @@ interface PoamAssignedData {
   owner: string;
   assignedTeams: AssignedTeam[];
   labels: string[];
+  associatedVulnerabilities: any;
 }
 
 interface ColumnConfig {
@@ -110,7 +111,8 @@ export class PoamAssignedGridComponent {
     { field: 'status', header: 'Status', sortable: true, customSort: true },
     { field: 'owner', header: 'Owner', sortable: true },
     { field: 'assignedTeams', header: 'Assigned Team' },
-    { field: 'labels', header: 'Labels' }
+    { field: 'labels', header: 'Labels' },
+    { field: 'associatedVulnerabilities', header: 'Associated Vulnerabilities' }
   ];
 
   globalFilterSignal = signal<string>('');
@@ -192,7 +194,8 @@ export class PoamAssignedGridComponent {
             name: team.assignedTeamName,
             complete: team.complete
           })) || [],
-        labels: item.labels?.map((label: any) => label.labelName) || []
+        labels: item.labels?.map((label: any) => label.labelName) || [],
+        associatedVulnerabilities: item.associatedVulnerabilities
       };
     });
 
@@ -201,7 +204,18 @@ export class PoamAssignedGridComponent {
     }
 
     return transformedData.filter((row) => {
-      const searchableValues = [row.poamId, row.vulnerabilityId, row.status, row.adjSeverity, row.owner, ...row.assignedTeams.map((team) => team.name), ...row.labels].filter(Boolean);
+      const searchableValues = [
+        row.poamId,
+        row.vulnerabilityId,
+        row.affectedAssets,
+        row.scheduledCompletionDate,
+        row.adjSeverity,
+        row.status,
+        row.owner,
+        ...row.assignedTeams.map((team) => team.name),
+        ...row.labels,
+        ...row.associatedVulnerabilities
+      ].filter(Boolean);
 
       return searchableValues.some((value) => value.toString().toLowerCase().includes(filterValue));
     });
