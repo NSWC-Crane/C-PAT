@@ -9,13 +9,19 @@
 */
 
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
+import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
+import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DialogService } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { Observable, Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
@@ -23,16 +29,18 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { LabelService } from '../label.service';
+import { PoamService } from '../../poam-processing/poams.service';
 
 @Component({
   selector: 'cpat-label',
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, DialogModule, InputTextModule, ToastModule]
+  imports: [CommonModule, FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, ToastModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   private labelService = inject(LabelService);
+  private poamService = inject(PoamService);
   private dialogService = inject(DialogService);
   private sharedService = inject(SharedService);
   private messageService = inject(MessageService);
@@ -42,7 +50,6 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   @Input() labels: any;
   @Input() payload: any;
   readonly labelchange = output();
-
   errorMessage: string = '';
   data: any = [];
   showLaborCategorySelect: boolean = false;
@@ -50,11 +57,20 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   private subscriptions = new Subscription();
   private subs = new SubSink();
   protected accessLevel: any;
+  displayPoams: any[] = [];
+  loadingPoams: boolean = false;
+  availablePoams: any[] = [];
+  selectedPoams: any[] = [];
+  poamSuggestions: any[] = [];
 
   ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
+
+        if (collectionId) {
+          this.loadAvailablePoams();
+        }
       })
     );
 
@@ -66,6 +82,182 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['label'] && changes['label'].currentValue) {
       this.label = { ...changes['label'].currentValue };
+
+      if (this.label.labelId && this.label.labelId !== 'ADDLABEL') {
+        this.loadPoamsByLabel();
+      } else {
+        this.displayPoams = [];
+      }
+    }
+  }
+
+  loadAvailablePoams() {
+    if (!this.selectedCollection) return;
+
+    this.subs.sink = this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
+      next: (data: any) => {
+        this.availablePoams = data || [];
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error loading available POAMs: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  loadPoamsByLabel() {
+    if (!this.label.labelId || this.label.labelId === 'ADDLABEL') {
+      this.displayPoams = [];
+
+      return;
+    }
+
+    this.loadingPoams = true;
+    this.subs.sink = this.poamService.getPoamsByLabel(this.label.labelId).subscribe({
+      next: (data: any) => {
+        this.displayPoams = (data || []).map((poam) => ({
+          ...poam,
+          isNew: false
+        }));
+        this.loadingPoams = false;
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error loading POAMs: ${getErrorMessage(error)}`
+        });
+        this.loadingPoams = false;
+        this.displayPoams = [];
+      }
+    });
+  }
+
+  searchPoams(event: AutoCompleteCompleteEvent) {
+    const query = event.query.toLowerCase();
+
+    this.poamSuggestions = this.availablePoams.filter((poam) => {
+      const isAlreadyAdded = this.displayPoams.some((dp) => !dp.isNew && dp.poamId === poam.poamId);
+
+      if (isAlreadyAdded) return false;
+
+      return poam.poamId?.toString().toLowerCase().includes(query) || poam.vulnerabilityId?.toLowerCase().includes(query) || poam.vulnerabilityTitle?.toLowerCase().includes(query);
+    });
+  }
+
+  addPoamRow() {
+    const newPoamRow = {
+      isNew: true,
+      selectedPoams: [],
+      poamId: null,
+      vulnerabilityId: '',
+      vulnerabilityTitle: '',
+      rawSeverity: ''
+    };
+
+    this.displayPoams = [newPoamRow, ...this.displayPoams];
+  }
+
+  async onPoamAdd(rowData: any, rowIndex: number) {
+    if (!rowData.selectedPoams || rowData.selectedPoams.length === 0) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please select at least one POAM'
+      });
+
+      return;
+    }
+
+    for (const poam of rowData.selectedPoams) {
+      const isDuplicate = this.displayPoams.some((dp) => !dp.isNew && dp.poamId === poam.poamId);
+
+      if (isDuplicate) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Duplicate POAM',
+          detail: `POAM ${poam.poamId} is already associated with this label`
+        });
+        continue;
+      }
+
+      const poamLabel = {
+        poamId: poam.poamId,
+        labelId: this.label.labelId
+      };
+
+      this.subs.sink = this.poamService.postPoamLabel(poamLabel).subscribe({
+        next: () => {
+          this.displayPoams.push({
+            ...poam,
+            labelId: this.label.labelId,
+            labelName: this.label.labelName,
+            isNew: false
+          });
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `POAM ${poam.poamId} added to label`
+          });
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to add POAM ${poam.poamId}: ${getErrorMessage(error)}`
+          });
+        }
+      });
+    }
+
+    this.displayPoams.splice(rowIndex, 1);
+  }
+
+  async deletePoamFromLabel(poam: any, rowIndex: number) {
+    if (poam.isNew) {
+      this.displayPoams.splice(rowIndex, 1);
+
+      return;
+    }
+
+    this.subs.sink = this.poamService.deletePoamLabel(poam.poamId, this.label.labelId).subscribe({
+      next: () => {
+        this.displayPoams.splice(rowIndex, 1);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `POAM ${poam.poamId} removed from label`
+        });
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to remove POAM: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  getSeverity(severity: string) {
+    switch (severity?.toUpperCase()) {
+      case 'CRITICAL':
+      case 'CAT I':
+        return 'danger';
+      case 'HIGH':
+      case 'CAT II':
+        return 'warn';
+      case 'MEDIUM':
+      case 'CAT III':
+        return 'info';
+      case 'LOW':
+        return 'contrast';
+      default:
+        return 'secondary';
     }
   }
 
@@ -102,6 +294,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
 
   resetData() {
     this.label = { labelId: '', labelName: '', description: '' };
+    this.displayPoams = [];
     this.labelchange.emit();
   }
 

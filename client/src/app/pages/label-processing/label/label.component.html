@@ -8,24 +8,109 @@
 !##########################################################################
 -->
 
-<form (ngSubmit)="onSubmit()" #form="ngForm">
-  <div class="field mb-4">
-    <label for="labelname" class="p-col-fixed" style="width: 10rem">Label Name:</label>
-    <input pInputText type="text" id="labelname" name="labelname" [(ngModel)]="label.labelName" placeholder="Label Name" class="mt-2 w-full" required />
-  </div>
-  <div class="field mb-4">
-    <label for="description" class="p-col-fixed" style="width: 10rem">Description:</label>
-    <input pInputText type="text" id="description" name="description" [(ngModel)]="label.description" placeholder="Description" class="mt-2 w-full" />
-  </div>
-  <div class="formgroup-inline">
+<div class="card-body">
+  <form (ngSubmit)="onSubmit()" #form="ngForm">
+    <div class="form-container">
+      <div class="form-group">
+        <label for="labelname">Label Name:</label>
+        <input pInputText type="text" id="labelname" name="labelname" [(ngModel)]="label.labelName"
+          placeholder="Label Name" class="w-full" required />
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description:</label>
+        <input pInputText type="text" id="description" name="description" [(ngModel)]="label.description"
+          placeholder="Description" class="w-full" />
+      </div>
+    </div>
+
+    @if (label.labelId && label.labelId !== 'ADDLABEL') {
+    <h3 class="mt-8 mb-4">Associated POAMs</h3>
+    <div style="min-height: 300px; overflow: visible;">
+      <p-table [value]="displayPoams" [loading]="loadingPoams" [paginator]="true" [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]" class="w-full">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="poamId">POAM ID</th>
+            <th pSortableColumn="vulnerabilityId">Vulnerability ID</th>
+            <th pSortableColumn="vulnerabilityTitle">Vulnerability Title</th>
+            <th pSortableColumn="rawSeverity">Severity</th>
+            <th style="width: 8rem">
+              @if (accessLevel >= 2) {
+              <p-button icon="pi pi-plus" (onClick)="addPoamRow()" [rounded]="true" [text]="true"
+                pTooltip="Add POAM to label" tooltipPosition="top" />
+              }
+              @if (accessLevel < 2) { <span pTooltip="Adding POAMs requires elevated access" tooltipPosition="top">
+                <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [disabled]="true" />
+                </span>
+                }
+            </th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-poam let-rowIndex="rowIndex">
+          <tr>
+            @if (!poam.isNew) {
+            <td>{{ poam.poamId }}</td>
+            <td>{{ poam.vulnerabilityId }}</td>
+            <td>{{ poam.vulnerabilityTitle }}</td>
+            <td>
+              @if (poam.rawSeverity) {
+              <p-tag [value]="poam.rawSeverity" [severity]="getSeverity(poam.rawSeverity)" />
+              }
+            </td>
+            }
+            @if (poam.isNew) {
+            <td colspan="4">
+              <p-autocomplete fluid class="w-full" [(ngModel)]="poam.selectedPoams"
+                [ngModelOptions]="{standalone: true}" [suggestions]="poamSuggestions" [multiple]="true"
+                [typeahead]="true" [forceSelection]="false" [dropdown]="true" (completeMethod)="searchPoams($event)"
+                [autoZIndex]="true" placeholder="Search by POAM ID, Vulnerability ID, or Title..."
+                [disabled]="accessLevel < 2" optionLabel="poamId">
+                <ng-template let-item pTemplate="item">
+                  <p-tag [value]="'POAM ' + item.poamId" [rounded]="true" />
+                  <span class="ml-2">{{ item.vulnerabilityId }}</span>
+                  <span class="ml-2 text-gray-500">- {{ item.vulnerabilityTitle }}</span>
+                </ng-template>
+                <ng-template let-item pTemplate="selectedItem">
+                  <span>POAM {{ item.poamId }}</span>
+                </ng-template>
+              </p-autocomplete>
+            </td>
+            }
+            <td>
+              @if (poam.isNew) {
+              <p-button icon="pi pi-check" (onClick)="onPoamAdd(poam, rowIndex)" [rounded]="true" [text]="true"
+                severity="success" [disabled]="accessLevel < 2" pTooltip="Add selected POAMs" tooltipPosition="top" />
+              }
+              <p-button icon="pi pi-trash" (onClick)="deletePoamFromLabel(poam, rowIndex)" [rounded]="true"
+                [text]="true" severity="danger" [disabled]="accessLevel < 2" pTooltip="Remove POAM from label"
+                tooltipPosition="top" />
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center">No POAMs associated with this label</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+    }
+
     <div class="mt-8 flex w-full items-center justify-between">
-      <div class="flex gap-6">
+      <div class="flex gap-4">
         <p-button variant="outlined" label="Cancel" severity="secondary" (onClick)="resetData()" />
         <p-button type="submit" variant="outlined" label="Submit" [disabled]="!form.valid" />
       </div>
-      <p-button variant="outlined" label="Delete Label" severity="danger" (onClick)="deleteLabel(label)" [disabled]="accessLevel < 2" />
+      @if (label.labelId && label.labelId !== 'ADDLABEL') {
+      <p-button variant="outlined" label="Delete Label" severity="danger" (onClick)="deleteLabel(label)"
+        [disabled]="accessLevel < 2" />
+      }
     </div>
-  </div>
-</form>
+  </form>
+</div>
 
 <p-toast />
