@@ -45,7 +45,7 @@
         <label for="officeOrg" class="mb-2 block text-base font-medium">Office/Organization:</label>
         <div>
           <p-autoComplete class="w-1/5" fluid [(ngModel)]="user.officeOrg" [suggestions]="filteredOfficeOrgs"
-            (completeMethod)="filterOfficeOrgs($event)" [dropdown]="false" [forceSelection]="false" name="officeOrg"
+            (completeMethod)="filterOfficeOrgs($event)" [dropdown]="true" [forceSelection]="false" name="officeOrg"
             id="officeOrg" placeholder="Office/Org..." />
         </div>
       </div>
