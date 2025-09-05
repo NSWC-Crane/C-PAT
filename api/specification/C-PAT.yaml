@@ -4042,6 +4042,43 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  /poamLabels/poams/{labelId}:
+    parameters:
+      - in: path
+        name: labelId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Return POAMs associated with a POAM label by labelId
+      operationId: getPoamsByLabel
+      responses:
+        '200':
+          description: Poam array response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poams_label_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamLabel
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   /poamLabels/label/{labelId}:
     parameters:
       - in: path
@@ -4717,6 +4754,8 @@ paths:
                     status:
                       type: string
                     vulnerabilityId:
+                      type: string
+                    vulnerabilityTitle:
                       type: string
                     parentPoamId:
                       type: string
@@ -6672,6 +6711,26 @@ components:
         associatedVulnerability:
           type: string
         poamStatus:
+          type: string
+
+    poams_label_Object:
+      type: object
+      required:
+        - poamId
+        - labelId
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        labelId:
+          type: integer
+        labelName:
+          type: string
+        vulnerabilityId:
+          type: string
+        vulnerabilityTitle:
+          type: string
+        rawSeverity:
           type: string
 
     poamLabel_Object:

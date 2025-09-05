@@ -354,14 +354,14 @@ exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilit
     try {
         return await withConnection(async connection => {
             let sql = `
-                SELECT poamId, status, vulnerabilityId, NULL as parentPoamId, NULL as parentStatus
+                SELECT poamId, status, vulnerabilityId, vulnerabilityTitle, NULL as parentPoamId, NULL as parentStatus
                 FROM ${config.database.schema}.poam
                 WHERE collectionId = ?
 
                 UNION ALL
 
                 SELECT pav.poamId, 'Associated' AS status, pav.associatedVulnerability AS vulnerabilityId,
-                       po.poamId as parentPoamId, po.status as parentStatus
+                       po.vulnerabilityTitle AS vulnerabilityTitle,po.poamId as parentPoamId, po.status as parentStatus
                 FROM ${config.database.schema}.poamassociatedvulnerabilities pav
                 JOIN ${config.database.schema}.poam po ON pav.poamId = po.poamId
                 WHERE po.collectionId = ?

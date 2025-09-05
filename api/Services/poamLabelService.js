@@ -103,6 +103,48 @@ exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
     }
 };
 
+exports.getPoamsByLabel = async function getPoamsByLabel(labelId) {
+    try {
+        if (!labelId) {
+            return next({
+                status: 400,
+                errors: {
+                    labelId: 'is required',
+                },
+            });
+        }
+
+        return await withConnection(async connection => {
+            let sql = `
+                SELECT 
+                    t1.poamId, 
+                    t1.labelId, 
+                    t3.labelName,
+                    t2.vulnerabilityId,
+                    t2.vulnerabilityTitle,
+                    t2.rawSeverity
+                FROM poamlabels t1 
+                INNER JOIN poam t2 ON t1.poamId = t2.poamId 
+                INNER JOIN label t3 ON t1.labelId = t3.labelId 
+                WHERE t1.labelId = ?
+                ORDER BY t1.poamId
+            `;
+            let [rowPoams] = await connection.query(sql, [labelId]);
+            const poams = rowPoams.map(row => ({
+                poamId: row.poamId,
+                labelId: row.labelId,
+                labelName: row.labelName,
+                vulnerabilityId: row.vulnerabilityId,
+                vulnerabilityTitle: row.vulnerabilityTitle,
+                rawSeverity: row.rawSeverity,
+            }));
+            return poams;
+        });
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
 exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
     try {
         if (!poamId) {

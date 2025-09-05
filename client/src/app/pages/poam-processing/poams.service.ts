@@ -233,6 +233,10 @@ export class PoamService {
     return this.http.get(`${this.cpatApiBase}/poamLabels/${collectionId}`).pipe(catchError(this.handleError));
   }
 
+  getPoamsByLabel(labelId: number): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/poamLabels/poams/${labelId}`).pipe(catchError(this.handleError));
+  }
+
   getPoamLabelsByPoam(poamId: number): Observable<any> {
     return this.http.get(`${this.cpatApiBase}/poamLabels/poam/${poamId}`).pipe(catchError(this.handleError));
   }
