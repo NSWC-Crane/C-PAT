@@ -12,7 +12,6 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
-import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -44,7 +43,7 @@ interface AssignedTeam {
   templateUrl: './assignedTeam-processing.component.html',
   styleUrls: ['./assignedTeam-processing.component.scss'],
   standalone: true,
-  imports: [AutoCompleteModule, ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule]
+  imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule]
 })
 export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   private assetDeltaService = inject(AssetDeltaService);
