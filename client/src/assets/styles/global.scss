@@ -15,6 +15,10 @@
 @use './layout/_mixins.scss' as *;
 @use 'sass:color';
 @use 'tailwindcss';
+@use '@fontsource-variable/inter' as *;
+@use '@fontsource-variable/roboto' as *;
+@use '@fontsource-variable/red-hat-display' as *;
+
 @plugin "tailwindcss-primeui";
 @custom-variant dark (&:where(.p-dark, .p-dark *));
 
