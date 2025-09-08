@@ -79,7 +79,8 @@ interface PermissionChangeSummary {
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   standalone: true,
-  imports: [AutoCompleteModule, ButtonModule, CardModule, CommonModule, ConfirmDialogModule, Select, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, StepperModule, TableModule, ToastModule, TooltipModule]
+  imports: [AutoCompleteModule, ButtonModule, CardModule, CommonModule, ConfirmDialogModule, Select, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, StepperModule, TableModule, ToastModule, TooltipModule],
+  providers: [ConfirmationService, MessageService]
 })
 export class UserComponent implements OnInit, OnChanges, OnDestroy {
   private assignedTeamService = inject(AssignedTeamService);
