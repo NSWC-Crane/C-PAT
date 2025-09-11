@@ -40,7 +40,8 @@ import { PoamService } from '../poams.service';
   templateUrl: './poam-extend.component.html',
   styleUrls: ['./poam-extend.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, AutoCompleteModule, ButtonModule, DatePicker, DialogModule, Select, InputTextModule, TextareaModule, TooltipModule, StepperModule, TableModule, ToastModule, ConfirmDialogModule, DatePipe]
+  imports: [CommonModule, FormsModule, AutoCompleteModule, ButtonModule, DatePicker, DialogModule, Select, InputTextModule, TextareaModule, TooltipModule, StepperModule, TableModule, ToastModule, ConfirmDialogModule, DatePipe],
+  providers: [ConfirmationService, MessageService]
 })
 export class PoamExtendComponent implements OnInit, OnDestroy {
   private assignedTeamService = inject(AssignedTeamService);

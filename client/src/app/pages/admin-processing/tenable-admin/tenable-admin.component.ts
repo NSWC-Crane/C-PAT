@@ -34,7 +34,8 @@ interface TenableRepository {
   templateUrl: './tenable-admin.component.html',
   styleUrls: ['./tenable-admin.component.scss'],
   standalone: true,
-  imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule]
+  imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
+  providers: [ConfirmationService, MessageService]
 })
 export class TenableAdminComponent implements OnInit, OnDestroy {
   private collectionsService = inject(CollectionsService);
