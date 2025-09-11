@@ -40,7 +40,8 @@ interface Theme {
   templateUrl: './marketplace.component.html',
   styleUrls: ['./marketplace.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CardModule, ChipModule, ConfirmDialogModule, DividerModule, ToastModule, ImageModule]
+  imports: [ButtonModule, CardModule, ChipModule, ConfirmDialogModule, DividerModule, ToastModule, ImageModule],
+  providers: [ConfirmationService, MessageService]
 })
 export class MarketplaceComponent implements OnInit, OnDestroy {
   private marketplaceService = inject(MarketplaceService);
