@@ -53,3 +53,16 @@ body {
 .p-multiselect {
   background: var(--p-multiselect-background) !important;
 }
+
+svg[data-p-icon='filter-fill'] {
+  filter: drop-shadow(0 0 2px var(--primary-color));
+}
+
+svg[data-p-icon='filter-fill'] path {
+  stroke: var(--primary-color);
+  stroke-opacity: 0.4;
+  stroke-width: 0.5px;
+  fill: currentColor;
+  transform: scale(0.95);
+  transform-origin: center;
+}
