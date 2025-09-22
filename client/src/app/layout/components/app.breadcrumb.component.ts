@@ -137,6 +137,8 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
         return 'Asset Processing';
       case 'label-processing':
         return 'Label Processing';
+      case 'metrics':
+        return 'Metrics';
       default:
         return path
           .split('-')

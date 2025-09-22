@@ -1,0 +1,567 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package!
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+$color-high: rgba(236, 72, 99, 0.8);
+$color-medium: rgba(251, 167, 50, 0.8);
+$color-low: rgba(230, 190, 44, 0.8);
+
+@mixin legend-item-text {
+  color: var(--text-color);
+  opacity: 0.7;
+  font-size: 0.875rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .header-labels {
+    font-weight: 500;
+    opacity: 0.7;
+    margin-left: 0.5rem;
+  }
+
+  .header-buttons {
+    position: relative;
+    display: flex;
+    gap: 0.25rem;
+    margin-right: 0.25rem;
+  }
+}
+
+.chart-container {
+  height: 100%;
+  min-height: 12rem;
+  display: flex;
+  flex-direction: column;
+
+  .chart-title {
+    font-family: 'Red Hat Display Variable';
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: -0.5rem 0 2rem;
+    text-align: left;
+  }
+}
+
+.findings-chart-layout {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  flex-grow: 1;
+
+  .chart-wrapper {
+    flex: 0 0 55%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.advanced-pie-legend {
+  flex: 0 0 45%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-left: 0.5rem;
+
+  .legend-items {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .legend-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding-right: 0.5rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      cursor: default;
+      transform: translateX(8px);
+
+      .item-label,
+      .item-value,
+      .item-percent {
+        opacity: 1;
+      }
+
+      .item-color {
+        transform: scale(1.2);
+        filter: brightness(0.9);
+      }
+    }
+
+    .item-color {
+      flex-shrink: 0;
+      margin-right: 0.5rem;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .item-label {
+      @include legend-item-text;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      flex: 1;
+    }
+
+    .item-value {
+      @include legend-item-text;
+      font-weight: 500;
+      min-width: 1.5rem;
+    }
+
+    .item-percent {
+      @include legend-item-text;
+      margin-left: 0.5rem;
+      width: 3.5rem;
+      text-align: left;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.stigs-assessment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+
+  .stig-assessment-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .stig-info {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      width: 40%;
+      flex-shrink: 0;
+
+      .stig-count {
+        font-weight: 600;
+        color: var(--text-color);
+        min-width: 30px;
+        text-align: right;
+      }
+
+      .stig-name {
+        font-size: 0.9rem;
+        color: var(--text-secondary-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .assessment-bar-wrapper {
+      flex: 1;
+    }
+
+    .assessment-bar {
+      display: flex;
+      height: 28px;
+      border-radius: 14px;
+      overflow: hidden;
+
+      .bar-segment {
+        &.high {
+          background: $color-high;
+        }
+        &.medium {
+          background: $color-medium;
+        }
+        &.low {
+          background: $color-low;
+        }
+
+        &.no-findings {
+          width: 100%;
+          background: #4b5563;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          .no-findings-text {
+            font-size: 0.75rem;
+            color: #9ca3af;
+          }
+        }
+      }
+    }
+  }
+}
+
+.poam-compliance-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+
+  .compliance-value-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .compliance-value {
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 3px solid;
+      padding: 1rem;
+      gap: 0.5rem;
+
+      .compliance-percentage {
+        font-size: 4rem;
+        font-weight: 900;
+        line-height: 1;
+      }
+    }
+  }
+}
+
+.cat-compliance-card {
+  position: relative;
+  overflow: hidden;
+  padding: 3rem 0;
+
+  .dark-web-style-metric {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .metric-circle-container {
+      position: absolute;
+      left: 0;
+      right: 2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 140px;
+      display: flex;
+      align-items: center;
+
+      .metric-circle {
+        width: 140px;
+        height: 140px;
+        outline: 2px solid var(--primary-color);
+        outline-offset: -1rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ground-background);
+        position: relative;
+        z-index: 2;
+
+        .metric-circle-value {
+          font-size: 3.5rem;
+          font-weight: 700;
+          color: var(--text-color);
+          line-height: 1;
+        }
+      }
+
+      .metric-line {
+        position: absolute;
+        left: 140px;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 1.5px;
+        background: var(--primary-color);
+        z-index: 1;
+      }
+    }
+
+    .metric-text-container {
+      flex: 1;
+      padding-left: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1rem;
+      position: relative;
+      z-index: 3;
+      margin-top: -1rem;
+      font-family: 'Red Hat Display Variable';
+
+      .metric-origin {
+        font-size: 2rem;
+        font-weight: 500;
+        opacity: 0.9;
+      }
+
+      .metric-description {
+        font-size: 1.1rem;
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  height: 96%;
+
+  .metric-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    padding: 0.75rem;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--text-secondary-color);
+      opacity: 0.5;
+    }
+
+    &.high::before {
+      background: $color-high;
+      opacity: 1;
+    }
+    &.medium::before {
+      background: $color-medium;
+      opacity: 1;
+    }
+    &.low::before {
+      background: $color-low;
+      opacity: 1;
+    }
+
+    .metric-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+
+      .metric-loading,
+      .metric-value-container {
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-secondary-color);
+        line-height: 1;
+
+        &.high {
+          color: $color-high;
+        }
+        &.medium {
+          color: $color-medium;
+        }
+        &.low {
+          color: $color-low;
+        }
+      }
+
+      .metric-origin,
+      .metric-label {
+        margin-top: 0.25rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary-color);
+        line-height: 1.2;
+      }
+
+      .metric-origin {
+        opacity: 0.7;
+        font-weight: 500;
+      }
+
+      .metric-label {
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+@media (max-width: 1400px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+
+    .metric-value {
+      font-size: 1.5rem;
+    }
+  }
+
+  .cat-compliance-card .dark-web-style-metric {
+    .metric-circle-container {
+      height: 120px;
+
+      .metric-circle {
+        width: 120px;
+        height: 120px;
+
+        .metric-circle-value {
+          font-size: 3rem;
+        }
+      }
+
+      .metric-line {
+        left: 120px;
+      }
+    }
+
+    .metric-text-container {
+      padding-left: 170px;
+
+      .metric-description {
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  .findings-chart-layout {
+    flex-direction: column;
+    gap: 2rem;
+
+    .chart-wrapper,
+    .advanced-pie-legend {
+      flex: 1 1 100%;
+      width: 100%;
+      margin-left: 0;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .flex.flex-row.gap-4 {
+    flex-direction: column;
+
+    > div {
+      width: 100% !important;
+    }
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    min-height: auto;
+  }
+
+  .cat-compliance-card .dark-web-style-metric {
+    .metric-circle-container {
+      height: 100px;
+
+      .metric-circle {
+        width: 100px;
+        height: 100px;
+
+        .metric-circle-value {
+          font-size: 2.5rem;
+        }
+      }
+
+      .metric-line {
+        left: 100px;
+      }
+    }
+
+    .metric-text-container {
+      padding-left: 140px;
+
+      .metric-origin {
+        font-size: 0.75rem;
+      }
+      .metric-description {
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+  }
+
+  .cat-compliance-card .dark-web-style-metric {
+    flex-direction: column;
+    text-align: center;
+
+    .metric-circle-container {
+      position: relative;
+      left: auto;
+      right: auto;
+      transform: none;
+      top: auto;
+      width: 100%;
+      justify-content: center;
+
+      .metric-line {
+        display: none;
+      }
+    }
+
+    .metric-text-container {
+      padding-left: 0;
+      padding-top: 1rem;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 0.75rem;
+
+    .metric-value {
+      font-size: 2rem;
+    }
+  }
+
+  .stigs-assessment-list {
+    gap: 1.25rem;
+
+    .stig-assessment-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+
+      .stig-info {
+        width: 100%;
+      }
+    }
+  }
+}

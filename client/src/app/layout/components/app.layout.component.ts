@@ -504,6 +504,12 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         visible: this.user.isAdmin
       },
       {
+        label: 'Metrics',
+        icon: 'pi pi-chart-bar',
+        routerLink: ['/metrics'],
+        visible: this.accessLevel >= 1
+      },
+      {
         label: 'Manage POAMs',
         icon: 'pi pi-list-check',
         routerLink: ['/poam-processing/poam-manage'],

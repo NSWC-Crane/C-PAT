@@ -72,6 +72,7 @@ export class AppSearchComponent {
       { title: 'Import Processing', path: '/import-processing' },
       { title: 'Label Processing', path: '/label-processing' },
       { title: 'Manage POAMs', path: '/poam-processing/poam-manage' },
+      { title: 'Metrics', path: '/metrics' },
       { title: 'Notifications', path: '/notifications' }
     ];
 

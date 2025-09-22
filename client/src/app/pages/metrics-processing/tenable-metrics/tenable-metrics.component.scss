@@ -1,0 +1,336 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .header-labels {
+    font-weight: 500;
+    opacity: 0.7;
+    margin-left: 0.5rem;
+  }
+
+  .header-buttons {
+    position: relative;
+    display: flex;
+    gap: 0.25rem;
+    margin-right: 0.25rem;
+  }
+}
+
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-secondary-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.metric-origin {
+  font-size: 0.85rem;
+  color: var(--text-secondary-color);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.metric-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-color);
+    opacity: 0.65;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .metric-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    .metric-loading {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .metric-value-container {
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .metric-origin {
+      margin-top: 0.25rem;
+    }
+
+    .metric-label {
+      margin-top: 0.25rem;
+      font-size: 0.95rem;
+      color: var(--text-secondary-color);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+  }
+}
+
+.poam-compliance-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+
+  .compliance-value-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .compliance-value {
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 3px solid;
+      padding: 1rem;
+      gap: 0.5rem;
+
+      .compliance-percentage {
+        font-size: 4rem;
+        font-weight: 900;
+        line-height: 1;
+      }
+    }
+  }
+}
+
+.cat-compliance-card {
+  position: relative;
+  overflow: hidden;
+  padding: 3rem 0;
+
+  .dark-web-style-metric {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .metric-circle-container {
+      position: absolute;
+      left: 0;
+      right: 2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 140px;
+      display: flex;
+      align-items: center;
+
+      .metric-circle {
+        width: 140px;
+        height: 140px;
+        outline: 2px solid var(--primary-color);
+        outline-offset: -1rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ground-background);
+        position: relative;
+        z-index: 2;
+
+        .metric-circle-value {
+          font-size: 3.5rem;
+          font-weight: 700;
+          color: var(--text-color);
+          line-height: 1;
+        }
+      }
+
+      .metric-line {
+        position: absolute;
+        left: 140px;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 1.5px;
+        background: var(--primary-color);
+        z-index: 1;
+      }
+    }
+
+    .metric-text-container {
+      flex: 1;
+      padding-left: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1rem;
+      position: relative;
+      z-index: 3;
+      margin-top: -1rem;
+      font-family: 'Red Hat Display Variable';
+
+      .metric-origin {
+        font-size: 2rem;
+        font-weight: 500;
+        opacity: 0.9;
+      }
+
+      .metric-description {
+        font-size: 1.1rem;
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+.chart-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .chart-title {
+    font-family: 'Red Hat Display Variable';
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: -0.5rem 0 2rem;
+    text-align: left;
+  }
+}
+
+.findings-chart-layout {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  flex-grow: 1;
+
+  .chart-wrapper {
+    flex: 0 0 55%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.advanced-pie-legend {
+  flex: 0 0 45%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-left: 0.5rem;
+
+  .legend-items {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .legend-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding-right: 0.5rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      cursor: default;
+      transform: translateX(8px);
+
+      .item-label,
+      .item-value,
+      .item-percent {
+        opacity: 1;
+      }
+
+      .item-color {
+        transform: scale(1.2);
+        filter: brightness(0.9);
+      }
+    }
+
+    .item-color {
+      flex-shrink: 0;
+      margin-right: 0.5rem;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .item-label {
+      color: var(--text-color);
+      opacity: 0.7;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      flex: 1;
+    }
+
+    .item-value {
+      color: var(--text-color);
+      opacity: 0.7;
+      font-size: 0.875rem;
+      font-weight: 500;
+      min-width: 1.5rem;
+    }
+
+    .item-percent {
+      color: var(--text-color);
+      opacity: 0.7;
+      font-size: 0.875rem;
+      margin-left: 0.5rem;
+      width: 3.5rem;
+      text-align: left;
+      flex-shrink: 0;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .flex.flex-row.gap-4 {
+    flex-direction: column;
+
+    .basis-1\/5 {
+      flex-basis: 100%;
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 1400px) {
+  .flex.flex-row.gap-4 {
+    flex-wrap: wrap;
+
+    .basis-1\/5 {
+      flex-basis: calc(33.333% - 1rem);
+    }
+  }
+}
