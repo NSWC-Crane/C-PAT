@@ -25,10 +25,7 @@ import { ToastModule } from 'primeng/toast';
 import { forkJoin } from 'rxjs';
 import { SharedService } from 'src/app/common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
-interface ExportColumn {
-  title: string;
-  dataKey: string;
-}
+
 interface Label {
   color: string;
   description: string;
@@ -53,7 +50,6 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   readonly multiSelect = viewChild.required<MultiSelect>('ms');
 
   cols: any[];
-  exportColumns!: ExportColumn[];
   selectedColumns: any[];
   assets: any[] = [];
   labels: Label[] = [];
@@ -119,10 +115,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
       },
       { field: 'labels', header: 'Labels', width: '200px', filterable: true }
     ];
-    this.exportColumns = this.cols.map((col) => ({
-      title: col.header,
-      dataKey: col.field
-    }));
+
     this.resetColumnSelections();
   }
 

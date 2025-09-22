@@ -101,7 +101,7 @@ import { PoamVariableMappingService } from './services/poam-variable-mapping.ser
     PoamTeamsComponent,
     ProgressBarModule
   ],
-  providers: [DatePipe]
+  providers: [DatePipe, ConfirmationService, MessageService]
 })
 export class PoamDetailsComponent implements OnInit, OnDestroy {
   private appConfigurationService = inject(AppConfigurationService);

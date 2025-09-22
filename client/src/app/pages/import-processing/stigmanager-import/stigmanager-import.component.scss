@@ -13,11 +13,11 @@
     max-height: calc(100vh - 11rem);
     height: calc(100vh - 11rem);
     overflow: hidden;
-    }
-    .p-tabpanel {
-      height: calc(100vh - 19rem);
-      overflow: hidden;
-    }
+  }
+  .p-tabpanel {
+    height: calc(100vh - 19rem);
+    overflow: hidden;
+  }
 }
 
 ::ng-deep {
@@ -51,7 +51,7 @@
   }
 
   .p-progressbar .p-progressbar-label {
-    font-weight: 650;
+    font-weight: 600;
   }
 }
 
