@@ -102,11 +102,22 @@
               </div>
               }
               @case ('multiSelect') {
+              @if (item.identifier === 'asset') {
+              <div class="p-0">
+                <p-select [options]="assetsOperatorOptions" [(ngModel)]="tempFilters[item.identifier].operator"
+                  (onChange)="onFilterChange($event, item.identifier, false, true)" placeholder="Select Operator..."
+                  class="mb-2 w-full" appendTo="body" />
+                <p-multiSelect [options]="item.options" [(ngModel)]="tempFilters[item.identifier].value"
+                  (onChange)="onFilterChange($event, item.identifier)" [placeholder]="'Select ' + item.header"
+                  [showToggleAll]="false" class="w-full" appendTo="body" />
+              </div>
+              } @else {
               <div class="p-0">
                 <p-multiSelect [options]="item.options" [(ngModel)]="tempFilters[item.identifier]"
                   (onChange)="onFilterChange($event, item.identifier)" [placeholder]="'Select ' + item.header"
                   [showToggleAll]="false" class="w-full" appendTo="body" />
               </div>
+              }
               }
               @case ('rangeFilter') {
               <div class="p-0">
