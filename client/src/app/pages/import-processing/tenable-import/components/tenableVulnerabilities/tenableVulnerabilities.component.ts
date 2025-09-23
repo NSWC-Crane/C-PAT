@@ -1133,8 +1133,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     return this.importService.getTenableAuditFileFilter().pipe(
       map((auditFileData) => {
         this.auditFileOptions = auditFileData.response.usable.map((auditFile: any) => ({
-          value: auditFile.id,
-          label: auditFile.name
+          label: auditFile.name,
+          value: auditFile.id
         }));
 
         return this.auditFileOptions;
@@ -1411,8 +1411,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
 
     if (identifier === 'policy' || identifier === 'auditFile') {
-      this.tempFilters[identifier] = event.value ? [event.value] : [];
+      this.tempFilters[identifier] = event.value;
+      return;
+    }
 
+    if (identifier === 'responsibleUser') {
+      this.tempFilters[identifier] = event.value || [];
       return;
     }
 
@@ -1465,6 +1469,22 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (filter.filterName === 'severity') {
       this.tempFilters['severity'] = filter.value.split(',');
 
+      return;
+    }
+
+    if (filter.filterName === 'policy' || filter.filterName === 'auditFile') {
+      if (Array.isArray(filter.value) && filter.value.length > 0) {
+        this.tempFilters[filter.filterName] = filter.value[0].id || filter.value[0];
+      } else if (filter.value && filter.value.id) {
+        this.tempFilters[filter.filterName] = filter.value.id;
+      }
+      return;
+    }
+
+    if (filter.filterName === 'responsibleUser') {
+      if (Array.isArray(filter.value)) {
+        this.tempFilters['responsibleUser'] = filter.value.map((v: any) => v.id || v);
+      }
       return;
     }
 
