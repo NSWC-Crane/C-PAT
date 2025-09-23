@@ -152,6 +152,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'Non-Accepted Risk', value: 'nonAcceptedRisk' }
   ];
 
+  assetsOperatorOptions = [
+    { label: 'Contains', value: 'contains' },
+    { label: 'Does Not Contain', value: 'notContains' }
+  ];
+
   severityOptions = [
     { label: 'Info', value: '0' },
     { label: 'Low', value: '1' },
@@ -996,7 +1001,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       assetExposureScore: { value: 'all', min: 0, max: 1000 },
       aesSeverity: [],
       uuid: { value: null, operator: null, isValid: true, isDirty: false },
-      asset: [],
+      asset: { value: [], operator: 'contains' },
       cpe: { operator: null, value: null },
       auditFile: [],
       cceId: { value: null, operator: null, isValid: true, isDirty: false },
@@ -1392,6 +1397,19 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (identifier === 'asset') {
+      if (!this.tempFilters[identifier]) {
+        this.tempFilters[identifier] = { value: [], operator: 'contains' };
+      }
+
+      if (isOperator) {
+        this.tempFilters[identifier].operator = event.value;
+      } else {
+        this.tempFilters[identifier].value = event.value;
+      }
+      return;
+    }
+
     if (identifier === 'severity') {
       this.tempFilters['severity'] = event.value;
 
@@ -1460,6 +1478,36 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (filter.filterName === 'asset') {
+      let operator = 'contains';
+      let assetIds: string[] = [];
+
+      if (filter.value && typeof filter.value === 'object' && filter.value.operator === 'complement') {
+        operator = 'notContains';
+        filter.value = filter.value.operand1;
+      }
+
+      if (filter.value && typeof filter.value === 'object') {
+        const flattenUnion = (obj: any): void => {
+          if (obj.id) {
+            assetIds.push(obj.id);
+          }
+          if (obj.operand1) flattenUnion(obj.operand1);
+          if (obj.operand2) flattenUnion(obj.operand2);
+        };
+        flattenUnion(filter.value);
+      } else if (Array.isArray(filter.value)) {
+        assetIds = filter.value.map((v: any) => v.id || v);
+      }
+
+      this.tempFilters['asset'] = {
+        value: assetIds,
+        operator: operator
+      };
+
+      return;
+    }
+
     if (filter.filterName === 'family' && Array.isArray(filter.value)) {
       this.tempFilters['family'] = filter.value.map((v: any) => v.id || v);
 
@@ -1521,7 +1569,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  createAssetsFilter(value: any): AssetsFilter | null {
+  createAssetsFilter(value: any, operator: string = 'contains'): AssetsFilter | null {
     if (!value || value.length === 0) {
       return null;
     }
@@ -1529,7 +1577,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (value.length === 1) {
       return {
         filterName: 'asset',
-        operator: '=',
+        operator: operator === 'notContains' ? '!=' : '=',
         value: { id: value[0] }
       };
     }
@@ -1543,6 +1591,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         operand2: {
           id: value[i]
         }
+      };
+    }
+
+    if (operator === 'notContains') {
+      formattedValue = {
+        operator: 'complement',
+        operand1: formattedValue
       };
     }
 
@@ -1577,9 +1632,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         switch (config.handler) {
           case 'idArray':
             if (apiName === 'asset') {
-              if (Array.isArray(value)) {
-                const assetFilter = this.createAssetsFilter(value);
-
+              if (typeof value === 'object' && 'value' in value && 'operator' in value) {
+                const assetFilter = this.createAssetsFilter(value.value, value.operator);
                 if (assetFilter) {
                   return {
                     id: apiName,
@@ -1767,8 +1821,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           max: this.getMaxValue(identifier)
         };
         break;
-      case 'aesSeverity':
       case 'asset':
+        this.tempFilters[identifier] = { value: [], operator: 'contains' };
+        break;
+      case 'aesSeverity':
       case 'auditFile':
       case 'dataFormat':
       case 'family':
@@ -1831,8 +1887,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'cvssV3BaseScore':
       case 'vprScore':
         return filter.value !== 'all';
-      case 'aesSeverity':
       case 'asset':
+        return filter.value && filter.value.length > 0;
+      case 'aesSeverity':
       case 'auditFile':
       case 'dataFormat':
       case 'family':
