@@ -122,7 +122,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   sidebarVisible: boolean = false;
   activeFilters: CustomFilter[] = [];
   tempFilters: TempFilters = this.initializeTempFilters();
-  filterHistory: TempFilters[] = [];
+  filterHistory: { filters: TempFilters; tool: string }[] = [];
   currentFilterHistoryIndex: number = -1;
   selectedPremadeFilter: any = null;
   overlayVisible: boolean = false;
@@ -951,7 +951,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               this.updateAccordionItems();
               this.initializeColumnsAndFilters();
               this.filteredAccordionItems = [...this.accordionItems];
-              this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+              this.filterHistory.push({
+                filters: JSON.parse(JSON.stringify(this.tempFilters)),
+                tool: this.tenableTool
+              });
               this.currentFilterHistoryIndex = 0;
             }
           });
@@ -1896,7 +1899,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.filterHistory = this.filterHistory.slice(0, this.currentFilterHistoryIndex + 1);
     }
 
-    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.filterHistory.push({
+      filters: JSON.parse(JSON.stringify(this.tempFilters)),
+      tool: this.tenableTool
+    });
     this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     this.activeFilters = this.convertTempFiltersToAPI();
     this.filterAccordionItems();
@@ -1914,11 +1920,19 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (this.currentFilterHistoryIndex > 0) {
       this.currentFilterHistoryIndex--;
       this.selectedPremadeFilter = null;
-      this.tempFilters = JSON.parse(JSON.stringify(this.filterHistory[this.currentFilterHistoryIndex]));
+      const historyItem = this.filterHistory[this.currentFilterHistoryIndex];
+      this.tempFilters = JSON.parse(JSON.stringify(historyItem.filters));
+      this.tenableTool = historyItem.tool;
       this.activeFilters = this.convertTempFiltersToAPI();
       this.filteredAccordionItems = [...this.accordionItems];
       this.filterAccordionItems();
       this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
+
+      if (this.tenableTool === 'listvuln') {
+        this.expandColumnSelections();
+      } else {
+        this.resetColumnSelections();
+      }
     }
   }
 
@@ -2177,7 +2191,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.filterSearch = '';
     this.filterHistory = [];
     this.currentFilterHistoryIndex = -1;
-    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.filterHistory.push({
+      filters: JSON.parse(JSON.stringify(this.tempFilters)),
+      tool: this.tenableTool
+    });
     this.currentFilterHistoryIndex = 0;
 
     this.applyFilters(false);
@@ -2223,7 +2240,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (!selectedFilter) return;
 
     if (this.tempFilters) {
-      this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+      this.filterHistory.push({
+        filters: JSON.parse(JSON.stringify(this.tempFilters)),
+        tool: this.tenableTool
+      });
       this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     }
 
@@ -2253,7 +2273,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           });
         }
 
-        this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+        this.filterHistory.push({
+          filters: JSON.parse(JSON.stringify(this.tempFilters)),
+          tool: this.tenableTool
+        });
         this.currentFilterHistoryIndex = this.filterHistory.length - 1;
         this.activeFilters = this.convertTempFiltersToAPI();
         this.filteredAccordionItems = [...this.accordionItems];
@@ -2324,7 +2347,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         break;
     }
 
-    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.filterHistory.push({
+      filters: JSON.parse(JSON.stringify(this.tempFilters)),
+      tool: this.tenableTool
+    });
     this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     this.activeFilters = this.convertTempFiltersToAPI();
     this.filteredAccordionItems = [...this.accordionItems];
