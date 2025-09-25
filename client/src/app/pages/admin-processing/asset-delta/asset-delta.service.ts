@@ -46,6 +46,23 @@ export class AssetDeltaService {
       .pipe(catchError(this.handleError));
   }
 
+  uploadToMultipleCollections(file: File, collectionIds: number[]): Observable<any> {
+    const formData = new FormData();
+
+    const contentType = file.name.endsWith('.csv') ? 'text/csv' : file.type;
+    const fileBlob = new Blob([file], { type: contentType });
+
+    formData.append('file', fileBlob, file.name);
+    formData.append('collectionIds', JSON.stringify(collectionIds));
+
+    return this.http
+      .post(`${this.cpatApiBase}/import/assetlist/multiple`, formData, {
+        reportProgress: true,
+        observe: 'events'
+      })
+      .pipe(catchError(this.handleError));
+  }
+
   getAssetDeltaListByCollection(collectionId: number): Observable<any> {
     return this.http.get(`${this.cpatApiBase}/assets/delta/list/${collectionId}`).pipe(catchError(this.handleError));
   }

@@ -91,3 +91,40 @@ module.exports.importAssetListFile = async (req, res, next) => {
         }
     });
 };
+
+module.exports.importMultipleAssetListFiles = async (req, res, next) => {
+    const file = req.files[0];
+    const collectionIds = req.body.collectionIds ? JSON.parse(req.body.collectionIds) : [];
+
+    if (!file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    if (!Array.isArray(collectionIds) || collectionIds.length === 0) {
+        return res.status(400).json({ message: 'Collection IDs not provided as an array' });
+    }
+
+    const validCollectionIds = collectionIds.filter(id => !isNaN(parseInt(id, 10))).map(id => parseInt(id, 10));
+
+    if (validCollectionIds.length !== collectionIds.length) {
+        return res.status(400).json({ message: 'All collection IDs must be valid numbers' });
+    }
+
+    importService.excelAndCsvFilter(req, file, async err => {
+        if (err) {
+            return res.status(400).json({
+                message: err.message,
+            });
+        } else {
+            try {
+                const results = await importService.importMultipleAssetListFiles(file, validCollectionIds);
+                res.status(201).json(results);
+            } catch (error) {
+                res.status(500).json({
+                    message: 'Could not process the file',
+                    error: error.message,
+                });
+            }
+        }
+    });
+};

@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { HttpResponse } from '@angular/common/http';
+import { HttpEvent, HttpResponse } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, effect, signal, OnDestroy, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -23,6 +23,7 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
@@ -73,7 +74,26 @@ interface ChartData {
   templateUrl: './asset-delta.component.html',
   styleUrls: ['./asset-delta.component.scss'],
   standalone: true,
-  imports: [BadgeModule, ButtonModule, CardModule, ChartModule, CommonModule, DialogModule, FileUploadModule, FloatLabel, FormsModule, InputTextModule, IconField, InputIcon, ProgressBarModule, SelectModule, TableModule, ToastModule, TooltipModule],
+  imports: [
+    BadgeModule,
+    ButtonModule,
+    CardModule,
+    ChartModule,
+    CommonModule,
+    DialogModule,
+    FileUploadModule,
+    FloatLabel,
+    FormsModule,
+    InputTextModule,
+    MultiSelectModule,
+    IconField,
+    InputIcon,
+    ProgressBarModule,
+    SelectModule,
+    TableModule,
+    ToastModule,
+    TooltipModule
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -94,6 +114,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   exportColumns!: Column[];
   availableCollections: CollectionsBasicList[] = [];
   selectedCollection = signal<number | null>(null);
+  selectedUploadCollections = signal<number[]>([]);
   assetDeltaUpdated = signal<string | null>(null);
   emassHardwareListUpdated = signal<string | null>(null);
   user: any;
@@ -247,6 +268,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
 
                 this.selectedCollection.set(collectionToUse);
+                this.selectedUploadCollections.set([collectionToUse]);
                 this.loadAssetDeltaList(collectionToUse);
               } else {
                 this.messageService.add({
@@ -403,7 +425,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   customUploadHandler(event: any) {
     const file = event.files[0];
-    const collectionId = this.selectedCollection();
+    const collectionIds = this.selectedUploadCollections();
 
     if (!file) {
       this.messageService.add({
@@ -415,41 +437,94 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (!collectionId) {
+    if (!collectionIds || collectionIds.length === 0) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Please select a collection first'
+        detail: 'Please select at least one collection first'
       });
 
       return;
     }
 
+    this.loading.set(true);
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Processing',
+      detail: `Uploading to ${collectionIds.length} collection(s)...`
+    });
+
     this.assetDeltaService
-      .upload(file, collectionId)
-      .pipe(takeUntil(this.destroy$))
+      .uploadToMultipleCollections(file, collectionIds)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading.set(false))
+      )
       .subscribe({
-        next: (event: any) => {
+        next: (event: HttpEvent<any>) => {
           if (event instanceof HttpResponse) {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: 'File uploaded successfully'
+            const response = event.body;
+
+            const successCount = response.results.filter((r: any) => r.success).length;
+            const failureCount = response.results.filter((r: any) => !r.success).length;
+
+            if (successCount > 0 && failureCount === 0) {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `File uploaded successfully to ${successCount} collection(s)`
+              });
+            } else if (successCount > 0 && failureCount > 0) {
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'Partial Success',
+                detail: `File uploaded to ${successCount} collection(s), failed for ${failureCount} collection(s)`
+              });
+            } else {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'File upload failed for all collections'
+              });
+            }
+
+            response.results.forEach((result: any) => {
+              const collection = this.availableCollections.find((c) => c.collectionId === result.collectionId);
+              if (!result.success) {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: `Failed: ${collection?.collectionName || 'Unknown'}`,
+                  detail: result.error
+                });
+              }
             });
-            this.loadAssetDeltaList(collectionId);
+
             this.fileUpload().clear();
             this.showUploadDialog.set(false);
-            this.checkAllStatuses();
+
+            const currentCollection = this.selectedCollection();
+            if (currentCollection && collectionIds.includes(currentCollection)) {
+              this.loadAssetDeltaList(currentCollection);
+              this.checkAllStatuses();
+            }
           }
         },
         error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `File upload failed: : ${getErrorMessage(error)}`
+            detail: `File upload failed: ${getErrorMessage(error)}`
           });
         }
       });
+  }
+
+  showUploadDialogHandler() {
+    const currentCollection = this.selectedCollection();
+    if (currentCollection) {
+      this.selectedUploadCollections.set([currentCollection]);
+    }
+    this.showUploadDialog.set(true);
   }
 
   onCollectionChange(collectionId: number) {
@@ -459,7 +534,11 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadAssetDeltaList(collectionId);
   }
 
-  loadAssetDeltaList(collectionId: number = this.selectedCollection()) {
+  loadAssetDeltaList(collectionId?: number) {
+    if (!collectionId) {
+      collectionId = this.selectedCollection();
+    }
+
     if (!collectionId) {
       this.messageService.add({
         severity: 'warn',
@@ -579,6 +658,16 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   checkAllStatuses() {
+    const collectionId = this.selectedCollection();
+
+    if (!collectionId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Please select a collection first'
+      });
+      return;
+    }
     this.loading.set(true);
     this.messageService.add({
       severity: 'secondary',

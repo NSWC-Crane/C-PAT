@@ -1634,6 +1634,91 @@ paths:
         - oauth:
             - 'c-pat:op'
 
+  '/import/assetlist/multiple':
+    post:
+      summary: Parse and import an asset list to multiple collections
+      operationId: importMultipleAssetListFiles
+      x-eov-file-handler: true
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: .xls, .xlsx, .xlsm, or .csv files
+                collectionIds:
+                  type: string
+                  description: JSON stringified array of collection IDs
+                  example: "[1, 2, 3]"
+              required:
+                - file
+                - collectionIds
+      responses:
+        '201':
+          description: File uploaded successfully to one or more collections
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalCollections:
+                    type: integer
+                    description: Total number of collections attempted
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        collectionId:
+                          type: integer
+                          description: The collection ID
+                        success:
+                          type: boolean
+                          description: Whether the upload succeeded for this collection
+                        message:
+                          type: string
+                          description: Success message if successful
+                        details:
+                          type: object
+                          properties:
+                            message:
+                              type: string
+                            rowsProcessed:
+                              type: integer
+                            duplicatesRemoved:
+                              type: integer
+                            matchingAssetsFound:
+                              type: integer
+                              description: For eMASS files only
+                            emassDate:
+                              type: string
+                              format: date
+                              description: For eMASS files only
+                        error:
+                          type: string
+                          description: Error message if failed
+        '400':
+          description: Bad request - invalid file format, missing file, or invalid collectionIds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Import
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   '/import/vram':
     post:
       summary: Parse and import VRAM excel IAV exports to provide up-to-date comply by dates
