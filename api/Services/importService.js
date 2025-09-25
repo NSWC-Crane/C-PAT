@@ -8,16 +8,13 @@
 !##########################################################################
 */
 
-const multer = require('multer');
 const fastcsv = require('fast-csv');
 const config = require('../utils/config');
 const db = require('../utils/sequelize');
 const dbUtils = require('./utils');
-const mysql = require('mysql2');
 const { isAfter, parse, format } = require('date-fns');
 const { Poam, Collection, poamMilestones } = require('../utils/sequelize.js');
 const logger = require('../utils/logger');
-const util = require('util');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -659,6 +656,273 @@ exports.importAssetListFile = async function importAssetListFile(file, collectio
     }
 };
 
+exports.importMultipleAssetListFiles = async function importMultipleAssetListFiles(file, collectionIds) {
+    if (!file) {
+        throw new Error('Please upload an Excel or CSV file!');
+    }
+
+    if (!collectionIds || !Array.isArray(collectionIds) || collectionIds.length === 0) {
+        throw new Error('Collection IDs array is required');
+    }
+
+    const results = {
+        totalCollections: collectionIds.length,
+        results: [],
+    };
+
+    const isCSV = file.mimetype === 'text/csv' || file.mimetype === 'application/csv';
+    let isEMassFile = false;
+    let workbook = null;
+
+    if (!isCSV) {
+        workbook = await loadWorkbook(file);
+        isEMassFile = workbook.worksheets.some(sheet => sheet.name === 'Hardware');
+    }
+
+    for (const collectionId of collectionIds) {
+        try {
+            let result;
+
+            if (isCSV) {
+                result = await processCSVAssetListForCollection(file, collectionId);
+            } else if (isEMassFile) {
+                result = await processEMassHardwareListForCollection(workbook, collectionId);
+            } else {
+                const worksheet = getFirstWorksheet(workbook);
+                result = await processRegularAssetListForCollection(worksheet, collectionId);
+            }
+
+            results.results.push({
+                collectionId: collectionId,
+                success: true,
+                message: result.message,
+                details: result,
+            });
+        } catch (error) {
+            results.results.push({
+                collectionId: collectionId,
+                success: false,
+                error: error.message,
+            });
+        }
+    }
+
+    return results;
+};
+
+async function processCSVAssetListForCollection(file, collectionId) {
+    return new Promise((resolve, reject) => {
+        const assetMap = new Map();
+        const csvString = file.buffer.toString('utf8');
+        let rowNumber = 0;
+
+        fastcsv
+            .parseString(csvString, { headers: false })
+            .on('data', row => {
+                rowNumber++;
+                if (rowNumber > 1 && row.length === 2 && row[0]) {
+                    const key = row[0].toString().trim();
+                    const lowercaseKey = key.toLowerCase();
+                    const value = row[1] ? row[1].toString().trim() : '';
+                    assetMap.set(lowercaseKey, { originalKey: key, value: value });
+                }
+            })
+            .on('error', error => {
+                reject(new Error(`Error parsing CSV file: ${error.message}`));
+            })
+            .on('end', async totalRowCount => {
+                try {
+                    const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
+                        key: data.originalKey,
+                        value: data.value,
+                    }));
+
+                    if (assetData.length === 0) {
+                        reject(new Error('No valid data found in the CSV file'));
+                        return;
+                    }
+
+                    const result = await updateAssetListForCollection(assetData, collectionId, totalRowCount - 1 - assetMap.size);
+                    resolve(result);
+                } catch (error) {
+                    reject(new Error(`Failed to process CSV asset list for collection ${collectionId}: ${error.message}`));
+                }
+            });
+    });
+}
+
+async function processRegularAssetListForCollection(worksheet, collectionId) {
+    validateAssetListHeaders(worksheet);
+
+    const assetMap = new Map();
+
+    worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+            const values = row.values.slice(1);
+            if (values.length === 2 && values[0]) {
+                const key = values[0].toString().trim();
+                const lowercaseKey = key.toLowerCase();
+                const value = values[1] ? values[1].toString().trim() : '';
+                assetMap.set(lowercaseKey, { originalKey: key, value: value });
+            }
+        }
+    });
+
+    const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
+        key: data.originalKey,
+        value: data.value,
+    }));
+
+    if (assetData.length === 0) {
+        throw new Error('No valid data found in the Excel file');
+    }
+
+    return await updateAssetListForCollection(assetData, collectionId, worksheet.rowCount - 1 - assetMap.size);
+}
+
+async function processEMassHardwareListForCollection(workbook, collectionId) {
+    const worksheet = workbook.worksheets.find(sheet => sheet.name === 'Hardware');
+
+    if (!worksheet) {
+        throw new Error('Hardware sheet not found in the eMASS file');
+    }
+
+    let emassDate = null;
+    const dateCell = worksheet.getCell('C2');
+    if (dateCell && dateCell.value) {
+        const dateValue = dateCell.value.toString().trim();
+        try {
+            const parsedDate = parse(dateValue, 'dd-MMM-yyyy', new Date());
+            if (!isNaN(parsedDate.getTime())) {
+                emassDate = format(parsedDate, 'yyyy-MM-dd');
+            }
+        } catch (e) {
+            logger.warn(`Could not parse eMASS date "${dateValue}" from cell C2: ${e.message}`);
+        }
+    }
+
+    if (!emassDate) {
+        logger.warn('eMASS date not found in cell C2, using current date instead');
+        emassDate = format(new Date(), 'yyyy-MM-dd');
+    }
+
+    let headerRow = 7;
+    let assetNameColIndex = null;
+    const row7 = worksheet.getRow(headerRow);
+
+    row7.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        if (cell.value === 'Asset Name') {
+            assetNameColIndex = colNumber;
+        }
+    });
+
+    if (!assetNameColIndex) {
+        throw new Error('Asset Name column not found in the Hardware sheet');
+    }
+
+    const assetNamesSet = new Set();
+    worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > headerRow) {
+            const assetNameCell = row.getCell(assetNameColIndex);
+            if (assetNameCell.value) {
+                const assetName = assetNameCell.value.toString().trim().toLowerCase();
+                if (assetName) {
+                    assetNamesSet.add(assetName);
+                }
+            }
+        }
+    });
+
+    const assetNames = Array.from(assetNamesSet);
+
+    if (assetNames.length === 0) {
+        throw new Error('No asset names found in the Hardware sheet');
+    }
+
+    return await updateEMassAssetsForCollection(assetNames, collectionId, emassDate);
+}
+
+async function updateAssetListForCollection(assetData, collectionId, duplicatesRemoved) {
+    return await withConnection(async connection => {
+        await connection.beginTransaction();
+
+        try {
+            await connection.query(`DELETE FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [collectionId]);
+
+            if (assetData.length > 0) {
+                const placeholders = assetData.map(() => '(?, ?, ?, FALSE)').join(',');
+                const values = assetData.flatMap(asset => [asset.key, asset.value, collectionId]);
+
+                await connection.query(
+                    `INSERT INTO ${config.database.schema}.assetdeltalist (\`key\`, \`value\`, \`collectionId\`, \`eMASS\`) VALUES ${placeholders}`,
+                    values
+                );
+            }
+
+            const formattedDate = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+            await connection.query(`INSERT INTO ${config.database.schema}.config (\`key\`, \`value\`) VALUES (?, ?) ON DUPLICATE KEY UPDATE \`value\` = ?`, [
+                `assetDeltaUpdated_${collectionId}`,
+                formattedDate,
+                formattedDate,
+            ]);
+
+            await connection.commit();
+            return {
+                message: `Asset list updated successfully for collection ${collectionId}`,
+                rowsProcessed: assetData.length,
+                duplicatesRemoved: duplicatesRemoved,
+            };
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        }
+    });
+}
+
+async function updateEMassAssetsForCollection(assetNames, collectionId, emassDate) {
+    return await withConnection(async connection => {
+        await connection.beginTransaction();
+
+        try {
+            await connection.query(`UPDATE ${config.database.schema}.assetdeltalist SET eMASS = FALSE WHERE collectionId = ?`, [collectionId]);
+
+            if (assetNames.length > 0) {
+                const [allAssets] = await connection.query(`SELECT \`key\` FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [
+                    collectionId,
+                ]);
+                const existingLowercaseKeys = allAssets.map(row => row.key.toLowerCase());
+
+                const matchingAssets = assetNames.filter(name => existingLowercaseKeys.includes(name));
+
+                if (matchingAssets.length > 0) {
+                    for (const lowercaseName of matchingAssets) {
+                        await connection.query(
+                            `UPDATE ${config.database.schema}.assetdeltalist SET eMASS = TRUE WHERE LOWER(\`key\`) = ? AND collectionId = ?`,
+                            [lowercaseName, collectionId]
+                        );
+                    }
+                }
+            }
+
+            await connection.query(`INSERT INTO ${config.database.schema}.config (\`key\`, \`value\`) VALUES (?, ?) ON DUPLICATE KEY UPDATE \`value\` = ?`, [
+                `emassHardwareListUpdated_${collectionId}`,
+                emassDate,
+                emassDate,
+            ]);
+
+            await connection.commit();
+            return {
+                message: `eMASS hardware list processed successfully for collection ${collectionId}`,
+                matchingAssetsFound: assetNames.length,
+                emassDate: emassDate,
+            };
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        }
+    });
+}
+
 async function processEMassHardwareList(workbook, collectionId) {
     const worksheet = workbook.worksheets.find(sheet => sheet.name === 'Hardware');
 
@@ -723,15 +987,12 @@ async function processEMassHardwareList(workbook, collectionId) {
             await connection.beginTransaction();
 
             try {
-                await connection.query(`UPDATE ${config.database.schema}.assetdeltalist SET eMASS = FALSE WHERE collectionId = ?`, [
-                    collectionId,
-                ]);
+                await connection.query(`UPDATE ${config.database.schema}.assetdeltalist SET eMASS = FALSE WHERE collectionId = ?`, [collectionId]);
 
                 if (assetNames.length > 0) {
-                    const [allAssets] = await connection.query(
-                        `SELECT \`key\` FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`,
-                        [collectionId]
-                    );
+                    const [allAssets] = await connection.query(`SELECT \`key\` FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [
+                        collectionId,
+                    ]);
                     const existingLowercaseKeys = allAssets.map(row => row.key.toLowerCase());
 
                     const matchingAssets = assetNames.filter(name => existingLowercaseKeys.includes(name));
@@ -801,9 +1062,7 @@ async function processCSVAssetList(file, collectionId) {
                         const result = await withConnection(async connection => {
                             await connection.beginTransaction();
                             try {
-                                await connection.query(`DELETE FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [
-                                    collectionId,
-                                ]);
+                                await connection.query(`DELETE FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [collectionId]);
 
                                 if (assetData.length > 0) {
                                     const placeholders = assetData.map(() => '(?, ?, ?, FALSE)').join(',');
@@ -939,4 +1198,5 @@ module.exports = {
     processPoamFile: exports.processPoamFile,
     importVRAMExcel: exports.importVRAMExcel,
     importAssetListFile: exports.importAssetListFile,
+    importMultipleAssetListFiles: exports.importMultipleAssetListFiles,
 };
