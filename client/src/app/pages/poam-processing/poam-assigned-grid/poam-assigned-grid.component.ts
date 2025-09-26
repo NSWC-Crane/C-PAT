@@ -240,14 +240,14 @@ export class PoamAssignedGridComponent {
     this.globalFilterSignal.set('');
   }
 
-  getTeamSeverity(complete: string): string {
+  getTeamSeverity(complete: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (complete) {
       case 'true':
         return 'success';
       case 'partial':
         return 'warn';
       case 'global':
-        return '';
+        return undefined;
       default:
         return 'danger';
     }
