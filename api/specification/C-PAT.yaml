@@ -18,7 +18,7 @@ info:
   license:
     name: C-PAT™ SOFTWARE OPEN SOURCE LICENSE AGREEMENT
     url: https://github.com/NSWC-Crane/C-PAT/blob/main/LICENSE.MD
-  version: '1.2.6'
+  version: '1.2.7'
 servers:
   - url: ''
 paths:
