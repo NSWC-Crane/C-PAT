@@ -1696,7 +1696,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (value.length === 1) {
       return {
         filterName: 'asset',
-        operator: operator === 'notContains' ? '!=' : '=',
+        operator: operator === 'notContains' ? '~' : '=',
         value: { id: value[0] }
       };
     }
