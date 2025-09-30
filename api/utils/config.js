@@ -21,8 +21,10 @@ let config = {
         lastAccessResolution: 60,
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || 'none',
         dodDeployment: process.env.CPAT_DOD_DEPLOYMENT !== 'false',
-        adminInactivityTimeout: process.env.CPAT_ADMIN_INACTIVITY_TIMEOUT ? parseInt(process.env.CPAT_ADMIN_INACTIVITY_TIMEOUT) * 60 * 1000 : 10 * 60 * 1000,
-        inactivityTimeout: process.env.CPAT_INACTIVITY_TIMEOUT ? parseInt(process.env.CPAT_INACTIVITY_TIMEOUT) * 60 * 1000 : 15 * 60 * 1000,
+        adminInactivityTimeout: process.env.CPAT_ADMIN_INACTIVITY_TIMEOUT
+            ? Number.parseInt(process.env.CPAT_ADMIN_INACTIVITY_TIMEOUT) * 60 * 1000
+            : 10 * 60 * 1000,
+        inactivityTimeout: process.env.CPAT_INACTIVITY_TIMEOUT ? Number.parseInt(process.env.CPAT_INACTIVITY_TIMEOUT) * 60 * 1000 : 15 * 60 * 1000,
     },
     client: {
         authority: process.env.CPAT_CLIENT_OIDC_PROVIDER || process.env.CPAT_OIDC_PROVIDER || 'http://localhost:8080/auth/realms/RMFTools',
@@ -118,7 +120,7 @@ let config = {
         aiBaseURL: process.env.CPAT_AI_BASE_URL,
     },
     log: {
-        level: parseInt(process.env.CPAT_LOG_LEVEL) || 3,
+        level: Number.parseInt(process.env.CPAT_LOG_LEVEL) || 3,
         mode: process.env.CPAT_LOG_MODE || 'combined',
     },
 };

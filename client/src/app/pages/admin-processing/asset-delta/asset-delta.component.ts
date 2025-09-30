@@ -1118,7 +1118,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
                     label: dp.dataset.label,
                     color: dp.dataset.backgroundColor
                   }))
-                  .filter((item) => parseInt(item.value) > 0);
+                  .filter((item) => Number.parseInt(item.value) > 0);
 
                 values.forEach((item) => {
                   const row = document.createElement('div');

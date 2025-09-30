@@ -279,10 +279,10 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
 
       const date = new Date(Number(timestamp) * 1000);
 
-      if (isNaN(date.getTime())) {
+      if (Number.isNaN(date.getTime())) {
         const dateMs = new Date(Number(timestamp));
 
-        if (!isNaN(dateMs.getTime())) {
+        if (!Number.isNaN(dateMs.getTime())) {
           return format(dateMs, 'MM/dd/yyyy');
         }
 

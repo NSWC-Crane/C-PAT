@@ -406,7 +406,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
     const collectionToSave = {
       ...this.editingCollection,
-      collectionId: parseInt(this.dialogMode === 'add' ? '0' : this.editingCollection.collectionId || '0', 10)
+      collectionId: Number.parseInt(this.dialogMode === 'add' ? '0' : this.editingCollection.collectionId || '0', 10)
     };
 
     (this.dialogMode === 'add' ? this.collectionsService.addCollection(collectionToSave) : this.collectionsService.updateCollection(collectionToSave))

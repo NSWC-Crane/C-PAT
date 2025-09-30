@@ -50,10 +50,9 @@ exports.getIAVTableData = async function getIAVTableData(req, res, next) {
             let [tableData] = await connection.query(sql);
             let nessusPluginsMapped = null;
             if (tableData.length > 0) {
-                const [nessusPluginsUpdated] = await connection.query(
-                    `SELECT \`value\` FROM ${config.database.schema}.config WHERE \`key\` = ?`,
-                    ['nessusPluginsMapped']
-                );
+                const [nessusPluginsUpdated] = await connection.query(`SELECT \`value\` FROM ${config.database.schema}.config WHERE \`key\` = ?`, [
+                    'nessusPluginsMapped',
+                ]);
                 nessusPluginsMapped = nessusPluginsUpdated.length > 0 ? nessusPluginsUpdated[0].value : null;
             }
 
@@ -131,7 +130,7 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
 };
 
 function validatePluginID(pluginID) {
-    const numericID = parseInt(pluginID, 10);
+    const numericID = Number.parseInt(pluginID, 10);
     if (Number.isInteger(numericID) && numericID >= 0 && numericID <= 9999999) {
         return numericID;
     }
@@ -163,7 +162,7 @@ exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
 
         const validPluginIDs = pluginIDs.filter(id => {
             const num = Number(id);
-            return !isNaN(num) && num > 0 && Number.isInteger(num);
+            return !Number.isNaN(num) && num > 0 && Number.isInteger(num);
         });
 
         if (validPluginIDs.length === 0) {

@@ -18,10 +18,10 @@ const sequelize = new Sequelize(config.database.schema, config.database.username
     port: config.database.port,
     dialect: config.database.dialect,
     pool: {
-        max: parseInt(config.database.maxConnections, 10),
-        min: parseInt(config.database.minConnections, 10),
-        acquire: parseInt(config.database.acquire, 10),
-        idle: parseInt(config.database.idle, 10),
+        max: Number.parseInt(config.database.maxConnections, 10),
+        min: Number.parseInt(config.database.minConnections, 10),
+        acquire: Number.parseInt(config.database.acquire, 10),
+        idle: Number.parseInt(config.database.idle, 10),
     },
     dialectOptions: {
         ssl: getSslConfig(),

@@ -618,8 +618,8 @@ export class STIGManagerReviewsTableComponent implements OnInit {
         const filterVersionStr = filterValue.value;
 
         const compareVersions = (v1: string, v2: string): number => {
-          const parts1 = v1.split('.').map((p) => parseInt(p, 10) || 0);
-          const parts2 = v2.split('.').map((p) => parseInt(p, 10) || 0);
+          const parts1 = v1.split('.').map((p) => Number.parseInt(p, 10) || 0);
+          const parts2 = v2.split('.').map((p) => Number.parseInt(p, 10) || 0);
 
           for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
             const p1 = parts1[i] || 0;
