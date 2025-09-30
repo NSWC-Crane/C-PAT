@@ -652,7 +652,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   private processPluginData() {
-    this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replaceAll(/\n\n/g, '<br>')) : '';
+    this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replaceAll('\n\n', '<br>')) : '';
 
     if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
       this.parseReferences(this.pluginData.xrefs);
