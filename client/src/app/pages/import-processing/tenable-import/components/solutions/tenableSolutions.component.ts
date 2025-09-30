@@ -159,7 +159,7 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
 
   getAffectedHosts(solution: any) {
     this.displayDialog = true;
-    const solutionId = parseInt(solution.solutionID.split('-')[1], 10);
+    const solutionId = Number.parseInt(solution.solutionID.split('-')[1], 10);
 
     this.getVulnDetails(solutionId);
 

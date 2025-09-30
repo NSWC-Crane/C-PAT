@@ -85,7 +85,7 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
 
       currentPath += `/${segment}`;
 
-      const isParameter = !isNaN(Number(segment));
+      const isParameter = !Number.isNaN(Number(segment));
 
       if (isParameter) {
         breadcrumbs.push({

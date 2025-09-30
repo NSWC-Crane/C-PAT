@@ -376,7 +376,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
 
       thresholdDate.setDate(thresholdDate.getDate() + 30);
 
-      return !isNaN(completionDate.getTime()) && completionDate <= thresholdDate && !this.CLOSED_STATUSES.has(poam.status);
+      return !Number.isNaN(completionDate.getTime()) && completionDate <= thresholdDate && !this.CLOSED_STATUSES.has(poam.status);
     });
 
     this.poamsNeedingAttention.set(needingAttention);

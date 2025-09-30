@@ -284,7 +284,7 @@ function formatDate(cellValue, cellString) {
         const match = cellString.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (match) {
             const [, month, day, year] = match;
-            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            const date = new Date(Number.parseInt(year), Number.parseInt(month) - 1, Number.parseInt(day));
             return format(date, 'yyyy-MM-dd');
         }
     }
@@ -560,7 +560,7 @@ function processVRAMCell(vramEntry, header, value) {
                 vramEntry[dbColumn] = value ? value.toString() : null;
                 break;
             case 'iavCat':
-                vramEntry[dbColumn] = value ? parseInt(value) : null;
+                vramEntry[dbColumn] = value ? Number.parseInt(value) : null;
                 break;
             case 'releaseDate':
             case 'navyComplyDate':
@@ -571,7 +571,7 @@ function processVRAMCell(vramEntry, header, value) {
                 vramEntry[dbColumn] = value ? value.toString().slice(0, 5) : null;
                 break;
             case 'nessusPlugins':
-                vramEntry[dbColumn] = value ? parseInt(value) : 0;
+                vramEntry[dbColumn] = value ? Number.parseInt(value) : 0;
                 break;
         }
     }
@@ -585,7 +585,7 @@ function processCellDate(value) {
             return value;
         }
         const parsedDate = parse(value, 'yyyy-MM-dd', new Date());
-        if (!isNaN(parsedDate.getTime())) {
+        if (!Number.isNaN(parsedDate.getTime())) {
             return format(parsedDate, 'yyyy-MM-dd');
         }
     }
@@ -793,7 +793,7 @@ async function processEMassHardwareListForCollection(workbook, collectionId) {
         const dateValue = dateCell.value.toString().trim();
         try {
             const parsedDate = parse(dateValue, 'dd-MMM-yyyy', new Date());
-            if (!isNaN(parsedDate.getTime())) {
+            if (!Number.isNaN(parsedDate.getTime())) {
                 emassDate = format(parsedDate, 'yyyy-MM-dd');
             }
         } catch (e) {
@@ -936,7 +936,7 @@ async function processEMassHardwareList(workbook, collectionId) {
         const dateValue = dateCell.value.toString().trim();
         try {
             const parsedDate = parse(dateValue, 'dd-MMM-yyyy', new Date());
-            if (!isNaN(parsedDate.getTime())) {
+            if (!Number.isNaN(parsedDate.getTime())) {
                 emassDate = format(parsedDate, 'yyyy-MM-dd');
             }
         } catch (e) {

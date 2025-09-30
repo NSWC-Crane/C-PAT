@@ -156,7 +156,7 @@ async function setupSchema() {
 
         if (migrated.length > 0) {
             const lastName = migrated[migrated.length - 1].name;
-            config.lastMigration = parseInt(lastName.replace('.js', '').substring(0, 4));
+            config.lastMigration = Number.parseInt(lastName.replace('.js', '').substring(0, 4));
         } else {
             config.lastMigration = -1;
         }

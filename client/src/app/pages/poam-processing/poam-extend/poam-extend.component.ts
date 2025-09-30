@@ -569,7 +569,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   putPoamExtension(status: string) {
     const extensionData = {
-      poamId: parseInt(this.poamId, 10),
+      poamId: Number.parseInt(this.poamId, 10),
       extensionTimeAllowed: this.poam.extensionTimeAllowed,
       extensionJustification: this.extensionJustification,
       status: status,

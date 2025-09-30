@@ -441,7 +441,7 @@ exports.setLastAccess = async function (userId, timestamp) {
 
 exports.disableUser = async function disableUser(elevate, userId) {
     try {
-        if (!userId || isNaN(userId)) {
+        if (!userId || Number.isNaN(userId)) {
             throw new Error('Invalid userId');
         }
 

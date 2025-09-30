@@ -952,7 +952,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               this.initializeColumnsAndFilters();
               this.filteredAccordionItems = [...this.accordionItems];
               this.filterHistory.push({
-                filters: JSON.parse(JSON.stringify(this.tempFilters)),
+                filters: structuredClone(this.tempFilters),
                 tool: this.tenableTool
               });
               this.currentFilterHistoryIndex = 0;
@@ -1879,7 +1879,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
                   operator: '=',
                   type: 'vuln',
                   isPredefined: true,
-                  value: value?.value !== undefined ? value.value : value
+                  value: value?.value ?? value
                 }
               : null;
 
@@ -1900,7 +1900,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
 
     this.filterHistory.push({
-      filters: JSON.parse(JSON.stringify(this.tempFilters)),
+      filters: structuredClone(this.tempFilters),
       tool: this.tenableTool
     });
     this.currentFilterHistoryIndex = this.filterHistory.length - 1;
@@ -1921,7 +1921,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.currentFilterHistoryIndex--;
       this.selectedPremadeFilter = null;
       const historyItem = this.filterHistory[this.currentFilterHistoryIndex];
-      this.tempFilters = JSON.parse(JSON.stringify(historyItem.filters));
+      this.tempFilters = structuredClone(historyItem.filters);
       this.tenableTool = historyItem.tool;
       this.activeFilters = this.convertTempFiltersToAPI();
       this.filteredAccordionItems = [...this.accordionItems];
@@ -2192,7 +2192,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.filterHistory = [];
     this.currentFilterHistoryIndex = -1;
     this.filterHistory.push({
-      filters: JSON.parse(JSON.stringify(this.tempFilters)),
+      filters: structuredClone(this.tempFilters),
       tool: this.tenableTool
     });
     this.currentFilterHistoryIndex = 0;
@@ -2241,7 +2241,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     if (this.tempFilters) {
       this.filterHistory.push({
-        filters: JSON.parse(JSON.stringify(this.tempFilters)),
+        filters: structuredClone(this.tempFilters),
         tool: this.tenableTool
       });
       this.currentFilterHistoryIndex = this.filterHistory.length - 1;
@@ -2274,7 +2274,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         }
 
         this.filterHistory.push({
-          filters: JSON.parse(JSON.stringify(this.tempFilters)),
+          filters: structuredClone(this.tempFilters),
           tool: this.tenableTool
         });
         this.currentFilterHistoryIndex = this.filterHistory.length - 1;
@@ -2348,7 +2348,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
 
     this.filterHistory.push({
-      filters: JSON.parse(JSON.stringify(this.tempFilters)),
+      filters: structuredClone(this.tempFilters),
       tool: this.tenableTool
     });
     this.currentFilterHistoryIndex = this.filterHistory.length - 1;
@@ -2360,9 +2360,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   deleteFilter(event: Event, filterId: string) {
     event.stopPropagation();
-    const numericId = parseInt(filterId.replace('saved_', ''));
+    const numericId = Number.parseInt(filterId.replace('saved_', ''));
 
-    if (isNaN(numericId)) {
+    if (Number.isNaN(numericId)) {
       this.showErrorMessage('Invalid filter ID');
 
       return;
@@ -2630,7 +2630,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (pluginData) => {
             this.pluginData = pluginData;
-            this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replace(/\n\n/g, '<br>')) : '';
+            this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replaceAll(/\n\n/g, '<br>')) : '';
 
             if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
               this.parseReferences(this.pluginData.xrefs);

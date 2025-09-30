@@ -63,13 +63,13 @@ module.exports.importVRAMExcel = async (req, res, next) => {
 
 module.exports.importAssetListFile = async (req, res, next) => {
     const file = req.files[0];
-    const collectionId = parseInt(req.params.collectionId, 10);
+    const collectionId = Number.parseInt(req.params.collectionId, 10);
 
     if (!file) {
         return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    if (isNaN(collectionId)) {
+    if (Number.isNaN(collectionId)) {
         return res.status(400).json({ message: 'Collection ID must be a valid number' });
     }
 
@@ -104,7 +104,7 @@ module.exports.importMultipleAssetListFiles = async (req, res, next) => {
         return res.status(400).json({ message: 'Collection IDs not provided as an array' });
     }
 
-    const validCollectionIds = collectionIds.filter(id => !isNaN(parseInt(id, 10))).map(id => parseInt(id, 10));
+    const validCollectionIds = collectionIds.filter(id => !Number.isNaN(Number.parseInt(id, 10))).map(id => Number.parseInt(id, 10));
 
     if (validCollectionIds.length !== collectionIds.length) {
         return res.status(400).json({ message: 'All collection IDs must be valid numbers' });
