@@ -63,20 +63,26 @@
             }
             @if (poam.isNew) {
             <td colspan="4">
-              <p-autocomplete fluid class="w-full" [(ngModel)]="poam.selectedPoams"
-                [ngModelOptions]="{standalone: true}" [suggestions]="poamSuggestions" [multiple]="true"
-                [typeahead]="true" [forceSelection]="false" [dropdown]="true" (completeMethod)="searchPoams($event)"
-                [autoZIndex]="true" placeholder="Search by POAM ID, Vulnerability ID, or Title..."
-                [disabled]="accessLevel < 2" optionLabel="poamId">
-                <ng-template let-item pTemplate="item">
-                  <p-tag [value]="'POAM ' + item.poamId" [rounded]="true" />
-                  <span class="ml-2">{{ item.vulnerabilityId }}</span>
-                  <span class="ml-2 text-gray-500">- {{ item.vulnerabilityTitle }}</span>
-                </ng-template>
-                <ng-template let-item pTemplate="selectedItem">
-                  <span>POAM {{ item.poamId }}</span>
-                </ng-template>
-              </p-autocomplete>
+              <div class="flex flex-col gap-2">
+                <p-autocomplete fluid class="w-full" [(ngModel)]="poam.selectedPoams"
+                  [ngModelOptions]="{standalone: true}" [suggestions]="poamSuggestions" [multiple]="true"
+                  [typeahead]="true" [forceSelection]="false" [dropdown]="true" (completeMethod)="searchPoams($event)"
+                  (paste)="onPasteVulnerabilityIds($event, poam)" [autoZIndex]="true"
+                  placeholder="Search by POAM ID, Vulnerability ID, or Title... (Paste comma-separated IDs to bulk add)"
+                  [disabled]="accessLevel < 2" optionLabel="poamId">
+                  <ng-template let-item pTemplate="item">
+                    <p-tag [value]="'POAM ' + item.poamId" [rounded]="true" />
+                    <span class="ml-2">{{ item.vulnerabilityId }}</span>
+                    <span class="ml-2 text-gray-500">- {{ item.vulnerabilityTitle }}</span>
+                  </ng-template>
+                  <ng-template let-item pTemplate="selectedItem">
+                    <span>POAM {{ item.poamId }}</span>
+                  </ng-template>
+                </p-autocomplete>
+                <small class="text-gray-500">
+                  Tip: Paste comma-separated vulnerability IDs (e.g., "V-233781,V-244781" or "28416, 98271")
+                </small>
+              </div>
             </td>
             }
             <td>
