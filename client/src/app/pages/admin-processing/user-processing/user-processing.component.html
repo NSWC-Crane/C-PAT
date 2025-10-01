@@ -9,89 +9,88 @@
 -->
 
 @if (showUserSelect) {
-  <div>
-    <div class="scrollable-users overflow-hidden">
-      <p-treeTable
-        #usersTable
-        [value]="treeData"
-        [columns]="cols"
-        [filterDelay]="0"
-        [paginator]="true"
-        [rows]="25"
-        [scrollable]="true"
-        scrollHeight="calc(100vh - 35rem)"
-        selectionMode="single"
-        [globalFilterFields]="['User', 'Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level']"
-      >
-        <ng-template pTemplate="caption">
+<div>
+  <div class="scrollable-users overflow-hidden">
+    <p-treeTable #usersTable [value]="treeData" [columns]="cols" [filterDelay]="0" [paginator]="true" [rows]="25"
+      [scrollable]="true" scrollHeight="calc(100vh - 35rem)" selectionMode="single"
+      [globalFilterFields]="['User', 'Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level']">
+      <ng-template pTemplate="caption">
+        <div class="flex justify-between align-items-center">
           <p-iconField iconPosition="left">
             <p-inputIcon>
               <i class="pi pi-search"></i>
             </p-inputIcon>
-            <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Users" id="searchUsers" class="search-input" />
+            <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Users" id="searchUsers"
+              class="search-input" />
           </p-iconField>
-        </ng-template>
-        <ng-template pTemplate="header" let-columns>
-          <tr>
-            @for (col of columns; track col) {
-              <th scope="col" [ttSortableColumn]="col.field">
-                {{ col.header }}
-              </th>
+          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (click)="exportCSV()"
+            pTooltip="Export table to CSV" tooltipPosition="left" />
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          @for (col of columns; track col) {
+          <th scope="col" [ttSortableColumn]="col.field">
+            {{ col.header }}
+          </th>
+          }
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
+        <tr [ngClass]="{ 'pending-status': rowData['Status'] === 'PENDING' }" (click)="setUserFromTable(rowData)">
+          @for (col of columns; track col; let i = $index) {
+          <td>
+            @if (i === 0) {
+            <p-treeTableToggler [rowNode]="rowNode" />
             }
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
-          <tr [ngClass]="{ 'pending-status': rowData['Status'] === 'PENDING' }" (click)="setUserFromTable(rowData)">
-            @for (col of columns; track col; let i = $index) {
-              <td>
-                @if (i === 0) {
-                  <p-treeTableToggler [rowNode]="rowNode" />
-                }
-                {{ rowData[col.field] }}
-              </td>
-            }
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="expansion" let-rowNode let-rowData="rowData">
-          <tr>
-            <td colspan="6">
-              <div class="p-ml-4">
-                <p-table [value]="rowNode.children" [columns]="['Collection', 'Access Level']">
-                  <ng-template pTemplate="header" let-columns>
-                    <tr>
-                      @for (col of columns; track col) {
-                        <th scope="col">{{ col }}</th>
-                      }
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-rowData let-columns="columns">
-                    <tr>
-                      @for (col of columns; track col) {
-                        <td>{{ rowData.data[col] }}</td>
-                      }
-                    </tr>
-                  </ng-template>
-                </p-table>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-treeTable>
-    </div>
-    @if (data && data.length > 0 && showUserSelect) {
-      <div>
-        <p-select class="mt-[2rem] w-full" [options]="data" name="selectedUser" [(ngModel)]="selectedUser" (onChange)="setUser(selectedUser)" placeholder="Select User to Modify..." optionLabel="fullName" autoWidth="false" appendTo="body">
-          <ng-template let-user pTemplate="item"> {{ user.firstName }} {{ user.lastName }} - {{ user.officeOrg }} - {{ user.accountStatus }} </ng-template>
-        </p-select>
-      </div>
-    }
+            {{ rowData[col.field] }}
+          </td>
+          }
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="expansion" let-rowNode let-rowData="rowData">
+        <tr>
+          <td colspan="6">
+            <div class="p-ml-4">
+              <p-table [value]="rowNode.children" [columns]="['Collection', 'Access Level']">
+                <ng-template pTemplate="header" let-columns>
+        <tr>
+          @for (col of columns; track col) {
+          <th scope="col">{{ col }}</th>
+          }
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr>
+          @for (col of columns; track col) {
+          <td>{{ rowData.data[col] }}</td>
+          }
+        </tr>
+      </ng-template>
+      </p-table>
   </div>
+  </td>
+  </tr>
+  </ng-template>
+  </p-treeTable>
+</div>
+@if (data && data.length > 0 && showUserSelect) {
+<div>
+  <p-select class="mt-[2rem] w-full" [options]="data" name="selectedUser" [(ngModel)]="selectedUser"
+    (onChange)="setUser(selectedUser)" placeholder="Select User to Modify..." optionLabel="fullName" autoWidth="false"
+    appendTo="body">
+    <ng-template let-user pTemplate="item"> {{ user.firstName }} {{ user.lastName }} - {{ user.officeOrg }} - {{
+      user.accountStatus }} </ng-template>
+  </p-select>
+</div>
+}
+</div>
 }
 
 @if (!showUserSelect) {
-  <div class="col-span-12">
-    <cpat-user [user]="user" [users]="users" [payload]="payload" (userChange)="resetData()" />
-  </div>
+<div class="col-span-12">
+  <cpat-user [user]="user" [users]="users" [payload]="payload" (userChange)="resetData()" />
+</div>
 }
 <ng-template #dialog let-data let-ref="dialogRef">
   <p-header>Delete Row</p-header>

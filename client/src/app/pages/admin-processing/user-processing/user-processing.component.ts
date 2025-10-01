@@ -27,6 +27,7 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { UserComponent } from './user/user.component';
 import { UsersService } from './users.service';
+import { CsvExportService } from '../../../common/utils/csv-export.service';
 
 @Component({
   selector: 'cpat-user-processing',
@@ -41,6 +42,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   private confirmationService = inject(ConfirmationService);
   private router = inject(Router);
   private setPayloadService = inject(PayloadService);
+  private csvExportService = inject(CsvExportService);
 
   readonly usersTable = viewChild.required<TreeTable>('usersTable');
   public isLoggedIn = false;
@@ -180,6 +182,16 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
       this.selectedUser = selectedUser;
       this.setUser(selectedUser);
     }
+  }
+
+  exportCSV() {
+    const flattenedData = this.csvExportService.flattenTreeData(this.treeData, ['User', 'Status', 'First Name', 'Last Name', 'Email', 'Last Access'], ['Collection', 'Access Level']);
+
+    this.csvExportService.exportToCsv(flattenedData, {
+      filename: 'users_export',
+      columns: this.cols,
+      includeTimestamp: true
+    });
   }
 
   resetData() {
