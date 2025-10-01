@@ -30,6 +30,7 @@ import { TreeTable, TreeTableModule } from 'primeng/treetable';
 import { forkJoin, map } from 'rxjs';
 import { SharedService } from 'src/app/common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
+import { CsvExportService } from '../../../../common/utils/csv-export.service';
 
 interface ValueMapping {
   [key: string]: string;
@@ -89,6 +90,7 @@ interface Label {
 export class STIGManagerReviewsTableComponent implements OnInit {
   private messageService = inject(MessageService);
   private sharedService = inject(SharedService);
+  private csvExportService = inject(CsvExportService);
 
   readonly reviewsCountChange = output<number>();
   @Input() stigmanCollectionId!: number;
@@ -692,50 +694,28 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       return;
     }
 
-    const flattenedData = this.flattenTreeNodes(this.treeNodes);
-    let csvContent = '';
-    const headers = this.selectedColumns.map((col) => col.header);
+    const flattenedData = this.csvExportService.flattenTreeNodes(this.treeNodes);
+    const processedData = flattenedData.map((row) => {
+      const processedRow = { ...row };
 
-    csvContent += headers.join(',') + '\n';
+      if (processedRow.evaluatedDate instanceof Date) {
+        processedRow.evaluatedDate = processedRow.evaluatedDate.toLocaleString();
+      }
 
-    for (const row of flattenedData) {
-      const rowData = this.selectedColumns.map((col) => {
-        let value = this.getFieldValue(row, col.field);
+      if (row.assetLabelIds) {
+        processedRow.labels = this.getReviewLabels(row)
+          .map((label) => label.name)
+          .join('; ');
+      }
 
-        if (col.field === 'evaluatedDate' && value) {
-          const date = new Date(value);
+      return processedRow;
+    });
 
-          value = date.toLocaleString();
-        } else if (col.field === 'labels' && row.assetLabelIds) {
-          value = this.getReviewLabels(row)
-            .map((label) => label.name)
-            .join('; ');
-        }
-
-        if (value === null || value === undefined) value = '';
-        value = String(value).replace(/"/g, '""');
-
-        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-          value = `"${value}"`;
-        }
-
-        return value;
-      });
-
-      csvContent += rowData.join(',') + '\n';
-    }
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-
-    link.setAttribute('href', url);
-    link.setAttribute('download', `CPAT_stig-manager-reviews-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    this.csvExportService.exportToCsv(processedData, {
+      filename: `CPAT_stig-manager-reviews-${new Date().toISOString().split('T')[0]}`,
+      columns: this.selectedColumns,
+      includeTimestamp: false
+    });
   }
 
   flattenTreeNodes(nodes: TreeNode[]): any[] {
