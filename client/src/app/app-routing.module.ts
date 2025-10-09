@@ -11,14 +11,12 @@
 import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { consentRoute } from './common/components/dod-consent/dod-consent.routing';
-
-
 import { AuthGuard } from './core/auth/guards/auth.guard';
-
 import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
 import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
 import { importProcessingRoutes } from './pages/import-processing/import-processing-routing.module';
 import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
+import { metricsRoutes } from './pages/metrics-processing/metrics.routing';
 import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
 import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
 
@@ -29,7 +27,7 @@ const routerOptions: ExtraOptions = {
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./layout/components/app.navigation.component').then(m => m.AppNavigationComponent),
+    loadComponent: () => import('./layout/components/app.navigation.component').then((m) => m.AppNavigationComponent),
     children: [
       {
         path: '',
@@ -69,9 +67,14 @@ export const routes: Routes = [
         children: labelProcessingRoutes
       },
       {
+        path: 'metrics',
+        canActivate: [AuthGuard],
+        children: metricsRoutes
+      },
+      {
         path: 'notifications',
         canActivate: [AuthGuard],
-        loadComponent: () => import('./common/components/notifications/notifications.component').then(m => m.NotificationsComponent)
+        loadComponent: () => import('./common/components/notifications/notifications.component').then((m) => m.NotificationsComponent)
       },
       {
         path: 'poam-processing',
@@ -87,27 +90,27 @@ export const routes: Routes = [
   },
   {
     path: '401',
-    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
+    loadComponent: () => import('./common/components/status-message/status-message.component').then((m) => m.StatusMessageComponent),
     data: { statusCode: 401 }
   },
   {
     path: '403',
-    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
+    loadComponent: () => import('./common/components/status-message/status-message.component').then((m) => m.StatusMessageComponent),
     data: { statusCode: 403 }
   },
   {
     path: '404',
-    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
+    loadComponent: () => import('./common/components/status-message/status-message.component').then((m) => m.StatusMessageComponent),
     data: { statusCode: 404 }
   },
   {
     path: '418',
-    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
+    loadComponent: () => import('./common/components/status-message/status-message.component').then((m) => m.StatusMessageComponent),
     data: { statusCode: 418 }
   },
   {
     path: 'not-activated',
-    loadComponent: () => import('./common/components/status-message/status-message.component').then(m => m.StatusMessageComponent),
+    loadComponent: () => import('./common/components/status-message/status-message.component').then((m) => m.StatusMessageComponent),
     data: { statusCode: 999 }
   },
   { path: '**', redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing' }

@@ -1,0 +1,299 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<div class="header card !p-2">
+  <div class="header-labels">{{ collectionName() }} - {{ now | date: 'MMM d, y, h:mm a' }}
+  </div>
+  <div class="header-buttons">
+    <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" severity="secondary" (onClick)="refreshMetrics()"
+      [disabled]="isLoading()" pTooltip="Refresh metrics" tooltipPosition="left" />
+    <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics"
+      tooltipPosition="left" (onClick)="exportMetrics()" [disabled]="isLoading()" />
+  </div>
+</div>
+
+<div class="flex flex-row mt-4 gap-4">
+  <p-card class="basis-1/6">
+    <div class="poam-compliance-card">
+      <div class="compliance-value-container"
+        [pTooltip]="'Percentage calculation: (CAT I + CAT II + CAT III findings with approved POAMs) ÷ (Total CAT I + CAT II + CAT III findings) × 100'"
+        tooltipPosition="top">
+        <div class="compliance-value"
+          [style.border-color]="getCoraRiskColor(100 - stigManagerMetrics().totalPoamCompliance)"
+          [style.color]="getCoraRiskColor(100 - stigManagerMetrics().totalPoamCompliance)">
+          <div class="compliance-percentage">
+            {{ isLoading() ? '-' : stigManagerMetrics().totalPoamCompliance.toFixed(0) }}
+          </div>
+          <div class="mt-4 text-center font-semibold text-[var(--text-color)]/80">POAM Compliance</div>
+        </div>
+      </div>
+    </div>
+  </p-card>
+
+  <p-card class="basis-5/6">
+    <div class="relative">
+      <div class="relative mb-[-2rem] mr-2 ml-2" style="height: 60px;">
+        <div class="absolute w-full">
+          <div class="absolute" [style.left.%]="100 - stigManagerMetrics().coraRiskScore"
+            style="transform: translateX(-50%); z-index: 10;">
+            <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
+              <div class="px-3 py-2 rounded-lg font-bold text-center"
+                [style.background-color]="getCoraRiskColor(stigManagerMetrics().coraRiskScore)"
+                style="opacity: 0.9; color: white;" pTooltip="Weighted Average formula:
+      (CAT I Risk % × 10 + CAT II Risk % × 4 + CAT III Risk % × 1) ÷ 15
+
+      Where each risk % = (Open + Unassessed) ÷ Total × 100">
+                {{ isLoading() ? '-' : stigManagerMetrics().coraRiskScore.toFixed(0) + '%' }}
+              </div>
+            </div>
+            <div class="absolute left-1/2 transform -translate-x-1/2"
+              style="width: 2px; background-color: white; height: 50px; top: 38px;">
+              <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -4px; left: -3px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <div class="flex justify-between mb-2">
+          <span class="text-red-400 font-semibold text-xs">High Risk</span>
+          <span class="text-green-400 font-semibold text-xs text-right">Low Risk</span>
+        </div>
+
+        <div class="relative rounded-full h-10 overflow-hidden shadow-lg"
+          style="background: linear-gradient(to right, rgba(236, 72, 99, 0.8) 0%, rgba(251, 146, 60, 0.8) 33%, rgba(251, 191, 36, 0.8) 66%, rgba(16, 185, 129, 0.8) 100%);">
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5 pt-3 border-t border-gray-700">
+      <div class="flex justify-between gap-2">
+        <div class="flex items-center gap-1">
+          <div class="w-8 h-3 rounded-full" style="background-color: rgba(236, 72, 99, 0.8);"></div>
+          <span class="text-xs text-gray-300">Very High</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-8 h-3 rounded-full" style="background-color: rgba(247, 128, 69, 0.8);"></div>
+          <span class="text-xs text-gray-300">High</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-8 h-3 rounded-full" style="background-color: rgba(251, 167, 50, 0.8);"></div>
+          <span class="text-xs text-gray-300">Moderate</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-8 h-3 rounded-full" style="background-color: rgba(230, 190, 44, 0.8);"></div>
+          <span class="text-xs text-gray-300">Low</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <div class="w-8 h-3 rounded-full" style="background-color: rgba(16, 185, 129, 0.8);"></div>
+          <span class="text-xs text-gray-300">Very Low</span>
+        </div>
+      </div>
+    </div>
+  </p-card>
+</div>
+
+<div class="flex flex-row mt-4 gap-4">
+  <div class="basis-1/3">
+    <p-card class="cat-compliance-card">
+      <div class="dark-web-style-metric">
+        <div class="metric-circle-container">
+          <div class="metric-circle">
+            <span class="metric-circle-value">
+              {{ isLoading() ? '-' : stigManagerMetrics().catICompliance.toFixed(0) }}
+            </span>
+          </div>
+          <div class="metric-line"></div>
+        </div>
+        <div class="metric-text-container">
+          <div class="metric-origin">STIG Manager</div>
+          <div class="metric-description">CAT-I POAM Compliance %</div>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="basis-1/3">
+    <p-card class="cat-compliance-card">
+      <div class="dark-web-style-metric">
+        <div class="metric-circle-container">
+          <div class="metric-circle">
+            <span class="metric-circle-value">
+              {{ isLoading() ? '-' : stigManagerMetrics().catIICompliance.toFixed(0) }}
+            </span>
+          </div>
+          <div class="metric-line"></div>
+        </div>
+        <div class="metric-text-container">
+          <div class="metric-origin">STIG Manager</div>
+          <div class="metric-description">CAT-II POAM Compliance %</div>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="basis-1/3">
+    <p-card class="cat-compliance-card">
+      <div class="dark-web-style-metric">
+        <div class="metric-circle-container">
+          <div class="metric-circle">
+            <span class="metric-circle-value">
+              {{ isLoading() ? '-' : stigManagerMetrics().catIIICompliance.toFixed(0) }}
+            </span>
+          </div>
+          <div class="metric-line"></div>
+        </div>
+        <div class="metric-text-container">
+          <div class="metric-origin">STIG Manager</div>
+          <div class="metric-description">CAT-III POAM Compliance %</div>
+        </div>
+      </div>
+    </p-card>
+  </div>
+</div>
+
+<div class="card flex flex-row mt-4">
+  <div class="basis-1/2">
+    <div class="chart-container">
+      <h3 class="chart-title">Open Findings by Severity (Raw)</h3>
+
+      @if (findingsChartData()) {
+      <div class="findings-chart-layout">
+        <div class="chart-wrapper">
+          <p-chart type="doughnut" [data]="findingsChartData()" [options]="findingsChartOptions()"
+            styleClass="findings-chart">
+          </p-chart>
+        </div>
+
+        <div class="advanced-pie-legend">
+          <div class="legend-items">
+            <div class="legend-item">
+              <div class="item-color" [style.backgroundColor]="'rgba(236, 72, 99, 0.8)'"></div>
+              <div class="item-label">High</div>
+              <div class="item-value">{{ stigManagerMetrics().catIOpenRawCount }}</div>
+              <div class="item-percent">
+                {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIOpenRawCount / totalRawFindings()) *
+                100).toFixed(1) + '%' : '0.0%' }}
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="item-color" [style.backgroundColor]="'rgba(251, 167, 50, 0.8)'"></div>
+              <div class="item-label">Medium</div>
+              <div class="item-value">{{ stigManagerMetrics().catIIOpenRawCount }}</div>
+              <div class="item-percent">
+                {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIIOpenRawCount / totalRawFindings()) *
+                100).toFixed(1) + '%' : '0.0%' }}
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="item-color" [style.backgroundColor]="'rgba(230, 190, 44, 0.8)'"></div>
+              <div class="item-label">Low</div>
+              <div class="item-value">{{ stigManagerMetrics().catIIIOpenRawCount }}</div>
+              <div class="item-percent">
+                {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIIIOpenRawCount / totalRawFindings()) *
+                100).toFixed(1) + '%' : '0.0%' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+
+  <p-divider layout="vertical" class="!p-8 !mt-4 !mb-4" />
+
+  <div class="basis-1/2">
+    <div class="chart-container">
+      <h3 class="chart-title">Open Findings by STIG (Raw)</h3>
+      <div class="stigs-assessment-list">
+        @for (stig of stigsAssessmentData(); track stig.benchmarkId) {
+        <div class="stig-assessment-item">
+          <div class="stig-info">
+            <span class="stig-count">{{ stig.totalFindings }}</span>
+            <span class="stig-name" [pTooltip]="stig.title" tooltipPosition="left">
+              {{ stig.benchmarkId }}
+            </span>
+          </div>
+          <div class="assessment-bar-wrapper">
+            <div class="assessment-bar">
+              @if (stig.totalFindings > 0) {
+              <div class="bar-segment high" [style.width.%]="stig.highPercentage"
+                [pTooltip]="'High: ' + stig.findings.high"></div>
+              <div class="bar-segment medium" [style.width.%]="stig.mediumPercentage"
+                [pTooltip]="'Medium: ' + stig.findings.medium"></div>
+              <div class="bar-segment low" [style.width.%]="stig.lowPercentage"
+                [pTooltip]="'Low: ' + stig.findings.low"></div>
+              } @else {
+              <div class="bar-segment no-findings">
+                <span class="no-findings-text">No Findings</span>
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flex flex-row gap-4">
+  <div class="lg:w-1/3">
+    <div class="card">
+      <div class="chart-container">
+        <h3 class="chart-title">Assessment
+          Status <i class="pi pi-info-circle ml-1"
+            [pTooltip]="'Total Assessments: ' + stigManagerMetrics().totalAssessments
+          + '\n\nFully Assessed STIGs: ' + `${((this.stigManagerMetrics().fullyAssessedSTIGsCount / this.stigManagerMetrics().totalSTIGsCount) * 100).toFixed(1)}% (${this.stigManagerMetrics().fullyAssessedSTIGsCount})`"></i>
+        </h3>
+        @if(assessmentChartData()) {
+        <p-chart type="bar" [data]="assessmentChartData()" [options]="assessmentChartOptions()" height="250px" />
+        } @else {
+        <div class="no-data-message">
+          No assessment data available to display.
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="lg:w-2/3">
+    <div class="metrics-grid gap-3">
+      @for (metric of metricsDisplay(); track metric.label) {
+      <p-card [class]="'metric-card ' + metric.category" [class.high]="metric.severity === 'high'"
+        [class.medium]="metric.severity === 'medium'" [class.low]="metric.severity === 'low'">
+        <div class="metric-content" [pTooltip]="metric?.tooltip" tooltipPosition="top">
+          @if (metric.isLoading) {
+          <div class="metric-loading">
+            <p-progress-spinner class="!w-10 !h-10" strokeWidth="3" animationDuration=".8s" />
+          </div>
+          } @else {
+          <div class="metric-value-container">
+            <div class="metric-value" [class.high]="metric.severity === 'high'"
+              [class.medium]="metric.severity === 'medium'" [class.low]="metric.severity === 'low'">
+              {{ metric.value }}
+            </div>
+          </div>
+          }
+          @if (metric.origin) {
+          <div class="metric-origin">
+            {{ metric.origin }}
+          </div>
+          }
+          <div class="metric-label">
+            {{ metric.label }}
+          </div>
+        </div>
+      </p-card>
+      }
+    </div>
+  </div>
+</div>
