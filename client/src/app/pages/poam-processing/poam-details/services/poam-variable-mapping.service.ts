@@ -79,7 +79,7 @@ export class PoamVariableMappingService {
         const setting = appConfigSettings.find((config) => config.settingName === settingName);
 
         if (setting) {
-          return parseInt(setting.settingValue, 10);
+          return Number.parseInt(setting.settingValue, 10);
         }
       }
 

@@ -985,7 +985,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         const setting = this.appConfigSettings.find((config) => config.settingName === settingName);
 
         if (setting) {
-          return parseInt(setting.settingValue, 10);
+          return Number.parseInt(setting.settingValue, 10);
         }
       }
 

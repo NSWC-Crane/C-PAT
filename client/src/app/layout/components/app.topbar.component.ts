@@ -199,9 +199,9 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
           return response.length;
         }
 
-        const parsed = parseInt(String(response), 10);
+        const parsed = Number.parseInt(String(response), 10);
 
-        return !isNaN(parsed) ? parsed : 0;
+        return !Number.isNaN(parsed) ? parsed : 0;
       }),
       catchError((error) => {
         console.error('Error fetching notification count:', error);

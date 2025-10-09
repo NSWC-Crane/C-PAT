@@ -436,13 +436,13 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
               pluginName: vuln.name || '',
               family: vuln.family?.name || '',
               severity: vuln.severity?.name || '',
-              pluginID: vuln.pluginID ? parseInt(vuln.pluginID) : '',
+              pluginID: vuln.pluginID ? Number.parseInt(vuln.pluginID) : '',
               vprScore: vuln.vprScore ? parseFloat(vuln.vprScore) : '',
-              total: vuln.total ? parseInt(vuln.total) : '',
-              hostTotal: vuln.hostTotal ? parseInt(vuln.hostTotal) : '',
+              total: vuln.total ? Number.parseInt(vuln.total) : '',
+              hostTotal: vuln.hostTotal ? Number.parseInt(vuln.hostTotal) : '',
               acrScore: vuln.acrScore ? parseFloat(vuln.acrScore) : '',
-              assetExposureScore: vuln.assetExposureScore ? parseInt(vuln.assetExposureScore) : '',
-              port: vuln.port ? parseInt(vuln.port) : ''
+              assetExposureScore: vuln.assetExposureScore ? Number.parseInt(vuln.assetExposureScore) : '',
+              port: vuln.port ? Number.parseInt(vuln.port) : ''
             };
           });
 
@@ -652,7 +652,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   private processPluginData() {
-    this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replace(/\n\n/g, '<br>')) : '';
+    this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replaceAll('\n\n', '<br>')) : '';
 
     if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
       this.parseReferences(this.pluginData.xrefs);

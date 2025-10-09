@@ -148,6 +148,90 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     });
   }
 
+  parseVulnerabilityIds(pastedText: string, rowData: any): void {
+    if (!pastedText || !pastedText.trim()) {
+      return;
+    }
+
+    const vulnIds = pastedText
+      .split(',')
+      .map((id) => id.trim())
+      .filter((id) => id);
+
+    const matchedPoams: any[] = [];
+    const unmatchedIds: string[] = [];
+
+    vulnIds.forEach((vulnId) => {
+      const matchedPoam = this.availablePoams.find((poam) => poam.vulnerabilityId === vulnId);
+
+      if (matchedPoam) {
+        const isAlreadyAdded = this.displayPoams.some((dp) => !dp.isNew && dp.poamId === matchedPoam.poamId);
+        const isAlreadySelected = rowData.selectedPoams?.some((sp: any) => sp.poamId === matchedPoam.poamId);
+
+        if (!isAlreadyAdded && !isAlreadySelected) {
+          matchedPoams.push(matchedPoam);
+        } else if (isAlreadyAdded) {
+          unmatchedIds.push(`${vulnId} (already associated)`);
+        } else if (isAlreadySelected) {
+          unmatchedIds.push(`${vulnId} (already selected)`);
+        }
+      } else {
+        unmatchedIds.push(vulnId);
+      }
+    });
+
+    if (matchedPoams.length > 0) {
+      const currentSelection = rowData.selectedPoams || [];
+      rowData.selectedPoams = [...currentSelection, ...matchedPoams];
+
+      setTimeout(() => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'POAMs Matched',
+          detail: `${matchedPoams.length} POAM(s) matched and added to selection`,
+          life: 5000
+        });
+      }, 0);
+    }
+
+    if (unmatchedIds.length > 0) {
+      const unmatchedList = unmatchedIds.slice(0, 5).join(', ');
+      const additionalCount = unmatchedIds.length > 5 ? ` (+${unmatchedIds.length - 5} more)` : '';
+
+      setTimeout(() => {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Unmatched Vulnerability IDs',
+          detail: `Could not match: ${unmatchedList}${additionalCount}`,
+          life: 7000
+        });
+      }, 0);
+    }
+
+    if (matchedPoams.length === 0 && vulnIds.length > 0) {
+      setTimeout(() => {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'No Matches Found',
+          detail: 'None of the provided vulnerability IDs matched existing POAMs',
+          life: 5000
+        });
+      }, 0);
+    }
+  }
+
+  onPasteVulnerabilityIds(event: ClipboardEvent, rowData: any): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const pastedText = event.clipboardData?.getData('text');
+    if (pastedText) {
+      setTimeout(() => {
+        this.parseVulnerabilityIds(pastedText, rowData);
+      }, 0);
+    }
+  }
+
   addPoamRow() {
     const newPoamRow = {
       isNew: true,

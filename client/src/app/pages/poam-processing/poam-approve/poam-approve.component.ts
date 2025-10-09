@@ -163,7 +163,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   submitApprovalData() {
     this.approvedDate = format(this.dates.approvedDate, 'yyyy-MM-dd');
     const approvalData: PoamApproval = {
-      poamId: parseInt(this.poamId, 10),
+      poamId: Number.parseInt(this.poamId, 10),
       userId: this.user.userId,
       approvalStatus: this.approvalStatus,
       approvedDate: this.approvedDate,

@@ -559,7 +559,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         }
 
         this.pluginData = data.response;
-        this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replace(/\n\n/g, '<br>')) : '';
+        this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replaceAll('\n\n', '<br>')) : '';
 
         if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
           this.parseReferences(this.pluginData.xrefs);

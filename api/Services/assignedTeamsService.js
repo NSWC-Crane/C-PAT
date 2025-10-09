@@ -47,7 +47,7 @@ exports.getAssignedTeams = async function getAssignedTeams(req, res, next) {
                     ? row.collectionData.split(',').map(data => {
                           const [id, name] = data.split(':');
                           return {
-                              collectionId: parseInt(id),
+                              collectionId: Number.parseInt(id),
                               collectionName: name || '',
                           };
                       })
@@ -99,7 +99,7 @@ exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
                                   ? rowAssignedTeam[0].collectionData.split(',').map(data => {
                                         const [id, name] = data.split(':');
                                         return {
-                                            collectionId: parseInt(id),
+                                            collectionId: Number.parseInt(id),
                                             collectionName: name || '',
                                         };
                                     })

@@ -20,6 +20,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { CsvExportService } from '../../../common/utils/csv-export.service';
 
 interface AssignedTeam {
   name: string;
@@ -61,6 +62,7 @@ interface ColumnConfig {
 })
 export class PoamAssignedGridComponent {
   private router = inject(Router);
+  private csvExportService = inject(CsvExportService);
   private statusSortCycle = signal<number>(0);
   private readonly STATUS_SORT_CYCLES = 4;
   readonly table = viewChild.required<Table>('dt');
@@ -240,14 +242,14 @@ export class PoamAssignedGridComponent {
     this.globalFilterSignal.set('');
   }
 
-  getTeamSeverity(complete: string): string {
+  getTeamSeverity(complete: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (complete) {
       case 'true':
         return 'success';
       case 'partial':
         return 'warn';
       case 'global':
-        return '';
+        return undefined;
       default:
         return 'danger';
     }
@@ -328,66 +330,46 @@ export class PoamAssignedGridComponent {
   }
 
   exportToCSV() {
-    const exportData = this.displayedData().map((row) => ({
-      'POAM ID': row.poamId,
-      'Vulnerability ID': row.vulnerabilityId,
-      'Affected Assets': row.isAffectedAssetsMissing ? '' : (row.affectedAssets ?? ''),
-      'Scheduled Completion': row.scheduledCompletionDate,
-      'Adjusted Severity': row.adjSeverity,
-      Status: row.status,
-      Owner: row.owner,
-      'Assigned Teams': row.assignedTeams.map((t) => t.name).join('\n'),
-      Labels: row.labels.join('\n'),
-      'Associated Vulnerabilities': row.associatedVulnerabilities?.join('\n') || ''
-    }));
+    const displayedData = this.displayedData();
 
-    const csvContent = this.convertToCSV(exportData);
-    this.downloadCSV(csvContent, `${this.variant ?? 'export'}-poams-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-  }
-
-  private convertToCSV(data: any[]): string {
-    if (!data || data.length === 0) return '';
-
-    const headers = Object.keys(data[0]);
-    const csvRows: string[] = [];
-    csvRows.push(headers.map((h) => this.escapeCSVValue(h)).join(','));
-
-    data.forEach((row) => {
-      const values = headers.map((header) => {
-        const value = row[header];
-        return this.escapeCSVValue(value);
-      });
-      csvRows.push(values.join(','));
-    });
-
-    return csvRows.join('\n');
-  }
-
-  private escapeCSVValue(value: any): string {
-    if (value === null || value === undefined) return '';
-
-    const stringValue = value.toString();
-
-    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-      return `"${stringValue.replace(/"/g, '""')}"`;
+    if (!displayedData || displayedData.length === 0) {
+      console.warn('No data to export');
+      return;
     }
 
-    return stringValue;
-  }
+    const processedData = displayedData.map((row) => ({
+      poamId: row.poamId,
+      vulnerabilityId: row.vulnerabilityId,
+      affectedAssets: row.isAffectedAssetsMissing ? '' : (row.affectedAssets ?? ''),
+      scheduledCompletionDate: row.scheduledCompletionDate,
+      adjSeverity: row.adjSeverity,
+      status: row.status,
+      owner: row.owner,
+      assignedTeams: row.assignedTeams.map((t) => t.name).join('; '),
+      labels: row.labels.join('; '),
+      associatedVulnerabilities: row.associatedVulnerabilities?.join('; ') || ''
+    }));
 
-  private downloadCSV(content: string, filename: string): void {
-    const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const columns = [
+      { field: 'poamId', header: 'POAM ID' },
+      { field: 'vulnerabilityId', header: 'Vulnerability ID' },
+      { field: 'affectedAssets', header: 'Affected Assets' },
+      { field: 'scheduledCompletionDate', header: 'Scheduled Completion' },
+      { field: 'adjSeverity', header: 'Adjusted Severity' },
+      { field: 'status', header: 'Status' },
+      { field: 'owner', header: 'Owner' },
+      { field: 'assignedTeams', header: 'Assigned Teams' },
+      { field: 'labels', header: 'Labels' },
+      { field: 'associatedVulnerabilities', header: 'Associated Vulnerabilities' }
+    ];
 
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.style.display = 'none';
+    const filename = `${this.variant ?? 'poams'}-assigned-${format(new Date(), 'yyyy-MM-dd')}`;
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setTimeout(() => URL.revokeObjectURL(link.href), 100);
+    this.csvExportService.exportToCsv(processedData, {
+      filename,
+      columns,
+      includeTimestamp: false
+    });
   }
 
   resetStatusSort(): void {

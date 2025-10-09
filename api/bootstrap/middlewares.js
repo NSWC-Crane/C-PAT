@@ -54,7 +54,7 @@ function configureMulter(app) {
     const upload = multer({
         storage,
         limits: {
-            fileSize: parseInt(config.http.maxUpload),
+            fileSize: Number.parseInt(config.http.maxUpload),
         },
     });
 }
@@ -67,7 +67,7 @@ function configureRateLimit(app) {
     if (config.http.rateLimit) {
         const limiter = RateLimit({
             windowMs: 15 * 60 * 1000,
-            max: parseInt(config.http.rateLimit),
+            max: Number.parseInt(config.http.rateLimit),
         });
         app.use(limiter);
         app.set('trust proxy', 1);
@@ -169,7 +169,7 @@ function configureExpress(app) {
     app.use(
         express.json({
             strict: false,
-            limit: parseInt(config.http.maxJsonBody),
+            limit: Number.parseInt(config.http.maxJsonBody),
         })
     );
 }

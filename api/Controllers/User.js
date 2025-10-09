@@ -108,7 +108,7 @@ module.exports.updateUserLastCollectionAccessed = async function updateUserLastC
 module.exports.disableUser = async function disableUser(req, res, next) {
     try {
         const elevate = req.query.elevate;
-        const userId = parseInt(req.params.userId);
+        const userId = Number.parseInt(req.params.userId);
 
         const result = await userService.disableUser(elevate, userId);
 

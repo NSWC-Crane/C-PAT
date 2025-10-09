@@ -251,7 +251,7 @@ function trackOperationStats(operationId, durationMs, res) {
     }
 
     if (acceptsRequestBody) {
-        const requestLength = parseInt(res.req.headers['content-length'] ?? '0');
+        const requestLength = Number.parseInt(res.req.headers['content-length'] ?? '0');
         stats.totalReqLength += requestLength;
         stats.minReqLength = Math.min(stats.minReqLength, requestLength);
         if (requestLength > stats.maxReqLength) {
@@ -301,8 +301,7 @@ function trackOperationStats(operationId, durationMs, res) {
 
             if (res.svcStatus?.retries) {
                 projStats.retried++;
-                projStats.averageRetries =
-                    projStats.averageRetries + (res.svcStatus.retries - projStats.averageRetries) / projStats.retried;
+                projStats.averageRetries = projStats.averageRetries + (res.svcStatus.retries - projStats.averageRetries) / projStats.retried;
             }
         }
     }

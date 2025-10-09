@@ -122,7 +122,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   sidebarVisible: boolean = false;
   activeFilters: CustomFilter[] = [];
   tempFilters: TempFilters = this.initializeTempFilters();
-  filterHistory: TempFilters[] = [];
+  filterHistory: { filters: TempFilters; tool: string }[] = [];
   currentFilterHistoryIndex: number = -1;
   selectedPremadeFilter: any = null;
   overlayVisible: boolean = false;
@@ -150,6 +150,23 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     { label: 'All', value: 'all' },
     { label: 'Accepted Risk', value: 'accepted' },
     { label: 'Non-Accepted Risk', value: 'nonAcceptedRisk' }
+  ];
+
+  testStatusOptions = [
+    { label: 'All', value: 'all' },
+    { label: 'Enabled', value: 'true' },
+    { label: 'Disabled', value: 'false' }
+  ];
+
+  paranoidScanOptions = [
+    { label: 'All', value: 'all' },
+    { label: 'Paranoid', value: 'true' },
+    { label: 'Not Paranoid', value: 'false' }
+  ];
+
+  assetsOperatorOptions = [
+    { label: 'Contains', value: 'contains' },
+    { label: 'Does Not Contain', value: 'notContains' }
   ];
 
   severityOptions = [
@@ -290,6 +307,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   assetExposureScoreOptions = this.customRangeOptions;
   baseCVSSScoreOptions = this.customRangeOptions;
   cvssV3BaseScoreOptions = this.customRangeOptions;
+  cvssV4BaseScoreOptions = this.customRangeOptions;
+  cvssV4ThreatScoreOptions = this.customRangeOptions;
   vprScoreOptions = this.customRangeOptions;
 
   defaultPremadeFilterOptions: PremadeFilterOption[] = [
@@ -427,32 +446,68 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       value: 15
     },
     {
+      header: 'CVSS v4 Score',
+      content: 'rangeFilter',
+      identifier: 'cvssV4BaseScore',
+      options: this.cvssV4BaseScoreOptions,
+      value: 16
+    },
+    {
+      header: 'CVSS v4 Threat Score',
+      content: 'rangeFilter',
+      identifier: 'cvssV4ThreatScore',
+      options: this.cvssV4ThreatScoreOptions,
+      value: 17
+    },
+    {
+      header: 'CVSS v4 Supplemental',
+      content: 'input',
+      identifier: 'cvssV4Supplemental',
+      placeholder: 'Enter CVSS v4 Supplemental...',
+      value: 18
+    },
+    {
+      header: 'CVSS v4 Threat Vector',
+      content: 'input',
+      identifier: 'cvssV4ThreatVector',
+      placeholder: 'Enter CVSS v4 Threat Vector...',
+      value: 19
+    },
+    {
+      header: 'CVSS v4 Vector',
+      content: 'input',
+      identifier: 'cvssV4Vector',
+      placeholder: 'Enter CVSS v4 Vector...',
+      validator: this.validateCVSSv4Vector.bind(this),
+      value: 20
+    },
+    {
       header: 'Data Format',
       content: 'multiSelect',
       identifier: 'dataFormat',
       options: this.dataFormatOptions,
-      value: 16
+      value: 21
     },
     {
       header: 'DNS Name',
       content: 'input',
       identifier: 'dnsName',
       placeholder: 'Enter DNS Name...',
-      value: 17
+      value: 22
     },
     {
       header: 'Exploit Available',
       content: 'dropdown',
       identifier: 'exploitAvailable',
       options: this.exploitAvailableOptions,
-      value: 18
+      value: 23
     },
     {
       header: 'Exploit Frameworks',
       content: 'dropdownAndTextarea',
       identifier: 'exploitFrameworks',
       options: this.exploitFrameworkOptions,
-      value: 19
+      value: 24
     },
     {
       header: 'Host ID',
@@ -460,7 +515,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'hostUUID',
       placeholder: 'Enter Host UUID...',
       validator: this.validateUUID.bind(this),
-      value: 20
+      value: 25
     },
     {
       header: 'IAVM ID',
@@ -468,112 +523,126 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'iavmID',
       placeholder: 'Enter IAVM ID...',
       validator: this.validateIAVM.bind(this),
-      value: 21
+      value: 26
     },
     {
       header: 'Input Name',
       content: 'input',
       identifier: 'wasInputName',
       placeholder: 'Enter input name...',
-      value: 22
+      value: 27
     },
     {
       header: 'Input Type',
       content: 'input',
       identifier: 'wasInputType',
       placeholder: 'Enter input type...',
-      value: 23
+      value: 28
     },
     {
       header: 'MS Bulletin ID',
       content: 'input',
       identifier: 'msbulletinID',
       placeholder: 'Enter MS Bulletin ID...',
-      value: 24
+      value: 29
     },
     {
-      header: 'Mitigated Status',
+      header: 'Mitigated',
       content: 'dropdown',
       identifier: 'mitigatedStatus',
       options: this.mitigatedStatusOptions,
-      value: 25
+      value: 30
+    },
+    {
+      header: 'Nessus Web Tests',
+      content: 'dropdown',
+      identifier: 'cgiScanEnabled',
+      options: this.testStatusOptions,
+      value: 31
     },
     {
       header: 'NetBIOS Name',
       content: 'dropdownAndTextarea',
       identifier: 'netbiosName',
       options: this.netbiosNameOptions,
-      value: 26
+      value: 32
+    },
+    {
+      header: 'Operating System',
+      content: 'input',
+      identifier: 'operatingSystem',
+      placeholder: 'Enter Operating System...',
+      value: 33
     },
     {
       header: 'Patch Published',
       content: 'dropdown',
       identifier: 'patchPublished',
       options: this.patchPublishedOptions,
-      value: 27
+      value: 34
     },
     {
       header: 'Plugin Family',
       content: 'multiSelect',
       identifier: 'family',
       options: this.familyOptions,
-      value: 28
+      value: 35
     },
     {
       header: 'Plugin ID',
       content: 'dropdownAndTextarea',
       identifier: 'pluginID',
       options: this.pluginIDOptions,
-      value: 29
+      value: 36
     },
     {
       header: 'Plugin Modified',
       content: 'dropdown',
       identifier: 'pluginModified',
       options: this.pluginModifiedOptions,
-      value: 30
+      value: 37
     },
     {
       header: 'Plugin Name',
       content: 'dropdownAndTextarea',
       identifier: 'pluginName',
       options: this.pluginNameOptions,
-      value: 31
+      value: 38
     },
     {
       header: 'Plugin Published',
       content: 'dropdown',
       identifier: 'pluginPublished',
       options: this.pluginPublishedOptions,
-      value: 32
+      value: 39
     },
     {
       header: 'Plugin Type',
       content: 'dropdown',
       identifier: 'pluginType',
       options: this.pluginTypeOptions,
-      value: 33
+      value: 40
     },
     {
       header: 'Port',
       content: 'dropdownAndTextarea',
       identifier: 'port',
       options: this.portOptions,
-      value: 34
+      value: 41
     },
     {
       header: 'Protocol',
       content: 'multiSelect',
       identifier: 'protocol',
       options: this.protocolOptions,
-      value: 35
+      value: 42
     },
     {
       header: 'Recast Risk',
       content: 'dropdown',
       identifier: 'recastRiskStatus',
       options: this.recastRiskStatusOptions,
-      value: 36
+      value: 43
     },
     {
       header: 'STIG Severity',
@@ -581,105 +650,119 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       identifier: 'stigSeverity',
       options: this.stigSeverityOptions,
       validator: this.validateStigSeverity.bind(this),
-      value: 37
+      value: 44
+    },
+    {
+      header: 'Scan Accuracy',
+      content: 'dropdown',
+      identifier: 'paranoidScanEnabled',
+      options: this.paranoidScanOptions,
+      value: 45
     },
     {
       header: 'Scan Policy Plugins',
       content: 'dropdown',
       identifier: 'policy',
       options: this.scanPolicyPluginOptions,
-      value: 38
-    },
-    {
-      header: 'Severity',
-      content: 'multiSelect',
-      identifier: 'severity',
-      options: this.severityOptions,
-      value: 39
+      value: 46
     },
     {
       header: 'Security End of Life Date',
       content: 'dropdown',
       identifier: 'seolDate',
       options: this.seolDateOptions,
-      value: 40
+      value: 47
+    },
+    {
+      header: 'Severity',
+      content: 'multiSelect',
+      identifier: 'severity',
+      options: this.severityOptions,
+      value: 48
+    },
+    {
+      header: 'Thorough Tests',
+      content: 'dropdown',
+      identifier: 'thoroughScanEnabled',
+      options: this.testStatusOptions,
+      value: 49
     },
     {
       header: 'Users',
       content: 'multiSelect',
       identifier: 'responsibleUser',
       options: this.userOptions,
-      value: 41
+      value: 50
     },
     {
       header: 'Vulnerability Discovered',
       content: 'dropdown',
       identifier: 'firstSeen',
       options: this.firstSeenOptions,
-      value: 42
+      value: 51
     },
     {
-      header: 'Vulnerability UUID',
+      header: 'Vulnerability ID',
       content: 'input',
       identifier: 'vulnUUID',
       placeholder: 'Enter Vuln UUID...',
-      value: 43
+      value: 52
     },
     {
       header: 'Vulnerability Last Observed',
       content: 'dropdown',
       identifier: 'lastSeen',
       options: this.lastSeenOptions,
-      value: 44
+      value: 53
     },
     {
       header: 'Vulnerability Priority Rating',
       content: 'rangeFilter',
       identifier: 'vprScore',
       options: this.vprScoreOptions,
-      value: 45
+      value: 54
     },
     {
       header: 'Vulnerability Published',
       content: 'dropdown',
       identifier: 'vulnPublished',
       options: this.vulnPublishedOptions,
-      value: 46
+      value: 55
     },
     {
       header: 'Vulnerability Text',
       content: 'dropdownAndTextarea',
       identifier: 'pluginText',
       options: this.pluginTextOptions,
-      value: 47
+      value: 56
     },
     {
       header: 'Vulnerability Type',
       content: 'dropdown',
       identifier: 'vulnerabilityType',
       options: this.vulnerabilityTypeOptions,
-      value: 48
+      value: 57
     },
     {
       header: 'Web App HTTP Method',
       content: 'input',
       identifier: 'wasHttpMethod',
       placeholder: 'Web app HTTP method...',
-      value: 49
+      value: 58
     },
     {
       header: 'Web App Scanning',
       content: 'dropdown',
       identifier: 'wasVuln',
       options: this.webAppScanningOptions,
-      value: 50
+      value: 59
     },
     {
       header: 'Web App URL',
       content: 'input',
       identifier: 'wasURL',
       placeholder: 'Web app URL...',
-      value: 51
+      value: 60
     }
   ];
 
@@ -709,12 +792,16 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     cveID: { uiName: 'cveId', handler: 'operatorValue' },
     cvssVector: { uiName: 'cvssVector', handler: 'operatorValue' },
     cvssV3Vector: { uiName: 'cvssV3Vector', handler: 'operatorValue' },
+    cvssV4Vector: { uiName: 'cvssV4Vector', handler: 'operatorValue' },
+    cvssV4Supplemental: { uiName: 'cvssV4Supplemental', handler: 'operatorValue' },
+    cvssV4ThreatVector: { uiName: 'cvssV4ThreatVector', handler: 'operatorValue' },
     dnsName: { uiName: 'dnsName', handler: 'operatorValue' },
     hostUUID: { uiName: 'hostUUID', handler: 'operatorValue' },
     iavmID: { uiName: 'iavmID', handler: 'operatorValue' },
     wasInputName: { uiName: 'wasInputName', handler: 'operatorValue' },
     wasInputType: { uiName: 'wasInputType', handler: 'operatorValue' },
     msbulletinID: { uiName: 'msbulletinID', handler: 'operatorValue' },
+    operatingSystem: { uiName: 'operatingSystem', handler: 'operatorValue' },
     stigSeverity: { uiName: 'stigSeverity', handler: 'operatorValue' },
     xref: { uiName: 'xref', handler: 'operatorValue' },
     vulnUUID: { uiName: 'vulnUUID', handler: 'operatorValue' },
@@ -732,6 +819,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     lastSeen: { uiName: 'lastSeen', handler: 'simpleValue' },
     firstSeen: { uiName: 'firstSeen', handler: 'simpleValue' },
     seolDate: { uiName: 'seolDate', handler: 'simpleValue' },
+    cgiScanEnabled: { uiName: 'cgiScanEnabled', handler: 'simpleValue' },
+    paranoidScanEnabled: { uiName: 'paranoidScanEnabled', handler: 'simpleValue' },
+    thoroughScanEnabled: { uiName: 'thoroughScanEnabled', handler: 'simpleValue' },
     vulnPublished: { uiName: 'vulnPublished', handler: 'simpleValue' },
     wasVuln: { uiName: 'wasVuln', handler: 'simpleValue' },
 
@@ -739,7 +829,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     assetCriticalityRating: { uiName: 'assetCriticalityRating', handler: 'range' },
     assetExposureScore: { uiName: 'assetExposureScore', handler: 'range' },
     baseCVSSScore: { uiName: 'baseCVSSScore', handler: 'range' },
-    cvssV3BaseScore: { uiName: 'cvssV3BaseScore', handler: 'range' }
+    cvssV3BaseScore: { uiName: 'cvssV3BaseScore', handler: 'range' },
+    cvssV4BaseScore: { uiName: 'cvssV4BaseScore', handler: 'range' },
+    cvssV4ThreatScore: { uiName: 'cvssV4ThreatScore', handler: 'range' }
   };
 
   private filterHandlers: { [key: string]: FilterHandler } = {
@@ -859,7 +951,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               this.updateAccordionItems();
               this.initializeColumnsAndFilters();
               this.filteredAccordionItems = [...this.accordionItems];
-              this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+              this.filterHistory.push({
+                filters: structuredClone(this.tempFilters),
+                tool: this.tenableTool
+              });
               this.currentFilterHistoryIndex = 0;
             }
           });
@@ -996,7 +1091,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       assetExposureScore: { value: 'all', min: 0, max: 1000 },
       aesSeverity: [],
       uuid: { value: null, operator: null, isValid: true, isDirty: false },
-      asset: [],
+      asset: { value: [], operator: 'contains' },
       cpe: { operator: null, value: null },
       auditFile: [],
       cceId: { value: null, operator: null, isValid: true, isDirty: false },
@@ -1009,7 +1104,27 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         isDirty: false
       },
       cvssV3BaseScore: { value: 'all', min: 0, max: 10 },
+      cvssV4BaseScore: { value: 'all', min: 0, max: 10 },
+      cvssV4ThreatScore: { value: 'all', min: 0, max: 10 },
       cvssV3Vector: {
+        value: null,
+        operator: null,
+        isValid: true,
+        isDirty: false
+      },
+      cvssV4Vector: {
+        value: null,
+        operator: null,
+        isValid: true,
+        isDirty: false
+      },
+      cvssV4Supplemental: {
+        value: null,
+        operator: null,
+        isValid: true,
+        isDirty: false
+      },
+      cvssV4ThreatVector: {
         value: null,
         operator: null,
         isValid: true,
@@ -1024,6 +1139,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       wasInputName: { value: null, operator: null, isValid: true, isDirty: false },
       wasInputType: { value: null, operator: null, isValid: true, isDirty: false },
       msbulletinID: {
+        value: null,
+        operator: null,
+        isValid: true,
+        isDirty: false
+      },
+      operatingSystem: {
         value: null,
         operator: null,
         isValid: true,
@@ -1056,6 +1177,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       firstSeen: null,
       vulnPublished: null,
       seolDate: null,
+      cgiScanEnabled: null,
+      paranoidScanEnabled: null,
+      thoroughScanEnabled: null,
       pluginText: { operator: null, value: null },
       vulnUUID: { value: null, operator: null, isValid: true, isDirty: false },
       wasHttpMethod: { value: null, operator: null, isValid: true, isDirty: false },
@@ -1133,8 +1257,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     return this.importService.getTenableAuditFileFilter().pipe(
       map((auditFileData) => {
         this.auditFileOptions = auditFileData.response.usable.map((auditFile: any) => ({
-          value: auditFile.id,
-          label: auditFile.name
+          label: auditFile.name,
+          value: auditFile.id
         }));
 
         return this.auditFileOptions;
@@ -1392,6 +1516,19 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (identifier === 'asset') {
+      if (!this.tempFilters[identifier]) {
+        this.tempFilters[identifier] = { value: [], operator: 'contains' };
+      }
+
+      if (isOperator) {
+        this.tempFilters[identifier].operator = event.value;
+      } else {
+        this.tempFilters[identifier].value = event.value;
+      }
+      return;
+    }
+
     if (identifier === 'severity') {
       this.tempFilters['severity'] = event.value;
 
@@ -1411,8 +1548,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
 
     if (identifier === 'policy' || identifier === 'auditFile') {
-      this.tempFilters[identifier] = event.value ? [event.value] : [];
+      this.tempFilters[identifier] = event.value;
+      return;
+    }
 
+    if (identifier === 'responsibleUser') {
+      this.tempFilters[identifier] = event.value || [];
       return;
     }
 
@@ -1456,6 +1597,36 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (filter.filterName === 'asset') {
+      let operator = 'contains';
+      let assetIds: string[] = [];
+
+      if (filter.value && typeof filter.value === 'object' && filter.value.operator === 'complement') {
+        operator = 'notContains';
+        filter.value = filter.value.operand1;
+      }
+
+      if (filter.value && typeof filter.value === 'object') {
+        const flattenUnion = (obj: any): void => {
+          if (obj.id) {
+            assetIds.push(obj.id);
+          }
+          if (obj.operand1) flattenUnion(obj.operand1);
+          if (obj.operand2) flattenUnion(obj.operand2);
+        };
+        flattenUnion(filter.value);
+      } else if (Array.isArray(filter.value)) {
+        assetIds = filter.value.map((v: any) => v.id || v);
+      }
+
+      this.tempFilters['asset'] = {
+        value: assetIds,
+        operator: operator
+      };
+
+      return;
+    }
+
     if (filter.filterName === 'family' && Array.isArray(filter.value)) {
       this.tempFilters['family'] = filter.value.map((v: any) => v.id || v);
 
@@ -1465,6 +1636,22 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (filter.filterName === 'severity') {
       this.tempFilters['severity'] = filter.value.split(',');
 
+      return;
+    }
+
+    if (filter.filterName === 'policy' || filter.filterName === 'auditFile') {
+      if (Array.isArray(filter.value) && filter.value.length > 0) {
+        this.tempFilters[filter.filterName] = filter.value[0].id || filter.value[0];
+      } else if (filter.value && filter.value.id) {
+        this.tempFilters[filter.filterName] = filter.value.id;
+      }
+      return;
+    }
+
+    if (filter.filterName === 'responsibleUser') {
+      if (Array.isArray(filter.value)) {
+        this.tempFilters['responsibleUser'] = filter.value.map((v: any) => v.id || v);
+      }
       return;
     }
 
@@ -1501,7 +1688,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   }
 
-  createAssetsFilter(value: any): AssetsFilter | null {
+  createAssetsFilter(value: any, operator: string = 'contains'): AssetsFilter | null {
     if (!value || value.length === 0) {
       return null;
     }
@@ -1509,7 +1696,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (value.length === 1) {
       return {
         filterName: 'asset',
-        operator: '=',
+        operator: operator === 'notContains' ? '~' : '=',
         value: { id: value[0] }
       };
     }
@@ -1523,6 +1710,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         operand2: {
           id: value[i]
         }
+      };
+    }
+
+    if (operator === 'notContains') {
+      formattedValue = {
+        operator: 'complement',
+        operand1: formattedValue
       };
     }
 
@@ -1557,9 +1751,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         switch (config.handler) {
           case 'idArray':
             if (apiName === 'asset') {
-              if (Array.isArray(value)) {
-                const assetFilter = this.createAssetsFilter(value);
-
+              if (typeof value === 'object' && 'value' in value && 'operator' in value) {
+                const assetFilter = this.createAssetsFilter(value.value, value.operator);
                 if (assetFilter) {
                   return {
                     id: apiName,
@@ -1686,7 +1879,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
                   operator: '=',
                   type: 'vuln',
                   isPredefined: true,
-                  value: value?.value !== undefined ? value.value : value
+                  value: value?.value ?? value
                 }
               : null;
 
@@ -1706,7 +1899,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.filterHistory = this.filterHistory.slice(0, this.currentFilterHistoryIndex + 1);
     }
 
-    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.filterHistory.push({
+      filters: structuredClone(this.tempFilters),
+      tool: this.tenableTool
+    });
     this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     this.activeFilters = this.convertTempFiltersToAPI();
     this.filterAccordionItems();
@@ -1724,11 +1920,19 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (this.currentFilterHistoryIndex > 0) {
       this.currentFilterHistoryIndex--;
       this.selectedPremadeFilter = null;
-      this.tempFilters = JSON.parse(JSON.stringify(this.filterHistory[this.currentFilterHistoryIndex]));
+      const historyItem = this.filterHistory[this.currentFilterHistoryIndex];
+      this.tempFilters = structuredClone(historyItem.filters);
+      this.tenableTool = historyItem.tool;
       this.activeFilters = this.convertTempFiltersToAPI();
       this.filteredAccordionItems = [...this.accordionItems];
       this.filterAccordionItems();
       this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
+
+      if (this.tenableTool === 'listvuln') {
+        this.expandColumnSelections();
+      } else {
+        this.resetColumnSelections();
+      }
     }
   }
 
@@ -1740,6 +1944,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'assetExposureScore':
       case 'baseCVSSScore':
       case 'cvssV3BaseScore':
+      case 'cvssV4BaseScore':
+      case 'cvssV4ThreatScore':
       case 'vprScore':
         this.tempFilters[identifier] = {
           value: 'all',
@@ -1747,8 +1953,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           max: this.getMaxValue(identifier)
         };
         break;
-      case 'aesSeverity':
       case 'asset':
+        this.tempFilters[identifier] = { value: [], operator: 'contains' };
+        break;
+      case 'aesSeverity':
       case 'auditFile':
       case 'dataFormat':
       case 'family':
@@ -1764,12 +1972,16 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'cveId':
       case 'cvssVector':
       case 'cvssV3Vector':
+      case 'cvssV4Vector':
+      case 'cvssV4ThreatVector':
+      case 'cvssV4Supplemental':
       case 'dnsName':
       case 'hostUUID':
       case 'iavmID':
       case 'wasInputName':
       case 'wasInputType':
       case 'msbulletinID':
+      case 'operatingSystem':
       case 'stigSeverity':
       case 'vulnUUID':
       case 'wasHttpMethod':
@@ -1809,10 +2021,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'assetExposureScore':
       case 'baseCVSSScore':
       case 'cvssV3BaseScore':
+      case 'cvssV4BaseScore':
+      case 'cvssV4ThreatScore':
       case 'vprScore':
         return filter.value !== 'all';
-      case 'aesSeverity':
       case 'asset':
+        return filter.value && filter.value.length > 0;
+      case 'aesSeverity':
       case 'auditFile':
       case 'dataFormat':
       case 'family':
@@ -1827,12 +2042,16 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'cveId':
       case 'cvssVector':
       case 'cvssV3Vector':
+      case 'cvssV4Vector':
+      case 'cvssV4ThreatVector':
+      case 'cvssV4Supplemental':
       case 'dnsName':
       case 'hostUUID':
       case 'iavmID':
       case 'wasInputName':
       case 'wasInputType':
       case 'msbulletinID':
+      case 'operatingSystem':
       case 'vulnUUID':
       case 'wasHttpMethod':
       case 'wasURL':
@@ -1878,6 +2097,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     return cvssV3Regex.test(vector);
   }
 
+  validateCVSSv4Vector(vector: string): boolean {
+    const cvssV4Regex =
+      /^CVSS:4[.]0\/AV:[NALP]\/AC:[LH]\/AT:[NP]\/PR:[NLH]\/UI:[NPA]\/VC:[HLN]\/VI:[HLN]\/VA:[HLN]\/SC:[HLN]\/SI:[HLN]\/SA:[HLN](\/E:[XAPU])?(\/CR:[XHML])?(\/IR:[XHML])?(\/AR:[XHML])?(\/MAV:[XNALP])?(\/MAC:[XLH])?(\/MAT:[XNP])?(\/MPR:[XNLH])?(\/MUI:[XNPA])?(\/MVC:[XNLH])?(\/MVI:[XNLH])?(\/MVA:[XNLH])?(\/MSC:[XNLH])?(\/MSI:[XNLHS])?(\/MSA:[XNLHS])?(\/S:[XNP])?(\/AU:[XNY])?(\/R:[XAUI])?(\/V:[XDC])?(\/RE:[XLMH])?(\/U:(X|Clear|Green|Amber|Red))?$/;
+
+    return cvssV4Regex.test(vector);
+  }
+
   validateIAVM(iavmNumber: string): boolean {
     const iavmRegex = /^\d{4}-[A-Za-z]-\d{4}$/;
 
@@ -1905,6 +2131,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           break;
         case 'baseCVSSScore':
         case 'cvssV3BaseScore':
+        case 'cvssV4BaseScore':
+        case 'cvssV4ThreatScore':
         case 'vprScore':
           this.tempFilters[identifier].min = 0;
           this.tempFilters[identifier].max = 10;
@@ -1927,6 +2155,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         break;
       case 'baseCVSSScore':
       case 'cvssV3BaseScore':
+      case 'cvssV4BaseScore':
+      case 'cvssV4ThreatScore':
       case 'vprScore':
         filter.min = Math.max(0, Math.min(filter.min, 10));
         filter.max = Math.max(filter.min, Math.min(filter.max, 10));
@@ -1961,7 +2191,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.filterSearch = '';
     this.filterHistory = [];
     this.currentFilterHistoryIndex = -1;
-    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.filterHistory.push({
+      filters: structuredClone(this.tempFilters),
+      tool: this.tenableTool
+    });
     this.currentFilterHistoryIndex = 0;
 
     this.applyFilters(false);
@@ -1990,6 +2223,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       case 'assetCriticalityRating':
       case 'baseCVSSScore':
       case 'cvssV3BaseScore':
+      case 'cvssV4BaseScore':
+      case 'cvssV4ThreatScore':
       case 'vprScore':
         return 10;
       default:
@@ -2005,7 +2240,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (!selectedFilter) return;
 
     if (this.tempFilters) {
-      this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+      this.filterHistory.push({
+        filters: structuredClone(this.tempFilters),
+        tool: this.tenableTool
+      });
       this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     }
 
@@ -2035,7 +2273,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           });
         }
 
-        this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+        this.filterHistory.push({
+          filters: structuredClone(this.tempFilters),
+          tool: this.tenableTool
+        });
         this.currentFilterHistoryIndex = this.filterHistory.length - 1;
         this.activeFilters = this.convertTempFiltersToAPI();
         this.filteredAccordionItems = [...this.accordionItems];
@@ -2106,7 +2347,10 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         break;
     }
 
-    this.filterHistory.push(JSON.parse(JSON.stringify(this.tempFilters)));
+    this.filterHistory.push({
+      filters: structuredClone(this.tempFilters),
+      tool: this.tenableTool
+    });
     this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     this.activeFilters = this.convertTempFiltersToAPI();
     this.filteredAccordionItems = [...this.accordionItems];
@@ -2116,9 +2360,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   deleteFilter(event: Event, filterId: string) {
     event.stopPropagation();
-    const numericId = parseInt(filterId.replace('saved_', ''));
+    const numericId = Number.parseInt(filterId.replace('saved_', ''));
 
-    if (isNaN(numericId)) {
+    if (Number.isNaN(numericId)) {
       this.showErrorMessage('Invalid filter ID');
 
       return;
@@ -2386,7 +2630,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (pluginData) => {
             this.pluginData = pluginData;
-            this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replace(/\n\n/g, '<br>')) : '';
+            this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replaceAll('\n\n', '<br>')) : '';
 
             if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
               this.parseReferences(this.pluginData.xrefs);

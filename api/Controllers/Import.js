@@ -63,13 +63,13 @@ module.exports.importVRAMExcel = async (req, res, next) => {
 
 module.exports.importAssetListFile = async (req, res, next) => {
     const file = req.files[0];
-    const collectionId = parseInt(req.params.collectionId, 10);
+    const collectionId = Number.parseInt(req.params.collectionId, 10);
 
     if (!file) {
         return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    if (isNaN(collectionId)) {
+    if (Number.isNaN(collectionId)) {
         return res.status(400).json({ message: 'Collection ID must be a valid number' });
     }
 
@@ -82,6 +82,43 @@ module.exports.importAssetListFile = async (req, res, next) => {
             try {
                 const result = await importService.importAssetListFile(file, collectionId);
                 res.status(201).json(result);
+            } catch (error) {
+                res.status(500).json({
+                    message: 'Could not process the file',
+                    error: error.message,
+                });
+            }
+        }
+    });
+};
+
+module.exports.importMultipleAssetListFiles = async (req, res, next) => {
+    const file = req.files[0];
+    const collectionIds = req.body.collectionIds ? JSON.parse(req.body.collectionIds) : [];
+
+    if (!file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    if (!Array.isArray(collectionIds) || collectionIds.length === 0) {
+        return res.status(400).json({ message: 'Collection IDs not provided as an array' });
+    }
+
+    const validCollectionIds = collectionIds.filter(id => !Number.isNaN(Number.parseInt(id, 10))).map(id => Number.parseInt(id, 10));
+
+    if (validCollectionIds.length !== collectionIds.length) {
+        return res.status(400).json({ message: 'All collection IDs must be valid numbers' });
+    }
+
+    importService.excelAndCsvFilter(req, file, async err => {
+        if (err) {
+            return res.status(400).json({
+                message: err.message,
+            });
+        } else {
+            try {
+                const results = await importService.importMultipleAssetListFiles(file, validCollectionIds);
+                res.status(201).json(results);
             } catch (error) {
                 res.status(500).json({
                     message: 'Could not process the file',
