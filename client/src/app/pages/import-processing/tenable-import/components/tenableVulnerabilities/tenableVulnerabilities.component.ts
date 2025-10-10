@@ -766,7 +766,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     }
   ];
 
-  private filterNameMappings: { [key: string]: FilterConfig } = {
+  private readonly filterNameMappings: { [key: string]: FilterConfig } = {
     family: { uiName: 'family', handler: 'family' },
     severity: { uiName: 'severity', handler: 'severity' },
 
@@ -834,7 +834,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     cvssV4ThreatScore: { uiName: 'cvssV4ThreatScore', handler: 'range' }
   };
 
-  private filterHandlers: { [key: string]: FilterHandler } = {
+  private readonly filterHandlers: { [key: string]: FilterHandler } = {
     array: (filter: any): FilterValue => {
       if (Array.isArray(filter.value)) {
         return filter.value;
@@ -2474,14 +2474,44 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   loadVulnList() {
+    if (this.currentFilterHistoryIndex < this.filterHistory.length - 1) {
+      this.filterHistory = this.filterHistory.slice(0, this.currentFilterHistoryIndex + 1);
+    }
+
+    this.filterHistory.push({
+      filters: structuredClone(this.tempFilters),
+      tool: this.tenableTool
+    });
+    this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     this.tenableTool = 'listvuln';
+    this.filterHistory.push({
+      filters: structuredClone(this.tempFilters),
+      tool: this.tenableTool
+    });
+    this.currentFilterHistoryIndex = this.filterHistory.length - 1;
+
     this.table().clear();
     this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     this.expandColumnSelections();
   }
 
   loadVulnSummary() {
+    if (this.currentFilterHistoryIndex < this.filterHistory.length - 1) {
+      this.filterHistory = this.filterHistory.slice(0, this.currentFilterHistoryIndex + 1);
+    }
+
+    this.filterHistory.push({
+      filters: structuredClone(this.tempFilters),
+      tool: this.tenableTool
+    });
+    this.currentFilterHistoryIndex = this.filterHistory.length - 1;
     this.tenableTool = 'sumid';
+    this.filterHistory.push({
+      filters: structuredClone(this.tempFilters),
+      tool: this.tenableTool
+    });
+    this.currentFilterHistoryIndex = this.filterHistory.length - 1;
+
     this.table().clear();
     this.loadVulnerabilitiesLazy({ first: 0, rows: this.rows });
     this.resetColumnSelections();
@@ -2489,12 +2519,25 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   async onRowClick(vulnerability: any, event: any) {
     event.stopPropagation();
-    await this.clearFilters(false);
+
+    if (this.currentFilterHistoryIndex < this.filterHistory.length - 1) {
+      this.filterHistory = this.filterHistory.slice(0, this.currentFilterHistoryIndex + 1);
+    }
+
+    this.filterHistory.push({
+      filters: structuredClone(this.tempFilters),
+      tool: this.tenableTool
+    });
+
+    this.currentFilterHistoryIndex = this.filterHistory.length - 1;
+    this.tempFilters = this.initializeTempFilters();
     this.tenableTool = 'listvuln';
+
     this.tempFilters['pluginID'] = {
       operator: '=',
       value: vulnerability.pluginID
     };
+
     this.applyFilters(true);
     this.expandColumnSelections();
   }
