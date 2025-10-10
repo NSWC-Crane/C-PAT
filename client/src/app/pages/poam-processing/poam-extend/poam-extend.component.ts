@@ -244,12 +244,13 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   }
 
   onRowEditInit(milestone: any) {
+    milestone.editing = true;
     this.clonedMilestones[milestone.milestoneId] = { ...milestone };
   }
 
   async onRowEditSave(milestone: any) {
     if (!this.validateMilestoneFields(milestone)) return;
-    if (!this.validateMilestoneDate(milestone)) return;
+    if (!this.validateMilestoneDates(milestone)) return;
 
     if (milestone.isNew) {
       await this.addNewMilestone(milestone);
@@ -257,6 +258,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       await this.updateExistingMilestone(milestone);
     }
 
+    milestone.editing = false;
     delete this.clonedMilestones[milestone.milestoneId];
   }
 
@@ -305,32 +307,47 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  private validateMilestoneDate(milestone: any): boolean {
-    const milestoneDate = format(milestone.milestoneChangeDate, 'yyyy-MM-dd');
-    const scheduledCompletionDate = format(this.poam.scheduledCompletionDate, 'yyyy-MM-dd');
-    const extensionTimeAllowed = this.poam.extensionTimeAllowed;
+  private validateMilestoneDates(milestone: any): boolean {
+    if (milestone.milestoneChangeDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-    if (extensionTimeAllowed === 0 || extensionTimeAllowed == null) {
-      if (isAfter(milestoneDate, scheduledCompletionDate)) {
+      const changeDate = new Date(milestone.milestoneChangeDate);
+      changeDate.setHours(0, 0, 0, 0);
+
+      if (changeDate < today) {
         this.messageService.add({
-          severity: 'warn',
-          summary: 'Information',
-          detail: 'The Milestone date provided exceeds the POAM scheduled completion date.'
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'Milestone change date cannot be set to a past date.'
         });
-
         return false;
       }
-    } else {
-      const maxAllowedDate = addDays(scheduledCompletionDate, extensionTimeAllowed);
 
-      if (isAfter(milestoneDate, maxAllowedDate)) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Information',
-          detail: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
-        });
+      const milestoneDate = format(milestone.milestoneChangeDate, 'yyyy-MM-dd');
+      const scheduledCompletionDate = format(this.poam.scheduledCompletionDate, 'yyyy-MM-dd');
+      const extensionTimeAllowed = this.poam.extensionTimeAllowed;
 
-        return false;
+      if (extensionTimeAllowed === 0 || extensionTimeAllowed == null) {
+        if (isAfter(milestoneDate, scheduledCompletionDate)) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Information',
+            detail: 'The Milestone date provided exceeds the POAM scheduled completion date.'
+          });
+          return false;
+        }
+      } else {
+        const maxAllowedDate = addDays(scheduledCompletionDate, extensionTimeAllowed);
+
+        if (isAfter(milestoneDate, maxAllowedDate)) {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Information',
+            detail: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
+          });
+          return false;
+        }
       }
     }
 
@@ -354,11 +371,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           summary: 'Information',
           detail: 'Unable to insert row, please validate entry and try again.'
         });
-
         return;
       } else {
         milestone.milestoneId = res.milestoneId;
         milestone.isNew = false;
+        milestone.editing = false;
         delete milestone.editing;
 
         this.messageService.add({
