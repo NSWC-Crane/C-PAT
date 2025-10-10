@@ -39,10 +39,6 @@
     padding: 0;
   }
 
-  .p-stepper-panel {
-    height: 100%;
-  }
-
   .stepper-content-wrapper {
     display: flex;
     flex-direction: column;
@@ -54,6 +50,7 @@
     overflow-y: auto;
     padding: 1rem;
     margin-bottom: 0.5rem;
+    width: 100%;
   }
 
   .stepper-buttons {
