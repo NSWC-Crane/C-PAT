@@ -80,7 +80,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['label'] && changes['label'].currentValue) {
+    if (changes['label']?.currentValue) {
       this.label = { ...changes['label'].currentValue };
 
       if (this.label.labelId && this.label.labelId !== 'ADDLABEL') {
@@ -149,7 +149,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   parseVulnerabilityIds(pastedText: string, rowData: any): void {
-    if (!pastedText || !pastedText.trim()) {
+    if (!pastedText.trim()) {
       return;
     }
 
