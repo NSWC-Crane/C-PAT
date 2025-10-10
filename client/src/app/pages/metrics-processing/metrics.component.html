@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<div class="metrics-container">
+<div class="metrics-container overflow-hidden">
   @if (collectionOrigin() === 'STIG Manager') {
   <cpat-stigman-metrics [collection]="selectedCollection()" (componentInit)="onSTIGManagerMetricsInit($event)">
   </cpat-stigman-metrics>

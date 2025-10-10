@@ -34,32 +34,7 @@
   }
 }
 
-.poam-category-advanced-pie {
-  ::ng-deep {
-    .legend-item {
-      transition: all 0.3s ease;
-
-      &:hover {
-        cursor: default;
-        transform: translateX(8px);
-        overflow: visible !important;
-
-        .item-color {
-          transform: scale(1.2);
-          filter: brightness(0.9);
-          opacity: 0.7;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .item-percent {
-          overflow: visible !important;
-        }
-      }
-    }
-  }
-}
-
-.poam-category-advanced-pie {
+::ng-deep .poam-category-advanced-pie {
   display: block;
   height: 20rem;
   min-height: 20rem;
@@ -67,158 +42,177 @@
   width: 100%;
   position: relative;
 
-  ::ng-deep {
-    ngx-charts-advanced-pie-chart {
-      > div:first-child {
+  .legend-item {
+    transition: all 0.3s ease;
+
+    &:hover {
+      cursor: default;
+      transform: translateX(8px);
+      overflow: visible !important;
+
+      .item-color {
+        transform: scale(1.2);
+        filter: brightness(0.9);
+        opacity: 0.7;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .item-percent {
+        overflow: visible !important;
+      }
+    }
+  }
+
+  ngx-charts-advanced-pie-chart {
+    > div:first-child {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      width: 100% !important;
+
+      > .advanced-pie.chart {
+        flex: 0 0 55% !important;
+        width: 55% !important;
+        max-width: 55% !important;
+        min-width: 55% !important;
+        height: 100% !important;
         display: flex !important;
-        flex-direction: row !important;
+        justify-content: center !important;
         align-items: center !important;
-        width: 100% !important;
+        overflow: hidden !important;
 
-        > .advanced-pie.chart {
-          flex: 0 0 55% !important;
-          width: 55% !important;
-          max-width: 55% !important;
-          min-width: 55% !important;
+        ngx-charts-chart {
+          width: 100% !important;
           height: 100% !important;
-          display: flex !important;
-          justify-content: center !important;
-          align-items: center !important;
-          overflow: hidden !important;
 
-          ngx-charts-chart {
+          .ngx-charts-outer {
             width: 100% !important;
             height: 100% !important;
 
-            .ngx-charts-outer {
+            svg.ngx-charts {
               width: 100% !important;
               height: 100% !important;
 
-              svg.ngx-charts {
-                width: 100% !important;
-                height: 100% !important;
-
-                g.pie.chart {
-                  transform: translate(50%, 50%) scale(3);
-                  transform-origin: 0 0 !important;
-                }
+              g.pie.chart {
+                transform: translate(50%, 50%) scale(3);
+                transform-origin: 0 0 !important;
               }
             }
-          }
-        }
-
-        > .advanced-pie-legend-wrapper {
-          flex: 0 0 45% !important;
-          width: 45% !important;
-          max-width: 45% !important;
-          min-width: 45% !important;
-
-          ngx-charts-advanced-legend {
-            width: 100% !important;
           }
         }
       }
-    }
 
-    .total-value,
-    .total-label {
-      display: none;
-    }
+      > .advanced-pie-legend-wrapper {
+        flex: 0 0 45% !important;
+        width: 45% !important;
+        max-width: 45% !important;
+        min-width: 45% !important;
 
-    .advanced-pie-legend {
-      width: 100% !important;
-      display: flex !important;
-      flex-direction: column !important;
-      justify-content: center !important;
-      margin-left: 0.5rem;
-
-      .legend-items-container {
-        width: 100% !important;
-
-        .legend-items {
-          display: flex !important;
-          flex-direction: column !important;
+        ngx-charts-advanced-legend {
           width: 100% !important;
-          align-items: flex-start !important;
-          overflow: hidden;
-          gap: 1rem !important;
+        }
+      }
+    }
+  }
 
-          &:has(.legend-item:nth-child(4)) {
-            gap: 0.75rem !important;
+  .total-value,
+  .total-label {
+    display: none;
+  }
 
-            .item-color {
-              height: 2.5rem;
-            }
+  .advanced-pie-legend {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    margin-left: 0.5rem;
+
+    .legend-items-container {
+      width: 100% !important;
+
+      .legend-items {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        align-items: flex-start !important;
+        overflow: hidden;
+        gap: 1rem !important;
+
+        &:has(.legend-item:nth-child(4)) {
+          gap: 0.75rem !important;
+
+          .item-color {
+            height: 2.5rem;
           }
+        }
 
-          &:has(.legend-item:nth-child(6)) {
-            gap: 0.5rem !important;
+        &:has(.legend-item:nth-child(6)) {
+          gap: 0.5rem !important;
 
-            .item-color {
-              height: 2rem;
-            }
+          .item-color {
+            height: 2rem;
           }
+        }
 
-          &:has(.legend-item:nth-child(8)) {
-            gap: 0.25rem !important;
+        &:has(.legend-item:nth-child(8)) {
+          gap: 0.25rem !important;
 
-            .item-color {
-              height: 1.5rem;
-            }
+          .item-color {
+            height: 1.5rem;
           }
+        }
 
-          .legend-item {
-            width: 100% !important;
-            display: flex !important;
-            align-items: center !important;
-            margin-bottom: 0.25rem;
-            padding-right: 0.5rem;
+        .legend-item {
+          width: 100% !important;
+          display: flex !important;
+          align-items: center !important;
+          margin-bottom: 0.25rem;
+          padding-right: 0.5rem;
 
-            &:hover {
-              .item-label,
-              .item-value,
-              .item-percent {
-                opacity: 1;
-              }
-            }
-
-            .item-color {
-              flex-shrink: 0;
-              margin-right: 0.25rem;
-            }
-
-            .item-label {
-              color: var(--text-color);
-              opacity: 0.7;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              font-size: 0.875rem;
-              font-weight: 500;
-              margin-left: 0.5rem;
-              flex: 1;
-            }
-
-            .item-value {
-              color: var(--text-color);
-              opacity: 0.7;
-              font-size: 0.875rem;
-              font-weight: 500;
-              margin-left: 0.25rem;
-              margin-bottom: 0rem;
-              min-width: 1.5rem;
-            }
-
+          &:hover {
+            .item-label,
+            .item-value,
             .item-percent {
-              color: var(--text-color);
-              opacity: 0.7;
-              font-size: 0.875rem;
-              margin-left: 0.5rem;
-              margin-bottom: 0.375rem;
-              width: 2rem;
-              text-align: left;
-              flex-shrink: 0;
+              opacity: 1;
             }
+          }
+
+          .item-color {
+            flex-shrink: 0;
+            margin-right: 0.25rem;
+          }
+
+          .item-label {
+            color: var(--text-color);
+            opacity: 0.7;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+            flex: 1;
+          }
+
+          .item-value {
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-left: 0.25rem;
+            margin-bottom: 0rem;
+            min-width: 1.5rem;
+          }
+
+          .item-percent {
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+            margin-bottom: 0.375rem;
+            width: 2rem;
+            text-align: left;
+            flex-shrink: 0;
           }
         }
       }
@@ -226,12 +220,24 @@
   }
 }
 
-.poam-severity-advanced-pie {
-  padding-bottom: 5rem;
-  margin-top: -2rem;
-}
-
 :host ::ng-deep {
+  .p-tablist:has(.p-tablist-nav-button.p-tablist-next-button:not([style*='display: none'])) {
+    .justify-end {
+      padding-top: 0.4rem !important;
+      padding-right: 2.5rem !important;
+    }
+  }
+
+  .assigned-grid {
+    &.p-card {
+      transition: all 0.3s ease-in-out;
+
+      .p-card-header {
+        padding: 0;
+      }
+    }
+  }
+
   .tenable-collection {
     ::ng-deep .p-datatable-table-container {
       max-height: 67rem !important;
@@ -245,18 +251,6 @@
   }
 
   .category-chart-card .p-card-header {
-    padding-bottom: 0rem !important;
-  }
-
-  .severity-chart-card {
-    height: fit-content;
-    overflow: visible !important;
-    margin-bottom: 3rem;
-    position: relative;
-  }
-
-  .severity-chart-card .p-card-body {
-    padding-top: 0rem !important;
     padding-bottom: 0rem !important;
   }
 
@@ -292,25 +286,6 @@
 
 .grid > div {
   transition: all 0.3s ease-in-out;
-}
-
-:host ::ng-deep {
-  .p-tablist:has(.p-tablist-nav-button.p-tablist-next-button:not([style*='display: none'])) {
-    .justify-end {
-      padding-top: 0.4rem !important;
-      padding-right: 2.5rem !important;
-    }
-  }
-
-  .assigned-grid {
-    &.p-card {
-      transition: all 0.3s ease-in-out;
-
-      .p-card-header {
-        padding: 0;
-      }
-    }
-  }
 }
 
 @media screen and (max-width: 992px) {
