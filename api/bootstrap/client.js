@@ -116,6 +116,7 @@ function setupAngularRoutes(app) {
         '/import-processing/tenable-import',
         '/label-processing',
         '/marketplace',
+        '/metrics',
         '/poam-processing',
         '/poam-processing/poam-manage',
         '/poam-processing/poam-approve/:poamId',
