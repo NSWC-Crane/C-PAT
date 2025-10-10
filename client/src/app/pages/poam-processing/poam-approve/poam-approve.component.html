@@ -8,20 +8,24 @@
 !##########################################################################
 -->
 
-<p-dialog [(visible)]="displayDialog" [modal]="true" [closable]="false" styleClass="w-[60vw] overflow-hidden">
+<p-dialog [(visible)]="displayDialog" [modal]="true" [closable]="false"
+  styleClass="w-[40vw] h-auto max-h-[80vh] overflow-hidden">
   <ng-template pTemplate="content">
     <div class="container">
       <div class="form-group">
         <label for="approvalStatus">Approval Status:</label>
-        <p-select [options]="approvalStatusOptions" [(ngModel)]="approvalStatus" placeholder="Approval Status..." name="approvalStatus" class="w-[25rem]" [disabled]="accessLevel < 3" />
+        <p-select [options]="approvalStatusOptions" [(ngModel)]="approvalStatus" placeholder="Approval Status..."
+          name="approvalStatus" class="w-[25rem]" [disabled]="accessLevel < 3" />
       </div>
       <div class="form-group">
         <label for="approvedDate">Approval Date: </label>
-        <p-datepicker [(ngModel)]="dates.approvedDate" name="approvedDate" placeholder="Approval Date..." class="w-[25rem]" [disabled]="accessLevel < 3" />
+        <p-datepicker [(ngModel)]="dates.approvedDate" name="approvedDate" placeholder="Approval Date..."
+          class="approvalDatePicker" [inputStyle]="{'width': '25rem'}" [disabled]="accessLevel < 3" />
       </div>
       <div class="form-group">
         <label for="comments">Approval Comments:</label>
-        <textarea pTextarea class="w-full" [(ngModel)]="comments" placeholder="Comments..." name="comments" [rows]="10" [maxlength]="2000" [disabled]="accessLevel < 3"></textarea>
+        <textarea pTextarea class="w-full" [(ngModel)]="comments" placeholder="Comments..." name="comments" [rows]="10"
+          [maxlength]="2000" [disabled]="accessLevel < 3"></textarea>
       </div>
       <div class="flex items-center">
         <p-checkbox [(ngModel)]="hqsChecked" inputId="hqsChecked" [binary]="true" [disabled]="accessLevel < 3" />
@@ -32,8 +36,9 @@
   <ng-template pTemplate="footer">
     <div class="m-2 flex w-full items-center justify-between">
       <p-button [outlined]="true" severity="secondary" label="Cancel" icon="pi pi-times" (click)="cancelApproval()" />
-      <p-button [outlined]="true" label="Save" icon="pi pi-check" (click)="submitApprovalData()" [disabled]="accessLevel < 3" />
+      <p-button [outlined]="true" label="Save" icon="pi pi-check" (click)="submitApprovalData()"
+        [disabled]="accessLevel < 3" />
     </div>
   </ng-template>
 </p-dialog>
-<p-toast />
+<p-toast class="!z-99999" />

@@ -80,10 +80,6 @@ hr {
     padding: 0;
   }
 
-  .p-stepper-panel {
-    height: 100%;
-  }
-
   .p-splitter {
     border: none;
   }
@@ -163,7 +159,7 @@ hr {
 ::ng-deep .poam-control-menu {
   background-color: var(--card-background) !important;
   margin-top: 0.5rem !important;
-  width: 14rem !important;
+  width: 14.5rem !important;
 }
 
 ::ng-deep .poam-control-menu .p-menu-list {
