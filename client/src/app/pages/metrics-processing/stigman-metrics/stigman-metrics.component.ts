@@ -67,9 +67,9 @@ interface STIGManagerMetrics {
   imports: [CommonModule, ButtonModule, CardModule, ProgressBarModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule]
 })
 export class STIGManagerMetricsComponent implements OnInit, OnChanges {
-  private sharedService = inject(SharedService);
-  private collectionsService = inject(CollectionsService);
-  private messageService = inject(MessageService);
+  private readonly sharedService = inject(SharedService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly messageService = inject(MessageService);
 
   @Input() collection: any;
   @Output() componentInit = new EventEmitter<STIGManagerMetricsComponent>();
@@ -429,7 +429,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
 
     if (weightedAverage === 0) {
       rating = 'Very Low';
-    } else if (weightedAverage < 5) {
+    } else if (catIPercentage === 0 && catIIPercentage < 5 && catIIIPercentage < 5) {
       rating = 'Low';
     } else if (weightedAverage < 10) {
       rating = 'Moderate';
