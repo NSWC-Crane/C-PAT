@@ -54,6 +54,12 @@ body {
   background: var(--p-multiselect-background) !important;
 }
 
+.p-tabs {
+  .p-tablist {
+    border-radius: 0.5rem;
+  }
+}
+
 svg[data-p-icon='filter-fill'] {
   filter: drop-shadow(0 0 2px var(--primary-color));
 }
