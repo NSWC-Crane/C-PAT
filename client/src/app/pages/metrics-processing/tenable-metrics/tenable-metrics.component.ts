@@ -266,9 +266,9 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       low: this.getTenableVulnerabilities(repoId, lowFilters)
     }).pipe(
       map((results) => ({
-        criticalHigh: results.criticalHigh.response?.totalRecords || 0,
-        medium: results.medium.response?.totalRecords || 0,
-        low: results.low.response?.totalRecords || 0
+        criticalHigh: Number(results.criticalHigh.response?.totalRecords) || 0,
+        medium: Number(results.medium.response?.totalRecords) || 0,
+        low: Number(results.low.response?.totalRecords) || 0
       })),
       catchError(() => of({ criticalHigh: 0, medium: 0, low: 0 }))
     );
