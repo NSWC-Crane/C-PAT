@@ -8,47 +8,31 @@
 !##########################################################################
 */
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  .header-labels {
-    font-weight: 500;
-    opacity: 0.7;
-    margin-left: 0.5rem;
-  }
-
-  .header-buttons {
-    position: relative;
-    display: flex;
-    gap: 0.25rem;
-    margin-right: 0.25rem;
-  }
+.chart-title {
+  font-family: 'Red Hat Display Variable';
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: -0.5rem 0 2rem;
+  text-align: left;
 }
 
-.metric-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--text-secondary-color);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+.legend-item {
+  &:hover {
+    .item-label,
+    .item-value,
+    .item-percent {
+      opacity: 1;
+    }
 
-.metric-origin {
-  font-size: 0.85rem;
-  color: var(--text-secondary-color);
-  font-weight: 500;
-  line-height: 1.4;
+    .item-color {
+      transform: scale(1.2);
+      filter: brightness(0.9);
+    }
+  }
 }
 
 .metric-card {
-  transition: all 0.3s ease;
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-
   &::before {
     content: '';
     position: absolute;
@@ -58,76 +42,6 @@
     height: 4px;
     background: var(--primary-color);
     opacity: 0.65;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  }
-
-  .metric-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-
-    .metric-loading {
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .metric-value-container {
-      min-height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .metric-origin {
-      margin-top: 0.25rem;
-    }
-
-    .metric-label {
-      margin-top: 0.25rem;
-      font-size: 0.95rem;
-      color: var(--text-secondary-color);
-      font-weight: 500;
-      line-height: 1.4;
-    }
-  }
-}
-
-.poam-compliance-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-
-  .compliance-value-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    .compliance-value {
-      border-radius: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      border: 3px solid;
-      padding: 1rem;
-      gap: 0.5rem;
-
-      .compliance-percentage {
-        font-size: 4rem;
-        font-weight: 900;
-        line-height: 1;
-      }
-    }
   }
 }
 
@@ -210,127 +124,28 @@
   }
 }
 
-.chart-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-
-  .chart-title {
-    font-family: 'Red Hat Display Variable';
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text-color);
-    margin: -0.5rem 0 2rem;
-    text-align: left;
-  }
-}
-
-.findings-chart-layout {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  flex-grow: 1;
-
-  .chart-wrapper {
-    flex: 0 0 55%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-}
-
-.advanced-pie-legend {
-  flex: 0 0 45%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin-left: 0.5rem;
-
-  .legend-items {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 1rem;
-  }
-
-  .legend-item {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    padding-right: 0.5rem;
-    transition: all 0.3s ease;
-
-    &:hover {
-      cursor: default;
-      transform: translateX(8px);
-
-      .item-label,
-      .item-value,
-      .item-percent {
-        opacity: 1;
-      }
-
-      .item-color {
-        transform: scale(1.2);
-        filter: brightness(0.9);
-      }
-    }
-
-    .item-color {
-      flex-shrink: 0;
-      margin-right: 0.5rem;
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
-      transition: all 0.3s ease;
-    }
-
-    .item-label {
-      color: var(--text-color);
-      opacity: 0.7;
-      font-size: 0.875rem;
-      font-weight: 600;
-      margin-left: 0.5rem;
-      flex: 1;
-    }
-
-    .item-value {
-      color: var(--text-color);
-      opacity: 0.7;
-      font-size: 0.875rem;
-      font-weight: 500;
-      min-width: 1.5rem;
-    }
-
-    .item-percent {
-      color: var(--text-color);
-      opacity: 0.7;
-      font-size: 0.875rem;
-      margin-left: 0.5rem;
-      width: 3.5rem;
-      text-align: left;
-      flex-shrink: 0;
-    }
-  }
-}
-
 @media (max-width: 768px) {
-  .flex.flex-row.gap-4 {
+  .cat-compliance-card .dark-web-style-metric {
     flex-direction: column;
+    text-align: center;
 
-    .basis-1\/5 {
-      flex-basis: 100%;
+    .metric-circle-container {
+      position: relative;
+      left: auto;
+      right: auto;
+      transform: none;
+      top: auto;
       width: 100%;
+      justify-content: center;
+
+      .metric-line {
+        display: none;
+      }
     }
-  }
-}
 
-@media (max-width: 1400px) {
-  .flex.flex-row.gap-4 {
-    flex-wrap: wrap;
-
-    .basis-1\/5 {
-      flex-basis: calc(33.333% - 1rem);
+    .metric-text-container {
+      padding-left: 0;
+      padding-top: 1rem;
     }
   }
 }
