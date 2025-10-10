@@ -62,9 +62,9 @@ interface VulnerabilityMetrics {
   imports: [CommonModule, ButtonModule, CardModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule]
 })
 export class TenableMetricsComponent implements OnInit, OnChanges {
-  private importService = inject(ImportService);
-  private collectionsService = inject(CollectionsService);
-  private messageService = inject(MessageService);
+  private readonly importService = inject(ImportService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly messageService = inject(MessageService);
 
   @Input() collection: any;
   @Output() componentInit = new EventEmitter<TenableMetricsComponent>();
@@ -341,7 +341,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     let rating: string;
     if (weightedAverage === 0) {
       rating = 'Very Low';
-    } else if (weightedAverage < 5) {
+    } else if (catICount === 0 && catIIPercentage < 5 && catIIIPercentage < 5) {
       rating = 'Low';
     } else if (weightedAverage < 10) {
       rating = 'Moderate';
@@ -524,72 +524,6 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       catchError(() => of({ catI: 0, catII: 0, catIII: 0 }))
     );
   }
-
-  // private calculateOpenVulnerabilities(repoId: string) {
-  //   const catIFilters = [
-  //     {
-  //       filterName: 'lastSeen',
-  //       operator: '=',
-  //       value: '0:30',
-  //       type: 'vuln',
-  //       isPredefined: true
-  //     },
-  //     {
-  //       filterName: 'severity',
-  //       operator: '=',
-  //       value: '3,4',
-  //       type: 'vuln',
-  //       isPredefined: true
-  //     }
-  //   ];
-
-  //   const catIIFilters = [
-  //     {
-  //       filterName: 'lastSeen',
-  //       operator: '=',
-  //       value: '0:30',
-  //       type: 'vuln',
-  //       isPredefined: true
-  //     },
-  //     {
-  //       filterName: 'severity',
-  //       operator: '=',
-  //       value: '2',
-  //       type: 'vuln',
-  //       isPredefined: true
-  //     }
-  //   ];
-
-  //   const catIIIFilters = [
-  //     {
-  //       filterName: 'lastSeen',
-  //       operator: '=',
-  //       value: '0:30',
-  //       type: 'vuln',
-  //       isPredefined: true
-  //     },
-  //     {
-  //       filterName: 'severity',
-  //       operator: '=',
-  //       value: '1',
-  //       type: 'vuln',
-  //       isPredefined: true
-  //     }
-  //   ];
-
-  //   return forkJoin({
-  //     catI: this.getTenableVulnerabilities(repoId, catIFilters),
-  //     catII: this.getTenableVulnerabilities(repoId, catIIFilters),
-  //     catIII: this.getTenableVulnerabilities(repoId, catIIIFilters)
-  //   }).pipe(
-  //     map((results) => ({
-  //       catI: results.catI.response?.totalRecords || 0,
-  //       catII: results.catII.response?.totalRecords || 0,
-  //       catIII: results.catIII.response?.totalRecords || 0
-  //     })),
-  //     catchError(() => of({ catI: 0, catII: 0, catIII: 0 }))
-  //   );
-  // }
 
   private calculateExploitableFindings(repoId: string) {
     const filters = [
