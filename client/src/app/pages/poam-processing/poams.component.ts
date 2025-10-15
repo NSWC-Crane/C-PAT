@@ -42,7 +42,7 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedCollection: any;
   private payloadSubscription: Subscription[] = [];
 
-  async ngOnInit() {
+  ngOnInit() {
     this.setPayload();
   }
 
