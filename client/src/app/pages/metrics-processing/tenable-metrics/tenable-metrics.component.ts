@@ -737,7 +737,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
         label: 'Past Due IAVs',
         tooltip: `Count of IAVs past their Navy compliance date
 
-                Excludes superseded IAVs`,
+                Excludes Informational severity and superseded IAVs`,
         origin: 'Tenable',
         value: loading ? '-' : m.pastDueIAVCount,
         category: 'iav',

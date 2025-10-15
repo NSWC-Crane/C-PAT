@@ -24,7 +24,7 @@
   <p-card class="basis-1/6">
     <div class="flex flex-col items-center justify-center p-2">
       <div class="flex flex-col items-center"
-        [pTooltip]="'Percentage calculation: (Critical + High + Medium + Low findings with approved POAMs) ÷ (Total findings) × 100'"
+        [pTooltip]="'Percentage calculation: (Critical + High + Medium + Low findings (Last observed within 30 days) with approved POAMs) ÷ (Total findings lLast observed within 30 days) × 100'"
         tooltipPosition="top">
         <div class="rounded-3xl flex flex-col items-center justify-center shadow-xl border-[3px] p-4 gap-2"
           [style.border-color]="getCoraRiskColor(100 - tenableMetrics().totalPoamCompliance)"
