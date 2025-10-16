@@ -167,8 +167,8 @@
             <div class="left-buttons">
               <p-button [rounded]="true" [text]="true" [raised]="true" severity="primary" icon="pi pi-filter"
                 (click)="toggleSidebar()" />
-              <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-undo"
-                (click)="revertFilters()" [disabled]="currentFilterHistoryIndex <= 0"
+              <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary"
+                icon="pi pi-arrow-circle-left" (click)="revertFilters()" [disabled]="currentFilterHistoryIndex <= 0"
                 pTooltip="Revert to previous filters" />
               <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash"
                 (click)="clearFilters()" pTooltip="Reset default filters" />
