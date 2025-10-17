@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, viewChild } from '@angular/core';
+import { Component, OnInit, viewChild } from '@angular/core';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { TenableSolutionsComponent } from './components/solutions/tenableSolutions.component';
@@ -23,7 +23,7 @@ import { TenableVulnerabilitiesComponent } from './components/tenableVulnerabili
   templateUrl: './tenable.component.html',
   styleUrls: ['./tenable.component.scss']
 })
-export class TenableComponent {
+export class TenableComponent implements OnInit {
   readonly tabComponent = viewChild<any>('tabComponent');
   readonly vulnerabilitiesComponent = viewChild.required(TenableVulnerabilitiesComponent);
 
@@ -34,12 +34,27 @@ export class TenableComponent {
   taskOrderCount: number = 0;
   failedCredentialCount: number = 0;
   seolCount: number = 0;
-  activeTabIndex: number = 0;
-  loadedTabs: Set<number> = new Set([0]);
+  activeTabIndex: string = '0';
+  loadedTabs: Set<string> = new Set(['0']);
   sidebarVisible: boolean = false;
 
-  onTabChange(index: unknown): void {
-    this.activeTabIndex = Number(index);
+  ngOnInit() {
+    const vulnState = sessionStorage.getItem('tenableFilterState');
+
+    if (vulnState) {
+      const savedState = JSON.parse(vulnState);
+      if (savedState.parentTabIndex !== undefined) {
+        this.activeTabIndex = String(savedState.parentTabIndex);
+        this.loadedTabs.add(this.activeTabIndex);
+      }
+    } else {
+      this.activeTabIndex = '0';
+      this.loadedTabs.add('0');
+    }
+  }
+
+  onTabChange(index: any): void {
+    this.activeTabIndex = String(index);
 
     if (!this.loadedTabs.has(this.activeTabIndex)) {
       this.loadedTabs.add(this.activeTabIndex);
