@@ -9,33 +9,26 @@
 -->
 
 <div class="scrollable-collections">
-  <p-treeTable
-    #dt
-    [value]="collectionTreeData"
-    [columns]="cols"
-    [filterDelay]="0"
-    [rows]="25"
-    [paginator]="true"
-    [scrollable]="true"
-    scrollHeight="calc(100vh - 32rem)"
-    selectionMode="single"
-    [globalFilterFields]="['Collection ID', 'Name', 'Description', 'System Type', 'System Name', 'CC/S/A/FA', 'A&A Package', 'Collection Origin', 'Origin Collection ID']"
-  >
+  <p-treeTable #dt [value]="collectionTreeData" [columns]="cols" [filterDelay]="0" [rows]="25" [paginator]="true"
+    [scrollable]="true" scrollHeight="calc(100vh - 32rem)" selectionMode="single"
+    [globalFilterFields]="['Collection ID', 'Name', 'Description', 'System Type', 'System Name', 'CC/S/A/FA', 'A&A Package', 'Collection Origin', 'Origin Collection ID']">
     <ng-template pTemplate="caption">
       <div class="flex items-center justify-between">
         <p-iconField iconPosition="left">
           <p-inputIcon>
             <i class="pi pi-search"></i>
           </p-inputIcon>
-          <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections" name="searchCollections" class="search-input" />
+          <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections"
+            name="searchCollections" class="search-input" />
         </p-iconField>
-        <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Manually Add Collection" (onClick)="showAddCollectionDialog()" />
+        <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary"
+          pTooltip="Manually Add Collection" (onClick)="showAddCollectionDialog()" />
       </div>
     </ng-template>
     <ng-template pTemplate="header" let-columns>
       <tr>
         @for (col of columns; track col) {
-          <th scope="col" [ttSortableColumn]="col.field">{{ col.header }}</th>
+        <th scope="col" [ttSortableColumn]="col.field">{{ col.header }}</th>
         }
         <th scope="col">Actions</th>
       </tr>
@@ -43,19 +36,23 @@
     <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
       <tr (click)="showModifyCollectionDialog(rowData)" class="cursor-pointer hover:surface-200">
         @for (col of columns; track col; let i = $index) {
-          <td [style]="col.field === 'Name' ? { 'max-width': '200px' } : {}">
-            @if (i === 0) {
-              <p-treeTableToggler [rowNode]="rowNode" />
-            }
-            <span [style]="col.field === 'Name' ? { 'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', display: 'inline-block', width: '100%' } : {}">
-              {{ rowData[col.field] }}
-            </span>
-          </td>
+        <td class="break-all" [style]="col.field === 'Name' ? { 'max-width': '200px' } : {}">
+          @if (i === 0) {
+          <p-treeTableToggler [rowNode]="rowNode" />
+          }
+          <span
+            [style]="col.field === 'Name' ? { 'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', display: 'inline-block', width: '100%' } : {}">
+            {{ rowData[col.field] }}
+          </span>
+        </td>
         }
         <td>
-          <p-button icon="pi pi-pencil" [rounded]="true" variant="text" class="mr-2" (onClick)="$event.stopPropagation(); showModifyCollectionDialog(rowData)" />
-          <p-button icon="pi pi-download" [rounded]="true" variant="text" class="mr-2" (onClick)="$event.stopPropagation(); exportCollection(rowData)" />
-          <p-button icon="pi pi-trash" [rounded]="true" variant="text" severity="danger" (onClick)="$event.stopPropagation(); confirmDeleteCollection(rowData)" />
+          <p-button icon="pi pi-pencil" [rounded]="true" variant="text" class="mr-2"
+            (onClick)="$event.stopPropagation(); showModifyCollectionDialog(rowData)" />
+          <p-button icon="pi pi-download" [rounded]="true" variant="text" class="mr-2"
+            (onClick)="$event.stopPropagation(); exportCollection(rowData)" />
+          <p-button icon="pi pi-trash" [rounded]="true" variant="text" severity="danger"
+            (onClick)="$event.stopPropagation(); confirmDeleteCollection(rowData)" />
         </td>
       </tr>
     </ng-template>
@@ -71,57 +68,47 @@
   <ng-template pTemplate="content">
     <div class="field">
       <label for="collectionName">Collection Name:</label>
-      <input type="text" pInputText id="collectionName" class="w-full" [(ngModel)]="editingCollection.collectionName" required />
+      <input type="text" pInputText id="collectionName" class="w-full" [(ngModel)]="editingCollection.collectionName"
+        required />
     </div>
     <div class="field">
       <label for="description">Description:</label>
-      <textarea pTextarea id="description" class="w-full" [(ngModel)]="editingCollection.description" required rows="3" cols="20"></textarea>
+      <textarea pTextarea id="description" class="w-full" [(ngModel)]="editingCollection.description" required rows="3"
+        cols="20"></textarea>
     </div>
     <div class="field">
       <label for="manualCreationAllowed">Manual POAM Creation Allowed:</label>
-      <p-select
-        [options]="[
+      <p-select [options]="[
           { label: 'True', value: true },
           { label: 'False', value: false }
-        ]"
-        [(ngModel)]="editingCollection.manualCreationAllowed"
-        placeholder="Select..."
-        optionLabel="label"
-        optionValue="value"
-        id="manualCreationAllowed"
-        name="manualCreationAllowed"
-        class="w-full"
-      />
+        ]" [(ngModel)]="editingCollection.manualCreationAllowed" placeholder="Select..." optionLabel="label"
+        optionValue="value" id="manualCreationAllowed" name="manualCreationAllowed" class="w-full" />
     </div>
     <div class="field">
       <label for="aaPackage">A&A Package:</label>
-      <p-autoComplete
-        [(ngModel)]="editingCollection.aaPackage"
-        [dropdown]="true"
-        [suggestions]="filteredAAPackages"
-        (completeMethod)="filterAAPackages($event)"
-        placeholder="Select an A&A Package..."
-        name="aaPackage"
-        id="aaPackage"
-        class="w-full"
-        readonly
-      />
+      <p-autoComplete [(ngModel)]="editingCollection.aaPackage" [dropdown]="true" [suggestions]="filteredAAPackages"
+        (completeMethod)="filterAAPackages($event)" placeholder="Select an A&A Package..." name="aaPackage"
+        id="aaPackage" class="w-full" readonly />
     </div>
     <div class="field">
       <label for="predisposingConditions">Predisposing Conditions:</label>
-      <textarea pTextarea id="predisposingConditions" class="w-full" [(ngModel)]="editingCollection.predisposingConditions" rows="3" cols="20"></textarea>
+      <textarea pTextarea id="predisposingConditions" class="w-full"
+        [(ngModel)]="editingCollection.predisposingConditions" rows="3" cols="20"></textarea>
     </div>
     <div class="field">
       <label for="systemType">System Type:</label>
-      <input pInputText type="text" id="systemType" name="systemType" [(ngModel)]="editingCollection.systemType" placeholder="System Type" class="w-full" />
+      <input pInputText type="text" id="systemType" name="systemType" [(ngModel)]="editingCollection.systemType"
+        placeholder="System Type" class="w-full" />
     </div>
     <div class="field">
       <label for="systemName">System Name:</label>
-      <input pInputText type="text" id="systemName" name="systemName" [(ngModel)]="editingCollection.systemName" placeholder="System Name" class="w-full" />
+      <input pInputText type="text" id="systemName" name="systemName" [(ngModel)]="editingCollection.systemName"
+        placeholder="System Name" class="w-full" />
     </div>
     <div class="field">
       <label for="ccsafa">CC/S/A/FA:</label>
-      <input pInputText type="text" id="ccsafa" name="ccsafa" [(ngModel)]="editingCollection.ccsafa" placeholder="CC/S/A/FA" class="w-full" />
+      <input pInputText type="text" id="ccsafa" name="ccsafa" [(ngModel)]="editingCollection.ccsafa"
+        placeholder="CC/S/A/FA" class="w-full" />
     </div>
   </ng-template>
 
@@ -140,7 +127,8 @@
     </div>
     <h3>Confirm Collection Deletion</h3>
     <h5>Are you sure that you would like to delete the "{{ collectionToDelete?.Name }}" collection?</h5>
-    <p class="!mb-0 text-sm text-red-400">This is an irreversible action and will result in all data associated with this collection being deleted.</p>
+    <p class="!mb-0 text-sm text-red-400">This is an irreversible action and will result in all data associated with
+      this collection being deleted.</p>
   </div>
   <ng-template pTemplate="footer">
     <div class="m-2 flex w-full items-center justify-between">

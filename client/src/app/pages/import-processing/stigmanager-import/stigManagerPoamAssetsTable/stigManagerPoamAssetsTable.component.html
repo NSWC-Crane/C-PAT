@@ -49,7 +49,7 @@
                 [rows]="25" [totalRecords]="tab.assets.length" [showCurrentPageReport]="true"
                 [rowsPerPageOptions]="[10, 25, 50]" [globalFilterFields]="['assetName', 'fqdn', 'ip', 'mac']"
                 [filterDelay]="300" [rowHover]="true" dataKey="assetId"
-                class="p-datatable-sm p-datatable-gridlines-hidden">
+                class="p-datatable-sm p-datatable-gridlines-hidden" [scrollable]="true">
                 <ng-template pTemplate="header" let-columns>
                   <tr>
                     @for (col of columns; track col) {

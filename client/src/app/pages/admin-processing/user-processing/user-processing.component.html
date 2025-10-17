@@ -39,7 +39,7 @@
       <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
         <tr [ngClass]="{ 'pending-status': rowData['Status'] === 'PENDING' }" (click)="setUserFromTable(rowData)">
           @for (col of columns; track col; let i = $index) {
-          <td>
+          <td class="break-all">
             @if (i === 0) {
             <p-treeTableToggler [rowNode]="rowNode" />
             }
