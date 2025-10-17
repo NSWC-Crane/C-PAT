@@ -10,15 +10,16 @@
 
 <div class="tenable-container" [ngClass]="{ 'sidebar-visible': sidebarVisible, 'sidebar-hidden': !sidebarVisible }">
   <p-card class="h-full">
-    <p-tabs #tabComponent value="0" (valueChange)="onTabChange($event)" scrollable>
+    <p-tabs #tabComponent [(value)]="activeTabIndex" (valueChange)="onTabChange($event)" scrollable>
       <p-tablist>
         <p-tab value="0">Vulnerabilities ({{ mainTotal }})</p-tab>
-        <p-tab value="1">30+ Days{{ loadedTabs.has(1) ? ' (' + thirtyPlusTotal + ')' : '' }}</p-tab>
-        <p-tab value="2">IAV Vulnerabilities{{ loadedTabs.has(2) ? ' (' + iavVulnerabilitiesCount + ')' : '' }}</p-tab>
-        <p-tab value="3">Task Orders{{ loadedTabs.has(3) ? ' (' + taskOrderCount + ')' : '' }}</p-tab>
-        <p-tab value="4">Exploitable{{ loadedTabs.has(4) ? ' (' + exploitableTotal + ')' : '' }}</p-tab>
-        <p-tab value="5">Failed Credential{{ loadedTabs.has(5) ? ' (' + failedCredentialCount + ')' : '' }}</p-tab>
-        <p-tab value="6">SEoL{{ loadedTabs.has(6) ? ' (' + seolCount + ')' : '' }}</p-tab>
+        <p-tab value="1">30+ Days{{ loadedTabs.has('1') ? ' (' + thirtyPlusTotal + ')' : '' }}</p-tab>
+        <p-tab value="2">IAV Vulnerabilities{{ loadedTabs.has('2') ? ' (' + iavVulnerabilitiesCount + ')' : ''
+          }}</p-tab>
+        <p-tab value="3">Task Orders{{ loadedTabs.has('3') ? ' (' + taskOrderCount + ')' : '' }}</p-tab>
+        <p-tab value="4">Exploitable{{ loadedTabs.has('4') ? ' (' + exploitableTotal + ')' : '' }}</p-tab>
+        <p-tab value="5">Failed Credential{{ loadedTabs.has('5') ? ' (' + failedCredentialCount + ')' : '' }}</p-tab>
+        <p-tab value="6">SEoL{{ loadedTabs.has('6') ? ' (' + seolCount + ')' : '' }}</p-tab>
         <p-tab value="7">Solutions</p-tab>
       </p-tablist>
       <p-tabpanels>

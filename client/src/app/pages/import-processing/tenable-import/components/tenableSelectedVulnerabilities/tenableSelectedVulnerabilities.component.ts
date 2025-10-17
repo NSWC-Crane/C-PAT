@@ -74,7 +74,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   readonly table = viewChild.required<Table>('dt');
   readonly select = viewChild.required<Select>('dd');
   readonly multiSelect = viewChild.required<MultiSelect>('ms');
-  readonly filters: { [key: string]: FilterMetadata[] } = {
+  filters: { [key: string]: FilterMetadata[] } = {
     supersededBy: [{ value: 'N/A', matchMode: 'contains', operator: 'and' }],
     severity: [{ value: ['Low', 'Medium', 'High', 'Critical'], matchMode: 'in', operator: 'and' }]
   };
@@ -82,6 +82,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   exportColumns!: ExportColumn[];
   existingPoamPluginIDs: any;
   selectedColumns: any[];
+  restoredSelectedColumns: any[];
   cveReferences: Reference[] = [];
   iavReferences: Reference[] = [];
   otherReferences: Reference[] = [];
@@ -101,11 +102,29 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   selectedNavyComplyDateFilter: NavyComplyDateFilter | null = null;
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
-  private subscriptions = new Subscription();
+  protected subscriptions = new Subscription();
   selectedSeverities: string[] = ['Low', 'Medium', 'High', 'Critical'];
 
   ngOnInit() {
     this.isLoading = true;
+    const stored = sessionStorage.getItem('tenableSelectedVulnState');
+    let shouldRestoreState = false;
+
+    if (stored) {
+      const savedState = JSON.parse(stored);
+      sessionStorage.removeItem('tenableSelectedVulnState');
+
+      if (savedState.currentPreset === this.currentPreset) {
+        shouldRestoreState = true;
+        this.filters = savedState.filters || this.filters;
+        this.selectedSeverities = savedState.selectedSeverities || ['Low', 'Medium', 'High', 'Critical'];
+        this.selectedNavyComplyDateFilter = savedState.selectedNavyComplyDateFilter || null;
+        this.filterValue = savedState.filterValue || '';
+        this.tenableTool = savedState.tenableTool || 'sumid';
+        this.restoredSelectedColumns = savedState.selectedColumns;
+      }
+    }
+
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
@@ -137,6 +156,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
           });
         } else {
           this.handleMissingTenable();
+        }
+
+        if (shouldRestoreState && this.restoredSelectedColumns) {
+          this.selectedColumns = this.restoredSelectedColumns;
+          delete this.restoredSelectedColumns;
         }
       },
       error: (error) => {
@@ -673,9 +697,21 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
     event.stopPropagation();
 
     try {
+      const returnState = {
+        filters: this.filters,
+        selectedSeverities: this.selectedSeverities,
+        selectedNavyComplyDateFilter: this.selectedNavyComplyDateFilter,
+        filterValue: this.filterValue,
+        tenableTool: this.tenableTool,
+        selectedColumns: this.selectedColumns,
+        currentPreset: this.currentPreset,
+        parentTabIndex: this.currentPreset === 'iav' ? 2 : 3
+      };
+
+      sessionStorage.setItem('tenableFilterState', JSON.stringify(returnState));
+
       if (vulnerability.poam && vulnerability.poamId) {
         this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
-
         return;
       }
 
@@ -756,16 +792,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   onNavyComplyDateFilterChange(event: any) {
-    if (!event?.value) {
-      delete this.filters['navyComplyDate'];
-
-      const table = this.table();
-
-      if (table) {
-        table.filters['navyComplyDate'] = [];
-        table._filter();
-      }
-    } else {
+    if (event?.value) {
       const today = new Date();
 
       today.setHours(23, 59, 59, 999);
@@ -881,6 +908,15 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         }
 
         table.filters['navyComplyDate'] = filterConstraints;
+        table._filter();
+      }
+    } else {
+      delete this.filters['navyComplyDate'];
+
+      const table = this.table();
+
+      if (table) {
+        table.filters['navyComplyDate'] = [];
         table._filter();
       }
     }
