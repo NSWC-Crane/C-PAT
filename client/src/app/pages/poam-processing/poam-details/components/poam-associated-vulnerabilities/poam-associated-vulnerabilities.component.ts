@@ -205,7 +205,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   }
 
   getVulnerabilityTitleText(vulnerabilityId: string): string {
-    if (this.vulnTitles && this.vulnTitles[vulnerabilityId] && this.vulnTitles[vulnerabilityId].length > 0) {
+    if (this.vulnTitles?.[vulnerabilityId]?.length > 0) {
       return this.vulnTitles[vulnerabilityId][0];
     }
 
@@ -221,7 +221,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
       Object.keys(this.vulnTitles).forEach((vulnId) => {
         const title = this.getVulnerabilityTitleText(vulnId);
 
-        if (vulnId.toLowerCase().includes(query) || (title && title.toLowerCase().includes(query))) {
+        if (vulnId.toLowerCase().includes(query) || title?.toLowerCase().includes(query)) {
           this.selectedVulnerabilities.push(vulnId);
         }
       });

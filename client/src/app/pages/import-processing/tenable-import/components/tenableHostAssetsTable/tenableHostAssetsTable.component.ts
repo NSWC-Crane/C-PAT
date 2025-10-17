@@ -161,7 +161,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
 
     this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
       next: (poamData) => {
-        if (poamData && Array.isArray(poamData)) {
+        if (Array.isArray(poamData)) {
           this.existingPoamPluginIDs = poamData.reduce(
             (
               acc: { [key: string]: { poamId: number; status: string; isAssociated?: boolean; parentStatus?: string; parentPoamId?: number } },
@@ -359,7 +359,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     return new Promise((resolve, reject) => {
       this.importService.postTenableAnalysis(analysisParams).subscribe({
         next: (data) => {
-          if (!data || !data.response) {
+          if (!data?.response) {
             reject(new Error('Invalid response from getTenablePlugin'));
             this.isLoading = false;
 
@@ -501,7 +501,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     return new Promise((resolve, reject) => {
       this.importService.postTenableAnalysis(analysisParams).subscribe({
         next: (data) => {
-          if (!data || !data.response || !data.response.results || !data.response.results.length) {
+          if (!data?.response || !data.response.results || !data.response.results.length) {
             reject(new Error('Invalid response from postTenableAnalysis'));
             this.isLoadingPluginDetails = false;
 
@@ -680,7 +680,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     return new Promise((resolve, reject) => {
       this.importService.getTenablePlugin(pluginID).subscribe({
         next: (data) => {
-          if (!data || !data.response) {
+          if (!data?.response) {
             reject(new Error('Invalid response from getTenablePlugin'));
 
             return;

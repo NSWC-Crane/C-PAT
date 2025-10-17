@@ -213,7 +213,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   async navigateToPOAM(poamId: number) {
     try {
-      window.location.pathname = `${CPAT.Env.basePath}poam-processing/poam-details/${poamId}`;
+      globalThis.location.pathname = `${CPAT.Env.basePath}poam-processing/poam-details/${poamId}`;
     } catch (error) {
       this.messageService.add({
         severity: 'error',

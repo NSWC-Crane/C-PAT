@@ -109,7 +109,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   loadPoamsByLabel() {
-    if (!this.label.labelId || this.label.labelId === 'ADDLABEL') {
+    if (!this.label?.labelId || this.label?.labelId === 'ADDLABEL') {
       this.displayPoams = [];
 
       return;

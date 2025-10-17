@@ -139,7 +139,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit() {
     this.marketplaceDisabled = CPAT.Env.features.marketplaceDisabled;
 
-    if (this.user && this.user.userId) {
+    if (this.user?.userId) {
       this.loadUserData(this.user.userId);
     } else {
       this.payloadService.user$
@@ -252,7 +252,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getData() {
-    if (this.user && Array.isArray(this.user.permissions) && Array.isArray(this.user.assignedTeams)) {
+    if (Array.isArray(this.user?.permissions) && Array.isArray(this.user?.assignedTeams)) {
       this.collectionPermissions = this.user.permissions.map((permission: Permission) => {
         const collection = this.collectionList.find((c: { title: string; value: number }) => c.value === permission.collectionId);
         const collectionName = collection ? collection.title : '';

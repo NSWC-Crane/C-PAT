@@ -544,7 +544,7 @@ exports.postPoam = async function postPoam(req) {
                     }
                 }
 
-                if (req.body.labels && Array.isArray(req.body.labels)) {
+                if (Array.isArray(req?.body?.labels)) {
                     for (let label of req.body.labels) {
                         if (!label.labelId) {
                             await connection.rollback();
@@ -555,7 +555,7 @@ exports.postPoam = async function postPoam(req) {
                     }
                 }
 
-                if (req.body.milestones && Array.isArray(req.body.milestones)) {
+                if (Array.isArray(req?.body?.milestones)) {
                     for (let milestone of req.body.milestones) {
                         let sql_query = `INSERT INTO ${config.database.schema}.poammilestones (
                             poamId, milestoneDate, milestoneComments, milestoneChangeDate,
@@ -574,7 +574,7 @@ exports.postPoam = async function postPoam(req) {
                     }
                 }
 
-                if (req.body.teamMitigations && Array.isArray(req.body.teamMitigations)) {
+                if (Array.isArray(req?.body?.teamMitigations)) {
                     for (let mitigation of req.body.teamMitigations) {
                         if (!mitigation.assignedTeamId) {
                             await connection.rollback();
@@ -870,7 +870,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                     }
                 }
 
-                if (req.body.labels && Array.isArray(req.body.labels)) {
+                if (Array.isArray(req?.body?.labels)) {
                     let sqlDeleteLabels = `DELETE FROM ${config.database.schema}.poamlabels WHERE poamId = ?`;
                     await connection.query(sqlDeleteLabels, [req.body.poamId]);
 
@@ -885,7 +885,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                     }
                 }
 
-                if (req.body.milestones && Array.isArray(req.body.milestones)) {
+                if (Array.isArray(req?.body?.milestones)) {
                     let sqlDeleteMilestones = `DELETE FROM ${config.database.schema}.poammilestones WHERE poamId = ?`;
                     await connection.query(sqlDeleteMilestones, [req.body.poamId]);
 
@@ -907,7 +907,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                     }
                 }
 
-                if (req.body.teamMitigations && Array.isArray(req.body.teamMitigations)) {
+                if (Array.isArray(req?.body?.teamMitigations)) {
                     let sqlDeleteTeamMitigations = `DELETE FROM ${config.database.schema}.poamteammitigations WHERE poamId = ?`;
                     await connection.query(sqlDeleteTeamMitigations, [req.body.poamId]);
 

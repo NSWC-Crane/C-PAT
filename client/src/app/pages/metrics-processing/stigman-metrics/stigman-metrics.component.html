@@ -232,7 +232,7 @@
   <div class="basis-1/2">
     <div class="h-full min-h-[12rem] flex flex-col">
       <h3 class="chart-title">Open Findings by STIG (Raw)</h3>
-      <div class="flex flex-col gap-6 flex-1">
+      <div class="flex flex-col gap-6 flex-1 max-h-[400px] overflow-y-auto">
         @for (stig of stigsAssessmentData(); track stig.benchmarkId) {
         <div class="flex items-center gap-4">
           <div class="flex items-baseline gap-3 w-2/5 flex-shrink-0">

@@ -423,7 +423,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
-          window.location.pathname = `${CPAT.Env.basePath}poam-processing`;
+          globalThis.location.pathname = `${CPAT.Env.basePath}poam-processing`;
         },
         error: (error) => {
           console.error('Error updating user:', error);

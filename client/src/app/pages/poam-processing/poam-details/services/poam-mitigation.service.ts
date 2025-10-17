@@ -94,7 +94,7 @@ export class PoamMitigationService {
       return teamMitigations;
     }
 
-    if (poamAssignedTeams && poamAssignedTeams.length > 0) {
+    if (poamAssignedTeams?.length > 0) {
       const newTeams = poamAssignedTeams.filter((team) => !teamMitigations.some((m) => m.assignedTeamId === team.assignedTeamId));
 
       for (const team of newTeams) {
@@ -120,7 +120,7 @@ export class PoamMitigationService {
         }
       }
 
-      return teamMitigations.sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName)).filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId));
+      return teamMitigations.toSorted((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName)).filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId));
     }
 
     return teamMitigations;

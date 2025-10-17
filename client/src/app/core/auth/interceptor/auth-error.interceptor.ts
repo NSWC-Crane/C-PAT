@@ -23,7 +23,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const messageService = inject(MessageService);
 
   const handleReauthentication = () => {
-    sessionStorage.setItem('auth-redirect-url', window.location.pathname + window.location.search);
+    sessionStorage.setItem('auth-redirect-url', globalThis.location.pathname + globalThis.location.search);
 
     if (req.method !== 'GET') {
       messageService.add({
@@ -45,10 +45,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
 
   const performTokenRefresh = (): Promise<[LoginResponse, LoginResponse]> => {
     if (!refreshTokenPromise) {
-      refreshTokenPromise = Promise.all([
-        firstValueFrom(oidcSecurityService.forceRefreshSession({}, 'stigman')),
-        firstValueFrom(oidcSecurityService.forceRefreshSession({}, 'cpat'))
-      ]).finally(() => {
+      refreshTokenPromise = Promise.all([firstValueFrom(oidcSecurityService.forceRefreshSession({}, 'stigman')), firstValueFrom(oidcSecurityService.forceRefreshSession({}, 'cpat'))]).finally(() => {
         refreshTokenPromise = null;
       });
     }
@@ -68,10 +65,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => new Error('Audience validation failed'));
       }
 
-      if (error.status === 401 &&
-          (error.error?.detail?.includes('jwt expired') ||
-           error.error?.detail?.includes('token expired'))) {
-
+      if (error.status === 401 && (error.error?.detail?.includes('jwt expired') || error.error?.detail?.includes('token expired'))) {
         const stigmanApiUrl = CPAT.Env.stigman.apiUrl;
         const configId = req.url.includes(stigmanApiUrl) ? 'stigman' : 'cpat';
 

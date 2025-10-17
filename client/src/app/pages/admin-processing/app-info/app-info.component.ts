@@ -727,6 +727,6 @@ export class AppInfoComponent implements OnInit {
   }
 
   goBack() {
-    window.history.back();
+    globalThis.history.back();
   }
 }

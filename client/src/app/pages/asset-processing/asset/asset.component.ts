@@ -65,7 +65,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['asset'] && changes['asset'].currentValue) {
+    if (changes['asset']?.currentValue) {
       this.asset = { ...changes['asset'].currentValue };
     }
   }

@@ -69,7 +69,7 @@ export class PoamDataService {
           allVulnIds.forEach((vulnId) => {
             const matchingItem = poamAssets.find((item) => item.groupId === vulnId);
 
-            if (matchingItem && matchingItem.assets) {
+            if (matchingItem?.assets) {
               const assetsForVuln = matchingItem.assets.map((asset: any) => {
                 const details = assetDetails.find((detail) => detail.assetId === asset.assetId);
 
@@ -86,7 +86,7 @@ export class PoamDataService {
             }
           });
 
-          if (allAssets.length === 0 && poamAssets.length > 0) {
+          if (allAssets.length === 0 && poamAssets?.length > 0) {
             this.messageService.add({
               severity: 'warning',
               summary: 'Warning',
@@ -99,12 +99,11 @@ export class PoamDataService {
           const assetMap = new Map<number, AssetData>();
 
           allAssets.forEach((asset) => {
-            if (!assetMap.has(asset.assetId)) {
-              assetMap.set(asset.assetId, asset);
-            } else {
+            if (assetMap.has(asset.assetId)) {
               const existing = assetMap.get(asset.assetId)!;
-
               existing.sourceVulnIds = [...new Set([...existing.sourceVulnIds!, ...asset.sourceVulnIds!])];
+            } else {
+              assetMap.set(asset.assetId, asset);
             }
           });
 

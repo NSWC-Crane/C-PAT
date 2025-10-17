@@ -388,7 +388,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     };
   }
   private downloadExcel(excelData: Blob, collectionName: string): void {
-    const excelURL = window.URL.createObjectURL(excelData);
+    const excelURL = URL.createObjectURL(excelData);
     const exportName = collectionName.replace(' ', '_');
     const link = document.createElement('a');
 
@@ -398,7 +398,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    window.URL.revokeObjectURL(excelURL);
+    URL.revokeObjectURL(excelURL);
   }
 
   saveCollection() {

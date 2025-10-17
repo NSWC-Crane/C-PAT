@@ -125,13 +125,13 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   downloadFile(attachment: any) {
     this.poamAttachmentService.downloadAttachment(+this.poamId, attachment.attachmentId).subscribe({
       next: (blob: any) => {
-        const url = window.URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
 
         link.href = url;
         link.download = attachment.filename;
         link.click();
-        window.URL.revokeObjectURL(url);
+        URL.revokeObjectURL(url);
       },
       error: (error) => {
         this.messageService.add({

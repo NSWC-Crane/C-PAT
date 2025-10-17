@@ -104,7 +104,7 @@ export class VramPopupComponent implements OnDestroy {
 
   startCheckingWindow() {
     this.checkInterval = setInterval(() => {
-      if (this.authWindow && this.authWindow.closed) {
+      if (this.authWindow?.closed) {
         this.ngZone.run(() => {
           this.isPopupOpen = false;
           clearInterval(this.checkInterval);

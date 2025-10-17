@@ -326,7 +326,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
             approvedVulnIds.add(poam.vulnerabilityId);
           }
 
-          if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+          if (Array.isArray(poam?.associatedVulnerabilities)) {
             poam.associatedVulnerabilities.forEach((id: string) => approvedVulnIds.add(id));
           }
         });

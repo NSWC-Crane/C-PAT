@@ -571,7 +571,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const poam of approvedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, approvedVulnIdsByCategory);
 
-      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+      if (Array.isArray(poam?.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, approvedVulnIdsByCategory);
         }
@@ -581,7 +581,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const poam of submittedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, submittedVulnIdsByCategory);
 
-      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+      if (Array.isArray(poam?.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, submittedVulnIdsByCategory);
         }
@@ -591,7 +591,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const poam of extensionRequestedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, extensionVulnIdsByCategory);
 
-      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+      if (Array.isArray(poam?.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, extensionVulnIdsByCategory);
         }
@@ -601,7 +601,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const poam of falsePositivePoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, falsePositiveVulnIdsByCategory);
 
-      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+      if (Array.isArray(poam?.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, falsePositiveVulnIdsByCategory);
         }
@@ -611,7 +611,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const poam of pendingApprovalPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, pendingApprovalVulnIdsByCategory);
 
-      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+      if (Array.isArray(poam?.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, pendingApprovalVulnIdsByCategory);
         }
@@ -621,7 +621,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const poam of expiredPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, expiredVulnIdsByCategory);
 
-      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+      if (Array.isArray(poam?.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, expiredVulnIdsByCategory);
         }
@@ -631,7 +631,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const poam of rejectedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, rejectedVulnIdsByCategory);
 
-      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+      if (Array.isArray(poam?.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, rejectedVulnIdsByCategory);
         }
@@ -641,7 +641,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const poam of closedPoams) {
       addVulnerabilityToCategory(poam.vulnerabilityId, closedVulnIdsByCategory);
 
-      if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+      if (Array.isArray(poam?.associatedVulnerabilities)) {
         for (const assocVulnId of poam.associatedVulnerabilities) {
           addVulnerabilityToCategory(assocVulnId, closedVulnIdsByCategory);
         }

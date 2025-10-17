@@ -139,7 +139,7 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
 
   async navigateToPOAM(poamId: number) {
     try {
-      window.location.pathname = `${CPAT.Env.basePath}poam-processing/poam-details/${poamId}`;
+      globalThis.location.pathname = `${CPAT.Env.basePath}poam-processing/poam-details/${poamId}`;
     } catch (error) {
       console.error('Error navigating to POAM:', error);
     }

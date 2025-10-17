@@ -391,7 +391,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         const deltaKey = deltaAsset.key.toLowerCase();
 
         if (netbiosName.includes(deltaKey) || dnsName.includes(deltaKey)) {
-          if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
+          if (Array.isArray(deltaAsset?.assignedTeams)) {
             deltaAsset.assignedTeams.forEach((team) => {
               if (!teams.some((t) => t.assignedTeamId === team.assignedTeamId)) {
                 teams.push({
@@ -548,13 +548,13 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   showDetails(vulnerability: any) {
-    if (!vulnerability || !vulnerability.pluginID) {
+    if (!vulnerability?.pluginID) {
       throw new Error('Invalid vulnerability data');
     }
 
     this.importService.getTenablePlugin(vulnerability.pluginID).subscribe({
       next: (data) => {
-        if (!data || !data.response) {
+        if (!data?.response) {
           throw new Error('Invalid response from getTenablePlugin');
         }
 

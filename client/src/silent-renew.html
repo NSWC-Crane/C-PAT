@@ -10,20 +10,23 @@
 
 <!doctype html>
 <html lang="en">
-  <head>
-    <base href="./" />
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Silent Renew</title>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  </head>
-  <body>
-    <script>
-      window.onload = function () {
-        const parent = window.parent;
-        const event = new CustomEvent('oidc-silent-renew-message', { detail: window.location });
-        parent.dispatchEvent(event);
-      };
-    </script>
-  </body>
+
+<head>
+  <base href="./" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Silent Renew</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <script>
+    globalThis.onload = function () {
+      const parent = globalThis.parent;
+      const event = new CustomEvent('oidc-silent-renew-message', { detail: globalThis.location });
+      parent.dispatchEvent(event);
+    };
+  </script>
+</body>
+
 </html>

@@ -120,7 +120,7 @@ export class CsvExportService {
     const flattenedData: any[] = [];
 
     for (const node of treeData) {
-      if (node.children && node.children.length > 0) {
+      if (node?.children?.length > 0) {
         for (const child of node.children) {
           const row: any = {};
 
@@ -160,7 +160,7 @@ export class CsvExportService {
         result.push(node.data);
       }
 
-      if (node.children && node.children.length > 0) {
+      if (node?.children?.length > 0) {
         for (const child of node.children) {
           if (child.data) {
             result.push(child.data);

@@ -100,7 +100,7 @@ export class PoamExportService {
     let comments = '';
     let changes = '';
 
-    if (poam.milestones && poam.milestones.length > 0) {
+    if (poam?.milestones?.length > 0) {
       poam.milestones.forEach((milestone, index) => {
         const milestoneNumber = index + 1;
 
@@ -143,7 +143,7 @@ export class PoamExportService {
   static async convertToExcel(poams: Poam[], exportingUser: any, exportCollection: any): Promise<Blob> {
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.default.Workbook();
-    const response = await fetch(`${window.location.origin}${CPAT.Env.basePath || ''}/assets/eMASS_Template.xlsx`);
+    const response = await fetch(`${globalThis.location.origin}${CPAT.Env.basePath || ''}/assets/eMASS_Template.xlsx`);
     const arrayBuffer = await response.arrayBuffer();
 
     await workbook.xlsx.load(arrayBuffer, {
@@ -392,7 +392,7 @@ export class PoamExportService {
     poams.forEach((poam) => {
       expandedPoams.push(poam);
 
-      if (poam.associatedVulnerabilities && poam.associatedVulnerabilities.length > 0) {
+      if (poam?.associatedVulnerabilities?.length > 0) {
         poam.associatedVulnerabilities.forEach((associatedVulnId: string) => {
           const duplicatePoam = {
             ...poam,

@@ -133,10 +133,10 @@ export class PoamAssignedGridComponent {
   @Input() set affectedAssetCounts(value: { vulnerabilityId: string; assetCount: number }[]) {
     this.affectedAssetCountsSignal.set(value || []);
 
-    if ((value && value.length > 0) || this.hasReceivedData) {
+    if (value?.length > 0 || this.hasReceivedData) {
       this.assetCountsLoaded.set(true);
 
-      if (value && value.length > 0) {
+      if (value?.length > 0) {
         this.hasReceivedData = true;
       }
     }
@@ -157,7 +157,7 @@ export class PoamAssignedGridComponent {
     const transformedData = data.map((item) => {
       let adjustedDate = new Date(item.scheduledCompletionDate);
 
-      if (item.extensionTimeAllowed && typeof item.extensionTimeAllowed === 'number' && item.extensionTimeAllowed > 0) {
+      if (typeof item?.extensionTimeAllowed === 'number' && item?.extensionTimeAllowed > 0) {
         adjustedDate = addDays(adjustedDate, item.extensionTimeAllowed);
       }
 
@@ -173,10 +173,10 @@ export class PoamAssignedGridComponent {
         item.associatedVulnerabilities.forEach((vulnId: string) => {
           const associatedCount = assetCountMap.get(vulnId);
 
-          if (associatedCount !== undefined) {
-            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}\n`;
-          } else {
+          if (associatedCount === undefined) {
             associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
+          } else {
+            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}\n`;
           }
         });
       }

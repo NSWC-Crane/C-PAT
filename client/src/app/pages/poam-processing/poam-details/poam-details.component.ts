@@ -528,7 +528,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     if (this.poam?.poamId && this.poam.poamId !== 'ADDPOAM') {
       this.syncTeamMitigations();
       this._ensureUniqueTeamMitigations();
-    } else if (this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
+    } else if (this.poamAssignedTeams?.length > 0) {
       this.poamAssignedTeams.forEach((team) => {
         const existingMitigationIndex = this.teamMitigations.findIndex((m) => m.assignedTeamId === team.assignedTeamId);
 
@@ -724,7 +724,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       const poamToSubmit = { ...this.poam };
 
-      if (this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
+      if (this.poamAssignedTeams?.length > 0) {
         poamToSubmit.assignedTeams = this.poamAssignedTeams
           .filter((team) => team.assignedTeamId)
           .map((team) => ({
@@ -735,13 +735,13 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         poamToSubmit.assignedTeams = [];
       }
 
-      if (this.poamAssets && this.poamAssets.length > 0) {
+      if (this.poamAssets?.length > 0) {
         poamToSubmit.assets = this.poamAssets.filter((asset) => asset.assetId || asset.assetName).map((asset) => (asset.assetId ? { assetId: asset.assetId } : { assetName: asset.assetName }));
       } else {
         poamToSubmit.assets = [];
       }
 
-      if (this.poamApprovers && this.poamApprovers.length > 0) {
+      if (this.poamApprovers?.length > 0) {
         poamToSubmit.approvers = this.poamApprovers
           .filter((approver) => approver.userId)
           .map((approver) => ({
@@ -754,13 +754,13 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         poamToSubmit.approvers = [];
       }
 
-      if (this.poamLabels && this.poamLabels.length > 0) {
+      if (this.poamLabels?.length > 0) {
         poamToSubmit.labels = this.poamLabels.filter((label) => label.labelId).map((label) => ({ labelId: label.labelId }));
       } else {
         poamToSubmit.labels = [];
       }
 
-      if (this.poamMilestones && this.poamMilestones.length > 0) {
+      if (this.poamMilestones?.length > 0) {
         poamToSubmit.milestones = this.poamMilestones
           .filter((milestone) => milestone.milestoneComments)
           .map((milestone) => ({
@@ -773,7 +773,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         poamToSubmit.milestones = [];
       }
 
-      if (this.poamAssociatedVulnerabilities && this.poamAssociatedVulnerabilities.length > 0) {
+      if (this.poamAssociatedVulnerabilities?.length > 0) {
         const normalizedVulnerabilities = this.poamAssociatedVulnerabilities.map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : vuln)).filter((vuln) => vuln);
 
         poamToSubmit.associatedVulnerabilities = normalizedVulnerabilities;
@@ -781,7 +781,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         poamToSubmit.associatedVulnerabilities = [];
       }
 
-      if (this.teamMitigations && this.teamMitigations.length > 0) {
+      if (this.teamMitigations?.length > 0) {
         poamToSubmit.teamMitigations = this.teamMitigations
           .filter((mitigation) => mitigation.assignedTeamId)
           .map((mitigation) => ({
@@ -1161,8 +1161,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.teamMitigations = mitigations || [];
         this._ensureUniqueTeamMitigations();
 
-        const needsInitialization = this.teamMitigations.length === 0 && this.poamAssignedTeams && this.poamAssignedTeams.length > 0;
-        const needsSync = this.teamMitigations.length > 0 && this.poamAssignedTeams && this.poamAssignedTeams.length > 0;
+        const needsInitialization = this.teamMitigations.length === 0 && this.poamAssignedTeams?.length > 0;
+        const needsSync = this.teamMitigations.length > 0 && this.poamAssignedTeams?.length > 0;
 
         if (needsInitialization) {
           await this.initializeTeamMitigations();
@@ -1238,16 +1238,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         summary: 'Global Finding Mode',
         detail: 'Team-specific mitigations are now hidden. Use the global mitigation section below.'
       });
+    } else if (this.teamMitigations?.length > 0) {
+      this.activeTabIndex = 0;
     } else {
-      if (this.teamMitigations && this.teamMitigations.length > 0) {
-        this.activeTabIndex = 0;
-      } else {
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Team Assignment Required',
-          detail: 'Please assign teams to this POAM in the Personnel section to enter team-specific mitigations, or enable Global Finding mode.'
-        });
-      }
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Team Assignment Required',
+        detail: 'Please assign teams to this POAM in the Personnel section to enter team-specific mitigations, or enable Global Finding mode.'
+      });
     }
   }
 
@@ -1280,7 +1278,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.filteredStigmanSTIGs = this.stigmanSTIGs.filter((stig: any) => stig?.title && stig.title.toLowerCase().includes(query));
+    this.filteredStigmanSTIGs = this.stigmanSTIGs.filter((stig: any) => stig?.title?.toLowerCase().includes(query));
   }
 
   loadAppConfiguration() {
@@ -1377,7 +1375,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   private _ensureUniqueTeamMitigations(): void {
-    if (this.teamMitigations && Array.isArray(this.teamMitigations)) {
+    if (Array.isArray(this.teamMitigations)) {
       this.teamMitigations = this.teamMitigations.filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId));
     } else {
       this.teamMitigations = [];

@@ -59,7 +59,7 @@ export class AssetTeamMappingService {
         }
 
         if (assetMatchesRule) {
-          if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
+          if (Array.isArray(deltaAsset?.assignedTeams)) {
             deltaAsset.assignedTeams.forEach((team) => {
               newTeamsToAdd.add(team);
               teamsWithAssets.add(team.assignedTeamId);
