@@ -789,7 +789,7 @@ async function processEMassHardwareListForCollection(workbook, collectionId) {
 
     let emassDate = null;
     const dateCell = worksheet.getCell('C2');
-    if (dateCell && dateCell.value) {
+    if (dateCell?.value) {
         const dateValue = dateCell.value.toString().trim();
         try {
             const parsedDate = parse(dateValue, 'dd-MMM-yyyy', new Date());
@@ -932,7 +932,7 @@ async function processEMassHardwareList(workbook, collectionId) {
 
     let emassDate = null;
     const dateCell = worksheet.getCell('C2');
-    if (dateCell && dateCell.value) {
+    if (dateCell?.value) {
         const dateValue = dateCell.value.toString().trim();
         try {
             const parsedDate = parse(dateValue, 'dd-MMM-yyyy', new Date());

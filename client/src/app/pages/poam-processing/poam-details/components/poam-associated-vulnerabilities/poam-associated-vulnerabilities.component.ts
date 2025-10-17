@@ -221,7 +221,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
       Object.keys(this.vulnTitles).forEach((vulnId) => {
         const title = this.getVulnerabilityTitleText(vulnId);
 
-        if (vulnId.toLowerCase().includes(query) || title?.toLowerCase().includes(query)) {
+        if (vulnId?.toLowerCase().includes(query) || title?.toLowerCase().includes(query)) {
           this.selectedVulnerabilities.push(vulnId);
         }
       });
@@ -320,7 +320,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
         const updatedVulnerabilities = this.displayVulnerabilities
           .filter((item) => !item.isNew)
           .map((item) => item.associatedVulnerability)
-          .filter((vuln) => vuln);
+          .filter(Boolean);
 
         this.poamAssociatedVulnerabilities = updatedVulnerabilities;
         this.vulnerabilitiesChanged.emit(updatedVulnerabilities);

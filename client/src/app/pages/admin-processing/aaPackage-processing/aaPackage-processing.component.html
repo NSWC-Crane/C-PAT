@@ -11,16 +11,20 @@
 <div class="grid grid-cols-12 gap-4">
   <div class="col-span-12">
     <div class="scrollable-aaPackages overflow-hidden">
-      <p-table #dt [value]="aaPackages" [globalFilterFields]="['aaPackageId', 'aaPackage']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="aaPackageId" editMode="row">
+      <p-table #dt [value]="aaPackages" [globalFilterFields]="['aaPackageId', 'aaPackage']" [rows]="15"
+        [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="aaPackageId"
+        editMode="row">
         <ng-template pTemplate="caption">
           <div class="flex items-center justify-between">
             <p-iconField iconPosition="left">
               <p-inputIcon>
                 <i class="pi pi-search"></i>
               </p-inputIcon>
-              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search A&A Packages" id="aaPackageSearch" class="search-input" />
+              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search A&A Packages"
+                id="aaPackageSearch" class="search-input" />
             </p-iconField>
-            <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add A&A Package" (onClick)="onAddNewClick()" />
+            <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary"
+              pTooltip="Add A&A Package" (onClick)="onAddNewClick()" />
           </div>
         </ng-template>
         <ng-template pTemplate="header">
@@ -36,24 +40,31 @@
             <td>
               <p-cellEditor>
                 <ng-template pTemplate="input">
-                  <input pInputText type="text" class="w-full" id="aaPackage" [(ngModel)]="aaPackage.aaPackage" maxlength="50" />
+                  <input pInputText type="text" class="w-full" id="aaPackage" [(ngModel)]="aaPackage.aaPackage"
+                    maxlength="50" />
                 </ng-template>
                 <ng-template pTemplate="output"> {{ aaPackage.aaPackage }} </ng-template>
               </p-cellEditor>
             </td>
-            <td>
+            <td class="break-all">
               <div class="flex items-center justify-center gap-2">
                 @if (!editing) {
-                  <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(aaPackage)" [rounded]="true" variant="text" />
+                <p-button pInitEditableRow icon="pi pi-pencil"
+                  (click)="$event.stopPropagation(); onRowEditInit(aaPackage)" [rounded]="true" variant="text" />
                 }
                 @if (editing) {
-                  <p-button pSaveEditableRow icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(aaPackage)" [rounded]="true" variant="text" severity="success" class="mr-2" />
+                <p-button pSaveEditableRow icon="pi pi-check"
+                  (click)="$event.stopPropagation(); onRowEditSave(aaPackage)" [rounded]="true" variant="text"
+                  severity="success" class="mr-2" />
                 }
                 @if (editing) {
-                  <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(aaPackage, ri)" [rounded]="true" variant="text" severity="danger" />
+                <p-button pCancelEditableRow icon="pi pi-times"
+                  (click)="$event.stopPropagation(); onRowEditCancel(aaPackage, ri)" [rounded]="true" variant="text"
+                  severity="danger" />
                 }
                 @if (!editing) {
-                  <p-button icon="pi pi-trash" (click)="$event.stopPropagation(); onRowDelete(aaPackage)" [rounded]="true" variant="text" severity="danger" />
+                <p-button icon="pi pi-trash" (click)="$event.stopPropagation(); onRowDelete(aaPackage)" [rounded]="true"
+                  variant="text" severity="danger" />
                 }
               </div>
             </td>
