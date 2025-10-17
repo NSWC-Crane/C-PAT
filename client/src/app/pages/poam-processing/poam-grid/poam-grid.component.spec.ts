@@ -520,8 +520,8 @@ describe('PoamGridComponent', () => {
 
       spyOn(document, 'createElement').and.returnValue(mockLink);
       spyOn(mockLink, 'click');
-      spyOn(window.URL, 'createObjectURL').and.returnValue('blob:test');
-      spyOn(window.URL, 'revokeObjectURL');
+      spyOn(URL, 'createObjectURL').and.returnValue('blob:test');
+      spyOn(URL, 'revokeObjectURL');
 
       component.importEMASSter(event);
 

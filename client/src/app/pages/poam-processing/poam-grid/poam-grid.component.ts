@@ -71,10 +71,10 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   @Input() set affectedAssetCounts(value: { vulnerabilityId: string; assetCount: number }[]) {
     this.affectedAssetCountsSignal.set(value || []);
 
-    if ((value && value.length > 0) || this._hasReceivedData) {
+    if (value?.length > 0 || this._hasReceivedData) {
       this._assetCountsLoaded.set(true);
 
-      if (value && value.length > 0) {
+      if (value?.length > 0) {
         this._hasReceivedData = true;
       }
     }
@@ -83,13 +83,13 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     return this.affectedAssetCountsSignal();
   }
 
-  private preparedData = computed(() => {
+  protected preparedData = computed(() => {
     const poams = this.poamsDataSignal();
     const assetCounts = this.affectedAssetCountsSignal();
     const assetCountsLoaded = this._assetCountsLoaded();
     const assetCountMap = new Map<string, number>();
 
-    if (assetCounts && assetCounts.length > 0) {
+    if (assetCounts?.length > 0) {
       assetCounts.forEach((item) => {
         assetCountMap.set(item.vulnerabilityId, item.assetCount);
       });
@@ -103,15 +103,15 @@ export class PoamGridComponent implements OnInit, OnDestroy {
       let hasAssociatedVulnerabilities = false;
       let associatedVulnerabilitiesTooltip = 'Associated Vulnerabilities:';
 
-      if (poam.associatedVulnerabilities && poam.associatedVulnerabilities.length > 0) {
+      if (poam?.associatedVulnerabilities.length > 0) {
         hasAssociatedVulnerabilities = true;
         poam.associatedVulnerabilities.forEach((vulnId: string) => {
           const associatedCount = assetCountMap.get(vulnId);
 
-          if (associatedCount !== undefined) {
-            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}\n`;
-          } else {
+          if (associatedCount === undefined) {
             associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
+          } else {
+            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}\n`;
           }
         });
       }
@@ -155,7 +155,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
       return dataToFilter;
     }
 
-    return dataToFilter.filter((poam) => Object.values(poam).some((value) => value && value.toString().toLowerCase().includes(filterValue.toLowerCase())));
+    return dataToFilter.filter((poam) => Object.values(poam).some((value) => value?.toString().toLowerCase().includes(filterValue.toLowerCase())));
   });
 
   dialogRef: DynamicDialogRef | undefined;
@@ -312,7 +312,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     poams.forEach((poam) => {
       expandedPoams.push(poam);
 
-      if (poam.associatedVulnerabilities && poam.associatedVulnerabilities.length > 0) {
+      if (poam?.associatedVulnerabilities.length > 0) {
         poam.associatedVulnerabilities.forEach((associatedVulnId: string) => {
           const duplicatePoam = {
             ...poam,
@@ -352,7 +352,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     try {
       const excelData = await PoamExportService.convertToExcel(processedPoams, this.user(), this.selectedCollection());
 
-      const excelURL = window.URL.createObjectURL(excelData);
+      const excelURL = URL.createObjectURL(excelData);
       const exportName = this.selectedCollection()?.collectionName.replace(' ', '_');
 
       const link = document.createElement('a');
@@ -362,7 +362,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(excelURL);
+      URL.revokeObjectURL(excelURL);
     } catch (error) {
       this.messageService.add({
         severity: 'error',
@@ -630,7 +630,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
         const updatedFile = await PoamExportService.updateEMASSterPoams(file, poams, this.selectedCollectionId(), selectedColumns, this.collectionsService, this.importService, this.poamService, this.sharedService);
 
-        const downloadUrl = window.URL.createObjectURL(updatedFile);
+        const downloadUrl = URL.createObjectURL(updatedFile);
         const link = document.createElement('a');
 
         link.href = downloadUrl;
@@ -638,7 +638,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
+        URL.revokeObjectURL(downloadUrl);
 
         this.messageService.add({
           severity: 'success',

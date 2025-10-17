@@ -165,7 +165,7 @@ export class AuthService {
     }
 
     const errorPaths = ['/401', '/403', '/404', '/not-activated'];
-    const currentPath = window.location.pathname;
+    const currentPath = globalThis.location.pathname;
 
     return errorPaths.some((path) => currentPath.includes(path));
   }

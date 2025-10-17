@@ -88,7 +88,7 @@ export class AppSearchComponent {
   navigateTo(event: { value: SearchItem }) {
     const item = event.value;
 
-    if (item && item.path) {
+    if (item?.path) {
       this.router.navigate([item.path]);
       this.query = '';
     }

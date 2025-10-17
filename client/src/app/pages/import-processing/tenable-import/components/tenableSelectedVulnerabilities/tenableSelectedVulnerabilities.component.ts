@@ -466,7 +466,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   loadPoamAssociations() {
     this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
       next: (poamData) => {
-        if (poamData && Array.isArray(poamData)) {
+        if (Array.isArray(poamData)) {
           this.existingPoamPluginIDs = poamData.reduce(
             (
               acc: { [key: string]: { poamId: number; status: string; isAssociated?: boolean; parentStatus?: string; parentPoamId?: number } },
@@ -614,7 +614,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   showDetails(vulnerability: any, createPoam: boolean = false): Promise<void> {
-    if (!vulnerability || !vulnerability.pluginID) {
+    if (!vulnerability?.pluginID) {
       this.showErrorMessage('Invalid vulnerability data');
 
       return Promise.reject('Invalid vulnerability data');
@@ -623,7 +623,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
     return new Promise((resolve, reject) => {
       this.importService.getTenablePlugin(vulnerability.pluginID).subscribe({
         next: (data) => {
-          if (!data || !data.response) {
+          if (!data?.response) {
             reject(new Error('Invalid response from getTenablePlugin'));
 
             return;
@@ -654,7 +654,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   private processPluginData() {
     this.formattedDescription = this.pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData.description.replaceAll('\n\n', '<br>')) : '';
 
-    if (this.pluginData.xrefs && this.pluginData.xrefs.length > 0) {
+    if (this.pluginData?.xrefs?.length > 0) {
       this.parseReferences(this.pluginData.xrefs);
     } else {
       this.cveReferences = [];
@@ -756,7 +756,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   onNavyComplyDateFilterChange(event: any) {
-    if (!event || !event.value) {
+    if (!event?.value) {
       delete this.filters['navyComplyDate'];
 
       const table = this.table();

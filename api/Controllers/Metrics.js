@@ -42,7 +42,7 @@ module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamStatus(collectionId);
-        if (getMetrics && getMetrics.poamStatus) {
+        if (getMetrics?.poamStatus) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -56,7 +56,7 @@ module.exports.getCollectionPoamSeverity = async function getCollectionPoamSever
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamSeverity(collectionId);
-        if (getMetrics && getMetrics.poamSeverity) {
+        if (getMetrics?.poamSeverity) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -70,7 +70,7 @@ module.exports.getCollectionPoamScheduledCompletion = async function getCollecti
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamScheduledCompletion(collectionId);
-        if (getMetrics && getMetrics.poamScheduledCompletion) {
+        if (getMetrics?.poamScheduledCompletion) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -84,7 +84,7 @@ module.exports.getCollectionMonthlyPoamStatus = async function getCollectionMont
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionMonthlyPoamStatus(collectionId);
-        if (getMetrics && getMetrics.poamStatus) {
+        if (getMetrics?.poamStatus) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -123,7 +123,7 @@ module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req,
 module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res, next) {
     try {
         const getMetrics = await metricsService.getAvailablePoamStatus(req);
-        if (getMetrics && getMetrics.poamStatus) {
+        if (getMetrics?.poamStatus) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -136,7 +136,7 @@ module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(re
 module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, res, next) {
     try {
         const getMetrics = await metricsService.getAvailablePoamSeverity(req);
-        if (getMetrics && getMetrics.poamSeverity) {
+        if (getMetrics?.poamSeverity) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -149,7 +149,7 @@ module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverit
 module.exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(req, res, next) {
     try {
         const getMetrics = await metricsService.getAvailableMonthlyPoamSeverity(req);
-        if (getMetrics && getMetrics.poamSeverity) {
+        if (getMetrics?.poamSeverity) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -162,7 +162,7 @@ module.exports.getAvailableMonthlyPoamSeverity = async function getAvailableMont
 module.exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamStatus(req, res, next) {
     try {
         const getMetrics = await metricsService.getAvailableMonthlyPoamStatus(req);
-        if (getMetrics && getMetrics.poamStatus) {
+        if (getMetrics?.poamStatus) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -175,7 +175,7 @@ module.exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthl
 module.exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(req, res, next) {
     try {
         const getMetrics = await metricsService.getAvailablePoamScheduledCompletion(req);
-        if (getMetrics && getMetrics.poamScheduledCompletion) {
+        if (getMetrics?.poamScheduledCompletion) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();

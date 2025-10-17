@@ -157,7 +157,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
         allVulnIds.forEach((vulnId) => {
           const matchingItem = poamAssets.find((item) => item.groupId === vulnId);
 
-          if (matchingItem && matchingItem.assets) {
+          if (matchingItem?.assets) {
             const assetsForVuln = matchingItem.assets.map((asset: any) => ({
               assetName: asset.name,
               assetId: asset.assetId,
@@ -253,7 +253,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
         const deltaKey = deltaAsset.key.toLowerCase();
 
         if (assetName.includes(deltaKey) || fqdn.includes(deltaKey)) {
-          if (deltaAsset.assignedTeams && Array.isArray(deltaAsset.assignedTeams)) {
+          if (Array.isArray(deltaAsset?.assignedTeams)) {
             deltaAsset.assignedTeams.forEach((team) => {
               if (!teams.some((t) => t.assignedTeamId === team.assignedTeamId)) {
                 teams.push({

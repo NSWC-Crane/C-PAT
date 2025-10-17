@@ -276,13 +276,13 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['poams'] && changes['poams'].currentValue?.length > 0) {
+    if (changes['poams']?.currentValue?.length > 0) {
       this.zone.run(() => {
-        if (!this.initialized) {
+        if (this.initialized) {
+          this.updateAllCharts();
+        } else {
           this.initialized = true;
           this.initializeComponent();
-        } else {
-          this.updateAllCharts();
         }
       });
     }
@@ -329,22 +329,27 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
   initializePoamLabel(): void {
     if (!this.labelSetCache()) {
       this.labelSetCache.set(new Set<string>());
-
-      for (const poam of this.poams) {
-        if (poam.labels?.length > 0) {
-          for (const label of poam.labels) {
-            if (label.labelName) {
-              this.labelSetCache().add(label.labelName);
-            }
-          }
-        }
-      }
+      this.collectAllLabels();
     }
 
     const newPoamLabel = Array.from(this.labelSetCache()).map((label) => ({ label }));
 
     if (JSON.stringify(this.poamLabel()) !== JSON.stringify(newPoamLabel)) {
       this.poamLabel.set(newPoamLabel);
+    }
+  }
+
+  private collectAllLabels(): void {
+    const cache = this.labelSetCache();
+
+    for (const poam of this.poams) {
+      if (!poam.labels?.length) continue;
+
+      for (const label of poam.labels) {
+        if (label.labelName) {
+          cache.add(label.labelName);
+        }
+      }
     }
   }
 

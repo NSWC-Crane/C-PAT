@@ -259,7 +259,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   }
 
   onCollectionClick(event: any) {
-    if (event && event.value) {
+    if (event?.value?.collectionId) {
       this.resetWorkspace(event.value.collectionId);
     }
   }
@@ -285,7 +285,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (result) => {
             if (result) {
-              window.location.pathname = `${CPAT.Env.basePath}poam-processing`;
+              globalThis.location.pathname = `${CPAT.Env.basePath}poam-processing`;
             }
           },
           error: (error) => console.error('Error updating user:', error)

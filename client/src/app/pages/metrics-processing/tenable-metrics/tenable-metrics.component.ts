@@ -306,7 +306,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
           if (poam.vulnerabilityId) {
             vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
           }
-          if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+          if (Array.isArray(poam?.associatedVulnerabilities)) {
             poam.associatedVulnerabilities.forEach((vulnId: string) => {
               vulnerabilityStatusMap.set(vulnId, poam.status);
             });
@@ -393,7 +393,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
             uniqueVulnIds.add(poam.vulnerabilityId);
           }
 
-          if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+          if (Array.isArray(poam?.associatedVulnerabilities)) {
             poam.associatedVulnerabilities.forEach((id: string) => uniqueVulnIds.add(id));
           }
         });
@@ -493,7 +493,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
             vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
           }
 
-          if (poam.associatedVulnerabilities && Array.isArray(poam.associatedVulnerabilities)) {
+          if (Array.isArray(poam?.associatedVulnerabilities)) {
             poam.associatedVulnerabilities.forEach((vulnId: string) => {
               vulnerabilityStatusMap.set(vulnId, poam.status);
             });

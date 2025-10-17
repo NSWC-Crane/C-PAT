@@ -79,6 +79,6 @@ export class InactivityWarningComponent implements OnInit, OnDestroy {
 
   logoutNow(): void {
     this.inactivityService.stopMonitoring();
-    window.location.href = '/';
+    globalThis.location.href = '/';
   }
 }

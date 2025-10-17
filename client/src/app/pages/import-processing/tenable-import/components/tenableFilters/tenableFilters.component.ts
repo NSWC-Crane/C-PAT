@@ -135,7 +135,7 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
   }
 
   onFilterSelect(event: any) {
-    if (event && event.value && typeof event.value === 'object' && event.value.filterId) {
+    if (event?.value && typeof event.value === 'object' && event.value.filterId) {
       if (event.value.disabled) {
         setTimeout(() => {
           this.selectedFilter = '';
