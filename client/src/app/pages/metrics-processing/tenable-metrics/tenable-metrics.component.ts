@@ -807,18 +807,18 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const exportedDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
     const rows = [];
 
-    rows.push([`${collectionName} C-PAT Metrics - ${new Date().toLocaleString()}`]);
+    rows.push([`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()}`]);
     rows.push(['Collection Name', 'CATEGORY', 'METRIC', 'VALUE']);
-    rows.push([collectionName, 'POAM', 'CAT I Compliance %', `${metrics.catICompliance.toFixed(1)}%`]);
-    rows.push([collectionName, 'POAM', 'CAT II Compliance %', `${metrics.catIICompliance.toFixed(1)}%`]);
-    rows.push([collectionName, 'POAM', 'CAT III Compliance %', `${metrics.catIIICompliance.toFixed(1)}%`]);
-    rows.push([collectionName, 'ACAS', 'CAT I - Opens (Unique - 30+ Days)', metrics.catIOpenCount30Days.toString()]);
-    rows.push([collectionName, 'ACAS', 'CAT II - Opens (Unique - 30+ Days)', metrics.catIIOpenCount30Days.toString()]);
-    rows.push([collectionName, 'ACAS', 'CAT III - Opens (Unique - 30+ Days)', metrics.catIIIOpenCount30Days.toString()]);
-    rows.push([collectionName, 'ACAS', 'CAT I - Exploitable Findings (Unique - 7+ Days)', metrics.exploitableFindingsCount.toString()]);
-    rows.push([collectionName, 'ACAS', 'Past Due IAVs', metrics.pastDueIAVCount.toString()]);
-    rows.push([collectionName, 'ACAS', 'Security End of Life (Unique)', metrics.seolVulnerabilitiesCount.toString()]);
-    rows.push([collectionName, 'ACAS', 'Credentialed Scan %', `${metrics.credentialScanPercentage.toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'POAM', 'CAT I Compliance %', `${metrics.catICompliance.toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'POAM', 'CAT II Compliance %', `${metrics.catIICompliance.toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'POAM', 'CAT III Compliance %', `${metrics.catIIICompliance.toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'CAT I - Opens (Unique - 30+ Days)', metrics.catIOpenCount30Days.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'CAT II - Opens (Unique - 30+ Days)', metrics.catIIOpenCount30Days.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'CAT III - Opens (Unique - 30+ Days)', metrics.catIIIOpenCount30Days.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'CAT I - Exploitable Findings (Unique - 7+ Days)', metrics.exploitableFindingsCount.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Past Due IAVs', metrics.pastDueIAVCount.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Security End of Life (Unique)', metrics.seolVulnerabilitiesCount.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Credentialed Scan %', `${metrics.credentialScanPercentage.toFixed(1)}%`]);
 
     this.exportAsCSV(rows, `${collectionName}_CPAT_Metrics_${exportedDate}`);
   }

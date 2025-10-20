@@ -615,16 +615,16 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
     const rows = [];
     const stigsAssessedPercentage = metrics.totalSTIGsCount > 0 ? ((metrics.fullyAssessedSTIGsCount / metrics.totalSTIGsCount) * 100).toFixed(1) : '0.0';
 
-    rows.push([`${collectionName} C-PAT Metrics - ${new Date().toLocaleString()}`]);
+    rows.push([`[STIG Manager] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()}`]);
     rows.push(['Collection Name', 'CATEGORY', 'METRIC', 'VALUE']);
-    rows.push([collectionName, 'POAM', 'CAT I Compliance %', `${metrics.catICompliance.toFixed(1)}%`]);
-    rows.push([collectionName, 'POAM', 'CAT II Compliance %', `${metrics.catIICompliance.toFixed(1)}%`]);
-    rows.push([collectionName, 'POAM', 'CAT III Compliance %', `${metrics.catIIICompliance.toFixed(1)}%`]);
-    rows.push([collectionName, 'STIGs', 'CAT I - Opens (Unique)', metrics.catIOpenCount.toString()]);
-    rows.push([collectionName, 'STIGs', 'CAT II - Opens (Unique)', metrics.catIIOpenCount.toString()]);
-    rows.push([collectionName, 'STIGs', 'CAT III - Opens (Unique)', metrics.catIIIOpenCount.toString()]);
-    rows.push([collectionName, 'STIGs', 'CORA Risk Score %', `${metrics.coraRiskScore.toFixed(1)}%`]);
-    rows.push([collectionName, 'STIGs', 'STIGs 100% Assessed (%)', `${stigsAssessedPercentage}%`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'POAM', 'CAT I Compliance %', `${metrics.catICompliance.toFixed(1)}%`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'POAM', 'CAT II Compliance %', `${metrics.catIICompliance.toFixed(1)}%`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'POAM', 'CAT III Compliance %', `${metrics.catIIICompliance.toFixed(1)}%`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT I - Opens (Unique)', metrics.catIOpenCount.toString()]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT II - Opens (Unique)', metrics.catIIOpenCount.toString()]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT III - Opens (Unique)', metrics.catIIIOpenCount.toString()]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CORA Risk Score %', `${metrics.coraRiskScore.toFixed(1)}%`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'STIGs 100% Assessed (%)', `${stigsAssessedPercentage}%`]);
 
     this.exportAsCSV(rows, `${collectionName}_CPAT_Metrics_${exportedDate}`);
   }
