@@ -183,7 +183,7 @@
           <div class="flex flex-col w-full gap-4">
             <div
               class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
-              <div class="flex-shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color"
+              <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color"
                 [style.backgroundColor]="'rgba(236, 72, 99, 0.8)'"></div>
               <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">High
               </div>
@@ -191,14 +191,14 @@
                 {{ stigManagerMetrics().catIOpenRawCount }}
               </div>
               <div
-                class="ml-2 w-14 text-left flex-shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
+                class="ml-2 w-14 text-left shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
                 {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIOpenRawCount / totalRawFindings()) *
                 100).toFixed(1) + '%' : '0.0%' }}
               </div>
             </div>
             <div
               class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
-              <div class="flex-shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color"
+              <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color"
                 [style.backgroundColor]="'rgba(251, 167, 50, 0.8)'"></div>
               <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">
                 Medium</div>
@@ -206,14 +206,14 @@
                 {{ stigManagerMetrics().catIIOpenRawCount }}
               </div>
               <div
-                class="ml-2 w-14 text-left flex-shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
+                class="ml-2 w-14 text-left shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
                 {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIIOpenRawCount / totalRawFindings()) *
                 100).toFixed(1) + '%' : '0.0%' }}
               </div>
             </div>
             <div
               class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
-              <div class="flex-shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color"
+              <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color"
                 [style.backgroundColor]="'rgba(230, 190, 44, 0.8)'"></div>
               <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">Low
               </div>
@@ -221,7 +221,7 @@
                 {{ stigManagerMetrics().catIIIOpenRawCount }}
               </div>
               <div
-                class="ml-2 w-14 text-left flex-shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
+                class="ml-2 w-14 text-left shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
                 {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIIIOpenRawCount / totalRawFindings()) *
                 100).toFixed(1) + '%' : '0.0%' }}
               </div>
