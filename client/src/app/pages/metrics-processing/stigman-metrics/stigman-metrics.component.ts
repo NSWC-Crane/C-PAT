@@ -295,7 +295,8 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
               highPercentage: highPct,
               mediumPercentage: mediumPct,
               lowPercentage: lowPct,
-              findings: findingsData
+              findings: findingsData,
+              assessed: Math.round((stig.metrics.assessed / stig.metrics.assessments) * 100)
             });
           });
         }
@@ -482,10 +483,8 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         isLoading: loading
       },
       {
-        label: '100% Assessed STIGs',
-        tooltip: `Percentage calculation: Count of 100% assessed STIGs ÷ Total STIGs × 100
-
-        Count: STIGs that are 100% assessed`,
+        label: '100% STIG Technologies Assessed',
+        tooltip: `Percentage calculation: Count of 100% assessed STIGs ÷ Total STIGs × 100`,
         origin: 'STIG Manager',
         value: loading ? '-' : `${((m.fullyAssessedSTIGsCount / m.totalSTIGsCount) * 100).toFixed(1)}%`,
         category: 'assessment',

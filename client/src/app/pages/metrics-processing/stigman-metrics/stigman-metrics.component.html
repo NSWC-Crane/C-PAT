@@ -238,19 +238,22 @@
   <div class="basis-1/2">
     <div class="h-full min-h-[12rem] flex flex-col">
       <h3 class="chart-title">Open Findings by STIG (Raw)</h3>
-      <div class="flex flex-col gap-6 flex-1 max-h-[400px] overflow-y-auto">
+      <div class="flex flex-col gap-6 flex-1 max-h-[290px] overflow-y-auto">
         @for (stig of stigsAssessmentData(); track stig.benchmarkId) {
-        <div class="flex items-center gap-4">
-          <div class="flex items-baseline gap-3 w-2/5 flex-shrink-0">
-            <span class="font-semibold text-[var(--text-color)] min-w-[30px] text-right">{{ stig.totalFindings }}</span>
+        <div class="flex items-center">
+          <div class="flex w-2/5 gap-2 shrink-0 pr-2">
+            <span class="text-[0.9rem] font-medium text-[var(--text-color)] min-w-[48px]" pTooltip="Assessed %"
+              tooltipPosition="left">{{ stig.assessed }}%</span>
+            <span class="text-[0.9rem] font-medium text-[var(--text-color)] min-w-[48px]" pTooltip="Total findings"
+              tooltipPosition="left">{{ stig.totalFindings }}</span>
             <span
-              class="text-[0.9rem] text-[var(--text-secondary-color)] whitespace-nowrap overflow-hidden text-ellipsis"
+              class="text-[0.9rem] text-[var(--text-secondary-color)] whitespace-nowrap overflow-hidden text-ellipsis flex-1"
               [pTooltip]="stig.title" tooltipPosition="left">
               {{ stig.benchmarkId }}
             </span>
           </div>
           <div class="flex-1">
-            <div class="flex h-7 rounded-[14px] overflow-hidden">
+            <div class="flex h-8 rounded-[14px] overflow-hidden mr-2">
               @if (stig.totalFindings > 0) {
               <div class="bar-segment high" [style.width.%]="stig.highPercentage"
                 [pTooltip]="'High: ' + stig.findings.high" tooltipPosition="top"></div>
