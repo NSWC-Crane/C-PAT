@@ -11,7 +11,7 @@
 @if (aiEnabled) {
   <div>
     @if (!generatedMitigation && !isGenerating() && !showPromptEditor()) {
-      <p-button variant="outlined" [rounded]="true" styleClass="ml-2" icon="pi pi-microchip-ai" pTooltip="Generate a mitigation statement using AI" (onClick)="initiateGeneration()" />
+      <p-button variant="text" [rounded]="true" styleClass="ml-2" icon="pi pi-microchip-ai" pTooltip="Generate a mitigation statement using AI" (onClick)="initiateGeneration()" />
     }
     <div class="mitigation-generator">
       @if (showPromptEditor()) {
