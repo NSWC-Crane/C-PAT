@@ -95,6 +95,12 @@ $color-low: rgba(230, 190, 44, 0.8);
           color: var(--text-color);
           line-height: 1;
         }
+
+        .metric-percent {
+          font-size: 1rem;
+          font-weight: 700;
+          margin-left: 0.1rem;
+        }
       }
 
       .metric-line {
