@@ -29,10 +29,13 @@
         <div class="rounded-3xl flex flex-col items-center justify-center shadow-xl border-[3px] p-4 gap-2"
           [style.border-color]="getCoraRiskColor(100 - tenableMetrics().totalPoamCompliance)"
           [style.color]="getCoraRiskColor(100 - tenableMetrics().totalPoamCompliance)">
-          <div class="text-[4rem] font-black leading-none">
-            {{ isLoading() ? '-' : tenableMetrics().totalPoamCompliance.toFixed(0) }}
+          <div class="flex flex-row items-center">
+            <span class="text-[4rem] font-extrabold leading-none pl-4">
+              {{ isLoading() ? '-' : tenableMetrics().totalPoamCompliance.toFixed(0) }}
+            </span>
+            <span class="text-[1rem] font-bold">%</span>
           </div>
-          <div class="mt-4 text-center font-semibold text-[var(--text-color)]/80">POAM Compliance</div>
+          <div class="mt-4 text-center font-semibold text-[var(--text-color)] opacity-80">POAM Compliance</div>
         </div>
       </div>
     </div>
