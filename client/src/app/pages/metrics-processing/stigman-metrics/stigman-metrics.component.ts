@@ -610,6 +610,8 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
 
   exportMetrics() {
     const metrics = this.stigManagerMetrics();
+    const unassessedCount = metrics.totalAssessments - metrics.assessedCount;
+    const assessedOnly = metrics.assessedCount - metrics.submittedCount - metrics.acceptedCount - metrics.rejectedCount;
     const collectionName = this.collectionName();
     const exportedDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
     const rows = [];
@@ -625,6 +627,12 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
     rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT III - Opens (Unique)', metrics.catIIIOpenCount.toString()]);
     rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CORA Risk Score %', `${metrics.coraRiskScore.toFixed(1)}%`]);
     rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'STIGs 100% Assessed (%)', `${stigsAssessedPercentage}%`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Total Checks', `${metrics.totalAssessments}`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Accepted', `${metrics.acceptedCount}`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Submitted', `${metrics.submittedCount}`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Rejected', `${metrics.rejectedCount}`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Assessed', `${assessedOnly}`]);
+    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Unassessed', `${unassessedCount}`]);
 
     this.exportAsCSV(rows, `${collectionName}_CPAT_Metrics_${exportedDate}`);
   }
