@@ -110,12 +110,13 @@
             <span class="metric-circle-value">
               {{ isLoading() ? '-' : stigManagerMetrics().catICompliance.toFixed(0) }}
             </span>
+            <span class="metric-percent">%</span>
           </div>
           <div class="metric-line"></div>
         </div>
         <div class="metric-text-container">
           <div class="metric-origin">STIG Manager</div>
-          <div class="metric-description">CAT-I POAM Compliance %</div>
+          <div class="metric-description pr-[7.5px]">CAT-I POAM Compliance %</div>
         </div>
       </div>
     </p-card>
@@ -129,12 +130,13 @@
             <span class="metric-circle-value">
               {{ isLoading() ? '-' : stigManagerMetrics().catIICompliance.toFixed(0) }}
             </span>
+            <span class="metric-percent">%</span>
           </div>
           <div class="metric-line"></div>
         </div>
         <div class="metric-text-container">
           <div class="metric-origin">STIG Manager</div>
-          <div class="metric-description">CAT-II POAM Compliance %</div>
+          <div class="metric-description pr-[3.75px]">CAT-II POAM Compliance %</div>
         </div>
       </div>
     </p-card>
@@ -148,6 +150,7 @@
             <span class="metric-circle-value">
               {{ isLoading() ? '-' : stigManagerMetrics().catIIICompliance.toFixed(0) }}
             </span>
+            <span class="metric-percent">%</span>
           </div>
           <div class="metric-line"></div>
         </div>

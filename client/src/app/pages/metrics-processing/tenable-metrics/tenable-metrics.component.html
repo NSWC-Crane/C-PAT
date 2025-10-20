@@ -110,6 +110,7 @@
             <span class="metric-circle-value">
               {{ isLoading() ? '-' : tenableMetrics().catICompliance.toFixed(0) }}
             </span>
+            <span class="metric-percent">%</span>
           </div>
           <div class="metric-line"></div>
         </div>
@@ -117,7 +118,7 @@
           pTooltip="Percentage of Critical and High severity findings that were published 30+ days ago, last observed within 30 days, and have an existing POAM in an Approved status."
           tooltipPosition="top">
           <div class="metric-origin">Tenable</div>
-          <div class="metric-description">CAT-I POAM Compliance %</div>
+          <div class="metric-description pr-[7.5px]">CAT-I POAM Compliance %</div>
         </div>
       </div>
     </p-card>
@@ -131,6 +132,7 @@
             <span class="metric-circle-value">
               {{ isLoading() ? '-' : tenableMetrics().catIICompliance.toFixed(0) }}
             </span>
+            <span class="metric-percent">%</span>
           </div>
           <div class="metric-line"></div>
         </div>
@@ -138,7 +140,7 @@
           pTooltip="Percentage of Medium severity findings that were published 30+ days ago, last observed within 30 days, and have an existing POAM in an Approved status."
           tooltipPosition="top">
           <div class="metric-origin">Tenable</div>
-          <div class="metric-description">CAT-II POAM Compliance %</div>
+          <div class="metric-description pr-[3.75px]">CAT-II POAM Compliance %</div>
         </div>
       </div>
     </p-card>
@@ -152,6 +154,7 @@
             <span class="metric-circle-value">
               {{ isLoading() ? '-' : tenableMetrics().catIIICompliance.toFixed(0) }}
             </span>
+            <span class="metric-percent">%</span>
           </div>
           <div class="metric-line"></div>
         </div>
