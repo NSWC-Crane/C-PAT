@@ -237,7 +237,10 @@
 
   <div class="basis-1/2">
     <div class="h-full min-h-[12rem] flex flex-col">
-      <h3 class="chart-title">Open Findings by STIG (Raw)</h3>
+      <h3 class="chart-title">
+        Open Findings by STIG (Raw)
+        <i class="pi pi-info-circle ml-1" [pTooltip]="'Total STIGs: ' + stigsAssessmentData().length"></i>
+      </h3>
       <div class="flex flex-col gap-6 flex-1 max-h-[290px] overflow-y-auto">
         @for (stig of stigsAssessmentData(); track stig.benchmarkId) {
         <div class="flex items-center">
