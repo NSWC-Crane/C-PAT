@@ -28,7 +28,6 @@ interface MetricData {
   tooltip?: string;
   origin?: string;
   value: number | string;
-  category?: string;
   severity?: string;
   isPercentage?: boolean;
   isLoading?: boolean;
@@ -452,7 +451,6 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         tooltip: 'Count of CAT I findings across all assets (deduplicated by vulnerability ID)',
         origin: 'STIG Manager',
         value: loading ? '-' : m.catIOpenCount,
-        category: 'open',
         severity: 'high',
         isLoading: loading
       },
@@ -461,7 +459,6 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         tooltip: 'Count of CAT II findings across all assets (deduplicated by vulnerability ID)',
         origin: 'STIG Manager',
         value: loading ? '-' : m.catIIOpenCount,
-        category: 'open',
         severity: 'medium',
         isLoading: loading
       },
@@ -470,24 +467,29 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         tooltip: 'Count of CAT III findings across all assets (deduplicated by vulnerability ID)',
         origin: 'STIG Manager',
         value: loading ? '-' : m.catIIIOpenCount,
-        category: 'open',
         severity: 'low',
-        isLoading: loading
-      },
-      {
-        label: 'Assets',
-        tooltip: 'Total number of assets in the collection',
-        origin: 'STIG Manager',
-        value: loading ? '-' : m.assetCount,
-        category: 'poam',
         isLoading: loading
       },
       {
         label: '100% STIG Technologies Assessed',
         tooltip: `Percentage calculation: Count of 100% assessed STIGs ÷ Total STIGs × 100`,
         origin: 'STIG Manager',
-        value: loading ? '-' : `${((m.fullyAssessedSTIGsCount / m.totalSTIGsCount) * 100).toFixed(1)}%`,
-        category: 'assessment',
+        value: loading ? '-' : `${((m.fullyAssessedSTIGsCount / m.totalSTIGsCount) * 100).toFixed(1)}% (${m.fullyAssessedSTIGsCount})`,
+        severity: loading
+          ? 'low'
+          : (() => {
+              const percentage = (m.fullyAssessedSTIGsCount / m.totalSTIGsCount) * 100;
+              if (percentage <= 25) return 'high';
+              if (percentage <= 75) return 'medium';
+              return 'low';
+            })(),
+        isLoading: loading
+      },
+      {
+        label: 'Assets',
+        tooltip: `Total number of assets in ${this.collectionName()}`,
+        origin: 'STIG Manager',
+        value: loading ? '-' : m.assetCount,
         isLoading: loading
       },
       {
@@ -495,8 +497,21 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         tooltip: `Assessed items ÷ Total assessment items × 100`,
         origin: 'STIG Manager',
         value: loading ? '-' : `${m.assessedPercentage.toFixed(1)}%`,
-        category: 'assessment',
         isPercentage: true,
+        isLoading: loading
+      },
+      {
+        label: 'Total Checks',
+        tooltip: `Total checks within ${this.collectionName()}`,
+        origin: 'STIG Manager',
+        value: loading ? '-' : `${m.totalAssessments}`,
+        isLoading: loading
+      },
+      {
+        label: 'Total STIGs',
+        tooltip: `Total count of STIG technologies within ${this.collectionName()}`,
+        origin: 'STIG Manager',
+        value: loading ? '-' : `${m.totalSTIGsCount}`,
         isLoading: loading
       }
     ];
