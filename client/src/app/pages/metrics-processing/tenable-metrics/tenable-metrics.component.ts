@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, computed, signal, inject, OnChanges } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ButtonGroupModule } from 'primeng/buttongroup';
 import { CardModule } from 'primeng/card';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TooltipModule } from 'primeng/tooltip';
@@ -49,8 +50,36 @@ interface VulnerabilityMetrics {
   pastDueIAVCount: number;
   seolVulnerabilitiesCount: number;
   credentialScanPercentage: number;
-  coraRiskScore: number;
-  coraRiskRating: string;
+  vphScore: number;
+  vphRating: string;
+  validOnlineAssets: number;
+}
+
+interface CachedVulnerabilityData {
+  '7': {
+    openVulnerabilities30Days: { criticalHigh: number; medium: number; low: number };
+    openVulnerabilities: { criticalHigh: number; medium: number; low: number };
+    exploitableFindings: number;
+    seolVulnerabilities: number;
+    complianceMetrics: { catI: number; catII: number; catIII: number };
+    totalCompliance: number;
+  };
+  '30': {
+    openVulnerabilities30Days: { criticalHigh: number; medium: number; low: number };
+    openVulnerabilities: { criticalHigh: number; medium: number; low: number };
+    exploitableFindings: number;
+    seolVulnerabilities: number;
+    complianceMetrics: { catI: number; catII: number; catIII: number };
+    totalCompliance: number;
+  };
+  all: {
+    openVulnerabilities30Days: { criticalHigh: number; medium: number; low: number };
+    openVulnerabilities: { criticalHigh: number; medium: number; low: number };
+    exploitableFindings: number;
+    seolVulnerabilities: number;
+    complianceMetrics: { catI: number; catII: number; catIII: number };
+    totalCompliance: number;
+  };
 }
 
 @Component({
@@ -59,7 +88,7 @@ interface VulnerabilityMetrics {
   styleUrls: ['./tenable-metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ButtonModule, CardModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule]
+  imports: [CommonModule, ButtonModule, ButtonGroupModule, CardModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule]
 })
 export class TenableMetricsComponent implements OnInit, OnChanges {
   private readonly importService = inject(ImportService);
@@ -75,7 +104,15 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   findingsChartData = signal<any>(null);
   allFindingsChartData = signal<any>(null);
   findingsChartOptions = signal<any>(null);
+  lastObservedTimeRange = signal<'7' | '30' | 'all'>('30');
+  hostTimeRange = signal<'7' | '30' | 'all'>('30');
   now = new Date();
+
+  private cachedVulnerabilityData = signal<CachedVulnerabilityData | null>(null);
+  private cachedHosts = signal<any[]>([]);
+  private cachedPoamMetrics = signal<number>(0);
+  private cachedPastDueIAVs = signal<number>(0);
+  private cachedCredentialScanPercentage = signal<number>(0);
 
   totalFindings30Days = computed(() => {
     const m = this.tenableMetrics();
@@ -103,8 +140,9 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     pastDueIAVCount: 0,
     seolVulnerabilitiesCount: 0,
     credentialScanPercentage: 0,
-    coraRiskScore: 0,
-    coraRiskRating: 'Very Low'
+    vphScore: 0,
+    vphRating: 'Low',
+    validOnlineAssets: 0
   });
 
   metricsDisplay = computed<MetricData[]>(() => {
@@ -114,26 +152,61 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     this.componentInit.emit(this);
-    this.loadMetrics();
+    this.loadAllData();
   }
 
   ngOnChanges() {
     if (this.collection) {
       this.collectionName.set(this.collection.collectionName || '');
       this.originCollectionId.set(this.collection.originCollectionId?.toString() || '');
-      this.loadMetrics();
+      this.clearCache();
+      this.loadAllData();
     }
   }
 
-  private loadMetrics() {
+  private clearCache() {
+    this.cachedVulnerabilityData.set(null);
+    this.cachedHosts.set([]);
+    this.cachedPoamMetrics.set(0);
+    this.cachedPastDueIAVs.set(0);
+    this.cachedCredentialScanPercentage.set(0);
+  }
+
+  private loadAllData() {
     if (!this.collection) return;
 
     this.isLoading.set(true);
-    this.loadTenableMetrics()
+    const repoId = this.originCollectionId();
+    const collectionId = this.collection?.collectionId;
+
+    if (!repoId || !collectionId) {
+      this.tenableMetrics.set(this.getEmptyTenableMetrics());
+      this.isLoading.set(false);
+      return;
+    }
+
+    forkJoin({
+      vulnerabilityData7: this.loadVulnerabilityDataForTimeRange(repoId, collectionId, '7'),
+      vulnerabilityData30: this.loadVulnerabilityDataForTimeRange(repoId, collectionId, '30'),
+      vulnerabilityDataAll: this.loadVulnerabilityDataForTimeRange(repoId, collectionId, 'all'),
+      hosts: this.loadAllHosts(repoId),
+      poamMetrics: this.calculatePoamApprovalMetrics(collectionId, repoId),
+      pastDueIAVs: this.calculatePastDueIAVs(repoId),
+      credentialScanPercentage: this.calculateCredentialScanPercentage(repoId)
+    })
       .pipe(
-        tap((metrics) => {
-          this.tenableMetrics.set(metrics);
-          this.prepareChartsData();
+        tap((results) => {
+          this.cachedVulnerabilityData.set({
+            '7': results.vulnerabilityData7,
+            '30': results.vulnerabilityData30,
+            all: results.vulnerabilityDataAll
+          });
+          this.cachedHosts.set(results.hosts);
+          this.cachedPoamMetrics.set(results.poamMetrics);
+          this.cachedPastDueIAVs.set(results.pastDueIAVs);
+          this.cachedCredentialScanPercentage.set(results.credentialScanPercentage);
+
+          this.updateMetricsFromCache();
           this.isLoading.set(false);
         }),
         catchError((error) => {
@@ -147,6 +220,604 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
         })
       )
       .subscribe();
+  }
+
+  private loadVulnerabilityDataForTimeRange(repoId: string, collectionId: any, timeRange: '7' | '30' | 'all') {
+    const lastSeenValue = timeRange === 'all' ? null : timeRange === '7' ? '0:7' : '0:30';
+
+    return forkJoin({
+      openVulnerabilities30Days: this.calculateDetailedOpenVulnerabilities(repoId, true, lastSeenValue),
+      openVulnerabilities: this.calculateDetailedOpenVulnerabilities(repoId, false, lastSeenValue),
+      exploitableFindings: this.calculateExploitableFindings(repoId, lastSeenValue),
+      seolVulnerabilities: this.calculateSEOLVulnerabilities(repoId, lastSeenValue),
+      complianceMetrics: this.calculateComplianceMetrics(repoId, collectionId, lastSeenValue),
+      totalCompliance: this.calculateTotalPoamCompliance(collectionId, repoId, lastSeenValue)
+    });
+  }
+
+  private updateMetricsFromCache() {
+    const cachedData = this.cachedVulnerabilityData();
+    if (!cachedData) return;
+
+    const timeRange = this.lastObservedTimeRange();
+    const data = cachedData[timeRange];
+    const validAssets = this.getFilteredHostCount(this.hostTimeRange());
+    const vphData = this.calculateVPHScore(data.openVulnerabilities.criticalHigh, data.openVulnerabilities.medium, data.openVulnerabilities.low, validAssets);
+
+    this.tenableMetrics.set({
+      totalPoamCompliance: data.totalCompliance,
+      poamApprovalPercentage: this.cachedPoamMetrics(),
+      catICompliance: data.complianceMetrics.catI,
+      catIICompliance: data.complianceMetrics.catII,
+      catIIICompliance: data.complianceMetrics.catIII,
+      catIOpenCount30Days: data.openVulnerabilities30Days.criticalHigh,
+      catIIOpenCount30Days: data.openVulnerabilities30Days.medium,
+      catIIIOpenCount30Days: data.openVulnerabilities30Days.low,
+      catIOpenCount: data.openVulnerabilities.criticalHigh,
+      catIIOpenCount: data.openVulnerabilities.medium,
+      catIIIOpenCount: data.openVulnerabilities.low,
+      exploitableFindingsCount: data.exploitableFindings,
+      pastDueIAVCount: this.cachedPastDueIAVs(),
+      seolVulnerabilitiesCount: data.seolVulnerabilities,
+      credentialScanPercentage: this.cachedCredentialScanPercentage(),
+      vphScore: vphData.score,
+      vphRating: vphData.rating,
+      validOnlineAssets: validAssets
+    });
+
+    this.prepareChartsData();
+  }
+
+  onLastObservedRangeChange(range: '7' | '30' | 'all') {
+    this.lastObservedTimeRange.set(range);
+    this.updateMetricsFromCache();
+  }
+
+  onHostTimeRangeChange(range: '7' | '30' | 'all') {
+    this.hostTimeRange.set(range);
+    this.updateVPHOnly();
+  }
+
+  private updateVPHOnly() {
+    const cachedData = this.cachedVulnerabilityData();
+    if (!cachedData) return;
+
+    const timeRange = this.lastObservedTimeRange();
+    const data = cachedData[timeRange];
+    const validAssets = this.getFilteredHostCount(this.hostTimeRange());
+
+    const vphData = this.calculateVPHScore(data.openVulnerabilities.criticalHigh, data.openVulnerabilities.medium, data.openVulnerabilities.low, validAssets);
+
+    this.tenableMetrics.update((current) => ({
+      ...current,
+      vphScore: vphData.score,
+      vphRating: vphData.rating,
+      validOnlineAssets: validAssets
+    }));
+  }
+
+  private getFilteredHostCount(timeRange: '7' | '30' | 'all'): number {
+    const hosts = this.cachedHosts();
+
+    if (timeRange === 'all') {
+      return hosts.length;
+    }
+
+    const now = Date.now() / 1000;
+    const daysInSeconds = timeRange === '7' ? 7 * 24 * 60 * 60 : 30 * 24 * 60 * 60;
+    const cutoffTime = now - daysInSeconds;
+
+    return hosts.filter((host: any) => {
+      const lastSeen = Number(host.lastSeen) || 0;
+      return lastSeen >= cutoffTime;
+    }).length;
+  }
+
+  private loadAllHosts(repoId: string) {
+    const hostParams = {
+      filters: {
+        and: [
+          {
+            property: 'repositoryHost',
+            operator: 'eq',
+            value: repoId.toString()
+          },
+          {
+            property: 'assetCriticalityRating',
+            operator: 'eq',
+            value: 'all'
+          },
+          {
+            property: 'assetExposureScore',
+            operator: 'eq',
+            value: 'all'
+          }
+        ]
+      }
+    };
+
+    return this.importService.postTenableHostSearch(hostParams).pipe(
+      map((response: any) => response?.response?.results || []),
+      catchError(() => of([]))
+    );
+  }
+
+  private calculateDetailedOpenVulnerabilities(repoId: string, apply30DayFilter: boolean, lastSeenValue: string | null) {
+    const baseFilters = [];
+
+    if (apply30DayFilter && lastSeenValue) {
+      baseFilters.push({ filterName: 'lastSeen', operator: '=', value: lastSeenValue, type: 'vuln', isPredefined: true });
+    }
+
+    const criticalHighFilters = [...baseFilters, { filterName: 'severity', operator: '=', value: '3,4', type: 'vuln', isPredefined: true }];
+    const mediumFilters = [...baseFilters, { filterName: 'severity', operator: '=', value: '2', type: 'vuln', isPredefined: true }];
+    const lowFilters = [...baseFilters, { filterName: 'severity', operator: '=', value: '1', type: 'vuln', isPredefined: true }];
+
+    return forkJoin({
+      criticalHigh: this.getTenableVulnerabilities(repoId, criticalHighFilters),
+      medium: this.getTenableVulnerabilities(repoId, mediumFilters),
+      low: this.getTenableVulnerabilities(repoId, lowFilters)
+    }).pipe(
+      map((results) => ({
+        criticalHigh: Number(results.criticalHigh.response?.totalRecords) || 0,
+        medium: Number(results.medium.response?.totalRecords) || 0,
+        low: Number(results.low.response?.totalRecords) || 0
+      })),
+      catchError(() => of({ criticalHigh: 0, medium: 0, low: 0 }))
+    );
+  }
+
+  private calculateTotalPoamCompliance(collectionId: any, repoId: string, lastSeenValue: string | null) {
+    const allFilters = [];
+
+    if (lastSeenValue) {
+      allFilters.push({
+        filterName: 'lastSeen',
+        operator: '=',
+        value: lastSeenValue,
+        type: 'vuln',
+        isPredefined: true
+      });
+    }
+
+    allFilters.push({
+      filterName: 'severity',
+      operator: '=',
+      value: '1,2,3,4',
+      type: 'vuln',
+      isPredefined: true
+    });
+
+    return combineLatest([this.getTenableVulnerabilities(repoId, allFilters), this.collectionsService.getPoamsByCollection(collectionId)]).pipe(
+      map(([vulnData, poams]) => {
+        const vulnerabilities = vulnData.response?.results || [];
+        const totalVulns = vulnerabilities.length;
+
+        if (totalVulns === 0) return 100;
+
+        const approvedPoams = poams.filter((p: any) => p.status === 'Approved');
+        const vulnerabilityStatusMap = new Map<string, string>();
+
+        approvedPoams.forEach((poam: any) => {
+          if (poam.vulnerabilityId) {
+            vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
+          }
+          if (Array.isArray(poam?.associatedVulnerabilities)) {
+            poam.associatedVulnerabilities.forEach((vulnId: string) => {
+              vulnerabilityStatusMap.set(vulnId, poam.status);
+            });
+          }
+        });
+
+        const vulnsWithApprovedPoam = vulnerabilities.filter((vuln: any) => {
+          return vulnerabilityStatusMap.get(vuln.pluginID) === 'Approved';
+        }).length;
+
+        return (vulnsWithApprovedPoam / totalVulns) * 100;
+      }),
+      catchError(() => of(0))
+    );
+  }
+
+  private calculateVPHScore(catICount: number, catIICount: number, catIIICount: number, validAssets: number): { score: number; rating: string } {
+    if (validAssets === 0) {
+      return { score: 0, rating: 'Low' };
+    }
+
+    const catIVPH = (catICount / validAssets) * 10;
+    const catIIVPH = (catIICount / validAssets) * 4;
+    const catIIIVPH = (catIIICount / validAssets) * 1;
+    const vphScore = (catIVPH + catIIVPH + catIIIVPH) / 15;
+
+    let rating: string;
+    if (vphScore < 2.5) {
+      rating = 'Low';
+    } else if (vphScore < 3.5) {
+      rating = 'Moderate';
+    } else {
+      rating = 'High';
+    }
+
+    return { score: vphScore, rating };
+  }
+
+  getVPHColor(vphScore: number): string {
+    if (vphScore < 2.5) {
+      return '#10b981';
+    } else if (vphScore < 2.6) {
+      return '#4ade80';
+    } else if (vphScore < 2.7) {
+      return '#a3e635';
+    } else if (vphScore < 2.8) {
+      return '#e4d02b';
+    } else if (vphScore < 2.9) {
+      return '#fbbf24';
+    } else if (vphScore < 3) {
+      return '#fca726';
+    } else if (vphScore < 3.1) {
+      return '#fb923c';
+    } else if (vphScore < 3.2) {
+      return '#f56e54';
+    } else if (vphScore < 3.3) {
+      return '#f05a6a';
+    } else {
+      return '#f05a6acc';
+    }
+  }
+
+  getPoamComplianceColor(compliance: number): string {
+    if (compliance >= 90) {
+      return '#10b981';
+    } else if (compliance >= 80) {
+      return '#4ade80';
+    } else if (compliance >= 70) {
+      return '#a3e635';
+    } else if (compliance >= 60) {
+      return '#e4d02b';
+    } else if (compliance >= 50) {
+      return '#fbbf24';
+    } else if (compliance >= 40) {
+      return '#fca726';
+    } else if (compliance >= 30) {
+      return '#fb923c';
+    } else if (compliance >= 20) {
+      return '#f56e54';
+    } else if (compliance >= 10) {
+      return '#f05a6a';
+    } else {
+      return '#f05a6acc';
+    }
+  }
+
+  getLastObservedText(): string {
+    const range = this.lastObservedTimeRange();
+    if (range === 'all') return '';
+    return range === '7' ? 'within 7 days' : 'within 30 days';
+  }
+
+  private calculatePoamApprovalMetrics(collectionId: any, repoId: string) {
+    return combineLatest([this.getTenableVulnerabilities(repoId, []), this.collectionsService.getPoamsByCollection(collectionId)]).pipe(
+      map(([vulnData, poams]) => {
+        const totalVulnerabilities = vulnData.response?.totalRecords || 0;
+        if (totalVulnerabilities === 0) return 0;
+
+        const uniqueVulnIds = new Set<string>();
+        const approvedPoams = poams.filter((p: any) => p.status === 'Approved');
+
+        approvedPoams.forEach((poam: any) => {
+          if (poam.vulnerabilityId) {
+            uniqueVulnIds.add(poam.vulnerabilityId);
+          }
+          if (Array.isArray(poam?.associatedVulnerabilities)) {
+            poam.associatedVulnerabilities.forEach((id: string) => uniqueVulnIds.add(id));
+          }
+        });
+
+        return (uniqueVulnIds.size / totalVulnerabilities) * 100;
+      }),
+      catchError(() => of(0))
+    );
+  }
+
+  private calculateComplianceMetrics(repoId: string, collectionId: any, lastSeenValue: string | null) {
+    const baseFilters = [];
+    if (lastSeenValue) {
+      baseFilters.push({
+        filterName: 'lastSeen',
+        operator: '=',
+        value: lastSeenValue,
+        type: 'vuln',
+        isPredefined: true
+      });
+    }
+
+    const catIFilters = [
+      ...baseFilters,
+      {
+        filterName: 'vulnPublished',
+        operator: '=',
+        value: '30:all',
+        type: 'vuln',
+        isPredefined: true
+      },
+      {
+        filterName: 'severity',
+        operator: '=',
+        value: '3,4',
+        type: 'vuln',
+        isPredefined: true
+      }
+    ];
+
+    const catIIFilters = [
+      ...baseFilters,
+      {
+        filterName: 'vulnPublished',
+        operator: '=',
+        value: '30:all',
+        type: 'vuln',
+        isPredefined: true
+      },
+      {
+        filterName: 'severity',
+        operator: '=',
+        value: '2',
+        type: 'vuln',
+        isPredefined: true
+      }
+    ];
+
+    const catIIIFilters = [
+      ...baseFilters,
+      {
+        filterName: 'vulnPublished',
+        operator: '=',
+        value: '30:all',
+        type: 'vuln',
+        isPredefined: true
+      },
+      {
+        filterName: 'severity',
+        operator: '=',
+        value: '1',
+        type: 'vuln',
+        isPredefined: true
+      }
+    ];
+
+    return combineLatest([
+      this.getTenableVulnerabilities(repoId, catIFilters),
+      this.getTenableVulnerabilities(repoId, catIIFilters),
+      this.getTenableVulnerabilities(repoId, catIIIFilters),
+      this.collectionsService.getPoamsByCollection(collectionId)
+    ]).pipe(
+      map(([catIVulns, catIIVulns, catIIIVulns, poams]) => {
+        const vulnerabilityStatusMap = new Map<string, string>();
+
+        poams.forEach((poam: any) => {
+          if (poam.vulnerabilityId) {
+            vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
+          }
+          if (Array.isArray(poam?.associatedVulnerabilities)) {
+            poam.associatedVulnerabilities.forEach((vulnId: string) => {
+              vulnerabilityStatusMap.set(vulnId, poam.status);
+            });
+          }
+        });
+
+        const calculateCompliance = (vulnData: any) => {
+          const vulnerabilities = vulnData.response?.results || [];
+          const totalVulns = vulnerabilities.length;
+          if (totalVulns === 0) return 0;
+
+          const vulnsWithApprovedPoam = vulnerabilities.filter((vuln: any) => {
+            return vulnerabilityStatusMap.get(vuln.pluginID) === 'Approved';
+          }).length;
+
+          return (vulnsWithApprovedPoam / totalVulns) * 100;
+        };
+
+        return {
+          catI: calculateCompliance(catIVulns),
+          catII: calculateCompliance(catIIVulns),
+          catIII: calculateCompliance(catIIIVulns)
+        };
+      }),
+      catchError(() => of({ catI: 0, catII: 0, catIII: 0 }))
+    );
+  }
+
+  private calculateExploitableFindings(repoId: string, lastSeenValue: string | null) {
+    const filters = [
+      {
+        filterName: 'vulnPublished',
+        operator: '=',
+        value: '7:all',
+        type: 'vuln',
+        isPredefined: true
+      },
+      {
+        filterName: 'exploitAvailable',
+        operator: '=',
+        value: 'true',
+        type: 'vuln',
+        isPredefined: true
+      }
+    ];
+
+    if (lastSeenValue) {
+      filters.push({
+        filterName: 'lastSeen',
+        operator: '=',
+        value: lastSeenValue,
+        type: 'vuln',
+        isPredefined: true
+      });
+    }
+
+    return this.getTenableVulnerabilities(repoId, filters).pipe(
+      map((data) => data.response?.totalRecords || 0),
+      catchError(() => of(0))
+    );
+  }
+
+  private calculatePastDueIAVs(repoId: string) {
+    return this.importService.getIAVPluginIds().pipe(
+      switchMap((pluginIds) => {
+        if (!pluginIds) return of(0);
+
+        const filters = [
+          {
+            filterName: 'pluginID',
+            operator: '=',
+            value: pluginIds,
+            type: 'vuln',
+            isPredefined: true
+          },
+          {
+            filterName: 'severity',
+            operator: '=',
+            value: '1,2,3,4',
+            type: 'vuln',
+            isPredefined: true
+          }
+        ];
+
+        return this.getTenableVulnerabilities(repoId, filters).pipe(
+          switchMap((vulnData) => {
+            const pluginIDList = vulnData.response?.results?.map((v: any) => Number(v.pluginID)) || [];
+            if (pluginIDList.length === 0) return of(0);
+
+            return this.importService.getIAVInfoForPlugins(pluginIDList).pipe(
+              map((iavData) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                return iavData.filter((item: any) => {
+                  if (!item.navyComplyDate) return false;
+                  if (item.supersededBy !== null && item.supersededBy !== undefined && item.supersededBy !== 'N/A') {
+                    return false;
+                  }
+                  const complyDate = new Date(item.navyComplyDate);
+                  return complyDate < today;
+                }).length;
+              })
+            );
+          })
+        );
+      }),
+      catchError(() => of(0))
+    );
+  }
+
+  private calculateSEOLVulnerabilities(repoId: string, lastSeenValue: string | null) {
+    const filters = [];
+
+    if (lastSeenValue) {
+      filters.push({
+        filterName: 'lastSeen',
+        operator: '=',
+        value: lastSeenValue,
+        type: 'vuln',
+        isPredefined: true
+      });
+    }
+
+    filters.push(
+      {
+        filterName: 'seolDate',
+        operator: '=',
+        value: '30:all',
+        type: 'vuln',
+        isPredefined: true
+      },
+      {
+        filterName: 'severity',
+        operator: '=',
+        value: '1,2,3,4',
+        type: 'vuln',
+        isPredefined: true
+      },
+      {
+        filterName: 'pluginName',
+        operator: '=',
+        value: 'SEoL',
+        type: 'vuln',
+        isPredefined: true
+      }
+    );
+
+    return this.getTenableVulnerabilities(repoId, filters).pipe(
+      map((data) => data.response?.totalRecords || 0),
+      catchError(() => of(0))
+    );
+  }
+
+  private calculateCredentialScanPercentage(repoId: string) {
+    const nonCredentialFilters = [
+      {
+        filterName: 'pluginID',
+        operator: '=',
+        value: '117886,10428,21745,24786,26917,102094,104410,110385,110723',
+        type: 'vuln',
+        isPredefined: true
+      }
+    ];
+
+    return combineLatest([this.getTenableVulnerabilities(repoId, []), this.getTenableVulnerabilities(repoId, nonCredentialFilters)]).pipe(
+      map(([totalVulns, nonCredentialVulns]) => {
+        const totalCount = totalVulns.response?.totalRecords || 0;
+        const nonCredentialCount = nonCredentialVulns.response?.totalRecords || 0;
+        if (totalCount === 0) return 0;
+        const credentialCount = totalCount - nonCredentialCount;
+        return (credentialCount / totalCount) * 100;
+      }),
+      catchError(() => of(0))
+    );
+  }
+
+  private getTenableVulnerabilities(repoId: string, additionalFilters: any[] = []) {
+    const baseFilter = this.createRepositoryFilter(repoId);
+    const filters = [baseFilter, ...additionalFilters];
+
+    const analysisParams = {
+      query: {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: 'sumid',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 50000,
+        filters: filters,
+        vulnTool: 'sumid'
+      },
+      sourceType: 'cumulative',
+      columns: [],
+      type: 'vuln'
+    };
+
+    return this.importService.postTenableAnalysis(analysisParams).pipe(
+      catchError((error) => {
+        console.error('Error fetching Tenable data:', error);
+        return of({ response: { totalRecords: 0, results: [] } });
+      })
+    );
+  }
+
+  private createRepositoryFilter(repoId: string) {
+    return {
+      id: 'repository',
+      filterName: 'repository',
+      operator: '=',
+      type: 'vuln',
+      isPredefined: true,
+      value: [{ id: repoId }]
+    };
   }
 
   private prepareChartsData() {
@@ -195,538 +866,14 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     });
   }
 
-  private loadTenableMetrics() {
-    return this.loadAllTenableMetrics();
-  }
-
-  private loadAllTenableMetrics() {
-    const repoId = this.originCollectionId();
-    const collectionId = this.collection?.collectionId;
-
-    if (!repoId || !collectionId) {
-      return of(this.getEmptyTenableMetrics());
-    }
-
-    return forkJoin({
-      poamMetrics: this.calculatePoamApprovalMetrics(collectionId, repoId),
-      complianceMetrics: this.calculateComplianceMetrics(repoId),
-      openVulnerabilities30Days: this.calculateDetailedOpenVulnerabilities(repoId, true),
-      openVulnerabilities: this.calculateDetailedOpenVulnerabilities(repoId, false),
-      exploitableFindings: this.calculateExploitableFindings(repoId),
-      pastDueIAVs: this.calculatePastDueIAVs(repoId),
-      seolVulnerabilities: this.calculateSEOLVulnerabilities(repoId),
-      credentialScanPercentage: this.calculateCredentialScanPercentage(repoId),
-      totalCompliance: this.calculateTotalPoamCompliance(collectionId, repoId)
-    }).pipe(
-      map((results) => {
-        const catICount = results.openVulnerabilities30Days.criticalHigh;
-        const catIICount = results.openVulnerabilities30Days.medium;
-        const catIIICount = results.openVulnerabilities30Days.low;
-
-        const coraData = this.calculateCORAScore(catICount, catIICount, catIIICount);
-
-        return {
-          totalPoamCompliance: results.totalCompliance,
-          poamApprovalPercentage: results.poamMetrics,
-          catICompliance: results.complianceMetrics.catI,
-          catIICompliance: results.complianceMetrics.catII,
-          catIIICompliance: results.complianceMetrics.catIII,
-
-          catIOpenCount30Days: results.openVulnerabilities30Days.criticalHigh,
-          catIIOpenCount30Days: results.openVulnerabilities30Days.medium,
-          catIIIOpenCount30Days: results.openVulnerabilities30Days.low,
-
-          catIOpenCount: results.openVulnerabilities.criticalHigh,
-          catIIOpenCount: results.openVulnerabilities.medium,
-          catIIIOpenCount: results.openVulnerabilities.low,
-
-          exploitableFindingsCount: results.exploitableFindings,
-          pastDueIAVCount: results.pastDueIAVs,
-          seolVulnerabilitiesCount: results.seolVulnerabilities,
-          credentialScanPercentage: results.credentialScanPercentage,
-          coraRiskScore: coraData.score,
-          coraRiskRating: coraData.rating
-        };
-      })
-    );
-  }
-
-  private calculateDetailedOpenVulnerabilities(repoId: string, apply30DayFilter: boolean) {
-    const baseFilters = apply30DayFilter ? [{ filterName: 'lastSeen', operator: '=', value: '0:30', type: 'vuln', isPredefined: true }] : [];
-
-    const criticalHighFilters = [...baseFilters, { filterName: 'severity', operator: '=', value: '3,4', type: 'vuln', isPredefined: true }];
-
-    const mediumFilters = [...baseFilters, { filterName: 'severity', operator: '=', value: '2', type: 'vuln', isPredefined: true }];
-
-    const lowFilters = [...baseFilters, { filterName: 'severity', operator: '=', value: '1', type: 'vuln', isPredefined: true }];
-
-    return forkJoin({
-      criticalHigh: this.getTenableVulnerabilities(repoId, criticalHighFilters),
-      medium: this.getTenableVulnerabilities(repoId, mediumFilters),
-      low: this.getTenableVulnerabilities(repoId, lowFilters)
-    }).pipe(
-      map((results) => ({
-        criticalHigh: Number(results.criticalHigh.response?.totalRecords) || 0,
-        medium: Number(results.medium.response?.totalRecords) || 0,
-        low: Number(results.low.response?.totalRecords) || 0
-      })),
-      catchError(() => of({ criticalHigh: 0, medium: 0, low: 0 }))
-    );
-  }
-
-  private calculateTotalPoamCompliance(collectionId: any, repoId: string) {
-    const allFilters = [
-      {
-        filterName: 'lastSeen',
-        operator: '=',
-        value: '0:30',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'severity',
-        operator: '=',
-        value: '1,2,3,4',
-        type: 'vuln',
-        isPredefined: true
-      }
-    ];
-
-    return combineLatest([this.getTenableVulnerabilities(repoId, allFilters), this.collectionsService.getPoamsByCollection(collectionId)]).pipe(
-      map(([vulnData, poams]) => {
-        const vulnerabilities = vulnData.response?.results || [];
-        const totalVulns = vulnerabilities.length;
-
-        if (totalVulns === 0) return 100;
-
-        const approvedPoams = poams.filter((p: any) => p.status === 'Approved');
-        const vulnerabilityStatusMap = new Map<string, string>();
-
-        approvedPoams.forEach((poam: any) => {
-          if (poam.vulnerabilityId) {
-            vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
-          }
-          if (Array.isArray(poam?.associatedVulnerabilities)) {
-            poam.associatedVulnerabilities.forEach((vulnId: string) => {
-              vulnerabilityStatusMap.set(vulnId, poam.status);
-            });
-          }
-        });
-
-        const vulnsWithApprovedPoam = vulnerabilities.filter((vuln: any) => {
-          return vulnerabilityStatusMap.get(vuln.pluginID) === 'Approved';
-        }).length;
-
-        return (vulnsWithApprovedPoam / totalVulns) * 100;
-      }),
-      catchError(() => of(0))
-    );
-  }
-
-  private calculateCORAScore(catICount: number, catIICount: number, catIIICount: number): { score: number; rating: string } {
-    const totalFindings = catICount + catIICount + catIIICount;
-
-    if (totalFindings === 0) {
-      return { score: 0, rating: 'Very Low' };
-    }
-
-    const catIPercentage = (catICount / totalFindings) * 100;
-    const catIIPercentage = (catIICount / totalFindings) * 100;
-    const catIIIPercentage = (catIIICount / totalFindings) * 100;
-
-    const weightedSum = catIPercentage * 10 + catIIPercentage * 4 + catIIIPercentage * 1;
-    const totalWeight = 15;
-    const weightedAverage = weightedSum / totalWeight;
-
-    let rating: string;
-    if (weightedAverage === 0) {
-      rating = 'Very Low';
-    } else if (catICount === 0 && catIIPercentage < 5 && catIIIPercentage < 5) {
-      rating = 'Low';
-    } else if (weightedAverage < 10) {
-      rating = 'Moderate';
-    } else if (weightedAverage < 20) {
-      rating = 'High';
-    } else {
-      rating = 'Very High';
-    }
-
-    return { score: weightedAverage, rating };
-  }
-
-  getCoraRiskColor(riskScore: number): string {
-    if (riskScore >= 90) {
-      return 'rgba(236, 72, 99, 0.8)';
-    } else if (riskScore >= 80) {
-      return '#f05a6a';
-    } else if (riskScore >= 70) {
-      return '#f56e54';
-    } else if (riskScore >= 60) {
-      return '#fb923c';
-    } else if (riskScore >= 50) {
-      return '#fca726';
-    } else if (riskScore >= 40) {
-      return '#fbbf24';
-    } else if (riskScore >= 30) {
-      return '#e4d02b';
-    } else if (riskScore >= 20) {
-      return '#a3e635';
-    } else if (riskScore >= 10) {
-      return '#4ade80';
-    } else {
-      return '#10b981';
-    }
-  }
-
-  private calculatePoamApprovalMetrics(collectionId: any, repoId: string) {
-    return combineLatest([this.getTenableVulnerabilities(repoId, []), this.collectionsService.getPoamsByCollection(collectionId)]).pipe(
-      map(([vulnData, poams]) => {
-        const totalVulnerabilities = vulnData.response?.totalRecords || 0;
-
-        if (totalVulnerabilities === 0) return 0;
-
-        const uniqueVulnIds = new Set<string>();
-        const approvedPoams = poams.filter((p: any) => p.status === 'Approved');
-
-        approvedPoams.forEach((poam: any) => {
-          if (poam.vulnerabilityId) {
-            uniqueVulnIds.add(poam.vulnerabilityId);
-          }
-
-          if (Array.isArray(poam?.associatedVulnerabilities)) {
-            poam.associatedVulnerabilities.forEach((id: string) => uniqueVulnIds.add(id));
-          }
-        });
-
-        return (uniqueVulnIds.size / totalVulnerabilities) * 100;
-      }),
-      catchError(() => of(0))
-    );
-  }
-
-  private calculateComplianceMetrics(repoId: string) {
-    const collectionId = this.collection?.collectionId;
-
-    const catIFilters = [
-      {
-        filterName: 'lastSeen',
-        operator: '=',
-        value: '0:30',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'vulnPublished',
-        operator: '=',
-        value: '30:all',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'severity',
-        operator: '=',
-        value: '3,4',
-        type: 'vuln',
-        isPredefined: true
-      }
-    ];
-
-    const catIIFilters = [
-      {
-        filterName: 'lastSeen',
-        operator: '=',
-        value: '0:30',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'vulnPublished',
-        operator: '=',
-        value: '30:all',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'severity',
-        operator: '=',
-        value: '2',
-        type: 'vuln',
-        isPredefined: true
-      }
-    ];
-
-    const catIIIFilters = [
-      {
-        filterName: 'lastSeen',
-        operator: '=',
-        value: '0:30',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'vulnPublished',
-        operator: '=',
-        value: '30:all',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'severity',
-        operator: '=',
-        value: '1',
-        type: 'vuln',
-        isPredefined: true
-      }
-    ];
-
-    return combineLatest([
-      this.getTenableVulnerabilities(repoId, catIFilters),
-      this.getTenableVulnerabilities(repoId, catIIFilters),
-      this.getTenableVulnerabilities(repoId, catIIIFilters),
-      this.collectionsService.getPoamsByCollection(collectionId)
-    ]).pipe(
-      map(([catIVulns, catIIVulns, catIIIVulns, poams]) => {
-        const vulnerabilityStatusMap = new Map<string, string>();
-
-        poams.forEach((poam: any) => {
-          if (poam.vulnerabilityId) {
-            vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
-          }
-
-          if (Array.isArray(poam?.associatedVulnerabilities)) {
-            poam.associatedVulnerabilities.forEach((vulnId: string) => {
-              vulnerabilityStatusMap.set(vulnId, poam.status);
-            });
-          }
-        });
-
-        const calculateCompliance = (vulnData: any) => {
-          const vulnerabilities = vulnData.response?.results || [];
-          const totalVulns = vulnerabilities.length;
-
-          if (totalVulns === 0) return 0;
-
-          const vulnsWithApprovedPoam = vulnerabilities.filter((vuln: any) => {
-            const status = vulnerabilityStatusMap.get(vuln.pluginID);
-
-            return status === 'Approved';
-          }).length;
-
-          return (vulnsWithApprovedPoam / totalVulns) * 100;
-        };
-
-        return {
-          catI: calculateCompliance(catIVulns),
-          catII: calculateCompliance(catIIVulns),
-          catIII: calculateCompliance(catIIIVulns)
-        };
-      }),
-      catchError(() => of({ catI: 0, catII: 0, catIII: 0 }))
-    );
-  }
-
-  private calculateExploitableFindings(repoId: string) {
-    const filters = [
-      {
-        filterName: 'vulnPublished',
-        operator: '=',
-        value: '7:all',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'lastSeen',
-        operator: '=',
-        value: '0:30',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'exploitAvailable',
-        operator: '=',
-        value: 'true',
-        type: 'vuln',
-        isPredefined: true
-      }
-    ];
-
-    return this.getTenableVulnerabilities(repoId, filters).pipe(
-      map((data) => data.response?.totalRecords || 0),
-      catchError(() => of(0))
-    );
-  }
-
-  private calculatePastDueIAVs(repoId: string) {
-    return this.importService.getIAVPluginIds().pipe(
-      switchMap((pluginIds) => {
-        if (!pluginIds) return of(0);
-
-        const filters = [
-          {
-            filterName: 'pluginID',
-            operator: '=',
-            value: pluginIds,
-            type: 'vuln',
-            isPredefined: true
-          },
-          {
-            filterName: 'severity',
-            operator: '=',
-            value: '1,2,3,4',
-            type: 'vuln',
-            isPredefined: true
-          }
-        ];
-
-        return this.getTenableVulnerabilities(repoId, filters).pipe(
-          switchMap((vulnData) => {
-            const pluginIDList = vulnData.response?.results?.map((v: any) => Number(v.pluginID)) || [];
-
-            if (pluginIDList.length === 0) return of(0);
-
-            return this.importService.getIAVInfoForPlugins(pluginIDList).pipe(
-              map((iavData) => {
-                const today = new Date();
-
-                today.setHours(0, 0, 0, 0);
-
-                return iavData.filter((item: any) => {
-                  if (!item.navyComplyDate) return false;
-
-                  if (item.supersededBy !== null && item.supersededBy !== undefined && item.supersededBy !== 'N/A') {
-                    return false;
-                  }
-
-                  const complyDate = new Date(item.navyComplyDate);
-
-                  return complyDate < today;
-                }).length;
-              })
-            );
-          })
-        );
-      }),
-      catchError(() => of(0))
-    );
-  }
-
-  private calculateSEOLVulnerabilities(repoId: string) {
-    const filters = [
-      {
-        filterName: 'lastSeen',
-        operator: '=',
-        value: '0:30',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'seolDate',
-        operator: '=',
-        value: '30:all',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'severity',
-        operator: '=',
-        value: '1,2,3,4',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'pluginName',
-        operator: '=',
-        value: 'SEoL',
-        type: 'vuln',
-        isPredefined: true
-      }
-    ];
-
-    return this.getTenableVulnerabilities(repoId, filters).pipe(
-      map((data) => data.response?.totalRecords || 0),
-      catchError(() => of(0))
-    );
-  }
-
-  private calculateCredentialScanPercentage(repoId: string) {
-    const nonCredentialFilters = [
-      {
-        filterName: 'pluginID',
-        operator: '=',
-        value: '117886,10428,21745,24786,26917,102094,104410,110385,110723',
-        type: 'vuln',
-        isPredefined: true
-      }
-    ];
-
-    return combineLatest([this.getTenableVulnerabilities(repoId, []), this.getTenableVulnerabilities(repoId, nonCredentialFilters)]).pipe(
-      map(([totalVulns, nonCredentialVulns]) => {
-        const totalCount = totalVulns.response?.totalRecords || 0;
-        const nonCredentialCount = nonCredentialVulns.response?.totalRecords || 0;
-
-        if (totalCount === 0) return 0;
-        const credentialCount = totalCount - nonCredentialCount;
-
-        return (credentialCount / totalCount) * 100;
-      }),
-      catchError(() => of(0))
-    );
-  }
-
-  private getTenableVulnerabilities(repoId: string, additionalFilters: any[] = []) {
-    const baseFilter = this.createRepositoryFilter(repoId);
-    const filters = [baseFilter, ...additionalFilters];
-
-    const analysisParams = {
-      query: {
-        description: '',
-        context: '',
-        status: -1,
-        createdTime: 0,
-        modifiedTime: 0,
-        groups: [],
-        type: 'vuln',
-        tool: 'sumid',
-        sourceType: 'cumulative',
-        startOffset: 0,
-        endOffset: 50000,
-        filters: filters,
-        vulnTool: 'sumid'
-      },
-      sourceType: 'cumulative',
-      columns: [],
-      type: 'vuln'
-    };
-
-    return this.importService.postTenableAnalysis(analysisParams).pipe(
-      catchError((error) => {
-        console.error('Error fetching Tenable data:', error);
-
-        return of({ response: { totalRecords: 0, results: [] } });
-      })
-    );
-  }
-
-  private createRepositoryFilter(repoId: string) {
-    return {
-      id: 'repository',
-      filterName: 'repository',
-      operator: '=',
-      type: 'vuln',
-      isPredefined: true,
-      value: [{ id: repoId }]
-    };
-  }
-
   private getTenableMetricsDisplay(loading: boolean): MetricData[] {
     const m = this.tenableMetrics();
+    const lastObservedText = this.getLastObservedText();
 
     return [
       {
         label: 'Exploitable Findings (7+ Days)',
-        tooltip: `Count of vulnerabilities with known exploits available
-
-                Filters: Published 7+ days ago, seen in last 30 days, exploit available = true`,
+        tooltip: `Count of vulnerabilities with known exploits available\n\nFilters: Published 7+ days ago${lastObservedText ? ', last observed ' + lastObservedText : ''}, exploit available = true`,
         origin: 'Tenable',
         value: loading ? '-' : m.exploitableFindingsCount,
         category: 'exploit',
@@ -735,9 +882,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       },
       {
         label: 'Past Due IAVs',
-        tooltip: `Count of IAVs past their Navy compliance date
-
-                Excludes Informational severity and superseded IAVs`,
+        tooltip: `Count of IAVs past their Navy compliance date\n\nExcludes Informational severity and superseded IAVs`,
         origin: 'Tenable',
         value: loading ? '-' : m.pastDueIAVCount,
         category: 'iav',
@@ -746,7 +891,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       },
       {
         label: 'Security End of Life Vulnerabilities',
-        tooltip: `Filters: SEoL date 30+ days ago, seen in last 30 days, plugin name contains 'SEoL'`,
+        tooltip: `Filters: SEoL date 30+ days ago${lastObservedText ? ', seen ' + lastObservedText : ''}, plugin name contains 'SEoL'`,
         origin: 'Tenable',
         value: loading ? '-' : m.seolVulnerabilitiesCount,
         category: 'seol',
@@ -755,9 +900,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       },
       {
         label: 'Vulnerabilities with Approved POAMs',
-        tooltip: `Percentage calculation: Unique vulnerability IDs with approved POAMs ÷ Total vulnerabilities × 100
-
-                Includes both primary vulnerability IDs and associated vulnerabilities in POAMs`,
+        tooltip: `Percentage calculation: Unique vulnerability IDs with approved POAMs ÷ Total vulnerabilities × 100\n\nIncludes both primary vulnerability IDs and associated vulnerabilities in POAMs`,
         origin: 'Tenable',
         value: loading ? '-' : `${m.poamApprovalPercentage.toFixed(1)}%`,
         category: 'poam',
@@ -766,9 +909,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       },
       {
         label: 'Credential Scan Coverage',
-        tooltip: `Percentage calculation: (Total vulnerabilities - Non-credentialed scan findings) ÷ Total vulnerabilities × 100
-
-                Non-credentialed plugin IDs: 117886, 10428, 21745, 24786, 26917, 102094, 104410, 110385, 110723`,
+        tooltip: `Percentage calculation: (Total vulnerabilities - Non-credentialed scan findings) ÷ Total vulnerabilities × 100\n\nNon-credentialed plugin IDs: 117886, 10428, 21745, 24786, 26917, 102094, 104410, 110385, 110723`,
         origin: 'Tenable',
         value: loading ? '-' : `${m.credentialScanPercentage.toFixed(1)}%`,
         category: 'credential',
@@ -796,29 +937,46 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       pastDueIAVCount: 0,
       seolVulnerabilitiesCount: 0,
       credentialScanPercentage: 0,
-      coraRiskScore: 0,
-      coraRiskRating: 'Very Low'
+      vphScore: 0,
+      vphRating: 'Low',
+      validOnlineAssets: 0
     };
   }
 
   exportMetrics() {
-    const metrics = this.tenableMetrics();
+    const cachedData = this.cachedVulnerabilityData();
+    if (!cachedData) return;
+
+    const selectedRange = this.lastObservedTimeRange();
+    const data = cachedData[selectedRange];
     const collectionName = this.collectionName();
     const exportedDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
     const rows = [];
+    const opensLabel = selectedRange === 'all' ? 'Opens (Unique)' : `Opens (Unique - ${selectedRange} Days)`;
+    const timeRangeNote = selectedRange === 'all' ? '' : ` (${selectedRange} days)`;
+    const vphData = this.calculateVPHScore(data.openVulnerabilities.criticalHigh, data.openVulnerabilities.medium, data.openVulnerabilities.low, this.getFilteredHostCount(this.hostTimeRange()));
+    const hostRangeLabel = this.hostTimeRange() === 'all' ? '' : ` - (Within ${this.hostTimeRange()} Days)`;
 
-    rows.push([`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()}`]);
+    rows.push([`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()} - ${selectedRange === 'all' ? 'All Time' : `${selectedRange} Days`}`]);
     rows.push(['Collection Name', 'CATEGORY', 'METRIC', 'VALUE']);
-    rows.push([`[Tenable] ${collectionName}`, 'POAM', 'CAT I Compliance %', `${metrics.catICompliance.toFixed(1)}%`]);
-    rows.push([`[Tenable] ${collectionName}`, 'POAM', 'CAT II Compliance %', `${metrics.catIICompliance.toFixed(1)}%`]);
-    rows.push([`[Tenable] ${collectionName}`, 'POAM', 'CAT III Compliance %', `${metrics.catIIICompliance.toFixed(1)}%`]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'CAT I - Opens (Unique - 30+ Days)', metrics.catIOpenCount30Days.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'CAT II - Opens (Unique - 30+ Days)', metrics.catIIOpenCount30Days.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'CAT III - Opens (Unique - 30+ Days)', metrics.catIIIOpenCount30Days.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'CAT I - Exploitable Findings (Unique - 7+ Days)', metrics.exploitableFindingsCount.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Past Due IAVs', metrics.pastDueIAVCount.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Security End of Life (Unique)', metrics.seolVulnerabilitiesCount.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Credentialed Scan %', `${metrics.credentialScanPercentage.toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'POAM', `CAT I Compliance %${timeRangeNote}`, `${data.complianceMetrics.catI.toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'POAM', `CAT II Compliance %${timeRangeNote}`, `${data.complianceMetrics.catII.toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'POAM', `CAT III Compliance %${timeRangeNote}`, `${data.complianceMetrics.catIII.toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'POAM', `Total POAM Compliance %${timeRangeNote}`, `${data.totalCompliance.toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT I - ${opensLabel}`, data.openVulnerabilities.criticalHigh.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT II - ${opensLabel}`, data.openVulnerabilities.medium.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT III - ${opensLabel}`, data.openVulnerabilities.low.toString()]);
+    rows.push([
+      `[Tenable] ${collectionName}`,
+      'ACAS',
+      selectedRange === 'all' ? 'Exploitable Findings (Published 7+ Days)' : `Exploitable Findings (Published 7+ Days & Last Observed Within ${selectedRange} Days)`,
+      data.exploitableFindings.toString()
+    ]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Past Due IAVs', this.cachedPastDueIAVs().toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', selectedRange === 'all' ? 'Security End of Life (Unique)' : `Security End of Life (Unique - Last Observed Within ${selectedRange} Days)`, data.seolVulnerabilities.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Credentialed Scan %', `${this.cachedCredentialScanPercentage().toFixed(1)}%`]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `VPH Score${hostRangeLabel}`, vphData.score.toFixed(2)]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `Valid Online Assets${hostRangeLabel}`, this.getFilteredHostCount(this.hostTimeRange()).toString()]);
 
     this.exportAsCSV(rows, `${collectionName}_CPAT_Metrics_${exportedDate}`);
   }
@@ -851,7 +1009,8 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   }
 
   refreshMetrics() {
-    this.loadMetrics();
+    this.clearCache();
+    this.loadAllData();
     this.now = new Date();
   }
 }
