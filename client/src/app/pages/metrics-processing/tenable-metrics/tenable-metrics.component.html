@@ -12,11 +12,28 @@
   <div class="font-medium opacity-70 ml-2">
     {{ collectionName() }} - {{ now | date: 'MMM d, y, h:mm a' }}
   </div>
-  <div class="relative flex gap-1 mr-1">
-    <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" severity="secondary" (onClick)="refreshMetrics()"
-      [disabled]="isLoading()" pTooltip="Refresh metrics" tooltipPosition="left" />
-    <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics"
-      tooltipPosition="left" (onClick)="exportMetrics()" [disabled]="isLoading()" />
+  <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-gray-400">Findings:</span>
+      <p-buttongroup>
+        <p-button size="small" severity="secondary" label="7 Days" tooltipPosition="left"
+          pTooltip="Vulnerability Last Observed within 7 days" [outlined]="lastObservedTimeRange() !== '7'"
+          (onClick)="onLastObservedRangeChange('7')" [disabled]="isLoading()" />
+        <p-button size="small" severity="secondary" label="30 Days" tooltipPosition="left"
+          pTooltip="Vulnerability Last Observed within 30 days" [outlined]="lastObservedTimeRange() !== '30'"
+          (onClick)="onLastObservedRangeChange('30')" [disabled]="isLoading()" />
+        <p-button size="small" severity="secondary" label="All" tooltipPosition="left" pTooltip="All open findings"
+          [outlined]="lastObservedTimeRange() !== 'all'" (onClick)="onLastObservedRangeChange('all')"
+          [disabled]="isLoading()" />
+      </p-buttongroup>
+    </div>
+
+    <div class="relative flex gap-1">
+      <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" severity="secondary" (onClick)="refreshMetrics()"
+        [disabled]="isLoading()" pTooltip="Refresh metrics" tooltipPosition="left" />
+      <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics"
+        tooltipPosition="left" (onClick)="exportMetrics()" [disabled]="isLoading()" />
+    </div>
   </div>
 </div>
 
@@ -24,11 +41,11 @@
   <p-card class="basis-1/6">
     <div class="flex flex-col items-center justify-center p-2">
       <div class="flex flex-col items-center"
-        [pTooltip]="'Percentage calculation: (Critical + High + Medium + Low findings (Last observed within 30 days) with approved POAMs) ÷ (Total findings lLast observed within 30 days) × 100'"
+        [pTooltip]="'Percentage calculation: (Critical + High + Medium + Low findings' + (getLastObservedText() ? ' (last observed ' + getLastObservedText() + ')' : '') + ' with approved POAMs) ÷ (Total findings' + (getLastObservedText() ? ' last observed ' + getLastObservedText() : '') + ') × 100'"
         tooltipPosition="top">
         <div class="rounded-3xl flex flex-col items-center justify-center shadow-xl border-[3px] p-8 gap-2"
-          [style.border-color]="getCoraRiskColor(100 - tenableMetrics().totalPoamCompliance)"
-          [style.color]="getCoraRiskColor(100 - tenableMetrics().totalPoamCompliance)">
+          [style.border-color]="getPoamComplianceColor(tenableMetrics().totalPoamCompliance)"
+          [style.color]="getPoamComplianceColor(tenableMetrics().totalPoamCompliance)">
           <div class="flex flex-row items-center">
             <span class="text-[4rem] font-extrabold leading-none pl-4">
               {{ isLoading() ? '-' : tenableMetrics().totalPoamCompliance.toFixed(0) }}
@@ -43,18 +60,37 @@
 
   <p-card class="basis-5/6">
     <div class="relative">
+      <div class="relative flex items-center mb-2">
+        <p-buttongroup>
+          <p-button size="small" severity="secondary" label="7 Days" [outlined]="hostTimeRange() !== '7'"
+            (onClick)="onHostTimeRangeChange('7')" [disabled]="isLoading()" />
+          <p-button size="small" severity="secondary" label="30 Days" [outlined]="hostTimeRange() !== '30'"
+            (onClick)="onHostTimeRangeChange('30')" [disabled]="isLoading()" />
+          <p-button size="small" severity="secondary" label="All" [outlined]="hostTimeRange() !== 'all'"
+            (onClick)="onHostTimeRangeChange('all')" [disabled]="isLoading()" />
+        </p-buttongroup>
+        <div class="absolute left-0 right-0 flex justify-center pointer-events-none">
+          <span class="text-xs text-gray-400">
+            Vulnerability Per Host (VPH) Score - {{ tenableMetrics().validOnlineAssets }} Valid Hosts
+          </span>
+        </div>
+      </div>
+
       <div class="relative mb-[-2rem] mr-2 ml-2" style="height: 60px;">
         <div class="absolute w-full">
-          <div class="absolute" [style.left.%]="100 - tenableMetrics().coraRiskScore"
+          <div class="absolute" [style.left.%]="tenableMetrics().vphScore < 2.5 ? 100 :
+                               tenableMetrics().vphScore > 3.5 ? 0 :
+                               (100 - ((tenableMetrics().vphScore - 2.5) * 100))"
             style="transform: translateX(-50%); z-index: 10;">
             <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
               <div class="px-3 py-2 rounded-lg font-bold text-center"
-                [style.background-color]="getCoraRiskColor(tenableMetrics().coraRiskScore)"
-                style="opacity: 0.9; color: white;" pTooltip="Weighted Average formula:
-      (CAT I Risk % × 10 + CAT II Risk % × 4 + CAT III Risk % × 1) ÷ 15
+                [style.background-color]="getVPHColor(tenableMetrics().vphScore)" style="opacity: 0.9; color: white;"
+                pTooltip="VPH Formula: (((Critical + High) / Valid Hosts × 10) + (Medium / Valid Hosts × 4) + (Low / Valid Hosts × 1)) ÷ 15
 
-      Where CAT I = Critical + High, CAT II = Medium, CAT III = Low">
-                {{ isLoading() ? '-' : tenableMetrics().coraRiskScore.toFixed(0) + '%' }}
+Valid Hosts: {{ tenableMetrics().validOnlineAssets }}
+Host Time Range: {{ hostTimeRange() === 'all' ? 'All Time' : 'Last ' + hostTimeRange() + ' Days' }}
+Findings Time Range: {{ lastObservedTimeRange() === 'all' ? 'All Time' : 'Last ' + lastObservedTimeRange() + ' Days' }}">
+                {{ isLoading() ? '-' : tenableMetrics().vphScore.toFixed(2) }}
               </div>
             </div>
             <div class="absolute left-1/2 transform -translate-x-1/2"
@@ -81,23 +117,15 @@
       <div class="flex justify-between gap-2 mt-2">
         <div class="flex items-center gap-1">
           <div class="w-8 h-3 rounded-full" style="background-color: rgba(236, 72, 99, 0.8);"></div>
-          <span class="text-xs text-gray-300">Very High</span>
+          <span class="text-xs text-gray-300">High (> 3.5)</span>
         </div>
         <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(247, 128, 69, 0.8);"></div>
-          <span class="text-xs text-gray-300">High</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(251, 167, 50, 0.8);"></div>
-          <span class="text-xs text-gray-300">Moderate</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(230, 185, 44, 0.8);"></div>
-          <span class="text-xs text-gray-300">Low</span>
+          <div class="w-8 h-3 rounded-full" style="background-color: rgba(251, 191, 36, 0.8);"></div>
+          <span class="text-xs text-gray-300">Moderate (~ 3.0)</span>
         </div>
         <div class="flex items-center gap-1">
           <div class="w-8 h-3 rounded-full" style="background-color: rgba(16, 185, 129, 0.8);"></div>
-          <span class="text-xs text-gray-300">Very Low</span>
+          <span class="text-xs text-gray-300">Low (< 2.5)</span>
         </div>
       </div>
     </div>
@@ -118,7 +146,7 @@
           <div class="metric-line"></div>
         </div>
         <div class="metric-text-container"
-          pTooltip="Percentage of Critical and High severity findings that were published 30+ days ago, last observed within 30 days, and have an existing POAM in an Approved status."
+          [pTooltip]="'Percentage of Critical and High severity findings that were published 30+ days ago' + (getLastObservedText() ? ', last observed ' + getLastObservedText() : '') + ', and have an existing POAM in an Approved status.'"
           tooltipPosition="top">
           <div class="metric-origin">Tenable</div>
           <div class="metric-description pr-[7.5px]">CAT-I POAM Compliance %</div>
@@ -140,7 +168,7 @@
           <div class="metric-line"></div>
         </div>
         <div class="metric-text-container"
-          pTooltip="Percentage of Medium severity findings that were published 30+ days ago, last observed within 30 days, and have an existing POAM in an Approved status."
+          [pTooltip]="'Percentage of Medium severity findings that were published 30+ days ago' + (getLastObservedText() ? ', last observed ' + getLastObservedText() : '') + ', and have an existing POAM in an Approved status.'"
           tooltipPosition="top">
           <div class="metric-origin">Tenable</div>
           <div class="metric-description pr-[3.75px]">CAT-II POAM Compliance %</div>
@@ -162,7 +190,7 @@
           <div class="metric-line"></div>
         </div>
         <div class="metric-text-container"
-          pTooltip="Percentage of Low severity findings that were published 30+ days ago, last observed within 30 days, and have an existing POAM in an Approved status."
+          [pTooltip]="'Percentage of Low severity findings that were published 30+ days ago' + (getLastObservedText() ? ', last observed ' + getLastObservedText() : '') + ', and have an existing POAM in an Approved status.'"
           tooltipPosition="top">
           <div class="metric-origin">Tenable</div>
           <div class="metric-description">CAT-III POAM Compliance %</div>
@@ -175,7 +203,8 @@
 <div class="card flex flex-row mt-4">
   <div class="basis-1/2">
     <div class="h-full flex flex-col">
-      <h3 class="chart-title">Open Findings by Severity (30+ Days)</h3>
+      <h3 class="chart-title">Open Findings by Severity {{ lastObservedTimeRange() === 'all' ? '' : '(' +
+        lastObservedTimeRange() + '+ Days)' }}</h3>
 
       @if (findingsChartData()) {
       <div class="flex items-center w-full flex-grow">
@@ -240,7 +269,7 @@
 
   <div class="basis-1/2">
     <div class="h-full flex flex-col">
-      <h3 class="chart-title">Open Findings by Severity</h3>
+      <h3 class="chart-title">Open Findings by Severity (All)</h3>
 
       @if (allFindingsChartData()) {
       <div class="flex items-center w-full flex-grow">
