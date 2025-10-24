@@ -287,7 +287,7 @@
       <div class="h-full min-h-[12rem] flex flex-col">
         <h3 class="chart-title">Assessment Status
           <i class="pi pi-info-circle ml-1"
-            [pTooltip]="'Total Assessments: ' + stigManagerMetrics().totalAssessments
+            [pTooltip]="'Total Checks: ' + stigManagerMetrics().totalAssessments
           + '\n\nFully Assessed STIGs: ' + `${((this.stigManagerMetrics().fullyAssessedSTIGsCount / this.stigManagerMetrics().totalSTIGsCount) * 100).toFixed(1)}% (${this.stigManagerMetrics().fullyAssessedSTIGsCount})`"></i>
         </h3>
         @if(assessmentChartData()) {
@@ -306,7 +306,7 @@
       class="grid grid-cols-3 grid-rows-2 h-[96%] gap-3 xl:grid-cols-3 xl:grid-rows-2 lg:grid-cols-2 lg:grid-rows-3 md:grid-cols-3 md:grid-rows-2 sm:grid-cols-2 sm:grid-rows-3 grid-cols-1 sm:grid-cols-2">
       @for (metric of metricsDisplay(); track metric.label) {
       <p-card
-        [class]="'metric-card flex items-center justify-center transition-all duration-300 ease-in-out rounded-xl overflow-hidden relative p-3 ' + metric.category"
+        class="metric-card flex items-center justify-center transition-all duration-300 ease-in-out rounded-xl overflow-hidden relative p-3"
         [class.high]="metric.severity === 'high'" [class.medium]="metric.severity === 'medium'"
         [class.low]="metric.severity === 'low'">
         <div class="flex flex-col items-center text-center w-full" [pTooltip]="metric?.tooltip" tooltipPosition="top">
