@@ -63,7 +63,7 @@ interface CachedVulnerabilityData {
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
     totalCompliance: number;
-  };
+  } | null;
   '30': {
     openVulnerabilities30Days: { criticalHigh: number; medium: number; low: number };
     openVulnerabilities: { criticalHigh: number; medium: number; low: number };
@@ -71,7 +71,7 @@ interface CachedVulnerabilityData {
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
     totalCompliance: number;
-  };
+  } | null;
   all: {
     openVulnerabilities30Days: { criticalHigh: number; medium: number; low: number };
     openVulnerabilities: { criticalHigh: number; medium: number; low: number };
@@ -79,7 +79,7 @@ interface CachedVulnerabilityData {
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
     totalCompliance: number;
-  };
+  } | null;
 }
 
 @Component({
@@ -105,6 +105,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   allFindingsChartData = signal<any>(null);
   findingsChartOptions = signal<any>(null);
   lastObservedTimeRange = signal<'7' | '30' | 'all'>('30');
+  loadedRanges = signal<Set<'7' | '30' | 'all'>>(new Set());
   hostTimeRange = signal<'7' | '30' | 'all'>('30');
   now = new Date();
 
@@ -170,6 +171,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     this.cachedPoamMetrics.set(0);
     this.cachedPastDueIAVs.set(0);
     this.cachedCredentialScanPercentage.set(0);
+    this.loadedRanges.set(new Set());
   }
 
   private loadAllData() {
@@ -186,9 +188,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     }
 
     forkJoin({
-      vulnerabilityData7: this.loadVulnerabilityDataForTimeRange(repoId, collectionId, '7'),
       vulnerabilityData30: this.loadVulnerabilityDataForTimeRange(repoId, collectionId, '30'),
-      vulnerabilityDataAll: this.loadVulnerabilityDataForTimeRange(repoId, collectionId, 'all'),
       hosts: this.loadAllHosts(repoId),
       poamMetrics: this.calculatePoamApprovalMetrics(collectionId, repoId),
       pastDueIAVs: this.calculatePastDueIAVs(repoId),
@@ -196,15 +196,26 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     })
       .pipe(
         tap((results) => {
+          const currentCached = this.cachedVulnerabilityData() || {
+            '7': null,
+            '30': null,
+            all: null
+          };
+
           this.cachedVulnerabilityData.set({
-            '7': results.vulnerabilityData7,
-            '30': results.vulnerabilityData30,
-            all: results.vulnerabilityDataAll
+            ...currentCached,
+            '30': results.vulnerabilityData30
           });
+
           this.cachedHosts.set(results.hosts);
           this.cachedPoamMetrics.set(results.poamMetrics);
           this.cachedPastDueIAVs.set(results.pastDueIAVs);
           this.cachedCredentialScanPercentage.set(results.credentialScanPercentage);
+
+          this.loadedRanges.update((ranges) => {
+            ranges.add('30');
+            return new Set(ranges);
+          });
 
           this.updateMetricsFromCache();
           this.isLoading.set(false);
@@ -214,6 +225,58 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
             severity: 'error',
             summary: 'Error',
             detail: `Error loading Tenable metrics: ${getErrorMessage(error)}`
+          });
+          this.isLoading.set(false);
+          return EMPTY;
+        })
+      )
+      .subscribe();
+  }
+
+  private loadTimeRangeData(timeRange: '7' | '30' | 'all') {
+    const loadedRanges = this.loadedRanges();
+
+    if (loadedRanges.has(timeRange)) {
+      this.lastObservedTimeRange.set(timeRange);
+      this.updateMetricsFromCache();
+      return;
+    }
+
+    const repoId = this.originCollectionId();
+    const collectionId = this.collection?.collectionId;
+
+    if (!repoId || !collectionId) return;
+
+    this.isLoading.set(true);
+
+    this.loadVulnerabilityDataForTimeRange(repoId, collectionId, timeRange)
+      .pipe(
+        tap((data) => {
+          const currentCached = this.cachedVulnerabilityData() || {
+            '7': null,
+            '30': null,
+            all: null
+          };
+
+          this.cachedVulnerabilityData.set({
+            ...currentCached,
+            [timeRange]: data
+          });
+
+          this.loadedRanges.update((ranges) => {
+            ranges.add(timeRange);
+            return new Set(ranges);
+          });
+
+          this.lastObservedTimeRange.set(timeRange);
+          this.updateMetricsFromCache();
+          this.isLoading.set(false);
+        }),
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error loading ${timeRange}-day metrics: ${getErrorMessage(error)}`
           });
           this.isLoading.set(false);
           return EMPTY;
@@ -241,6 +304,9 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
     const timeRange = this.lastObservedTimeRange();
     const data = cachedData[timeRange];
+
+    if (!data) return;
+
     const validAssets = this.getFilteredHostCount(this.hostTimeRange());
     const vphData = this.calculateVPHScore(data.openVulnerabilities.criticalHigh, data.openVulnerabilities.medium, data.openVulnerabilities.low, validAssets);
 
@@ -269,8 +335,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   }
 
   onLastObservedRangeChange(range: '7' | '30' | 'all') {
-    this.lastObservedTimeRange.set(range);
-    this.updateMetricsFromCache();
+    this.loadTimeRangeData(range);
   }
 
   onHostTimeRangeChange(range: '7' | '30' | 'all') {
@@ -284,8 +349,10 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
     const timeRange = this.lastObservedTimeRange();
     const data = cachedData[timeRange];
-    const validAssets = this.getFilteredHostCount(this.hostTimeRange());
 
+    if (!data) return;
+
+    const validAssets = this.getFilteredHostCount(this.hostTimeRange());
     const vphData = this.calculateVPHScore(data.openVulnerabilities.criticalHigh, data.openVulnerabilities.medium, data.openVulnerabilities.low, validAssets);
 
     this.tenableMetrics.update((current) => ({
@@ -337,7 +404,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     };
 
     return this.importService.postTenableHostSearch(hostParams).pipe(
-      map((response: any) => response?.response?.results || []),
+      map((response: any) => response?.response || []),
       catchError(() => of([]))
     );
   }
@@ -949,6 +1016,17 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
     const selectedRange = this.lastObservedTimeRange();
     const data = cachedData[selectedRange];
+
+    if (!data) {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Loading Data',
+        detail: 'Please wait while data loads, then try exporting again.'
+      });
+      this.loadTimeRangeData(selectedRange);
+      return;
+    }
+
     const collectionName = this.collectionName();
     const exportedDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
     const rows = [];
