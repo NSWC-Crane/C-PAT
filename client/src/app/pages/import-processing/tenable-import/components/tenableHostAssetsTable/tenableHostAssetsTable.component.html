@@ -89,7 +89,7 @@
   </div>
 </div>
 
-<p-dialog class="hostDialog" [(visible)]="displayDialog" [modal]="true"
+<p-dialog class="hostDialog" [(visible)]="displayDialog" [modal]="true" [closable]="true"
   [style]="{ width: '80vw', 'background-color': 'var(--ground-background)' }">
   <ng-template pTemplate="content">
     <div class="card mb-4">
@@ -250,7 +250,7 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog class="pluginDialog" [(visible)]="displayPluginDialog" [modal]="true"
+<p-dialog class="pluginDialog" [(visible)]="displayPluginDialog" [modal]="true" [closable]="true"
   [style]="{ width: '80vw', 'background-color': 'var(--ground-background)' }">
   <ng-template pTemplate="header">
     <div class="flex items-center">

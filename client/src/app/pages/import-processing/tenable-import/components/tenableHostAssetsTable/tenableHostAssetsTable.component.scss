@@ -8,16 +8,6 @@
 !##########################################################################
 */
 
-::ng-deep .p-dialog {
-  max-height: 90vh;
-  overflow-y: auto;
-  margin-top: 2rem;
-}
-
-::ng-deep .p-dialog-mask {
-  z-index: unset !important;
-}
-
 :host ::ng-deep {
   .custom-multiselect {
     position: absolute !important;
@@ -77,7 +67,7 @@
 }
 
 ::ng-deep .pluginDialog {
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
   margin-top: 2rem;
 }
@@ -97,5 +87,5 @@
 }
 
 ::ng-deep h3 {
-      margin: 0rem !important;
+  margin: 0rem !important;
 }
