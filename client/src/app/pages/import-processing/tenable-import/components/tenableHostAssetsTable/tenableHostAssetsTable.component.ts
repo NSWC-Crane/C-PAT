@@ -411,7 +411,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   }
 
   showPluginDetails(plugin: any): Promise<void> {
-    if (!plugin || !plugin.pluginID) {
+    if (!plugin?.pluginID) {
       this.isLoadingPluginDetails = false;
       this.showErrorMessage('Invalid plugin ID');
 
@@ -501,7 +501,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     return new Promise((resolve, reject) => {
       this.importService.postTenableAnalysis(analysisParams).subscribe({
         next: (data) => {
-          if (!data?.response || !data.response.results || !data.response.results.length) {
+          if (!data?.response?.results?.length) {
             reject(new Error('Invalid response from postTenableAnalysis'));
             this.isLoadingPluginDetails = false;
 
@@ -522,8 +522,8 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
             acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime)
           };
 
-          if (this.pluginDetailData.xrefs) {
-            this.parseReferences(this.pluginDetailData.xrefs);
+          if (this.pluginDetailData.xref) {
+            this.parseReferences(this.pluginDetailData.xref);
           } else {
             this.cveReferences = [];
             this.iavReferences = [];
@@ -701,8 +701,8 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     });
   }
 
-  parseReferences(xrefs: string) {
-    if (!xrefs) {
+  parseReferences(xref: string) {
+    if (!xref) {
       this.cveReferences = [];
       this.iavReferences = [];
       this.otherReferences = [];
@@ -710,7 +710,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const refs = xrefs.split(/\s+/).filter(Boolean);
+    const refs = xref.split(/\s+/).filter(Boolean);
 
     this.cveReferences = [];
     this.iavReferences = [];
