@@ -277,6 +277,10 @@ import { CardModule } from 'primeng/card';
         justify-content: center;
         gap: 8rem;
       }
+      ::ng-deep .p-menu.p-menu-overlay .p-menu-list {
+        max-height: 400px;
+        overflow-y: auto;
+      }
       @keyframes pulse {
         0% {
           transform: scale(1);
