@@ -17,7 +17,7 @@
 }
 
 ::ng-deep .p-dialog {
-  max-height: 90vh;
+  max-height: 85vh;
   overflow-y: auto;
 }
 
@@ -88,5 +88,5 @@ div.col-6 > * {
 }
 
 ::ng-deep .p-dialog .p-dialog-header {
-    padding: var(--p-dialog-header-padding);
+  padding: var(--p-dialog-header-padding);
 }

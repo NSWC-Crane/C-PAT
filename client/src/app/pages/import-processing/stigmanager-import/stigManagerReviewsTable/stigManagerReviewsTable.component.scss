@@ -8,11 +8,6 @@
 !##########################################################################
 */
 
-::ng-deep .p-dialog {
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
 :host ::ng-deep {
   .custom-multiselect {
     position: absolute !important;
