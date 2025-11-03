@@ -18,10 +18,18 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TooltipModule } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
 import { DividerModule } from 'primeng/divider';
-import { EMPTY, catchError, combineLatest, forkJoin, map, of, switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, catchError, combineLatest, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
+
+interface SeveritySummary {
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+  info: number;
+}
 
 interface MetricData {
   label: string;
@@ -57,24 +65,24 @@ interface VulnerabilityMetrics {
 
 interface CachedVulnerabilityData {
   '7': {
-    openVulnerabilities30Days: { criticalHigh: number; medium: number; low: number };
-    openVulnerabilities: { criticalHigh: number; medium: number; low: number };
+    severitySummary30Days: SeveritySummary;
+    severitySummary: SeveritySummary;
     exploitableFindings: number;
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
     totalCompliance: number;
   } | null;
   '30': {
-    openVulnerabilities30Days: { criticalHigh: number; medium: number; low: number };
-    openVulnerabilities: { criticalHigh: number; medium: number; low: number };
+    severitySummary30Days: SeveritySummary;
+    severitySummary: SeveritySummary;
     exploitableFindings: number;
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
     totalCompliance: number;
   } | null;
   all: {
-    openVulnerabilities30Days: { criticalHigh: number; medium: number; low: number };
-    openVulnerabilities: { criticalHigh: number; medium: number; low: number };
+    severitySummary30Days: SeveritySummary;
+    severitySummary: SeveritySummary;
     exploitableFindings: number;
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
@@ -289,8 +297,8 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const lastSeenValue = timeRange === 'all' ? null : timeRange === '7' ? '0:7' : '0:30';
 
     return forkJoin({
-      openVulnerabilities30Days: this.calculateDetailedOpenVulnerabilities(repoId, true, lastSeenValue),
-      openVulnerabilities: this.calculateDetailedOpenVulnerabilities(repoId, false, lastSeenValue),
+      severitySummary30Days: this.getSeveritySummary(repoId, true, lastSeenValue),
+      severitySummary: this.getSeveritySummary(repoId, false, lastSeenValue),
       exploitableFindings: this.calculateExploitableFindings(repoId, lastSeenValue),
       seolVulnerabilities: this.calculateSEOLVulnerabilities(repoId, lastSeenValue),
       complianceMetrics: this.calculateComplianceMetrics(repoId, collectionId, lastSeenValue),
@@ -308,7 +316,15 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     if (!data) return;
 
     const validAssets = this.getFilteredHostCount(this.hostTimeRange());
-    const vphData = this.calculateVPHScore(data.openVulnerabilities.criticalHigh, data.openVulnerabilities.medium, data.openVulnerabilities.low, validAssets);
+    const catICount = data.severitySummary.critical + data.severitySummary.high;
+    const catIICount = data.severitySummary.medium;
+    const catIIICount = data.severitySummary.low;
+
+    const catICount30 = data.severitySummary30Days.critical + data.severitySummary30Days.high;
+    const catIICount30 = data.severitySummary30Days.medium;
+    const catIIICount30 = data.severitySummary30Days.low;
+
+    const vphData = this.calculateVPHScore(catICount, catIICount, catIIICount, validAssets);
 
     this.tenableMetrics.set({
       totalPoamCompliance: data.totalCompliance,
@@ -316,12 +332,12 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       catICompliance: data.complianceMetrics.catI,
       catIICompliance: data.complianceMetrics.catII,
       catIIICompliance: data.complianceMetrics.catIII,
-      catIOpenCount30Days: data.openVulnerabilities30Days.criticalHigh,
-      catIIOpenCount30Days: data.openVulnerabilities30Days.medium,
-      catIIIOpenCount30Days: data.openVulnerabilities30Days.low,
-      catIOpenCount: data.openVulnerabilities.criticalHigh,
-      catIIOpenCount: data.openVulnerabilities.medium,
-      catIIIOpenCount: data.openVulnerabilities.low,
+      catIOpenCount30Days: catICount30,
+      catIIOpenCount30Days: catIICount30,
+      catIIIOpenCount30Days: catIIICount30,
+      catIOpenCount: catICount,
+      catIIOpenCount: catIICount,
+      catIIIOpenCount: catIIICount,
       exploitableFindingsCount: data.exploitableFindings,
       pastDueIAVCount: this.cachedPastDueIAVs(),
       seolVulnerabilitiesCount: data.seolVulnerabilities,
@@ -353,7 +369,11 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     if (!data) return;
 
     const validAssets = this.getFilteredHostCount(this.hostTimeRange());
-    const vphData = this.calculateVPHScore(data.openVulnerabilities.criticalHigh, data.openVulnerabilities.medium, data.openVulnerabilities.low, validAssets);
+    const catICount = data.severitySummary.critical + data.severitySummary.high;
+    const catIICount = data.severitySummary.medium;
+    const catIIICount = data.severitySummary.low;
+
+    const vphData = this.calculateVPHScore(catICount, catIICount, catIIICount, validAssets);
 
     this.tenableMetrics.update((current) => ({
       ...current,
@@ -409,28 +429,99 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     );
   }
 
-  private calculateDetailedOpenVulnerabilities(repoId: string, apply30DayFilter: boolean, lastSeenValue: string | null) {
-    const baseFilters = [];
+  private getSeveritySummary(repoId: string, apply30DayFilter: boolean, lastSeenValue: string | null): Observable<SeveritySummary> {
+    const filters = [
+      {
+        filterName: 'pluginType',
+        operator: '=',
+        value: 'active',
+        type: 'vuln',
+        isPredefined: true
+      }
+    ];
 
-    if (apply30DayFilter && lastSeenValue) {
-      baseFilters.push({ filterName: 'lastSeen', operator: '=', value: lastSeenValue, type: 'vuln', isPredefined: true });
+    if (lastSeenValue) {
+      filters.push({
+        filterName: 'lastSeen',
+        operator: '=',
+        value: lastSeenValue,
+        type: 'vuln',
+        isPredefined: true
+      });
     }
 
-    const criticalHighFilters = [...baseFilters, { filterName: 'severity', operator: '=', value: '3,4', type: 'vuln', isPredefined: true }];
-    const mediumFilters = [...baseFilters, { filterName: 'severity', operator: '=', value: '2', type: 'vuln', isPredefined: true }];
-    const lowFilters = [...baseFilters, { filterName: 'severity', operator: '=', value: '1', type: 'vuln', isPredefined: true }];
+    if (apply30DayFilter) {
+      filters.push({
+        filterName: 'vulnPublished',
+        operator: '=',
+        value: '30:all',
+        type: 'vuln',
+        isPredefined: true
+      });
+    }
 
-    return forkJoin({
-      criticalHigh: this.getTenableVulnerabilities(repoId, criticalHighFilters),
-      medium: this.getTenableVulnerabilities(repoId, mediumFilters),
-      low: this.getTenableVulnerabilities(repoId, lowFilters)
-    }).pipe(
-      map((results) => ({
-        criticalHigh: Number(results.criticalHigh.response?.totalRecords) || 0,
-        medium: Number(results.medium.response?.totalRecords) || 0,
-        low: Number(results.low.response?.totalRecords) || 0
-      })),
-      catchError(() => of({ criticalHigh: 0, medium: 0, low: 0 }))
+    const analysisParams = {
+      query: {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: 'sumseverity',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 50000,
+        filters: [this.createRepositoryFilter(repoId), ...filters],
+        sortColumn: 'severity',
+        sortDirection: 'desc',
+        vulnTool: 'sumseverity'
+      },
+      sourceType: 'cumulative',
+      sortField: 'severity',
+      sortDir: 'desc',
+      columns: [],
+      type: 'vuln'
+    };
+
+    return this.importService.postTenableAnalysis(analysisParams).pipe(
+      map((response: any) => {
+        const results = response?.response?.results || [];
+        const summary: SeveritySummary = {
+          critical: 0,
+          high: 0,
+          medium: 0,
+          low: 0,
+          info: 0
+        };
+
+        results.forEach((item: any) => {
+          const severityId = item.severity?.id;
+          const count = parseInt(item.count) || 0;
+
+          switch (severityId) {
+            case '4':
+              summary.critical = count;
+              break;
+            case '3':
+              summary.high = count;
+              break;
+            case '2':
+              summary.medium = count;
+              break;
+            case '1':
+              summary.low = count;
+              break;
+            case '0':
+              summary.info = count;
+              break;
+          }
+        });
+
+        return summary;
+      }),
+      catchError(() => of({ critical: 0, high: 0, medium: 0, low: 0, info: 0 }))
     );
   }
 
@@ -494,7 +585,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const catIVPH = (catICount / validAssets) * 10;
     const catIIVPH = (catIICount / validAssets) * 4;
     const catIIIVPH = (catIIICount / validAssets) * 1;
-    const vphScore = (catIVPH + catIIVPH + catIIIVPH) / 15;
+    const vphScore = (catIVPH + catIIVPH + catIIIVPH) / (10 + 4 + 1);
 
     let rating: string;
     if (vphScore < 2.5) {
@@ -1032,7 +1123,12 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const rows = [];
     const opensLabel = selectedRange === 'all' ? 'Opens (Unique)' : `Opens (Unique - ${selectedRange} Days)`;
     const timeRangeNote = selectedRange === 'all' ? '' : ` (${selectedRange} days)`;
-    const vphData = this.calculateVPHScore(data.openVulnerabilities.criticalHigh, data.openVulnerabilities.medium, data.openVulnerabilities.low, this.getFilteredHostCount(this.hostTimeRange()));
+
+    const catICount = data.severitySummary.critical + data.severitySummary.high;
+    const catIICount = data.severitySummary.medium;
+    const catIIICount = data.severitySummary.low;
+
+    const vphData = this.calculateVPHScore(catICount, catIICount, catIIICount, this.getFilteredHostCount(this.hostTimeRange()));
     const hostRangeLabel = this.hostTimeRange() === 'all' ? '' : ` - (Within ${this.hostTimeRange()} Days)`;
 
     rows.push([`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()} - ${selectedRange === 'all' ? 'All Time' : `${selectedRange} Days`}`]);
@@ -1041,9 +1137,9 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     rows.push([`[Tenable] ${collectionName}`, 'POAM', `CAT II Compliance %${timeRangeNote}`, `${data.complianceMetrics.catII.toFixed(1)}%`]);
     rows.push([`[Tenable] ${collectionName}`, 'POAM', `CAT III Compliance %${timeRangeNote}`, `${data.complianceMetrics.catIII.toFixed(1)}%`]);
     rows.push([`[Tenable] ${collectionName}`, 'POAM', `Total POAM Compliance %${timeRangeNote}`, `${data.totalCompliance.toFixed(1)}%`]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT I - ${opensLabel}`, data.openVulnerabilities.criticalHigh.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT II - ${opensLabel}`, data.openVulnerabilities.medium.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT III - ${opensLabel}`, data.openVulnerabilities.low.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT I - ${opensLabel}`, catICount.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT II - ${opensLabel}`, catIICount.toString()]);
+    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT III - ${opensLabel}`, catIIICount.toString()]);
     rows.push([
       `[Tenable] ${collectionName}`,
       'ACAS',
