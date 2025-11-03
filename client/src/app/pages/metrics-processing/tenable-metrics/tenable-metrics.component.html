@@ -60,7 +60,8 @@
 
   <p-card class="basis-5/6">
     <div class="relative">
-      <div class="relative flex items-center mb-2">
+      <div class="relative flex items-center gap-2 mb-2">
+        <span class="text-xs text-gray-400">Hosts:</span>
         <p-buttongroup>
           <p-button size="small" severity="secondary" label="7 Days" [outlined]="hostTimeRange() !== '7'"
             (onClick)="onHostTimeRangeChange('7')" [disabled]="isLoading()" />
@@ -85,7 +86,7 @@
             <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
               <div class="px-3 py-2 rounded-lg font-bold text-center"
                 [style.background-color]="getVPHColor(tenableMetrics().vphScore)" style="opacity: 0.9; color: white;"
-                pTooltip="VPH Formula: (((Critical + High) / Valid Hosts × 10) + (Medium / Valid Hosts × 4) + (Low / Valid Hosts × 1)) ÷ 15
+                pTooltip="VPH Formula: (((Critical Vulns + High Vulns) / Valid Hosts × 10) + (Medium Vulns / Valid Hosts × 4) + (Low Vulns / Valid Hosts × 1)) ÷ (10 + 4 + 1)
 
 Valid Hosts: {{ tenableMetrics().validOnlineAssets }}
 Host Time Range: {{ hostTimeRange() === 'all' ? 'All Time' : 'Last ' + hostTimeRange() + ' Days' }}
