@@ -46,7 +46,7 @@
       <div class="text-center text-xs text-gray-400">
         CORA Risk Score
       </div>
-      <div class="relative mb-[-2rem] mr-2 ml-2" style="height: 60px;">
+      <div class="relative -mb-10 mr-4 ml-4" style="height: 60px;">
         <div class="absolute w-full">
           <div class="absolute" [style.left.%]="100 - stigManagerMetrics().coraRiskScore"
             style="transform: translateX(-50%); z-index: 10;">
@@ -61,8 +61,8 @@
               </div>
             </div>
             <div class="absolute left-1/2 transform -translate-x-1/2"
-              style="width: 2px; background-color: white; height: 50px; top: 38px;">
-              <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -4px; left: -3px;"></div>
+              style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px;">
+              <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px;"></div>
             </div>
           </div>
         </div>
@@ -70,8 +70,8 @@
 
       <div class="relative">
         <div class="flex justify-between mb-2">
-          <span class="text-red-400 font-semibold text-xs">High Risk</span>
-          <span class="text-green-400 font-semibold text-xs text-right">Low Risk</span>
+          <span class="text-red-400 font-semibold text-xs opacity-90">High Risk</span>
+          <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
         </div>
 
         <div class="relative rounded-full h-10 overflow-hidden shadow-lg"
