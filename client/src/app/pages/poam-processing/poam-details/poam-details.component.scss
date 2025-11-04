@@ -236,18 +236,20 @@ hr {
     }
   }
 
-  .p-dialog-content {
-    padding: 2rem;
-    text-align: center;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
+  .submit-confirmation-dialog {
+    .p-dialog-content {
+      padding: 2rem;
+      text-align: center;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
 
-    > i {
-      font-size: 2rem;
-      color: var(--p-yellow-500);
-      margin-bottom: 1rem;
-      display: block;
+      > i {
+        font-size: 2rem;
+        color: var(--p-yellow-500);
+        margin-bottom: 1rem;
+        display: block;
+      }
     }
   }
 
