@@ -245,7 +245,8 @@
         <ul>
           @for (ref of iavReferences; track ref) {
           <li>
-            <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
+            <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener"
+              style="cursor: pointer; color: var(--p-primary-color);">{{ ref.value }}</a>
           </li>
           }
         </ul>
@@ -253,7 +254,8 @@
         <ul>
           @for (ref of cveReferences; track ref) {
           <li>
-            <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener">{{ ref.value }}</a>
+            <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener"
+              style="cursor: pointer; color: var(--p-primary-color);">{{ ref.value }}</a>
           </li>
           }
         </ul>
