@@ -313,6 +313,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   defaultPremadeFilterOptions: PremadeFilterOption[] = [
     { label: 'Vulnerability Published 30+ Days', value: 'vulnpublished30' },
+    { label: 'Plugin Published 30+ Days', value: 'pluginpublished30' },
     { label: 'Exploitable Findings 7+ Days', value: 'exploitable7' },
     { label: 'Exploitable Findings 30+ Days', value: 'exploitable30' },
     { label: 'Critical/ High 7+ Days', value: 'criticalHigh7' },
@@ -2320,6 +2321,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     switch (event.value) {
       case 'vulnpublished30':
         this.tempFilters['vulnPublished'] = '30:all';
+        break;
+      case 'pluginpublished30':
+        this.tempFilters['pluginPublished'] = '30:all';
         break;
       case 'exploitable7':
         this.tempFilters['exploitAvailable'] = 'true';
