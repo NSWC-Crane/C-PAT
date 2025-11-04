@@ -522,7 +522,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
             acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime)
           };
 
-          if (this.pluginDetailData.xref) {
+          if (this.pluginDetailData.xref && this.pluginData.xref.length > 0) {
             this.parseReferences(this.pluginDetailData.xref);
           } else {
             this.cveReferences = [];
@@ -710,23 +710,23 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const refs = xref.split(/\s+/).filter(Boolean);
+    const refs = xref.split(/,\s*/).filter(Boolean);
 
     this.cveReferences = [];
     this.iavReferences = [];
     this.otherReferences = [];
 
     refs.forEach((ref: string) => {
-      const [refType, ...valueParts] = ref.split(':');
-      const value = valueParts.join(':').replace(/,\s*$/, '').trim();
+      const [refType, ...valueParts] = ref.split('#');
+      const value = valueParts.join('#').replace(/,\s*$/, '').trim();
 
       if (refType && value) {
-        if (refType === 'CVE') {
-          this.cveReferences.push({ type: refType, value });
-        } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType)) {
-          this.iavReferences.push({ type: refType, value });
+        if (refType.trim() === 'CVE') {
+          this.cveReferences.push({ type: refType.trim(), value });
+        } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType.trim())) {
+          this.iavReferences.push({ type: refType.trim(), value });
         } else {
-          this.otherReferences.push({ type: refType, value });
+          this.otherReferences.push({ type: refType.trim(), value });
         }
       }
     });
