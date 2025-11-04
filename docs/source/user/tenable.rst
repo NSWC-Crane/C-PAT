@@ -41,32 +41,34 @@ To access the filter menu, a filter button is available to the top left of the t
      - Applied Filters
    * - Vulnerability Published 30+ Days
      - | vulnerabilityPublished = 30:all
+   * - Plugin Published 30+ Days
+     - | pluginPublished = 30:all
    * - Exploitable Findings 7+ Days
      - | exploitAvailable = true
-       | vulnerabilityPublished = 7:all
+       | pluginPublished = 7:all
    * - Exploitable Findings 30+ Days
      - | exploitAvailable = true
-       | vulnerabilityPublished = 30:all
+       | pluginPublished = 30:all
    * - Critical/High 7+ Days
      - | severity = [3, 4]
        | vulnerabilityLastObserved = 0:30
-       | vulnerabilityPublished = 7:all
+       | pluginPublished = 7:all
    * - Critical/High 14+ Days
      - | severity = [3, 4]
        | vulnerabilityLastObserved = 0:30
-       | vulnerabilityPublished = 14:all
+       | pluginPublished = 14:all
    * - Critical/High 30+ Days
      - | severity = [3, 4]
        | vulnerabilityLastObserved = 0:30
-       | vulnerabilityPublished = 30:all
+       | pluginPublished = 30:all
    * - Medium 180+ Days
      - | severity = [2]
        | vulnerabilityLastObserved = 0:30
-       | vulnerabilityPublished = 180:all
+       | pluginPublished = 180:all
    * - Low 365+ Days
      - | severity = [1]
        | vulnerabilityLastObserved = 0:30
-       | vulnerabilityPublished = 365:all
+       | pluginPublished = 365:all
    * - Cisco Findings 30+ Days
      - | pluginFamily = [33]
        | vulnerabilityLastObserved = 0:30
@@ -87,7 +89,7 @@ To access the filter menu, a filter button is available to the top left of the t
 Additional Filters
 """""""""""""""""""
 Additional filters are available for the following items inside of the main filter panel:
-``ACR`` ``AES`` ``AES Severity`` ``Accept Risk`` ``Address`` ``Agent ID`` ``Application CPE`` ``Assets`` ``Audit File`` ``CCE ID`` ``Cross References`` ``CVE ID`` ``CVSS v2 Score`` ``CVSS v2 Vector`` ``CVSS v3 Score`` ``CVSS v3 Vector`` ``Data Format`` ``DNS Name`` ``Exploit Available`` ``Exploit Frameworks`` ``Host ID`` ``IAVM ID`` ``MS Bulletin ID`` ``Mitigated`` ``NetBIOS Name`` ``Patch Published`` ``Plugin Family`` ``Plugin ID`` ``Plugin Modified`` ``Plugin Name`` ``Plugin Published`` ``Plugin Type`` ``Port`` ``Protocol`` ``Recast Risk`` ``STIG Severity`` ``Scan Policy Plugins`` ``Severity`` ``Users`` ``Vulnerability Discovered`` ``Vulnerability Last Observed`` ``Vulnerability Priority Rating`` ``Vulnerability Published`` ``Vulnerability Text`` ``Vulnerability Type``
+``ACR`` ``AES`` ``AES Severity`` ``Accept Risk`` ``Address`` ``Agent ID`` ``Application CPE`` ``Assets`` ``Audit File`` ``CCE ID`` ``Cross References`` ``CVE ID`` ``CVSS v2 Score`` ``CVSS v2 Vector`` ``CVSS v3 Score`` ``CVSS v3 Vector`` ``CVSS v4 Score`` ``CVSS v4 Threat Score`` ``CVSS v4 Supplemental`` ``CVSS v4 Threat Vector`` ``CVSS v4 Vector`` ``Data Format`` ``DNS Name`` ``Exploit Available`` ``Exploit Frameworks`` ``Host ID`` ``IAVM ID`` ``Input Name`` ``Input Type`` ``MS Bulletin ID`` ``Mitigated`` ``Nessus Web Tests`` ``NetBIOS Name`` ``Operating System`` ``Patch Published`` ``Plugin Family`` ``Plugin ID`` ``Plugin Modified`` ``Plugin Name`` ``Plugin Published`` ``Plugin Type`` ``Port`` ``Protocol`` ``Recast Risk`` ``STIG Severity`` ``Scan Accuracy`` ``Scan Policy Plugins`` ``Security End of Life Date`` ``Severity`` ``Thorough Tests`` ``Users`` ``Vulnerability Discovered`` ``Vulnerability ID`` ``Vulnerability Last Observed`` ``Vulnerability Priority Rating`` ``Vulnerability Published`` ``Vulnerability Text`` ``Vulnerability Type`` ``Web App HTTP Method`` ``Web App Scanning`` ``Web App URL``
 
 Column filters are available for the following items when the Vulnerability Summary view is selected:
 ``POAM`` ``IAV`` ``Navy Comply Date``
