@@ -1,6 +1,6 @@
 {
   "name": "cpat-client",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "scripts": {
     "ng": "ng",
     "analyze": "ng build --configuration=production --stats-json && webpack-bundle-analyzer dist/stats.json",
