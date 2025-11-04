@@ -452,7 +452,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
     if (apply30DayFilter) {
       filters.push({
-        filterName: 'vulnPublished',
+        filterName: 'pluginPublished',
         operator: '=',
         value: '30:all',
         type: 'vuln',
@@ -692,7 +692,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const catIFilters = [
       ...baseFilters,
       {
-        filterName: 'vulnPublished',
+        filterName: 'pluginPublished',
         operator: '=',
         value: '30:all',
         type: 'vuln',
@@ -710,7 +710,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const catIIFilters = [
       ...baseFilters,
       {
-        filterName: 'vulnPublished',
+        filterName: 'pluginPublished',
         operator: '=',
         value: '30:all',
         type: 'vuln',
@@ -728,7 +728,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const catIIIFilters = [
       ...baseFilters,
       {
-        filterName: 'vulnPublished',
+        filterName: 'pluginPublished',
         operator: '=',
         value: '30:all',
         type: 'vuln',
@@ -788,7 +788,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   private calculateExploitableFindings(repoId: string, lastSeenValue: string | null) {
     const filters = [
       {
-        filterName: 'vulnPublished',
+        filterName: 'pluginPublished',
         operator: '=',
         value: '7:all',
         type: 'vuln',

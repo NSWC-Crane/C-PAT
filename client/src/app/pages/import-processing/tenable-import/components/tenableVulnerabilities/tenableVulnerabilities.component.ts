@@ -1095,7 +1095,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     } else if (this.currentPreset === 'thirtyPlus') {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
-      this.tempFilters['vulnPublished'] = '30:all';
+      this.tempFilters['pluginPublished'] = '30:all';
     } else if (this.currentPreset === 'failedCredential') {
       this.tempFilters['pluginID'] = { operator: '=', value: '117886,10428,21745,24786,26917,102094,104410,110385,110723' };
     } else if (this.currentPreset === 'seol') {
@@ -2208,7 +2208,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     } else if (this.currentPreset === 'thirtyPlus') {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
-      this.tempFilters['vulnPublished'] = '30:all';
+      this.tempFilters['pluginPublished'] = '30:all';
     } else if (this.currentPreset === 'failedCredential') {
       this.tempFilters['pluginID'] = { operator: '=', value: '117886,10428,21745,24786,26917,102094,104410,110385,110723' };
     } else if (this.currentPreset === 'seol') {
@@ -2327,36 +2327,36 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         break;
       case 'exploitable7':
         this.tempFilters['exploitAvailable'] = 'true';
-        this.tempFilters['vulnPublished'] = '7:all';
+        this.tempFilters['pluginPublished'] = '7:all';
         break;
       case 'exploitable30':
         this.tempFilters['exploitAvailable'] = 'true';
-        this.tempFilters['vulnPublished'] = '30:all';
+        this.tempFilters['pluginPublished'] = '30:all';
         break;
       case 'criticalHigh7':
         this.tempFilters['severity'] = ['3', '4'];
         this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['vulnPublished'] = '7:all';
+        this.tempFilters['pluginPublished'] = '7:all';
         break;
       case 'criticalHigh14':
         this.tempFilters['severity'] = ['3', '4'];
         this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['vulnPublished'] = '14:all';
+        this.tempFilters['pluginPublished'] = '14:all';
         break;
       case 'criticalHigh30':
         this.tempFilters['severity'] = ['3', '4'];
         this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['vulnPublished'] = '30:all';
+        this.tempFilters['pluginPublished'] = '30:all';
         break;
       case 'medium180':
         this.tempFilters['severity'] = ['2'];
         this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['vulnPublished'] = '180:all';
+        this.tempFilters['pluginPublished'] = '180:all';
         break;
       case 'low365':
         this.tempFilters['severity'] = ['1'];
         this.tempFilters['lastSeen'] = '0:30';
-        this.tempFilters['vulnPublished'] = '365:all';
+        this.tempFilters['pluginPublished'] = '365:all';
         break;
       case 'seol':
         this.tempFilters['pluginName'] = { operator: '=', value: 'SEoL' };
