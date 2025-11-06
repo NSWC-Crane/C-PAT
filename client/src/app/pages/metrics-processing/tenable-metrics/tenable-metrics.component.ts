@@ -80,6 +80,14 @@ interface CachedVulnerabilityData {
     complianceMetrics: { catI: number; catII: number; catIII: number };
     totalCompliance: number;
   } | null;
+  '90': {
+    severitySummary30Days: SeveritySummary;
+    severitySummary: SeveritySummary;
+    exploitableFindings: number;
+    seolVulnerabilities: number;
+    complianceMetrics: { catI: number; catII: number; catIII: number };
+    totalCompliance: number;
+  } | null;
   all: {
     severitySummary30Days: SeveritySummary;
     severitySummary: SeveritySummary;
@@ -112,9 +120,9 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   findingsChartData = signal<any>(null);
   allFindingsChartData = signal<any>(null);
   findingsChartOptions = signal<any>(null);
-  lastObservedTimeRange = signal<'7' | '30' | 'all'>('30');
-  loadedRanges = signal<Set<'7' | '30' | 'all'>>(new Set());
-  hostTimeRange = signal<'7' | '30' | 'all'>('30');
+  lastObservedTimeRange = signal<'7' | '30' | '90' | 'all'>('30');
+  loadedRanges = signal<Set<'7' | '30' | '90' | 'all'>>(new Set());
+  hostTimeRange = signal<'7' | '30' | '90' | 'all'>('30');
   now = new Date();
 
   private cachedVulnerabilityData = signal<CachedVulnerabilityData | null>(null);
@@ -207,6 +215,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
           const currentCached = this.cachedVulnerabilityData() || {
             '7': null,
             '30': null,
+            '90': null,
             all: null
           };
 
@@ -241,7 +250,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       .subscribe();
   }
 
-  private loadTimeRangeData(timeRange: '7' | '30' | 'all') {
+  private loadTimeRangeData(timeRange: '7' | '30' | '90' | 'all') {
     const loadedRanges = this.loadedRanges();
 
     if (loadedRanges.has(timeRange)) {
@@ -263,6 +272,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
           const currentCached = this.cachedVulnerabilityData() || {
             '7': null,
             '30': null,
+            '90': null,
             all: null
           };
 
@@ -293,8 +303,8 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       .subscribe();
   }
 
-  private loadVulnerabilityDataForTimeRange(repoId: string, collectionId: any, timeRange: '7' | '30' | 'all') {
-    const lastSeenValue = timeRange === 'all' ? null : timeRange === '7' ? '0:7' : '0:30';
+  private loadVulnerabilityDataForTimeRange(repoId: string, collectionId: any, timeRange: '7' | '30' | '90' | 'all') {
+    const lastSeenValue = timeRange === 'all' ? null : timeRange === '7' ? '0:7' : timeRange === '30' ? '0:30' : '0:90';
 
     return forkJoin({
       severitySummary30Days: this.getSeveritySummary(repoId, true, lastSeenValue),
@@ -350,11 +360,11 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     this.prepareChartsData();
   }
 
-  onLastObservedRangeChange(range: '7' | '30' | 'all') {
+  onLastObservedRangeChange(range: '7' | '30' | '90' | 'all') {
     this.loadTimeRangeData(range);
   }
 
-  onHostTimeRangeChange(range: '7' | '30' | 'all') {
+  onHostTimeRangeChange(range: '7' | '30' | '90' | 'all') {
     this.hostTimeRange.set(range);
     this.updateVPHOnly();
   }
@@ -383,7 +393,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     }));
   }
 
-  private getFilteredHostCount(timeRange: '7' | '30' | 'all'): number {
+  private getFilteredHostCount(timeRange: '7' | '30' | '90' | 'all'): number {
     const hosts = this.cachedHosts();
 
     if (timeRange === 'all') {
@@ -391,7 +401,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     }
 
     const now = Date.now() / 1000;
-    const daysInSeconds = timeRange === '7' ? 7 * 24 * 60 * 60 : 30 * 24 * 60 * 60;
+    const daysInSeconds = timeRange === '7' ? 7 * 24 * 60 * 60 : timeRange === '30' ? 30 * 24 * 60 * 60 : 90 * 24 * 60 * 60;
     const cutoffTime = now - daysInSeconds;
 
     return hosts.filter((host: any) => {
@@ -650,7 +660,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   getLastObservedText(): string {
     const range = this.lastObservedTimeRange();
     if (range === 'all') return '';
-    return range === '7' ? 'within 7 days' : 'within 30 days';
+    return range === '7' ? 'within 7 days' : range === '30' ? 'within 30 days' : 'within 90 days';
   }
 
   private calculatePoamApprovalMetrics(collectionId: any, repoId: string) {
