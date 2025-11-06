@@ -87,6 +87,8 @@
 | The redirect URL sent by SwaggerUI to the OIDC provider when authorizing","API"
 "CPAT_SWAGGER_SERVER","| **Default** ``http://localhost:8086/api``
 | The API server URL relative to the SwaggerUI ","API"
+"CPAT_ALTERNATE_SWAGGER_SERVER","| **No default**
+| Alternate server URL for use within the SwaggerUI ","API"
 "STIGMAN_OIDC_CLIENT_ID","| **Default** ``stig-manager``
 | The OIDC clientId for STIG Manager","API, Client"
 "STIGMAN_API_URL","| **Default** ``http://localhost:54000/api``

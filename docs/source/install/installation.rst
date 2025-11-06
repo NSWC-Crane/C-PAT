@@ -209,6 +209,7 @@ It is likely you will have to set at least some of these Environment Variables, 
 
     - CPAT_SWAGGER_ENABLED
     - CPAT_SWAGGER_SERVER
+    - CPAT_ALTERNATE_SWAGGER_SERVER
     - CPAT_SWAGGER_REDIRECT
 
 Additional Suggested Configuration

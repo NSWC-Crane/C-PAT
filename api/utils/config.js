@@ -90,6 +90,7 @@ let config = {
         enabled: process.env.CPAT_SWAGGER_ENABLED === 'true',
         authority: process.env.CPAT_OIDC_PROVIDER || 'http://localhost:8080/auth/realms/RMFTools',
         server: process.env.CPAT_SWAGGER_SERVER || 'http://localhost:8086/api',
+        alternateServer: process.env.CPAT_ALTERNATE_SWAGGER_SERVER,
         oauth2RedirectUrl: process.env.CPAT_SWAGGER_REDIRECT || 'http://localhost:8086/api-docs/oauth2-redirect.html',
     },
     oauth: {

@@ -64,6 +64,7 @@ CPAT_MARKETPLACE_DISABLED="false"
 #swagger config
 CPAT_SWAGGER_ENABLED="true"
 CPAT_SWAGGER_SERVER="http://localhost:8086/api"
+CPAT_ALTERNATE_SWAGGER_SERVER="http://localhost:8086/api"
 CPAT_SWAGGER_REDIRECT="http://localhost:8086/api-docs/oauth2-redirect.html"
 
 #oauth config

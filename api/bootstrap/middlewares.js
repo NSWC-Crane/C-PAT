@@ -27,6 +27,7 @@ const RateLimit = require('express-rate-limit');
 
 function configureMiddleware(app) {
     const middlewareConfigFunctions = [
+        configureProxy,
         configureMulter,
         configureExpress,
         configureCors,
@@ -47,6 +48,10 @@ function configureMiddleware(app) {
     }
 
     logger.writeInfo('middleware', 'bootstrap', { message: 'middleware configured' });
+}
+
+function configureProxy(app) {
+    app.set('trust proxy', true);
 }
 
 function configureMulter(app) {
@@ -70,7 +75,6 @@ function configureRateLimit(app) {
             max: Number.parseInt(config.http.rateLimit),
         });
         app.use(limiter);
-        app.set('trust proxy', 1);
     }
 }
 
