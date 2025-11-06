@@ -1037,6 +1037,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   private getTenableMetricsDisplay(loading: boolean): MetricData[] {
     const m = this.tenableMetrics();
     const lastObservedText = this.getLastObservedText();
+    const hostRangeText = this.hostTimeRange() === 'all' ? '' : ` (${this.hostTimeRange()} Days)`;
 
     return [
       {
@@ -1083,6 +1084,15 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
         category: 'credential',
         severity: 'medium',
         isPercentage: true,
+        isLoading: loading
+      },
+      {
+        label: `Valid Online Assets${hostRangeText}`,
+        tooltip: `Total count of hosts that were last seen within ${this.hostTimeRange() === 'all' ? '∞ days' : `${this.hostTimeRange()} days`}`,
+        origin: 'Tenable',
+        value: loading ? '-' : m.validOnlineAssets,
+        category: 'hosts',
+        severity: 'info',
         isLoading: loading
       }
     ];
