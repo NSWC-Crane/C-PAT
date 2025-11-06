@@ -55,6 +55,13 @@ function getOAS() {
     oasDoc.info.version = config.version;
     oasDoc.servers[0].url = config.swaggerUi.server;
 
+    if (config.swaggerUi.alternateServer) {
+        if (!oasDoc.servers[1]) {
+            oasDoc.servers[1] = {};
+        }
+        oasDoc.servers[1].url = config.swaggerUi.alternateServer;
+    }
+
     oasDoc.components.securitySchemes.oauth.openIdConnectUrl = `${authority}/.well-known/openid-configuration`;
 
     return oasDoc;
