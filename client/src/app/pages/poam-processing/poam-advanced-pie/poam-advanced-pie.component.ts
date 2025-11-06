@@ -16,7 +16,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
   selector: 'cpat-poam-advanced-pie',
   template: `
     @if (pieChartData()?.length > 0) {
-      <ngx-charts-advanced-pie-chart [scheme]="colorScheme()" [results]="sortedPieChartData()" [gradient]="gradient" />
+      <ngx-charts-advanced-pie-chart [scheme]="colorScheme()" [animations]="false" [results]="sortedPieChartData()" [gradient]="gradient" />
     } @else {
       <div class="spinner-container">
         <p-progress-spinner ariaLabel="loading" />
