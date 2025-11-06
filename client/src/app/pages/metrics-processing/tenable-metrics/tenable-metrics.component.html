@@ -22,6 +22,9 @@
         <p-button size="small" severity="secondary" label="30 Days" tooltipPosition="left"
           pTooltip="Vulnerability Last Observed within 30 days" [outlined]="lastObservedTimeRange() !== '30'"
           (onClick)="onLastObservedRangeChange('30')" [disabled]="isLoading()" />
+        <p-button size="small" severity="secondary" label="90 Days" tooltipPosition="left"
+          pTooltip="Vulnerability Last Observed within 90 days" [outlined]="lastObservedTimeRange() !== '90'"
+          (onClick)="onLastObservedRangeChange('90')" [disabled]="isLoading()" />
         <p-button size="small" severity="secondary" label="All" tooltipPosition="left" pTooltip="All open findings"
           [outlined]="lastObservedTimeRange() !== 'all'" (onClick)="onLastObservedRangeChange('all')"
           [disabled]="isLoading()" />
@@ -67,6 +70,8 @@
             (onClick)="onHostTimeRangeChange('7')" [disabled]="isLoading()" />
           <p-button size="small" severity="secondary" label="30 Days" [outlined]="hostTimeRange() !== '30'"
             (onClick)="onHostTimeRangeChange('30')" [disabled]="isLoading()" />
+          <p-button size="small" severity="secondary" label="90 Days" [outlined]="hostTimeRange() !== '90'"
+            (onClick)="onHostTimeRangeChange('90')" [disabled]="isLoading()" />
           <p-button size="small" severity="secondary" label="All" [outlined]="hostTimeRange() !== 'all'"
             (onClick)="onHostTimeRangeChange('all')" [disabled]="isLoading()" />
         </p-buttongroup>
