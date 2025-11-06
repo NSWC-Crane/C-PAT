@@ -39,8 +39,24 @@
               <p-button [rounded]="true" [text]="true" [raised]="true" class="ml-4" icon="pi pi-search-plus"
                 pTooltip="Load all findings" (click)="getAllFindings()" />
             </div>
+            <div class="right-buttons">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400">STIG Revision:</span>
+                <p-buttongroup>
+                  <p-button size="small" severity="secondary" label="7+ Days" tooltipPosition="left"
+                    pTooltip="STIGs revised more than 7 days ago" [outlined]="revisionTimeRange() !== '7'"
+                    (onClick)="onRevisionRangeChange('7')" [disabled]="loadingTableInfo" />
+                  <p-button size="small" severity="secondary" label="30+ Days" tooltipPosition="left"
+                    pTooltip="STIGs revised more than 30 days ago" [outlined]="revisionTimeRange() !== '30'"
+                    (onClick)="onRevisionRangeChange('30')" [disabled]="loadingTableInfo" />
+                  <p-button size="small" severity="secondary" label="All" tooltipPosition="left" pTooltip="All STIGs"
+                    [outlined]="revisionTimeRange() !== 'all'" (onClick)="onRevisionRangeChange('all')"
+                    [disabled]="loadingTableInfo" />
+                </p-buttongroup>
+              </div>
+            </div>
           </div>
-          <p-table #stigBenchmarksTable [value]="loadingTableInfo ? loadingSkeletonData : benchmarkSummaries"
+          <p-table #stigBenchmarksTable [value]="loadingTableInfo ? loadingSkeletonData : filteredBenchmarkSummaries"
             selectionMode="single" [paginator]="true" [rows]="25" [scrollable]="true" scrollHeight="calc(100vh - 25rem)"
             [rowsPerPageOptions]="[10, 25, 50]" [globalFilterFields]="['benchmarkId', 'revisionStr']"
             dataKey="benchmarkId">
@@ -48,6 +64,7 @@
               <tr>
                 <th scope="col" pSortableColumn="benchmarkId">Benchmark</th>
                 <th scope="col" pSortableColumn="revisionStr">Revision</th>
+                <th scope="col" pSortableColumn="revisionStr">Revision Date</th>
                 <th scope="col" pSortableColumn="assets">Assets</th>
                 <th scope="col" pSortableColumn="metrics.assessments">Checks</th>
                 <th scope="col" pSortableColumn="metrics.minTs">Oldest</th>
@@ -67,6 +84,7 @@
               <tr (click)="selectBenchmark(benchmark)" [style.cursor]="'pointer'">
                 <td>{{ benchmark.benchmarkId }}</td>
                 <td>{{ benchmark.revisionStr }}</td>
+                <td>{{ benchmark.revisionDate ? (benchmark.revisionDate | date: 'shortDate') : '-'}}</td>
                 <td>{{ benchmark.assets }}</td>
                 <td>{{ benchmark.metrics?.assessments || 0 }}</td>
                 <td>{{ benchmark.metrics?.minTs ? (benchmark.metrics.minTs | date: 'shortDate') : '-' }}</td>

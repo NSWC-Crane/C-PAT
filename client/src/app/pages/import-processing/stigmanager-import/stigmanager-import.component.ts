@@ -9,11 +9,12 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ButtonGroupModule } from 'primeng/buttongroup';
 import { CardModule } from 'primeng/card';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -55,6 +56,7 @@ interface STIGManagerFinding {
   standalone: true,
   imports: [
     ButtonModule,
+    ButtonGroupModule,
     CardModule,
     CommonModule,
     FormsModule,
@@ -128,6 +130,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   private dataSource: STIGManagerFinding[] = [];
   public displayDataSource: STIGManagerFinding[] = [];
   public existingPoams: any[] = [];
+  revisionTimeRange = signal<'7' | '30' | 'all'>('30');
+  filteredBenchmarkSummaries: any[] = [];
   loadingTableInfo: boolean = true;
   loadingSkeletonData: any[] = Array(15).fill({});
   multiSortMeta: any[] = [];
@@ -215,6 +219,37 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.findingsTable().filterGlobal(inputValue, 'contains');
   }
 
+  onRevisionRangeChange(range: '7' | '30' | 'all'): void {
+    this.revisionTimeRange.set(range);
+    this.applyRevisionFilter();
+  }
+
+  private applyRevisionFilter(): void {
+    const range = this.revisionTimeRange();
+
+    if (range === 'all') {
+      this.filteredBenchmarkSummaries = [...this.benchmarkSummaries];
+    } else {
+      const days = parseInt(range);
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+
+      this.filteredBenchmarkSummaries = this.benchmarkSummaries.filter((benchmark) => {
+        if (!benchmark.revisionDate) {
+          return false;
+        }
+
+        const revisionDate = new Date(benchmark.revisionDate);
+        return revisionDate < cutoffDate;
+      });
+    }
+
+    const benchmarksTable = this.benchmarksTable();
+    if (benchmarksTable) {
+      benchmarksTable.first = 0;
+    }
+  }
+
   validateStigManagerCollection() {
     this.collectionsService.getCollectionBasicList().subscribe({
       next: (basicListData) => {
@@ -262,11 +297,11 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         if (!data || data.length === 0) {
           this.showWarn('No benchmark summaries found.');
           this.loadingTableInfo = false;
-
           return;
         }
 
         this.benchmarkSummaries = this.processBenchmarkData(data);
+        this.applyRevisionFilter();
       },
       error: (error) => {
         this.messageService.add({
@@ -549,10 +584,11 @@ ${ruleData.detail.vulnDiscussion}`;
 
   clearBenchmarkFilter() {
     const benchmarksTable = this.benchmarksTable();
-
     if (benchmarksTable) {
       benchmarksTable.clear();
     }
+    this.revisionTimeRange.set('30');
+    this.applyRevisionFilter();
   }
 
   clear() {
