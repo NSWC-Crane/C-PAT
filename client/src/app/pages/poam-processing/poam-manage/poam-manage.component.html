@@ -68,12 +68,12 @@
             </p-tablist>
             <p-tabpanels class="!p-0">
               <p-tabpanel value="0">
-                <div class="chart-title">CAT III - Low / Informational ({{ catIIITotal() }})</div>
+                <div class="chart-title">CAT III - Low ({{ catIIITotal() }})</div>
                 <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData()"
                   [collectionName]="'CAT III'" />
               </p-tabpanel>
               <p-tabpanel value="1">
-                <div class="chart-title">CAT III - Low / Informational - 30+ Days ({{ catIIITotal30Days() }})</div>
+                <div class="chart-title">CAT III - Low - 30+ Days ({{ catIIITotal30Days() }})</div>
                 <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData30Days()"
                   [collectionName]="'CAT III'" />
               </p-tabpanel>
@@ -103,7 +103,7 @@
       <div class="col-span-12 md:col-span-4">
         <p-card class="category-chart-card" styleClass="min-h-[22rem] p-1">
           <ng-template pTemplate="header">
-            <div class="chart-title">CAT III - Low / Informational ({{ catIIITotal() }})</div>
+            <div class="chart-title">CAT III - Low ({{ catIIITotal() }})</div>
           </ng-template>
           <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData()"
             [collectionName]="'CAT III'" />
