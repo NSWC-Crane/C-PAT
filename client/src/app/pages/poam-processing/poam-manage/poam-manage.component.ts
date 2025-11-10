@@ -220,6 +220,14 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
               type: 'vuln',
               isPredefined: true,
               value: '30:all'
+            },
+            {
+              id: 'severity',
+              filterName: 'severity',
+              operator: '=',
+              value: '1,2,3,4',
+              type: 'vuln',
+              isPredefined: true
             }
           ]
         },
@@ -312,8 +320,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
       critical: 'CAT I',
       high: 'CAT I',
       medium: 'CAT II',
-      low: 'CAT III',
-      informational: 'CAT III'
+      low: 'CAT III'
     };
 
     for (const finding of this.findingsData()) {
@@ -346,10 +353,8 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
         return 'high';
       case 'medium':
         return 'medium';
-      case 'low':
-        return 'low';
       default:
-        return 'informational';
+        return 'low';
     }
   }
 
@@ -396,8 +401,7 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
       critical: 'CAT I',
       high: 'CAT I',
       medium: 'CAT II',
-      low: 'CAT III',
-      informational: 'CAT III'
+      low: 'CAT III'
     };
 
     const approvedPoams = this.poams().filter((poam) => poam.status === 'Approved');
