@@ -632,22 +632,24 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
     const rows = [];
     const stigsAssessedPercentage = metrics.totalSTIGsCount > 0 ? ((metrics.fullyAssessedSTIGsCount / metrics.totalSTIGsCount) * 100).toFixed(1) : '0.0';
 
-    rows.push([`[STIG Manager] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()}`]);
-    rows.push(['Collection Name', 'CATEGORY', 'METRIC', 'VALUE']);
-    rows.push([`[STIG Manager] ${collectionName}`, 'POAM', 'CAT I Compliance %', `${metrics.catICompliance.toFixed(1)}%`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'POAM', 'CAT II Compliance %', `${metrics.catIICompliance.toFixed(1)}%`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'POAM', 'CAT III Compliance %', `${metrics.catIIICompliance.toFixed(1)}%`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT I - Opens (Unique)', metrics.catIOpenCount.toString()]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT II - Opens (Unique)', metrics.catIIOpenCount.toString()]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT III - Opens (Unique)', metrics.catIIIOpenCount.toString()]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'CORA Risk Score %', `${metrics.coraRiskScore.toFixed(1)}%`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'STIGs', 'STIGs 100% Assessed (%)', `${stigsAssessedPercentage}%`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Total Checks', `${metrics.totalAssessments}`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Accepted', `${metrics.acceptedCount}`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Submitted', `${metrics.submittedCount}`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Rejected', `${metrics.rejectedCount}`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Assessed', `${assessedOnly}`]);
-    rows.push([`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Unassessed', `${unassessedCount}`]);
+    rows.push(
+      [`[STIG Manager] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()}`],
+      ['Collection Name', 'CATEGORY', 'METRIC', 'VALUE'],
+      [`[STIG Manager] ${collectionName}`, 'POAM', 'CAT I Compliance %', `${metrics.catICompliance.toFixed(1)}%`],
+      [`[STIG Manager] ${collectionName}`, 'POAM', 'CAT II Compliance %', `${metrics.catIICompliance.toFixed(1)}%`],
+      [`[STIG Manager] ${collectionName}`, 'POAM', 'CAT III Compliance %', `${metrics.catIIICompliance.toFixed(1)}%`],
+      [`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT I - Opens (Unique)', metrics.catIOpenCount.toString()],
+      [`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT II - Opens (Unique)', metrics.catIIOpenCount.toString()],
+      [`[STIG Manager] ${collectionName}`, 'STIGs', 'CAT III - Opens (Unique)', metrics.catIIIOpenCount.toString()],
+      [`[STIG Manager] ${collectionName}`, 'STIGs', 'CORA Risk Score %', `${metrics.coraRiskScore.toFixed(1)}%`],
+      [`[STIG Manager] ${collectionName}`, 'STIGs', 'STIGs 100% Assessed (%)', `${stigsAssessedPercentage}%`],
+      [`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Total Checks', `${metrics.totalAssessments}`],
+      [`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Accepted', `${metrics.acceptedCount}`],
+      [`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Submitted', `${metrics.submittedCount}`],
+      [`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Rejected', `${metrics.rejectedCount}`],
+      [`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Assessed', `${assessedOnly}`],
+      [`[STIG Manager] ${collectionName}`, 'Assessment Status', 'Unassessed', `${unassessedCount}`]
+    );
 
     this.exportAsCSV(rows, `${collectionName}_CPAT_Metrics_${exportedDate}`);
   }

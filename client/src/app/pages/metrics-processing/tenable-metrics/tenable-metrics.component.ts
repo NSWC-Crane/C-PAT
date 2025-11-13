@@ -1151,26 +1151,23 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const vphData = this.calculateVPHScore(catICount, catIICount, catIIICount, this.getFilteredHostCount(this.hostTimeRange()));
     const hostRangeLabel = this.hostTimeRange() === 'all' ? '' : ` - (Within ${this.hostTimeRange()} Days)`;
 
-    rows.push([`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()} - ${selectedRange === 'all' ? 'All Time' : `${selectedRange} Days`}`]);
-    rows.push(['Collection Name', 'CATEGORY', 'METRIC', 'VALUE']);
-    rows.push([`[Tenable] ${collectionName}`, 'POAM', `CAT I Compliance %${timeRangeNote}`, `${data.complianceMetrics.catI.toFixed(1)}%`]);
-    rows.push([`[Tenable] ${collectionName}`, 'POAM', `CAT II Compliance %${timeRangeNote}`, `${data.complianceMetrics.catII.toFixed(1)}%`]);
-    rows.push([`[Tenable] ${collectionName}`, 'POAM', `CAT III Compliance %${timeRangeNote}`, `${data.complianceMetrics.catIII.toFixed(1)}%`]);
-    rows.push([`[Tenable] ${collectionName}`, 'POAM', `Total POAM Compliance %${timeRangeNote}`, `${data.totalCompliance.toFixed(1)}%`]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT I - ${opensLabel}`, catICount.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT II - ${opensLabel}`, catIICount.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `CAT III - ${opensLabel}`, catIIICount.toString()]);
-    rows.push([
-      `[Tenable] ${collectionName}`,
-      'ACAS',
-      selectedRange === 'all' ? 'Exploitable Findings (Published 7+ Days)' : `Exploitable Findings (Published 7+ Days & Last Observed Within ${selectedRange} Days)`,
-      data.exploitableFindings.toString()
-    ]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Past Due IAVs', this.cachedPastDueIAVs().toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', selectedRange === 'all' ? 'Security End of Life (Unique)' : `Security End of Life (Unique - Last Observed Within ${selectedRange} Days)`, data.seolVulnerabilities.toString()]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', 'Credentialed Scan %', `${this.cachedCredentialScanPercentage().toFixed(1)}%`]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `VPH Score${hostRangeLabel}`, vphData.score.toFixed(2)]);
-    rows.push([`[Tenable] ${collectionName}`, 'ACAS', `Valid Online Assets${hostRangeLabel}`, this.getFilteredHostCount(this.hostTimeRange()).toString()]);
+    rows.push(
+      [`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()} - ${selectedRange === 'all' ? 'All Time' : `${selectedRange} Days`}`],
+      ['Collection Name', 'CATEGORY', 'METRIC', 'VALUE'],
+      [`[Tenable] ${collectionName}`, 'POAM', `CAT I Compliance %${timeRangeNote}`, `${data.complianceMetrics.catI.toFixed(1)}%`],
+      [`[Tenable] ${collectionName}`, 'POAM', `CAT II Compliance %${timeRangeNote}`, `${data.complianceMetrics.catII.toFixed(1)}%`],
+      [`[Tenable] ${collectionName}`, 'POAM', `CAT III Compliance %${timeRangeNote}`, `${data.complianceMetrics.catIII.toFixed(1)}%`],
+      [`[Tenable] ${collectionName}`, 'POAM', `Total POAM Compliance %${timeRangeNote}`, `${data.totalCompliance.toFixed(1)}%`],
+      [`[Tenable] ${collectionName}`, 'ACAS', `CAT I - ${opensLabel}`, catICount.toString()],
+      [`[Tenable] ${collectionName}`, 'ACAS', `CAT II - ${opensLabel}`, catIICount.toString()],
+      [`[Tenable] ${collectionName}`, 'ACAS', `CAT III - ${opensLabel}`, catIIICount.toString()],
+      [`[Tenable] ${collectionName}`, 'ACAS', selectedRange === 'all' ? 'Exploitable Findings (Published 7+ Days)' : `Exploitable Findings (Published 7+ Days & Last Observed Within ${selectedRange} Days)`, data.exploitableFindings.toString()],
+      [`[Tenable] ${collectionName}`, 'ACAS', 'Past Due IAVs', this.cachedPastDueIAVs().toString()],
+      [`[Tenable] ${collectionName}`, 'ACAS', selectedRange === 'all' ? 'Security End of Life (Unique)' : `Security End of Life (Unique - Last Observed Within ${selectedRange} Days)`, data.seolVulnerabilities.toString()],
+      [`[Tenable] ${collectionName}`, 'ACAS', 'Credentialed Scan %', `${this.cachedCredentialScanPercentage().toFixed(1)}%`],
+      [`[Tenable] ${collectionName}`, 'ACAS', `VPH Score${hostRangeLabel}`, vphData.score.toFixed(2)],
+      [`[Tenable] ${collectionName}`, 'ACAS', `Valid Online Assets${hostRangeLabel}`, this.getFilteredHostCount(this.hostTimeRange()).toString()]
+    );
 
     this.exportAsCSV(rows, `${collectionName}_CPAT_Metrics_${exportedDate}`);
   }
