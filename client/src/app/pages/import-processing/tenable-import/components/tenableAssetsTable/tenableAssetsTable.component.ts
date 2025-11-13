@@ -30,6 +30,7 @@ import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { AssetDeltaService } from '../../../../admin-processing/asset-delta/asset-delta.service';
 import { ImportService } from '../../../import.service';
+import { format } from 'date-fns';
 
 interface Reference {
   type: string;
@@ -119,7 +120,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   initColumnsAndFilters() {
-    this.cols = [
+    const cols = [
       { field: 'pluginName', header: 'Name', width: '200px', filterable: true },
       { field: 'family', header: 'Family', width: '150px', filterable: true },
       {
@@ -172,11 +173,46 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
       },
       { field: 'teamAssigned', header: 'Team', width: '120px', filterable: false }
     ];
+
+    const poamCols = [
+      {
+        field: 'firstSeen',
+        header: 'First Discovered',
+        width: '200px',
+        filterable: false
+      },
+      {
+        field: 'lastSeen',
+        header: 'Last Observed',
+        width: '200px',
+        filterable: false
+      },
+      {
+        field: 'hasBeenMitigated',
+        header: 'Previously Mitigated',
+        width: '200px',
+        filterable: false
+      }
+    ];
+
+    if (this.pluginID && this.tenableRepoId) {
+      this.cols = [...cols, ...poamCols];
+    } else {
+      this.cols = cols;
+    }
+
     this.exportColumns = this.cols.map((col) => ({
       title: col.header,
       dataKey: col.field
     }));
-    this.selectedColumns = this.cols.filter((col) => ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'ips', 'netbiosName', 'dnsName', 'port', 'protocol', 'teamAssigned'].includes(col.field));
+
+    let selectedFields = ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'ips', 'netbiosName', 'dnsName', 'port', 'protocol', 'teamAssigned'];
+
+    if (this.pluginID && this.tenableRepoId) {
+      selectedFields.push('lastSeen');
+    }
+
+    this.selectedColumns = this.cols.filter((col) => selectedFields.includes(col.field));
   }
 
   loadAssetDeltaList() {
@@ -239,12 +275,12 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         modifiedTime: 0,
         groups: [],
         type: 'vuln',
-        tool: 'listvuln',
+        tool: 'vulndetails',
         sourceType: 'cumulative',
         startOffset: 0,
         endOffset: 5000,
         filters: filters,
-        vulnTool: 'listvuln'
+        vulnTool: 'vulndetails'
       },
       sourceType: 'cumulative',
       columns: [],
@@ -269,10 +305,13 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
           return {
             ...asset,
-            pluginName: asset.name || '',
+            pluginName: asset.pluginName || '',
             family: asset.family?.name || '',
             severity: asset.severity?.name || '',
-            sourcePluginIDs: [sourcePluginID]
+            sourcePluginIDs: [sourcePluginID],
+            lastSeen: this.formatTimestamp(asset.lastSeen),
+            firstSeen: this.formatTimestamp(asset.firstSeen),
+            hasBeenMitigated: asset.hasBeenMitigated === '1' ? 'Previously Mitigated' : 'False'
           };
         });
 
@@ -588,6 +627,38 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     });
   }
 
+  formatTimestamp(timestamp: number | string | undefined): string {
+    if (!timestamp || timestamp === '-1') return undefined;
+
+    try {
+      if (typeof timestamp === 'string' && timestamp.includes('/')) {
+        return timestamp;
+      }
+
+      const date = new Date(Number(timestamp) * 1000);
+
+      if (Number.isNaN(date.getTime())) {
+        const dateMs = new Date(Number(timestamp));
+
+        if (!Number.isNaN(dateMs.getTime())) {
+          return format(dateMs, 'MM/dd/yyyy');
+        }
+
+        return '';
+      }
+
+      return format(date, 'MM/dd/yyyy');
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error formatting timestamp: ${getErrorMessage(error)}`
+      });
+
+      return '';
+    }
+  }
+
   parseVprContext(vprContext: string) {
     try {
       this.parsedVprContext = JSON.parse(vprContext);
@@ -695,7 +766,13 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter((col) => ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'ips', 'netbiosName', 'dnsName', 'port', 'protocol', 'teamAssigned'].includes(col.field));
+    let selectedFields = ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'ips', 'netbiosName', 'dnsName', 'port', 'protocol', 'teamAssigned'];
+
+    if (this.pluginID && this.tenableRepoId) {
+      selectedFields.push('lastSeen');
+    }
+
+    this.selectedColumns = this.cols.filter((col) => selectedFields.includes(col.field));
   }
 
   toggleAddColumnOverlay() {
