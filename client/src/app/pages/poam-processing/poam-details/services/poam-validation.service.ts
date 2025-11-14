@@ -9,7 +9,7 @@
 */
 
 import { Injectable, inject } from '@angular/core';
-import { addDays, format, isAfter, isBefore, parse } from 'date-fns';
+import { format, isAfter, isBefore, parse } from 'date-fns';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';
 
 @Injectable({
@@ -218,7 +218,7 @@ export class PoamValidationService {
     }
 
     const scheduledCompletionDate = parse(poam.scheduledCompletionDate.split('T')[0], 'yyyy-MM-dd', new Date());
-    const extensionTimeAllowed = poam.extensionTimeAllowed || 0;
+    const extensionDays = poam.extensionDays || 0;
 
     for (const milestone of milestones) {
       if (!milestone.milestoneDate) {
@@ -226,23 +226,20 @@ export class PoamValidationService {
       }
 
       const milestoneDate = new Date(milestone.milestoneDate);
+      const extensionDeadline = new Date(poam.extensionDeadline);
 
-      if (extensionTimeAllowed === 0) {
+      if (extensionDays === 0) {
         if (isAfter(milestoneDate, scheduledCompletionDate)) {
           return {
             valid: false,
-            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a date (${format(milestoneDate, 'yyyy-MM-dd')}) that exceeds the POAM scheduled completion date (${format(scheduledCompletionDate, 'yyyy-MM-dd')}).`
+            message: 'The Milestone date provided exceeds the POAM scheduled completion date.'
           };
         }
-      } else {
-        const maxAllowedDate = addDays(scheduledCompletionDate, extensionTimeAllowed);
-
-        if (isAfter(milestoneDate, maxAllowedDate)) {
-          return {
-            valid: false,
-            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a date (${format(milestoneDate, 'yyyy-MM-dd')}) that exceeds the POAM scheduled completion date and the allowed extension time (${format(maxAllowedDate, 'yyyy-MM-dd')}).`
-          };
-        }
+      } else if (isAfter(milestoneDate, extensionDeadline)) {
+        return {
+          valid: false,
+          message: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
+        };
       }
     }
 

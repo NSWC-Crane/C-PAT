@@ -8,8 +8,48 @@
 !##########################################################################
 */
 
+::ng-deep .p-dialog {
+  .p-dialog-header {
+    padding: 2rem 2rem 0 2rem;
+    border: none;
+    display: flex;
+    justify-content: center;
+
+    .p-dialog-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
+    }
+  }
+
+  .p-dialog-content {
+    padding: 2rem;
+    flex-direction: column;
+    overflow: hidden;
+
+    > i {
+      font-size: 2rem;
+      color: var(--p-yellow-500);
+      margin-bottom: 1rem;
+      display: block;
+    }
+  }
+
+  > span {
+    display: block;
+    width: 100%;
+  }
+
+  .p-dialog-footer {
+    display: flex;
+    border: none;
+    justify-content: space-between;
+    padding: 1rem;
+  }
+}
+
 .container {
-  padding: 1rem;
+  padding: 0rem 1rem 1rem 1rem;
 }
 
 .p-field {

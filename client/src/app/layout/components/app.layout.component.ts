@@ -246,9 +246,7 @@ import { CardModule } from 'primeng/card';
           0 3px 6px rgba(0, 0, 0, 0.16),
           0 3px 6px rgba(0, 0, 0, 0.23);
       }
-      ::ng-deep .p-dialog .p-dialog-header {
-        padding: 0rem;
-      }
+
       ::ng-deep .p-dialog .p-dialog-content {
         color: var(--text-color);
         padding: 2rem;

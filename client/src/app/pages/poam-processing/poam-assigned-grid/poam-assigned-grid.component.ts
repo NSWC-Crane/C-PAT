@@ -11,7 +11,7 @@
 import { Component, Input, computed, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { addDays, format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -155,10 +155,10 @@ export class PoamAssignedGridComponent {
     });
 
     const transformedData = data.map((item) => {
-      let adjustedDate = new Date(item.scheduledCompletionDate);
+      let adjustedDate = parseISO(item.scheduledCompletionDate.split('T')[0]);
 
-      if (typeof item?.extensionTimeAllowed === 'number' && item?.extensionTimeAllowed > 0) {
-        adjustedDate = addDays(adjustedDate, item.extensionTimeAllowed);
+      if (item.extensionDeadline) {
+        adjustedDate = parseISO(item.extensionDeadline.split('T')[0]);
       }
 
       const primaryCount = assetCountMap.get(item.vulnerabilityId);

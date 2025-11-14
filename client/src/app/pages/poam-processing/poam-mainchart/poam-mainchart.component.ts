@@ -246,7 +246,7 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
             return poam.rawSeverity === value;
 
           case 'scheduledCompletion': {
-            const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionTimeAllowed);
+            const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionDays, poam.extensionDeadline);
 
             return this.getScheduledCompletionLabel(days) === value;
           }
@@ -441,7 +441,7 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
               return poam.rawSeverity === value;
 
             case 'scheduledCompletion': {
-              const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionTimeAllowed);
+              const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionDays, poam.extensionDeadline);
 
               return this.getScheduledCompletionLabel(days) === value;
             }
@@ -595,7 +595,7 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
     const scheduledCompletionCounts: { [scheduledCompletion: string]: number } = {};
 
     filteredPoams.forEach((poam) => {
-      const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionTimeAllowed);
+      const days = this.calculateDaysDifference(poam.scheduledCompletionDate, poam.extensionDays, poam.extensionDeadline);
       const scheduledCompletion = this.getScheduledCompletionLabel(days);
 
       scheduledCompletionCounts[scheduledCompletion] = (scheduledCompletionCounts[scheduledCompletion] || 0) + 1;
@@ -721,9 +721,9 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
     this.updateAllCharts();
   }
 
-  calculateDaysDifference(scheduledCompletionDate: any, extensionTimeAllowed: any): number {
+  calculateDaysDifference(scheduledCompletionDate: any, extensionDays: any, extensionDeadline: any): number {
     const currentDate = new Date();
-    const completionDate = addDays(new Date(scheduledCompletionDate), extensionTimeAllowed);
+    const completionDate = extensionDeadline ?? addDays(new Date(scheduledCompletionDate), extensionDays);
 
     return differenceInCalendarDays(completionDate, currentDate);
   }

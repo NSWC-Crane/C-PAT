@@ -504,9 +504,9 @@ exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamSch
             let sql = `
                 SELECT
                     scheduledCompletionDate,
-                    extensionTimeAllowed,
+                    extensionDays,
                     DATEDIFF(
-                        DATE_ADD(scheduledCompletionDate, INTERVAL IFNULL(extensionTimeAllowed, 0) DAY),
+                        DATE_ADD(scheduledCompletionDate, INTERVAL IFNULL(extensionDays, 0) DAY),
                         CURDATE()
                     ) AS daysUntilCompletion
                 FROM poam

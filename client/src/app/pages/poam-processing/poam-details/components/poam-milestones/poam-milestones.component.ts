@@ -247,9 +247,10 @@ export class PoamMilestonesComponent implements OnInit {
 
     const milestoneDate = new Date(milestone.milestoneDate);
     const scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
-    const extensionTimeAllowed = this.poam.extensionTimeAllowed || 0;
+    const extensionDays = this.poam.extensionDays || 0;
+    const extensionDeadline = new Date(this.poam.extensionDeadline);
 
-    if (extensionTimeAllowed === 0) {
+    if (extensionDays === 0) {
       if (isAfter(milestoneDate, scheduledCompletionDate)) {
         this.messageService.add({
           severity: 'warn',
@@ -259,18 +260,14 @@ export class PoamMilestonesComponent implements OnInit {
 
         return false;
       }
-    } else {
-      const maxAllowedDate = addDays(scheduledCompletionDate, extensionTimeAllowed);
+    } else if (isAfter(milestoneDate, extensionDeadline)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Information',
+        detail: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
+      });
 
-      if (isAfter(milestoneDate, maxAllowedDate)) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Information',
-          detail: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
-        });
-
-        return false;
-      }
+      return false;
     }
 
     return true;

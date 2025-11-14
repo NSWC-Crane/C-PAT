@@ -133,7 +133,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         adjSeverity: poam.adjSeverity,
         owner: poam.ownerName ?? poam.submitterName,
         submittedDate: poam.submittedDate?.split('T')[0],
-        scheduledCompletionDate: poam.scheduledCompletionDate?.split('T')[0],
+        scheduledCompletionDate: poam.extensionDeadline ? poam.extensionDeadline.split('T')[0] : poam.scheduledCompletionDate?.split('T')[0],
         assignedTeams: poam.assignedTeams
           ? poam.assignedTeams.map((team: any) => ({
               name: team.assignedTeamName,

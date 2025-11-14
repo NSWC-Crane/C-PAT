@@ -167,7 +167,6 @@ export class AppConfiguratorComponent implements OnInit {
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.onPresetChange((this.configService.appState().preset as KeyOfType<typeof presets>) ?? 'Aura');
       this.toggleRTL(this.configService.appState().RTL ?? false);
     }
 
@@ -194,6 +193,7 @@ export class AppConfiguratorComponent implements OnInit {
             try {
               const prefs = JSON.parse(user.defaultTheme);
               const preset = this.presets.includes(prefs.preset) ? prefs.preset : defaults.preset;
+              this.configService.appState.update((state) => ({ ...state, preset }));
               const primary = this.primaryColors().some((c) => c.name === prefs.primary) ? prefs.primary : defaults.primary;
               const surface = this.surfaces.some((s) => s.name === prefs.surface) ? prefs.surface : defaults.surface;
               const darkTheme = typeof prefs.darkTheme === 'boolean' ? prefs.darkTheme : defaults.darkTheme;
@@ -207,7 +207,6 @@ export class AppConfiguratorComponent implements OnInit {
                 darkTheme,
                 RTL: rtl
               }));
-
               this.onPresetChange(preset as PresetType);
             } catch (error) {
               console.error('Error parsing user preferences:', error);
