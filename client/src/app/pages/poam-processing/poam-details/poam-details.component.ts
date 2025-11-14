@@ -12,7 +12,7 @@ import { CommonModule, DatePipe, Location } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, computed, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { addDays, format, parse } from 'date-fns';
+import { format, parse, parseISO } from 'date-fns';
 import { AccordionModule } from 'primeng/accordion';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -402,8 +402,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
           this.dates.scheduledCompletionDate = poam.scheduledCompletionDate ? parse(poam.scheduledCompletionDate.split('T')[0], 'yyyy-MM-dd', new Date()) : null;
 
-          if (this.dates.scheduledCompletionDate && this.poam.extensionTimeAllowed > 0) {
-            this.completionDateWithExtension = format(addDays(this.dates.scheduledCompletionDate, this.poam.extensionTimeAllowed), 'yyyy-MM-dd');
+          if (this.poam.extensionDeadline && this.poam.extensionDays > 0) {
+            this.poam.extensionDeadline = format(parseISO(this.poam.extensionDeadline.split('T')[0]), 'yyyy-MM-dd');
+            this.completionDateWithExtension = this.poam.extensionDeadline;
           }
 
           this.dates.iavComplyByDate = poam.iavComplyByDate ? parse(poam.iavComplyByDate.split('T')[0], 'yyyy-MM-dd', new Date()) : null;

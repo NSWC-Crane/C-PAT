@@ -742,7 +742,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                             'officeOrg',
                             'poamLog',
                             'severity',
-                            'extensionTimeAllowed',
+                            'extensionDays',
                             'extensionJustification',
                             'hqs',
                             'created',

@@ -43,7 +43,8 @@ export interface Poam {
   likelihood: string | null;
   devicesAffected: string;
   impactDescription: string | null;
-  extensionTimeAllowed: number;
+  extensionDays: number;
+  extensionDeadline: Date | string | null;
   extensionJustification: string;
   hqs: boolean | null;
   isGlobalFinding: boolean | null;

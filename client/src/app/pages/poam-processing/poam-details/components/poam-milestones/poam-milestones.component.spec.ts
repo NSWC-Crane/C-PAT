@@ -50,7 +50,7 @@ describe('PoamMilestonesComponent', () => {
     component.poam = {
       status: 'Draft',
       scheduledCompletionDate: addDays(new Date(), 60),
-      extensionTimeAllowed: 0
+      extensionDays: 0
     };
     component.accessLevel = 4;
     component.assignedTeamOptions = [
@@ -246,7 +246,7 @@ describe('PoamMilestonesComponent', () => {
 
     it('should validate milestone date with extension time', () => {
       component.poam.scheduledCompletionDate = new Date();
-      component.poam.extensionTimeAllowed = 5;
+      component.poam.extensionDays = 5;
       milestone.milestoneDate = addDays(new Date(), 10);
       component.onRowEditSave(milestone);
       expect(mockMessageService.add).toHaveBeenCalledWith({

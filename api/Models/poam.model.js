@@ -113,7 +113,7 @@ module.exports = (sequelize, DataTypes) => {
             impactDescription: {
                 type: DataTypes.TEXT,
             },
-            extensionTimeAllowed: {
+            extensionDays: {
                 type: DataTypes.INTEGER,
                 defaultValue: 0,
             },

@@ -6503,8 +6503,11 @@ components:
       properties:
         poamId:
           type: integer
-        extensionTimeAllowed:
+        extensionDays:
           type: integer
+        extensionDeadline:
+          type: string
+          format: date
         extensionJustification:
           type: string
         mitigations:
