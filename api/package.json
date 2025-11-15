@@ -40,7 +40,7 @@
     "express-openapi-validator": "^5.6.0",
     "express-rate-limit": "^8.2.1",
     "fast-csv": "^5.0.5",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "multer": "^2.0.2",
