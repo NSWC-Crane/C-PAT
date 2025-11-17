@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -52,7 +52,7 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
 export class AdminProcessingComponent implements OnInit, OnDestroy {
   private payloadService = inject(PayloadService);
   private router = inject(Router);
-
+  @ViewChild(NessusPluginMappingComponent) nessusPluginMappingComponent!: NessusPluginMappingComponent;
   value: number = 0;
   user: any;
   private destroy$ = new Subject<void>();
@@ -79,6 +79,12 @@ export class AdminProcessingComponent implements OnInit, OnDestroy {
 
   switchToPluginMapping() {
     this.value = 6;
+
+    setTimeout(() => {
+      if (this.nessusPluginMappingComponent) {
+        this.nessusPluginMappingComponent.updatePluginIds();
+      }
+    }, 0);
   }
 
   ngOnDestroy() {
