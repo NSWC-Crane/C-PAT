@@ -286,8 +286,8 @@
       <div class="p-col-12" style="display: flex">
         <div style="width: 250px; color: var(--text-secondary-color)">SEVERITY</div>
         <div>
-          <p-tag [value]="pluginDetailData.severity?.name"
-            [severity]="getSeverityStyling(pluginDetailData.severity?.name)" [rounded]="false" />
+          <p-tag [value]="pluginDetailData.severity" [severity]="getSeverityStyling(pluginDetailData.severity)"
+            [rounded]="false" />
         </div>
       </div>
       @if (pluginDetailData.synopsis) {
@@ -509,10 +509,10 @@
         <div>{{ pluginDetailData.pluginModDate }}</div>
       </div>
       }
-      @if (pluginDetailData.family?.name) {
+      @if (pluginDetailData.family) {
       <div class="p-col-12 mb-2" style="display: flex">
         <div style="width: 250px; color: var(--text-secondary-color)">FAMILY</div>
-        <div>{{ pluginDetailData.family?.name }}</div>
+        <div>{{ pluginDetailData.family }}</div>
       </div>
       }
       @if (pluginDetailData.version) {

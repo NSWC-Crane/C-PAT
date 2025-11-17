@@ -1458,8 +1458,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             const defaultVuln = {
               pluginID: '',
               pluginName: '',
-              family: { name: '' },
-              severity: { name: '' },
+              family: '',
+              severity: '',
               vprScore: '',
               ips: [],
               acrScore: '',
@@ -1491,7 +1491,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
               pluginName: vuln.name || '',
               family: vuln.family?.name || '',
-              severity: { name: vuln.severity?.name || '' }
+              severity: vuln.severity?.name || ''
             };
           });
 

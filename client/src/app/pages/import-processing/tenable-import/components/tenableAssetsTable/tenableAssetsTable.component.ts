@@ -391,8 +391,8 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
           const defaultAsset = {
             pluginID: '',
             pluginName: '',
-            family: { name: '' },
-            severity: { name: '' },
+            family: '',
+            severity: '',
             vprScore: ''
           };
 
@@ -551,8 +551,8 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
           const defaultAsset = {
             pluginID: '',
             pluginName: '',
-            family: { name: '' },
-            severity: { name: '' },
+            family: '',
+            severity: '',
             vprScore: ''
           };
 
