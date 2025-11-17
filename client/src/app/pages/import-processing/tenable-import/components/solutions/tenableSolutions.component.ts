@@ -169,7 +169,7 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
         tool: 'sumip',
         sourceType: 'cumulative',
         startOffset: 0,
-        endOffset: 3000,
+        endOffset: 10000,
         filters: [
           {
             id: 'repository',
@@ -226,7 +226,7 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
         tool: 'sumid',
         sourceType: 'cumulative',
         startOffset: 0,
-        endOffset: 3000,
+        endOffset: 10000,
         filters: [
           {
             id: 'repository',

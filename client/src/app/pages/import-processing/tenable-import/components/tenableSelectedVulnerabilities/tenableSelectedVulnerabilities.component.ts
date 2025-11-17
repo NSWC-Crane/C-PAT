@@ -357,7 +357,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         tool: this.tenableTool,
         sourceType: 'cumulative',
         startOffset: 0,
-        endOffset: 5000,
+        endOffset: 10000,
         filters: [
           {
             id: 'repository',

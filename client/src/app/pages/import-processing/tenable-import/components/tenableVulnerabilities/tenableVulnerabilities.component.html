@@ -190,7 +190,7 @@
                 class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..."
                 [showToggleAll]="true" />
               <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true"
-                (onClick)="dt.exportCSV()" />
+                (click)="exportAllData()" />
             </div>
           </div>
           <div class="scrollable-vulnerabilities">

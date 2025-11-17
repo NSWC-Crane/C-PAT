@@ -1501,6 +1501,112 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       });
   }
 
+  exportAllData() {
+    if (this.tenableTool !== 'listvuln') {
+      this.table().exportCSV();
+      return;
+    }
+
+    this.isLoading = true;
+    this.messageService.add({
+      severity: 'secondary',
+      summary: 'Export Started',
+      detail: 'Download will automatically start momentarily.'
+    });
+
+    const analysisParams = {
+      query: {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: this.tenableTool,
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 10000,
+        filters: [this.createRepositoryFilter(), ...this.activeFilters],
+        vulnTool: this.tenableTool
+      },
+      sourceType: 'cumulative',
+      columns: [],
+      type: 'vuln'
+    };
+
+    this.importService
+      .postTenableAnalysis(analysisParams)
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching data for export: ${getErrorMessage(error)}`
+          });
+          this.isLoading = false;
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: (data) => {
+          if (data.error_msg) {
+            this.showErrorMessage(data.error_msg);
+            return;
+          }
+
+          const currentData = this.allVulnerabilities;
+
+          const exportData = data.response.results.map((vuln: any) => {
+            const defaultVuln = {
+              pluginID: '',
+              pluginName: '',
+              family: '',
+              severity: '',
+              vprScore: '',
+              ips: [],
+              acrScore: '',
+              assetExposureScore: '',
+              netbiosName: '',
+              dnsName: '',
+              macAddress: '',
+              port: '',
+              protocol: '',
+              uuid: '',
+              hostUUID: '',
+              total: '',
+              hostTotal: ''
+            };
+
+            const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
+
+            return {
+              ...defaultVuln,
+              ...vuln,
+              poamStatus: poamAssociation?.status ? poamAssociation.status : 'No Existing POAM',
+              pluginName: vuln.name || '',
+              family: vuln.family?.name || '',
+              severity: vuln.severity?.name || ''
+            };
+          });
+
+          this.allVulnerabilities = exportData;
+
+          setTimeout(() => {
+            this.table().exportCSV();
+
+            setTimeout(() => {
+              this.allVulnerabilities = currentData;
+              this.cdr.detectChanges();
+            }, 100);
+          }, 0);
+        }
+      });
+  }
+
   private createIAVInfoMap(iavData: any[]): { [key: number]: IAVInfo } {
     return iavData.reduce((acc: any, item: any) => {
       acc[item.pluginID] = {

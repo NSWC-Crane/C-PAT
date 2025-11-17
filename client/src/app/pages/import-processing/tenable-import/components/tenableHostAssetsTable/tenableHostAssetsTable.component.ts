@@ -327,7 +327,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
         tool: 'tenable_internal_vulndetails',
         sourceType: 'cumulative',
         startOffset: 0,
-        endOffset: 5000,
+        endOffset: 10000,
         filters: [
           {
             filterName: 'repository',
