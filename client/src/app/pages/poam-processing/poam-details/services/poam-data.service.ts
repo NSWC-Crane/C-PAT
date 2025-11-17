@@ -134,7 +134,7 @@ export class PoamDataService {
           tool: 'listvuln',
           sourceType: 'cumulative',
           startOffset: 0,
-          endOffset: 5000,
+          endOffset: 10000,
           filters: [
             {
               id: 'pluginID',

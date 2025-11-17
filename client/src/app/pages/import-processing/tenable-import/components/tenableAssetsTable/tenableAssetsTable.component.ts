@@ -278,7 +278,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         tool: 'vulndetails',
         sourceType: 'cumulative',
         startOffset: 0,
-        endOffset: 5000,
+        endOffset: 10000,
         filters: filters,
         vulnTool: 'vulndetails'
       },
@@ -359,7 +359,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         tool: 'listvuln',
         sourceType: 'cumulative',
         startOffset: 0,
-        endOffset: 5000,
+        endOffset: 10000,
         filters: [
           {
             id: 'pluginID',
