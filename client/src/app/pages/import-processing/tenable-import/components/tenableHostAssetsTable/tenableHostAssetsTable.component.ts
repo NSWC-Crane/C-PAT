@@ -519,7 +519,9 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
             vulnPubDate: this.formatTimestamp(rawData.vulnPubDate),
             patchPubDate: this.formatTimestamp(rawData.patchPubDate),
             seolDate: this.formatTimestamp(rawData.seolDate),
-            acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime)
+            acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime),
+            family: rawData.family?.name || '',
+            severity: rawData.severity?.name || ''
           };
 
           if (this.pluginDetailData.xref && this.pluginData.xref.length > 0) {

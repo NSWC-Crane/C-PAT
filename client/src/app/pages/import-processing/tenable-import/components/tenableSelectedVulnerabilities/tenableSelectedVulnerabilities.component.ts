@@ -425,8 +425,8 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
             const defaultVuln = {
               pluginID: '',
               pluginName: '',
-              family: { name: '' },
-              severity: { name: '' },
+              family: '',
+              severity: '',
               vprScore: '',
               ips: [],
               acrScore: '',
