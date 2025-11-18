@@ -35,7 +35,6 @@ interface MetricData {
 
 interface STIGManagerMetrics {
   assetCount: number;
-  totalPoamCompliance: number;
   catICompliance: number;
   catIICompliance: number;
   catIIICompliance: number;
@@ -91,7 +90,6 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
 
   stigManagerMetrics = signal<STIGManagerMetrics>({
     assetCount: 0,
-    totalPoamCompliance: 0,
     catICompliance: 0,
     catIICompliance: 0,
     catIIICompliance: 0,
@@ -344,19 +342,10 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         const catICompliance = this.calculateSTIGComplianceFromFindings(findingsBySeverity.high, approvedVulnIds);
         const catIICompliance = this.calculateSTIGComplianceFromFindings(findingsBySeverity.medium, approvedVulnIds);
         const catIIICompliance = this.calculateSTIGComplianceFromFindings(findingsBySeverity.low, approvedVulnIds);
-
-        const totalFindingsWithPoams =
-          findingsBySeverity.high.filter((f) => approvedVulnIds.has(f.groupId)).length + findingsBySeverity.medium.filter((f) => approvedVulnIds.has(f.groupId)).length + findingsBySeverity.low.filter((f) => approvedVulnIds.has(f.groupId)).length;
-
-        const totalFindings = catIOpenCount + catIIOpenCount + catIIIOpenCount;
-
-        const totalPoamCompliance = totalFindings > 0 ? (totalFindingsWithPoams / totalFindings) * 100 : 100;
-
         const coraData = this.calculateCORAScore(assessmentsBySeverity, assessedBySeverity, rawFindings);
 
         const metrics = {
           assetCount: aggregatedMetrics.assets,
-          totalPoamCompliance,
           catICompliance,
           catIICompliance,
           catIIICompliance,
@@ -520,7 +509,6 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   private getEmptySTIGManagerMetrics(): STIGManagerMetrics {
     return {
       assetCount: 0,
-      totalPoamCompliance: 0,
       catICompliance: 0,
       catIICompliance: 0,
       catIIICompliance: 0,

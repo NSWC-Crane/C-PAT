@@ -40,103 +40,81 @@
   </div>
 </div>
 
-<div class="flex flex-row mt-4 gap-4">
-  <p-card class="basis-1/6">
-    <div class="flex flex-col items-center justify-center p-2">
-      <div class="flex flex-col items-center"
-        [pTooltip]="'Percentage calculation: (Critical + High + Medium + Low findings' + (getLastObservedText() ? ' (last observed ' + getLastObservedText() + ')' : '') + ' with approved POAMs) ÷ (Total findings' + (getLastObservedText() ? ' last observed ' + getLastObservedText() : '') + ') × 100'"
-        tooltipPosition="top">
-        <div class="rounded-3xl flex flex-col items-center justify-center shadow-xl border-[3px] p-8 gap-2"
-          [style.border-color]="getPoamComplianceColor(tenableMetrics().totalPoamCompliance)"
-          [style.color]="getPoamComplianceColor(tenableMetrics().totalPoamCompliance)">
-          <div class="flex flex-row items-center">
-            <span class="text-[4rem] font-extrabold leading-none pl-4">
-              {{ isLoading() ? '-' : tenableMetrics().totalPoamCompliance.toFixed(0) }}
-            </span>
-            <span class="text-[1rem] font-bold">%</span>
-          </div>
-          <div class="mt-4 text-center font-semibold text-[var(--text-color)] opacity-80">POAM Compliance</div>
-        </div>
+<p-card class="mt-4 w-full">
+  <div class="relative">
+    <div class="relative flex items-center gap-2 mb-2">
+      <span class="text-xs text-gray-400">Hosts:</span>
+      <p-buttongroup>
+        <p-button size="small" severity="secondary" label="7 Days" [outlined]="hostTimeRange() !== '7'"
+          (onClick)="onHostTimeRangeChange('7')" [disabled]="isLoading()" />
+        <p-button size="small" severity="secondary" label="30 Days" [outlined]="hostTimeRange() !== '30'"
+          (onClick)="onHostTimeRangeChange('30')" [disabled]="isLoading()" />
+        <p-button size="small" severity="secondary" label="90 Days" [outlined]="hostTimeRange() !== '90'"
+          (onClick)="onHostTimeRangeChange('90')" [disabled]="isLoading()" />
+        <p-button size="small" severity="secondary" label="All" [outlined]="hostTimeRange() !== 'all'"
+          (onClick)="onHostTimeRangeChange('all')" [disabled]="isLoading()" />
+      </p-buttongroup>
+      <div class="absolute left-0 right-0 flex justify-center pointer-events-none">
+        <span class="text-s font-medium text-gray-400">
+          Vulnerability Per Host (VPH) Score - {{ tenableMetrics().validOnlineAssets }} Valid Hosts
+        </span>
       </div>
     </div>
-  </p-card>
 
-  <p-card class="basis-5/6">
-    <div class="relative">
-      <div class="relative flex items-center gap-2 mb-2">
-        <span class="text-xs text-gray-400">Hosts:</span>
-        <p-buttongroup>
-          <p-button size="small" severity="secondary" label="7 Days" [outlined]="hostTimeRange() !== '7'"
-            (onClick)="onHostTimeRangeChange('7')" [disabled]="isLoading()" />
-          <p-button size="small" severity="secondary" label="30 Days" [outlined]="hostTimeRange() !== '30'"
-            (onClick)="onHostTimeRangeChange('30')" [disabled]="isLoading()" />
-          <p-button size="small" severity="secondary" label="90 Days" [outlined]="hostTimeRange() !== '90'"
-            (onClick)="onHostTimeRangeChange('90')" [disabled]="isLoading()" />
-          <p-button size="small" severity="secondary" label="All" [outlined]="hostTimeRange() !== 'all'"
-            (onClick)="onHostTimeRangeChange('all')" [disabled]="isLoading()" />
-        </p-buttongroup>
-        <div class="absolute left-0 right-0 flex justify-center pointer-events-none">
-          <span class="text-s font-medium text-gray-400">
-            Vulnerability Per Host (VPH) Score - {{ tenableMetrics().validOnlineAssets }} Valid Hosts
-          </span>
-        </div>
-      </div>
-
-      <div class="relative -mb-10 mr-4 ml-4" style="height: 60px;">
-        <div class="absolute w-full">
-          <div class="absolute" [style.left.%]="tenableMetrics().vphScore < 2.5 ? 100 :
+    <div class="relative -mb-10 mr-4 ml-4" style="height: 60px;">
+      <div class="absolute w-full">
+        <div class="absolute" [style.left.%]="tenableMetrics().vphScore < 2.5 ? 100 :
                                tenableMetrics().vphScore > 3.5 ? 0 :
                                (100 - ((tenableMetrics().vphScore - 2.5) * 100))"
-            style="transform: translateX(-50%); z-index: 10;">
-            <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
-              <div class="px-3 py-2 rounded-lg font-bold text-center"
-                [style.background-color]="getVPHColor(tenableMetrics().vphScore)" style="opacity: 0.9; color: white;"
-                pTooltip="VPH Formula: (((Critical Vulns + High Vulns) / Valid Hosts × 10) + (Medium Vulns / Valid Hosts × 4) + (Low Vulns / Valid Hosts × 1)) ÷ (10 + 4 + 1)
+          style="transform: translateX(-50%); z-index: 10;">
+          <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
+            <div class="px-3 py-2 rounded-lg font-bold text-center"
+              [style.background-color]="getVPHColor(tenableMetrics().vphScore)" style="opacity: 0.9; color: white;"
+              pTooltip="VPH Formula: (((Critical Vulns + High Vulns) / Valid Hosts × 10) + (Medium Vulns / Valid Hosts × 4) + (Low Vulns / Valid Hosts × 1)) ÷ (10 + 4 + 1)
 
 Valid Hosts: {{ tenableMetrics().validOnlineAssets }}
 Host Time Range: {{ hostTimeRange() === 'all' ? 'All Time' : 'Last ' + hostTimeRange() + ' Days' }}
 Findings Time Range: {{ lastObservedTimeRange() === 'all' ? 'All Time' : 'Last ' + lastObservedTimeRange() + ' Days' }}">
-                {{ isLoading() ? '-' : tenableMetrics().vphScore.toFixed(2) }}
-              </div>
+              {{ isLoading() ? '-' : tenableMetrics().vphScore.toFixed(2) }}
             </div>
-            <div class="absolute left-1/2 transform -translate-x-1/2"
-              style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px;">
-              <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px;"></div>
-            </div>
+          </div>
+          <div class="absolute left-1/2 transform -translate-x-1/2"
+            style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px;">
+            <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px;"></div>
           </div>
         </div>
       </div>
-
-      <div class="relative">
-        <div class="flex justify-between mb-2">
-          <span class="text-red-400 font-semibold text-xs opacity-90">High Risk</span>
-          <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
-        </div>
-
-        <div class="relative rounded-full h-10 overflow-hidden shadow-lg"
-          style="background: linear-gradient(to right, rgba(236, 72, 99, 0.8) 0%, rgba(251, 146, 60, 0.8) 33%, rgba(251, 191, 36, 0.8) 66%, rgba(16, 185, 129, 0.8) 100%);">
-        </div>
-      </div>
     </div>
 
-    <div class="mt-5 pt-3 border-t border-gray-700">
-      <div class="flex justify-between gap-2 mt-2">
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(236, 72, 99, 0.8);"></div>
-          <span class="text-xs text-gray-300">High (> 3.5)</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(251, 191, 36, 0.8);"></div>
-          <span class="text-xs text-gray-300">Moderate (~ 3.0)</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(16, 185, 129, 0.8);"></div>
-          <span class="text-xs text-gray-300">Low (< 2.5)</span>
-        </div>
+    <div class="relative">
+      <div class="flex justify-between mb-2">
+        <span class="text-red-400 font-semibold text-xs opacity-90">High Risk</span>
+        <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
+      </div>
+
+      <div class="relative rounded-full h-10 overflow-hidden shadow-lg"
+        style="background: linear-gradient(to right, rgba(236, 72, 99, 0.8) 0%, rgba(251, 146, 60, 0.8) 33%, rgba(251, 191, 36, 0.8) 66%, rgba(16, 185, 129, 0.8) 100%);">
       </div>
     </div>
-  </p-card>
-</div>
+  </div>
+
+  <div class="mt-5 pt-3 border-t border-gray-700">
+    <div class="flex justify-between gap-2 mt-2">
+      <div class="flex items-center gap-1">
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(236, 72, 99, 0.8);"></div>
+        <span class="text-xs text-gray-300">High (> 3.5)</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(251, 191, 36, 0.8);"></div>
+        <span class="text-xs text-gray-300">Moderate (~ 3.0)</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(16, 185, 129, 0.8);"></div>
+        <span class="text-xs text-gray-300">Low (< 2.5)</span>
+      </div>
+    </div>
+  </div>
+</p-card>
 
 <div class="flex flex-row mt-4 gap-4">
   <div class="basis-1/3">

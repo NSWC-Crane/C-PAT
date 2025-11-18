@@ -43,7 +43,6 @@ interface MetricData {
 }
 
 interface VulnerabilityMetrics {
-  totalPoamCompliance: number;
   poamApprovalPercentage: number;
   catICompliance: number;
   catIICompliance: number;
@@ -70,7 +69,6 @@ interface CachedVulnerabilityData {
     exploitableFindings: number;
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
-    totalCompliance: number;
   } | null;
   '30': {
     severitySummary30Days: SeveritySummary;
@@ -78,7 +76,6 @@ interface CachedVulnerabilityData {
     exploitableFindings: number;
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
-    totalCompliance: number;
   } | null;
   '90': {
     severitySummary30Days: SeveritySummary;
@@ -86,7 +83,6 @@ interface CachedVulnerabilityData {
     exploitableFindings: number;
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
-    totalCompliance: number;
   } | null;
   all: {
     severitySummary30Days: SeveritySummary;
@@ -94,7 +90,6 @@ interface CachedVulnerabilityData {
     exploitableFindings: number;
     seolVulnerabilities: number;
     complianceMetrics: { catI: number; catII: number; catIII: number };
-    totalCompliance: number;
   } | null;
 }
 
@@ -142,7 +137,6 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   });
 
   tenableMetrics = signal<VulnerabilityMetrics>({
-    totalPoamCompliance: 0,
     poamApprovalPercentage: 0,
     catICompliance: 0,
     catIICompliance: 0,
@@ -311,8 +305,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       severitySummary: this.getSeveritySummary(repoId, false, lastSeenValue),
       exploitableFindings: this.calculateExploitableFindings(repoId, lastSeenValue),
       seolVulnerabilities: this.calculateSEOLVulnerabilities(repoId, lastSeenValue),
-      complianceMetrics: this.calculateComplianceMetrics(repoId, collectionId, lastSeenValue),
-      totalCompliance: this.calculateTotalPoamCompliance(collectionId, repoId, lastSeenValue)
+      complianceMetrics: this.calculateComplianceMetrics(repoId, collectionId, lastSeenValue)
     });
   }
 
@@ -337,7 +330,6 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const vphData = this.calculateVPHScore(catICount, catIICount, catIIICount, validAssets);
 
     this.tenableMetrics.set({
-      totalPoamCompliance: data.totalCompliance,
       poamApprovalPercentage: this.cachedPoamMetrics(),
       catICompliance: data.complianceMetrics.catI,
       catIICompliance: data.complianceMetrics.catII,
@@ -535,58 +527,6 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     );
   }
 
-  private calculateTotalPoamCompliance(collectionId: any, repoId: string, lastSeenValue: string | null) {
-    const allFilters = [];
-
-    if (lastSeenValue) {
-      allFilters.push({
-        filterName: 'lastSeen',
-        operator: '=',
-        value: lastSeenValue,
-        type: 'vuln',
-        isPredefined: true
-      });
-    }
-
-    allFilters.push({
-      filterName: 'severity',
-      operator: '=',
-      value: '1,2,3,4',
-      type: 'vuln',
-      isPredefined: true
-    });
-
-    return combineLatest([this.getTenableVulnerabilities(repoId, allFilters), this.collectionsService.getPoamsByCollection(collectionId)]).pipe(
-      map(([vulnData, poams]) => {
-        const vulnerabilities = vulnData.response?.results || [];
-        const totalVulns = vulnerabilities.length;
-
-        if (totalVulns === 0) return 100;
-
-        const approvedPoams = poams.filter((p: any) => p.status === 'Approved');
-        const vulnerabilityStatusMap = new Map<string, string>();
-
-        approvedPoams.forEach((poam: any) => {
-          if (poam.vulnerabilityId) {
-            vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
-          }
-          if (Array.isArray(poam?.associatedVulnerabilities)) {
-            poam.associatedVulnerabilities.forEach((vulnId: string) => {
-              vulnerabilityStatusMap.set(vulnId, poam.status);
-            });
-          }
-        });
-
-        const vulnsWithApprovedPoam = vulnerabilities.filter((vuln: any) => {
-          return vulnerabilityStatusMap.get(vuln.pluginID) === 'Approved';
-        }).length;
-
-        return (vulnsWithApprovedPoam / totalVulns) * 100;
-      }),
-      catchError(() => of(0))
-    );
-  }
-
   private calculateVPHScore(catICount: number, catIICount: number, catIIICount: number, validAssets: number): { score: number; rating: string } {
     if (validAssets === 0) {
       return { score: 0, rating: 'Low' };
@@ -627,30 +567,6 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     } else if (vphScore < 3.2) {
       return '#f56e54';
     } else if (vphScore < 3.3) {
-      return '#f05a6a';
-    } else {
-      return '#f05a6acc';
-    }
-  }
-
-  getPoamComplianceColor(compliance: number): string {
-    if (compliance >= 90) {
-      return '#10b981';
-    } else if (compliance >= 80) {
-      return '#4ade80';
-    } else if (compliance >= 70) {
-      return '#a3e635';
-    } else if (compliance >= 60) {
-      return '#e4d02b';
-    } else if (compliance >= 50) {
-      return '#fbbf24';
-    } else if (compliance >= 40) {
-      return '#fca726';
-    } else if (compliance >= 30) {
-      return '#fb923c';
-    } else if (compliance >= 20) {
-      return '#f56e54';
-    } else if (compliance >= 10) {
       return '#f05a6a';
     } else {
       return '#f05a6acc';
@@ -1100,7 +1016,6 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
   private getEmptyTenableMetrics(): VulnerabilityMetrics {
     return {
-      totalPoamCompliance: 0,
       poamApprovalPercentage: 0,
       catICompliance: 0,
       catIICompliance: 0,
@@ -1157,7 +1072,6 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       [`[Tenable] ${collectionName}`, 'POAM', `CAT I Compliance %${timeRangeNote}`, `${data.complianceMetrics.catI.toFixed(1)}%`],
       [`[Tenable] ${collectionName}`, 'POAM', `CAT II Compliance %${timeRangeNote}`, `${data.complianceMetrics.catII.toFixed(1)}%`],
       [`[Tenable] ${collectionName}`, 'POAM', `CAT III Compliance %${timeRangeNote}`, `${data.complianceMetrics.catIII.toFixed(1)}%`],
-      [`[Tenable] ${collectionName}`, 'POAM', `Total POAM Compliance %${timeRangeNote}`, `${data.totalCompliance.toFixed(1)}%`],
       [`[Tenable] ${collectionName}`, 'ACAS', `CAT I - ${opensLabel}`, catICount.toString()],
       [`[Tenable] ${collectionName}`, 'ACAS', `CAT II - ${opensLabel}`, catIICount.toString()],
       [`[Tenable] ${collectionName}`, 'ACAS', `CAT III - ${opensLabel}`, catIIICount.toString()],
