@@ -20,92 +20,70 @@
   </div>
 </div>
 
-<div class="flex flex-row mt-4 gap-4">
-  <p-card class="basis-1/6">
-    <div class="flex flex-col items-center justify-center p-2">
-      <div class="flex flex-col items-center"
-        [pTooltip]="'Percentage calculation: (CAT I + CAT II + CAT III findings with approved POAMs) ÷ (Total CAT I + CAT II + CAT III findings) × 100'"
-        tooltipPosition="right">
-        <div class="rounded-3xl flex flex-col items-center justify-center shadow-xl border-[3px] p-8 gap-2"
-          [style.border-color]="getCoraRiskColor(100 - stigManagerMetrics().totalPoamCompliance)"
-          [style.color]="getCoraRiskColor(100 - stigManagerMetrics().totalPoamCompliance)">
-          <div class="flex flex-row items-center">
-            <span class="text-[4rem] font-extrabold leading-none pl-4">
-              {{ isLoading() ? '-' : stigManagerMetrics().totalPoamCompliance.toFixed(0) }}
-            </span>
-            <span class="text-[1rem] font-bold">%</span>
+<p-card class="mt-4 w-full">
+  <div class="relative">
+    <div class="text-center text-xs text-gray-400">
+      CORA Risk Score
+    </div>
+    <div class="relative -mb-10 mr-4 ml-4" style="height: 60px;">
+      <div class="absolute w-full">
+        <div class="absolute" [style.left.%]="100 - stigManagerMetrics().coraRiskScore"
+          style="transform: translateX(-50%); z-index: 10;">
+          <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
+            <div class="px-3 py-2 rounded-lg font-bold text-center"
+              [style.background-color]="getCoraRiskColor(stigManagerMetrics().coraRiskScore)"
+              style="opacity: 0.9; color: white;" pTooltip="CORA Risk formula:
+    (CAT I Risk % × 10 + CAT II Risk % × 4 + CAT III Risk % × 1) ÷ 15
+
+    Where each risk % = (Open + Unassessed) ÷ Total × 100" tooltipPosition="left">
+              {{ isLoading() ? '-' : stigManagerMetrics().coraRiskScore.toFixed(0) + '%' }}
+            </div>
           </div>
-          <div class="mt-4 text-center font-semibold text-[var(--text-color)] opacity-80">POAM Compliance</div>
+          <div class="absolute left-1/2 transform -translate-x-1/2"
+            style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px;">
+            <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px;"></div>
+          </div>
         </div>
       </div>
     </div>
-  </p-card>
 
-  <p-card class="basis-5/6">
     <div class="relative">
-      <div class="text-center text-xs text-gray-400">
-        CORA Risk Score
-      </div>
-      <div class="relative -mb-10 mr-4 ml-4" style="height: 60px;">
-        <div class="absolute w-full">
-          <div class="absolute" [style.left.%]="100 - stigManagerMetrics().coraRiskScore"
-            style="transform: translateX(-50%); z-index: 10;">
-            <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
-              <div class="px-3 py-2 rounded-lg font-bold text-center"
-                [style.background-color]="getCoraRiskColor(stigManagerMetrics().coraRiskScore)"
-                style="opacity: 0.9; color: white;" pTooltip="CORA Risk formula:
-      (CAT I Risk % × 10 + CAT II Risk % × 4 + CAT III Risk % × 1) ÷ 15
-
-      Where each risk % = (Open + Unassessed) ÷ Total × 100" tooltipPosition="left">
-                {{ isLoading() ? '-' : stigManagerMetrics().coraRiskScore.toFixed(0) + '%' }}
-              </div>
-            </div>
-            <div class="absolute left-1/2 transform -translate-x-1/2"
-              style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px;">
-              <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px;"></div>
-            </div>
-          </div>
-        </div>
+      <div class="flex justify-between mb-2">
+        <span class="text-red-400 font-semibold text-xs opacity-90">High Risk</span>
+        <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
       </div>
 
-      <div class="relative">
-        <div class="flex justify-between mb-2">
-          <span class="text-red-400 font-semibold text-xs opacity-90">High Risk</span>
-          <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
-        </div>
-
-        <div class="relative rounded-full h-10 overflow-hidden shadow-lg"
-          style="background: linear-gradient(to right, rgba(236, 72, 99, 0.8) 0%, rgba(251, 146, 60, 0.8) 33%, rgba(251, 191, 36, 0.8) 66%, rgba(16, 185, 129, 0.8) 100%);">
-        </div>
+      <div class="relative rounded-full h-10 overflow-hidden shadow-lg"
+        style="background: linear-gradient(to right, rgba(236, 72, 99, 0.8) 0%, rgba(251, 146, 60, 0.8) 33%, rgba(251, 191, 36, 0.8) 66%, rgba(16, 185, 129, 0.8) 100%);">
       </div>
     </div>
+  </div>
 
-    <div class="mt-8 pt-3 border-t border-gray-700">
-      <div class="flex justify-between gap-2 mt-2">
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(236, 72, 99, 0.8);"></div>
-          <span class="text-xs text-gray-300">Very High</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(247, 128, 69, 0.8);"></div>
-          <span class="text-xs text-gray-300">High</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(251, 167, 50, 0.8);"></div>
-          <span class="text-xs text-gray-300">Moderate</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(230, 190, 44, 0.8);"></div>
-          <span class="text-xs text-gray-300">Low</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-8 h-3 rounded-full" style="background-color: rgba(16, 185, 129, 0.8);"></div>
-          <span class="text-xs text-gray-300">Very Low</span>
-        </div>
+  <div class="mt-8 pt-3 border-t border-gray-700">
+    <div class="flex justify-between gap-2 mt-2">
+      <div class="flex items-center gap-1">
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(236, 72, 99, 0.8);"></div>
+        <span class="text-xs text-gray-300">Very High</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(247, 128, 69, 0.8);"></div>
+        <span class="text-xs text-gray-300">High</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(251, 167, 50, 0.8);"></div>
+        <span class="text-xs text-gray-300">Moderate</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(230, 190, 44, 0.8);"></div>
+        <span class="text-xs text-gray-300">Low</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(16, 185, 129, 0.8);"></div>
+        <span class="text-xs text-gray-300">Very Low</span>
       </div>
     </div>
-  </p-card>
-</div>
+  </div>
+</p-card>
 
 <div class="flex flex-row mt-4 gap-4">
   <div class="basis-1/3">
