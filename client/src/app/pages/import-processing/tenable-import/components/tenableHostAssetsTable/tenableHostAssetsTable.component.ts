@@ -524,7 +524,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
             severity: rawData.severity?.name || ''
           };
 
-          if (this.pluginDetailData.xref && this.pluginData.xref.length > 0) {
+          if (this.pluginDetailData.xref) {
             this.parseReferences(this.pluginDetailData.xref);
           } else {
             this.cveReferences = [];
