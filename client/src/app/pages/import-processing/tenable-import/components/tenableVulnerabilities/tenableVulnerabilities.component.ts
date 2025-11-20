@@ -94,6 +94,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   private sharedService = inject(SharedService);
   private router = inject(Router);
 
+  aaPackage: string = '';
   cveReferences: Reference[] = [];
   iavReferences: Reference[] = [];
   otherReferences: Reference[] = [];
@@ -954,6 +955,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
               if (selectedCollectionData) {
                 this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
+                this.aaPackage = selectedCollectionData.aaPackage;
               } else {
                 this.tenableRepoId = '';
               }
@@ -1104,8 +1106,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
     } else {
+      const zoneD = /Zone:?\s*D(?![A-Z])/i.test(this.aaPackage || '');
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
-      this.tempFilters['lastSeen'] = '0:30';
+      this.tempFilters['lastSeen'] = zoneD ? '0:90' : '0:30';
     }
 
     this.applyFilters();
@@ -2323,8 +2326,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
     } else {
+      const zoneD = /Zone:?\s*D(?![A-Z])/i.test(this.aaPackage || '');
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
-      this.tempFilters['lastSeen'] = '0:30';
+      this.tempFilters['lastSeen'] = zoneD ? '0:90' : '0:30';
     }
 
     this.activeFilters = [];
