@@ -175,6 +175,9 @@ A&A Packages
 
 C-PAT provides the ability for administrators to set A&A package options for their organization. In addition to populating the list of options when setting an A&A package for a particular collection, the A&A packages entered in the Set A&A Packages component will populate a drop down list of options in POAMs for instances when a POAM entry may require deviation from the pre-populated A&A Package.
 
+.. note::
+   Any A&A Package containing "Zone: D" or "Zone D" will result in a change of the default Tenable Vulnerability table filter of Vulnerability Last Observed "Within 30 Days" to "Within 90 Days"
+
 
 Assigned Teams
 --------------
