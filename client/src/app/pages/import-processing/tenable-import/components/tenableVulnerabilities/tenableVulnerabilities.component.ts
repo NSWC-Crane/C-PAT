@@ -1106,9 +1106,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
     } else {
-      const zoneD = /Zone:?\s*D(?![A-Z])/i.test(this.aaPackage || '');
+      const zoneCorD = /Zone:?\s*[CD](?![A-Z])/i.test(this.aaPackage || '');
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
-      this.tempFilters['lastSeen'] = zoneD ? '0:90' : '0:30';
+      this.tempFilters['lastSeen'] = zoneCorD ? '0:90' : '0:30';
     }
 
     this.applyFilters();
@@ -2326,9 +2326,9 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
     } else {
-      const zoneD = /Zone:?\s*D(?![A-Z])/i.test(this.aaPackage || '');
+      const zoneCorD = /Zone:?\s*[CD](?![A-Z])/i.test(this.aaPackage || '');
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
-      this.tempFilters['lastSeen'] = zoneD ? '0:90' : '0:30';
+      this.tempFilters['lastSeen'] = zoneCorD ? '0:90' : '0:30';
     }
 
     this.activeFilters = [];
