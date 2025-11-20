@@ -649,7 +649,11 @@
       <p-button label="Save" variant="outlined" [disabled]="accessLevel() < 2" (onClick)="savePoam()"
         styleClass="ml-4 mt-4" />
 
+      @if (poam.status === 'Expired') {
+      <p-button label="Extend" variant="outlined" severity="warn" (onClick)="extendPoam()" styleClass="ml-4" />
+      } @else {
       <p-button label="Submit" variant="outlined" severity="success" (onClick)="verifySubmitPoam()" styleClass="ml-4" />
+      }
     </p-footer>
   </p-card>
 </div>
