@@ -13,7 +13,7 @@
     <p-tablist>
       <p-tab value="0">
         @if (viewMode === 'summary') {
-        <span>STIG Manager Benchmarks</span>
+        <span>STIG Manager Benchmarks ({{ benchmarksCount }})</span>
         }
         @if (viewMode === 'findings') {
         <span>STIG Manager Findings ({{ findingsCount }})</span>
@@ -44,7 +44,7 @@
           <p-table #stigBenchmarksTable [value]="loadingTableInfo ? loadingSkeletonData : benchmarkSummaries"
             selectionMode="single" [paginator]="true" [rows]="25" [scrollable]="true" scrollHeight="calc(100vh - 25rem)"
             [rowsPerPageOptions]="[10, 25, 50]" [globalFilterFields]="['benchmarkId', 'revisionStr']"
-            dataKey="benchmarkId">
+            (onFilter)="onBenchmarkFilter($event)" dataKey="benchmarkId">
             <ng-template pTemplate="header">
               <tr>
                 <th scope="col" pSortableColumn="benchmarkId">Benchmark</th>
