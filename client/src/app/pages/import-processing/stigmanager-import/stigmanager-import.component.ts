@@ -155,9 +155,9 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         acceptedPercentage: totalAssessments > 0 ? (accepted / totalAssessments) * 100 : 0,
         rejectedPercentage: totalAssessments > 0 ? (rejected / totalAssessments) * 100 : 0,
         unassessedPercentage: totalAssessments > 0 ? ((totalAssessments - assessed) / totalAssessments) * 100 : 0,
-        cat3Count: benchmark.metrics?.findings?.low || 0,
+        cat1Count: benchmark.metrics?.findings?.high || 0,
         cat2Count: benchmark.metrics?.findings?.medium || 0,
-        cat1Count: benchmark.metrics?.findings?.high || 0
+        cat3Count: benchmark.metrics?.findings?.low || 0
       };
     });
   }
