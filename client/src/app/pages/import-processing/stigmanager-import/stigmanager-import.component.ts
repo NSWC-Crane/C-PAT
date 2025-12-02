@@ -303,6 +303,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.dataSource = [];
     this.displayDataSource = [];
     this.findingsCount = 0;
+    this.benchmarksCount = this.benchmarkSummaries.length;
   }
 
   getSTIGMANFindings(stigmanCollectionId: number, benchmarkId?: string) {
