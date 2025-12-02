@@ -24,15 +24,15 @@
     <p-tabpanels>
       <p-tabpanel value="0">
         @if (viewMode === 'summary') {
-        <div class="benchmark-summary mt-4">
-          <div class="toolbar mb-4">
+        <div class="benchmark-summary">
+          <div class="toolbar mb-4 mt-4">
             <div class="flex items-center">
               <p-iconField iconPosition="left">
                 <p-inputIcon>
                   <i class="pi pi-search"></i>
                 </p-inputIcon>
-                <input pInputText type="text" class="w-48" (input)="filterBenchmarkGlobal($event)" id="search"
-                  placeholder="Search..." />
+                <input pInputText type="text" class="min-w-[300px]" (input)="filterBenchmarkGlobal($event)" id="search"
+                  placeholder="Search Benchmarks..." />
               </p-iconField>
               <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4"
                 icon="pi pi-filter-slash" (click)="clearBenchmarkFilter()" pTooltip="Clear all filters" />
@@ -58,9 +58,9 @@
                 <th scope="col" pSortableColumn="acceptedPercentage">Accepted</th>
                 <th scope="col" pSortableColumn="rejectedPercentage">Rejected</th>
                 <th scope="col" pSortableColumn="unassessedPercentage">Unassessed</th>
-                <th scope="col" pSortableColumn="cat3Count">CAT 3</th>
-                <th scope="col" pSortableColumn="cat2Count">CAT 2</th>
-                <th scope="col" pSortableColumn="cat1Count">CAT 1</th>
+                <th scope="col" pSortableColumn="cat1Count">CAT I</th>
+                <th scope="col" pSortableColumn="cat2Count">CAT II</th>
+                <th scope="col" pSortableColumn="cat3Count">CAT III</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-benchmark>
@@ -126,9 +126,9 @@
                     <ng-template pTemplate="content" let-value> {{ value || 0 | number: '1.0-0' }}% </ng-template>
                   </p-progressBar>
                 </td>
-                <td>{{ benchmark.metrics?.findings?.low || 0 }}</td>
-                <td>{{ benchmark.metrics?.findings?.medium || 0 }}</td>
                 <td>{{ benchmark.metrics?.findings?.high || 0 }}</td>
+                <td>{{ benchmark.metrics?.findings?.medium || 0 }}</td>
+                <td>{{ benchmark.metrics?.findings?.low || 0 }}</td>
               </tr>
             </ng-template>
           </p-table>
@@ -142,7 +142,7 @@
                 <p-inputIcon>
                   <i class="pi pi-search"></i>
                 </p-inputIcon>
-                <input pInputText type="text" class="w-48" (input)="filterGlobal($event)" id="findingsSearch"
+                <input pInputText type="text" class="min-w-[300px]" (input)="filterGlobal($event)" id="findingsSearch"
                   placeholder="Search..." />
               </p-iconField>
               <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4"

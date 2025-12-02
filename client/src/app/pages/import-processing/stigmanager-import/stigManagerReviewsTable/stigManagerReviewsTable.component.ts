@@ -55,14 +55,6 @@ interface FilterState {
   result: string;
 }
 
-interface Label {
-  color: string;
-  description: string;
-  labelId: number;
-  name: string;
-  uses: number;
-}
-
 @Component({
   selector: 'cpat-stigmanager-reviews-table',
   templateUrl: './stigManagerReviewsTable.component.html',
@@ -110,7 +102,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   appliedBenchmarkIds: string[] = [];
   selectedBenchmarkIds: string[] = [];
   showBenchmarkSelector: boolean = true;
-  labels: Label[] = [];
   resultOptions: { label: string; value: string }[] = [];
   originalTreeNodes: TreeNode[] = [];
 
@@ -255,46 +246,44 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     const savedFilterState = this.cloneFilterState();
     const reviewRequests = this.appliedBenchmarkIds.map((benchmarkId) => this.sharedService.getReviewsFromSTIGMAN(this.stigmanCollectionId, this.filterState.result, benchmarkId));
 
-    forkJoin({
-      reviews: forkJoin(reviewRequests).pipe(map((reviewArrays: any[][]) => reviewArrays.flat())),
-      labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
-    }).subscribe({
-      next: ({ reviews, labels }) => {
-        const processedReviews = (reviews ?? []).map((review) => ({
-          ...review,
-          displayResult: this.resultMapping[review.result] || review.result,
-          evaluatedDate: review.ts ? parseISO(review.ts) : '',
-          'status.label': this.statusMapping[review.status?.label] || '',
-          'resultEngine.product': review.resultEngine?.product || '',
-          'resultEngine.version': review.resultEngine?.version || '',
-          'rule.severity': this.severityMapping[review.rule?.severity] || '',
-          'rule.ruleId': review.rule?.ruleId || ''
-        }));
+    forkJoin(reviewRequests)
+      .pipe(map((reviewArrays: any[][]) => reviewArrays.flat()))
+      .subscribe({
+        next: (reviews) => {
+          const processedReviews = (reviews ?? []).map((review) => ({
+            ...review,
+            displayResult: this.resultMapping[review.result] || review.result,
+            evaluatedDate: review.ts ? parseISO(review.ts) : '',
+            'status.label': this.statusMapping[review.status?.label] || '',
+            'resultEngine.product': review.resultEngine?.product || '',
+            'resultEngine.version': review.resultEngine?.version || '',
+            'rule.severity': this.severityMapping[review.rule?.severity] || '',
+            'rule.ruleId': review.rule?.ruleId || ''
+          }));
 
-        this.reviews = processedReviews;
-        this.totalRecords = this.reviews.length;
-        this.reviewsCountChange.emit(this.totalRecords);
-        this.labels = labels || [];
-        this.treeNodes = this.transformReviewsToTreeNodes(processedReviews);
-        this.originalTreeNodes = [...this.treeNodes];
-        this.assetCount = this.treeNodes.length;
-        this.filterState = savedFilterState;
+          this.reviews = processedReviews;
+          this.totalRecords = this.reviews.length;
+          this.reviewsCountChange.emit(this.totalRecords);
+          this.treeNodes = this.transformReviewsToTreeNodes(processedReviews);
+          this.originalTreeNodes = [...this.treeNodes];
+          this.assetCount = this.treeNodes.length;
+          this.filterState = savedFilterState;
 
-        if (this.hasActiveFilters()) {
-          this.applyFilters();
+          if (this.hasActiveFilters()) {
+            this.applyFilters();
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch reviews: ${getErrorMessage(error)}`
+          });
+        },
+        complete: () => {
+          this.isLoading = false;
         }
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to fetch reviews: ${getErrorMessage(error)}`
-        });
-      },
-      complete: () => {
-        this.isLoading = false;
-      }
-    });
+      });
   }
 
   private cloneFilterState(): FilterState {
@@ -387,14 +376,6 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       default:
         return 'info';
     }
-  }
-
-  getReviewLabels(reviewData: any): Label[] {
-    if (!reviewData || !reviewData.assetLabelIds) {
-      return [];
-    }
-
-    return reviewData.assetLabelIds?.map((labelId: number) => this.labels.find((label) => label.labelId === labelId)).filter(Boolean) || [];
   }
 
   initColumnsAndFilters() {
@@ -579,13 +560,13 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
       const fieldValue = this.getFieldValue(data, field);
 
-      if (field === 'labels' && data.assetLabelIds) {
-        const nodeLabels = this.getReviewLabels(data).map((label) => label.name.toLowerCase());
+      if (field === 'labels' && data.assetLabels) {
+        const nodeLabels = data.assetLabels.map((label: any) => label.name.toLowerCase());
 
         return filterValue
           .toLowerCase()
           .split(' ')
-          .some((term) => nodeLabels.some((label) => label.includes(term)));
+          .some((term: string) => nodeLabels.some((label: string) => label.includes(term)));
       }
 
       if (field.includes('Date') && typeof filterValue === 'object' && filterValue.value instanceof Date) {
@@ -702,10 +683,8 @@ export class STIGManagerReviewsTableComponent implements OnInit {
         processedRow.evaluatedDate = processedRow.evaluatedDate.toLocaleString();
       }
 
-      if (row.assetLabelIds) {
-        processedRow.labels = this.getReviewLabels(row)
-          .map((label) => label.name)
-          .join('; ');
+      if (row.assetLabels) {
+        processedRow.labels = row.assetLabels.map((label: any) => label.name).join('; ');
       }
 
       return processedRow;

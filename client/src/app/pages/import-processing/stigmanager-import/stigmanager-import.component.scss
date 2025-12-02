@@ -20,38 +20,78 @@
   }
 }
 
-::ng-deep {
-  .assessed-progress .p-progressbar-value {
-    background-color: rgba(136, 137, 185, 0.75) !important;
-  }
-
-  .submitted-progress .p-progressbar-value {
-    background-color: rgba(224, 141, 141, 0.75) !important;
-  }
-
-  .accepted-progress .p-progressbar-value {
-    background-color: rgba(139, 195, 74, 0.75) !important;
-  }
-
-  .rejected-progress .p-progressbar-value {
-    background-color: rgba(244, 67, 54, 0.75) !important;
-  }
-
-  .unassessed-progress .p-progressbar-value {
-    background-color: rgba(158, 158, 158, 0.75) !important;
-  }
-
+:host ::ng-deep {
   .p-progressbar {
     height: 20px !important;
     background: rgba(85, 86, 91, 0.3) !important;
+    position: relative;
+  }
+
+  .p-progressbar .p-progressbar-value {
+    position: static;
+    overflow: visible;
+  }
+
+  .p-progressbar .p-progressbar-label {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    font-weight: 600;
+    opacity: 0.8;
+    > div {
+      display: block !important;
+    }
   }
 
   .p-progressbar:hover {
     opacity: 0.9;
   }
 
-  .p-progressbar .p-progressbar-label {
-    font-weight: 600;
+  .assessed-progress {
+    .p-progressbar-value {
+      background: var(--p-tag-info-background);
+    }
+    .p-progressbar-label {
+      color: var(--p-tag-info-color);
+    }
+  }
+
+  .submitted-progress {
+    .p-progressbar-value {
+      background: var(--p-tag-success-background);
+      opacity: 0.75;
+    }
+    .p-progressbar-label {
+      color: var(--p-tag-success-color);
+    }
+  }
+
+  .accepted-progress {
+    .p-progressbar-value {
+      background: var(--p-tag-success-background);
+    }
+    .p-progressbar-label {
+      color: var(--p-tag-success-color);
+    }
+  }
+
+  .rejected-progress {
+    .p-progressbar-value {
+      background: var(--p-tag-danger-background);
+    }
+    .p-progressbar-label {
+      color: var(--p-tag-danger-color);
+    }
+  }
+
+  .unassessed-progress {
+    .p-progressbar-value {
+      background: var(--p-tag-secondary-background);
+    }
+    .p-progressbar-label {
+      color: var(--p-tag-secondary-color);
+    }
   }
 }
 

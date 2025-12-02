@@ -13,7 +13,7 @@
     <div class="p-fluid">
       <div class="toolbar mb-4 mt-4">
         <div class="flex items-center justify-between">
-          <p-multiselect #benchmarkMs class="ml-4" [options]="benchmarkOptions" [(ngModel)]="selectedBenchmarkIds"
+          <p-multiselect #benchmarkMs [options]="benchmarkOptions" [(ngModel)]="selectedBenchmarkIds"
             placeholder="Select Benchmarks..." [disabled]="isLoading && !showBenchmarkSelector" appendTo="body"
             [showClear]="false" [filter]="true" filterPlaceHolder="Search benchmarks..." [showToggleAll]="true"
             optionLabel="label" optionValue="value" [maxSelectedLabels]="3" selectedItemsLabel="{0} benchmarks selected"
@@ -49,99 +49,97 @@
         </div>
       </div>
 
-      <div class="scrollable-reviews">
-        <p-treeTable #tt [value]="treeNodes" [columns]="selectedColumns" [paginator]="true" [rows]="25"
-          [totalRecords]="assetCount" [loading]="isLoading" [showCurrentPageReport]="true"
-          [rowsPerPageOptions]="[10, 25, 50]" [filterDelay]="300" [rowHover]="true" [resizableColumns]="true"
-          columnResizeMode="fit" [scrollable]="true" selectionMode="multiple" sortMode="multiple"
-          scrollHeight="calc(100vh - 30rem)">
-          <ng-template #colgroup let-columns>
-            <colgroup>
-              @for (col of selectedColumns; track col) {
-              <col />
+      <p-treeTable #tt [value]="treeNodes" [columns]="selectedColumns" [paginator]="true" [rows]="25"
+        [totalRecords]="assetCount" [loading]="isLoading" [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[10, 25, 50]" [filterDelay]="300" [rowHover]="true" [resizableColumns]="true"
+        columnResizeMode="fit" [scrollable]="true" selectionMode="multiple" sortMode="multiple"
+        scrollHeight="calc(100vh - 30rem)">
+        <ng-template #colgroup let-columns>
+          <colgroup>
+            @for (col of selectedColumns; track col) {
+            <col />
+            }
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            @for (col of selectedColumns; track col) {
+            <th scope="col" [ttSortableColumn]="col.field" ttResizableColumn>
+              <span [pTooltip]="col.header === 'Evaluated' ? 'Last Ran' : null" tooltipPosition="top">
+                {{ col.header }}
+              </span>
+              @if (col.filterable) {
+              <p-button severity="secondary" [rounded]="true" variant="text" icon="pi pi-filter" size="small"
+                (onClick)="showFilterPanel($event, col); $event.stopPropagation()" />
               }
-            </colgroup>
-          </ng-template>
-          <ng-template pTemplate="header">
-            <tr>
-              @for (col of selectedColumns; track col) {
-              <th scope="col" [ttSortableColumn]="col.field" ttResizableColumn>
-                <span [pTooltip]="col.header === 'Evaluated' ? 'Last Ran' : null" tooltipPosition="top">
-                  {{ col.header }}
-                </span>
-                @if (col.filterable) {
-                <p-button severity="secondary" [rounded]="true" variant="text" icon="pi pi-filter" size="small"
-                  (onClick)="showFilterPanel($event, col); $event.stopPropagation()" />
+            </th>
+            }
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+          <tr [ttRow]="rowNode" [ngClass]="{ 'parent-asset-row': rowNode.node.data.isParentRow }">
+            @for (col of selectedColumns; track col; let i = $index) {
+            <td>
+              <span class="align-items-center flex">
+                @if (i === 0) {
+                <p-treeTableToggler [rowNode]="rowNode" />
                 }
-              </th>
-              }
-            </tr>
-          </ng-template>
+                @switch (col.field) {
+                @case ('displayResult') {
+                <p-tag class="ml-2" [value]="rowNode.node.data.displayResult"
+                  [severity]="rowNode.node.data.result === 'pass' ? 'success' : rowNode.node.data.result === 'fail' ? 'danger' : 'warn'" />
+                }
+                @case ('status.label') {
+                @if (rowNode.node.data['status.label']) {
+                <i class="pi ml-4" [ngClass]="getStatusIcon(rowNode.node.data['status.label'])"
+                  [pTooltip]="rowNode.node.data['status.label']" tooltipPosition="top"> </i>
+                }
+                }
+                @case ('detail') {
+                @if (rowNode.node.data[col.field]) {
+                <i class="pi pi-cog ml-4" style="cursor: pointer" [pTooltip]="rowNode.node.data[col.field]"
+                  tooltipPosition="top"></i>
+                }
+                }
+                @case ('rule.severity') {
+                @if (rowNode.node.data['rule.severity']) {
+                <p-tag [value]="rowNode.node.data['rule.severity']"
+                  [severity]="getSeverityStyling(rowNode.node.data['rule.severity'])" [rounded]="false" />
+                }
+                }
+                @case ('evaluatedDate') {
+                {{ rowNode.node.data['evaluatedDate'] | date: 'short' }}
+                }
+                @case ('resultEngine.product') {
+                {{ rowNode.node.data['resultEngine.product'] }}
+                }
+                @case ('resultEngine.version') {
+                {{ rowNode.node.data['resultEngine.version'] }}
+                }
+                @case ('labels') {
+                @for (label of rowNode.node.data.assetLabels; track label.labelId) {
+                <p-tag [rounded]="false" [value]="label.name"
+                  [style]="{ background: 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.5rem', color: '#' + label.color }" />
+                }
+                }
+                @default {
+                {{ rowNode.node.data[col.field] }}
+                }
+                }
+              </span>
+            </td>
+            }
+          </tr>
+        </ng-template>
 
-          <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-            <tr [ttRow]="rowNode" [ngClass]="{ 'parent-asset-row': rowNode.node.data.isParentRow }">
-              @for (col of selectedColumns; track col; let i = $index) {
-              <td>
-                <span class="align-items-center flex">
-                  @if (i === 0) {
-                  <p-treeTableToggler [rowNode]="rowNode" />
-                  }
-                  @switch (col.field) {
-                  @case ('displayResult') {
-                  <p-tag class="ml-2" [value]="rowNode.node.data.displayResult"
-                    [severity]="rowNode.node.data.result === 'pass' ? 'success' : rowNode.node.data.result === 'fail' ? 'danger' : 'warn'" />
-                  }
-                  @case ('status.label') {
-                  @if (rowNode.node.data['status.label']) {
-                  <i class="pi ml-4" [ngClass]="getStatusIcon(rowNode.node.data['status.label'])"
-                    [pTooltip]="rowNode.node.data['status.label']" tooltipPosition="top"> </i>
-                  }
-                  }
-                  @case ('detail') {
-                  @if (rowNode.node.data[col.field]) {
-                  <i class="pi pi-cog ml-4" style="cursor: pointer" [pTooltip]="rowNode.node.data[col.field]"
-                    tooltipPosition="top"></i>
-                  }
-                  }
-                  @case ('rule.severity') {
-                  @if (rowNode.node.data['rule.severity']) {
-                  <p-tag [value]="rowNode.node.data['rule.severity']"
-                    [severity]="getSeverityStyling(rowNode.node.data['rule.severity'])" [rounded]="false" />
-                  }
-                  }
-                  @case ('evaluatedDate') {
-                  {{ rowNode.node.data['evaluatedDate'] | date: 'short' }}
-                  }
-                  @case ('resultEngine.product') {
-                  {{ rowNode.node.data['resultEngine.product'] }}
-                  }
-                  @case ('resultEngine.version') {
-                  {{ rowNode.node.data['resultEngine.version'] }}
-                  }
-                  @case ('labels') {
-                  @for (label of getReviewLabels(rowNode.node.data); track label) {
-                  <p-tag [rounded]="false" [value]="label.name"
-                    [style]="{ background: 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.5rem', color: '#' + label.color }" />
-                  }
-                  }
-                  @default {
-                  {{ rowNode.node.data[col.field] }}
-                  }
-                  }
-                </span>
-              </td>
-              }
-            </tr>
-          </ng-template>
-
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td [attr.colspan]="selectedColumns.length" style="text-align: center">No reviews to display. Select
-                Benchmark ID to load reviews or adjust filters to display available data.</td>
-            </tr>
-          </ng-template>
-        </p-treeTable>
-      </div>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="selectedColumns.length" style="text-align: center">No reviews to display. Select
+              Benchmark ID to load reviews or adjust filters to display available data.</td>
+          </tr>
+        </ng-template>
+      </p-treeTable>
     </div>
   </div>
 </div>
