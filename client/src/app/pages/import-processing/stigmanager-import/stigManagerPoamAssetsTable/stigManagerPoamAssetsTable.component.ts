@@ -23,7 +23,7 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, forkJoin } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { SharedService } from 'src/app/common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
@@ -31,14 +31,6 @@ import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-d
 interface ExportColumn {
   title: string;
   dataKey: string;
-}
-
-interface Label {
-  color: string;
-  description: string;
-  labelId: number;
-  name: string;
-  uses: number;
 }
 
 @Component({
@@ -65,7 +57,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   selectedColumns: any[];
   affectedAssets: any[] = [];
   combinedAssets: any[] = [];
-  labels: Label[] = [];
   totalRecords: number = 0;
   filterValue: string = '';
   assetDeltaList: any;
@@ -146,12 +137,8 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
 
     const allVulnIds = [this.groupId, ...associatedVulnIds];
 
-    forkJoin({
-      labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId),
-      poamAssets: this.sharedService.getPOAMAssetsFromSTIGMAN(this.stigmanCollectionId)
-    }).subscribe({
-      next: ({ labels, poamAssets }) => {
-        this.labels = labels || [];
+    this.sharedService.getPOAMAssetsFromSTIGMAN(this.stigmanCollectionId).subscribe({
+      next: (poamAssets) => {
         let allAssets: any[] = [];
 
         allVulnIds.forEach((vulnId) => {
@@ -186,7 +173,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to fetch data: ${getErrorMessage(error)}`
+          detail: `Failed to fetch POAM assets: ${getErrorMessage(error)}`
         });
         this.loading = false;
       }
@@ -213,7 +200,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
             ...(details.description && { description: details.description }),
             ...(details.fqdn && { fqdn: details.fqdn }),
             ...(details.ip && { ip: details.ip }),
-            ...(details.labelIds && { labelIds: details.labelIds }),
+            ...(details.labels && { labels: details.labels }),
             ...(details.mac && { mac: details.mac }),
             ...(details.metadata && { metadata: details.metadata }),
             ...(details.statusStats && { statusStats: details.statusStats }),
@@ -233,7 +220,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to fetch data: ${getErrorMessage(error)}`
+          detail: `Failed to fetch asset details: ${getErrorMessage(error)}`
         });
         this.affectedAssets = mappedAssets;
         this.loading = false;
@@ -321,10 +308,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
         });
       }
     });
-  }
-
-  getAssetLabels(asset: any): Label[] {
-    return asset.labelIds?.map((labelId: number) => this.labels.find((label) => label.labelId === labelId)).filter((label: Label | undefined): label is Label => label !== undefined) || [];
   }
 
   initColumnsAndFilters() {

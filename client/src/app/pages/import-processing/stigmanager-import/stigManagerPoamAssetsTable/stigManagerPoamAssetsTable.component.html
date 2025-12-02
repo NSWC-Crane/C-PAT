@@ -70,7 +70,7 @@
                       }
                       }
                       @case ('labels') {
-                      @for (label of getAssetLabels(asset); track label) {
+                      @for (label of asset.labels; track label.labelId) {
                       <p-tag [rounded]="true" [value]="label.name"
                         [style]="{ background: 'color-mix(in srgb, #' + label.color + ', transparent 84%)', color: '#' + label.color }"
                         class="mb-1 mr-1" />

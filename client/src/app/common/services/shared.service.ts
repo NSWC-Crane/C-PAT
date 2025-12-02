@@ -120,10 +120,6 @@ export class SharedService {
     return this.http.get<any[]>(`${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`).pipe(catchError(this.handleError));
   }
 
-  getLabelsByCollectionSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/labels`).pipe(catchError(this.handleError));
-  }
-
   getRuleDataFromSTIGMAN(ruleId: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.STIGMANAGER_URL}/stigs/rules/${ruleId}?projection=detail&projection=check&projection=fix`).pipe(catchError(this.handleError));
   }

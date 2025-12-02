@@ -22,17 +22,8 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
-import { forkJoin } from 'rxjs';
 import { SharedService } from 'src/app/common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
-
-interface Label {
-  color: string;
-  description: string;
-  labelId: number;
-  name: string;
-  uses: number;
-}
 
 @Component({
   selector: 'cpat-stigmanager-assets-table',
@@ -52,7 +43,6 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   cols: any[];
   selectedColumns: any[];
   assets: any[] = [];
-  labels: Label[] = [];
   isLoading: boolean = true;
   totalRecords: number = 0;
   filterValue: string = '';
@@ -69,14 +59,10 @@ export class STIGManagerAssetsTableComponent implements OnInit {
 
   loadData() {
     this.isLoading = true;
-    forkJoin({
-      assets: this.sharedService.getAssetsFromSTIGMAN(this.stigmanCollectionId),
-      labels: this.sharedService.getLabelsByCollectionSTIGMAN(this.stigmanCollectionId)
-    }).subscribe({
-      next: ({ assets, labels }) => {
+    this.sharedService.getAssetsFromSTIGMAN(this.stigmanCollectionId).subscribe({
+      next: (assets) => {
         if (!assets || assets.length === 0) {
           this.showErrorMessage('No assets found.');
-
           return;
         }
 
@@ -85,14 +71,12 @@ export class STIGManagerAssetsTableComponent implements OnInit {
           collectionName: asset.collection.name
         }));
         this.totalRecords = this.assets.length;
-
-        this.labels = labels || [];
       },
       error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to fetch data: ${getErrorMessage(error)}`
+          detail: `Failed to fetch assets: ${getErrorMessage(error)}`
         });
       },
       complete: () => {
@@ -117,10 +101,6 @@ export class STIGManagerAssetsTableComponent implements OnInit {
     ];
 
     this.resetColumnSelections();
-  }
-
-  getAssetLabels(asset: any): Label[] {
-    return asset.labelIds?.map((labelId: number) => this.labels.find((label) => label.labelId === labelId)).filter(Boolean) || [];
   }
 
   showErrorMessage(message: string) {
