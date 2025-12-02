@@ -140,6 +140,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   selectedBenchmark: any = null;
   viewMode: 'summary' | 'findings' = 'summary';
   private subscriptions = new Subscription();
+  benchmarksCount: number = 0;
   findingsCount: number = 0;
   reviewsCount: number = 0;
   controlsCount: number = 0;
@@ -270,6 +271,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         }
 
         this.benchmarkSummaries = this.processBenchmarkData(data);
+        this.benchmarksCount = this.benchmarkSummaries.length;
       },
       error: (error) => {
         this.messageService.add({
@@ -532,6 +534,18 @@ ${ruleData.detail.vulnDiscussion}`;
         this.findingsCount = findingsTable.filteredValue.length;
       } else {
         this.findingsCount = this.displayDataSource.length;
+      }
+    }
+  }
+
+  onBenchmarkFilter(_event: any) {
+    const benchmarksTable = this.benchmarksTable();
+
+    if (benchmarksTable) {
+      if (benchmarksTable.filteredValue) {
+        this.benchmarksCount = benchmarksTable.filteredValue.length;
+      } else {
+        this.benchmarksCount = this.benchmarkSummaries.length;
       }
     }
   }
