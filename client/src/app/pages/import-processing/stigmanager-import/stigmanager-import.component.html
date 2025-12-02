@@ -20,6 +20,7 @@
         }
       </p-tab>
       <p-tab value="1">STIG Manager Reviews ({{ reviewsCount }})</p-tab>
+      <p-tab value="2">STIG Manager Controls ({{ controlsCount }})</p-tab>
     </p-tablist>
     <p-tabpanels>
       <p-tabpanel value="0">
@@ -229,6 +230,12 @@
       <p-tabpanel value="1">
         <cpat-stigmanager-reviews-table [stigmanCollectionId]="this.stigmanCollection?.collectionId"
           (reviewsCountChange)="onReviewsCountChange($event)" />
+      </p-tabpanel>
+      }
+      @if (this.stigmanCollection?.collectionId) {
+      <p-tabpanel value="2">
+        <cpat-stigmanager-controls-table [stigmanCollectionId]="this.stigmanCollection?.collectionId"
+          [selectedCollection]="selectedCollection" (controlsCountChange)="onControlsCountChange($event)" />
       </p-tabpanel>
       }
     </p-tabpanels>

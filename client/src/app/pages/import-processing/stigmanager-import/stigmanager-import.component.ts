@@ -33,6 +33,7 @@ import { CollectionsService } from '../../admin-processing/collection-processing
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
+import { STIGManagerControlsTableComponent } from './stigManagerControlsTable/stigManagerControlsTable.component';
 
 interface STIGManagerFinding {
   groupId: string;
@@ -65,6 +66,7 @@ interface STIGManagerFinding {
     TabsModule,
     ToastModule,
     TooltipModule,
+    STIGManagerControlsTableComponent,
     STIGManagerReviewsTableComponent,
     InputIconModule,
     IconFieldModule,
@@ -140,6 +142,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   findingsCount: number = 0;
   reviewsCount: number = 0;
+  controlsCount: number = 0;
   private processBenchmarkData(benchmarks: any[]): any[] {
     return benchmarks.map((benchmark) => {
       const totalAssessments = benchmark.metrics?.assessments || 0;
@@ -545,6 +548,10 @@ ${ruleData.detail.vulnDiscussion}`;
 
   onReviewsCountChange(count: number) {
     this.reviewsCount = count;
+  }
+
+  onControlsCountChange(count: number) {
+    this.controlsCount = count;
   }
 
   clearBenchmarkFilter() {

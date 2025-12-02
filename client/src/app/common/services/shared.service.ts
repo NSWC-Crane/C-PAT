@@ -93,7 +93,11 @@ export class SharedService {
   }
 
   getFindingsByBenchmarkFromSTIGMAN(collectionId: number, benchmarkId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&benchmarkId=${benchmarkId}&projection=rules&projection=stigs`).pipe(catchError(this.handleError));
+    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&benchmarkId=${benchmarkId}&projection=ccis&projection=rules&projection=stigs`).pipe(catchError(this.handleError));
+  }
+
+  getFindingsByCCIFromSTIGMAN(collectionId: number): Observable<any> {
+    return this.http.get<any>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=cci&projection=ccis&projection=groups&projection=rules&projection=stigs`).pipe(catchError(this.handleError));
   }
 
   getAffectedAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
