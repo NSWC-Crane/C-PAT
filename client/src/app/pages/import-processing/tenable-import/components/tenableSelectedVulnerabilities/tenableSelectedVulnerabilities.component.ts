@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -67,7 +67,6 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   private collectionsService = inject(CollectionsService);
   private sharedService = inject(SharedService);
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
 
   readonly totalRecordsChange = output<number>();
   @Input() currentPreset: string = 'iav';
@@ -324,7 +323,6 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
             detail: 'There are no POAMs with Task Orders within the collection.',
             sticky: true
           });
-          this.cdr.detectChanges();
 
           return;
         }
@@ -406,7 +404,6 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         }),
         finalize(() => {
           this.isLoading = false;
-          this.cdr.detectChanges();
         })
       )
       .subscribe({
@@ -481,8 +478,6 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
             table.filters = { ...currentFilters, ...this.filters };
             table._filter();
           }
-
-          this.cdr.detectChanges();
         }
       });
   }
@@ -936,7 +931,6 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
       this.totalRecordsChange.emit(this.totalRecords);
     }
 
-    this.cdr.detectChanges();
     this.filterValue = '';
     this.selectedNavyComplyDateFilter = null;
     this.loadVulnSummary();

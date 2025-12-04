@@ -1243,7 +1243,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       }
     });
     this.filteredAccordionItems = [...this.accordionItems];
-    this.cdr.detectChanges();
   }
 
   filterAccordionItems() {

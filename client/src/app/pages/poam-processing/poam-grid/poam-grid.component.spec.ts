@@ -13,7 +13,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -120,7 +119,7 @@ describe('PoamGridComponent', () => {
     mockImportService.getTenablePlugin.and.returnValue(of({ response: {} }));
 
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PoamGridComponent, FormsModule],
+      imports: [PoamGridComponent, FormsModule],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),

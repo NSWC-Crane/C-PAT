@@ -9,7 +9,7 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, inject, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parseISO } from 'date-fns';
@@ -46,7 +46,7 @@ export interface PoamApproval {
   imports: [FormsModule, ButtonModule, DatePicker, CheckboxModule, DialogModule, Select, TextareaModule, ToastModule],
   providers: [DatePipe]
 })
-export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PoamApproveComponent implements OnInit, OnDestroy {
   private messageService = inject(MessageService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -54,9 +54,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   private sharedService = inject(SharedService);
   private poamApproveService = inject(PoamApproveService);
   private poamService = inject(PoamService);
-  private cdr = inject(ChangeDetectorRef);
-
-  protected accessLevel: any;
+  protected accessLevel: number = 0;
   user: any;
   payload: any;
   private subs = new SubSink();
@@ -113,6 +111,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
       })
     );
   }
+
   getData() {
     forkJoin([this.poamApproveService.getPoamApprovers(this.poamId), this.poamService.getPoam(this.poamId)]).subscribe({
       next: ([approversResponse, poamResponse]: [any, any]) => {
@@ -130,6 +129,7 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
           this.comments = null;
           this.hqsChecked = Boolean(poamResponse.hqs);
         }
+        this.displayDialog = true;
       },
       error: (error) => {
         this.messageService.add({
@@ -144,15 +144,6 @@ export class PoamApproveComponent implements OnInit, AfterViewInit, OnDestroy {
   confirm(message: string) {
     this.confirmDialogMessage = message;
     this.displayConfirmDialog = true;
-  }
-
-  ngAfterViewInit() {
-    this.openModal();
-    this.cdr.detectChanges();
-  }
-
-  openModal() {
-    this.displayDialog = true;
   }
 
   cancelApproval() {

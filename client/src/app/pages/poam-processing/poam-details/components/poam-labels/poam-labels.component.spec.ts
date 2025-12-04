@@ -10,7 +10,6 @@
 
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { Subject, of, throwError } from 'rxjs';
 import { PoamService } from '../../../poams.service';
@@ -33,7 +32,7 @@ describe('PoamLabelsComponent', () => {
     } as jasmine.SpyObj<MessageService>;
 
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PoamLabelsComponent, FormsModule],
+      imports: [PoamLabelsComponent, FormsModule],
       providers: [
         { provide: PoamService, useValue: mockPoamService },
         { provide: MessageService, useValue: mockMessageService }

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -26,10 +26,9 @@ import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.componen
   standalone: true,
   imports: [PoamMainchartComponent, ToastModule]
 })
-export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PoamsComponent implements OnInit, OnDestroy {
   private collectionsService = inject(CollectionsService);
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
   private setPayloadService = inject(PayloadService);
   private messageService = inject(MessageService);
 
@@ -44,10 +43,6 @@ export class PoamsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.setPayload();
-  }
-
-  ngAfterViewInit(): void {
-    this.cdr.detectChanges();
   }
 
   async setPayload() {

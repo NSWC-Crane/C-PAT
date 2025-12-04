@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe, Location } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, computed, signal, inject, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parse, parseISO } from 'date-fns';
@@ -121,7 +121,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   private setPayloadService = inject(PayloadService);
   private mappingService = inject(PoamVariableMappingService);
   private location = inject(Location);
-  private cdr = inject(ChangeDetectorRef);
 
   readonly menu = viewChild.required<Menu>('menu');
   appConfigSettings: AppConfiguration[] = [];
@@ -568,7 +567,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       }));
       this.poam = result.poam;
       this.teamMitigations = [];
-      this.cdr.detectChanges();
     } catch (error) {
       this.messageService.add({
         severity: 'error',
@@ -599,7 +597,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       }));
       this.poam = result.poam;
       this.teamMitigations = [];
-      this.cdr.detectChanges();
     } catch (error) {
       this.messageService.add({
         severity: 'error',
@@ -630,7 +627,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       }));
       this.poam = result.poam;
       this.teamMitigations = [];
-      this.cdr.detectChanges();
     } catch (error) {
       this.messageService.add({
         severity: 'error',

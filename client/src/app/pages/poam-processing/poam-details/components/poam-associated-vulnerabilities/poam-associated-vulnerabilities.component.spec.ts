@@ -10,7 +10,6 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { Subject, of, throwError } from 'rxjs';
@@ -44,7 +43,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     mockImportService.postTenableAnalysis.and.returnValue(of({ response: { results: [] } }));
 
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PoamAssociatedVulnerabilitiesComponent, FormsModule],
+      imports: [PoamAssociatedVulnerabilitiesComponent, FormsModule],
       providers: [
         { provide: PoamService, useValue: mockPoamService },
         { provide: SharedService, useValue: mockSharedService },

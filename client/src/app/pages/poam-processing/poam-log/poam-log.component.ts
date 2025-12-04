@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
@@ -37,7 +37,6 @@ export class PoamLogComponent implements OnInit {
   private sharedService = inject(SharedService);
   private route = inject(ActivatedRoute);
   private poamLogService = inject(PoamLogService);
-  private changeDetectorRef = inject(ChangeDetectorRef);
   private messageService = inject(MessageService);
 
   customColumn = 'Timestamp';
@@ -73,7 +72,6 @@ export class PoamLogComponent implements OnInit {
           User: log.User,
           Action: log.Action
         }));
-        this.changeDetectorRef.detectChanges();
       },
       error: (error: any) => {
         this.messageService.add({

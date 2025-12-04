@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addDays, format, isAfter, parseISO, startOfDay } from 'date-fns';
@@ -54,7 +54,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   private confirmationService = inject(ConfirmationService);
   private labelService = inject(LabelService);
   private messageService = inject(MessageService);
-  private cdr = inject(ChangeDetectorRef);
   private setPayloadService = inject(PayloadService);
 
   private subscriptions = new Subscription();
@@ -225,7 +224,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
     this.poamMilestones = [newMilestone, ...this.poamMilestones];
     this.onRowEditInit(newMilestone);
-    this.cdr.detectChanges();
   }
 
   generateTempId(): string {
@@ -257,8 +255,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     if (this.table) {
       this.table.cancelRowEdit(milestone);
     }
-
-    this.cdr.detectChanges();
   }
 
   private validateMilestoneFields(milestone: any): boolean {
@@ -526,7 +522,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
               detail: 'POAM extension deleted successfully.'
             });
             this.getData();
-            this.cdr.detectChanges();
           },
           error: (error) => {
             this.messageService.add({

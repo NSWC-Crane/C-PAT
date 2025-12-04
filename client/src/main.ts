@@ -10,11 +10,10 @@
 
 import { APP_BASE_HREF } from '@angular/common';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
-import { enableProdMode, importProvidersFrom } from '@angular/core';
+import { enableProdMode, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -79,7 +78,7 @@ bootstrapApplication(AppComponent, {
       provide: APP_BASE_HREF,
       useFactory: () => document.querySelector('base')?.getAttribute('href') || '/'
     },
-    provideAnimationsAsync(),
+    provideZoneChangeDetection(),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
     providePrimeNG({ theme: Noir, ripple: false, inputStyle: 'outlined' }),
     importProvidersFrom(BrowserModule, BrowserAnimationsModule, FormsModule),
