@@ -12,6 +12,9 @@ import { CommonModule } from '@angular/common';
 import { Component, DOCUMENT, ElementRef, Input, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { BadgeModule } from 'primeng/badge';
+import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { Popover } from 'primeng/popover';
 import { StyleClass } from 'primeng/styleclass';
 import { TooltipModule } from 'primeng/tooltip';
@@ -28,7 +31,7 @@ import { PayloadService } from '../../common/services/setPayload.service';
 @Component({
   selector: 'cpat-topbar',
   standalone: true,
-  imports: [AppSearchComponent, CommonModule, FormsModule, StyleClass, RouterModule, AppConfiguratorComponent, Popover, TooltipModule, NotificationsPanelComponent],
+  imports: [BadgeModule, OverlayBadgeModule, AppSearchComponent, CommonModule, FormsModule, StyleClass, RouterModule, ButtonModule, AppConfiguratorComponent, Popover, TooltipModule, NotificationsPanelComponent],
   template: `<div class="layout-topbar">
     <div class="layout-topbar-inner">
       <div class="layout-topbar-logo-container">
@@ -78,9 +81,7 @@ import { PayloadService } from '../../common/services/setPayload.service';
           <cpat-search />
         </li>
         <li>
-          <button pButton class="topbar-item" (click)="toggleDarkMode()">
-            <i pButtonIcon class="pi" [ngClass]="{ 'pi-moon': isDarkMode(), 'pi-sun': !isDarkMode() }"></i>
-          </button>
+          <p-button class="topbar-item" [icon]="isDarkMode() ? 'pi pi-moon' : 'pi pi-sun'" (click)="toggleDarkMode()" [text]="true" />
         </li>
         @if (showConfigurator) {
           <li class="relative">
@@ -105,14 +106,9 @@ import { PayloadService } from '../../common/services/setPayload.service';
           </li>
         }
         <li>
-          <button pButton class="topbar-item" (click)="op.toggle($event)" (keyup.enter)="op.toggle($event)">
-            <i pButtonIcon class="pi pi-bell"></i>
-            @if (notificationCount > 0) {
-              <span class="absolute -top-1 -right-1 min-w-[1.25rem] h-5 rounded-full bg-primary-500 text-black dark:text-white text-xs flex items-center justify-center px-1 animate-pulse">
-                {{ notificationCount }}
-              </span>
-            }
-          </button>
+          <p-overlaybadge styleClass="!outline-0 opacity-80 !mr-px !mt-px" badgeSize="small" [value]="notificationCount > 0 ? notificationCount.toString() : '0'">
+            <p-button class="topbar-item overflow-visible" icon="pi pi-bell" [text]="true" (click)="op.toggle($event)" (keyup.enter)="op.toggle($event)" />
+          </p-overlaybadge>
           <p-popover #op class="overlay" [dismissable]="true">
             <cpat-notifications-popover [overlayPanel]="op" />
           </p-popover>
