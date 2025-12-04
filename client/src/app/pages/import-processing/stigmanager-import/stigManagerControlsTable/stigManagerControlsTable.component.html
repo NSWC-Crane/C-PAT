@@ -37,6 +37,11 @@
         @for (col of controlColumns; track col.field) {
         <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
           {{ col.header }}
+          @if (col.field === 'poamPercentage') {
+          <i class="pi pi-info-circle ml-1"
+            [pTooltip]="'Percentage of findings that have an existing POAM.\n\nNote: Draft or Rejected POAMs are excluded.'"
+            tooltipPosition="top" [escape]="false" style="font-size: 0.875rem; color: var(--text-color-secondary);"></i>
+          }
           <p-columnFilter [type]="col.filterType" [field]="col.field" [showOperator]="false" display="menu" />
         </th>
         }
