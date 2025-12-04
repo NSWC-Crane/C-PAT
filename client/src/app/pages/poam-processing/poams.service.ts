@@ -47,10 +47,6 @@ export class PoamService {
     return this.http.get(`${this.cpatApiBase}/metrics/collection/${collectionId}/poamScheduledCompletion`).pipe(catchError(this.handleError));
   }
 
-  getCollectionMonthlyPoamStatus(collectionId: number): Observable<any> {
-    return this.http.get(`${this.cpatApiBase}/metrics/collection/${collectionId}/monthlypoamstatus`).pipe(catchError(this.handleError));
-  }
-
   getPoam(
     poamId: number,
     includeApprovers: boolean = false,

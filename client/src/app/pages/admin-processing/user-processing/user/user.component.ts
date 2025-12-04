@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -88,7 +88,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   private userService = inject(UsersService);
   private confirmationService = inject(ConfirmationService);
   private messageService = inject(MessageService);
-  private cdr = inject(ChangeDetectorRef);
   private payloadService = inject(PayloadService);
 
   @Input() user: any;
@@ -279,7 +278,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           editing: false
         };
       });
-      this.cdr.detectChanges();
     } else {
       console.error('User or permissions data is not available');
     }

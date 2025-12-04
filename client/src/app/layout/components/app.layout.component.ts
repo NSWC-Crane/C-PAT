@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
@@ -303,7 +303,6 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly configService = inject(AppConfigService);
   private readonly collectionsService = inject(CollectionsService);
-  private readonly cdr = inject(ChangeDetectorRef);
   protected readonly router = inject(Router);
   private readonly sharedService = inject(SharedService);
   private readonly userService = inject(UsersService);
@@ -341,7 +340,6 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       )
       .subscribe((user) => {
         this.currentUser = user;
-        this.cdr.detectChanges();
       });
 
     combineLatest([this.user$.pipe(filter((user) => !!user)), this.accessLevel$.pipe(filter((level) => level != null))])
@@ -556,7 +554,6 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     ];
 
     this.items = menuItems.filter((item) => item.visible);
-    this.cdr.detectChanges();
   }
 
   showConfirmPopup() {

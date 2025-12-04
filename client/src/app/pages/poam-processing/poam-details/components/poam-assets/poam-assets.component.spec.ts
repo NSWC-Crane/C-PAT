@@ -11,7 +11,6 @@
 import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { Subject, of, throwError } from 'rxjs';
 import { PoamAssetsComponent } from './poam-assets.component';
@@ -38,7 +37,7 @@ describe('PoamAssetsComponent', () => {
     } as jasmine.SpyObj<MessageService>;
 
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PoamAssetsComponent, FormsModule],
+      imports: [PoamAssetsComponent, FormsModule],
       providers: [{ provide: MessageService, useValue: mockMessageService }]
     }).compileComponents();
     fixture = TestBed.createComponent(PoamAssetsComponent);

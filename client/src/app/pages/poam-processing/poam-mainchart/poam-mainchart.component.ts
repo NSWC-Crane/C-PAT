@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { signal, computed, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, effect, model, inject, viewChild } from '@angular/core';
+import { signal, computed, Component, Input, OnChanges, OnDestroy, SimpleChanges, effect, model, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { addDays, differenceInCalendarDays } from 'date-fns';
 import { Select } from 'primeng/select';
@@ -45,13 +45,10 @@ interface SelectedOptions {
   templateUrl: './poam-mainchart.component.html',
   styleUrls: ['./poam-mainchart.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, ChartModule, FormsModule, CardModule, Select, TabsModule, MultiSelectModule]
 })
 export class PoamMainchartComponent implements OnChanges, OnDestroy {
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
-  private zone = inject(NgZone);
 
   @Input() poams!: any[];
   @Input() canvasHeight = '35rem';
@@ -277,14 +274,12 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['poams']?.currentValue?.length > 0) {
-      this.zone.run(() => {
-        if (this.initialized) {
-          this.updateAllCharts();
-        } else {
-          this.initialized = true;
-          this.initializeComponent();
-        }
-      });
+      if (this.initialized) {
+        this.updateAllCharts();
+      } else {
+        this.initialized = true;
+        this.initializeComponent();
+      }
     }
   }
 
@@ -305,10 +300,7 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
       }))
     );
 
-    this.zone.run(() => {
-      this.updateAllCharts();
-      this.cdr.detectChanges();
-    });
+    this.updateAllCharts();
   }
 
   private updateAllCharts(): void {
@@ -318,7 +310,6 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
       this.updateSeverityChart();
       this.updateScheduledCompletionChart();
       this.updateTaskOrderChart();
-      this.cdr.markForCheck();
     });
   }
 
@@ -695,11 +686,7 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
         .filter(([, value]) => value !== null)
         .map(([key, value]) => `${key}:${value}`)
     );
-
-    this.zone.run(() => {
-      this.updateAllCharts();
-      this.cdr.detectChanges();
-    });
+    this.updateAllCharts();
   }
 
   isOptionDisabled(groupName: string, optionValue: string): boolean {

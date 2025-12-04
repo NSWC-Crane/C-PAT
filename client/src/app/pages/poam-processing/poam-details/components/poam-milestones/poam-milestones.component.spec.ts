@@ -12,7 +12,6 @@ import { DatePipe } from '@angular/common';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { addDays } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
@@ -38,7 +37,7 @@ describe('PoamMilestonesComponent', () => {
     } as jasmine.SpyObj<MessageService>;
 
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, PoamMilestonesComponent, FormsModule],
+      imports: [PoamMilestonesComponent, FormsModule],
       providers: [{ provide: MessageService, useValue: mockMessageService }, ConfirmationService, DatePipe]
     }).compileComponents();
 

@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -34,14 +34,12 @@ import { PoamMainchartComponent } from '../poam-mainchart/poam-mainchart.compone
   templateUrl: './poam-manage.component.html',
   styleUrls: ['./poam-manage.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamMainchartComponent, PoamAssignedGridComponent, PoamGridComponent]
 })
-export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PoamManageComponent implements OnInit, OnDestroy {
   private collectionsService = inject(CollectionsService);
   private sharedService = inject(SharedService);
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef);
   private setPayloadService = inject(PayloadService);
   private importService = inject(ImportService);
   private messageService = inject(MessageService);
@@ -366,10 +364,6 @@ export class PoamManageComponent implements OnInit, AfterViewInit, OnDestroy {
     const poamId = row.data.poamId;
 
     this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
-  }
-
-  ngAfterViewInit() {
-    this.cdr.detectChanges();
   }
 
   updateGridData() {
