@@ -287,7 +287,14 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
     this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
       next: (response: any) => {
         this.existingPoams = response;
-        const poamVulnIds = new Set(response.map((p: any) => p.vulnerabilityId));
+
+        const excludedStatuses = new Set(['draft', 'rejected']);
+        const validPoams = response.filter((p: any) => {
+          const effectiveStatus = p.status === 'Associated' ? p.parentStatus : p.status;
+          return effectiveStatus && !excludedStatuses.has(effectiveStatus.toLowerCase());
+        });
+
+        const poamVulnIds = new Set(validPoams.map((p: any) => p.vulnerabilityId));
 
         this.controlSummaries.forEach((summary) => {
           summary.poamCount = summary.groupIds.filter((gid) => poamVulnIds.has(gid)).length;
