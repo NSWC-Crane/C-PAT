@@ -353,6 +353,10 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         },
         error: (error) => console.error('Error in initialization:', error)
       });
+    const fg = document.getElementById('particles-foreground');
+    const bg = document.getElementById('particles-background');
+    fg?.remove();
+    bg?.remove();
   }
 
   private async loadCollections(user: any) {
