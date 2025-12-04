@@ -120,51 +120,6 @@ exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(col
     }
 };
 
-exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoamStatus(collectionId) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-        SELECT
-          CASE
-            WHEN status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Extension Requested') THEN 'Open'
-            WHEN status = 'Closed' THEN 'Closed'
-          END AS status,
-          COUNT(*) AS statusCount
-        FROM poam
-        WHERE collectionId = ?
-        AND submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-        AND status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Extension Requested', 'Closed')
-        GROUP BY status;
-      `;
-
-            let [rows] = await connection.query(sql, [collectionId]);
-
-            const poamStatusMap = {};
-
-            rows.forEach(row => {
-                if (row.status !== null) {
-                    if (poamStatusMap[row.status]) {
-                        poamStatusMap[row.status] += row.statusCount;
-                    } else {
-                        poamStatusMap[row.status] = row.statusCount;
-                    }
-                }
-            });
-
-            const poamStatus = Object.entries(poamStatusMap)
-                .filter(([status]) => status !== 'null')
-                .map(([status, statusCount]) => ({
-                    status,
-                    statusCount,
-                }));
-
-            return { poamStatus };
-        });
-    } catch (error) {
-        return { null: 'Undefined collection' };
-    }
-};
-
 exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(collectionId) {
     try {
         return await withConnection(async connection => {

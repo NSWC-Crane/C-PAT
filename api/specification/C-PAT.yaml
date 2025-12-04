@@ -2178,39 +2178,6 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/metrics/collection/{collectionId}/monthlypoamstatus':
-    parameters:
-      - $ref: '#/components/parameters/collectionIdPath'
-    get:
-      summary: Get a status status and status counts grouped under Open or Closed from POAMs submitted within the last 30 days for a specific collection
-      operationId: getCollectionMonthlyPoamStatus
-      responses:
-        '200':
-          description: POAM status retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/poamStatus'
-        '204':
-          description: No Content
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Metrics
-      security:
-        - oauth:
-            - 'c-pat:read'
-
   '/metrics/available/assetlabel':
     get:
       summary: Get all asset labels and label counts available to the user
