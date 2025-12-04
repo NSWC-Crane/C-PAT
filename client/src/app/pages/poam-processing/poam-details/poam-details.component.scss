@@ -158,8 +158,9 @@ hr {
 
 ::ng-deep .poam-control-menu {
   background-color: var(--card-background) !important;
-  margin-top: 0.5rem !important;
   width: 14.5rem !important;
+  top: -7.5rem;
+  right: -2.5rem;
 }
 
 ::ng-deep .poam-control-menu .p-menu-list {

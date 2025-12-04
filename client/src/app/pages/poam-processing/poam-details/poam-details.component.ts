@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe, Location } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, signal, inject, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parse, parseISO } from 'date-fns';
@@ -24,7 +24,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
-import { Menu, MenuModule } from 'primeng/menu';
+import { MenuModule } from 'primeng/menu';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { Select } from 'primeng/select';
 import { StepperModule } from 'primeng/stepper';
@@ -122,7 +122,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   private mappingService = inject(PoamVariableMappingService);
   private location = inject(Location);
 
-  readonly menu = viewChild.required<Menu>('menu');
   appConfigSettings: AppConfiguration[] = [];
   accessLevel = signal<number>(0);
   loadingTeams = signal<boolean>(false);
@@ -208,7 +207,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-secondary',
         command: () => {
           this.poamLog();
-          this.menu()?.hide();
         }
       },
       {
@@ -217,7 +215,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-info',
         command: () => {
           this.showPoamNotes = true;
-          this.menu()?.hide();
         },
         visible: this.poam?.poamId !== 'ADDPOAM'
       },
@@ -227,7 +224,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-warning',
         command: () => {
           this.extendPoam();
-          this.menu()?.hide();
         }
       }
     ];
@@ -239,7 +235,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-success',
         command: () => {
           this.verifySubmitPoam();
-          this.menu()?.hide();
         }
       });
     }
@@ -251,7 +246,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-primary',
         command: () => {
           this.poam.status === 'Extension Requested' ? this.extendPoam() : this.poamApproval();
-          this.menu()?.hide();
         }
       });
     }
@@ -263,7 +257,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         styleClass: 'menu-item-danger',
         command: () => {
           this.deletePoam();
-          this.menu()?.hide();
         }
       });
     }
