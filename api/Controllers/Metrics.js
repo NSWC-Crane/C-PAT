@@ -80,20 +80,6 @@ module.exports.getCollectionPoamScheduledCompletion = async function getCollecti
     }
 };
 
-module.exports.getCollectionMonthlyPoamStatus = async function getCollectionMonthlyPoamStatus(req, res, next) {
-    try {
-        const collectionId = req.params.collectionId;
-        const getMetrics = await metricsService.getCollectionMonthlyPoamStatus(collectionId);
-        if (getMetrics?.poamStatus) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-    }
-};
-
 module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res, next) {
     try {
         const getMetrics = await metricsService.getAvailableAssetLabel(req);
