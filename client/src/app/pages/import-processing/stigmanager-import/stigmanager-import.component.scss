@@ -8,16 +8,15 @@
 !##########################################################################
 */
 
-::ng-deep {
-  .p-card {
-    max-height: calc(100vh - 11rem);
-    height: calc(100vh - 11rem);
-    overflow: hidden;
-  }
-  .p-tabpanel {
-    height: calc(100vh - 19rem);
-    overflow: hidden;
-  }
+.stigman-import-card {
+  max-height: calc(100vh - 11rem);
+  height: calc(100vh - 11rem);
+  overflow: hidden;
+}
+
+.p-tabpanel {
+  height: calc(100vh - 19rem);
+  overflow: hidden;
 }
 
 :host ::ng-deep {
