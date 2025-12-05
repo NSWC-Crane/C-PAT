@@ -199,7 +199,7 @@
             <td>{{ row.scheduledCompletionDate }}</td>
             <td style="text-align: center">{{ row.lastUpdated }}</td>
             <td>
-              <div class="flex flex-wrap gap-2">
+              <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto overflow-x-hidden">
                 @for (vuln of row.associatedVulnerabilities; track vuln) {
                 @if (vuln?.trim()) {
                 <p-tag [rounded]="true" [value]="vuln.trim()" />
@@ -208,7 +208,7 @@
               </div>
             </td>
             <td>
-              <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+              <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto overflow-x-hidden">
                 @for (team of row.assignedTeams; track team) {
                 <p-tag [rounded]="true" [value]="team.name"
                   [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
@@ -225,7 +225,7 @@
               </div>
             </td>
             <td>
-              <div class="flex flex-wrap gap-2">
+              <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto overflow-x-hidden">
                 @for (label of row.labels; track label) {
                 <p-tag [rounded]="true" [value]="label" [class.hidden]="!label" />
                 }
