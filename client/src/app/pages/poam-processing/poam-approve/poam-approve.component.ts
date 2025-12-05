@@ -22,7 +22,6 @@ import { Select } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { Subscription, forkJoin } from 'rxjs';
-import { SubSink } from 'subsink';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -57,7 +56,6 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
   protected accessLevel: number = 0;
   user: any;
   payload: any;
-  private subs = new SubSink();
   public isLoggedIn = false;
   hqsChecked: boolean = false;
   poam: any;
@@ -82,9 +80,12 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
   readonly approveTemplate = viewChild.required<TemplateRef<any>>('approveTemplate');
 
   public ngOnInit() {
-    this.route.params.subscribe(async (params) => {
-      this.poamId = params['poamId'];
-    });
+    this.subscriptions.add(
+      this.route.params.subscribe(async (params) => {
+        this.poamId = params['poamId'];
+      })
+    );
+
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
@@ -185,7 +186,6 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subs.unsubscribe();
     this.subscriptions.unsubscribe();
     this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }

@@ -112,9 +112,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.openModal();
-    this.route.params.subscribe(async (params) => {
-      this.poamId = params['poamId'];
-    });
+    this.subscriptions.add(
+      this.route.params.subscribe(async (params) => {
+        this.poamId = params['poamId'];
+      })
+    );
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;

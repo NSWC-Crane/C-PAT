@@ -30,27 +30,15 @@
               },
               "fonts": true
             },
-            "allowedCommonJsDependencies": [
-              "base64-js",
-              "js-sha256",
-              "lodash",
-              "chart.js",
-              "rfdc",
-              "exceljs",
-              "chalk"
-            ],
+            "allowedCommonJsDependencies": ["base64-js", "js-sha256", "lodash", "chart.js", "rfdc", "exceljs", "chalk"],
             "outputPath": "dist",
             "browser": "src/main.ts",
-            "polyfills": [ "src/polyfills.ts" ],
+            "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": [
-              "src/silent-renew.html",
-              "src/favicon.ico",
-              "src/assets"
-            ],
+            "assets": ["src/silent-renew.html", "src/favicon.ico", "src/assets"],
             "stylePreprocessorOptions": {
-              "includePaths": [ "node_modules/", "src/assets/styles" ]
+              "includePaths": ["node_modules/", "src/assets/styles"]
             },
             "styles": [
               {
@@ -74,9 +62,7 @@
                 "inject": true
               }
             ],
-            "scripts": [
-              "node_modules/pace-js/pace.min.js"
-            ],
+            "scripts": ["src/pace-config.js", "node_modules/pace-js/pace.min.js"],
             "sourceMap": {
               "scripts": true,
               "styles": true,
@@ -150,24 +136,18 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         },
         "test": {
           "builder": "@angular/build:karma",
           "options": {
             "main": "src/test.ts",
-            "polyfills": [ "zone.js", "zone.js/testing" ],
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "inlineStyleLanguage": "scss",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
+            "assets": ["src/favicon.ico", "src/assets"],
             "styles": [
               {
                 "input": "src/assets/styles/global.scss",
@@ -202,9 +182,7 @@
   },
   "cli": {
     "analytics": false,
-    "schematicCollections": [
-      "@angular-eslint/schematics"
-    ]
+    "schematicCollections": ["@angular-eslint/schematics"]
   },
   "schematics": {
     "@schematics/angular:component": {

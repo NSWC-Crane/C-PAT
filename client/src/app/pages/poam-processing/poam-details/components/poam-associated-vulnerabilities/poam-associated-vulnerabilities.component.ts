@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnChanges, OnInit, inject, output } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
@@ -22,11 +22,41 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../../import-processing/import.service';
 import { PoamService } from '../../../poams.service';
 
+interface DisplayVulnerability {
+  associatedVulnerability: string;
+  severity: string;
+  severityCategory: string;
+  titleText: string;
+  tagSeverity: 'danger' | 'warn' | 'info' | 'secondary';
+  isNew: boolean;
+  selectedVulnerabilities?: string[];
+}
+
+interface AutocompleteSuggestion {
+  vulnId: string;
+  titleText: string;
+}
+
 @Component({
   selector: 'cpat-poam-associated-vulnerabilities',
   templateUrl: './poam-associated-vulnerabilities.component.html',
   standalone: true,
-  imports: [FormsModule, TableModule, ButtonModule, TagModule, ToastModule, TooltipModule, AutoCompleteModule]
+  imports: [FormsModule, TableModule, ButtonModule, TagModule, ToastModule, TooltipModule, AutoCompleteModule],
+  styles: [
+    `
+      :host ::ng-deep .p-datatable {
+        overflow: visible;
+      }
+
+      :host ::ng-deep .p-datatable-table-container {
+        overflow: visible !important;
+      }
+
+      :host ::ng-deep .p-datatable-table {
+        overflow: visible;
+      }
+    `
+  ]
 })
 export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges {
   private importService = inject(ImportService);
@@ -39,9 +69,10 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   @Input() currentCollection: any;
   @Input() poamAssociatedVulnerabilities: any[] = [];
   readonly vulnerabilitiesChanged = output<string[]>();
+  private vulnTitleMap = new Map<string, string>();
+  private vulnSeverityMap = new Map<string, string>();
 
-  vulnSeverities: any = {};
-  severityToCategoryMap: { [key: string]: string } = {
+  private readonly severityToCategoryMap: Record<string, string> = {
     critical: 'CAT I - Critical',
     high: 'CAT I - High',
     medium: 'CAT II - Medium',
@@ -49,193 +80,186 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
     informational: 'CAT III - Informational'
   };
 
-  displayVulnerabilities: any[] = [];
-  newVulnerability: string = '';
-  selectedVulnerabilities: string[] = [];
-  vulnTitles: any;
+  displayVulnerabilities: DisplayVulnerability[] = [];
+  filteredSuggestions: AutocompleteSuggestion[] = [];
 
   ngOnInit() {
-    this.initializeDisplayVulnerabilities();
     this.getVulnTitles();
   }
 
-  ngOnChanges() {
-    this.initializeDisplayVulnerabilities();
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['poamAssociatedVulnerabilities']) {
+      this.initializeDisplayVulnerabilities();
+    }
   }
 
-  initializeDisplayVulnerabilities() {
+  private initializeDisplayVulnerabilities(): void {
     this.displayVulnerabilities = (this.poamAssociatedVulnerabilities || [])
       .filter((vuln) => vuln)
       .map((vuln) => {
-        if (typeof vuln === 'string') {
-          return {
-            associatedVulnerability: vuln,
-            severity: this.getVulnerabilitySeverity(vuln),
-            isNew: false
-          };
-        } else if (typeof vuln === 'object' && vuln.associatedVulnerability) {
-          return {
-            associatedVulnerability: vuln.associatedVulnerability,
-            severity: this.getVulnerabilitySeverity(vuln.associatedVulnerability),
-            isNew: false
-          };
-        }
+        const vulnId = typeof vuln === 'string' ? vuln : vuln.associatedVulnerability;
 
-        return vuln;
+        if (!vulnId) return null;
+
+        return this.createDisplayVulnerability(vulnId, false);
       })
-      .filter((v) => v !== null && v.associatedVulnerability);
+      .filter((v): v is DisplayVulnerability => v !== null);
   }
 
-  getVulnTitles() {
-    if (this.currentCollection.collectionType === 'STIG Manager' && this.currentCollection.originCollectionId) {
-      this.sharedService.getFindingsMetricsAndRulesFromSTIGMAN(this.currentCollection.originCollectionId).subscribe({
-        next: (response: any) => {
-          this.vulnTitles = response.reduce((map, group) => {
-            const titles = group.rules.map((rule) => rule.title);
+  private createDisplayVulnerability(vulnId: string, isNew: boolean): DisplayVulnerability {
+    const severity = this.vulnSeverityMap.get(vulnId) || 'unknown';
+    const severityLower = severity.toLowerCase();
 
-            map[group.groupId] = titles;
+    return {
+      associatedVulnerability: vulnId,
+      severity: severity,
+      severityCategory: this.severityToCategoryMap[severityLower] || 'Unknown',
+      titleText: this.vulnTitleMap.get(vulnId) || '',
+      tagSeverity: this.computeTagSeverity(severityLower),
+      isNew: isNew,
+      selectedVulnerabilities: isNew ? [] : undefined
+    };
+  }
 
-            return map;
-          }, {});
+  private computeTagSeverity(severity: string): 'danger' | 'warn' | 'info' | 'secondary' {
+    if (severity === 'critical' || severity === 'high') return 'danger';
+    if (severity === 'medium') return 'warn';
+    if (severity === 'low' || severity === 'informational') return 'info';
+    return 'secondary';
+  }
 
-          this.vulnSeverities = response.reduce((map, group) => {
-            map[group.groupId] = group.severity;
+  private refreshDisplayVulnerabilities(): void {
+    for (const vuln of this.displayVulnerabilities) {
+      if (!vuln.isNew) {
+        const severity = this.vulnSeverityMap.get(vuln.associatedVulnerability) || 'unknown';
+        const severityLower = severity.toLowerCase();
 
-            return map;
-          }, {});
+        vuln.severity = severity;
+        vuln.severityCategory = this.severityToCategoryMap[severityLower] || 'Unknown';
+        vuln.titleText = this.vulnTitleMap.get(vuln.associatedVulnerability) || '';
+        vuln.tagSeverity = this.computeTagSeverity(severityLower);
+      }
+    }
+  }
 
-          this.updateDisplayVulnerabilitiesWithSeverity();
+  getVulnTitles(): void {
+    if (this.currentCollection?.collectionType === 'STIG Manager' && this.currentCollection.originCollectionId) {
+      this.loadSTIGManagerData();
+    } else if (this.currentCollection?.collectionType === 'Tenable' && this.currentCollection.originCollectionId) {
+      this.loadTenableData();
+    }
+  }
+
+  private loadSTIGManagerData(): void {
+    this.sharedService.getFindingsMetricsAndRulesFromSTIGMAN(this.currentCollection.originCollectionId).subscribe({
+      next: (response: any) => {
+        this.vulnTitleMap.clear();
+        this.vulnSeverityMap.clear();
+
+        for (const group of response) {
+          if (group.rules?.length > 0) {
+            this.vulnTitleMap.set(group.groupId, group.rules[0].title);
+          }
+          this.vulnSeverityMap.set(group.groupId, group.severity);
+        }
+
+        this.refreshDisplayVulnerabilities();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to retrieve vulnerability titles: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  private loadTenableData(): void {
+    const collectionId = this.currentCollection.originCollectionId;
+
+    this.importService
+      .postTenableAnalysis({
+        query: {
+          description: '',
+          context: '',
+          status: -1,
+          createdTime: 0,
+          modifiedTime: 0,
+          groups: [],
+          type: 'vuln',
+          tool: 'sumid',
+          sourceType: 'cumulative',
+          startOffset: 0,
+          endOffset: 10000,
+          filters: [
+            {
+              id: 'repository',
+              filterName: 'repository',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: [{ id: collectionId.toString() }]
+            }
+          ],
+          vulnTool: 'sumid'
+        },
+        sourceType: 'cumulative',
+        columns: [],
+        type: 'vuln'
+      })
+      .subscribe({
+        next: (data: any) => {
+          if (data.error_msg) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error in Tenable response: ${data.error_msg}`
+            });
+            return;
+          }
+
+          this.vulnTitleMap.clear();
+          this.vulnSeverityMap.clear();
+
+          const results = data.response?.results || [];
+          for (const vuln of results) {
+            this.vulnTitleMap.set(vuln.pluginID, vuln.name);
+            this.vulnSeverityMap.set(vuln.pluginID, vuln.severity?.name?.toLowerCase() || 'unknown');
+          }
+
+          this.refreshDisplayVulnerabilities();
         },
         error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: `Failed to retrieve vulnerability titles: ${getErrorMessage(error)}`
+            detail: `Error processing Tenable findings data: ${getErrorMessage(error)}`
           });
         }
       });
-    } else if (this.currentCollection.collectionType === 'Tenable' && this.currentCollection.originCollectionId) {
-      const collectionId = this.currentCollection.originCollectionId;
-
-      this.importService
-        .postTenableAnalysis({
-          query: {
-            description: '',
-            context: '',
-            status: -1,
-            createdTime: 0,
-            modifiedTime: 0,
-            groups: [],
-            type: 'vuln',
-            tool: 'sumid',
-            sourceType: 'cumulative',
-            startOffset: 0,
-            endOffset: 10000,
-            filters: [
-              {
-                id: 'repository',
-                filterName: 'repository',
-                operator: '=',
-                type: 'vuln',
-                isPredefined: true,
-                value: [{ id: collectionId.toString() }]
-              }
-            ],
-            vulnTool: 'sumid'
-          },
-          sourceType: 'cumulative',
-          columns: [],
-          type: 'vuln'
-        })
-        .subscribe({
-          next: (data: any) => {
-            if (data.error_msg) {
-              console.error('Error in Tenable response:', data.error_msg);
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Error in Tenable response: ${data.error_msg}`
-              });
-
-              return;
-            }
-
-            this.vulnTitles = (data.response?.results || []).reduce((map, vuln) => {
-              map[vuln.pluginID] = [vuln.name];
-
-              return map;
-            }, {});
-
-            this.vulnSeverities = (data.response?.results || []).reduce((map, vuln) => {
-              map[vuln.pluginID] = vuln.severity?.name?.toLowerCase() || 'unknown';
-
-              return map;
-            }, {});
-
-            this.updateDisplayVulnerabilitiesWithSeverity();
-          },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Error processing Tenable findings data: ${getErrorMessage(error)}`
-            });
-          }
-        });
-    }
   }
 
-  getVulnerabilitySeverity(vulnerabilityId: string): string {
-    return this.vulnSeverities[vulnerabilityId] || 'unknown';
-  }
-
-  getSeverityCategory(severity: string): string {
-    return this.severityToCategoryMap[severity.toLowerCase()] || 'Unknown';
-  }
-
-  updateDisplayVulnerabilitiesWithSeverity() {
-    this.displayVulnerabilities = this.displayVulnerabilities.map((vuln) => ({
-      ...vuln,
-      severity: this.getVulnerabilitySeverity(vuln.associatedVulnerability)
-    }));
-  }
-
-  matchVulnerabilityTitle(vulnerabilityId: string): string {
-    return vulnerabilityId;
-  }
-
-  getVulnerabilityTitleText(vulnerabilityId: string): string {
-    if (this.vulnTitles?.[vulnerabilityId]?.length > 0) {
-      return this.vulnTitles[vulnerabilityId][0];
-    }
-
-    return '';
-  }
-
-  search(event: AutoCompleteCompleteEvent) {
+  search(event: AutoCompleteCompleteEvent): void {
     const query = event.query.toLowerCase();
+    this.filteredSuggestions = [];
 
-    this.selectedVulnerabilities = [];
-
-    if (this.vulnTitles) {
-      Object.keys(this.vulnTitles).forEach((vulnId) => {
-        const title = this.getVulnerabilityTitleText(vulnId);
-
-        if (vulnId?.toLowerCase().includes(query) || title?.toLowerCase().includes(query)) {
-          this.selectedVulnerabilities.push(vulnId);
-        }
-      });
+    for (const [vulnId, title] of this.vulnTitleMap) {
+      if (vulnId.toLowerCase().includes(query) || title.toLowerCase().includes(query)) {
+        this.filteredSuggestions.push({
+          vulnId: vulnId,
+          titleText: title
+        });
+      }
     }
   }
 
-  handleKeydown(event: KeyboardEvent, rowData: any): void {
+  handleKeydown(event: KeyboardEvent, rowData: DisplayVulnerability): void {
     if (event.key === ' ' || event.code === 'Space' || event.key === 'Enter' || event.code === 'Enter') {
       const inputElement = event.target as HTMLInputElement;
-      let value = inputElement.value.trim();
+      let value = inputElement.value.trim().toUpperCase();
 
-      value = value.toUpperCase();
-
-      if (value && !rowData.selectedVulnerabilities.includes(value)) {
+      if (value && rowData.selectedVulnerabilities && !rowData.selectedVulnerabilities.includes(value)) {
         rowData.selectedVulnerabilities.push(value);
         inputElement.value = '';
         event.preventDefault();
@@ -243,53 +267,56 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
     }
   }
 
-  handlePaste(event: ClipboardEvent, rowData: any): void {
+  handlePaste(event: ClipboardEvent, rowData: DisplayVulnerability): void {
     const pastedText = event.clipboardData?.getData('text');
 
-    if (pastedText) {
+    if (pastedText && rowData.selectedVulnerabilities) {
       const vulnerabilityIds = pastedText
         .split(/[,\s]+/)
         .filter((id) => id.length > 0)
         .map((id) => id.toUpperCase());
 
-      vulnerabilityIds.forEach((id) => {
+      for (const id of vulnerabilityIds) {
         if (id && !rowData.selectedVulnerabilities.includes(id)) {
           rowData.selectedVulnerabilities.push(id);
         }
-      });
+      }
 
       event.preventDefault();
     }
   }
 
-  async addAssociatedVulnerability() {
-    const newAssociatedVulnerability = {
+  addAssociatedVulnerability(): void {
+    const newVuln: DisplayVulnerability = {
       associatedVulnerability: '',
+      severity: '',
+      severityCategory: '',
+      titleText: '',
+      tagSeverity: 'secondary',
       isNew: true,
       selectedVulnerabilities: []
     };
 
-    this.displayVulnerabilities = [newAssociatedVulnerability, ...this.displayVulnerabilities];
+    this.displayVulnerabilities = [newVuln, ...this.displayVulnerabilities];
   }
 
-  async onAssociatedVulnerabilityChange(rowData: any, rowIndex: number) {
+  onAssociatedVulnerabilityChange(rowData: DisplayVulnerability, rowIndex: number): void {
     if (!rowData.selectedVulnerabilities || rowData.selectedVulnerabilities.length === 0) {
       this.messageService.add({
         severity: 'error',
         summary: 'Validation Error',
         detail: 'Please enter at least one vulnerability ID'
       });
-
       return;
     }
 
     this.poamService.getVulnerabilityIdsWithPoamByCollection(this.currentCollection.collectionId).subscribe({
-      next: async (response: any) => {
+      next: (response: any) => {
         const existingPoams = response;
-        const newVulnerabilities = rowData.selectedVulnerabilities.map((vulnId) => (typeof vulnId === 'string' ? vulnId.toUpperCase() : vulnId));
+        const newVulnerabilities = rowData.selectedVulnerabilities!.map((vulnId) => (typeof vulnId === 'string' ? vulnId.toUpperCase() : vulnId));
 
         for (const vulnId of newVulnerabilities) {
-          const duplicatePoam = existingPoams.find((poam) => poam.vulnerabilityId === vulnId);
+          const duplicatePoam = existingPoams.find((poam: any) => poam.vulnerabilityId === vulnId);
 
           if (duplicatePoam) {
             this.messageService.add({
@@ -301,11 +328,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
           }
 
           if (rowIndex === 0) {
-            this.displayVulnerabilities.push({
-              associatedVulnerability: vulnId,
-              severity: this.getVulnerabilitySeverity(vulnId),
-              isNew: false
-            });
+            this.displayVulnerabilities.push(this.createDisplayVulnerability(vulnId, false));
           }
         }
 
@@ -317,13 +340,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
           this.addAssociatedVulnerability();
         }
 
-        const updatedVulnerabilities = this.displayVulnerabilities
-          .filter((item) => !item.isNew)
-          .map((item) => item.associatedVulnerability)
-          .filter(Boolean);
-
-        this.poamAssociatedVulnerabilities = updatedVulnerabilities;
-        this.vulnerabilitiesChanged.emit(updatedVulnerabilities);
+        this.emitVulnerabilityChanges();
       },
       error: (error) => {
         this.messageService.add({
@@ -335,10 +352,13 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
     });
   }
 
-  async deleteAssociatedVulnerability(_associatedVulnerability: any, rowIndex: number) {
+  deleteAssociatedVulnerability(_associatedVulnerability: DisplayVulnerability, rowIndex: number): void {
     this.displayVulnerabilities.splice(rowIndex, 1);
+    this.emitVulnerabilityChanges();
+  }
 
-    const updatedVulnerabilities = this.displayVulnerabilities.map((item) => item.associatedVulnerability).filter((vuln) => vuln);
+  private emitVulnerabilityChanges(): void {
+    const updatedVulnerabilities = this.displayVulnerabilities.filter((item) => !item.isNew && item.associatedVulnerability).map((item) => item.associatedVulnerability);
 
     this.poamAssociatedVulnerabilities = updatedVulnerabilities;
     this.vulnerabilitiesChanged.emit(updatedVulnerabilities);
