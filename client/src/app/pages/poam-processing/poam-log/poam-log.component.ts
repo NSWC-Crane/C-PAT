@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
@@ -32,12 +32,13 @@ interface FSEntry {
   standalone: true,
   imports: [DialogModule, TableModule, ToastModule]
 })
-export class PoamLogComponent implements OnInit {
+export class PoamLogComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private sharedService = inject(SharedService);
   private route = inject(ActivatedRoute);
   private poamLogService = inject(PoamLogService);
   private messageService = inject(MessageService);
+  private subscriptions = new Subscription();
 
   customColumn = 'Timestamp';
   defaultColumns = ['User', 'Action'];
@@ -46,16 +47,17 @@ export class PoamLogComponent implements OnInit {
   poamId: any;
   selectedCollection: any;
   displayModal: boolean = true;
-  private subscriptions = new Subscription();
 
-  public ngOnInit() {
-    this.route.params.subscribe(async (params) => {
-      this.poamId = params['poamId'];
+  ngOnInit() {
+    this.subscriptions.add(
+      this.route.params.subscribe((params) => {
+        this.poamId = params['poamId'];
 
-      if (this.poamId) {
-        this.fetchPoamLog(this.poamId);
-      }
-    });
+        if (this.poamId) {
+          this.fetchPoamLog(this.poamId);
+        }
+      })
+    );
 
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
@@ -90,5 +92,9 @@ export class PoamLogComponent implements OnInit {
   closeModal() {
     this.displayModal = false;
     this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 }

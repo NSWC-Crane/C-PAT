@@ -109,7 +109,7 @@
         <!-- Status -->
         <div class="status form-group">
           <label for="status">POAM Status: </label>
-          <p-select [options]="filteredStatusOptions" [(ngModel)]="poam.status" id="status" name="status"
+          <p-select [options]="filteredStatusOptions()" [(ngModel)]="poam.status" id="status" name="status"
             [placeholder]="poam.status ? poam.status : 'POAM Status...'" class="w-full"
             [disabled]="accessLevel() < 2" />
         </div>

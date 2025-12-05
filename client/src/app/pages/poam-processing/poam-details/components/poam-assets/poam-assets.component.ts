@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnChanges, SimpleChanges, inject, output } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, computed, inject, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -40,12 +40,34 @@ export class PoamAssetsComponent implements OnChanges {
   @Input() poamAssignedTeams: any[] = [];
   @Input() poamAssociatedVulnerabilities: any[] = [];
   readonly assetsChanged = output<any[]>();
-
+  private poamAssetsSignal = signal<any[]>([]);
   private messageService = inject(MessageService);
   private previousTeamCount = 0;
   private previousTeams: any[] = [];
 
+  private assetNameMap = computed(() => {
+    const map = new Map<number, string>();
+    for (const asset of this.assetList) {
+      map.set(asset.assetId, asset.assetName);
+    }
+    return map;
+  });
+
+  displayAssets = computed(() => {
+    const nameMap = this.assetNameMap();
+    return this.poamAssetsSignal().map((asset) => ({
+      ...asset,
+      displayName: nameMap.get(asset.assetId) || `Asset ID: ${asset.assetId}`
+    }));
+  });
+
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['poamAssets']) {
+      this.poamAssetsSignal.set(this.poamAssets || []);
+    }
+    if (changes['assetList']) {
+      this.poamAssetsSignal.set([...this.poamAssetsSignal()]);
+    }
     if (changes['poamAssignedTeams'] && this.poamAssignedTeams) {
       const currentTeamCount = this.poamAssignedTeams.length;
 

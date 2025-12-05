@@ -171,9 +171,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   statusOptions = ['Draft', 'Closed', 'Expired', 'Submitted', 'Pending CAT-I Approval', 'Extension Requested', 'Approved', 'Rejected', 'False-Positive'];
 
-  get filteredStatusOptions(): string[] {
+  filteredStatusOptions = computed(() => {
     const accessLevel = this.accessLevel();
-
     if (accessLevel >= 4) {
       return this.statusOptions;
     } else if (accessLevel === 3) {
@@ -181,7 +180,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     } else {
       return ['Draft', 'Closed', 'Expired'];
     }
-  }
+  });
 
   severityOptions = [
     { value: 'CAT I - Critical', label: 'CAT I - Critical' },
@@ -265,10 +264,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   });
 
   async ngOnInit() {
-    this.route.params.subscribe(async (params) => {
-      this.stateData = history.state;
-      this.poamId = params['poamId'];
-    });
+    this.subs.add(
+      this.route.params.subscribe(async (params) => {
+        this.stateData = history.state;
+        this.poamId = params['poamId'];
+      })
+    );
     this.subs.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;

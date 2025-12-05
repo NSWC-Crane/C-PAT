@@ -9,7 +9,7 @@
 */
 
 import { Location } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { Event, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -20,7 +20,7 @@ import { filter, takeUntil } from 'rxjs/operators';
   selector: 'cpat-breadcrumb',
   standalone: true,
   imports: [RouterModule, BreadcrumbModule],
-  template: ` <p-breadcrumb [model]="items" [home]="home" styleClass="border-none surface-ground" /> `,
+  template: ` <p-breadcrumb [model]="items()" [home]="home" styleClass="border-none surface-ground" /> `,
   styles: [
     `
       :host ::ng-deep .p-breadcrumb {
@@ -29,19 +29,16 @@ import { filter, takeUntil } from 'rxjs/operators';
         margin-top: 0.15rem;
       }
     `
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppBreadcrumbComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private location = inject(Location);
-
   private destroy$ = new Subject<void>();
-  items: MenuItem[] = [];
-  home: MenuItem;
 
-  constructor() {
-    this.home = { icon: 'pi pi-home', routerLink: '/poam-processing' };
-  }
+  items = signal<MenuItem[]>([]);
+  home: MenuItem = { icon: 'pi pi-home', routerLink: '/poam-processing' };
 
   ngOnInit() {
     this.router.events
@@ -65,24 +62,22 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
     const currentUrl = this.location.path();
 
     if (currentUrl === '' || currentUrl === '/' || currentUrl === '/poam-processing') {
-      this.items = [
+      this.items.set([
         {
           label: 'POAM Processing',
           routerLink: '/poam-processing'
         }
-      ];
+      ]);
 
       return;
     }
 
     const urlSegments = currentUrl.split('/').filter((segment) => segment);
-
     const breadcrumbs: MenuItem[] = [];
     let currentPath = '';
 
     for (let i = 0; i < urlSegments.length; i++) {
       const segment = urlSegments[i];
-
       currentPath += `/${segment}`;
 
       const isParameter = !Number.isNaN(Number(segment));
@@ -102,7 +97,7 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.items = breadcrumbs;
+    this.items.set(breadcrumbs);
   }
 
   private createLabel(path: string): string {

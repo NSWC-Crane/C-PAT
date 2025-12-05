@@ -164,6 +164,7 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
     this.user$
       .pipe(
         filter((user): user is NonNullable<typeof user> => !!user && user.accountStatus === 'ACTIVE'),
+        take(1),
         switchMap(() =>
           merge(of(null), navigationEvents$).pipe(
             debounceTime(300),

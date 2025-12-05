@@ -8,10 +8,10 @@
 !##########################################################################
 */
 
-import { Injectable, inject } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subject, Subscription, fromEvent, merge, timer } from 'rxjs';
-import { debounceTime, tap } from 'rxjs/operators';
+import { Subject, Subscription, fromEvent, merge, interval } from 'rxjs';
+import { takeUntil, filter } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 
@@ -22,45 +22,46 @@ export class InactivityService {
   private authService = inject(AuthService);
   private router = inject(Router);
   private payloadService = inject(PayloadService);
+  private ngZone = inject(NgZone);
 
   private readonly DEFAULT_INACTIVITY_TIMEOUT = CPAT.Env.inactivityTimeout || 900000;
   private readonly ADMIN_INACTIVITY_TIMEOUT = CPAT.Env.adminInactivityTimeout || 600000;
   private readonly COUNTDOWN_DURATION = 60;
+  private readonly CHECK_INTERVAL = 10000;
 
-  private activitySubscription?: Subscription;
-  private inactivityTimer?: Subscription;
-  private countdownTimer?: Subscription;
-  private isAdminSubscription?: Subscription;
-
+  private destroy$ = new Subject<void>();
   private showWarning$ = new Subject<{ show: boolean; countdown?: number }>();
   public warningState$ = this.showWarning$.asObservable();
 
+  private checkSubscription?: Subscription;
+  private countdownSubscription?: Subscription;
+
   private isMonitoring = false;
   private isAdmin = false;
-  protected lastActivity = Date.now();
+  private lastActivity = Date.now();
+  private warningShown = false;
 
   startMonitoring(): void {
     if (this.isMonitoring) return;
-
     this.isMonitoring = true;
+    this.lastActivity = Date.now();
 
-    this.isAdminSubscription = this.payloadService.isAdmin$.subscribe((isAdmin) => {
+    this.payloadService.isAdmin$.pipe(takeUntil(this.destroy$)).subscribe((isAdmin) => {
       this.isAdmin = isAdmin;
-
-      if (this.isMonitoring) {
-        this.resetInactivityTimer();
-      }
     });
 
     this.setupActivityListeners();
-    this.startInactivityTimer();
+    this.startPeriodicCheck();
   }
 
   stopMonitoring(): void {
     this.isMonitoring = false;
-    this.clearTimers();
-    this.activitySubscription?.unsubscribe();
-    this.isAdminSubscription?.unsubscribe();
+    this.warningShown = false;
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.destroy$ = new Subject<void>();
+    this.countdownSubscription?.unsubscribe();
+    this.checkSubscription?.unsubscribe();
   }
 
   private getActiveTimeout(): number {
@@ -68,102 +69,85 @@ export class InactivityService {
   }
 
   private setupActivityListeners(): void {
-    const events = [
-      fromEvent(document, 'mousedown'),
-      fromEvent(document, 'mousemove'),
-      fromEvent(document, 'keypress'),
-      fromEvent(document, 'keydown'),
-      fromEvent(document, 'scroll'),
-      fromEvent(document, 'touchstart'),
-      fromEvent(document, 'click'),
-      fromEvent(window, 'focus')
-    ];
+    const passiveOptions = { passive: true };
 
-    this.activitySubscription = merge(...events)
-      .pipe(
-        debounceTime(1000),
-        tap(() => this.onActivity())
-      )
-      .subscribe();
-  }
+    const events = [fromEvent(document, 'click'), fromEvent(document, 'keydown'), fromEvent(document, 'scroll', passiveOptions), fromEvent(document, 'touchstart', passiveOptions), fromEvent(window, 'focus')];
 
-  private onActivity(): void {
-    this.lastActivity = Date.now();
-    this.resetInactivityTimer();
+    this.ngZone.runOutsideAngular(() => {
+      merge(...events)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.lastActivity = Date.now();
 
-    if (this.countdownTimer) {
-      this.dismissWarning();
-    }
-  }
-
-  private startInactivityTimer(): void {
-    this.clearInactivityTimer();
-
-    const timeout = this.getActiveTimeout();
-
-    this.inactivityTimer = timer(timeout - this.COUNTDOWN_DURATION * 1000).subscribe(() => {
-      this.showWarningDialog();
+          if (this.warningShown) {
+            this.ngZone.run(() => this.dismissWarning());
+          }
+        });
     });
   }
 
-  private resetInactivityTimer(): void {
-    if (this.isMonitoring) {
-      this.startInactivityTimer();
-    }
-  }
+  private startPeriodicCheck(): void {
+    this.ngZone.runOutsideAngular(() => {
+      this.checkSubscription = interval(this.CHECK_INTERVAL)
+        .pipe(
+          takeUntil(this.destroy$),
+          filter(() => !this.warningShown)
+        )
+        .subscribe(() => {
+          const elapsed = Date.now() - this.lastActivity;
+          const timeout = this.getActiveTimeout();
+          const warningThreshold = timeout - this.COUNTDOWN_DURATION * 1000;
 
-  private clearInactivityTimer(): void {
-    this.inactivityTimer?.unsubscribe();
+          if (elapsed >= warningThreshold) {
+            this.ngZone.run(() => this.showWarningDialog());
+          }
+        });
+    });
   }
 
   private showWarningDialog(): void {
-    let countdown = this.COUNTDOWN_DURATION;
+    if (this.warningShown) return;
 
+    this.warningShown = true;
+    let countdown = this.COUNTDOWN_DURATION;
     this.showWarning$.next({ show: true, countdown });
 
-    this.countdownTimer = timer(0, 1000).subscribe(() => {
-      countdown--;
-
-      if (countdown <= 0) {
-        this.performLogout();
-      } else {
-        this.showWarning$.next({ show: true, countdown });
-      }
+    this.ngZone.runOutsideAngular(() => {
+      this.countdownSubscription = interval(1000)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          countdown--;
+          this.ngZone.run(() => {
+            if (countdown <= 0) {
+              this.performLogout();
+            } else {
+              this.showWarning$.next({ show: true, countdown });
+            }
+          });
+        });
     });
   }
 
   dismissWarning(): void {
-    this.countdownTimer?.unsubscribe();
-    this.countdownTimer = undefined;
+    this.warningShown = false;
+    this.countdownSubscription?.unsubscribe();
     this.showWarning$.next({ show: false });
-    this.resetInactivityTimer();
+    this.lastActivity = Date.now();
   }
 
   private performLogout(): void {
-    this.clearTimers();
+    this.stopMonitoring();
     this.showWarning$.next({ show: false });
 
     this.authService.logout().subscribe({
-      next: () => {
-        this.router.navigate(['/401']);
-      },
-      error: (error) => {
-        console.error('Error during inactivity logout:', error);
-        this.router.navigate(['/401']);
-      }
+      next: () => this.router.navigate(['/401']),
+      error: () => this.router.navigate(['/401'])
     });
-  }
-
-  private clearTimers(): void {
-    this.clearInactivityTimer();
-    this.countdownTimer?.unsubscribe();
-    this.countdownTimer = undefined;
   }
 
   shouldMonitor(): boolean {
     const errorPaths = ['/401', '/403', '/404', '/not-activated'];
     const currentPath = globalThis.location.pathname;
-
     return !errorPaths.some((path) => currentPath.includes(path));
   }
 }

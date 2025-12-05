@@ -181,3 +181,4 @@ cython_debug/
 /api/tls/server-key.pem
 /client/.eslintcache
 .prettierignore
+.serena
