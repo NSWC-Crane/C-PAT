@@ -24,8 +24,8 @@
       </div>
       <div class="form-group">
         <label for="comments">Comments:</label>
-        <textarea pTextarea class="w-full" [(ngModel)]="comments" placeholder="Comments..." name="comments" [rows]="10"
-          [maxlength]="2000" [disabled]="accessLevel < 3"></textarea>
+        <textarea pTextarea class="w-full" [(ngModel)]="comments" placeholder="Comments..." name="comments" rows="10"
+          maxlength="2000" [disabled]="accessLevel < 3"></textarea>
       </div>
       <div class="flex items-center">
         <p-checkbox [(ngModel)]="hqsChecked" inputId="hqsChecked" [binary]="true" [disabled]="accessLevel < 3" />

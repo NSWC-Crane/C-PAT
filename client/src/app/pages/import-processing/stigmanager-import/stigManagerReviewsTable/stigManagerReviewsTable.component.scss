@@ -16,23 +16,8 @@
     width: 0 !important;
     height: 0 !important;
     overflow: hidden !important;
-    top: 3.5rem;
-    right: -2rem;
-
-    .p-multiselect-label-container,
-    .p-multiselect-trigger {
-      display: none;
-    }
-
-    .p-multiselect-panel {
-      visibility: visible;
-      pointer-events: auto;
-      position: fixed;
-      top: 4rem;
-      right: 1rem;
-      min-width: 200px;
-      z-index: 1000;
-    }
+    top: 3rem;
+    right: -1rem;
   }
 }
 

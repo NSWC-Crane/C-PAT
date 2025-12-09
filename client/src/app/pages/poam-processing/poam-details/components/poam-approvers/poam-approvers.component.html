@@ -44,7 +44,7 @@
           <span>{{ approver.comments }}</span>
           }
           @if (approver.isNew) {
-          <textarea pTextarea class="w-full" [(ngModel)]="approver.comments" [rows]="3" [maxlength]="2000"
+          <textarea pTextarea class="w-full" [(ngModel)]="approver.comments" rows="3" maxlength="2000"
             [disabled]="accessLevel < 2"></textarea>
           }
         </td>

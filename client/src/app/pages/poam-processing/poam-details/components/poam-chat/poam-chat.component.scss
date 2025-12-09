@@ -22,10 +22,6 @@
   max-width: 80%;
 }
 
-:host ::ng-deep .emoji-popover {
-  z-index: 9999;
-}
-
 ::ng-deep .p-dialog.p-dialog .p-dialog-header.p-dialog-header {
   position: relative !important;
 }

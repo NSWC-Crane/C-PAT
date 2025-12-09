@@ -9,23 +9,18 @@
 -->
 
 <div class="field mb-4">
-  <p-select
-    [options]="filteredRepositories"
-    [(ngModel)]="selectedTenableRepository"
-    (onChange)="onTenableRepositorySelect($event.value)"
-    placeholder="Select Repository to Import..."
-    optionLabel="name"
-    [showClear]="true"
-    class="tenableRepositorySelect"
-    appendTo="body"
-    class="w-full"
-  />
+  <p-select [options]="filteredRepositories" [(ngModel)]="selectedTenableRepository"
+    (onChange)="onTenableRepositorySelect($event.value)" placeholder="Select Repository to Import..." optionLabel="name"
+    [showClear]="true" class="tenableRepositorySelect" class="w-full" />
 </div>
 <div class="field mb-2">
-  <p-button label="Import Selected" class="import-button" (click)="importTenableRepository()" [disabled]="!selectedTenableRepository" styleClass="w-full mb-[10px]" [outlined]="true" />
+  <p-button label="Import Selected" class="import-button" (click)="importTenableRepository()"
+    [disabled]="!selectedTenableRepository" styleClass="w-full mb-[10px]" [outlined]="true" />
 </div>
 <div class="field">
-  <p-button label="Import All Remaining" class="import-all-button" severity="warn" (click)="importAllRemainingRepositories()" [disabled]="!filteredRepositories || filteredRepositories.length === 0" styleClass="w-full" [outlined]="true" />
+  <p-button label="Import All Remaining" class="import-all-button" severity="warn"
+    (click)="importAllRemainingRepositories()" [disabled]="!filteredRepositories || filteredRepositories.length === 0"
+    styleClass="w-full" [outlined]="true" />
 </div>
 <p-toast />
 <p-confirmDialog />

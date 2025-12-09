@@ -120,8 +120,8 @@
             <i class="pi pi-info-circle mr-2" style="color: var(--p-text-color)"
               pTooltip="Control Vulnerability Description: Describes the vulnerability identified during assessment. This is pulled directly from the assessment procedure entry or technical assessment method (e.g., STIG test case) where applicable. Otherwise it must be manually entered in the NC status for the vulnerability."></i>Description:
           </label>
-          <textarea pTextarea class="w-full" [rows]="8" [(ngModel)]="poam.description" id="description"
-            name="description" [maxlength]="10000" placeholder="Description..."
+          <textarea pTextarea class="w-full" rows="8" [(ngModel)]="poam.description" id="description" name="description"
+            maxlength="10000" placeholder="Description..."
             [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"></textarea>
         </div>
 
@@ -148,7 +148,7 @@
         <!-- Task Order # -->
         <div class="form-group">
           <label for="taskOrderNumber">Task Order #: </label>
-          <input type="text" pInputText class="w-full" [(ngModel)]="poam.taskOrderNumber" [maxlength]="25"
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.taskOrderNumber" maxlength="25"
             id="taskOrderNumber" name="taskOrderNumber" placeholder="Task Order #..."
             [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3" />
         </div>
@@ -186,7 +186,7 @@
             Identifying Control Vulnerability - ID #:
           </label>
           }
-          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" [maxlength]="255"
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" maxlength="255"
             id="vulnerabilityId" name="vulnerabilityId" placeholder="Vulnerability ID..."
             [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3" />
         </div>
@@ -200,7 +200,7 @@
               pTooltip="Security Checks - NIST -53Rev 4 Assessment Procedure, STIG / SRG Vulnerability ID, or ACAS Plugin ID (Do not leave this field blank)."></i>Source
             Identifying Control Vulnerability - ID #:
           </label>
-          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" [maxlength]="255"
+          <input type="text" pInputText class="w-full" [(ngModel)]="poam.vulnerabilityId" maxlength="255"
             id="vulnerabilityId" name="vulnerabilityId" placeholder="Vulnerability ID..."
             [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3" />
         </div>
@@ -211,7 +211,7 @@
         <div class="form-group">
           <label for="iavmNumber">IAVM #: </label>
           <p-inputgroup>
-            <input pInputText class="w-full" [(ngModel)]="poam.iavmNumber" [maxlength]="25" id="iavmNumber"
+            <input pInputText class="w-full" [(ngModel)]="poam.iavmNumber" maxlength="25" id="iavmNumber"
               name="iavmNumber" placeholder="IAVM #..."
               [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3" />
             <p-inputgroup-addon>
@@ -370,7 +370,7 @@
                   <i class="pi pi-info-circle mb-4" style="color: var(--p-text-color)"
                     pTooltip="Predisposing Conditions: A condition existing within an organization, a mission or business process, enterprise architecture, information system, or environment of operation, which affects (i.e., increases or decreases) the likelihood that threat events, once initiated, result in adverse impacts."></i>
                   <textarea pTextarea class="w-full" [(ngModel)]="poam.predisposingConditions"
-                    id="predisposingConditions" name="predisposingConditions" [rows]="16" [maxlength]="2000"
+                    id="predisposingConditions" name="predisposingConditions" rows="16" maxlength="2000"
                     placeholder="Predisposing conditions..."
                     [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"></textarea>
                 </div>
@@ -449,7 +449,7 @@
                         @if (poam.isGlobalFinding) {
                         <p-tabpanel [value]="0">
                           <textarea pTextarea class="w-full" [(ngModel)]="poam.mitigations" id="mitigations"
-                            name="mitigations" [rows]="16" [maxlength]="10000" placeholder="Global POAM Mitigations..."
+                            name="mitigations" rows="16" maxlength="10000" placeholder="Global POAM Mitigations..."
                             [disabled]="accessLevel() < 2"></textarea>
                         </p-tabpanel>
                         }
@@ -465,8 +465,8 @@
                               be edited.
                             </div>
                             }
-                            <textarea pTextarea class="w-full" [(ngModel)]="teamMitigation.mitigationText" [rows]="16"
-                              [maxlength]="10000" placeholder="Team-specific mitigations..."
+                            <textarea pTextarea class="w-full" [(ngModel)]="teamMitigation.mitigationText" rows="16"
+                              maxlength="10000" placeholder="Team-specific mitigations..."
                               [disabled]="!teamMitigation.isActive && accessLevel() < 3"></textarea>
                           </div>
                         </p-tabpanel>
@@ -495,7 +495,7 @@
                   <i class="pi pi-info-circle mb-4" style="color: var(--p-text-color)"
                     pTooltip="Resources Required: Estimated funding or manpower resources required to resolve the security vulnerability (i.e., full-time equivalent)."></i>
                   <textarea pTextarea class="w-full" [(ngModel)]="poam.requiredResources" id="requiredResources"
-                    name="requiredResources" [rows]="16" [maxlength]="10000" placeholder="Required Resources..."
+                    name="requiredResources" rows="16" maxlength="10000" placeholder="Required Resources..."
                     [disabled]="accessLevel() < 2"></textarea>
                 </div>
                 <div class="stepper-buttons">
@@ -527,7 +527,7 @@
                       Description:
                     </label>
                     <textarea pTextarea class="w-full" [(ngModel)]="poam.impactDescription" id="impactDescription"
-                      name="impactDescription" [rows]="16" [maxlength]="2000" placeholder="Impact Description..."
+                      name="impactDescription" rows="16" maxlength="2000" placeholder="Impact Description..."
                       [disabled]="accessLevel() < 2"></textarea>
                   </div>
 
@@ -655,7 +655,7 @@
 </div>
 }
 <p-dialog [(visible)]="submitDialogVisible" [modal]="true"
-  styleClass="w-[30vw] overflow-hidden submit-confirmation-dialog" [baseZIndex]="10000">
+  styleClass="w-[30vw] overflow-hidden submit-confirmation-dialog">
   <div class="confirm-popup">
     <div class="icon-container">
       <i class="pi pi-exclamation-triangle"></i>
@@ -673,7 +673,7 @@
 </p-dialog>
 
 <p-dialog class="poam-chat" [(visible)]="showPoamNotes" [modal]="true" [closable]="true"
-  styleClass="w-[80vw] h-[80vh] max-h-[80vh] overflow-hidden" [baseZIndex]="10000">
+  styleClass="w-[80vw] h-[80vh] max-h-[80vh] overflow-hidden">
   @if (poam?.poamId && poam.poamId !== 'ADDPOAM') {
   <cpat-poam-chat [poamId]="poam.poamId" [userId]="user?.userId" />
   }

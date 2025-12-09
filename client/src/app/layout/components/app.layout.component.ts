@@ -158,7 +158,7 @@ import { CardModule } from 'primeng/card';
         </div>
       </div>
     </section>
-    <p-dialog [(visible)]="confirmPopupVisible" [modal]="true" styleClass="w-[30vw] overflow-hidden" [baseZIndex]="10000000" [autoZIndex]="true" appendTo="body" [closeOnEscape]="false" [closable]="false">
+    <p-dialog [(visible)]="confirmPopupVisible" [modal]="true" styleClass="w-[30vw] overflow-hidden" [closeOnEscape]="false" [closable]="false">
       <div class="custom-confirm-popup">
         <div class="icon-container">
           <i class="pi pi-exclamation-triangle"></i>
@@ -178,9 +178,6 @@ import { CardModule } from 'primeng/card';
   styles: [
     `
       ::ng-deep {
-        .p-dialog-mask {
-          z-index: 9999 !important;
-        }
         .p-dialog {
           box-shadow:
             0 3px 6px rgba(0, 0, 0, 0.16),
