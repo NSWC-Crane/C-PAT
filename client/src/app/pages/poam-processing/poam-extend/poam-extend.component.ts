@@ -21,6 +21,7 @@ import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
+import { SplitButtonModule } from 'primeng/splitbutton';
 import { StepperModule } from 'primeng/stepper';
 import { Table, TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
@@ -40,7 +41,24 @@ import { PoamService } from '../poams.service';
   templateUrl: './poam-extend.component.html',
   styleUrls: ['./poam-extend.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, AutoCompleteModule, ButtonModule, DatePicker, DialogModule, SelectModule, InputTextModule, TextareaModule, TooltipModule, StepperModule, TableModule, ToastModule, ConfirmDialogModule, DatePipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    AutoCompleteModule,
+    ButtonModule,
+    DatePicker,
+    DialogModule,
+    SelectModule,
+    SplitButtonModule,
+    InputTextModule,
+    TextareaModule,
+    TooltipModule,
+    StepperModule,
+    TableModule,
+    ToastModule,
+    ConfirmDialogModule,
+    DatePipe
+  ],
   providers: [ConfirmationService, MessageService]
 })
 export class PoamExtendComponent implements OnInit, OnDestroy {
@@ -100,6 +118,15 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     { label: '90 Days', value: 90 },
     { label: '180 Days', value: 180 },
     { label: '365 Days', value: 365 }
+  ];
+
+  rejectButtonItems = [
+    {
+      label: 'Reject (With comments)',
+      command: () => {
+        this.router.navigate(['/poam-processing/poam-approve', this.poam.poamId]);
+      }
+    }
   ];
 
   selectableRatingOptions = [
@@ -642,6 +669,21 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     this.putPoamExtension('Approved');
   }
 
+  rejectExtension() {
+    const hasUnsavedMilestones = this.poamMilestones.some((milestone) => milestone.editing || milestone.isNew);
+
+    if (hasUnsavedMilestones) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Unsaved Changes',
+        detail: 'Please save or remove any milestone changes before rejecting the extension.'
+      });
+      return;
+    }
+
+    this.putPoamExtension('Rejected');
+  }
+
   putPoamExtension(status: string) {
     const extensionData = {
       poamId: Number.parseInt(this.poamId, 10),
@@ -656,7 +698,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       impactDescription: this.poam.impactDescription
     };
 
-    if (this.poam.extensionDays > 0) {
+    if (status === 'Rejected') {
+      extensionData.extensionDays = 0;
+    }
+
+    if (status !== 'Rejected' && extensionData.extensionDays > 0) {
       this.findOrCreateExtendedLabel();
     }
 
@@ -669,22 +715,32 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
               summary: 'Information',
               detail: 'Unexpected error adding POAM Extension'
             });
+          } else if (status === 'Approved') {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: `Extension Approved for POAM: ${res.poamId}`
+            });
+          } else if (status === 'Rejected') {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: `Extension Rejected for POAM: ${res.poamId}`
+            });
           } else {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
               detail: `Extension requested for POAM: ${res.poamId}`
             });
-
-            if (this.poam.extensionDays > 0) {
-              this.poamService.updatePoamStatus(this.poamId, extensionData).subscribe();
-            }
-
-            setTimeout(() => {
-              this.displayExtensionDialog = false;
-              this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
-            }, 1000);
           }
+          if (status !== 'Rejected' && extensionData.extensionDays > 0) {
+            this.poamService.updatePoamStatus(this.poamId, extensionData).subscribe();
+          }
+          setTimeout(() => {
+            this.displayExtensionDialog = false;
+            this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+          }, 1000);
         },
         error: (error) => {
           this.messageService.add({
@@ -744,7 +800,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   filterJustifications(event: any) {
     const query = event.query;
-
     this.filteredJustifications = this.justifications.filter((justification) => justification.toLowerCase().includes(query.toLowerCase()));
   }
 

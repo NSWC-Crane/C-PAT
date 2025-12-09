@@ -259,18 +259,22 @@
     </p-stepper>
   </div>
   }
-  <ng-template pTemplate="footer">
+  <ng-template #footer>
     <div class="m-2 flex w-full items-center justify-between">
-      <p-button styleClass="ml-2" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()" />
+      <p-button class="ml-4" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()" />
       <div>
-        <p-button [outlined]="true" label="Save"
-          pTooltip="Saving an extension where 'Extension Time Requested' is provided will automatically update the POAM status to 'Extension Requested' and notify an Approver for review."
-          tooltipZIndex="9999" (click)="submitPoamExtension()" [disabled]="accessLevel < 2" />
         @if (accessLevel >= 3) {
-        <p-button [outlined]="true" class="ml-4" severity="success" label="Approve"
+        <p-button [outlined]="true" severity="success" label="Approve"
           pTooltip="Approving a POAM extension will automatically update the POAM status to 'Approved'"
           tooltipZIndex="9999" (click)="approveExtension()" [disabled]="accessLevel < 3" />
+        <p-splitbutton class="rejectSplitButton ml-4" [model]="rejectButtonItems" [outlined]="true" severity="danger"
+          label="Reject" pTooltip="Rejecting a POAM extension will automatically update the POAM status to 'Rejected'"
+          tooltipZIndex="9999" (onClick)="rejectExtension()" [disabled]="accessLevel < 3"
+          menuStyleClass="extension-splitbutton-menu" />
         }
+        <p-button [outlined]="true" class="ml-4 mr-4" label="Save"
+          pTooltip="Saving an extension where 'Extension Time Requested' is provided will automatically update the POAM status to 'Extension Requested' and notify an Approver for review."
+          tooltipZIndex="9999" (click)="submitPoamExtension()" [disabled]="accessLevel < 2" />
       </div>
     </div>
   </ng-template>
