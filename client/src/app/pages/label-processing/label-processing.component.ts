@@ -18,7 +18,7 @@ import { DialogService } from 'primeng/dynamicdialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
@@ -37,7 +37,7 @@ import { LabelComponent } from './label/label.component';
   templateUrl: './label-processing.component.html',
   styleUrls: ['./label-processing.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, CardModule, DialogModule, Select, InputTextModule, InputIconModule, IconFieldModule, TableModule, ToastModule, TooltipModule, LabelComponent]
+  imports: [FormsModule, ButtonModule, CardModule, DialogModule, SelectModule, InputTextModule, InputIconModule, IconFieldModule, TableModule, ToastModule, TooltipModule, LabelComponent]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
   private labelService = inject(LabelService);

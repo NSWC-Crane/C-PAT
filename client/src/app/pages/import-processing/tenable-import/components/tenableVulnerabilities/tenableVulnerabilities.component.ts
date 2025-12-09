@@ -24,7 +24,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { Popover } from 'primeng/popover';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
@@ -69,7 +69,7 @@ import { TenableFiltersComponent } from '../../components/tenableFilters/tenable
     ButtonModule,
     CardModule,
     DialogModule,
-    Select,
+    SelectModule,
     InputNumberModule,
     InputTextModule,
     TextareaModule,

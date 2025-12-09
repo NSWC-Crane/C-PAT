@@ -18,7 +18,7 @@ import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { Subscription, forkJoin } from 'rxjs';
@@ -42,7 +42,7 @@ export interface PoamApproval {
   templateUrl: './poam-approve.component.html',
   styleUrls: ['./poam-approve.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, DatePicker, CheckboxModule, DialogModule, Select, TextareaModule, ToastModule],
+  imports: [FormsModule, ButtonModule, DatePicker, CheckboxModule, DialogModule, SelectModule, TextareaModule, ToastModule],
   providers: [DatePipe]
 })
 export class PoamApproveComponent implements OnInit, OnDestroy {

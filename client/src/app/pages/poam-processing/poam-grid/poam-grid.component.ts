@@ -20,7 +20,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
@@ -41,7 +41,7 @@ import { PoamExportStatusSelectionComponent } from '../../../common/utils/poam-e
   templateUrl: './poam-grid.component.html',
   styleUrls: ['./poam-grid.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, CardModule, Select, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, TableModule, TooltipModule, ToastModule, TagModule]
+  imports: [FormsModule, ButtonModule, CardModule, SelectModule, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, TableModule, TooltipModule, ToastModule, TagModule]
 })
 export class PoamGridComponent implements OnInit, OnDestroy {
   private dialogService = inject(DialogService);

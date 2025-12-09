@@ -19,7 +19,7 @@ import { CardModule } from 'primeng/card';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { StepperModule } from 'primeng/stepper';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
@@ -79,7 +79,7 @@ interface PermissionChangeSummary {
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   standalone: true,
-  imports: [AutoCompleteModule, ButtonModule, CardModule, CommonModule, ConfirmDialogModule, Select, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, StepperModule, TableModule, ToastModule, TooltipModule],
+  imports: [AutoCompleteModule, ButtonModule, CardModule, CommonModule, ConfirmDialogModule, SelectModule, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, StepperModule, TableModule, ToastModule, TooltipModule],
   providers: [ConfirmationService, MessageService]
 })
 export class UserComponent implements OnInit, OnChanges, OnDestroy {

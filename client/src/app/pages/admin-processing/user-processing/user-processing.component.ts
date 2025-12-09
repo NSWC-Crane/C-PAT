@@ -17,7 +17,7 @@ import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
 import { Subscription, forkJoin } from 'rxjs';
@@ -34,7 +34,7 @@ import { CsvExportService } from '../../../common/utils/csv-export.service';
   templateUrl: './user-processing.component.html',
   styleUrls: ['./user-processing.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, Select, FormsModule, InputIconModule, InputTextModule, IconFieldModule, TableModule, TreeTableModule, UserComponent]
+  imports: [ButtonModule, CommonModule, SelectModule, FormsModule, InputIconModule, InputTextModule, IconFieldModule, TableModule, TreeTableModule, UserComponent]
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {
   private collectionsService = inject(CollectionsService);
