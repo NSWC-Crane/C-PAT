@@ -109,11 +109,7 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   dismissNotification(notification: any) {
     this.notificationService.dismissNotification(notification.notificationId).subscribe({
       next: () => {
-        const index = this.notifications.indexOf(notification);
-
-        if (index !== -1) {
-          this.notifications.splice(index, 1);
-        }
+        this.notifications = this.notifications.filter((n) => n.notificationId !== notification.notificationId);
       },
       error: (error) => {
         console.error('Failed to dismiss notification:', error);
