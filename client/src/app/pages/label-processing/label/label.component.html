@@ -67,9 +67,8 @@
                 <p-autocomplete fluid class="w-full" [(ngModel)]="poam.selectedPoams"
                   [ngModelOptions]="{standalone: true}" [suggestions]="poamSuggestions" [multiple]="true"
                   [typeahead]="true" [forceSelection]="false" [dropdown]="true" (completeMethod)="searchPoams($event)"
-                  (paste)="onPasteVulnerabilityIds($event, poam)" [autoZIndex]="true"
-                  placeholder="Search by POAM ID, Vulnerability ID, or Title... (Paste comma-separated IDs to bulk add)"
-                  [disabled]="accessLevel < 2" optionLabel="poamId">
+                  (paste)="onPasteVulnerabilityIds($event, poam)" [disabled]="accessLevel < 2" optionLabel="poamId"
+                  placeholder="Search by POAM ID, Vulnerability ID, or Title... (Paste comma-separated IDs to bulk add)">
                   <ng-template let-item pTemplate="item">
                     <p-tag [value]="'POAM ' + item.poamId" [rounded]="true" />
                     <span class="ml-2">{{ item.vulnerabilityId }}</span>

@@ -38,9 +38,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  
+
   .right-buttons {
     display: flex;
     gap: 0.5rem;
   }
+}
+
+::ng-deep .assetDialog .p-dialog-content {
+  padding-top: 0rem;
 }

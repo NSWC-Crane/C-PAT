@@ -218,8 +218,7 @@
       'font-size': '1.5rem',
       cursor: 'pointer'
     }" (click)="onPoamIconClick(item, $event)" (keyup.enter)="onPoamIconClick(item, $event)"
-                [pTooltip]="getPoamStatusTooltip(item.poamStatus, item.poam, item.parentStatus)" tooltipPosition="top"
-                tooltipZIndex="100000">
+                [pTooltip]="getPoamStatusTooltip(item.poamStatus, item.poam, item.parentStatus)" tooltipPosition="top">
               </i>
               }
               @case ('severity') {
