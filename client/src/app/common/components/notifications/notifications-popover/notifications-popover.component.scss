@@ -78,7 +78,6 @@
   }
 
   .dismiss-icon {
-    z-index: 99999;
     padding: 0.5rem;
     border-radius: 50%;
     transition:
@@ -102,14 +101,7 @@
     .p-listbox-option {
       border-bottom: 1px solid var(--p-content-border-color);
       border-bottom-width: 0;
-      background: linear-gradient(
-          to right,
-          transparent 10px,
-          var(--p-content-border-color) 10px,
-          var(--p-content-border-color) calc(100% - 10px),
-          transparent calc(100% - 10px)
-        )
-        bottom 0 left 0/100% 1px no-repeat;
+      background: linear-gradient(to right, transparent 10px, var(--p-content-border-color) 10px, var(--p-content-border-color) calc(100% - 10px), transparent calc(100% - 10px)) bottom 0 left 0/100% 1px no-repeat;
       transition: none;
     }
   }
