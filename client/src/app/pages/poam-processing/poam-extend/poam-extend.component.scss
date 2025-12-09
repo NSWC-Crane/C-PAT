@@ -8,6 +8,10 @@
 !##########################################################################
 */
 
+::ng-deep .extension-splitbutton-menu {
+  z-index: 99999 !important;
+}
+
 ::ng-deep .p-dialog {
   .p-dialog-header {
     padding: 2rem 2rem 0 2rem;
