@@ -15,7 +15,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { Subscription, map } from 'rxjs';
@@ -28,7 +28,7 @@ import { NotificationService } from './notifications.service';
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CardModule, CommonModule, TableModule, ToastModule, Select, FormsModule]
+  imports: [ButtonModule, CardModule, CommonModule, TableModule, ToastModule, SelectModule, FormsModule]
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
   private notificationService = inject(NotificationService);

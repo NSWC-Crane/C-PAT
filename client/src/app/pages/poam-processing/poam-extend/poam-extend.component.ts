@@ -20,7 +20,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { StepperModule } from 'primeng/stepper';
 import { Table, TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
@@ -40,7 +40,7 @@ import { PoamService } from '../poams.service';
   templateUrl: './poam-extend.component.html',
   styleUrls: ['./poam-extend.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, AutoCompleteModule, ButtonModule, DatePicker, DialogModule, Select, InputTextModule, TextareaModule, TooltipModule, StepperModule, TableModule, ToastModule, ConfirmDialogModule, DatePipe],
+  imports: [CommonModule, FormsModule, AutoCompleteModule, ButtonModule, DatePicker, DialogModule, SelectModule, InputTextModule, TextareaModule, TooltipModule, StepperModule, TableModule, ToastModule, ConfirmDialogModule, DatePipe],
   providers: [ConfirmationService, MessageService]
 })
 export class PoamExtendComponent implements OnInit, OnDestroy {

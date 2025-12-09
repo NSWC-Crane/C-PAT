@@ -21,7 +21,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
-import { Select } from 'primeng/select';
+import { Select, SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -57,7 +57,7 @@ interface NavyComplyDateFilter {
   templateUrl: './tenableSelectedVulnerabilities.component.html',
   styleUrls: ['./tenableSelectedVulnerabilities.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, DialogModule, Select, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, SkeletonModule, TableModule, ToastModule, TooltipModule, TagModule]
+  imports: [ButtonModule, CommonModule, DialogModule, SelectModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, SkeletonModule, TableModule, ToastModule, TooltipModule, TagModule]
 })
 export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestroy {
   private importService = inject(ImportService);

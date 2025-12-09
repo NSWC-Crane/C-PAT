@@ -26,7 +26,7 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenuModule } from 'primeng/menu';
 import { ProgressBarModule } from 'primeng/progressbar';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { StepperModule } from 'primeng/stepper';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
@@ -78,7 +78,7 @@ import { PoamVariableMappingService } from './services/poam-variable-mapping.ser
     CardModule,
     ConfirmDialogModule,
     DialogModule,
-    Select,
+    SelectModule,
     ToggleSwitch,
     InputTextModule,
     InputGroupModule,

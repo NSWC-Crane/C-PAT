@@ -11,7 +11,7 @@
 import { signal, computed, Component, Input, OnChanges, OnDestroy, SimpleChanges, effect, model, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { addDays, differenceInCalendarDays } from 'date-fns';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { MultiSelectChangeEvent, MultiSelectModule } from 'primeng/multiselect';
 import { Subject } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -45,7 +45,7 @@ interface SelectedOptions {
   templateUrl: './poam-mainchart.component.html',
   styleUrls: ['./poam-mainchart.component.scss'],
   standalone: true,
-  imports: [ButtonModule, ChartModule, FormsModule, CardModule, Select, TabsModule, MultiSelectModule]
+  imports: [ButtonModule, ChartModule, FormsModule, CardModule, SelectModule, TabsModule, MultiSelectModule]
 })
 export class PoamMainchartComponent implements OnChanges, OnDestroy {
   private router = inject(Router);

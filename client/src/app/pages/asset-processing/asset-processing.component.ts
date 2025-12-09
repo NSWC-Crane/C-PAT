@@ -18,7 +18,7 @@ import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { ToastModule } from 'primeng/toast';
@@ -58,7 +58,7 @@ interface AssetEntry {
     CardModule,
     ChartModule,
     DialogModule,
-    Select,
+    SelectModule,
     FormsModule,
     InputIconModule,
     IconFieldModule,

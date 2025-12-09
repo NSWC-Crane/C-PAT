@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { Select } from 'primeng/select';
+import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { EMPTY, Observable, Subject, forkJoin } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
@@ -34,7 +34,7 @@ interface TenableRepository {
   templateUrl: './tenable-admin.component.html',
   styleUrls: ['./tenable-admin.component.scss'],
   standalone: true,
-  imports: [ButtonModule, ConfirmDialogModule, Select, FormsModule, ToastModule],
+  imports: [ButtonModule, ConfirmDialogModule, SelectModule, FormsModule, ToastModule],
   providers: [ConfirmationService, MessageService]
 })
 export class TenableAdminComponent implements OnInit, OnDestroy {
