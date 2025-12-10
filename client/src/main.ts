@@ -30,7 +30,7 @@ if (environment.production) {
   enableProdMode();
 }
 
-const basePath = CPAT.Env.basePath || '';
+const basePath = CPAT.Env.basePath ?? '';
 
 document.documentElement.style.setProperty('--app-base-path', basePath + '/');
 
@@ -88,14 +88,14 @@ bootstrapApplication(AppComponent, {
           {
             configId: 'cpat',
             authority: CPAT.Env.oauth.authority,
-            redirectUrl: globalThis.location.origin + (CPAT.Env.basePath || ''),
-            postLogoutRedirectUri: globalThis.location.origin + (CPAT.Env.basePath || ''),
+            redirectUrl: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
+            postLogoutRedirectUri: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
             clientId: CPAT.Env.oauth.clientId,
             scope: getScopeStr('cpat'),
             responseType: 'code',
             useRefreshToken: true,
             silentRenew: true,
-            silentRenewUrl: `${globalThis.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
+            silentRenewUrl: `${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/silent-renew.html`,
             autoUserInfo: false,
             renewUserInfoAfterTokenRenew: false,
             triggerAuthorizationResultEvent: true,
@@ -113,14 +113,14 @@ bootstrapApplication(AppComponent, {
           {
             configId: 'stigman',
             authority: CPAT.Env.oauth.authority,
-            redirectUrl: globalThis.location.origin + (CPAT.Env.basePath || ''),
-            postLogoutRedirectUri: globalThis.location.origin + (CPAT.Env.basePath || ''),
+            redirectUrl: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
+            postLogoutRedirectUri: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
             clientId: CPAT.Env.stigman.clientId,
             scope: getScopeStr('stigman'),
             responseType: 'code',
             useRefreshToken: true,
             silentRenew: true,
-            silentRenewUrl: `${globalThis.location.origin}${CPAT.Env.basePath || ''}/silent-renew.html`,
+            silentRenewUrl: `${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/silent-renew.html`,
             autoUserInfo: false,
             renewUserInfoAfterTokenRenew: false,
             triggerAuthorizationResultEvent: true,
