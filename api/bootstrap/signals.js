@@ -10,12 +10,14 @@
 
 const state = require('../utils/state');
 const logger = require('../utils/logger');
+const scheduledTasksService = require('../Services/scheduledTasksService');
 
 module.exports.setupSignalHandlers = () => {
     const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
 
     const signalHandler = signal => {
         logger.writeInfo('signals', 'signal', { signal });
+        scheduledTasksService.shutdownScheduledTasks();
         state.setState('stop');
     };
 
