@@ -399,10 +399,9 @@ exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollec
             let emassHardwareListUpdated = null;
 
             if (rowAssets.length > 0) {
-                const [assetDeltaConfig] = await connection.query(
-                    `SELECT \`value\` FROM ${config.database.schema}.config WHERE \`key\` = ?`,
-                    [`assetDeltaUpdated_${collectionId}`]
-                );
+                const [assetDeltaConfig] = await connection.query(`SELECT \`value\` FROM ${config.database.schema}.config WHERE \`key\` = ?`, [
+                    `assetDeltaUpdated_${collectionId}`,
+                ]);
                 const [emassConfig] = await connection.query(`SELECT \`value\` FROM ${config.database.schema}.config WHERE \`key\` = ?`, [
                     `emassHardwareListUpdated_${collectionId}`,
                 ]);

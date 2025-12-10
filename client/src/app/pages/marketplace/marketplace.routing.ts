@@ -10,10 +10,9 @@
 
 import { Routes } from '@angular/router';
 
-
 export const marketplaceRoutes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./marketplace.component').then(m => m.MarketplaceComponent)
+    loadComponent: () => import('./marketplace.component').then((m) => m.MarketplaceComponent)
   }
 ];

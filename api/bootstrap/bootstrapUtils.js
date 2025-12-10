@@ -20,9 +20,7 @@ function modulePathResolver(handlersPath, route, apiDoc) {
     const modulePath = path.join(handlersPath, controller);
     const handler = require(modulePath);
     if (handler[method] === undefined) {
-        throw new Error(
-            `Could not find a [${method}] function in ${modulePath} when trying to route [${route.method} ${route.expressRoute}].`
-        );
+        throw new Error(`Could not find a [${method}] function in ${modulePath} when trying to route [${route.method} ${route.expressRoute}].`);
     }
     return handler[method];
 }

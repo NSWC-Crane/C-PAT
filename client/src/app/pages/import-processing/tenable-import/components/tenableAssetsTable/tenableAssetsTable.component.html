@@ -14,108 +14,114 @@
       <div class="toolbar mb-4">
         <div class="flex items-center justify-between">
           @if (!this.assetProcessing) {
-          <p-iconField iconPosition="left">
-            <p-inputIcon>
-              <i class="pi pi-search"></i>
-            </p-inputIcon>
-            <input pInputText type="text" class="w-48" id="search" [(ngModel)]="filterValue"
-              (input)="onGlobalFilter($event)" placeholder="Global Search" />
-          </p-iconField>
+            <p-iconField iconPosition="left">
+              <p-inputIcon>
+                <i class="pi pi-search"></i>
+              </p-inputIcon>
+              <input pInputText type="text" class="w-48" id="search" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Global Search" />
+            </p-iconField>
           }
-          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2"
-            icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
-          <p-button [rounded]="true" [text]="true" [raised]="true"
-            [severity]="is30DayFilterActive ? 'primary' : 'secondary'" class="ml-2" icon="pi pi-calendar"
+          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
+          <p-button
+            [rounded]="true"
+            [text]="true"
+            [raised]="true"
+            [severity]="is30DayFilterActive ? 'primary' : 'secondary'"
+            class="ml-2"
+            icon="pi pi-calendar"
             (click)="filter30Days()"
             [pTooltip]="is30DayFilterActive ? 'Remove filter: Last observed within 30 days' : 'Add filter: Last observed within 30 days'"
-            [label]="is30DayFilterActive ? 'Within 30 Days' : ''" />
+            [label]="is30DayFilterActive ? 'Within 30 Days' : ''"
+          />
         </div>
         <div class="right-buttons">
-          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary"
-            icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
-          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary"
-            (click)="toggleAddColumnOverlay()" />
-          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true"
-            (onClick)="exportCSV()" />
-          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header"
-            class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..."
-            [showToggleAll]="true" />
+          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
+          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()" />
+          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()" />
+          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
         </div>
       </div>
       <div class="scrollable-vulnerabilities">
         <p-tabs [(value)]="activeTab" scrollable>
           <p-tablist>
             @if (!assetProcessing) {
-            @for (tab of teamTabs; track tab.teamId) {
-            <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>
-            }
+              @for (tab of teamTabs; track tab.teamId) {
+                <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>
+              }
             } @else {
-            <p-tab [value]="'all'">All Assets</p-tab>
+              <p-tab [value]="'all'">All Assets</p-tab>
             }
           </p-tablist>
           <p-tabpanels>
             @for (tab of teamTabs; track tab.teamId) {
-            <p-tabpanel [value]="tab.teamId">
-              <p-table #dt [value]="tab.assets" [columns]="selectedColumns" [paginator]="true" [rows]="25"
-                [totalRecords]="assetProcessing ? totalRecords : tab.assets.length" [lazy]="assetProcessing"
-                (onLazyLoad)="assetProcessing ? lazyOrNot($event) : null" [loading]="isLoading"
-                [showCurrentPageReport]="true" [rowsPerPageOptions]="[10, 25, 50]"
-                [globalFilterFields]="['pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID']"
-                [filterDelay]="300" [rowHover]="true" dataKey="pluginID"
-                class="p-datatable-sm p-datatable-gridlines-hidden">
-                <ng-template pTemplate="header" let-columns>
-                  <tr>
-                    @for (col of columns; track col) {
-                    <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
-                      {{ col.header }}
-                      @if (!this.assetProcessing) {
-                      <p-columnFilter [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field"
-                        [showOperator]="false" display="menu" />
+              <p-tabpanel [value]="tab.teamId">
+                <p-table
+                  #dt
+                  [value]="tab.assets"
+                  [columns]="selectedColumns"
+                  [paginator]="true"
+                  [rows]="25"
+                  [totalRecords]="assetProcessing ? totalRecords : tab.assets.length"
+                  [lazy]="assetProcessing"
+                  (onLazyLoad)="assetProcessing ? lazyOrNot($event) : null"
+                  [loading]="isLoading"
+                  [showCurrentPageReport]="true"
+                  [rowsPerPageOptions]="[10, 25, 50]"
+                  [globalFilterFields]="['pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'ips', 'acrScore', 'assetExposureScore', 'netbiosName', 'dnsName', 'macAddress', 'port', 'protocol', 'uuid', 'hostUUID']"
+                  [filterDelay]="300"
+                  [rowHover]="true"
+                  dataKey="pluginID"
+                  class="p-datatable-sm p-datatable-gridlines-hidden"
+                >
+                  <ng-template pTemplate="header" let-columns>
+                    <tr>
+                      @for (col of columns; track col) {
+                        <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
+                          {{ col.header }}
+                          @if (!this.assetProcessing) {
+                            <p-columnFilter [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" [showOperator]="false" display="menu" />
+                          }
+                        </th>
                       }
-                    </th>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-vulnerability let-columns="columns">
-                  <tr (click)="showDetails(vulnerability)" (keyup)="showDetails(vulnerability)" style="cursor: pointer">
-                    @for (col of columns; track col) {
-                    <td>
-                      @switch (col.field) {
-                      @case ('sourcePluginIDs') {
-                      @for (pluginId of vulnerability.sourcePluginIDs; track pluginId) {
-                      <p-tag [value]="pluginId" [rounded]="true" class="mb-1 mr-1" />
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-vulnerability let-columns="columns">
+                    <tr (click)="showDetails(vulnerability)" (keyup)="showDetails(vulnerability)" style="cursor: pointer">
+                      @for (col of columns; track col) {
+                        <td>
+                          @switch (col.field) {
+                            @case ('sourcePluginIDs') {
+                              @for (pluginId of vulnerability.sourcePluginIDs; track pluginId) {
+                                <p-tag [value]="pluginId" [rounded]="true" class="mb-1 mr-1" />
+                              }
+                            }
+                            @case ('severity') {
+                              <p-tag [value]="vulnerability[col.field]" [severity]="getSeverityStyling(vulnerability[col.field])" [rounded]="false" />
+                            }
+                            @case ('teamAssigned') {
+                              @if (vulnerability.assignedTeams && vulnerability.assignedTeams.length > 0) {
+                                @for (team of vulnerability.assignedTeams; track team.assignedTeamId) {
+                                  <p-tag [value]="team.assignedTeamName" [rounded]="true" class="mb-1 mr-1" />
+                                }
+                              } @else {
+                                <i class="pi pi-times-circle" [ngStyle]="{ color: 'maroon', 'font-size': '1.2rem' }" pTooltip="No team association detected"> </i>
+                              }
+                            }
+                            @default {
+                              {{ vulnerability[col.field] }}
+                            }
+                          }
+                        </td>
                       }
-                      }
-                      @case ('severity') {
-                      <p-tag [value]="vulnerability[col.field]"
-                        [severity]="getSeverityStyling(vulnerability[col.field])" [rounded]="false" />
-                      }
-                      @case ('teamAssigned') {
-                      @if (vulnerability.assignedTeams && vulnerability.assignedTeams.length > 0) {
-                      @for (team of vulnerability.assignedTeams; track team.assignedTeamId) {
-                      <p-tag [value]="team.assignedTeamName" [rounded]="true" class="mb-1 mr-1" />
-                      }
-                      } @else {
-                      <i class="pi pi-times-circle" [ngStyle]="{ color: 'maroon', 'font-size': '1.2rem' }"
-                        pTooltip="No team association detected">
-                      </i>
-                      }
-                      }
-                      @default {
-                      {{ vulnerability[col.field] }}
-                      }
-                      }
-                    </td>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="emptymessage">
-                  <tr>
-                    <td [attr.colspan]="selectedColumns.length" style="text-align: center">No assets to display</td>
-                  </tr>
-                </ng-template>
-              </p-table>
-            </p-tabpanel>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td [attr.colspan]="selectedColumns.length" style="text-align: center">No assets to display</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </p-tabpanel>
             }
           </p-tabpanels>
         </p-tabs>
@@ -124,8 +130,7 @@
   </div>
 </div>
 
-<p-dialog header="Plugin Details" class="pluginDialog" [(visible)]="displayDialog" [modal]="true"
-  styleClass="w-[50vw] overflow-hidden">
+<p-dialog header="Plugin Details" class="pluginDialog" [(visible)]="displayDialog" [modal]="true" styleClass="w-[50vw] overflow-hidden">
   <ng-template pTemplate="content">
     <div class="p-grid">
       <div class="p-col-12"><b>Plugin ID:</b> {{ selectedVulnerability.pluginID }}</div>
@@ -149,12 +154,12 @@
               <td>
                 <span>
                   @switch (item.type) {
-                  @case ('boolean') {
-                  <span>{{ item.value ? 'Yes' : 'No' }}</span>
-                  }
-                  @default {
-                  <span>{{ item.value }}</span>
-                  }
+                    @case ('boolean') {
+                      <span>{{ item.value ? 'Yes' : 'No' }}</span>
+                    }
+                    @default {
+                      <span>{{ item.value }}</span>
+                    }
                   }
                 </span>
               </td>
@@ -178,23 +183,22 @@
         <div class="p-col-12"><b>CVSS v3 Vector:</b> {{ pluginData.cvssV3Vector }}</div>
         <div class="p-col-12"><b>CPE:</b> {{ pluginData.cpe }}</div>
         <div class="p-col-12">
-          <b>Vulnerability Publication Date: </b>{{
-          pluginData.vulnPubDate * 1000
-          | date
-          : 'MMMM d,
+          <b>Vulnerability Publication Date: </b
+          >{{
+            pluginData.vulnPubDate * 1000
+              | date
+                : 'MMMM d,
           yyyy'
           }}
         </div>
-        <div class="p-col-12"><b>Patch Publication Date: </b>{{ pluginData.patchPubDate * 1000 | date: 'MMMM d, yyyy' }}
-        </div>
-        <div class="p-col-12"><b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date: 'MMMM d, yyyy' }}
-        </div>
+        <div class="p-col-12"><b>Patch Publication Date: </b>{{ pluginData.patchPubDate * 1000 | date: 'MMMM d, yyyy' }}</div>
+        <div class="p-col-12"><b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date: 'MMMM d, yyyy' }}</div>
         <div class="p-col-12">
           <b>Plugin Last Modification Date:</b>
           {{
-          pluginData.pluginModDate * 1000
-          | date
-          : 'MMMM d,
+            pluginData.pluginModDate * 1000
+              | date
+                : 'MMMM d,
           yyyy'
           }}
         </div>
@@ -206,27 +210,25 @@
         <h6>IAV References</h6>
         <ul>
           @for (ref of iavReferences; track ref) {
-          <li>
-            <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener"
-              style="cursor: pointer; color: var(--p-primary-color);">{{ ref.value }}</a>
-          </li>
+            <li>
+              <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener" style="cursor: pointer; color: var(--p-primary-color)">{{ ref.value }}</a>
+            </li>
           }
         </ul>
         <h6>CVE References</h6>
         <ul>
           @for (ref of cveReferences; track ref) {
-          <li>
-            <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener"
-              style="cursor: pointer; color: var(--p-primary-color);">{{ ref.value }}</a>
-          </li>
+            <li>
+              <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener" style="cursor: pointer; color: var(--p-primary-color)">{{ ref.value }}</a>
+            </li>
           }
         </ul>
         @if (otherReferences.length > 0) {
-        <h6>Cross-References</h6>
+          <h6>Cross-References</h6>
         }
         <ul>
           @for (ref of otherReferences; track ref) {
-          <li>{{ ref.type }}:{{ ref.value }}</li>
+            <li>{{ ref.type }}:{{ ref.value }}</li>
           }
         </ul>
       </div>

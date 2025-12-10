@@ -118,13 +118,7 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
                 INSERT INTO ${config.database.schema}.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments)
                 VALUES (?, ?, ?, ?, ?)
             `;
-            await connection.query(sql_query, [
-                req.body.poamId,
-                req.body.userId,
-                req.body.approvalStatus,
-                req.body.approvedDate,
-                req.body.comments,
-            ]);
+            await connection.query(sql_query, [req.body.poamId, req.body.userId, req.body.approvalStatus, req.body.approvedDate, req.body.comments]);
 
             let userSql = `SELECT fullName FROM ${config.database.schema}.user WHERE userId = ?`;
             const [user] = await connection.query(userSql, [req.body.userId]);
@@ -187,9 +181,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                 const isNewOrChangedApproval =
                     existingApproval.length === 0 ||
                     (existingApproval[0].approvalStatus !== req.body.approvalStatus &&
-                        (req.body.approvalStatus === 'Approved' ||
-                            req.body.approvalStatus === 'Rejected' ||
-                            req.body.approvalStatus === 'False-Positive'));
+                        (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'Rejected' || req.body.approvalStatus === 'False-Positive'));
 
                 if (isNewOrChangedApproval && !config.client.features.marketplaceDisabled) {
                     const approverPoints = await marketplaceService.getUserPoints(req.body.userId);
@@ -207,11 +199,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                         userId: req.body.userId,
                     };
                     const approverNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(approverNotificationSql, [
-                        req.body.userId,
-                        approverNotification.title,
-                        approverNotification.message,
-                    ]);
+                    await connection.query(approverNotificationSql, [req.body.userId, approverNotification.title, approverNotification.message]);
                 }
 
                 let sql_query = `
@@ -219,13 +207,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                     SET approvalStatus = ?, approvedDate = ?, comments = ?
                     WHERE poamId = ? AND userId = ?;
                 `;
-                await connection.query(sql_query, [
-                    req.body.approvalStatus,
-                    req.body.approvedDate,
-                    req.body.comments,
-                    req.body.poamId,
-                    req.body.userId,
-                ]);
+                await connection.query(sql_query, [req.body.approvalStatus, req.body.approvedDate, req.body.comments, req.body.poamId, req.body.userId]);
 
                 let fullName = 'Unknown User';
                 let userSql = `SELECT fullName FROM ${config.database.schema}.user WHERE userId = ?`;
@@ -329,11 +311,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                                 userId: submitterId,
                             };
                             const statusNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                            await connection.query(statusNotificationSql, [
-                                submitterId,
-                                statusNotification.title,
-                                statusNotification.message,
-                            ]);
+                            await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
                         } else if (req.body.approvalStatus === 'False-Positive') {
                             sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
                             await connection.query(sql_query, ['False-Positive', req.body.poamId]);
@@ -344,11 +322,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                                 userId: submitterId,
                             };
                             const statusNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                            await connection.query(statusNotificationSql, [
-                                submitterId,
-                                statusNotification.title,
-                                statusNotification.message,
-                            ]);
+                            await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
                         }
                     }
                 } else if (req.body.approvalStatus === 'Rejected') {
@@ -361,11 +335,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                         userId: submitterId,
                     };
                     const rejectionNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(rejectionNotificationSql, [
-                        submitterId,
-                        rejectionNotification.title,
-                        rejectionNotification.message,
-                    ]);
+                    await connection.query(rejectionNotificationSql, [submitterId, rejectionNotification.title, rejectionNotification.message]);
                 }
 
                 let sql = `SELECT * FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId = ?`;

@@ -95,10 +95,7 @@ async function handleUserDataRefresh(currentUserData, tokenPayload) {
         refreshFields.lastAccess = now;
     }
 
-    if (
-        !currentUserData?.lastClaims ||
-        tokenPayload[config.oauth.claims.assertion] !== currentUserData?.lastClaims?.[config.oauth.claims.assertion]
-    ) {
+    if (!currentUserData?.lastClaims || tokenPayload[config.oauth.claims.assertion] !== currentUserData?.lastClaims?.[config.oauth.claims.assertion]) {
         refreshFields.lastClaims = tokenPayload;
     }
 
@@ -128,14 +125,7 @@ const setupUser = async function (req, res, next) {
                 fullName: tokenPayload[config.oauth.claims.fullname] ?? '',
             };
 
-            const usernamePrecedence = [
-                config.oauth.claims.username,
-                'preferred_username',
-                config.oauth.claims.servicename,
-                'azp',
-                'client_id',
-                'clientId',
-            ];
+            const usernamePrecedence = [config.oauth.claims.username, 'preferred_username', config.oauth.claims.servicename, 'azp', 'client_id', 'clientId'];
             req.userObject.userName = tokenPayload[usernamePrecedence.find(element => !!tokenPayload[element])];
 
             if (req.userObject.userName === undefined) {

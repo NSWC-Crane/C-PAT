@@ -248,15 +248,7 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
                 (poamId, filename, fileSize, mimeType, uploadedBy, fileContent, fileHash)
                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-            let [result] = await connection.query(sql, [
-                req.body.poamId,
-                file.originalname,
-                file.size,
-                file.mimetype,
-                userId,
-                file.buffer,
-                fileHash,
-            ]);
+            let [result] = await connection.query(sql, [req.body.poamId, file.originalname, file.size, file.mimetype, userId, file.buffer, fileHash]);
 
             if (result.insertId) {
                 let fetchSql = `SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy

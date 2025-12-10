@@ -67,11 +67,7 @@ module.exports.postAssetLabel = async function postAssetLabel(req, res, next) {
         const result = await assetLabelService.postAssetLabel(req, res, next);
         res.status(201).json(result);
     } catch (error) {
-        if (
-            error.message === 'assetId is required' ||
-            error.message === 'labelId is required' ||
-            error.message === 'collectionId is required'
-        ) {
+        if (error.message === 'assetId is required' || error.message === 'labelId is required' || error.message === 'collectionId is required') {
             res.status(400).json({ error: 'Validation Error', detail: error.message });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });

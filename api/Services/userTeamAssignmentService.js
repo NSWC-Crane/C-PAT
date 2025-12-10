@@ -142,12 +142,7 @@ exports.putTeamAssignment = async function putTeamAssignment(userId, elevate, re
         return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql_query = `UPDATE ${config.database.schema}.userassignedteams SET assignedTeamId = ?, accessLevel = ? WHERE userId = ? AND assignedTeamId = ?;`;
-                await connection.query(sql_query, [
-                    req.body.newAssignedTeamId,
-                    req.body.accessLevel,
-                    req.body.userId,
-                    req.body.oldAssignedTeamId,
-                ]);
+                await connection.query(sql_query, [req.body.newAssignedTeamId, req.body.accessLevel, req.body.userId, req.body.oldAssignedTeamId]);
 
                 const message = {
                     userId: req.body.userId,

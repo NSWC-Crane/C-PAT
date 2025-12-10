@@ -38,7 +38,7 @@ export class PoamMitigationGeneratorComponent implements OnChanges {
   readonly mitigationGenerated = output<{
     mitigation: string;
     teamId?: number;
-}>();
+  }>();
   aiEnabled: boolean = CPAT.Env.features.aiEnabled;
   isGenerating = signal<boolean>(false);
   showPromptEditor = signal<boolean>(false);

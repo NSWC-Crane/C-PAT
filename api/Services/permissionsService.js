@@ -144,12 +144,7 @@ exports.putPermission = async function putPermission(userId, elevate, req) {
         return await withConnection(async connection => {
             if (elevate && req.userObject.isAdmin === true) {
                 let sql_query = `UPDATE ${config.database.schema}.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;`;
-                await connection.query(sql_query, [
-                    req.body.newCollectionId,
-                    req.body.accessLevel,
-                    req.body.userId,
-                    req.body.oldCollectionId,
-                ]);
+                await connection.query(sql_query, [req.body.newCollectionId, req.body.accessLevel, req.body.userId, req.body.oldCollectionId]);
 
                 const message = {
                     userId: req.body.userId,

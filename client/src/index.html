@@ -57,7 +57,7 @@
     </cpat-app>
 
     <script>
-      !(function (a, b) {
+      (!(function (a, b) {
         'use strict';
         function c(a) {
           a = a || {};
@@ -70,12 +70,12 @@
         function d(d, g) {
           function h() {
             if (y) {
-              (r = b.createElement('canvas')), (r.className = 'pg-canvas'), (r.style.display = 'block'), d.insertBefore(r, d.firstChild), (s = r.getContext('2d')), i();
+              ((r = b.createElement('canvas')), (r.className = 'pg-canvas'), (r.style.display = 'block'), d.insertBefore(r, d.firstChild), (s = r.getContext('2d')), i());
               for (var c = Math.round((r.width * r.height) / g.density), e = 0; c > e; e++) {
                 var f = new n();
-                f.setStackPos(e), z.push(f);
+                (f.setStackPos(e), z.push(f));
               }
-              a.addEventListener(
+              (a.addEventListener(
                 'resize',
                 function () {
                   k();
@@ -85,7 +85,7 @@
                 b.addEventListener(
                   'mousemove',
                   function (a) {
-                    (A = a.pageX), (B = a.pageY);
+                    ((A = a.pageX), (B = a.pageY));
                   },
                   !1
                 ),
@@ -94,20 +94,20 @@
                   a.addEventListener(
                     'deviceorientation',
                     function () {
-                      (F = Math.min(Math.max(-event.beta, -30), 30)), (E = Math.min(Math.max(-event.gamma, -30), 30));
+                      ((F = Math.min(Math.max(-event.beta, -30), 30)), (E = Math.min(Math.max(-event.gamma, -30), 30)));
                     },
                     !0
                   ),
                 j(),
-                q('onInit');
+                q('onInit'));
             }
           }
           function i() {
-            (r.width = d.offsetWidth), (r.height = d.offsetHeight), (s.fillStyle = g.dotColor), (s.strokeStyle = g.lineColor), (s.lineWidth = g.lineWidth);
+            ((r.width = d.offsetWidth), (r.height = d.offsetHeight), (s.fillStyle = g.dotColor), (s.strokeStyle = g.lineColor), (s.lineWidth = g.lineWidth));
           }
           function j() {
             if (y) {
-              (u = a.innerWidth), (v = a.innerHeight), s.clearRect(0, 0, r.width, r.height);
+              ((u = a.innerWidth), (v = a.innerHeight), s.clearRect(0, 0, r.width, r.height));
               for (var b = 0; b < z.length; b++) z[b].updatePosition();
               for (var b = 0; b < z.length; b++) z[b].draw();
               G || (t = requestAnimationFrame(j));
@@ -129,7 +129,7 @@
             G = !0;
           }
           function m() {
-            (G = !1), j();
+            ((G = !1), j());
           }
           function n() {
             switch (
@@ -149,7 +149,7 @@
                 this.speed.x = +(Math.random() * g.maxSpeedX + g.minSpeedX).toFixed(2);
                 break;
               default:
-                (this.speed.x = +(-g.maxSpeedX / 2 + Math.random() * g.maxSpeedX).toFixed(2)), (this.speed.x += this.speed.x > 0 ? g.minSpeedX : -g.minSpeedX);
+                ((this.speed.x = +(-g.maxSpeedX / 2 + Math.random() * g.maxSpeedX).toFixed(2)), (this.speed.x += this.speed.x > 0 ? g.minSpeedX : -g.minSpeedX));
             }
             switch (g.directionY) {
               case 'up':
@@ -159,14 +159,14 @@
                 this.speed.y = +(Math.random() * g.maxSpeedY + g.minSpeedY).toFixed(2);
                 break;
               default:
-                (this.speed.y = +(-g.maxSpeedY / 2 + Math.random() * g.maxSpeedY).toFixed(2)), (this.speed.x += this.speed.y > 0 ? g.minSpeedY : -g.minSpeedY);
+                ((this.speed.y = +(-g.maxSpeedY / 2 + Math.random() * g.maxSpeedY).toFixed(2)), (this.speed.x += this.speed.y > 0 ? g.minSpeedY : -g.minSpeedY));
             }
           }
           function o(a, b) {
             return b ? void (g[a] = b) : g[a];
           }
           function p() {
-            console.log('destroy'), r.parentNode.removeChild(r), q('onDestroy'), f && f(d).removeData('plugin_' + e);
+            (console.log('destroy'), r.parentNode.removeChild(r), q('onDestroy'), f && f(d).removeData('plugin_' + e));
           }
           function q(a) {
             void 0 !== g[a] && g[a].call(d);
@@ -190,7 +190,7 @@
           return (
             (g = c({}, a[e].defaults, g)),
             (n.prototype.draw = function () {
-              s.beginPath(), s.arc(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY, g.particleRadius / 2, 0, 2 * Math.PI, !0), s.closePath(), s.fill(), s.beginPath();
+              (s.beginPath(), s.arc(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY, g.particleRadius / 2, 0, 2 * Math.PI, !0), s.closePath(), s.fill(), s.beginPath());
               for (var a = z.length - 1; a > this.stackPos; a--) {
                 var b = z[a],
                   c = this.position.x - b.position.x,
@@ -202,7 +202,7 @@
                     ? s.quadraticCurveTo(Math.max(b.position.x, b.position.x), Math.min(b.position.y, b.position.y), b.position.x + b.parallaxOffsetX, b.position.y + b.parallaxOffsetY)
                     : s.lineTo(b.position.x + b.parallaxOffsetX, b.position.y + b.parallaxOffsetY));
               }
-              s.stroke(), s.closePath();
+              (s.stroke(), s.closePath());
             }),
             (n.prototype.updatePosition = function () {
               if (g.parallax) {
@@ -211,11 +211,11 @@
                   w = (E - -30) * a + 0;
                   var b = (v - 0) / 60;
                   x = (F - -30) * b + 0;
-                } else (w = A), (x = B);
-                (this.parallaxTargX = (w - u / 2) / (g.parallaxMultiplier * this.layer)),
+                } else ((w = A), (x = B));
+                ((this.parallaxTargX = (w - u / 2) / (g.parallaxMultiplier * this.layer)),
                   (this.parallaxOffsetX += (this.parallaxTargX - this.parallaxOffsetX) / 10),
                   (this.parallaxTargY = (x - v / 2) / (g.parallaxMultiplier * this.layer)),
-                  (this.parallaxOffsetY += (this.parallaxTargY - this.parallaxOffsetY) / 10);
+                  (this.parallaxOffsetY += (this.parallaxTargY - this.parallaxOffsetY) / 10));
               }
               var c = d.offsetWidth,
                 e = d.offsetHeight;
@@ -239,7 +239,7 @@
                 default:
                   (this.position.y + this.speed.y + this.parallaxOffsetY > e || this.position.y + this.speed.y + this.parallaxOffsetY < 0) && (this.speed.y = -this.speed.y);
               }
-              (this.position.x += this.speed.x), (this.position.y += this.speed.y);
+              ((this.position.x += this.speed.x), (this.position.y += this.speed.y));
             }),
             (n.prototype.setStackPos = function (a) {
               this.stackPos = a;
@@ -250,7 +250,7 @@
         }
         var e = 'particleground',
           f = a.jQuery;
-        (a[e] = function (a, b) {
+        ((a[e] = function (a, b) {
           return new d(a, b);
         }),
           (a[e].defaults = {
@@ -290,7 +290,7 @@
                 : this.each(function () {
                     f.data(this, 'plugin_' + e) || f.data(this, 'plugin_' + e, new d(this, a));
                   });
-            });
+            }));
       })(window, document),
         /**
          * requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
@@ -300,21 +300,21 @@
          */
         (function () {
           for (var a = 0, b = ['ms', 'moz', 'webkit', 'o'], c = 0; c < b.length && !window.requestAnimationFrame; ++c)
-            (window.requestAnimationFrame = window[b[c] + 'RequestAnimationFrame']), (window.cancelAnimationFrame = window[b[c] + 'CancelAnimationFrame'] || window[b[c] + 'CancelRequestAnimationFrame']);
-          window.requestAnimationFrame ||
+            ((window.requestAnimationFrame = window[b[c] + 'RequestAnimationFrame']), (window.cancelAnimationFrame = window[b[c] + 'CancelAnimationFrame'] || window[b[c] + 'CancelRequestAnimationFrame']));
+          (window.requestAnimationFrame ||
             (window.requestAnimationFrame = function (b) {
               var c = new Date().getTime(),
                 d = Math.max(0, 16 - (c - a)),
                 e = window.setTimeout(function () {
                   b(c + d);
                 }, d);
-              return (a = c + d), e;
+              return ((a = c + d), e);
             }),
             window.cancelAnimationFrame ||
               (window.cancelAnimationFrame = function (a) {
                 clearTimeout(a);
-              });
-        })();
+              }));
+        })());
 
       document.addEventListener('DOMContentLoaded', function () {
         const foregroundEl = document.getElementById('particles-foreground');
