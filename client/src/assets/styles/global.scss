@@ -72,3 +72,13 @@ svg[data-p-icon='filter-fill'] path {
   transform: scale(0.95);
   transform-origin: center;
 }
+
+.p-datatable-filter-overlay-popover:has(.swap-button-order) {
+  display: flex;
+  flex-direction: column;
+
+  .p-datatable-filter-buttonbar {
+    order: -1;
+    margin-bottom: 0.75rem;
+  }
+}

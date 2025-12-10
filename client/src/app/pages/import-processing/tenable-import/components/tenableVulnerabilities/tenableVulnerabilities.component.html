@@ -210,7 +210,8 @@
                       [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
                       <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                         <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)"
-                          (onClear)="filter([])" placeholder="Select Status" [showClear]="true" class="w-full" />
+                          (onClear)="filter([])" placeholder="Select Status" [showClear]="true"
+                          class="w-full swap-button-order" />
                       </ng-template>
                     </p-columnFilter>
                     }
@@ -270,12 +271,10 @@
                         }
                         }
                         }
-                        <div class="mt-8 flex items-center justify-between">
-                          <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()"
-                            size="small" />
-                          <p-button icon="pi pi-trash" class="clearFilterButton"
-                            (click)="clearIndividualFilter(field, $event)" [rounded]="true" [text]="true"
-                            severity="secondary" [disabled]="!isFilterActive(field)" />
+                        <div class="mt-4 flex items-center justify-between">
+                          <p-button label="Clear" (click)="clearIndividualFilter(field, $event)" [outlined]="true"
+                            size="small" [disabled]="!isFilterActive(field)" />
+                          <p-button label="Apply" (click)="applyFilters()" size="small" />
                         </div>
                       </ng-template>
                     </p-columnFilter>

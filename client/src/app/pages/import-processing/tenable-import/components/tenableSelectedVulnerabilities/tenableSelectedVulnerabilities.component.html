@@ -76,7 +76,7 @@
                   [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
                   <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                     <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)"
-                      placeholder="Select Status" [showClear]="true" class="w-full" />
+                      placeholder="Select Status" [showClear]="true" class="w-full swap-button-order" />
                   </ng-template>
                 </p-columnFilter>
                 }
@@ -87,7 +87,7 @@
                     <p-multiSelect [ngModel]="selectedSeverities" [options]="col.filterOptions"
                       (onChange)="filter($event.value); selectedSeverities = $event.value"
                       (onClear)="filter([]); selectedSeverities = []" placeholder="Select Severity" [showClear]="true"
-                      class="w-full">
+                      class="w-full swap-button-order">
                     </p-multiSelect>
                   </ng-template>
                 </p-columnFilter>
