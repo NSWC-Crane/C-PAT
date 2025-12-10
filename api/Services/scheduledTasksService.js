@@ -18,7 +18,7 @@ const jobs = {};
 exports.initializeScheduledTasks = function initializeScheduledTasks() {
     logger.writeInfo('scheduledTasks', 'init', { message: 'Initializing scheduled tasks' });
 
-    jobs.poamDeadlineNotifications = schedule.scheduleJob('57 13 * * *', async () => {
+    jobs.poamDeadlineNotifications = schedule.scheduleJob('0 1 * * *', async () => {
         logger.writeInfo('scheduledTasks', 'poamDeadlineNotifications', {
             message: 'Starting daily POAM deadline notification check',
         });
