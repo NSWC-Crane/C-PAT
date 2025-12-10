@@ -102,8 +102,7 @@
           <label for="ownerId">Owned By: </label>
           <p-select [options]="collectionUsers" [(ngModel)]="poam.ownerId" id="ownerId" name="ownerId"
             placeholder="POAM Owned By..." optionLabel="fullName" optionValue="userId" class="w-full" showClear
-            [filter]="true"
-            [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3" />
+            [filter]="true" [disabled]="accessLevel() < 2" />
         </div>
 
         <!-- Status -->
