@@ -181,7 +181,7 @@
                   <p-multiSelect [ngModel]="selectedPoamStatuses" [options]="col.filterOptions"
                     (onChange)="filter($event.value); selectedPoamStatuses = $event.value"
                     (onClear)="filter([]); selectedPoamStatuses = []" placeholder="Select Status" [showClear]="true"
-                    class="w-full" />
+                    class="w-full swap-button-order" />
                 </ng-template>
               </p-columnFilter>
               }
@@ -192,7 +192,7 @@
                   <p-multiSelect [ngModel]="selectedSeverities" [options]="col.filterOptions"
                     (onChange)="filter($event.value); selectedSeverities = $event.value"
                     (onClear)="filter([]); selectedSeverities = []" placeholder="Select Severity" [showClear]="true"
-                    class="w-full" />
+                    class="w-full swap-button-order" />
                 </ng-template>
               </p-columnFilter>
               }
