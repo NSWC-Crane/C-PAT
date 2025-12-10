@@ -11,17 +11,15 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
-
-
 export const importProcessingRoutes: Routes = [
   {
     path: 'stigmanager-import',
     canActivate: [AuthGuard],
-    loadComponent: () => import('./stigmanager-import/stigmanager-import.component').then(m => m.STIGManagerImportComponent)
+    loadComponent: () => import('./stigmanager-import/stigmanager-import.component').then((m) => m.STIGManagerImportComponent)
   },
   {
     path: 'tenable-import',
     canActivate: [AuthGuard],
-    loadComponent: () => import('./tenable-import/tenable.component').then(m => m.TenableComponent)
+    loadComponent: () => import('./tenable-import/tenable.component').then((m) => m.TenableComponent)
   }
 ];

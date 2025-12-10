@@ -13,11 +13,24 @@
     <div class="p-fluid">
       <div class="toolbar mb-4 mt-4">
         <div class="flex items-center justify-between">
-          <p-multiselect #benchmarkMs [options]="benchmarkOptions" [(ngModel)]="selectedBenchmarkIds"
-            placeholder="Select Benchmarks..." [disabled]="isLoading && !showBenchmarkSelector" appendTo="body"
-            [showClear]="false" [filter]="true" filterPlaceHolder="Search benchmarks..." [showToggleAll]="true"
-            optionLabel="label" optionValue="value" [maxSelectedLabels]="3" selectedItemsLabel="{0} benchmarks selected"
-            display="chip" [style]="{'min-width': '300px'}">
+          <p-multiselect
+            #benchmarkMs
+            [options]="benchmarkOptions"
+            [(ngModel)]="selectedBenchmarkIds"
+            placeholder="Select Benchmarks..."
+            [disabled]="isLoading && !showBenchmarkSelector"
+            appendTo="body"
+            [showClear]="false"
+            [filter]="true"
+            filterPlaceHolder="Search benchmarks..."
+            [showToggleAll]="true"
+            optionLabel="label"
+            optionValue="value"
+            [maxSelectedLabels]="3"
+            selectedItemsLabel="{0} benchmarks selected"
+            display="chip"
+            [style]="{ 'min-width': '300px' }"
+          >
             <ng-template #dropdownicon>
               <i class="pi pi-chevron-down"></i>
             </ng-template>
@@ -26,53 +39,58 @@
             </ng-template>
             <ng-template #footer>
               <div class="p-3 flex justify-between align-items-center border-top-1 surface-border">
-                <p-button label="Clear" severity="secondary" outlined="true" size="small"
-                  (onClick)="clearBenchmarkSelection()" [disabled]="selectedBenchmarkIds.length === 0" />
-                <p-button label="Apply" size="small" (onClick)="applyBenchmarkSelection()"
-                  [disabled]="!hasPendingBenchmarkChanges()" [loading]="isLoading" />
+                <p-button label="Clear" severity="secondary" outlined="true" size="small" (onClick)="clearBenchmarkSelection()" [disabled]="selectedBenchmarkIds.length === 0" />
+                <p-button label="Apply" size="small" (onClick)="applyBenchmarkSelection()" [disabled]="!hasPendingBenchmarkChanges()" [loading]="isLoading" />
               </div>
             </ng-template>
           </p-multiselect>
-          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4"
-            icon="pi pi-filter-slash" (click)="clearFilters()" pTooltip="Clear all filters" />
+          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clearFilters()" pTooltip="Clear all filters" />
         </div>
         <div class="right-buttons">
-          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary"
-            icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
-          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary"
-            (click)="toggleAddColumnOverlay()" />
-          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true"
-            (onClick)="exportCSV()" />
-          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header"
-            class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..."
-            [showToggleAll]="true" />
+          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
+          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()" />
+          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()" />
+          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
         </div>
       </div>
 
-      <p-treeTable #tt [value]="treeNodes" [columns]="selectedColumns" [paginator]="true" [rows]="25"
-        [totalRecords]="assetCount" [loading]="isLoading" [showCurrentPageReport]="true"
-        [rowsPerPageOptions]="[10, 25, 50]" [filterDelay]="300" [rowHover]="true" [resizableColumns]="true"
-        columnResizeMode="fit" [scrollable]="true" selectionMode="multiple" sortMode="multiple"
-        scrollHeight="calc(100vh - 30rem)">
+      <p-treeTable
+        #tt
+        [value]="treeNodes"
+        [columns]="selectedColumns"
+        [paginator]="true"
+        [rows]="25"
+        [totalRecords]="assetCount"
+        [loading]="isLoading"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [filterDelay]="300"
+        [rowHover]="true"
+        [resizableColumns]="true"
+        columnResizeMode="fit"
+        [scrollable]="true"
+        selectionMode="multiple"
+        sortMode="multiple"
+        scrollHeight="calc(100vh - 30rem)"
+      >
         <ng-template #colgroup let-columns>
           <colgroup>
             @for (col of selectedColumns; track col) {
-            <col />
+              <col />
             }
           </colgroup>
         </ng-template>
         <ng-template pTemplate="header">
           <tr>
             @for (col of selectedColumns; track col) {
-            <th scope="col" [ttSortableColumn]="col.field" ttResizableColumn>
-              <span [pTooltip]="col.header === 'Evaluated' ? 'Last Ran' : null" tooltipPosition="top">
-                {{ col.header }}
-              </span>
-              @if (col.filterable) {
-              <p-button severity="secondary" [rounded]="true" variant="text" icon="pi pi-filter" size="small"
-                (onClick)="showFilterPanel($event, col); $event.stopPropagation()" />
-              }
-            </th>
+              <th scope="col" [ttSortableColumn]="col.field" ttResizableColumn>
+                <span [pTooltip]="col.header === 'Evaluated' ? 'Last Ran' : null" tooltipPosition="top">
+                  {{ col.header }}
+                </span>
+                @if (col.filterable) {
+                  <p-button severity="secondary" [rounded]="true" variant="text" icon="pi pi-filter" size="small" (onClick)="showFilterPanel($event, col); $event.stopPropagation()" />
+                }
+              </th>
             }
           </tr>
         </ng-template>
@@ -80,63 +98,57 @@
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
           <tr [ttRow]="rowNode" [ngClass]="{ 'parent-asset-row': rowNode.node.data.isParentRow }">
             @for (col of selectedColumns; track col; let i = $index) {
-            <td>
-              <span class="align-items-center flex">
-                @if (i === 0) {
-                <p-treeTableToggler [rowNode]="rowNode" />
-                }
-                @switch (col.field) {
-                @case ('displayResult') {
-                <p-tag class="ml-2" [value]="rowNode.node.data.displayResult"
-                  [severity]="rowNode.node.data.result === 'pass' ? 'success' : rowNode.node.data.result === 'fail' ? 'danger' : 'warn'" />
-                }
-                @case ('status.label') {
-                @if (rowNode.node.data['status.label']) {
-                <i class="pi ml-4" [ngClass]="getStatusIcon(rowNode.node.data['status.label'])"
-                  [pTooltip]="rowNode.node.data['status.label']" tooltipPosition="top"> </i>
-                }
-                }
-                @case ('detail') {
-                @if (rowNode.node.data[col.field]) {
-                <i class="pi pi-cog ml-4" style="cursor: pointer" [pTooltip]="rowNode.node.data[col.field]"
-                  tooltipPosition="top"></i>
-                }
-                }
-                @case ('rule.severity') {
-                @if (rowNode.node.data['rule.severity']) {
-                <p-tag [value]="rowNode.node.data['rule.severity']"
-                  [severity]="getSeverityStyling(rowNode.node.data['rule.severity'])" [rounded]="false" />
-                }
-                }
-                @case ('evaluatedDate') {
-                {{ rowNode.node.data['evaluatedDate'] | date: 'short' }}
-                }
-                @case ('resultEngine.product') {
-                {{ rowNode.node.data['resultEngine.product'] }}
-                }
-                @case ('resultEngine.version') {
-                {{ rowNode.node.data['resultEngine.version'] }}
-                }
-                @case ('labels') {
-                @for (label of rowNode.node.data.assetLabels; track label.labelId) {
-                <p-tag [rounded]="false" [value]="label.name"
-                  [style]="{ background: 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.5rem', color: '#' + label.color }" />
-                }
-                }
-                @default {
-                {{ rowNode.node.data[col.field] }}
-                }
-                }
-              </span>
-            </td>
+              <td>
+                <span class="align-items-center flex">
+                  @if (i === 0) {
+                    <p-treeTableToggler [rowNode]="rowNode" />
+                  }
+                  @switch (col.field) {
+                    @case ('displayResult') {
+                      <p-tag class="ml-2" [value]="rowNode.node.data.displayResult" [severity]="rowNode.node.data.result === 'pass' ? 'success' : rowNode.node.data.result === 'fail' ? 'danger' : 'warn'" />
+                    }
+                    @case ('status.label') {
+                      @if (rowNode.node.data['status.label']) {
+                        <i class="pi ml-4" [ngClass]="getStatusIcon(rowNode.node.data['status.label'])" [pTooltip]="rowNode.node.data['status.label']" tooltipPosition="top"> </i>
+                      }
+                    }
+                    @case ('detail') {
+                      @if (rowNode.node.data[col.field]) {
+                        <i class="pi pi-cog ml-4" style="cursor: pointer" [pTooltip]="rowNode.node.data[col.field]" tooltipPosition="top"></i>
+                      }
+                    }
+                    @case ('rule.severity') {
+                      @if (rowNode.node.data['rule.severity']) {
+                        <p-tag [value]="rowNode.node.data['rule.severity']" [severity]="getSeverityStyling(rowNode.node.data['rule.severity'])" [rounded]="false" />
+                      }
+                    }
+                    @case ('evaluatedDate') {
+                      {{ rowNode.node.data['evaluatedDate'] | date: 'short' }}
+                    }
+                    @case ('resultEngine.product') {
+                      {{ rowNode.node.data['resultEngine.product'] }}
+                    }
+                    @case ('resultEngine.version') {
+                      {{ rowNode.node.data['resultEngine.version'] }}
+                    }
+                    @case ('labels') {
+                      @for (label of rowNode.node.data.assetLabels; track label.labelId) {
+                        <p-tag [rounded]="false" [value]="label.name" [style]="{ background: 'color-mix(in srgb, #' + label.color + ', transparent 84%)', 'margin-left': '0.5rem', color: '#' + label.color }" />
+                      }
+                    }
+                    @default {
+                      {{ rowNode.node.data[col.field] }}
+                    }
+                  }
+                </span>
+              </td>
             }
           </tr>
         </ng-template>
 
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td [attr.colspan]="selectedColumns.length" style="text-align: center">No reviews to display. Select
-              Benchmark ID to load reviews or adjust filters to display available data.</td>
+            <td [attr.colspan]="selectedColumns.length" style="text-align: center">No reviews to display. Select Benchmark ID to load reviews or adjust filters to display available data.</td>
           </tr>
         </ng-template>
       </p-treeTable>
@@ -146,59 +158,52 @@
 
 <p-popover #filterPopover class="min-w-[200px]">
   @if (currentFilterColumn) {
-  <div class="p-fluid filter-panel">
-    <div class="p-field mb-3">
-      @switch (currentFilterColumn.field) {
-      @case ('displayResult') {
-      <p-select class="w-full" [options]="resultOptions" [(ngModel)]="filterState.result"
-        (onChange)="onResultFilterChange($event.value); filterPopover.hide()" placeholder="Filter result"
-        appendTo="body" />
-      }
-      @case ('rule.severity') {
-      <p-multiSelect class="w-full" [options]="severityFilterOptions"
-        [(ngModel)]="filterState.filters[currentFilterColumn.field]" placeholder="Filter severity"
-        (onClick)="$event.stopPropagation()" [showClear]="true" appendTo="body" />
-      }
+    <div class="p-fluid filter-panel">
+      <div class="p-field mb-3">
+        @switch (currentFilterColumn.field) {
+          @case ('displayResult') {
+            <p-select class="w-full" [options]="resultOptions" [(ngModel)]="filterState.result" (onChange)="onResultFilterChange($event.value); filterPopover.hide()" placeholder="Filter result" appendTo="body" />
+          }
+          @case ('rule.severity') {
+            <p-multiSelect class="w-full" [options]="severityFilterOptions" [(ngModel)]="filterState.filters[currentFilterColumn.field]" placeholder="Filter severity" (onClick)="$event.stopPropagation()" [showClear]="true" appendTo="body" />
+          }
 
-      @case ('evaluatedDate') {
-      <div class="mb-2">
-        <p-select class="w-full" [options]="dateFilterOptions"
-          [(ngModel)]="filterState.dateFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()"
-          placeholder="Select comparison" appendTo="body" />
-      </div>
-      <p-datepicker class="w-full" [showIcon]="true"
-        [(ngModel)]="filterState.dateFilterValues[currentFilterColumn.field]" placeholder="Filter date"
-        (onClick)="$event.stopPropagation()" dateFormat="mm/dd/yy" />
-      }
+          @case ('evaluatedDate') {
+            <div class="mb-2">
+              <p-select class="w-full" [options]="dateFilterOptions" [(ngModel)]="filterState.dateFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()" placeholder="Select comparison" appendTo="body" />
+            </div>
+            <p-datepicker class="w-full" [showIcon]="true" [(ngModel)]="filterState.dateFilterValues[currentFilterColumn.field]" placeholder="Filter date" (onClick)="$event.stopPropagation()" dateFormat="mm/dd/yy" />
+          }
 
-      @case ('resultEngine.version') {
-      <div class="mb-2">
-        <p-select class="w-full" [options]="versionFilterOptions"
-          [(ngModel)]="filterState.versionFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()"
-          placeholder="Select comparison" appendTo="body" />
-      </div>
-      <div class="p-input-icon-right w-full">
-        <input pInputText type="text" id="versionFilter"
-          [(ngModel)]="filterState.versionFilterValues[currentFilterColumn.field]"
-          placeholder="Enter version (e.g., 24.2.1)" class="w-full"
-          (change)="applyVersionFilter(currentFilterColumn.field, $event)" />
-      </div>
-      }
+          @case ('resultEngine.version') {
+            <div class="mb-2">
+              <p-select class="w-full" [options]="versionFilterOptions" [(ngModel)]="filterState.versionFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()" placeholder="Select comparison" appendTo="body" />
+            </div>
+            <div class="p-input-icon-right w-full">
+              <input
+                pInputText
+                type="text"
+                id="versionFilter"
+                [(ngModel)]="filterState.versionFilterValues[currentFilterColumn.field]"
+                placeholder="Enter version (e.g., 24.2.1)"
+                class="w-full"
+                (change)="applyVersionFilter(currentFilterColumn.field, $event)"
+              />
+            </div>
+          }
 
-      @default {
-      <div class="p-input-icon-right w-full">
-        <input pInputText type="text" [(ngModel)]="filterState.filters[currentFilterColumn.field]"
-          placeholder="Search..." id="search" class="w-full" />
+          @default {
+            <div class="p-input-icon-right w-full">
+              <input pInputText type="text" [(ngModel)]="filterState.filters[currentFilterColumn.field]" placeholder="Search..." id="search" class="w-full" />
+            </div>
+          }
+        }
       </div>
-      }
-      }
+      <div class="mt-4 w-full" style="display: flex; justify-content: space-between">
+        <p-button variant="outlined" label="Clear" size="small" (onClick)="clearColumnFilter(currentFilterColumn.field); filterPopover.hide()" />
+        <p-button label="Apply" size="small" (onClick)="applyCurrentFilter(); filterPopover.hide()" />
+      </div>
     </div>
-    <div class="mt-4 w-full" style="display: flex; justify-content: space-between">
-      <p-button variant="outlined" label="Clear" size="small"
-        (onClick)="clearColumnFilter(currentFilterColumn.field); filterPopover.hide()" />
-      <p-button label="Apply" size="small" (onClick)="applyCurrentFilter(); filterPopover.hide()" />
-    </div>
-  </div>
   }
 </p-popover>
 

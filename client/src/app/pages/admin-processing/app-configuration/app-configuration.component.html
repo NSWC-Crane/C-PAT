@@ -11,17 +11,14 @@
 <div class="grid grid-cols-12 gap-4">
   <div class="col-span-12">
     <div class="scrollable-appConfig overflow-hidden">
-      <p-table #dt [value]="appConfiguration" [globalFilterFields]="['settingName', 'settingValue']" [rows]="15"
-        [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="settingName"
-        editMode="row">
+      <p-table #dt [value]="appConfiguration" [globalFilterFields]="['settingName', 'settingValue']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="settingName" editMode="row">
         <ng-template pTemplate="caption">
           <div class="flex items-center justify-between">
             <p-iconField iconPosition="left">
               <p-inputIcon>
                 <i class="pi pi-search"></i>
               </p-inputIcon>
-              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search..." id="search"
-                class="search-input" />
+              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search..." id="search" class="search-input" />
             </p-iconField>
           </div>
         </ng-template>
@@ -38,8 +35,7 @@
             <td>
               <p-cellEditor>
                 <ng-template pTemplate="input">
-                  <input pInputText type="text" class="w-full" id="value" [(ngModel)]="appConfig.settingValue"
-                    maxlength="50" />
+                  <input pInputText type="text" class="w-full" id="value" [(ngModel)]="appConfig.settingValue" maxlength="50" />
                 </ng-template>
                 <ng-template pTemplate="output"> {{ appConfig.settingValue }} </ng-template>
               </p-cellEditor>
@@ -47,17 +43,13 @@
             <td>
               <div class="flex gap-2">
                 @if (!editing) {
-                <p-button pInitEditableRow icon="pi pi-pencil"
-                  (click)="$event.stopPropagation(); onRowEditInit(appConfig)" [rounded]="true" variant="text" />
+                  <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(appConfig)" [rounded]="true" variant="text" />
                 }
                 @if (editing) {
-                <p-button pSaveEditableRow icon="pi pi-check"
-                  (click)="$event.stopPropagation(); onRowEditSave(appConfig)" [rounded]="true" variant="text"
-                  severity="success" class="mr-2" />
+                  <p-button pSaveEditableRow icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(appConfig)" [rounded]="true" variant="text" severity="success" class="mr-2" />
                 }
                 @if (editing) {
-                <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(ri)"
-                  [rounded]="true" variant="text" severity="danger" />
+                  <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(ri)" [rounded]="true" variant="text" severity="danger" />
                 }
               </div>
             </td>

@@ -10,18 +10,21 @@
 
 <!-- Import STIG Manager Collection Section -->
 <div class="field mb-4">
-  <p-select [options]="filteredCollections" [(ngModel)]="selectedSTIGManagerCollection"
-    (onChange)="onSTIGManagerCollectionSelect($event.value)" placeholder="Select Collection to Import..."
-    optionLabel="name" [showClear]="true" class="stigmanCollectionSelect w-full" />
+  <p-select
+    [options]="filteredCollections"
+    [(ngModel)]="selectedSTIGManagerCollection"
+    (onChange)="onSTIGManagerCollectionSelect($event.value)"
+    placeholder="Select Collection to Import..."
+    optionLabel="name"
+    [showClear]="true"
+    class="stigmanCollectionSelect w-full"
+  />
 </div>
 <div class="field mb-2">
-  <p-button label="Import Selected" class="import-button" (click)="importSTIGManagerCollection()"
-    [disabled]="!selectedSTIGManagerCollection" styleClass="w-full mb-[10px]" [outlined]="true" />
+  <p-button label="Import Selected" class="import-button" (click)="importSTIGManagerCollection()" [disabled]="!selectedSTIGManagerCollection" styleClass="w-full mb-[10px]" [outlined]="true" />
 </div>
 <div class="field">
-  <p-button label="Import All Remaining" class="import-all-button" severity="warn"
-    (click)="importAllRemainingCollections()" [disabled]="filteredCollections.length === 0" styleClass="w-full"
-    [outlined]="true" />
+  <p-button label="Import All Remaining" class="import-all-button" severity="warn" (click)="importAllRemainingCollections()" [disabled]="filteredCollections.length === 0" styleClass="w-full" [outlined]="true" />
 </div>
 <p-toast />
 <p-confirmDialog />

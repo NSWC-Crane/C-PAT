@@ -13,41 +13,35 @@
     <div class="p-field p-grid">
       <label for="assetName" class="p-col-fixed" style="width: 10rem">Asset Name:</label>
       <div class="p-col">
-        <input pInputText type="text" id="assetName" name="assetName" class="w-full" [(ngModel)]="asset.assetName"
-          placeholder="Asset Name" required />
+        <input pInputText type="text" id="assetName" name="assetName" class="w-full" [(ngModel)]="asset.assetName" placeholder="Asset Name" required />
       </div>
     </div>
     <br />
     <div class="p-field p-grid">
       <label for="description" class="p-col-fixed" style="width: 10rem">Description:</label>
       <div class="p-col">
-        <input pInputText type="text" id="description" name="description" class="w-full" [(ngModel)]="asset.description"
-          placeholder="Description" />
+        <input pInputText type="text" id="description" name="description" class="w-full" [(ngModel)]="asset.description" placeholder="Description" />
       </div>
     </div>
     <br />
     <div class="p-field p-grid">
-      <label for="fullyQualifiedDomainName" class="p-col-fixed" style="width: 10rem">Fully Qualified Domain
-        Name:</label>
+      <label for="fullyQualifiedDomainName" class="p-col-fixed" style="width: 10rem">Fully Qualified Domain Name:</label>
       <div class="p-col">
-        <input pInputText type="text" id="fullyQualifiedDomainName" name="fullyQualifiedDomainName" class="w-full"
-          [(ngModel)]="asset.fullyQualifiedDomainName" placeholder="Fully Qualified Domain Name" />
+        <input pInputText type="text" id="fullyQualifiedDomainName" name="fullyQualifiedDomainName" class="w-full" [(ngModel)]="asset.fullyQualifiedDomainName" placeholder="Fully Qualified Domain Name" />
       </div>
     </div>
     <br />
     <div class="p-field p-grid">
       <label for="ipAddress" class="p-col-fixed" style="width: 10rem">IP Address:</label>
       <div class="p-col">
-        <input pInputText type="text" id="ipAddress" name="ipAddress" class="w-full" [(ngModel)]="asset.ipAddress"
-          placeholder="IP Address" />
+        <input pInputText type="text" id="ipAddress" name="ipAddress" class="w-full" [(ngModel)]="asset.ipAddress" placeholder="IP Address" />
       </div>
     </div>
     <br />
     <div class="p-field p-grid">
       <label for="macAddress" class="p-col-fixed" style="width: 10rem">MAC Address:</label>
       <div class="p-col">
-        <input pInputText type="text" id="macAddress" name="macAddress" class="w-full" [(ngModel)]="asset.macAddress"
-          placeholder="Mac Address" />
+        <input pInputText type="text" id="macAddress" name="macAddress" class="w-full" [(ngModel)]="asset.macAddress" placeholder="Mac Address" />
       </div>
     </div>
     <br />
@@ -64,17 +58,14 @@
         <ng-template pTemplate="body" let-label let-ri="rowIndex">
           <tr>
             <td>
-              <p-button icon="pi pi-trash" (onClick)="deleteAssetLabel(label, ri)" [rounded]="true" variant="text"
-                severity="danger" />
+              <p-button icon="pi pi-trash" (onClick)="deleteAssetLabel(label, ri)" [rounded]="true" variant="text" severity="danger" />
             </td>
             <td style="overflow: visible; position: relative">
               @if (!label.isNew) {
-              <span>{{ label.labelName }}</span>
+                <span>{{ label.labelName }}</span>
               }
               @if (label.isNew) {
-              <p-select [options]="labelList" name="labelList" appendTo="body" [(ngModel)]="label.labelId"
-                optionLabel="labelName" optionValue="labelId" class="w-full" (onChange)="onLabelChange(label, ri)"
-                placeholder="Select a label" />
+                <p-select [options]="labelList" name="labelList" appendTo="body" [(ngModel)]="label.labelId" optionLabel="labelName" optionValue="labelId" class="w-full" (onChange)="onLabelChange(label, ri)" placeholder="Select a label" />
               }
             </td>
           </tr>
@@ -93,8 +84,7 @@
         <p-button variant="outlined" label="Cancel" severity="secondary" (onClick)="resetData()" />
         <p-button type="submit" variant="outlined" label="Submit" [disabled]="!form.valid" />
       </div>
-      <p-button variant="outlined" label="Delete Asset" severity="danger" (onClick)="deleteAsset(asset)"
-        [disabled]="accessLevel < 2" />
+      <p-button variant="outlined" label="Delete Asset" severity="danger" (onClick)="deleteAsset(asset)" [disabled]="accessLevel < 2" />
     </div>
   </div>
 </form>

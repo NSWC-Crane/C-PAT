@@ -17,91 +17,92 @@
             <p-inputIcon>
               <i class="pi pi-search"></i>
             </p-inputIcon>
-            <input pInputText type="text" class="w-48" id="search" [(ngModel)]="filterValue"
-              (input)="onGlobalFilter($event)" placeholder="Global Search" />
+            <input pInputText type="text" class="w-48" id="search" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Global Search" />
           </p-iconField>
-          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2"
-            icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
+          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
         </div>
         <div class="right-buttons">
-          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary"
-            icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
-          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary"
-            (click)="toggleAddColumnOverlay()" />
-          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true"
-            (onClick)="exportCSV()" />
-          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header"
-            class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..."
-            [showToggleAll]="true" />
+          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
+          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()" />
+          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()" />
+          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
         </div>
       </div>
       <div class="scrollable-assets">
         <p-tabs [(value)]="activeTab" scrollable>
           <p-tablist>
             @for (tab of teamTabs; track tab.teamId) {
-            <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>
+              <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>
             }
           </p-tablist>
           <p-tabpanels>
             @for (tab of teamTabs; track tab.teamId) {
-            <p-tabpanel [value]="tab.teamId">
-              <p-table #dt [value]="tab.assets" [columns]="selectedColumns" [loading]="loading" [paginator]="true"
-                [rows]="25" [totalRecords]="tab.assets.length" [showCurrentPageReport]="true"
-                [rowsPerPageOptions]="[10, 25, 50]" [globalFilterFields]="['assetName', 'fqdn', 'ip', 'mac']"
-                [filterDelay]="300" [rowHover]="true" dataKey="assetId"
-                class="p-datatable-sm p-datatable-gridlines-hidden" [scrollable]="true">
-                <ng-template pTemplate="header" let-columns>
-                  <tr>
-                    @for (col of columns; track col) {
-                    <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
-                      {{ col.header }}
-                    </th>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-asset let-columns="columns">
-                  <tr>
-                    @for (col of columns; track col) {
-                    <td>
-                      @switch (col.field) {
-                      @case ('sourceVulnIds') {
-                      @for (vulnId of asset.sourceVulnIds; track vulnId) {
-                      <p-tag [value]="vulnId" [rounded]="true" class="mb-1 mr-1" />
+              <p-tabpanel [value]="tab.teamId">
+                <p-table
+                  #dt
+                  [value]="tab.assets"
+                  [columns]="selectedColumns"
+                  [loading]="loading"
+                  [paginator]="true"
+                  [rows]="25"
+                  [totalRecords]="tab.assets.length"
+                  [showCurrentPageReport]="true"
+                  [rowsPerPageOptions]="[10, 25, 50]"
+                  [globalFilterFields]="['assetName', 'fqdn', 'ip', 'mac']"
+                  [filterDelay]="300"
+                  [rowHover]="true"
+                  dataKey="assetId"
+                  class="p-datatable-sm p-datatable-gridlines-hidden"
+                  [scrollable]="true"
+                >
+                  <ng-template pTemplate="header" let-columns>
+                    <tr>
+                      @for (col of columns; track col) {
+                        <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
+                          {{ col.header }}
+                        </th>
                       }
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-asset let-columns="columns">
+                    <tr>
+                      @for (col of columns; track col) {
+                        <td>
+                          @switch (col.field) {
+                            @case ('sourceVulnIds') {
+                              @for (vulnId of asset.sourceVulnIds; track vulnId) {
+                                <p-tag [value]="vulnId" [rounded]="true" class="mb-1 mr-1" />
+                              }
+                            }
+                            @case ('labels') {
+                              @for (label of asset.labels; track label.labelId) {
+                                <p-tag [rounded]="true" [value]="label.name" [style]="{ background: 'color-mix(in srgb, #' + label.color + ', transparent 84%)', color: '#' + label.color }" class="mb-1 mr-1" />
+                              }
+                            }
+                            @case ('teamAssigned') {
+                              @if (asset.assignedTeams && asset.assignedTeams.length > 0) {
+                                @for (team of asset.assignedTeams; track team.assignedTeamId) {
+                                  <p-tag [value]="team.assignedTeamName" [rounded]="true" class="mb-1 mr-1" />
+                                }
+                              } @else {
+                                <i class="pi pi-times-circle" [ngStyle]="{ color: 'maroon', 'font-size': '1.2rem' }" pTooltip="No team association detected"> </i>
+                              }
+                            }
+                            @default {
+                              {{ asset[col.field] }}
+                            }
+                          }
+                        </td>
                       }
-                      @case ('labels') {
-                      @for (label of asset.labels; track label.labelId) {
-                      <p-tag [rounded]="true" [value]="label.name"
-                        [style]="{ background: 'color-mix(in srgb, #' + label.color + ', transparent 84%)', color: '#' + label.color }"
-                        class="mb-1 mr-1" />
-                      }
-                      }
-                      @case ('teamAssigned') {
-                      @if (asset.assignedTeams && asset.assignedTeams.length > 0) {
-                      @for (team of asset.assignedTeams; track team.assignedTeamId) {
-                      <p-tag [value]="team.assignedTeamName" [rounded]="true" class="mb-1 mr-1" />
-                      }
-                      } @else {
-                      <i class="pi pi-times-circle" [ngStyle]="{ color: 'maroon', 'font-size': '1.2rem' }"
-                        pTooltip="No team association detected">
-                      </i>
-                      }
-                      }
-                      @default {
-                      {{ asset[col.field] }}
-                      }
-                      }
-                    </td>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="emptymessage">
-                  <tr>
-                    <td [attr.colspan]="selectedColumns.length" style="text-align: center">No assets to display</td>
-                  </tr>
-                </ng-template>
-              </p-table>
-            </p-tabpanel>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="emptymessage">
+                    <tr>
+                      <td [attr.colspan]="selectedColumns.length" style="text-align: center">No assets to display</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </p-tabpanel>
             }
           </p-tabpanels>
         </p-tabs>

@@ -8,8 +8,7 @@
 !##########################################################################
 -->
 
-<p-dialog [(visible)]="displayModal" styleClass="w-[60vw] h-auto max-h-[80vh] overflow-hidden" [modal]="true"
-  [closable]="true" (onHide)="closeModal()">
+<p-dialog [(visible)]="displayModal" styleClass="w-[60vw] h-auto max-h-[80vh] overflow-hidden" [modal]="true" [closable]="true" (onHide)="closeModal()">
   <div class="container">
     <p-table [value]="dataSource" [scrollable]="true" scrollHeight="flex" class="max-h-[60vh]">
       <ng-template pTemplate="header">

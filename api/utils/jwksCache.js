@@ -106,8 +106,7 @@ class JWKSCache extends EventEmitter {
                 res.on('data', chunk => (rawData += chunk));
                 res.on('end', () => {
                     if (res.statusCode < 200 || res.statusCode >= 300) {
-                        const errorMsg =
-                            (res.body && (res.body.message || res.body)) || res.statusMessage || `Http Error ${res.statusCode}`;
+                        const errorMsg = (res.body && (res.body.message || res.body)) || res.statusMessage || `Http Error ${res.statusCode}`;
                         reject({ errorMsg });
                     } else {
                         try {
@@ -184,9 +183,7 @@ class JWKSCache extends EventEmitter {
     extractKeysFromJwks(jwks) {
         const results = [];
 
-        jwks = jwks
-            .filter(({ use }) => use === 'sig' || use === undefined)
-            .filter(({ kty }) => kty === 'RSA' || kty === 'EC' || kty === 'OKP');
+        jwks = jwks.filter(({ use }) => use === 'sig' || use === undefined).filter(({ kty }) => kty === 'RSA' || kty === 'EC' || kty === 'OKP');
 
         for (const jwk of jwks) {
             try {

@@ -13,61 +13,69 @@
     <tr>
       <th scope="col" pSortableColumn="associatedVulnerability">Associated Vulnerability</th>
       <th scope="col" pSortableColumn="severity">Severity</th>
-      @if (accessLevel < 4) { <th scope="col" style="width: 8rem"
-        pTooltip="Associating additional vulnerabilities is restricted to CAT-I Approvers." tooltipPosition="top">
-        <p-button icon="pi pi-plus" [rounded]="true" variant="text" [disabled]="true" />
+      @if (accessLevel < 4) {
+        <th scope="col" style="width: 8rem" pTooltip="Associating additional vulnerabilities is restricted to CAT-I Approvers." tooltipPosition="top">
+          <p-button icon="pi pi-plus" [rounded]="true" variant="text" [disabled]="true" />
         </th>
-        }
-        @if (accessLevel >= 4) {
+      }
+      @if (accessLevel >= 4) {
         <th scope="col" style="width: 8rem">
           <p-button icon="pi pi-plus" (onClick)="addAssociatedVulnerability()" [rounded]="true" variant="text" />
         </th>
-        }
+      }
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-vuln let-rowIndex="rowIndex">
     <tr>
       <td>
         @if (!vuln.isNew) {
-        <span>
-          <p-tag [value]="vuln.associatedVulnerability" [rounded]="true" />
-          @if (vuln.titleText) {
-          <span class="ml-2">{{ vuln.titleText }}</span>
-          }
-        </span>
+          <span>
+            <p-tag [value]="vuln.associatedVulnerability" [rounded]="true" />
+            @if (vuln.titleText) {
+              <span class="ml-2">{{ vuln.titleText }}</span>
+            }
+          </span>
         }
         @if (vuln.isNew) {
-        <p-autocomplete [(ngModel)]="vuln.selectedVulnerabilities" [multiple]="true" [typeahead]="true"
-          [suggestions]="filteredSuggestions" class="w-full"
-          placeholder="Plugin ID / Vulnerability ID (comma or space separated)..." [maxlength]="100"
-          [disabled]="accessLevel < 4" (completeMethod)="search($event)" (keydown)="handleKeydown($event, vuln)"
-          (paste)="handlePaste($event, vuln)" optionLabel="vulnId" optionValue="vulnId">
-          <ng-template let-suggestion #item>
-            <div style="white-space: normal; word-break: break-word; max-width: 100%;">
-              <span>{{ suggestion.vulnId }}</span>
-              @if (suggestion.titleText) {
-              <span class="ml-2" style="color: var(--text-secondary-color);">- {{ suggestion.titleText }}</span>
-              }
-            </div>
-          </ng-template>
-        </p-autocomplete>
+          <p-autocomplete
+            [(ngModel)]="vuln.selectedVulnerabilities"
+            [multiple]="true"
+            [typeahead]="true"
+            [suggestions]="filteredSuggestions"
+            class="w-full"
+            placeholder="Plugin ID / Vulnerability ID (comma or space separated)..."
+            [maxlength]="100"
+            [disabled]="accessLevel < 4"
+            (completeMethod)="search($event)"
+            (keydown)="handleKeydown($event, vuln)"
+            (paste)="handlePaste($event, vuln)"
+            optionLabel="vulnId"
+            optionValue="vulnId"
+          >
+            <ng-template let-suggestion #item>
+              <div style="white-space: normal; word-break: break-word; max-width: 100%">
+                <span>{{ suggestion.vulnId }}</span>
+                @if (suggestion.titleText) {
+                  <span class="ml-2" style="color: var(--text-secondary-color)">- {{ suggestion.titleText }}</span>
+                }
+              </div>
+            </ng-template>
+          </p-autocomplete>
         }
       </td>
       <td>
         @if (!vuln.isNew && vuln.severity) {
-        <p-tag [value]="vuln.severityCategory" [severity]="vuln.tagSeverity" [rounded]="true" />
+          <p-tag [value]="vuln.severityCategory" [severity]="vuln.tagSeverity" [rounded]="true" />
         }
         @if (vuln.isNew) {
-        <span class="text-color-secondary">-</span>
+          <span class="text-color-secondary">-</span>
         }
       </td>
       <td>
         @if (vuln.isNew) {
-        <p-button icon="pi pi-check" (onClick)="onAssociatedVulnerabilityChange(vuln, rowIndex)" [rounded]="true"
-          variant="text" severity="success" [disabled]="accessLevel < 4" />
+          <p-button icon="pi pi-check" (onClick)="onAssociatedVulnerabilityChange(vuln, rowIndex)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel < 4" />
         }
-        <p-button icon="pi pi-trash" (onClick)="deleteAssociatedVulnerability(vuln, rowIndex)" [rounded]="true"
-          variant="text" severity="danger" [disabled]="accessLevel < 4" />
+        <p-button icon="pi pi-trash" (onClick)="deleteAssociatedVulnerability(vuln, rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 4" />
       </td>
     </tr>
   </ng-template>

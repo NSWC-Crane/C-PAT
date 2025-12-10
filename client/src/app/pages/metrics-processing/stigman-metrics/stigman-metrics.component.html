@@ -9,39 +9,35 @@
 -->
 
 <div class="flex justify-between items-center card !p-2">
-  <div class="font-medium opacity-70 ml-2">
-    {{ collectionName() }} - {{ now | date: 'MMM d, y, h:mm a' }}
-  </div>
+  <div class="font-medium opacity-70 ml-2">{{ collectionName() }} - {{ now | date: 'MMM d, y, h:mm a' }}</div>
   <div class="relative flex gap-1 mr-1">
-    <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" severity="secondary" (onClick)="refreshMetrics()"
-      [disabled]="isLoading()" pTooltip="Refresh metrics" tooltipPosition="left" />
-    <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics"
-      tooltipPosition="left" (onClick)="exportMetrics()" [disabled]="isLoading()" />
+    <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" severity="secondary" (onClick)="refreshMetrics()" [disabled]="isLoading()" pTooltip="Refresh metrics" tooltipPosition="left" />
+    <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics" tooltipPosition="left" (onClick)="exportMetrics()" [disabled]="isLoading()" />
   </div>
 </div>
 
 <p-card class="mt-4 w-full">
   <div class="relative">
-    <div class="text-center text-xs text-gray-400">
-      CORA Risk Score
-    </div>
-    <div class="relative -mb-10 mr-4 ml-4" style="height: 60px;">
+    <div class="text-center text-xs text-gray-400">CORA Risk Score</div>
+    <div class="relative -mb-10 mr-4 ml-4" style="height: 60px">
       <div class="absolute w-full">
-        <div class="absolute" [style.left.%]="100 - stigManagerMetrics().coraRiskScore"
-          style="transform: translateX(-50%); z-index: 10;">
+        <div class="absolute" [style.left.%]="100 - stigManagerMetrics().coraRiskScore" style="transform: translateX(-50%); z-index: 10">
           <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
-            <div class="px-3 py-2 rounded-lg font-bold text-center"
+            <div
+              class="px-3 py-2 rounded-lg font-bold text-center"
               [style.background-color]="getCoraRiskColor(stigManagerMetrics().coraRiskScore)"
-              style="opacity: 0.9; color: white;" pTooltip="CORA Risk formula:
+              style="opacity: 0.9; color: white"
+              pTooltip="CORA Risk formula:
     (CAT I Risk % × 10 + CAT II Risk % × 4 + CAT III Risk % × 1) ÷ 15
 
-    Where each risk % = (Open + Unassessed) ÷ Total × 100" tooltipPosition="left">
+    Where each risk % = (Open + Unassessed) ÷ Total × 100"
+              tooltipPosition="left"
+            >
               {{ isLoading() ? '-' : stigManagerMetrics().coraRiskScore.toFixed(0) + '%' }}
             </div>
           </div>
-          <div class="absolute left-1/2 transform -translate-x-1/2"
-            style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px;">
-            <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px;"></div>
+          <div class="absolute left-1/2 transform -translate-x-1/2" style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px">
+            <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px"></div>
           </div>
         </div>
       </div>
@@ -53,32 +49,30 @@
         <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
       </div>
 
-      <div class="relative rounded-full h-10 overflow-hidden shadow-lg"
-        style="background: linear-gradient(to right, rgba(236, 72, 99, 0.8) 0%, rgba(251, 146, 60, 0.8) 33%, rgba(251, 191, 36, 0.8) 66%, rgba(16, 185, 129, 0.8) 100%);">
-      </div>
+      <div class="relative rounded-full h-10 overflow-hidden shadow-lg" style="background: linear-gradient(to right, rgba(236, 72, 99, 0.8) 0%, rgba(251, 146, 60, 0.8) 33%, rgba(251, 191, 36, 0.8) 66%, rgba(16, 185, 129, 0.8) 100%)"></div>
     </div>
   </div>
 
   <div class="mt-8 pt-3 border-t border-gray-700">
     <div class="flex justify-between gap-2 mt-2">
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(236, 72, 99, 0.8);"></div>
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(236, 72, 99, 0.8)"></div>
         <span class="text-xs text-gray-300">Very High</span>
       </div>
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(247, 128, 69, 0.8);"></div>
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(247, 128, 69, 0.8)"></div>
         <span class="text-xs text-gray-300">High</span>
       </div>
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(251, 167, 50, 0.8);"></div>
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(251, 167, 50, 0.8)"></div>
         <span class="text-xs text-gray-300">Moderate</span>
       </div>
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(230, 190, 44, 0.8);"></div>
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(230, 190, 44, 0.8)"></div>
         <span class="text-xs text-gray-300">Low</span>
       </div>
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(16, 185, 129, 0.8);"></div>
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(16, 185, 129, 0.8)"></div>
         <span class="text-xs text-gray-300">Very Low</span>
       </div>
     </div>
@@ -153,63 +147,46 @@
       <h3 class="chart-title">Open Findings by Severity (Raw)</h3>
 
       @if (findingsChartData()) {
-      <div class="flex items-center w-full flex-grow">
-        <div class="flex-[0_0_55%] flex justify-center items-center">
-          <p-chart type="doughnut" [data]="findingsChartData()" [options]="findingsChartOptions()"
-            styleClass="findings-chart">
-          </p-chart>
-        </div>
+        <div class="flex items-center w-full flex-grow">
+          <div class="flex-[0_0_55%] flex justify-center items-center">
+            <p-chart type="doughnut" [data]="findingsChartData()" [options]="findingsChartOptions()" styleClass="findings-chart"> </p-chart>
+          </div>
 
-        <div class="flex-[0_0_45%] flex flex-col justify-center ml-2">
-          <div class="flex flex-col w-full gap-4">
-            <div
-              class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
-              <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color"
-                [style.backgroundColor]="'rgba(236, 72, 99, 0.8)'"></div>
-              <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">High
+          <div class="flex-[0_0_45%] flex flex-col justify-center ml-2">
+            <div class="flex flex-col w-full gap-4">
+              <div class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
+                <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color" [style.backgroundColor]="'rgba(236, 72, 99, 0.8)'"></div>
+                <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">High</div>
+                <div class="min-w-[1.5rem] text-[0.875rem] font-medium text-[var(--text-color)] opacity-70 item-value">
+                  {{ stigManagerMetrics().catIOpenRawCount }}
+                </div>
+                <div class="ml-2 w-14 text-left shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
+                  {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIOpenRawCount / totalRawFindings()) * 100).toFixed(1) + '%' : '0.0%' }}
+                </div>
               </div>
-              <div class="min-w-[1.5rem] text-[0.875rem] font-medium text-[var(--text-color)] opacity-70 item-value">
-                {{ stigManagerMetrics().catIOpenRawCount }}
+              <div class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
+                <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color" [style.backgroundColor]="'rgba(251, 167, 50, 0.8)'"></div>
+                <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">Medium</div>
+                <div class="min-w-[1.5rem] text-[0.875rem] font-medium text-[var(--text-color)] opacity-70 item-value">
+                  {{ stigManagerMetrics().catIIOpenRawCount }}
+                </div>
+                <div class="ml-2 w-14 text-left shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
+                  {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIIOpenRawCount / totalRawFindings()) * 100).toFixed(1) + '%' : '0.0%' }}
+                </div>
               </div>
-              <div
-                class="ml-2 w-14 text-left shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
-                {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIOpenRawCount / totalRawFindings()) *
-                100).toFixed(1) + '%' : '0.0%' }}
-              </div>
-            </div>
-            <div
-              class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
-              <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color"
-                [style.backgroundColor]="'rgba(251, 167, 50, 0.8)'"></div>
-              <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">
-                Medium</div>
-              <div class="min-w-[1.5rem] text-[0.875rem] font-medium text-[var(--text-color)] opacity-70 item-value">
-                {{ stigManagerMetrics().catIIOpenRawCount }}
-              </div>
-              <div
-                class="ml-2 w-14 text-left shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
-                {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIIOpenRawCount / totalRawFindings()) *
-                100).toFixed(1) + '%' : '0.0%' }}
-              </div>
-            </div>
-            <div
-              class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
-              <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color"
-                [style.backgroundColor]="'rgba(230, 190, 44, 0.8)'"></div>
-              <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">Low
-              </div>
-              <div class="min-w-[1.5rem] text-[0.875rem] font-medium text-[var(--text-color)] opacity-70 item-value">
-                {{ stigManagerMetrics().catIIIOpenRawCount }}
-              </div>
-              <div
-                class="ml-2 w-14 text-left shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
-                {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIIIOpenRawCount / totalRawFindings()) *
-                100).toFixed(1) + '%' : '0.0%' }}
+              <div class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
+                <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color" [style.backgroundColor]="'rgba(230, 190, 44, 0.8)'"></div>
+                <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">Low</div>
+                <div class="min-w-[1.5rem] text-[0.875rem] font-medium text-[var(--text-color)] opacity-70 item-value">
+                  {{ stigManagerMetrics().catIIIOpenRawCount }}
+                </div>
+                <div class="ml-2 w-14 text-left shrink-0 text-[0.875rem] text-[var(--text-color)] opacity-70 item-percent">
+                  {{ totalRawFindings() > 0 ? ((stigManagerMetrics().catIIIOpenRawCount / totalRawFindings()) * 100).toFixed(1) + '%' : '0.0%' }}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
       }
     </div>
   </div>
@@ -224,35 +201,28 @@
       </h3>
       <div class="flex flex-col gap-6 flex-1 max-h-[290px] overflow-y-auto">
         @for (stig of stigsAssessmentData(); track stig.benchmarkId) {
-        <div class="flex items-center">
-          <div class="flex w-2/5 gap-2 shrink-0 pr-2">
-            <span class="text-[0.9rem] font-medium text-[var(--text-color)] min-w-[48px]" pTooltip="Assessed %"
-              tooltipPosition="left">{{ stig.assessed }}%</span>
-            <span class="text-[0.9rem] font-medium text-[var(--text-color)] min-w-[48px]" pTooltip="Total findings"
-              tooltipPosition="left">{{ stig.totalFindings }}</span>
-            <span
-              class="text-[0.9rem] text-[var(--text-secondary-color)] whitespace-nowrap overflow-hidden text-ellipsis flex-1"
-              [pTooltip]="stig.title" tooltipPosition="left">
-              {{ stig.benchmarkId }}
-            </span>
-          </div>
-          <div class="flex-1">
-            <div class="flex h-8 rounded-[14px] overflow-hidden mr-2">
-              @if (stig.totalFindings > 0) {
-              <div class="bar-segment high" [style.width.%]="stig.highPercentage"
-                [pTooltip]="'High: ' + stig.findings.high" tooltipPosition="top"></div>
-              <div class="bar-segment medium" [style.width.%]="stig.mediumPercentage"
-                [pTooltip]="'Medium: ' + stig.findings.medium" tooltipPosition="top"></div>
-              <div class="bar-segment low" [style.width.%]="stig.lowPercentage" [pTooltip]="'Low: ' + stig.findings.low"
-                tooltipPosition="top"></div>
-              } @else {
-              <div class="bar-segment no-findings">
-                <span class="text-xs text-gray-400">No Findings</span>
+          <div class="flex items-center">
+            <div class="flex w-2/5 gap-2 shrink-0 pr-2">
+              <span class="text-[0.9rem] font-medium text-[var(--text-color)] min-w-[48px]" pTooltip="Assessed %" tooltipPosition="left">{{ stig.assessed }}%</span>
+              <span class="text-[0.9rem] font-medium text-[var(--text-color)] min-w-[48px]" pTooltip="Total findings" tooltipPosition="left">{{ stig.totalFindings }}</span>
+              <span class="text-[0.9rem] text-[var(--text-secondary-color)] whitespace-nowrap overflow-hidden text-ellipsis flex-1" [pTooltip]="stig.title" tooltipPosition="left">
+                {{ stig.benchmarkId }}
+              </span>
+            </div>
+            <div class="flex-1">
+              <div class="flex h-8 rounded-[14px] overflow-hidden mr-2">
+                @if (stig.totalFindings > 0) {
+                  <div class="bar-segment high" [style.width.%]="stig.highPercentage" [pTooltip]="'High: ' + stig.findings.high" tooltipPosition="top"></div>
+                  <div class="bar-segment medium" [style.width.%]="stig.mediumPercentage" [pTooltip]="'Medium: ' + stig.findings.medium" tooltipPosition="top"></div>
+                  <div class="bar-segment low" [style.width.%]="stig.lowPercentage" [pTooltip]="'Low: ' + stig.findings.low" tooltipPosition="top"></div>
+                } @else {
+                  <div class="bar-segment no-findings">
+                    <span class="text-xs text-gray-400">No Findings</span>
+                  </div>
+                }
               </div>
-              }
             </div>
           </div>
-        </div>
         }
       </div>
     </div>
@@ -263,55 +233,63 @@
   <div class="lg:w-1/3">
     <div class="card">
       <div class="h-full min-h-[12rem] flex flex-col">
-        <h3 class="chart-title">Assessment Status
-          <i class="pi pi-info-circle ml-1"
-            [pTooltip]="'Total Checks: ' + stigManagerMetrics().totalAssessments
-          + '\n\nFully Assessed STIGs: ' + `${((this.stigManagerMetrics().fullyAssessedSTIGsCount / this.stigManagerMetrics().totalSTIGsCount) * 100).toFixed(1)}% (${this.stigManagerMetrics().fullyAssessedSTIGsCount})`"></i>
+        <h3 class="chart-title">
+          Assessment Status
+          <i
+            class="pi pi-info-circle ml-1"
+            [pTooltip]="
+              'Total Checks: ' +
+              stigManagerMetrics().totalAssessments +
+              '\n\nFully Assessed STIGs: ' +
+              `${((this.stigManagerMetrics().fullyAssessedSTIGsCount / this.stigManagerMetrics().totalSTIGsCount) * 100).toFixed(1)}% (${this.stigManagerMetrics().fullyAssessedSTIGsCount})`
+            "
+          ></i>
         </h3>
-        @if(assessmentChartData()) {
-        <p-chart type="bar" [data]="assessmentChartData()" [options]="assessmentChartOptions()" height="250px" />
+        @if (assessmentChartData()) {
+          <p-chart type="bar" [data]="assessmentChartData()" [options]="assessmentChartOptions()" height="250px" />
         } @else {
-        <div class="no-data-message">
-          No assessment data available to display.
-        </div>
+          <div class="no-data-message">No assessment data available to display.</div>
         }
       </div>
     </div>
   </div>
 
   <div class="lg:w-2/3">
-    <div
-      class="grid h-[96%] gap-3 grid-cols-1 grid-rows-8 sm:grid-cols-2 sm:grid-rows-4 md:grid-cols-3 md:grid-rows-3 lg:grid-cols-4 lg:grid-rows-2">
+    <div class="grid h-[96%] gap-3 grid-cols-1 grid-rows-8 sm:grid-cols-2 sm:grid-rows-4 md:grid-cols-3 md:grid-rows-3 lg:grid-cols-4 lg:grid-rows-2">
       @for (metric of metricsDisplay(); track metric.label) {
-      <p-card
-        class="metric-card flex items-center justify-center transition-all duration-300 ease-in-out rounded-xl overflow-hidden relative p-3"
-        [class.high]="metric.severity === 'high'" [class.medium]="metric.severity === 'medium'"
-        [class.low]="metric.severity === 'low'">
-        <div class="flex flex-col items-center text-center w-full" [pTooltip]="metric?.tooltip" tooltipPosition="top">
-          @if (metric.isLoading) {
-          <div class="min-h-[40px] flex items-center justify-center">
-            <p-progress-spinner class="!w-10 !h-10" strokeWidth="3" animationDuration=".8s" />
-          </div>
-          } @else {
-          <div class="min-h-[40px] flex items-center justify-center">
-            <div
-              class="text-[2.5rem] xl:text-[2.5rem] lg:text-[1.5rem] sm:text-[2rem] font-bold text-[var(--text-secondary-color)] leading-none metric-value"
-              [class.high]="metric.severity === 'high'" [class.medium]="metric.severity === 'medium'"
-              [class.low]="metric.severity === 'low'">
-              {{ metric.value }}
+        <p-card
+          class="metric-card flex items-center justify-center transition-all duration-300 ease-in-out rounded-xl overflow-hidden relative p-3"
+          [class.high]="metric.severity === 'high'"
+          [class.medium]="metric.severity === 'medium'"
+          [class.low]="metric.severity === 'low'"
+        >
+          <div class="flex flex-col items-center text-center w-full" [pTooltip]="metric?.tooltip" tooltipPosition="top">
+            @if (metric.isLoading) {
+              <div class="min-h-[40px] flex items-center justify-center">
+                <p-progress-spinner class="!w-10 !h-10" strokeWidth="3" animationDuration=".8s" />
+              </div>
+            } @else {
+              <div class="min-h-[40px] flex items-center justify-center">
+                <div
+                  class="text-[2.5rem] xl:text-[2.5rem] lg:text-[1.5rem] sm:text-[2rem] font-bold text-[var(--text-secondary-color)] leading-none metric-value"
+                  [class.high]="metric.severity === 'high'"
+                  [class.medium]="metric.severity === 'medium'"
+                  [class.low]="metric.severity === 'low'"
+                >
+                  {{ metric.value }}
+                </div>
+              </div>
+            }
+            @if (metric.origin) {
+              <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] opacity-70 font-medium leading-tight">
+                {{ metric.origin }}
+              </div>
+            }
+            <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] font-semibold leading-tight">
+              {{ metric.label }}
             </div>
           </div>
-          }
-          @if (metric.origin) {
-          <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] opacity-70 font-medium leading-tight">
-            {{ metric.origin }}
-          </div>
-          }
-          <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] font-semibold leading-tight">
-            {{ metric.label }}
-          </div>
-        </div>
-      </p-card>
+        </p-card>
       }
     </div>
   </div>

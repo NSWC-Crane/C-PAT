@@ -37,8 +37,7 @@ exports.getCollections = async function getCollections(elevate, req) {
                 for (let counter = 0; counter < size; counter++) {
                     user.collections.push({
                         ...row2[counter],
-                        manualCreationAllowed:
-                            row2[counter].manualCreationAllowed != null ? Boolean(row2[counter].manualCreationAllowed) : null,
+                        manualCreationAllowed: row2[counter].manualCreationAllowed != null ? Boolean(row2[counter].manualCreationAllowed) : null,
                     });
                 }
                 return user.collections;
@@ -125,8 +124,7 @@ exports.postCollection = async function postCollection(req, res, next) {
 
             const collection = {
                 ...rowCollection[0],
-                manualCreationAllowed:
-                    rowCollection[0].manualCreationAllowed != null ? Boolean(rowCollection[0].manualCreationAllowed) : null,
+                manualCreationAllowed: rowCollection[0].manualCreationAllowed != null ? Boolean(rowCollection[0].manualCreationAllowed) : null,
             };
             return collection;
         });

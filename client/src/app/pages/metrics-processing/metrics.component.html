@@ -10,11 +10,9 @@
 
 <div class="metrics-container overflow-hidden">
   @if (collectionOrigin() === 'STIG Manager') {
-  <cpat-stigman-metrics [collection]="selectedCollection()" (componentInit)="onSTIGManagerMetricsInit($event)">
-  </cpat-stigman-metrics>
+    <cpat-stigman-metrics [collection]="selectedCollection()" (componentInit)="onSTIGManagerMetricsInit($event)"> </cpat-stigman-metrics>
   } @else {
-  <cpat-tenable-metrics [collection]="selectedCollection()" (componentInit)="onTenableMetricsInit($event)">
-  </cpat-tenable-metrics>
+    <cpat-tenable-metrics [collection]="selectedCollection()" (componentInit)="onTenableMetricsInit($event)"> </cpat-tenable-metrics>
   }
 </div>
 

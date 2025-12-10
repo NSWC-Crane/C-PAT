@@ -44,10 +44,7 @@ async function startServer(app, startTime) {
 
 async function applyConfigurationSettings() {
     if (config.settings.setClassification) {
-        await OperationSvc.setConfigurationItem(
-            'classification',
-            config.settings.dodDeployment ? config.settings.setClassification : 'NONE'
-        );
+        await OperationSvc.setConfigurationItem('classification', config.settings.dodDeployment ? config.settings.setClassification : 'NONE');
     }
     if (config.version) {
         await OperationSvc.setConfigurationItem('version', config.version);

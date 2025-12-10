@@ -39,7 +39,7 @@ export class PoamTeamsComponent {
     teams: any[];
     action: string;
     team?: any;
-}>();
+  }>();
 
   async addAssignedTeam() {
     const newAssignedTeam = {

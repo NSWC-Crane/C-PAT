@@ -18,12 +18,7 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
   selector: 'cpat-confirmation-dialog',
   styleUrls: ['./confirmation-dialog.component.scss'],
   template: `
-    <p-dialog
-      [(visible)]="visible"
-      [modal]="true"
-      [closable]="false"
-      styleClass="w-auto h-auto max-h-[20vh] overflow-hidden"
-    >
+    <p-dialog [(visible)]="visible" [modal]="true" [closable]="false" styleClass="w-auto h-auto max-h-[20vh] overflow-hidden">
       <p-header>
         <h3>{{ options.header }}</h3>
       </p-header>

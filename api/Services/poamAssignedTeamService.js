@@ -76,12 +76,8 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
             if (row.isGlobalFinding) {
                 complete = 'global';
             } else {
-                const hasMitigation = mitigations.some(
-                    m => m.assignedTeamId === teamId && m.isActive && m.mitigationText && m.mitigationText.trim() !== ''
-                );
-                const hasMilestone = milestones.some(
-                    m => m.assignedTeamId === teamId && m.milestoneComments && m.milestoneComments.length >= 15
-                );
+                const hasMitigation = mitigations.some(m => m.assignedTeamId === teamId && m.isActive && m.mitigationText && m.mitigationText.trim() !== '');
+                const hasMilestone = milestones.some(m => m.assignedTeamId === teamId && m.milestoneComments && m.milestoneComments.length >= 15);
 
                 if (hasMitigation && hasMilestone) {
                     complete = 'true';

@@ -8,18 +8,26 @@
 !##########################################################################
 -->
 
-<p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" class="ml-2"
-  (onClick)="showSaveFilterDialog()" pTooltip="Save the currently applied filters as a custom filter" />
+<p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" class="ml-2" (onClick)="showSaveFilterDialog()" pTooltip="Save the currently applied filters as a custom filter" />
 
-<p-dialog [(visible)]="saveFilterDialog" [modal]="true" styleClass="w-[600px] overflow-hidden"
-  header="Save Custom Filter">
+<p-dialog [(visible)]="saveFilterDialog" [modal]="true" styleClass="w-[600px] overflow-hidden" header="Save Custom Filter">
   <div class="flex flex-col space-y-4">
     <div class="flex flex-col space-y-2">
       <label for="filterName">Filter Name <span class="text-red-500">*</span></label>
-      <p-autocomplete id="filterName" [(ngModel)]="selectedFilter" [suggestions]="filteredFilters"
-        (completeMethod)="searchFilters($event)" (onSelect)="onFilterSelect($event)" (onClear)="onFilterClear()"
-        [placeholder]="getFilterNamePlaceholder()" field="label" [dropdown]="true" [showClear]="true"
-        [forceSelection]="false" styleClass="w-full">
+      <p-autocomplete
+        id="filterName"
+        [(ngModel)]="selectedFilter"
+        [suggestions]="filteredFilters"
+        (completeMethod)="searchFilters($event)"
+        (onSelect)="onFilterSelect($event)"
+        (onClear)="onFilterClear()"
+        [placeholder]="getFilterNamePlaceholder()"
+        field="label"
+        [dropdown]="true"
+        [showClear]="true"
+        [forceSelection]="false"
+        styleClass="w-full"
+      >
         <ng-template let-filter #item>
           <div class="flex items-center justify-between w-full" [class.opacity-50]="filter.disabled">
             <div class="flex flex-col">
@@ -27,37 +35,36 @@
               <small class="text-gray-500">Created by {{ filter.createdBy || 'Unknown' }}</small>
             </div>
             @if (filter.disabled) {
-            <i class="pi pi-lock text-gray-400" pTooltip="You don't have permission to update this filter"></i>
+              <i class="pi pi-lock text-gray-400" pTooltip="You don't have permission to update this filter"></i>
             }
           </div>
         </ng-template>
       </p-autocomplete>
-      <small class="text-gray-500 mt-1">
-        Select an existing filter to update it, or type a new name to create a new filter.
-      </small>
+      <small class="text-gray-500 mt-1"> Select an existing filter to update it, or type a new name to create a new filter. </small>
     </div>
 
     @if (isUpdating && canUpdate) {
-    <div class="bg-yellow-600 border border-yellow-700 rounded p-3 flex items-start space-x-2">
-      <i class="pi pi-info-circle text-yellow-900 mt-0.5"></i>
-      <span class="text-sm">You are updating an existing filter. The current configuration will replace the saved
-        one.</span>
-    </div>
+      <div class="bg-yellow-600 border border-yellow-700 rounded p-3 flex items-start space-x-2">
+        <i class="pi pi-info-circle text-yellow-900 mt-0.5"></i>
+        <span class="text-sm">You are updating an existing filter. The current configuration will replace the saved one.</span>
+      </div>
     }
 
     <div class="flex flex-col space-y-2">
       <label>Filter Configuration</label>
-      <textarea pTextarea [(ngModel)]="currentFilter" [disabled]="true" rows="10"
-        class="w-full font-mono text-sm bg-gray-50"> </textarea>
+      <textarea pTextarea [(ngModel)]="currentFilter" [disabled]="true" rows="10" class="w-full font-mono text-sm bg-gray-50"> </textarea>
     </div>
   </div>
 
   <ng-template pTemplate="footer">
     <div class="flex w-full justify-between">
       <p-button label="Cancel" icon="pi pi-times" (onClick)="cancelSaveFilter()" severity="secondary" />
-      <p-button [label]="isUpdating ? 'Update Filter' : 'Save Filter'"
-        [icon]="isUpdating ? 'pi pi-refresh' : 'pi pi-save'" (onClick)="saveCustomFilter()"
-        [disabled]="!selectedFilter || (typeof selectedFilter === 'string' && !selectedFilter.trim())" />
+      <p-button
+        [label]="isUpdating ? 'Update Filter' : 'Save Filter'"
+        [icon]="isUpdating ? 'pi pi-refresh' : 'pi pi-save'"
+        (onClick)="saveCustomFilter()"
+        [disabled]="!selectedFilter || (typeof selectedFilter === 'string' && !selectedFilter.trim())"
+      />
     </div>
   </ng-template>
 
