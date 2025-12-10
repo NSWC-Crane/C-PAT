@@ -143,7 +143,7 @@ export class PoamExportService {
   static async convertToExcel(poams: Poam[], exportingUser: any, exportCollection: any): Promise<Blob> {
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.default.Workbook();
-    const response = await fetch(`${globalThis.location.origin}${CPAT.Env.basePath || ''}/assets/eMASS_Template.xlsx`);
+    const response = await fetch(`${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/assets/eMASS_Template.xlsx`);
     const arrayBuffer = await response.arrayBuffer();
 
     await workbook.xlsx.load(arrayBuffer, {

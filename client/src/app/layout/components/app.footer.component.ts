@@ -71,6 +71,6 @@ export class AppFooterComponent {
   constructor() {
     this.docsDisabled = CPAT.Env?.features?.docsDisabled ?? false;
     this.swaggerUiEnabled = CPAT.Env?.features?.swaggerUiEnabled ?? true;
-    this.basePath = CPAT.Env.basePath;
+    this.basePath = CPAT.Env.basePath ?? '';
   }
 }

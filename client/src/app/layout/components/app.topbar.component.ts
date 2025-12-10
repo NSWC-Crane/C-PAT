@@ -143,7 +143,7 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
   readonly user$ = inject(AuthService).user$;
   readonly basePath: string;
   constructor() {
-    this.basePath = CPAT.Env.basePath;
+    this.basePath = CPAT.Env.basePath ?? '';
     this.docsDisabled = CPAT.Env?.features?.docsDisabled ?? false;
     this.window = this.document.defaultView as Window;
 
