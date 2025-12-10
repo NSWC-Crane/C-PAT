@@ -1,16 +1,16 @@
 babel==2.17.0
-certifi==2025.8.3
+certifi==2025.11.12
 chardet==5.2.0
-charset-normalizer==3.4.3
+charset-normalizer==3.4.4
 colorama==0.4.6
 commonmark==0.9.1
 docutils==0.21.2
-idna==3.10
+idna==3.11
 imagesize==1.4.1
 Jinja2==3.1.6
-Markdown==3.9
+Markdown==3.10
 markdown-it-py==3.0.0
-MarkupSafe==3.0.2
+MarkupSafe==3.0.3
 packaging==25.0
 Pygments==2.19.2
 pyparsing==3.2.5
@@ -29,4 +29,4 @@ sphinxcontrib-jquery==4.1
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==2.0.0
 sphinxcontrib-serializinghtml==2.0.0
-urllib3==2.5.0
+urllib3==2.6.1
