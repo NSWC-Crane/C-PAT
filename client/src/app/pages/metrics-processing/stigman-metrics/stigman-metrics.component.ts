@@ -244,6 +244,17 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         const stigAssessmentData: any[] = [];
         const initialStigSummary = Array.isArray(stigSummary) ? stigSummary : stigSummary ? [stigSummary] : [];
 
+        const kiorVulnIds = new Set<string>();
+        const kiorLabelNames = new Set(['cora stig kior', 'cora stig kiors', 'stig kior', 'stig kiors', 'cora kior', 'cora kiors']);
+
+        poams.forEach((poam: any) => {
+          const hasKiorLabel = poam.labels?.some((label: any) => kiorLabelNames.has(label.labelName?.toLowerCase()));
+          if (hasKiorLabel) {
+            if (poam.vulnerabilityId) kiorVulnIds.add(poam.vulnerabilityId);
+            poam.associatedVulnerabilities?.forEach((id: string) => kiorVulnIds.add(id));
+          }
+        });
+
         if (initialStigSummary.length > 0) {
           totalSTIGsCount = initialStigSummary.length;
 
@@ -284,6 +295,9 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
             const mediumPct = totalFindings > 0 ? (findingsData.medium / totalFindings) * 100 : 0;
             const lowPct = totalFindings > 0 ? (findingsData.low / totalFindings) * 100 : 0;
 
+            const stigFindings = findings.filter((f: any) => f.stigs?.some((s: any) => s.benchmarkId === stig.benchmarkId));
+            const kiorCount = stigFindings.filter((f: any) => kiorVulnIds.has(f.groupId)).length;
+
             stigAssessmentData.push({
               title: stig.title,
               benchmarkId: stig.benchmarkId,
@@ -293,7 +307,8 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
               mediumPercentage: mediumPct,
               lowPercentage: lowPct,
               findings: findingsData,
-              assessed: Math.round((stig.metrics.assessed / stig.metrics.assessments) * 100)
+              assessed: Math.round((stig.metrics.assessed / stig.metrics.assessments) * 100),
+              kiorCount
             });
           });
         }

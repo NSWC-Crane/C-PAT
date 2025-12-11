@@ -85,7 +85,7 @@ export class SharedService {
   }
 
   getFindingsMetricsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId`).pipe(catchError(this.handleError));
+    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=stigs`).pipe(catchError(this.handleError));
   }
 
   getFindingsMetricsAndRulesFromSTIGMAN(collectionId: number): Observable<any[]> {
