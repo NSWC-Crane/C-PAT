@@ -245,14 +245,39 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         const initialStigSummary = Array.isArray(stigSummary) ? stigSummary : stigSummary ? [stigSummary] : [];
 
         const kiorVulnIds = new Set<string>();
+        const approvedVulnIds = new Set<string>();
         const kiorLabelNames = new Set(['cora stig kior', 'cora stig kiors', 'stig kior', 'stig kiors', 'cora kior', 'cora kiors']);
 
         poams.forEach((poam: any) => {
           const hasKiorLabel = poam.labels?.some((label: any) => kiorLabelNames.has(label.labelName?.toLowerCase()));
-          if (hasKiorLabel) {
-            if (poam.vulnerabilityId) kiorVulnIds.add(poam.vulnerabilityId);
-            poam.associatedVulnerabilities?.forEach((id: string) => kiorVulnIds.add(id));
+          const isApproved = poam.status === 'Approved';
+
+          if (hasKiorLabel || isApproved) {
+            if (poam.vulnerabilityId) {
+              if (hasKiorLabel) kiorVulnIds.add(poam.vulnerabilityId);
+              if (isApproved) approvedVulnIds.add(poam.vulnerabilityId);
+            }
+            poam.associatedVulnerabilities?.forEach((id: string) => {
+              if (hasKiorLabel) kiorVulnIds.add(id);
+              if (isApproved) approvedVulnIds.add(id);
+            });
           }
+        });
+
+        const findingsByBenchmark = new Map<string, any[]>();
+        const findingsBySeverity = { high: [] as any[], medium: [] as any[], low: [] as any[] };
+
+        findings.forEach((f: any) => {
+          if (f.severity === 'high') findingsBySeverity.high.push(f);
+          else if (f.severity === 'medium') findingsBySeverity.medium.push(f);
+          else if (f.severity === 'low') findingsBySeverity.low.push(f);
+
+          f.stigs?.forEach((s: any) => {
+            if (!findingsByBenchmark.has(s.benchmarkId)) {
+              findingsByBenchmark.set(s.benchmarkId, []);
+            }
+            findingsByBenchmark.get(s.benchmarkId)!.push(f);
+          });
         });
 
         if (initialStigSummary.length > 0) {
@@ -295,7 +320,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
             const mediumPct = totalFindings > 0 ? (findingsData.medium / totalFindings) * 100 : 0;
             const lowPct = totalFindings > 0 ? (findingsData.low / totalFindings) * 100 : 0;
 
-            const stigFindings = findings.filter((f: any) => f.stigs?.some((s: any) => s.benchmarkId === stig.benchmarkId));
+            const stigFindings = findingsByBenchmark.get(stig.benchmarkId) || [];
             const kiorCount = stigFindings.filter((f: any) => kiorVulnIds.has(f.groupId)).length;
 
             stigAssessmentData.push({
@@ -330,25 +355,6 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         const catIOpenRawCount = rawFindings.high || 0;
         const catIIOpenRawCount = rawFindings.medium || 0;
         const catIIIOpenRawCount = rawFindings.low || 0;
-
-        const approvedPoams = poams.filter((p: any) => p.status === 'Approved');
-        const approvedVulnIds = new Set<string>();
-
-        approvedPoams.forEach((poam: any) => {
-          if (poam.vulnerabilityId) {
-            approvedVulnIds.add(poam.vulnerabilityId);
-          }
-
-          if (Array.isArray(poam?.associatedVulnerabilities)) {
-            poam.associatedVulnerabilities.forEach((id: string) => approvedVulnIds.add(id));
-          }
-        });
-
-        const findingsBySeverity = {
-          high: findings.filter((f) => f.severity === 'high'),
-          medium: findings.filter((f) => f.severity === 'medium'),
-          low: findings.filter((f) => f.severity === 'low')
-        };
 
         const catIOpenCount = findingsBySeverity.high.length;
         const catIIOpenCount = findingsBySeverity.medium.length;
