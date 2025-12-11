@@ -205,6 +205,13 @@
             <div class="flex w-2/5 gap-2 shrink-0 pr-2">
               <span class="text-[0.9rem] font-medium text-[var(--text-color)] min-w-[48px]" pTooltip="Assessed %" tooltipPosition="left">{{ stig.assessed }}%</span>
               <span class="text-[0.9rem] font-medium text-[var(--text-color)] min-w-[48px]" pTooltip="Total findings" tooltipPosition="left">{{ stig.totalFindings }}</span>
+              <span
+                class="text-[0.9rem] font-medium text-[var(--text-color)] min-w-[48px]"
+                [pTooltip]="'Open findings with one of the following POAM Labels:\n&#x2022; CORA STIG KIOR\n&#x2022; CORA STIG KIORS\n&#x2022; CORA KIOR\n&#x2022; CORA KIORS\n&#x2022; STIG KIOR\n&#x2022; STIG KIORS'"
+                tooltipPosition="left"
+              >
+                {{ stig.kiorCount }}
+              </span>
               <span class="text-[0.9rem] text-[var(--text-secondary-color)] whitespace-nowrap overflow-hidden text-ellipsis flex-1" [pTooltip]="stig.title" tooltipPosition="left">
                 {{ stig.benchmarkId }}
               </span>

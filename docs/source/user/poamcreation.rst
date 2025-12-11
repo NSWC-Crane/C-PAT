@@ -112,3 +112,9 @@ Likelihood
 
 Mitigations
    * Any currently implemented mitigations and/or compensating Controls that will reduce the risk. A planned mitigation or compensating Control cannot lower risk until implemented.
+
+POAM Labels
+   * POAM Labels introduce a way to visualize data across various charts and tables within C-PAT. Labels can be used to quickly identify, filter, or visualize a unique subset of POAMs.
+
+.. note::
+   Any POAM containing a ``CORA STIG KIOR`` ``CORA STIG KIORS`` ``CORA KIOR`` ``CORA KIORS`` ``STIG KIOR`` or ``STIG KIORS`` [case insensitive] label will be included in the STIG Manager Metrics Component KIOR Count under 'Open Findings by STIG (Raw)'.
