@@ -120,7 +120,19 @@
             </p-tabpanels>
           </p-tabs>
           <div class="field mb-4 mt-4">
-            <p-select id="assetid" [options]="data" optionLabel="assetName" [(ngModel)]="asset.assetId" placeholder="Select Asset to Modify..." (onChange)="setAsset($event.value.assetId)" class="mt-2 w-full" required [disabled]="accessLevel < 2" />
+            <p-select
+              id="assetid"
+              [options]="data"
+              [filter]="true"
+              filterBy="assetName"
+              optionLabel="assetName"
+              [(ngModel)]="asset.assetId"
+              placeholder="Select Asset to Modify..."
+              (onChange)="setAsset($event.value.assetId)"
+              class="mt-2 w-full"
+              required
+              [disabled]="accessLevel < 2"
+            />
           </div>
         </div>
       </div>

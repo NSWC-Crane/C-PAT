@@ -29,7 +29,18 @@
             <span>{{ getApproverName(approver.userId) }}</span>
           }
           @if (approver.isNew) {
-            <p-select [options]="collectionApprovers" [(ngModel)]="approver.userId" optionLabel="fullName" optionValue="userId" class="w-full" (onChange)="onApproverChange(approver)" appendTo="body" [disabled]="accessLevel < 2" />
+            <p-select
+              [options]="collectionApprovers"
+              [(ngModel)]="approver.userId"
+              [filter]="true"
+              filterBy="fullName"
+              optionLabel="fullName"
+              optionValue="userId"
+              class="w-full"
+              (onChange)="onApproverChange(approver)"
+              appendTo="body"
+              [disabled]="accessLevel < 2"
+            />
           }
         </td>
         <td>{{ approver.approvalStatus }}</td>

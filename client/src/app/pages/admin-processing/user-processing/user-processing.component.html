@@ -83,7 +83,19 @@
     </div>
     @if (data && data.length > 0 && showUserSelect) {
       <div>
-        <p-select class="mt-[2rem] w-full" [options]="data" name="selectedUser" [(ngModel)]="selectedUser" (onChange)="setUser(selectedUser)" placeholder="Select User to Modify..." optionLabel="fullName" autoWidth="false" appendTo="body">
+        <p-select
+          class="mt-[2rem] w-full"
+          [options]="data"
+          name="selectedUser"
+          [(ngModel)]="selectedUser"
+          (onChange)="setUser(selectedUser)"
+          placeholder="Select User to Modify..."
+          [filter]="true"
+          filterBy="fullName"
+          optionLabel="fullName"
+          autoWidth="false"
+          appendTo="body"
+        >
           <ng-template let-user pTemplate="item"> {{ user.firstName }} {{ user.lastName }} - {{ user.officeOrg }} - {{ user.accountStatus }} </ng-template>
         </p-select>
       </div>

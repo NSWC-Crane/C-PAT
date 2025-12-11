@@ -68,10 +68,12 @@
           <p-select
             id="labelid"
             [options]="data"
-            optionLabel="labelName"
             [(ngModel)]="label.labelId"
             placeholder="Select Label to Modify..."
             (onChange)="setLabel($event.value.labelId)"
+            [filter]="true"
+            filterBy="labelName"
+            optionLabel="labelName"
             class="mt-6 w-full"
             required
             appendTo="body"

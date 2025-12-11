@@ -19,6 +19,8 @@
         [ngModel]="selectedCollection()"
         (ngModelChange)="onCollectionChange($event)"
         (onChange)="onCollectionChange($event.value)"
+        [filter]="true"
+        filterBy="collectionName"
         optionLabel="collectionName"
         optionValue="collectionId"
         placeholder="Select a Collection"

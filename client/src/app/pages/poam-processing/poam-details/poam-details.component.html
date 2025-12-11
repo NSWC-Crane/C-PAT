@@ -159,6 +159,8 @@
             <p-select
               [(ngModel)]="poam.aaPackage"
               [options]="aaPackages"
+              [filter]="true"
+              filterBy="aaPackage"
               optionLabel="aaPackage"
               optionValue="aaPackage"
               [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"

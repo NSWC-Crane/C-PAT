@@ -26,7 +26,18 @@
             <span>{{ label.labelName }}</span>
           }
           @if (label.isNew) {
-            <p-select [options]="labelList" [(ngModel)]="label.labelId" optionLabel="labelName" optionValue="labelId" class="w-full" (onChange)="onLabelChange(label)" appendTo="body" [disabled]="accessLevel < 2" />
+            <p-select
+              [options]="labelList"
+              [(ngModel)]="label.labelId"
+              [filter]="true"
+              filterBy="labelName"
+              optionLabel="labelName"
+              optionValue="labelId"
+              class="w-full"
+              (onChange)="onLabelChange(label)"
+              appendTo="body"
+              [disabled]="accessLevel < 2"
+            />
           }
         </td>
         <td>

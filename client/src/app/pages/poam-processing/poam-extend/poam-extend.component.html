@@ -17,7 +17,16 @@
           <div class="p-field">
             <label for="extensionDays">Extension Time Requested:</label>
             <div class="flex align-items-center gap-2">
-              <p-select [options]="extensionTimeOptions" [(ngModel)]="poam.extensionDays" (onChange)="computeDeadlineWithExtension()" placeholder="Extension Time Requested..." class="w-full" [disabled]="accessLevel < 2" />
+              <p-select
+                [options]="extensionTimeOptions"
+                [(ngModel)]="poam.extensionDays"
+                (onChange)="computeDeadlineWithExtension()"
+                placeholder="Extension Time Requested..."
+                [filter]="true"
+                filterBy="label"
+                class="w-full"
+                [disabled]="accessLevel < 2"
+              />
               <p-button
                 icon="pi pi-times"
                 [rounded]="false"
@@ -137,7 +146,17 @@
                         <td>
                           <p-cellEditor>
                             <ng-template pTemplate="input">
-                              <p-select [options]="assignedTeamOptions" [(ngModel)]="milestone.assignedTeamId" optionLabel="assignedTeamName" optionValue="assignedTeamId" class="w-full" appendTo="body" [disabled]="accessLevel < 2" />
+                              <p-select
+                                [options]="assignedTeamOptions"
+                                [(ngModel)]="milestone.assignedTeamId"
+                                [filter]="true"
+                                filterBy="assignedTeamName"
+                                optionLabel="assignedTeamName"
+                                optionValue="assignedTeamId"
+                                class="w-full"
+                                appendTo="body"
+                                [disabled]="accessLevel < 2"
+                              />
                             </ng-template>
                             <ng-template pTemplate="output">
                               {{ getTeamName(milestone.assignedTeamId) }}
