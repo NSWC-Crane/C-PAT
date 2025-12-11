@@ -65,7 +65,19 @@
                 <span>{{ label.labelName }}</span>
               }
               @if (label.isNew) {
-                <p-select [options]="labelList" name="labelList" appendTo="body" [(ngModel)]="label.labelId" optionLabel="labelName" optionValue="labelId" class="w-full" (onChange)="onLabelChange(label, ri)" placeholder="Select a label" />
+                <p-select
+                  [options]="labelList"
+                  name="labelList"
+                  appendTo="body"
+                  [(ngModel)]="label.labelId"
+                  [filter]="true"
+                  filterBy="labelName"
+                  optionLabel="labelName"
+                  optionValue="labelId"
+                  class="w-full"
+                  (onChange)="onLabelChange(label, ri)"
+                  placeholder="Select a label"
+                />
               }
             </td>
           </tr>

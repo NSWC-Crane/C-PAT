@@ -148,7 +148,18 @@
                           <span>{{ rowData[col.field] }}</span>
                         }
                         @if (rowData.editing && col.field === 'assignedTeamName') {
-                          <p-select [options]="availableTeams" [(ngModel)]="rowData.assignedTeamId" name="teamDropdown" optionLabel="title" optionValue="value" class="w-full" appendTo="body" />
+                          <p-select
+                            [options]="availableTeams"
+                            [(ngModel)]="rowData.assignedTeamId"
+                            name="teamDropdown"
+                            [filter]="true"
+                            filterBy="title"
+                            optionLabel="title"
+                            optionValue="value"
+                            placeholder="Select a Team..."
+                            class="w-full"
+                            appendTo="body"
+                          />
                         }
                         @if (rowData.editing && col.field === 'accessLevelLabel') {
                           <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
@@ -196,7 +207,18 @@
                           <span>{{ rowData[col.field] }}</span>
                         }
                         @if (rowData.editing && col.field === 'collectionName') {
-                          <p-select [options]="availableCollections" [(ngModel)]="rowData.collectionId" name="collectionDropdown" optionLabel="title" optionValue="value" class="w-full" appendTo="body" />
+                          <p-select
+                            [options]="availableCollections"
+                            [(ngModel)]="rowData.collectionId"
+                            name="collectionDropdown"
+                            [filter]="true"
+                            filterBy="title"
+                            optionLabel="title"
+                            optionValue="value"
+                            placeholder="Select a Collection..."
+                            class="w-full"
+                            appendTo="body"
+                          />
                         }
                         @if (rowData.editing && col.field === 'accessLevelLabel') {
                           <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body" />

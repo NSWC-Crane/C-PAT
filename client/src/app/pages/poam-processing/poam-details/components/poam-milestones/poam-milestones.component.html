@@ -77,7 +77,18 @@
         <td>
           <p-cellEditor>
             <ng-template pTemplate="input">
-              <p-select [options]="assignedTeamOptions" placeholder="Select Team..." [(ngModel)]="milestone.assignedTeamId" optionLabel="assignedTeamName" optionValue="assignedTeamId" class="w-full" appendTo="body" [disabled]="accessLevel < 2" />
+              <p-select
+                [options]="assignedTeamOptions"
+                placeholder="Select Team..."
+                [(ngModel)]="milestone.assignedTeamId"
+                [filter]="true"
+                filterBy="assignedTeamName"
+                optionLabel="assignedTeamName"
+                optionValue="assignedTeamId"
+                class="w-full"
+                appendTo="body"
+                [disabled]="accessLevel < 2"
+              />
             </ng-template>
             <ng-template pTemplate="output">
               <span>{{ getTeamName(milestone.assignedTeamId) }}</span>

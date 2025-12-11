@@ -36,6 +36,8 @@
               <p-select
                 [options]="assignedTeamOptions"
                 [(ngModel)]="assignedTeam.assignedTeamId"
+                [filter]="true"
+                filterBy="assignedTeamName"
                 optionLabel="assignedTeamName"
                 optionValue="assignedTeamId"
                 class="w-full"
