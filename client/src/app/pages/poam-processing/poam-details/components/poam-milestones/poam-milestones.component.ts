@@ -11,7 +11,7 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, Input, OnInit, signal, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { addDays, isAfter } from 'date-fns';
+import { addDays, isAfter, parseISO, startOfDay } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
@@ -27,6 +27,8 @@ export interface Milestone {
   milestoneId: string;
   milestoneComments: string | null;
   milestoneDate: Date | string;
+  milestoneChangeComments?: string | null;
+  milestoneChangeDate?: Date | string | null;
   milestoneStatus: string;
   assignedTeamId: number | null;
   isNew?: boolean;
@@ -72,18 +74,24 @@ export class PoamMilestonesComponent implements OnInit {
     return 'temp_' + new Date().getTime();
   }
 
+  private isChangeFieldsEditable(): boolean {
+    return this.poam.extensionDays > 0 || this.poam.status === 'Extension Requested' || this.poam.status === 'Approved';
+  }
+
   onAddNewMilestone() {
     if (!Array.isArray(this.poamMilestones)) {
       this.poamMilestones = [];
     }
 
     const tempId = this.generateTempId();
-    const defaultDate = addDays(new Date(), this.defaultMilestoneDateOffset);
+    const defaultDate = this.calculateDefaultMilestoneDate();
 
-    const newMilestone = {
+    const newMilestone: Milestone = {
       milestoneId: tempId,
       milestoneComments: null,
       milestoneDate: defaultDate,
+      milestoneChangeComments: null,
+      milestoneChangeDate: null,
       milestoneStatus: 'Pending',
       assignedTeamId: null,
       isNew: true,
@@ -106,6 +114,43 @@ export class PoamMilestonesComponent implements OnInit {
     this.milestonesChanged.emit(this.poamMilestones);
   }
 
+  private calculateDefaultMilestoneDate(): Date {
+    const defaultDate = addDays(new Date(), this.defaultMilestoneDateOffset);
+
+    if (!this.poam.scheduledCompletionDate) {
+      return defaultDate;
+    }
+
+    const scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
+    const extensionDays = this.poam.extensionDays || 0;
+
+    let effectiveDeadline = scheduledCompletionDate;
+
+    if (extensionDays > 0 && this.poam.extensionDeadline) {
+      const extensionDeadline = new Date(this.poam.extensionDeadline);
+      if (!isNaN(extensionDeadline.getTime())) {
+        effectiveDeadline = extensionDeadline;
+      }
+    }
+
+    return isAfter(defaultDate, effectiveDeadline) ? effectiveDeadline : defaultDate;
+  }
+
+  private getEffectiveDeadline(): Date | null {
+    if (!this.poam.scheduledCompletionDate) {
+      return null;
+    }
+
+    const scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
+    const extensionDays = this.poam.extensionDays || 0;
+
+    if (extensionDays > 0 && this.poam.extensionDeadline) {
+      return new Date(this.poam.extensionDeadline);
+    }
+
+    return scheduledCompletionDate;
+  }
+
   onDateChange(milestone: Milestone) {
     if (milestone.isNew) {
       milestone.dateModified = true;
@@ -119,7 +164,15 @@ export class PoamMilestonesComponent implements OnInit {
   }
 
   onRowEditSave(milestone: Milestone) {
-    if (!this.validateMilestoneFields(milestone) || !this.validateMilestoneDate(milestone)) {
+    if (!this.validateMilestoneFields(milestone)) {
+      return;
+    }
+
+    if (!this.validateMilestoneDate(milestone)) {
+      return;
+    }
+
+    if (!this.validateMilestoneChangeFields(milestone)) {
       return;
     }
 
@@ -214,7 +267,7 @@ export class PoamMilestonesComponent implements OnInit {
     return team ? team.assignedTeamName : '';
   }
 
-  private validateMilestoneFields(milestone: any): boolean {
+  private validateMilestoneFields(milestone: Milestone): boolean {
     const requiredFields = [
       { field: 'milestoneComments', message: 'Milestone Comments is a required field.' },
       { field: 'milestoneDate', message: 'Milestone Date is a required field.' },
@@ -223,7 +276,7 @@ export class PoamMilestonesComponent implements OnInit {
     ];
 
     for (const { field, message } of requiredFields) {
-      if (!milestone[field]) {
+      if (!milestone[field as keyof Milestone]) {
         this.messageService.add({
           severity: 'error',
           summary: 'Information',
@@ -231,6 +284,54 @@ export class PoamMilestonesComponent implements OnInit {
         });
 
         return false;
+      }
+    }
+
+    return true;
+  }
+
+  private validateMilestoneChangeFields(milestone: Milestone): boolean {
+    if (!this.isChangeFieldsEditable() || milestone.isNew) {
+      return true;
+    }
+
+    if (milestone.milestoneChangeDate && !milestone.milestoneChangeComments) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail: 'When providing a milestone change date, you must also include milestone change comments.'
+      });
+      return false;
+    }
+
+    if (milestone.milestoneChangeDate) {
+      const today = startOfDay(new Date());
+      const changeDate = typeof milestone.milestoneChangeDate === 'string' ? startOfDay(parseISO(milestone.milestoneChangeDate)) : startOfDay(milestone.milestoneChangeDate);
+
+      if (changeDate < today) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'Milestone change date cannot be set to a past date.'
+        });
+        return false;
+      }
+
+      const effectiveDeadline = this.getEffectiveDeadline();
+      if (effectiveDeadline) {
+        const effectiveDeadlineDay = startOfDay(effectiveDeadline);
+
+        if (isAfter(changeDate, effectiveDeadlineDay)) {
+          const extensionDays = this.poam.extensionDays || 0;
+          const message = extensionDays > 0 ? 'The Milestone change date provided exceeds the POAM scheduled completion date and the allowed extension time.' : 'The Milestone change date provided exceeds the POAM scheduled completion date.';
+
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Information',
+            detail: message
+          });
+          return false;
+        }
       }
     }
 

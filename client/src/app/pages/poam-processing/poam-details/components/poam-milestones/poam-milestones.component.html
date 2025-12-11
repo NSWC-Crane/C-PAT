@@ -13,7 +13,7 @@
   <i
     class="pi pi-info-circle mb-4"
     style="color: var(--p-text-color)"
-    pTooltip="Milestone with Completion Dates: A milestone identifies specific requirements for correcting an identified vulnerability. The initial milestones and completion dates may not be altered. Any changes to the milestones should be noted in the Milestone Changes within the POAM extension panel."
+    pTooltip="Milestone with Completion Dates: A milestone identifies specific requirements for correcting an identified vulnerability. The initial milestones and completion dates may not be altered once the POAM is approved. Any changes to the milestones should be noted in the Milestone Changes fields."
   ></i>
 
   <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
@@ -21,6 +21,8 @@
       <tr>
         <th scope="col">Milestone Comments</th>
         <th scope="col" pSortableColumn="milestoneDate">Milestone Due Date</th>
+        <th scope="col" style="width: 15%">Change Comments</th>
+        <th scope="col" style="width: 10%">Change Date</th>
         <th scope="col" pSortableColumn="milestoneStatus">Status</th>
         <th scope="col" pSortableColumn="assignedTeamId">Team</th>
         <th scope="col" style="width: 8rem; text-align: center">
@@ -38,7 +40,7 @@
                 class="w-full"
                 rows="4"
                 [(ngModel)]="milestone.milestoneComments"
-                [disabled]="accessLevel < 3 && !milestone.isNew && poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted'"
+                [disabled]="accessLevel < 2 || (!milestone.isNew && poam.status !== 'Draft' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel < 3)"
               ></textarea>
             </ng-template>
             <ng-template pTemplate="output">
@@ -56,11 +58,43 @@
                 class="w-full"
                 [showIcon]="true"
                 appendTo="body"
-                [disabled]="accessLevel < 3 && !milestone.isNew && poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted'"
+                [disabled]="accessLevel < 2 || (!milestone.isNew && poam.status !== 'Draft' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel < 3)"
               />
             </ng-template>
             <ng-template pTemplate="output">
               {{ milestone.milestoneDate | date: 'yyyy-MM-dd' }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <textarea
+                pTextarea
+                class="w-full"
+                rows="4"
+                [(ngModel)]="milestone.milestoneChangeComments"
+                [disabled]="milestone.isNew || accessLevel < 2 || (!poam.extensionDays && poam.status !== 'Extension Requested' && poam.status !== 'Approved')"
+              ></textarea>
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{ milestone.milestoneChangeComments }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td>
+          <p-cellEditor>
+            <ng-template pTemplate="input">
+              <p-datepicker
+                [(ngModel)]="milestone.milestoneChangeDate"
+                dateFormat="yy-mm-dd"
+                [showIcon]="true"
+                appendTo="body"
+                [disabled]="milestone.isNew || accessLevel < 2 || (!poam.extensionDays && poam.status !== 'Extension Requested' && poam.status !== 'Approved')"
+              />
+            </ng-template>
+            <ng-template pTemplate="output">
+              {{ milestone.milestoneChangeDate | date: 'yyyy-MM-dd' }}
             </ng-template>
           </p-cellEditor>
         </td>
@@ -130,7 +164,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="5" style="text-align: center">No Milestones to Display</td>
+        <td colspan="7" style="text-align: center">No Milestones to Display</td>
       </tr>
     </ng-template>
   </p-table>
