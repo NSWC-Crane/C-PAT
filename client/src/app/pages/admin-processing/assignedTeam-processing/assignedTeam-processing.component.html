@@ -55,64 +55,68 @@
   </div>
 </div>
 
-<p-dialog [(visible)]="teamDialog" styleClass="w-[50vw] overflow-hidden p-fluid" [modal]="true">
+<p-dialog [(visible)]="teamDialog" (onHide)="onDialogHide()" styleClass="w-[50vw] overflow-hidden p-fluid" [modal]="true">
   <ng-template pTemplate="content">
-    <div class="mb-6">
-      <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
-      <input
-        type="text"
-        pInputText
-        id="name"
-        [(ngModel)]="editingAssignedTeam!.assignedTeamName"
-        required
-        [ngClass]="{ 'ng-invalid ng-dirty': !editingAssignedTeam?.assignedTeamName }"
-        maxlength="99"
-        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
+    @if (editingAssignedTeam) {
+      <div class="mb-6">
+        <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
+        <input
+          type="text"
+          pInputText
+          id="name"
+          [(ngModel)]="editingAssignedTeam.assignedTeamName"
+          required
+          [ngClass]="{ 'ng-invalid ng-dirty': !editingAssignedTeam.assignedTeamName }"
+          maxlength="99"
+          class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-      <label for="adTeam" class="mb-2 mt-4 block text-base font-medium">AD Team(s):</label>
-      <p-multiSelect
-        id="adTeam"
-        [(ngModel)]="selectedAdTeams"
-        [options]="filteredTeams"
-        [filter]="true"
-        (onFilter)="filterTeams($event)"
-        placeholder="Select AD Team(s)"
-        [showToggleAll]="false"
-        [showHeader]="true"
-        [panelStyle]="{ width: '100%' }"
-        class="w-full"
-      />
-    </div>
-    <div class="space-y-2">
-      <label class="mb-2 block text-base font-medium">Team Permissions:</label>
-      <p-pickList
-        [source]="availableCollections"
-        [target]="assignedCollections"
-        sourceHeader="Available Collections"
-        targetHeader="Assigned Collections"
-        [dragdrop]="true"
-        [responsive]="true"
-        [showSourceControls]="false"
-        [showTargetControls]="false"
-        [sourceStyle]="{ height: '300px' }"
-        [targetStyle]="{ height: '300px' }"
-        (onMoveToTarget)="onMoveToTarget($event)"
-        (onMoveToSource)="onMoveToSource($event)"
-        (onMoveAllToTarget)="onMoveToTarget($event)"
-        (onMoveAllToSource)="onMoveToSource($event)"
-        class="w-full"
-      >
-        <ng-template let-collection pTemplate="item"> {{ collection.collectionName }} </ng-template>
-      </p-pickList>
-    </div>
+        <label for="adTeam" class="mb-2 mt-4 block text-base font-medium">AD Team(s):</label>
+        <p-multiSelect
+          id="adTeam"
+          [(ngModel)]="selectedAdTeams"
+          [options]="filteredTeams"
+          [filter]="true"
+          (onFilter)="filterTeams($event)"
+          placeholder="Select AD Team(s)"
+          [showToggleAll]="false"
+          [showHeader]="true"
+          [panelStyle]="{ width: '100%' }"
+          class="w-full"
+        />
+      </div>
+      <div class="space-y-2">
+        <label class="mb-2 block text-base font-medium">Team Permissions:</label>
+        <p-pickList
+          [source]="availableCollections"
+          [target]="assignedCollections"
+          sourceHeader="Available Collections"
+          targetHeader="Assigned Collections"
+          [dragdrop]="true"
+          [responsive]="true"
+          [showSourceControls]="false"
+          [showTargetControls]="false"
+          [sourceStyle]="{ height: '300px' }"
+          [targetStyle]="{ height: '300px' }"
+          (onMoveToTarget)="onMoveToTarget($event)"
+          (onMoveToSource)="onMoveToSource($event)"
+          (onMoveAllToTarget)="onMoveToTarget($event)"
+          (onMoveAllToSource)="onMoveToSource($event)"
+          class="w-full"
+        >
+          <ng-template let-collection pTemplate="item"> {{ collection.collectionName }} </ng-template>
+        </p-pickList>
+      </div>
+    }
   </ng-template>
 
   <ng-template pTemplate="footer">
-    <div class="flex w-full justify-between">
-      <p-button variant="outlined" label="Cancel" (onClick)="hideDialog()" />
-      <p-button variant="outlined" label="Save" (onClick)="saveTeam()" [disabled]="!editingAssignedTeam?.assignedTeamName" />
-    </div>
+    @if (editingAssignedTeam) {
+      <div class="flex w-full justify-between">
+        <p-button variant="outlined" label="Cancel" (onClick)="hideDialog()" />
+        <p-button variant="outlined" label="Save" (onClick)="saveTeam()" [disabled]="!editingAssignedTeam.assignedTeamName" />
+      </div>
+    }
   </ng-template>
 </p-dialog>
 
