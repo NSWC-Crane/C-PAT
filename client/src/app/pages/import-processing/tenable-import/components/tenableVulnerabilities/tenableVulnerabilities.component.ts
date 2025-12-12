@@ -1497,7 +1497,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             };
           });
 
-          this.totalRecords = vulnData.totalRecords ? vulnData.totalRecords : this.allVulnerabilities.length;
+          this.totalRecords = vulnData.totalRecords ? Number(vulnData.totalRecords) : this.allVulnerabilities.length;
+          const table = this.table();
+          if (table && table.first >= this.totalRecords) {
+            table.first = 0;
+          }
           this.totalRecordsChange.emit(this.totalRecords);
         }
       });
@@ -2990,6 +2994,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   onTableFilter(event: any) {
     this.totalRecords = event.filteredValue ? event.filteredValue.length : 0;
     this.totalRecordsChange.emit(this.totalRecords);
+
+    const table = this.table();
+    if (table && table.first >= this.totalRecords) {
+      table.first = 0;
+    }
   }
 
   showErrorMessage(message: string) {
