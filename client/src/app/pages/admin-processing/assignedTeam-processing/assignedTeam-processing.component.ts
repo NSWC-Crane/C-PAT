@@ -464,9 +464,16 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
       });
   }
 
-  hideDialog() {
+  hideDialog(): void {
     this.teamDialog = false;
+  }
+
+  onDialogHide(): void {
     this.editingAssignedTeam = null;
+    this.selectedAdTeams = [];
+    this.assignedCollections = [];
+    this.availableCollections = [...this.allCollections];
+    this.filteredTeams = [...this.uniqueTeams];
   }
 
   filterGlobal(event: Event) {
