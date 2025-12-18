@@ -11,25 +11,21 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { format } from 'date-fns';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
-import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
-import { PoamService } from '../../../../poam-processing/poams.service';
 import { ImportService } from '../../../import.service';
+import { TenableHostDialogComponent } from '../tenableHostDialog/tenableHostDialog.component';
 
 interface ExportColumn {
   title: string;
@@ -41,53 +37,28 @@ interface ExportColumn {
   templateUrl: './tenableHostAssetsTable.component.html',
   styleUrls: ['./tenableHostAssetsTable.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, DialogModule, ToastModule, TooltipModule, TagModule]
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, ToastModule, TooltipModule, TagModule, TenableHostDialogComponent]
 })
 export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   private importService = inject(ImportService);
   private messageService = inject(MessageService);
-  private sharedService = inject(SharedService);
-  private poamService = inject(PoamService);
-  private router = inject(Router);
 
   @Input() tenableRepoId: number;
   readonly hostAssetTable = viewChild.required<Table>('hostAssetTable');
-  readonly hostFindingsTable = viewChild.required<Table>('hostFindingsTable');
   readonly multiSelect = viewChild.required<MultiSelect>('ms');
 
   cols: any[];
-  hostDialogCols: any[];
   exportColumns!: ExportColumn[];
   selectedColumns: any[];
   affectedAssets: any[] = [];
   isLoading: boolean = true;
   totalRecords: number = 0;
   filterValue: string = '';
-  dialogFilterValue: string = '';
-  selectedCollection: any;
   selectedHost: any;
-  hostData: any;
   displayDialog: boolean = false;
-  existingPoamPluginIDs: any;
-  pluginData: any;
-  selectedPoamStatuses: string[] = [];
-  selectedSeverities: string[] = [];
-  selectedPlugin: any;
-  pluginDetailData: any;
-  displayPluginDialog: boolean = false;
-  isLoadingPluginDetails: boolean = false;
-  cveReferences: any[] = [];
-  iavReferences: any[] = [];
-  otherReferences: any[] = [];
   private subscriptions = new Subscription();
 
   ngOnInit() {
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
-        this.loadPoamAssociations();
-      })
-    );
     this.initColumnsAndFilters();
     this.getAffectedAssets();
   }
@@ -109,89 +80,11 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
       { field: 'source', header: 'Source', filterType: 'text' }
     ];
 
-    this.hostDialogCols = [
-      {
-        field: 'poam',
-        header: 'POAM',
-        filterField: 'poamStatus',
-        filterType: 'multi',
-        filterOptions: [
-          { label: 'No Existing POAM', value: 'No Existing POAM' },
-          { label: 'Approved', value: 'Approved' },
-          { label: 'Associated', value: 'Associated' },
-          { label: 'Closed', value: 'Closed' },
-          { label: 'Draft', value: 'Draft' },
-          { label: 'Expired', value: 'Expired' },
-          { label: 'Extension Requested', value: 'Extension Requested' },
-          { label: 'False-Positive', value: 'False-Positive' },
-          { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
-          { label: 'Rejected', value: 'Rejected' },
-          { label: 'Submitted', value: 'Submitted' }
-        ]
-      },
-      { field: 'pluginID', header: 'Plugin ID', filterType: 'text' },
-      { field: 'pluginName', header: 'Plugin Name', filterType: 'text' },
-      {
-        field: 'severity',
-        header: 'Severity',
-        filterType: 'multi',
-        filterOptions: [
-          { label: 'Info', value: 'Info' },
-          { label: 'Low', value: 'Low' },
-          { label: 'Medium', value: 'Medium' },
-          { label: 'High', value: 'High' },
-          { label: 'Critical', value: 'Critical' }
-        ]
-      },
-      { field: 'port', header: 'Port', filterType: 'numeric' },
-      { field: 'protocol', header: 'Protocol', filterType: 'text' },
-      { field: 'vprScore', header: 'VPR', filterType: 'numeric' },
-      { field: 'epssScore', header: 'EPSS (%)', filterType: 'numeric' },
-      { field: 'lastSeen', header: 'Last Seen', filterType: 'date' }
-    ];
     this.exportColumns = this.cols.map((col) => ({
       title: col.header,
       dataKey: col.field
     }));
     this.selectedColumns = this.cols.filter((col) => ['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes'].includes(col.field));
-  }
-
-  loadPoamAssociations() {
-    if (!this.selectedCollection) return;
-
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
-      next: (poamData) => {
-        if (Array.isArray(poamData)) {
-          this.existingPoamPluginIDs = poamData.reduce(
-            (
-              acc: { [key: string]: { poamId: number; status: string; isAssociated?: boolean; parentStatus?: string; parentPoamId?: number } },
-              item: { vulnerabilityId: string; status: string; poamId: number; parentPoamId?: number; parentStatus?: string }
-            ) => {
-              acc[item.vulnerabilityId] = {
-                poamId: item.poamId,
-                status: item.status,
-                isAssociated: item.status === 'Associated',
-                parentStatus: item.parentStatus,
-                parentPoamId: item.parentPoamId
-              };
-
-              return acc;
-            },
-            {}
-          );
-        } else {
-          console.error('Unexpected POAM data format:', poamData);
-          this.showErrorMessage('Error loading POAM data. Unexpected data format.');
-        }
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error loading POAM data: ${getErrorMessage(error)}`
-        });
-      }
-    });
   }
 
   getAffectedAssets() {
@@ -303,449 +196,8 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
 
   onHostNameClick(host: any, event: Event) {
     event.stopPropagation();
-    this.isLoading = true;
-    this.showDetails(host);
-  }
-
-  showDetails(host: any): Promise<void> {
-    if (!host || !host.name) {
-      this.isLoading = false;
-      this.showErrorMessage('Invalid host name');
-
-      return Promise.reject('Invalid host name');
-    }
-
-    this.selectedPoamStatuses = [];
-    this.selectedSeverities = [];
-    this.dialogFilterValue = '';
-
     this.selectedHost = host;
-
-    const analysisParams = {
-      query: {
-        type: 'vuln',
-        tool: 'tenable_internal_vulndetails',
-        sourceType: 'cumulative',
-        startOffset: 0,
-        endOffset: 10000,
-        filters: [
-          {
-            filterName: 'repository',
-            operator: '=',
-            value: [
-              {
-                id: this.tenableRepoId.toString()
-              }
-            ]
-          },
-          {
-            filterName: 'dnsName',
-            operator: '=',
-            value: host.dns
-          },
-          {
-            filterName: 'ip',
-            operator: '=',
-            value: host.ipAddress ? host.ipAddress : ''
-          }
-        ]
-      },
-      sortDir: 'desc',
-      sortField: 'severity',
-      sourceType: 'cumulative',
-      type: 'vuln'
-    };
-
-    return new Promise((resolve, reject) => {
-      this.importService.postTenableAnalysis(analysisParams).subscribe({
-        next: (data) => {
-          if (!data?.response) {
-            reject(new Error('Invalid response from getTenablePlugin'));
-            this.isLoading = false;
-
-            return;
-          }
-
-          this.hostData = data.response.results.map((item: any) => {
-            const poamAssociation = this.existingPoamPluginIDs?.[item.pluginID];
-
-            return {
-              pluginID: item.pluginID || '',
-              pluginName: item.pluginName || '',
-              severity: item.severity?.name || '',
-              port: item.port || '',
-              protocol: item.protocol || '',
-              vprScore: item.vprScore || '',
-              epssScore: item.epssScore || '',
-              lastSeen: this.formatTimestamp(item.lastSeen),
-              poam: !!poamAssociation,
-              poamId: poamAssociation?.poamId || null,
-              poamStatus: poamAssociation?.status ? poamAssociation.status : 'No Existing POAM',
-              isAssociated: poamAssociation?.isAssociated || false,
-              parentStatus: poamAssociation?.parentStatus,
-              parentPoamId: poamAssociation?.parentPoamId
-            };
-          });
-
-          this.displayDialog = true;
-          this.isLoading = false;
-          resolve();
-        },
-        error: (error) => {
-          this.isLoading = false;
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-          });
-          reject(error);
-        }
-      });
-    });
-  }
-
-  onPluginIDClick(plugin: any, event: Event) {
-    event.stopPropagation();
-    this.isLoadingPluginDetails = true;
-    this.showPluginDetails(plugin);
-  }
-
-  showPluginDetails(plugin: any): Promise<void> {
-    if (!plugin?.pluginID) {
-      this.isLoadingPluginDetails = false;
-      this.showErrorMessage('Invalid plugin ID');
-
-      return Promise.reject('Invalid plugin ID');
-    }
-
-    this.selectedPlugin = plugin;
-
-    const filters = [
-      {
-        filterName: 'pluginID',
-        id: 'pluginID',
-        isPredefined: true,
-        operator: '=',
-        type: 'vuln',
-        value: plugin.pluginID
-      },
-      {
-        filterName: 'repository',
-        id: 'repository',
-        isPredefined: true,
-        operator: '=',
-        type: 'vuln',
-        value: [
-          {
-            id: this.tenableRepoId.toString()
-          }
-        ]
-      }
-    ];
-
-    if (this.selectedHost?.ipAddress) {
-      filters.push({
-        filterName: 'ip',
-        id: 'ip',
-        isPredefined: true,
-        operator: '=',
-        type: 'vuln',
-        value: this.selectedHost.ipAddress
-      });
-    }
-
-    if (this.selectedHost?.dns) {
-      filters.push({
-        filterName: 'dnsName',
-        id: 'dnsName',
-        isPredefined: true,
-        operator: '=',
-        type: 'vuln',
-        value: this.selectedHost.dns
-      });
-    }
-
-    if (plugin.port) {
-      filters.push({
-        filterName: 'port',
-        id: 'port',
-        isPredefined: true,
-        operator: '=',
-        type: 'vuln',
-        value: plugin.port
-      });
-    }
-
-    const analysisParams = {
-      columns: [],
-      query: {
-        context: '',
-        createdTime: 0,
-        description: '',
-        endOffset: 50,
-        filters: filters,
-        groups: [],
-        modifiedTime: 0,
-        name: '',
-        sourceType: 'cumulative',
-        startOffset: 0,
-        status: -1,
-        tool: 'vulndetails',
-        type: 'vuln',
-        vulnTool: 'vulndetails'
-      },
-      sourceType: 'cumulative',
-      type: 'vuln'
-    };
-
-    return new Promise((resolve, reject) => {
-      this.importService.postTenableAnalysis(analysisParams).subscribe({
-        next: (data) => {
-          if (!data?.response?.results?.length) {
-            reject(new Error('Invalid response from postTenableAnalysis'));
-            this.isLoadingPluginDetails = false;
-
-            return;
-          }
-
-          const rawData = data.response.results[0];
-
-          this.pluginDetailData = {
-            ...rawData,
-            firstSeen: this.formatTimestamp(rawData.firstSeen),
-            lastSeen: this.formatTimestamp(rawData.lastSeen),
-            pluginPubDate: this.formatTimestamp(rawData.pluginPubDate),
-            pluginModDate: this.formatTimestamp(rawData.pluginModDate),
-            vulnPubDate: this.formatTimestamp(rawData.vulnPubDate),
-            patchPubDate: this.formatTimestamp(rawData.patchPubDate),
-            seolDate: this.formatTimestamp(rawData.seolDate),
-            acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime),
-            family: rawData.family?.name || '',
-            severity: rawData.severity?.name || ''
-          };
-
-          if (this.pluginDetailData.xref) {
-            this.parseReferences(this.pluginDetailData.xref);
-          } else {
-            this.cveReferences = [];
-            this.iavReferences = [];
-            this.otherReferences = [];
-          }
-
-          this.displayDialog = false;
-          this.displayPluginDialog = true;
-          this.isLoadingPluginDetails = false;
-          resolve();
-        },
-        error: (error) => {
-          this.isLoadingPluginDetails = false;
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-          });
-          reject(error);
-        }
-      });
-    });
-  }
-
-  getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    switch (severity) {
-      case 'Critical':
-      case 'High':
-        return 'danger';
-      case 'Medium':
-        return 'warn';
-      case 'Low':
-      case 'Info':
-        return 'info';
-      default:
-        return 'info';
-    }
-  }
-
-  getPoamStatusColor(status: string, parentStatus?: string): string {
-    const effectiveStatus = status === 'Associated' && parentStatus ? parentStatus : status;
-
-    switch (effectiveStatus?.toLowerCase()) {
-      case 'draft':
-        return 'darkorange';
-      case 'expired':
-      case 'rejected':
-        return 'firebrick';
-      case 'submitted':
-      case 'pending cat-i approval':
-      case 'extension requested':
-        return 'goldenrod';
-      case 'false-positive':
-      case 'closed':
-        return 'black';
-      case 'approved':
-        return 'green';
-      default:
-        return 'gray';
-    }
-  }
-
-  getPoamStatusIcon(status: string, isAssociated?: boolean): string {
-    if (isAssociated) {
-      return 'pi pi-info-circle';
-    }
-
-    switch (status?.toLowerCase()) {
-      case 'no existing poam':
-        return 'pi pi-plus-circle';
-      case 'expired':
-      case 'rejected':
-        return 'pi pi-ban';
-      case 'draft':
-      case 'submitted':
-      case 'pending cat-i approval':
-      case 'extension requested':
-      case 'false-positive':
-      case 'closed':
-      case 'approved':
-        return 'pi pi-check-circle';
-      default:
-        return 'pi pi-question-circle';
-    }
-  }
-
-  getPoamStatusTooltip(status: string | null, hasExistingPoam?: boolean, parentStatus?: string): string {
-    if (!status && status !== '') {
-      return 'No Existing POAM. Click icon to create draft POAM.';
-    }
-
-    if (hasExistingPoam && status === 'Associated') {
-      const parentStatusText = parentStatus ? ` (Parent POAM Status: ${parentStatus})` : '';
-
-      return `This vulnerability is associated with an existing POAM${parentStatusText}. Click icon to view POAM.`;
-    }
-
-    switch (status?.toLowerCase()) {
-      case 'expired':
-      case 'rejected':
-      case 'draft':
-      case 'submitted':
-      case 'pending cat-i approval':
-      case 'extension requested':
-      case 'false-positive':
-      case 'closed':
-      case 'approved':
-        return `POAM Status: ${status}. Click icon to view POAM.`;
-      default:
-        return 'POAM Status Unknown. Click icon to view POAM.';
-    }
-  }
-
-  async onPoamIconClick(vulnerability: any, event: Event) {
-    event.stopPropagation();
-
-    try {
-      if (vulnerability.poam && vulnerability.poamId) {
-        this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
-
-        return;
-      }
-
-      await this.getPluginData(vulnerability.pluginID);
-
-      if (!this.pluginData) {
-        throw new Error('Plugin data not available');
-      }
-
-      this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
-        state: {
-          vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
-          pluginData: this.pluginData,
-          iavNumber: vulnerability.iav || '',
-          iavComplyByDate: vulnerability.navyComplyDate || null
-        }
-      });
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: `Error processing vulnerability data: ${getErrorMessage(error)}`
-      });
-    }
-  }
-
-  getPluginData(pluginID: string): Promise<void> {
-    if (!pluginID) {
-      this.showErrorMessage('Invalid plugin ID');
-
-      return Promise.reject('Invalid plugin ID');
-    }
-
-    return new Promise((resolve, reject) => {
-      this.importService.getTenablePlugin(pluginID).subscribe({
-        next: (data) => {
-          if (!data?.response) {
-            reject(new Error('Invalid response from getTenablePlugin'));
-
-            return;
-          }
-
-          this.pluginData = data.response;
-          resolve();
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-          });
-          reject(error);
-        }
-      });
-    });
-  }
-
-  parseReferences(xref: string) {
-    if (!xref) {
-      this.cveReferences = [];
-      this.iavReferences = [];
-      this.otherReferences = [];
-
-      return;
-    }
-
-    const refs = xref.split(/,\s*/).filter(Boolean);
-
-    this.cveReferences = [];
-    this.iavReferences = [];
-    this.otherReferences = [];
-
-    refs.forEach((ref: string) => {
-      const [refType, ...valueParts] = ref.split('#');
-      const value = valueParts.join('#').replace(/,\s*$/, '').trim();
-
-      if (refType && value) {
-        if (refType.trim() === 'CVE') {
-          this.cveReferences.push({ type: refType.trim(), value });
-        } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType.trim())) {
-          this.iavReferences.push({ type: refType.trim(), value });
-        } else {
-          this.otherReferences.push({ type: refType.trim(), value });
-        }
-      }
-    });
-  }
-
-  parsePluginOutput(pluginText: string): string {
-    if (!pluginText) return '';
-
-    return pluginText.replace(/<plugin_output>/g, '').replace(/<\/plugin_output>/g, '');
-  }
-
-  getIavUrl(iavNumber: string): string {
-    return `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavNumber}`;
-  }
-
-  getCveUrl(cve: string): string {
-    return `https://web.nvd.nist.gov/view/vuln/detail?vulnId=${cve}`;
+    this.displayDialog = true;
   }
 
   showErrorMessage(message: string) {
@@ -762,41 +214,14 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     this.filterValue = '';
   }
 
-  clearHostFindingsTable() {
-    const hostFindingsTable = this.hostFindingsTable();
-
-    if (hostFindingsTable) {
-      hostFindingsTable.clear();
-    }
-
-    this.dialogFilterValue = '';
-    this.selectedPoamStatuses = [];
-    this.selectedSeverities = [];
-  }
-
   onGlobalFilter(event: Event) {
     const value = (event.target as HTMLInputElement).value;
 
     this.hostAssetTable().filterGlobal(value, 'contains');
   }
 
-  onHostFindingsTableFilter(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-
-    this.hostFindingsTable().filterGlobal(value, 'contains');
-  }
-
   exportCSV() {
     this.hostAssetTable().exportCSV();
-  }
-
-  exportHostFindingsTableCSV() {
-    this.hostFindingsTable().exportCSV();
-  }
-
-  goBackToHostDialog() {
-    this.displayPluginDialog = false;
-    this.displayDialog = true;
   }
 
   resetColumnSelections() {
