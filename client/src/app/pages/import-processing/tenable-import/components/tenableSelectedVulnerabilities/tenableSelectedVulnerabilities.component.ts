@@ -28,25 +28,14 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, Subscription, catchError, finalize, map, switchMap } from 'rxjs';
+import { ExportColumn, IAVInfo, ParsedReferences, Reference, SeverityStyle } from '../../../../../common/models/tenable.model';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext } from '../../utils/tenable-vulnerability.utils';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { ImportService } from '../../../import.service';
 
-interface Reference {
-  type: string;
-  value: string;
-}
-interface ExportColumn {
-  title: string;
-  dataKey: string;
-}
-interface IAVInfo {
-  iav: string;
-  navyComplyDate: string;
-  supersededBy: string;
-}
 interface NavyComplyDateFilter {
   label: string;
   value: string;
@@ -486,26 +475,15 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
     this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
       next: (poamData) => {
         if (Array.isArray(poamData)) {
-          this.existingPoamPluginIDs = poamData.reduce(
-            (
-              acc: { [key: string]: { poamId: number; status: string; isAssociated?: boolean; parentStatus?: string; parentPoamId?: number } },
-              item: { vulnerabilityId: string; status: string; poamId: number; parentPoamId?: number; parentStatus?: string }
-            ) => {
-              acc[item.vulnerabilityId] = {
-                poamId: item.poamId,
-                status: item.status,
-                isAssociated: item.status === 'Associated',
-                parentStatus: item.parentStatus,
-                parentPoamId: item.parentPoamId
-              };
-
-              return acc;
-            },
-            {}
-          );
+          this.existingPoamPluginIDs = createPoamAssociationsMap(poamData);
         } else {
           console.error('Unexpected POAM data format:', poamData);
-          this.showErrorMessage('Error loading POAM data. Unexpected data format.');
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error loading POAM data. Unexpected data format.',
+            sticky: true
+          });
         }
       },
       error: (error) => {
@@ -519,77 +497,15 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   getPoamStatusColor(status: string, parentStatus?: string): string {
-    const effectiveStatus = status === 'Associated' && parentStatus ? parentStatus : status;
-
-    switch (effectiveStatus?.toLowerCase()) {
-      case 'draft':
-        return 'darkorange';
-      case 'expired':
-      case 'rejected':
-        return 'firebrick';
-      case 'submitted':
-      case 'pending cat-i approval':
-      case 'extension requested':
-        return 'goldenrod';
-      case 'false-positive':
-      case 'closed':
-        return 'black';
-      case 'approved':
-        return 'green';
-      default:
-        return 'gray';
-    }
+    return getPoamStatusColor(status, parentStatus);
   }
 
   getPoamStatusIcon(status: string, isAssociated?: boolean): string {
-    if (isAssociated) {
-      return 'pi pi-info-circle';
-    }
-
-    switch (status?.toLowerCase()) {
-      case 'no existing poam':
-        return 'pi pi-plus-circle';
-      case 'expired':
-      case 'rejected':
-        return 'pi pi-ban';
-      case 'draft':
-      case 'submitted':
-      case 'pending cat-i approval':
-      case 'extension requested':
-      case 'false-positive':
-      case 'closed':
-      case 'approved':
-        return 'pi pi-check-circle';
-      default:
-        return 'pi pi-question-circle';
-    }
+    return getPoamStatusIcon(status, isAssociated);
   }
 
   getPoamStatusTooltip(status: string | null, hasExistingPoam?: boolean, parentStatus?: string): string {
-    if (!status && status !== '') {
-      return 'No Existing POAM. Click icon to create draft POAM.';
-    }
-
-    if (hasExistingPoam && status === 'Associated') {
-      const parentStatusText = parentStatus ? ` (Parent POAM Status: ${parentStatus})` : '';
-
-      return `This vulnerability is associated with an existing POAM${parentStatusText}. Click icon to view POAM.`;
-    }
-
-    switch (status?.toLowerCase()) {
-      case 'expired':
-      case 'rejected':
-      case 'draft':
-      case 'submitted':
-      case 'pending cat-i approval':
-      case 'extension requested':
-      case 'false-positive':
-      case 'closed':
-      case 'approved':
-        return `POAM Status: ${status}. Click icon to view POAM.`;
-      default:
-        return 'POAM Status Unknown. Click icon to view POAM.';
-    }
+    return getPoamStatusTooltip(status, hasExistingPoam, parentStatus);
   }
 
   onRowClick(vulnerability: any, event: any) {
@@ -634,9 +550,14 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
 
   showDetails(vulnerability: any, createPoam: boolean = false): Promise<void> {
     if (!vulnerability?.pluginID) {
-      this.showErrorMessage('Invalid vulnerability data');
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Invalid Plugin ID',
+        sticky: true
+      });
 
-      return Promise.reject('Invalid vulnerability data');
+      return Promise.reject('Invalid Plugin ID');
     }
 
     return new Promise((resolve, reject) => {
@@ -735,55 +656,27 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
     }
   }
 
-  parseVprContext(vprContext: string) {
-    try {
-      this.parsedVprContext = JSON.parse(vprContext);
-    } catch (error) {
-      console.error('Error parsing VPR context:', error);
-      this.parsedVprContext = [];
-    }
+  parseVprContext(vprContext: string): void {
+    this.parsedVprContext = parseVprContext(vprContext);
   }
 
-  parseReferences(xrefs: string) {
-    const refs = xrefs.split(/\s+/).filter(Boolean);
-
-    this.cveReferences = [];
-    this.iavReferences = [];
-    this.otherReferences = [];
-
-    refs.forEach((ref: string) => {
-      const [refType, ...valueParts] = ref.split(':');
-      const value = valueParts.join(':').replace(/,\s*$/, '').trim();
-
-      if (refType && value) {
-        if (refType === 'CVE') {
-          this.cveReferences.push({ type: refType, value });
-        } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType)) {
-          this.iavReferences.push({ type: refType, value });
-        } else {
-          this.otherReferences.push({ type: refType, value });
-        }
-      } else {
-        console.warn(`Invalid reference: ${ref}`);
-      }
-    });
+  parseReferences(xrefs: string): void {
+    const parsed: ParsedReferences = parseReferences(xrefs);
+    this.cveReferences = parsed.cveReferences;
+    this.iavReferences = parsed.iavReferences;
+    this.otherReferences = parsed.otherReferences;
   }
 
   getCveUrl(cve: string): string {
-    return `https://web.nvd.nist.gov/view/vuln/detail?vulnId=${cve}`;
+    return getCveUrl(cve);
   }
 
   getIavUrl(iavNumber: string): string {
-    return `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavNumber}`;
+    return getIavUrl(iavNumber);
   }
 
-  showErrorMessage(message: string) {
-    this.messageService.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: message,
-      sticky: true
-    });
+  getSeverityStyling(severity: string): SeverityStyle {
+    return getSeverityStyling(severity);
   }
 
   onNavyComplyDateFilterChange(event: any) {
@@ -996,21 +889,6 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
       multiSelect.hide();
     } else {
       multiSelect.show();
-    }
-  }
-
-  getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    switch (severity) {
-      case 'Critical':
-      case 'High':
-        return 'danger';
-      case 'Medium':
-        return 'warn';
-      case 'Low':
-      case 'Info':
-        return 'info';
-      default:
-        return 'info';
     }
   }
 

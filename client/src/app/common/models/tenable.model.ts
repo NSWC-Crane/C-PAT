@@ -12,10 +12,12 @@ export interface Reference {
   type: string;
   value: string;
 }
+
 export interface IdAndName {
   id: string;
   name: string;
 }
+
 export interface CustomFilter {
   id: string;
   filterName: string;
@@ -30,6 +32,7 @@ export interface AssetsFilter {
   operator: string;
   value: any;
 }
+
 export interface AccordionItem {
   header: string;
   content: string;
@@ -40,17 +43,22 @@ export interface AccordionItem {
   validator?: (value: string) => boolean;
   value: number;
 }
+
 export interface IAVInfo {
   iav: string;
   navyComplyDate: string;
+  supersededBy?: string;
 }
+
 export interface TempFilters {
   [key: string]: any;
 }
+
 export interface ExportColumn {
   title: string;
   dataKey: string;
 }
+
 export interface PoamAssociation {
   poamId: number;
   status: string;
@@ -97,4 +105,18 @@ export interface AssetsFilter {
 export interface FilterConfig {
   uiName: string;
   handler: string;
+}
+
+export type SeverityStyle = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
+
+export interface ParsedReferences {
+  cveReferences: Reference[];
+  iavReferences: Reference[];
+  otherReferences: Reference[];
+}
+
+export interface VprContextItem {
+  name: string;
+  type: string;
+  value: any;
 }

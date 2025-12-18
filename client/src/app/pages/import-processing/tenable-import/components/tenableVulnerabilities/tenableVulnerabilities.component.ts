@@ -43,15 +43,18 @@ import {
   FilterValue,
   IAVInfo,
   IdAndName,
+  ParsedReferences,
   PoamAssociation,
   PremadeFilterOption,
   Reference,
+  SeverityStyle,
   TempFilters,
   TenableFilter
 } from '../../../../../common/models/tenable.model';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { createIAVInfoMap, createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext } from '../../utils/tenable-vulnerability.utils';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { ImportService } from '../../../import.service';
@@ -1614,14 +1617,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   private createIAVInfoMap(iavData: any[]): { [key: number]: IAVInfo } {
-    return iavData.reduce((acc: any, item: any) => {
-      acc[item.pluginID] = {
-        iav: item.iav || null,
-        navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null
-      };
-
-      return acc;
-    }, {});
+    return createIAVInfoMap(iavData);
   }
 
   showFilterMenu(event: Event) {
@@ -2764,64 +2760,15 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   getPoamStatusColor(status: string, parentStatus?: string): string {
-    const effectiveStatus = status === 'Associated' && parentStatus ? parentStatus : status;
-
-    switch (effectiveStatus?.toLowerCase()) {
-      case 'draft':
-        return 'darkorange';
-      case 'expired':
-      case 'rejected':
-        return 'firebrick';
-      case 'submitted':
-      case 'pending cat-i approval':
-      case 'extension requested':
-        return 'goldenrod';
-      case 'false-positive':
-      case 'closed':
-        return 'black';
-      case 'approved':
-        return 'green';
-      default:
-        return 'gray';
-    }
+    return getPoamStatusColor(status, parentStatus);
   }
 
   getPoamStatusIcon(status: string, isAssociated?: boolean): string {
-    if (isAssociated) {
-      return 'pi pi-info-circle';
-    }
-
-    switch (status?.toLowerCase()) {
-      case 'no existing poam':
-        return 'pi pi-plus-circle';
-      case 'expired':
-      case 'rejected':
-        return 'pi pi-ban';
-      case 'draft':
-      case 'submitted':
-      case 'pending cat-i approval':
-      case 'extension requested':
-      case 'false-positive':
-      case 'closed':
-      case 'approved':
-        return 'pi pi-check-circle';
-      default:
-        return 'pi pi-question-circle';
-    }
+    return getPoamStatusIcon(status, isAssociated);
   }
 
   getPoamStatusTooltip(status: string | null, hasExistingPoam?: boolean, parentStatus?: string): string {
-    if (!status || status === 'No Existing POAM') {
-      return 'No Existing POAM. Click icon to create draft POAM.';
-    }
-
-    if (hasExistingPoam && status === 'Associated') {
-      const parentStatusText = parentStatus ? ` (Parent POAM Status: ${parentStatus})` : '';
-
-      return `This vulnerability is associated with an existing POAM${parentStatusText}. Click icon to view POAM.`;
-    }
-
-    return `POAM Status: ${status}. Click to view POAM.`;
+    return getPoamStatusTooltip(status, hasExistingPoam, parentStatus);
   }
 
   showDetails(vulnerability: any, createPoam: boolean = false): Promise<void> {
@@ -2881,46 +2828,23 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     });
   }
 
-  parseVprContext(vprContext: string) {
-    try {
-      this.parsedVprContext = JSON.parse(vprContext);
-    } catch (error) {
-      console.error('Error parsing VPR context:', error);
-      this.parsedVprContext = [];
-    }
+  parseVprContext(vprContext: string): void {
+    this.parsedVprContext = parseVprContext(vprContext);
   }
 
-  parseReferences(xrefs: string) {
-    const refs = xrefs.split(/\s+/).filter(Boolean);
-
-    this.cveReferences = [];
-    this.iavReferences = [];
-    this.otherReferences = [];
-
-    refs.forEach((ref: string) => {
-      const [refType, ...valueParts] = ref.split(':');
-      const value = valueParts.join(':').replace(/,\s*$/, '').trim();
-
-      if (refType && value) {
-        if (refType === 'CVE') {
-          this.cveReferences.push({ type: refType, value });
-        } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType)) {
-          this.iavReferences.push({ type: refType, value });
-        } else {
-          this.otherReferences.push({ type: refType, value });
-        }
-      } else {
-        console.warn(`Invalid reference: ${ref}`);
-      }
-    });
+  parseReferences(xrefs: string): void {
+    const parsed: ParsedReferences = parseReferences(xrefs);
+    this.cveReferences = parsed.cveReferences;
+    this.iavReferences = parsed.iavReferences;
+    this.otherReferences = parsed.otherReferences;
   }
 
   getCveUrl(cve: string): string {
-    return `https://web.nvd.nist.gov/view/vuln/detail?vulnId=${cve}`;
+    return getCveUrl(cve);
   }
 
   getIavUrl(iavNumber: string): string {
-    return `https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavNumber}`;
+    return getIavUrl(iavNumber);
   }
 
   resetColumnSelections() {
@@ -2947,17 +2871,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     return this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).pipe(
       map((poamData) => {
         if (Array.isArray(poamData)) {
-          this.existingPoamPluginIDs = poamData.reduce((acc: { [key: string]: PoamAssociation }, item: { vulnerabilityId: string; poamId: number; status: string; parentPoamId?: number; parentStatus?: string }) => {
-            acc[item.vulnerabilityId] = {
-              poamId: item.poamId,
-              status: item.status,
-              isAssociated: item.status === 'Associated',
-              parentStatus: item.parentStatus,
-              parentPoamId: item.parentPoamId
-            };
-
-            return acc;
-          }, {});
+          this.existingPoamPluginIDs = createPoamAssociationsMap(poamData);
 
           return this.existingPoamPluginIDs;
         } else {
@@ -2976,19 +2890,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     );
   }
 
-  getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    switch (severity) {
-      case 'Critical':
-      case 'High':
-        return 'danger';
-      case 'Medium':
-        return 'warn';
-      case 'Low':
-      case 'Info':
-        return 'info';
-      default:
-        return 'info';
-    }
+  getSeverityStyling(severity: string): SeverityStyle {
+    return getSeverityStyling(severity);
   }
 
   onTableFilter(event: any) {
