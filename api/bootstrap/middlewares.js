@@ -9,7 +9,6 @@
 */
 
 const path = require('node:path');
-const multer = require('multer');
 const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
@@ -22,13 +21,11 @@ const { requestLogger } = require('../utils/logger');
 const state = require('../utils/state');
 const logger = require('../utils/logger');
 const proxy = require('express-http-proxy');
-const url = require('url');
 const RateLimit = require('express-rate-limit');
 
 function configureMiddleware(app) {
     const middlewareConfigFunctions = [
         configureProxy,
-        configureMulter,
         configureExpress,
         configureCors,
         configureRateLimit,
@@ -52,16 +49,6 @@ function configureMiddleware(app) {
 
 function configureProxy(app) {
     app.set('trust proxy', true);
-}
-
-function configureMulter(app) {
-    let storage = multer.memoryStorage();
-    const upload = multer({
-        storage,
-        limits: {
-            fileSize: Number.parseInt(config.http.maxUpload),
-        },
-    });
 }
 
 function configureCors(app) {
@@ -111,15 +98,12 @@ function configureServiceCheck(app) {
 
 function configureTenableProxy(app) {
     if (config.tenable.enabled) {
+        const tenableBaseUrl = config.tenable.url.replace(/\/+$/, '');
         app.use(
             '/api/tenable',
-            proxy(config.tenable.url, {
+            proxy(tenableBaseUrl, {
                 proxyReqPathResolver: function (req) {
-                    const baseUrl = config.tenable.url.endsWith('/') ? config.tenable.url.slice(0, -1) : config.tenable.url;
-                    const path = '/rest' + req.url.replace('/api/tenable', '');
-                    const fullUrl = url.resolve(baseUrl, path);
-
-                    return fullUrl;
+                    return '/rest' + req.url;
                 },
                 proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
                     const cleanHeaders = {};
