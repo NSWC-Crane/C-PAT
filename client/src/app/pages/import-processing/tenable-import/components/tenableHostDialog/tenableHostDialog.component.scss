@@ -1,0 +1,45 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .right-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+}
+
+::ng-deep .pluginDialog {
+  max-height: 85vh;
+  overflow-y: auto;
+  margin-top: 2rem;
+}
+
+.outputData {
+  background-color: var(--ground-background);
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  overflow: auto;
+  max-height: 500px;
+}
+
+.outputData pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+}
+
+::ng-deep h3 {
+  margin: 0rem !important;
+}
