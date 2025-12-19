@@ -22,6 +22,7 @@ import { EMPTY, Observable, catchError, combineLatest, forkJoin, map, of, switch
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
+import { MetricData } from '../../../common/models/metrics.model';
 
 interface SeveritySummary {
   critical: number;
@@ -29,17 +30,6 @@ interface SeveritySummary {
   medium: number;
   low: number;
   info: number;
-}
-
-interface MetricData {
-  label: string;
-  tooltip?: string;
-  origin?: string;
-  value: number | string;
-  category?: string;
-  severity?: string;
-  isPercentage?: boolean;
-  isLoading?: boolean;
 }
 
 interface VulnerabilityMetrics {
