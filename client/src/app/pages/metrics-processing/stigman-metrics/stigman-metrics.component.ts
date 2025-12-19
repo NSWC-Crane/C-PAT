@@ -153,7 +153,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
       datasets: [
         {
           data: [m.catIOpenRawCount, m.catIIOpenRawCount, m.catIIIOpenRawCount],
-          backgroundColor: ['rgba(240, 90, 106, 0.8)', 'rgba(251, 167, 50, 0.8)', 'rgba(230, 185, 44, 0.8)'],
+          backgroundColor: ['rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(230, 185, 45, 0.8)'],
           opacity: 0.8,
           hoverBorderColor: cardBackgroundColor,
           borderWidth: 8,
@@ -193,8 +193,8 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         {
           label: 'Assessment Count',
           data: [m.acceptedCount, m.submittedCount, m.rejectedCount, assessedOnly, unassessedCount],
-          backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(230, 185, 44, 0.8)', 'rgba(240, 90, 106, 0.8)', 'rgba(251, 167, 50, 0.8)', 'rgba(170, 170, 170, 0.8)'],
-          borderColor: ['rgba(16, 185, 129, 0.8)', 'rgba(230, 185, 44, 0.8)', 'rgba(240, 90, 106, 0.8)', 'rgba(251, 167, 50, 0.8)', 'rgba(170, 170, 170, 0.8)'],
+          backgroundColor: ['rgba(15, 185, 130, 0.8)', 'rgba(230, 185, 45, 0.8)', 'rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(170, 170, 170, 0.8)'],
+          borderColor: ['rgba(15, 185, 130, 0.8)', 'rgba(230, 185, 45, 0.8)', 'rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(170, 170, 170, 0.8)'],
           borderWidth: 1,
           barThickness: 28,
           borderRadius: {
@@ -545,7 +545,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
 
   getCoraRiskColor(riskScore: number): string {
     if (riskScore >= 90) {
-      return 'rgba(240, 90, 106, 0.8)';
+      return '#f05a69cc';
     } else if (riskScore >= 80) {
       return '#f05a6a';
     } else if (riskScore >= 70) {

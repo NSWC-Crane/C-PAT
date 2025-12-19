@@ -903,7 +903,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       datasets: [
         {
           data: [m.catIOpenCount30Days, m.catIIOpenCount30Days, m.catIIIOpenCount30Days],
-          backgroundColor: ['rgba(236, 72, 99, 0.8)', 'rgba(251, 167, 50, 0.8)', 'rgba(230, 215, 44, 0.8)'],
+          backgroundColor: ['rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(230, 185, 45, 0.8)'],
           opacity: 0.8,
           hoverBorderColor: cardBackgroundColor,
           borderWidth: 8,
@@ -918,7 +918,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       datasets: [
         {
           data: [m.catIOpenCount, m.catIIOpenCount, m.catIIIOpenCount],
-          backgroundColor: ['rgba(236, 72, 99, 0.8)', 'rgba(251, 167, 50, 0.8)', 'rgba(230, 215, 44, 0.8)'],
+          backgroundColor: ['rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(230, 185, 45, 0.8)'],
           opacity: 0.8,
           hoverBorderColor: cardBackgroundColor,
           borderWidth: 8,
