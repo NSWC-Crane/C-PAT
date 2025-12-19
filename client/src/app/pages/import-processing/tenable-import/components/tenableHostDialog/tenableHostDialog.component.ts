@@ -72,6 +72,18 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   private subscriptions = new Subscription();
   private dataLoaded: boolean = false;
 
+  get hostDns(): string {
+    return this.host?.dnsName || this.host?.dns || '';
+  }
+
+  get hostIp(): string {
+    return this.host?.ipAddress || this.host?.ip || '';
+  }
+
+  get hostName(): string {
+    return this.host?.name || this.host?.netbiosName?.split('\\').pop() || '';
+  }
+
   constructor() {
     this.initColumns();
   }
@@ -133,7 +145,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   }
 
   private loadData(): void {
-    if (!this.host?.dns && !this.host?.ipAddress) {
+    if (!this.hostDns && !this.hostIp) {
       this.showErrorMessage('DNS or IP Address is required');
       return;
     }
@@ -159,12 +171,12 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
           {
             filterName: 'dnsName',
             operator: '=',
-            value: this.host.dns
+            value: this.hostDns
           },
           {
             filterName: 'ip',
             operator: '=',
-            value: this.host.ipAddress || ''
+            value: this.hostIp
           }
         ]
       },
@@ -175,10 +187,10 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
     };
 
     this.subscriptions.add(
-      this.sharedService.selectedCollection.pipe(first()).subscribe(collectionId => {
+      this.sharedService.selectedCollection.pipe(first()).subscribe((collectionId) => {
         const poamAssociations$ = collectionId
           ? this.poamService.getVulnerabilityIdsWithPoamByCollection(collectionId).pipe(
-              catchError(error => {
+              catchError((error) => {
                 this.messageService.add({
                   severity: 'error',
                   summary: 'Error',
@@ -314,25 +326,25 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
       }
     ];
 
-    if (this.host?.ipAddress) {
+    if (this.hostIp) {
       filters.push({
         filterName: 'ip',
         id: 'ip',
         isPredefined: true,
         operator: '=',
         type: 'vuln',
-        value: this.host.ipAddress
+        value: this.hostIp
       });
     }
 
-    if (this.host?.dns) {
+    if (this.hostDns) {
       filters.push({
         filterName: 'dnsName',
         id: 'dnsName',
         isPredefined: true,
         operator: '=',
         type: 'vuln',
-        value: this.host.dns
+        value: this.hostDns
       });
     }
 
