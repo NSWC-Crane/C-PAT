@@ -50,9 +50,3 @@
     position: relative;
   }
 }
-
-::ng-deep .pluginDialog {
-  max-height: 85vh;
-  overflow-y: auto;
-  margin-top: 2rem;
-}

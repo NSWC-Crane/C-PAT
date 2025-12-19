@@ -20,10 +20,10 @@
   }
 }
 
-::ng-deep .pluginDialog {
+::ng-deep .pluginDialog,
+::ng-deep .hostDialog {
   max-height: 85vh;
   overflow-y: auto;
-  margin-top: 2rem;
 }
 
 .outputData {

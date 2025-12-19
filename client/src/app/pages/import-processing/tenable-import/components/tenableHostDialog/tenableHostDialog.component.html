@@ -12,58 +12,86 @@
   <ng-template pTemplate="content">
     @if (host) {
       <div class="card mb-4">
-        <div class="p-col-12 mb-4">
-          <h3>Host Information</h3>
-        </div>
+        @if (this.hostName || this.hostDns || host.systemType || host.os || host.ipAddress || host.macAddress || host.uuid) {
+          <div class="p-col-12 mb-4">
+            <h3>Host Information</h3>
+          </div>
 
-        <div class="p-col-12 mb-2" style="display: flex">
-          <div style="width: 250px; color: var(--text-secondary-color)">NAME</div>
-          <div>{{ host.name }}</div>
-        </div>
+          @if (this.hostName) {
+            <div class="p-col-12 mb-2" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">NAME</div>
+              <div>{{ this.hostName }}</div>
+            </div>
+          }
 
-        <div class="p-col-12 mb-2" style="display: flex">
-          <div style="width: 250px; color: var(--text-secondary-color)">SYSTEM TYPE</div>
-          <div>{{ host.systemType }}</div>
-        </div>
+          @if (this.hostDns) {
+            <div class="p-col-12 mb-2" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">DNS</div>
+              <div>{{ this.hostDns }}</div>
+            </div>
+          }
 
-        <div class="p-col-12 mb-2" style="display: flex">
-          <div style="width: 250px; color: var(--text-secondary-color)">OPERATING SYSTEM</div>
-          <div>{{ host.os }}</div>
-        </div>
+          @if (host.systemType) {
+            <div class="p-col-12 mb-2" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">SYSTEM TYPE</div>
+              <div>{{ host.systemType }}</div>
+            </div>
+          }
 
-        <div class="p-col-12 mb-2" style="display: flex">
-          <div style="width: 250px; color: var(--text-secondary-color)">IP ADDRESSES</div>
-          <div>{{ host.ipAddress }}</div>
-        </div>
+          @if (host.os) {
+            <div class="p-col-12 mb-2" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">OPERATING SYSTEM</div>
+              <div>{{ host.os }}</div>
+            </div>
+          }
 
-        <div class="p-col-12 mb-2" style="display: flex">
-          <div style="width: 250px; color: var(--text-secondary-color)">MAC ADDRESSES</div>
-          <div>{{ host.macAddress }}</div>
-        </div>
+          @if (host.ipAddress) {
+            <div class="p-col-12 mb-2" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">IP ADDRESSES</div>
+              <div>{{ host.ipAddress }}</div>
+            </div>
+          }
 
-        <div class="p-col-12 mb-8" style="display: flex">
-          <div style="width: 250px; color: var(--text-secondary-color)">HOST ID</div>
-          <div>{{ host.uuid }}</div>
-        </div>
+          @if (host.macAddress) {
+            <div class="p-col-12 mb-2" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">MAC ADDRESSES</div>
+              <div>{{ host.macAddress }}</div>
+            </div>
+          }
 
-        <div class="p-col-12 mb-4">
-          <h3>Scan Information</h3>
-        </div>
+          @if (host.uuid) {
+            <div class="p-col-12 mb-8" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">HOST ID</div>
+              <div>{{ host.uuid }}</div>
+            </div>
+          }
+        }
+        @if (host.firstSeen || host.lastSeen || host.source) {
+          <div class="p-col-12 mb-4">
+            <h3>Scan Information</h3>
+          </div>
 
-        <div class="p-col-12 mb-2" style="display: flex">
-          <div style="width: 250px; color: var(--text-secondary-color)">FIRST SEEN</div>
-          <div>{{ host.firstSeen }}</div>
-        </div>
+          @if (host.firstSeen) {
+            <div class="p-col-12 mb-2" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">FIRST SEEN</div>
+              <div>{{ host.firstSeen }}</div>
+            </div>
+          }
 
-        <div class="p-col-12 mb-2" style="display: flex">
-          <div style="width: 250px; color: var(--text-secondary-color)">LAST SEEN</div>
-          <div>{{ host.lastSeen }}</div>
-        </div>
+          @if (host.lastSeen) {
+            <div class="p-col-12 mb-2" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">LAST SEEN</div>
+              <div>{{ host.lastSeen }}</div>
+            </div>
+          }
 
-        <div class="p-col-12" style="display: flex">
-          <div style="width: 250px; color: var(--text-secondary-color)">SOURCE</div>
-          <div>{{ host.source }}</div>
-        </div>
+          @if (host.source) {
+            <div class="p-col-12" style="display: flex">
+              <div style="width: 250px; color: var(--text-secondary-color)">SOURCE</div>
+              <div>{{ host.source }}</div>
+            </div>
+          }
+        }
       </div>
     }
     <div class="card">
