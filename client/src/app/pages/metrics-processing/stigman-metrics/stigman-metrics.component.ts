@@ -22,16 +22,7 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ChartModule } from 'primeng/chart';
 import { DividerModule } from 'primeng/divider';
-
-interface MetricData {
-  label: string;
-  tooltip?: string;
-  origin?: string;
-  value: number | string;
-  severity?: string;
-  isPercentage?: boolean;
-  isLoading?: boolean;
-}
+import { MetricData } from '../../../common/models/metrics.model';
 
 interface STIGManagerMetrics {
   assetCount: number;
