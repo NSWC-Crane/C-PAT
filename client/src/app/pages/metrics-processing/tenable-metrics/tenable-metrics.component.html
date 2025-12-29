@@ -74,18 +74,54 @@
       <div class="absolute w-full">
         <div class="absolute" [style.left.%]="tenableMetrics().vphScore < 2.5 ? 100 : tenableMetrics().vphScore > 3.5 ? 0 : 100 - (tenableMetrics().vphScore - 2.5) * 100" style="transform: translateX(-50%); z-index: 10">
           <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
-            <div
-              class="px-3 py-2 rounded-lg font-bold text-center"
-              [style.background-color]="getVPHColor(tenableMetrics().vphScore)"
-              style="opacity: 0.9; color: white"
-              pTooltip="VPH Formula: (((Critical Vulns + High Vulns) / Valid Hosts × 10) + (Medium Vulns / Valid Hosts × 4) + (Low Vulns / Valid Hosts × 1)) ÷ (10 + 4 + 1)
-
-Valid Hosts: {{ tenableMetrics().validOnlineAssets }}
-Host Time Range: {{ hostTimeRange() === 'all' ? 'All Time' : 'Last ' + hostTimeRange() + ' Days' }}
-Findings Time Range: {{ lastObservedTimeRange() === 'all' ? 'All Time' : 'Last ' + lastObservedTimeRange() + ' Days' }}"
-            >
+            <div class="px-3 py-2 rounded-lg font-bold text-center" [style.background-color]="getVPHColor(tenableMetrics().vphScore)" style="opacity: 0.9; color: white" [pTooltip]="vphTooltip" tooltipStyleClass="wide-tooltip" appendTo="body">
               {{ isLoading() ? '-' : tenableMetrics().vphScore.toFixed(2) }}
             </div>
+            <ng-template #vphTooltip>
+              <div class="flex flex-col gap-3 text-sm">
+                <div><span class="font-semibold">Vulnerabilities Per Host (VPH)</span></div>
+                <div class="font-semibold">Formula:</div>
+                <code class="inline-block self-start bg-black/30 px-2 py-1 rounded text-xs">(((C + H) / Hosts × 10) + (M / Hosts × 4) + (L / Hosts × 1)) ÷ 15</code>
+                <div>
+                  where:<br />
+                  <code class="text-xs">C</code> = Critical Vulnerabilities<br />
+                  <code class="text-xs">H</code> = High Vulnerabilities<br />
+                  <code class="text-xs">M</code> = Medium Vulnerabilities<br />
+                  <code class="text-xs">L</code> = Low Vulnerabilities<br />
+                  <code class="text-xs">Hosts</code> = Valid Online Assets
+                </div>
+                <div class="border-t border-gray-600 pt-3">
+                  <span class="font-semibold">Current Parameters:</span>
+                  <ul class="ml-4 mt-1 list-disc">
+                    <li>
+                      Valid Hosts: <span class="font-semibold">{{ tenableMetrics().validOnlineAssets }}</span>
+                    </li>
+                    <li>
+                      Host Time Range: <span class="font-semibold">{{ hostTimeRange() === 'all' ? 'All Time' : 'Last ' + hostTimeRange() + ' Days' }}</span>
+                    </li>
+                    <li>
+                      Findings Time Range: <span class="font-semibold">{{ lastObservedTimeRange() === 'all' ? 'All Time' : 'Last ' + lastObservedTimeRange() + ' Days' }}</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="border-t border-gray-600 pt-3">
+                  <span class="font-semibold">Risk Rating:</span>
+                  <ul class="ml-4 mt-1 list-disc space-y-1">
+                    <li>
+                      <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(235, 70, 100, 0.75); color: rgba(255, 255, 255, 0.9)">High</span> <span class="font-semibold ml-1">≥ 3.5</span>
+                    </li>
+                    <li>
+                      <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(250, 165, 50, 0.75); color: rgba(255, 255, 255, 0.9)">Medium</span>
+                      <span class="font-semibold ml-1">≥ 2.5 and &lt; 3.5</span>
+                    </li>
+                    <li>
+                      <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(15, 185, 130, 0.75); color: rgba(255, 255, 255, 0.9)">Low</span>
+                      <span class="font-semibold ml-1">&lt; 2.5</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </ng-template>
           </div>
           <div class="absolute left-1/2 transform -translate-x-1/2" style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px">
             <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px"></div>

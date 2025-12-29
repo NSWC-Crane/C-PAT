@@ -27,14 +27,55 @@
               class="px-3 py-2 rounded-lg font-bold text-center"
               [style.background-color]="getCoraRiskColor(stigManagerMetrics().coraRiskScore)"
               style="opacity: 0.9; color: white"
-              pTooltip="CORA Risk formula:
-    (CAT I Risk % × 10 + CAT II Risk % × 4 + CAT III Risk % × 1) ÷ 15
-
-    Where each risk % = (Open + Unassessed) ÷ Total × 100"
+              [pTooltip]="coraRiskTooltip"
+              tooltipStyleClass="wide-tooltip"
+              appendTo="body"
               tooltipPosition="left"
             >
               {{ isLoading() ? '-' : stigManagerMetrics().coraRiskScore.toFixed(0) + '%' }}
             </div>
+
+            <ng-template #coraRiskTooltip>
+              <div class="flex flex-col gap-3 text-sm">
+                <div><span class="font-semibold">Cyber Operational Readiness Assessment (CORA)</span> evaluates the effectiveness of security controls and operational processes.</div>
+                <div><span class="font-semibold">Risk Rating</span> is calculated from a <span class="font-semibold">Weighted Average</span> that reflects the number and severity of <i>open</i> or <i>unassessed</i> rules.</div>
+                <div>
+                  Reviews with <i>Open</i>, <i>Not a Finding</i>, or <i>Not Applicable</i> results are considered <i>assessed</i>.<br />
+                  Reviews with other results (such as <i>Not Reviewed</i> or <i>Informational</i>) are treated as <i>unassessed</i>.
+                </div>
+                <div>Each severity category (CAT I, II, III) is weighted differently when calculating the overall score:</div>
+                <div class="font-semibold">Weighted Average formula:</div>
+                <code class="self-start bg-black/30 px-2 py-1 rounded text-xs">(p₁·w₁ + p₂·w₂ + p₃·w₃) / (w₁ + w₂ + w₃)</code>
+                <div>
+                  Where:<br />
+                  <code class="text-xs">pₙ</code> = % of open + unassessed rules in that category<br />
+                  <code class="text-xs">wₙ</code> = weight <span class="font-semibold">(CAT I = 10, CAT II = 4, CAT III = 1)</span>
+                </div>
+                <div>The <span class="font-semibold">Risk Rating</span> is primarily determined by the <span class="font-semibold">Weighted Average</span>, except for the special "Low" risk condition:</div>
+                <ul class="ml-4 list-disc space-y-1">
+                  <li>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(235, 70, 100, 0.75); color: rgba(255, 255, 255, 0.9)">Very High</span>
+                    <span class="font-semibold ml-1">≥ 20%</span>
+                  </li>
+                  <li>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(245, 125, 70, 0.75); color: rgba(255, 255, 255, 0.9)">High</span>
+                    <span class="font-semibold ml-1">≥ 10% and &lt; 20%</span>
+                  </li>
+                  <li>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(250, 165, 50, 0.75); color: rgba(255, 255, 255, 0.9)">Moderate</span>
+                    <span class="font-semibold ml-1">&gt; 0% and &lt; 10%</span>
+                  </li>
+                  <li>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(230, 190, 45, 0.75); color: rgba(255, 255, 255, 0.9)">Low</span>
+                    <span class="font-semibold ml-1">CAT I = 0; CAT II &amp; III each &lt; 5% <i>unweighted</i></span>
+                  </li>
+                  <li>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(15, 185, 130, 0.75); color: rgba(255, 255, 255, 0.9)">Very Low</span>
+                    <span class="font-semibold ml-1">0% total</span>
+                  </li>
+                </ul>
+              </div>
+            </ng-template>
           </div>
           <div class="absolute left-1/2 transform -translate-x-1/2" style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px">
             <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px"></div>
