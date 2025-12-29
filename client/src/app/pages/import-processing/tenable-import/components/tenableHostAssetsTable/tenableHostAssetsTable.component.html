@@ -17,7 +17,7 @@
             <p-inputIcon>
               <i class="pi pi-search"></i>
             </p-inputIcon>
-            <input pInputText type="text" class="w-48" id="search" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Global Search" />
+            <input pInputText type="text" id="search" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search..." />
           </p-iconField>
           <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
         </div>

@@ -101,7 +101,7 @@
             <p-inputIcon>
               <i class="pi pi-search"></i>
             </p-inputIcon>
-            <input pInputText type="text" class="w-48" [(ngModel)]="dialogFilterValue" (input)="onHostFindingsTableFilter($event)" placeholder="Search Findings" />
+            <input pInputText type="text" [(ngModel)]="dialogFilterValue" (input)="onHostFindingsTableFilter($event)" placeholder="Search..." />
           </p-iconField>
           <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clearHostFindingsTable()" pTooltip="Clear all filters" />
         </div>

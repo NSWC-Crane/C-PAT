@@ -51,7 +51,7 @@
           <p-inputIcon>
             <i class="pi pi-search"></i>
           </p-inputIcon>
-          <input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Global Search" />
+          <input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Search..." />
         </p-iconField>
         <p-button #mapButton class="ml-4" variant="outlined" label="Map Plugins to IAV" (onClick)="updatePluginIds()" [disabled]="isUpdating" />
         <p-button class="ml-auto" icon="pi pi-filter-slash" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Clear" (onClick)="clear(dt)" />
