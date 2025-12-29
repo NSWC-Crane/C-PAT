@@ -82,3 +82,11 @@ svg[data-p-icon='filter-fill'] path {
     margin-bottom: 0.75rem;
   }
 }
+
+.p-tooltip.wide-tooltip {
+  max-width: none;
+
+  .p-tooltip-text {
+    max-width: none;
+  }
+}
