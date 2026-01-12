@@ -2,7 +2,7 @@ import sphinx_rtd_theme
 
 # Project information
 project = 'C-PAT'
-copyright = '2025 U.S. Federal Government (in countries where recognized)'
+copyright = '2026 U.S. Federal Government (in countries where recognized)'
 author = 'Christian Rodriguez'
 release = '1.2.13'
 version = '1.2.13'
