@@ -183,6 +183,14 @@ export class PoamManageComponent implements OnInit, OnDestroy {
               type: 'vuln',
               isPredefined: true,
               value: [{ id: collectionId.toString() }]
+            },
+            {
+              id: 'severity',
+              filterName: 'severity',
+              operator: '=',
+              value: '1,2,3,4',
+              type: 'vuln',
+              isPredefined: true
             }
           ]
         },
