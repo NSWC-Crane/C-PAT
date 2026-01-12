@@ -32,7 +32,7 @@
               appendTo="body"
               tooltipPosition="left"
             >
-              {{ isLoading() ? '-' : stigManagerMetrics().coraRiskScore.toFixed(0) + '%' }}
+              {{ isLoading() ? '-' : stigManagerMetrics().coraRiskScore.toFixed(1) + '%' }}
             </div>
 
             <ng-template #coraRiskTooltip>
@@ -66,11 +66,11 @@
                     <span class="font-semibold ml-1">&gt; 0% and &lt; 10%</span>
                   </li>
                   <li>
-                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(230, 190, 45, 0.75); color: rgba(255, 255, 255, 0.9)">Low</span>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(230, 190, 45, 0.85); color: rgba(255, 255, 255, 0.9)">Low</span>
                     <span class="font-semibold ml-1">CAT I = 0; CAT II &amp; III each &lt; 5% <i>unweighted</i></span>
                   </li>
                   <li>
-                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(15, 185, 130, 0.75); color: rgba(255, 255, 255, 0.9)">Very Low</span>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(100, 185, 120, 0.75); color: rgba(255, 255, 255, 0.9)">Very Low</span>
                     <span class="font-semibold ml-1">0% total</span>
                   </li>
                 </ul>
@@ -90,7 +90,10 @@
         <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
       </div>
 
-      <div class="relative rounded-full h-10 overflow-hidden shadow-lg" style="background: linear-gradient(to right, rgba(235, 70, 100, 0.8) 0%, rgba(250, 145, 60, 0.8) 33%, rgba(250, 190, 35, 0.8) 66%, rgba(15, 185, 130, 0.8) 100%)"></div>
+      <div
+        class="relative rounded-full h-10 overflow-hidden shadow-lg"
+        style="background: linear-gradient(to right, rgba(235, 70, 100, 0.8) 0%, rgba(235, 70, 100, 0.8) 75%, rgba(245, 125, 70, 0.8) 80%, rgba(230, 190, 45, 0.8) 92%, rgba(100, 185, 120, 0.8) 100%)"
+      ></div>
     </div>
   </div>
 
@@ -113,7 +116,7 @@
         <span class="text-xs text-gray-300">Low</span>
       </div>
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(15, 185, 130, 0.8)"></div>
+        <div class="w-8 h-3 rounded-full" style="background-color: rgba(100, 185, 120, 0.8)"></div>
         <span class="text-xs text-gray-300">Very Low</span>
       </div>
     </div>

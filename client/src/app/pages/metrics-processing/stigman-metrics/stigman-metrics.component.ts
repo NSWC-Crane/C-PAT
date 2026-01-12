@@ -148,6 +148,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   private prepareChartsData() {
     const m = this.stigManagerMetrics();
     const cardBackgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--card-background').trim();
+
     this.findingsChartData.set({
       labels: ['High', 'Medium', 'Low'],
       datasets: [
@@ -248,6 +249,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
               if (hasKiorLabel) kiorVulnIds.add(poam.vulnerabilityId);
               if (isApproved) approvedVulnIds.add(poam.vulnerabilityId);
             }
+
             poam.associatedVulnerabilities?.forEach((id: string) => {
               if (hasKiorLabel) kiorVulnIds.add(id);
               if (isApproved) approvedVulnIds.add(id);
@@ -267,6 +269,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
             if (!findingsByBenchmark.has(s.benchmarkId)) {
               findingsByBenchmark.set(s.benchmarkId, []);
             }
+
             findingsByBenchmark.get(s.benchmarkId)!.push(f);
           });
         });
@@ -480,8 +483,10 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
           ? 'low'
           : (() => {
               const percentage = (m.fullyAssessedSTIGsCount / m.totalSTIGsCount) * 100;
+
               if (percentage <= 25) return 'high';
               if (percentage <= 75) return 'medium';
+
               return 'low';
             })(),
         isLoading: loading
@@ -544,27 +549,25 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   }
 
   getCoraRiskColor(riskScore: number): string {
-    if (riskScore >= 90) {
-      return '#f05a69cc';
-    } else if (riskScore >= 80) {
-      return '#f05a6a';
-    } else if (riskScore >= 70) {
-      return '#f56e54';
-    } else if (riskScore >= 60) {
-      return '#fb923c';
-    } else if (riskScore >= 50) {
-      return '#fca726';
-    } else if (riskScore >= 40) {
-      return '#fbbf24';
-    } else if (riskScore >= 30) {
-      return '#e4d02b';
-    } else if (riskScore >= 20) {
-      return '#a3e635';
-    } else if (riskScore >= 10) {
-      return '#4ade80';
-    } else {
-      return '#10b981';
+    const m = this.stigManagerMetrics();
+
+    if (riskScore === 0) {
+      return 'rgba(15, 185, 130, 0.8)';
     }
+
+    if (m.coraRiskRating === 'Low') {
+      return 'rgba(230, 190, 45, 0.85)';
+    }
+
+    if (riskScore >= 20) {
+      return 'rgba(235, 70, 100, 0.8)';
+    }
+
+    if (riskScore >= 10) {
+      return 'rgba(245, 125, 70, 0.8)';
+    }
+
+    return 'rgba(250, 165, 50, 0.8)';
   }
 
   setChartOptions() {
@@ -660,9 +663,11 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         row
           .map((cell) => {
             const cellStr = String(cell || '');
+
             if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
               return `"${cellStr.replace(/"/g, '""')}"`;
             }
+
             return cellStr;
           })
           .join(',')
