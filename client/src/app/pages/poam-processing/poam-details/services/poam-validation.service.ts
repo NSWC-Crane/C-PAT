@@ -150,10 +150,12 @@ export class PoamValidationService {
         };
       }
 
-      if (!poamMilestones || poamMilestones.length < 1) {
+      const pendingMilestones = poamMilestones?.filter((milestone) => milestone.milestoneStatus === 'Pending') ?? [];
+
+      if (pendingMilestones.length < 1) {
         return {
           valid: false,
-          message: 'A minimum of 1 POAM milestone is required before a Global POAM can be submitted for review.'
+          message: 'A minimum of one POAM milestone in a Pending status is required before a Global POAM can be submitted for review.'
         };
       }
     } else {
@@ -202,6 +204,15 @@ export class PoamValidationService {
             message: `Teams "${teamNames}" are missing milestones. All teams must have milestones for submission.`
           };
         }
+      }
+
+      const pendingMilestones = poamMilestones?.filter((milestone) => milestone.milestoneStatus === 'Pending') ?? [];
+
+      if (pendingMilestones.length < 1) {
+        return {
+          valid: false,
+          message: 'A minimum of one POAM milestone in a Pending status is required before the POAM can be submitted for review.'
+        };
       }
     }
 
