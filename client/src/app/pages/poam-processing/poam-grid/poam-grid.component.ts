@@ -356,6 +356,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
       const exportName = this.selectedCollection()?.collectionName.replace(' ', '_');
 
       const link = document.createElement('a');
+
       link.id = 'download-excel';
       link.setAttribute('href', excelURL);
       link.setAttribute('download', `${exportName}_CPAT_Export.xlsx`);

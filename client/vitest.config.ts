@@ -13,7 +13,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig(async () => {
   const { default: angular } = await import('@analogjs/vite-plugin-angular');
-  
+
   return {
     plugins: [angular()],
     test: {
@@ -28,14 +28,7 @@ export default defineConfig(async () => {
         reporter: ['text', 'json', 'html', 'lcov'],
         reportsDirectory: './coverage',
         include: ['src/app/**/*.ts'],
-        exclude: [
-          'src/app/**/*.spec.ts',
-          'src/app/**/*.module.ts',
-          'src/app/**/index.ts',
-          'src/main.ts',
-          'src/polyfills.ts',
-          'src/environments/**'
-        ],
+        exclude: ['src/app/**/*.spec.ts', 'src/app/**/*.module.ts', 'src/app/**/index.ts', 'src/main.ts', 'src/polyfills.ts', 'src/environments/**'],
         thresholds: {
           lines: 80,
           functions: 80,

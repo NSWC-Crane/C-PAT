@@ -92,6 +92,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
     if (changes['visible'] && this.visible && !this.dataLoaded) {
       this.loadData();
     }
+
     if (changes['visible'] && !this.visible) {
       this.dataLoaded = false;
     }
@@ -147,6 +148,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   private loadData(): void {
     if (!this.hostDns && !this.hostIp) {
       this.showErrorMessage('DNS or IP Address is required');
+
       return;
     }
 
@@ -196,6 +198,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
                   summary: 'Error',
                   detail: `Error loading POAM data: ${getErrorMessage(error)}`
                 });
+
                 return of([]);
               })
             )
@@ -219,6 +222,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
                       parentStatus: item.parentStatus,
                       parentPoamId: item.parentPoamId
                     };
+
                     return acc;
                   },
                   {}
@@ -228,6 +232,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
               if (!findingsData?.response) {
                 this.isLoading = false;
                 this.showErrorMessage('Invalid response from Tenable');
+
                 return;
               }
 
@@ -275,14 +280,17 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
 
   onHostFindingsTableFilter(event: Event) {
     const value = (event.target as HTMLInputElement).value;
+
     this.hostFindingsTable().filterGlobal(value, 'contains');
   }
 
   clearHostFindingsTable() {
     const hostFindingsTable = this.hostFindingsTable();
+
     if (hostFindingsTable) {
       hostFindingsTable.clear();
     }
+
     this.dialogFilterValue = '';
     this.selectedPoamStatuses = [];
     this.selectedSeverities = [];
@@ -302,6 +310,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
     if (!plugin?.pluginID) {
       this.isLoadingPluginDetails = false;
       this.showErrorMessage('Invalid plugin ID');
+
       return Promise.reject('Invalid plugin ID');
     }
 
@@ -387,6 +396,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
           if (!data?.response?.results?.length) {
             reject(new Error('Invalid response from postTenableAnalysis'));
             this.isLoadingPluginDetails = false;
+
             return;
           }
 
@@ -441,6 +451,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
     try {
       if (vulnerability.poam && vulnerability.poamId) {
         this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
+
         return;
       }
 
@@ -470,6 +481,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   getPluginData(pluginID: string): Promise<void> {
     if (!pluginID) {
       this.showErrorMessage('Invalid plugin ID');
+
       return Promise.reject('Invalid plugin ID');
     }
 
@@ -478,8 +490,10 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
         next: (data) => {
           if (!data?.response) {
             reject(new Error('Invalid response from getTenablePlugin'));
+
             return;
           }
+
           this.pluginData = data.response;
           resolve();
         },
@@ -564,6 +578,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
 
     if (hasExistingPoam && status === 'Associated') {
       const parentStatusText = parentStatus ? ` (Parent POAM Status: ${parentStatus})` : '';
+
       return `This vulnerability is associated with an existing POAM${parentStatusText}. Click icon to view POAM.`;
     }
 
@@ -588,6 +603,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
       this.cveReferences = [];
       this.iavReferences = [];
       this.otherReferences = [];
+
       return;
     }
 
@@ -615,6 +631,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
 
   parsePluginOutput(pluginText: string): string {
     if (!pluginText) return '';
+
     return pluginText.replace(/<plugin_output>/g, '').replace(/<\/plugin_output>/g, '');
   }
 

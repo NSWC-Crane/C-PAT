@@ -128,6 +128,7 @@ export class PoamMilestonesComponent implements OnInit {
 
     if (extensionDays > 0 && this.poam.extensionDeadline) {
       const extensionDeadline = new Date(this.poam.extensionDeadline);
+
       if (!isNaN(extensionDeadline.getTime())) {
         effectiveDeadline = extensionDeadline;
       }
@@ -301,6 +302,7 @@ export class PoamMilestonesComponent implements OnInit {
         summary: 'Information',
         detail: 'When providing a milestone change date, you must also include milestone change comments.'
       });
+
       return false;
     }
 
@@ -314,10 +316,12 @@ export class PoamMilestonesComponent implements OnInit {
           summary: 'Validation Error',
           detail: 'Milestone change date cannot be set to a past date.'
         });
+
         return false;
       }
 
       const effectiveDeadline = this.getEffectiveDeadline();
+
       if (effectiveDeadline) {
         const effectiveDeadlineDay = startOfDay(effectiveDeadline);
 
@@ -330,6 +334,7 @@ export class PoamMilestonesComponent implements OnInit {
             summary: 'Information',
             detail: message
           });
+
           return false;
         }
       }

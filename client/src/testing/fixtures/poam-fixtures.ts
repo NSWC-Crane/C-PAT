@@ -67,7 +67,7 @@ export const mockMilestone = {
  * Mock POAM approver
  */
 export const mockApprover = {
-visibleapproverId: 1,
+  visibleapproverId: 1,
   poamId: 1,
   collectionId: 1,
   userId: 1,

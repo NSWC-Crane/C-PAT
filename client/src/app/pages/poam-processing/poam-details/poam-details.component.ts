@@ -173,6 +173,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
   filteredStatusOptions = computed(() => {
     const accessLevel = this.accessLevel();
+
     if (accessLevel >= 4) {
       return this.statusOptions;
     } else if (accessLevel === 3) {
@@ -244,7 +245,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         icon: 'pi pi-verified',
         styleClass: 'menu-item-primary',
         command: () => {
-          this.poam.status === 'Extension Requested' ? this.extendPoam() : this.poamApproval();
+          if (this.poam.status === 'Extension Requested') {
+            this.extendPoam();
+          } else {
+            this.poamApproval();
+          }
         }
       });
     }

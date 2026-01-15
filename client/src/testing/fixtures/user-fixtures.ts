@@ -98,11 +98,7 @@ export const mockTenableCollection = {
 /**
  * Mock collection list
  */
-export const mockCollectionList = [
-  mockCollection,
-  mockStigManagerCollection,
-  mockTenableCollection
-];
+export const mockCollectionList = [mockCollection, mockStigManagerCollection, mockTenableCollection];
 
 /**
  * Mock assigned team

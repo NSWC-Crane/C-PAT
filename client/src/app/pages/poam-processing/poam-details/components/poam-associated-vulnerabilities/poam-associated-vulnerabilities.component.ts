@@ -125,6 +125,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
     if (severity === 'critical' || severity === 'high') return 'danger';
     if (severity === 'medium') return 'warn';
     if (severity === 'low' || severity === 'informational') return 'info';
+
     return 'secondary';
   }
 
@@ -160,6 +161,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
           if (group.rules?.length > 0) {
             this.vulnTitleMap.set(group.groupId, group.rules[0].title);
           }
+
           this.vulnSeverityMap.set(group.groupId, group.severity);
         }
 
@@ -216,6 +218,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
               summary: 'Error',
               detail: `Error in Tenable response: ${data.error_msg}`
             });
+
             return;
           }
 
@@ -223,6 +226,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
           this.vulnSeverityMap.clear();
 
           const results = data.response?.results || [];
+
           for (const vuln of results) {
             this.vulnTitleMap.set(vuln.pluginID, vuln.name);
             this.vulnSeverityMap.set(vuln.pluginID, vuln.severity?.name?.toLowerCase() || 'unknown');
@@ -242,6 +246,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
 
   search(event: AutoCompleteCompleteEvent): void {
     const query = event.query.toLowerCase();
+
     this.filteredSuggestions = [];
 
     for (const [vulnId, title] of this.vulnTitleMap) {
@@ -307,6 +312,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
         summary: 'Validation Error',
         detail: 'Please enter at least one vulnerability ID'
       });
+
       return;
     }
 

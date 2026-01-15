@@ -43,6 +43,7 @@ export class TenableComponent implements OnInit {
 
     if (vulnState) {
       const savedState = JSON.parse(vulnState);
+
       if (savedState.parentTabIndex !== undefined) {
         this.activeTabIndex = String(savedState.parentTabIndex);
         this.loadedTabs.add(this.activeTabIndex);

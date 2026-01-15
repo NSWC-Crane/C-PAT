@@ -301,6 +301,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       });
     const fg = document.getElementById('particles-foreground');
     const bg = document.getElementById('particles-background');
+
     fg?.remove();
     bg?.remove();
   }

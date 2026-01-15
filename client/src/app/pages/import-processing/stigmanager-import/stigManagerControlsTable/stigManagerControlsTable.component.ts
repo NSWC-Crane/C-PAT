@@ -200,6 +200,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
         if (!data || data.length === 0) {
           this.showWarn('No control findings found.');
           this.loadingControls = false;
+
           return;
         }
 
@@ -281,6 +282,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   private updateControlPoamPercentages() {
     if (!this.selectedCollection) {
       this.loadingControls = false;
+
       return;
     }
 
@@ -291,6 +293,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
         const excludedStatuses = new Set(['draft', 'rejected']);
         const validPoams = response.filter((p: any) => {
           const effectiveStatus = p.status === 'Associated' ? p.parentStatus : p.status;
+
           return effectiveStatus && !excludedStatuses.has(effectiveStatus.toLowerCase());
         });
 
@@ -336,9 +339,11 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
 
       finding.groups?.forEach((group, groupIndex) => {
         const uniqueKey = `${group.groupId}-${finding.cci}`;
+
         if (seenGroupIds.has(uniqueKey)) {
           return;
         }
+
         seenGroupIds.add(uniqueKey);
 
         const rule = finding.rules?.[groupIndex] || finding.rules?.[0];
@@ -489,6 +494,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
 
     if (hasExistingPoam && status === 'Associated') {
       const parentStatusText = parentStatus ? ` (Parent POAM Status: ${parentStatus})` : '';
+
       return `This vulnerability is associated with an existing POAM${parentStatusText}. Click icon to view POAM.`;
     }
 
@@ -498,6 +504,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   addPoam(rowData: ControlFinding): void {
     if (!rowData?.ruleId || !rowData?.groupId) {
       this.showError('Invalid data for POAM creation. Please try again.');
+
       return;
     }
 
@@ -562,16 +569,19 @@ ${ruleData.detail.vulnDiscussion}`;
 
   filterControlsGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
+
     this.controlsTable()?.filterGlobal(inputValue, 'contains');
   }
 
   filterFindingsGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
+
     this.findingsTable()?.filterGlobal(inputValue, 'contains');
   }
 
   onControlsFilter(_event: any) {
     const table = this.controlsTable();
+
     if (table) {
       this.controlsCount = table.filteredValue ? table.filteredValue.length : this.controlSummaries.length;
       this.controlsCountChange.emit(this.controlsCount);
@@ -580,6 +590,7 @@ ${ruleData.detail.vulnDiscussion}`;
 
   onFindingsFilter(_event: any) {
     const table = this.findingsTable();
+
     if (table) {
       this.findingsCount = table.filteredValue ? table.filteredValue.length : this.controlFindings.length;
     }

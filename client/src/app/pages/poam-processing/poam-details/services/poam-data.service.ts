@@ -101,6 +101,7 @@ export class PoamDataService {
           allAssets.forEach((asset) => {
             if (assetMap.has(asset.assetId)) {
               const existing = assetMap.get(asset.assetId)!;
+
               existing.sourceVulnIds = [...new Set([...existing.sourceVulnIds!, ...asset.sourceVulnIds!])];
             } else {
               assetMap.set(asset.assetId, asset);

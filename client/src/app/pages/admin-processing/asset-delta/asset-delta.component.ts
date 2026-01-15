@@ -490,6 +490,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
 
             response.results.forEach((result: any) => {
               const collection = this.availableCollections.find((c) => c.collectionId === result.collectionId);
+
               if (!result.success) {
                 this.messageService.add({
                   severity: 'error',
@@ -503,6 +504,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
             this.showUploadDialog.set(false);
 
             const currentCollection = this.selectedCollection();
+
             if (currentCollection && collectionIds.includes(currentCollection)) {
               this.loadAssetDeltaList(currentCollection);
               this.checkAllStatuses();
@@ -521,9 +523,11 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   showUploadDialogHandler() {
     const currentCollection = this.selectedCollection();
+
     if (currentCollection) {
       this.selectedUploadCollections.set([currentCollection]);
     }
+
     this.showUploadDialog.set(true);
   }
 
@@ -666,8 +670,10 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
         summary: 'Warning',
         detail: 'Please select a collection first'
       });
+
       return;
     }
+
     this.loading.set(true);
     this.messageService.add({
       severity: 'secondary',

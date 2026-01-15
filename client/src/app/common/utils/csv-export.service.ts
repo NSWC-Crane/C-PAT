@@ -28,6 +28,7 @@ export class CsvExportService {
   exportToCsv(data: any[], options: CsvExportOptions): void {
     if (!data || data.length === 0) {
       console.warn('No data to export');
+
       return;
     }
 
@@ -44,6 +45,7 @@ export class CsvExportService {
     for (const row of data) {
       const rowData = columns.map((col) => {
         const value = this.getFieldValue(row, col.field);
+
         return this.escapeCsvValue(value);
       });
 
@@ -95,6 +97,7 @@ export class CsvExportService {
 
     if (includeTimestamp) {
       const timestamp = new Date().getTime();
+
       return `${cleanName}_${timestamp}.csv`;
     }
 
