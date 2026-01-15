@@ -100,6 +100,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
 
     if (stored) {
       const savedState = JSON.parse(stored);
+
       sessionStorage.removeItem('tenableSelectedVulnState');
 
       if (savedState.currentPreset === this.currentPreset) {
@@ -628,6 +629,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
 
       if (vulnerability.poam && vulnerability.poamId) {
         this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
+
         return;
       }
 
@@ -662,6 +664,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
 
   parseReferences(xrefs: string): void {
     const parsed: ParsedReferences = parseReferences(xrefs);
+
     this.cveReferences = parsed.cveReferences;
     this.iavReferences = parsed.iavReferences;
     this.otherReferences = parsed.otherReferences;

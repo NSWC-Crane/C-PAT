@@ -182,6 +182,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
 
     if (matchedPoams.length > 0) {
       const currentSelection = rowData.selectedPoams || [];
+
       rowData.selectedPoams = [...currentSelection, ...matchedPoams];
 
       setTimeout(() => {
@@ -225,6 +226,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     event.stopPropagation();
 
     const pastedText = event.clipboardData?.getData('text');
+
     if (pastedText) {
       setTimeout(() => {
         this.parseVulnerabilityIds(pastedText, rowData);

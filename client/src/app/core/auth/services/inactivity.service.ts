@@ -110,6 +110,7 @@ export class InactivityService {
 
     this.warningShown = true;
     let countdown = this.COUNTDOWN_DURATION;
+
     this.showWarning$.next({ show: true, countdown });
 
     this.ngZone.runOutsideAngular(() => {
@@ -148,6 +149,7 @@ export class InactivityService {
   shouldMonitor(): boolean {
     const errorPaths = ['/401', '/403', '/404', '/not-activated'];
     const currentPath = globalThis.location.pathname;
+
     return !errorPaths.some((path) => currentPath.includes(path));
   }
 }

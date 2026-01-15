@@ -47,14 +47,17 @@ export class PoamAssetsComponent implements OnChanges {
 
   private assetNameMap = computed(() => {
     const map = new Map<number, string>();
+
     for (const asset of this.assetList) {
       map.set(asset.assetId, asset.assetName);
     }
+
     return map;
   });
 
   displayAssets = computed(() => {
     const nameMap = this.assetNameMap();
+
     return this.poamAssetsSignal().map((asset) => ({
       ...asset,
       displayName: nameMap.get(asset.assetId) || `Asset ID: ${asset.assetId}`
@@ -65,9 +68,11 @@ export class PoamAssetsComponent implements OnChanges {
     if (changes['poamAssets']) {
       this.poamAssetsSignal.set(this.poamAssets || []);
     }
+
     if (changes['assetList']) {
       this.poamAssetsSignal.set([...this.poamAssetsSignal()]);
     }
+
     if (changes['poamAssignedTeams'] && this.poamAssignedTeams) {
       const currentTeamCount = this.poamAssignedTeams.length;
 

@@ -334,6 +334,7 @@ export class PoamAssignedGridComponent {
 
     if (!displayedData || displayedData.length === 0) {
       console.warn('No data to export');
+
       return;
     }
 

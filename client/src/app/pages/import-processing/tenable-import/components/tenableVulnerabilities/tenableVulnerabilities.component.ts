@@ -956,6 +956,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           .pipe(
             tap((data) => {
               const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
+
               if (selectedCollectionData) {
                 this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
                 this.aaPackage = selectedCollectionData.aaPackage;
@@ -971,6 +972,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
                 detail: `Error loading filter list data: ${getErrorMessage(error)}`
               });
               this.isLoading = false;
+
               return EMPTY;
             })
           )
@@ -1110,6 +1112,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters['lastSeen'] = '0:30';
     } else {
       const zoneCorD = /Zone:?\s*[CD](?![A-Z])/i.test(this.aaPackage || '');
+
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = zoneCorD ? '0:90' : '0:30';
     }
@@ -1502,9 +1505,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
           this.totalRecords = vulnData.totalRecords ? Number(vulnData.totalRecords) : this.allVulnerabilities.length;
           const table = this.table();
+
           if (table && table.first >= this.totalRecords) {
             table.first = 0;
           }
+
           this.totalRecordsChange.emit(this.totalRecords);
         }
       });
@@ -1513,6 +1518,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   exportAllData() {
     if (this.tenableTool !== 'listvuln') {
       this.table().exportCSV();
+
       return;
     }
 
@@ -1554,6 +1560,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             detail: `Error fetching data for export: ${getErrorMessage(error)}`
           });
           this.isLoading = false;
+
           return EMPTY;
         }),
         finalize(() => {
@@ -1564,6 +1571,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         next: (data) => {
           if (data.error_msg) {
             this.showErrorMessage(data.error_msg);
+
             return;
           }
 
@@ -1668,6 +1676,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       } else {
         this.tempFilters[identifier].value = event.value;
       }
+
       return;
     }
 
@@ -1691,11 +1700,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     if (identifier === 'policy' || identifier === 'auditFile') {
       this.tempFilters[identifier] = event.value;
+
       return;
     }
 
     if (identifier === 'responsibleUser') {
       this.tempFilters[identifier] = event.value || [];
+
       return;
     }
 
@@ -1753,9 +1764,11 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           if (obj.id) {
             assetIds.push(obj.id);
           }
+
           if (obj.operand1) flattenUnion(obj.operand1);
           if (obj.operand2) flattenUnion(obj.operand2);
         };
+
         flattenUnion(filter.value);
       } else if (Array.isArray(filter.value)) {
         assetIds = filter.value.map((v: any) => v.id || v);
@@ -1787,6 +1800,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       } else if (filter?.value?.id) {
         this.tempFilters[filter.filterName] = filter.value.id;
       }
+
       return;
     }
 
@@ -1794,6 +1808,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       if (Array.isArray(filter.value)) {
         this.tempFilters['responsibleUser'] = filter.value.map((v: any) => v.id || v);
       }
+
       return;
     }
 
@@ -1895,6 +1910,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
             if (apiName === 'asset') {
               if (typeof value === 'object' && 'value' in value && 'operator' in value) {
                 const assetFilter = this.createAssetsFilter(value.value, value.operator);
+
                 if (assetFilter) {
                   return {
                     id: apiName,
@@ -2063,6 +2079,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.currentFilterHistoryIndex--;
       this.selectedPremadeFilter = null;
       const historyItem = this.filterHistory[this.currentFilterHistoryIndex];
+
       this.tempFilters = structuredClone(historyItem.filters);
       this.tenableTool = historyItem.tool;
       this.activeFilters = this.convertTempFiltersToAPI();
@@ -2326,6 +2343,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters['lastSeen'] = '0:30';
     } else {
       const zoneCorD = /Zone:?\s*[CD](?![A-Z])/i.test(this.aaPackage || '');
+
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = zoneCorD ? '0:90' : '0:30';
     }
@@ -2708,6 +2726,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
       if (poamAssociation?.poamId) {
         this.router.navigateByUrl(`/poam-processing/poam-details/${poamAssociation.poamId}`);
+
         return;
       }
 
@@ -2722,6 +2741,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
       if (pluginIAVData?.navyComplyDate) {
         const complyDate = new Date(pluginIAVData.navyComplyDate);
+
         formattedIavComplyByDate = format(complyDate, 'yyyy-MM-dd');
       }
 
@@ -2834,6 +2854,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
   parseReferences(xrefs: string): void {
     const parsed: ParsedReferences = parseReferences(xrefs);
+
     this.cveReferences = parsed.cveReferences;
     this.iavReferences = parsed.iavReferences;
     this.otherReferences = parsed.otherReferences;
@@ -2899,6 +2920,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.totalRecordsChange.emit(this.totalRecords);
 
     const table = this.table();
+
     if (table && table.first >= this.totalRecords) {
       table.first = 0;
     }

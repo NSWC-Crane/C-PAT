@@ -118,11 +118,13 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
   totalFindings30Days = computed(() => {
     const m = this.tenableMetrics();
+
     return m.catIOpenCount30Days + m.catIIOpenCount30Days + m.catIIIOpenCount30Days;
   });
 
   totalFindings = computed(() => {
     const m = this.tenableMetrics();
+
     return m.catIOpenCount + m.catIIOpenCount + m.catIIIOpenCount;
   });
 
@@ -148,6 +150,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
   metricsDisplay = computed<MetricData[]>(() => {
     const loading = this.isLoading();
+
     return this.getTenableMetricsDisplay(loading);
   });
 
@@ -184,6 +187,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     if (!repoId || !collectionId) {
       this.tenableMetrics.set(this.getEmptyTenableMetrics());
       this.isLoading.set(false);
+
       return;
     }
 
@@ -215,6 +219,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
           this.loadedRanges.update((ranges) => {
             ranges.add('30');
+
             return new Set(ranges);
           });
 
@@ -228,6 +233,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
             detail: `Error loading Tenable metrics: ${getErrorMessage(error)}`
           });
           this.isLoading.set(false);
+
           return EMPTY;
         })
       )
@@ -240,6 +246,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     if (loadedRanges.has(timeRange)) {
       this.lastObservedTimeRange.set(timeRange);
       this.updateMetricsFromCache();
+
       return;
     }
 
@@ -267,6 +274,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
           this.loadedRanges.update((ranges) => {
             ranges.add(timeRange);
+
             return new Set(ranges);
           });
 
@@ -281,6 +289,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
             detail: `Error loading ${timeRange}-day metrics: ${getErrorMessage(error)}`
           });
           this.isLoading.set(false);
+
           return EMPTY;
         })
       )
@@ -301,6 +310,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
   private updateMetricsFromCache() {
     const cachedData = this.cachedVulnerabilityData();
+
     if (!cachedData) return;
 
     const timeRange = this.lastObservedTimeRange();
@@ -353,6 +363,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
   private updateVPHOnly() {
     const cachedData = this.cachedVulnerabilityData();
+
     if (!cachedData) return;
 
     const timeRange = this.lastObservedTimeRange();
@@ -388,6 +399,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
     return hosts.filter((host: any) => {
       const lastSeen = Number(host.lastSeen) || 0;
+
       return lastSeen >= cutoffTime;
     }).length;
   }
@@ -528,6 +540,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const vphScore = (catIVPH + catIIVPH + catIIIVPH) / (10 + 4 + 1);
 
     let rating: string;
+
     if (vphScore < 2.5) {
       rating = 'Low';
     } else if (vphScore < 3.5) {
@@ -565,7 +578,9 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
   getLastObservedText(): string {
     const range = this.lastObservedTimeRange();
+
     if (range === 'all') return '';
+
     return range === '7' ? 'within 7 days' : range === '30' ? 'within 30 days' : 'within 90 days';
   }
 
@@ -573,6 +588,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     return combineLatest([this.getTenableVulnerabilities(repoId, []), this.collectionsService.getPoamsByCollection(collectionId)]).pipe(
       map(([vulnData, poams]) => {
         const totalVulnerabilities = vulnData.response?.totalRecords || 0;
+
         if (totalVulnerabilities === 0) return 0;
 
         const uniqueVulnIds = new Set<string>();
@@ -582,6 +598,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
           if (poam.vulnerabilityId) {
             uniqueVulnIds.add(poam.vulnerabilityId);
           }
+
           if (Array.isArray(poam?.associatedVulnerabilities)) {
             poam.associatedVulnerabilities.forEach((id: string) => uniqueVulnIds.add(id));
           }
@@ -595,6 +612,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
   private calculateComplianceMetrics(repoId: string, collectionId: any, lastSeenValue: string | null) {
     const baseFilters = [];
+
     if (lastSeenValue) {
       baseFilters.push({
         filterName: 'lastSeen',
@@ -672,6 +690,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
           if (poam.vulnerabilityId) {
             vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
           }
+
           if (Array.isArray(poam?.associatedVulnerabilities)) {
             poam.associatedVulnerabilities.forEach((vulnId: string) => {
               vulnerabilityStatusMap.set(vulnId, poam.status);
@@ -682,11 +701,10 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
         const calculateCompliance = (vulnData: any) => {
           const vulnerabilities = vulnData.response?.results || [];
           const totalVulns = vulnerabilities.length;
+
           if (totalVulns === 0) return 0;
 
-          const vulnsWithApprovedPoam = vulnerabilities.filter((vuln: any) => {
-            return vulnerabilityStatusMap.get(vuln.pluginID) === 'Approved';
-          }).length;
+          const vulnsWithApprovedPoam = vulnerabilities.filter((vuln: any) => vulnerabilityStatusMap.get(vuln.pluginID) === 'Approved').length;
 
           return (vulnsWithApprovedPoam / totalVulns) * 100;
         };
@@ -760,19 +778,24 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
         return this.getTenableVulnerabilities(repoId, filters).pipe(
           switchMap((vulnData) => {
             const pluginIDList = vulnData.response?.results?.map((v: any) => Number(v.pluginID)) || [];
+
             if (pluginIDList.length === 0) return of(0);
 
             return this.importService.getIAVInfoForPlugins(pluginIDList).pipe(
               map((iavData) => {
                 const today = new Date();
+
                 today.setHours(0, 0, 0, 0);
 
                 return iavData.filter((item: any) => {
                   if (!item.navyComplyDate) return false;
+
                   if (item.supersededBy !== null && item.supersededBy !== undefined && item.supersededBy !== 'N/A') {
                     return false;
                   }
+
                   const complyDate = new Date(item.navyComplyDate);
+
                   return complyDate < today;
                 }).length;
               })
@@ -842,8 +865,10 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       map(([totalVulns, nonCredentialVulns]) => {
         const totalCount = totalVulns.response?.totalRecords || 0;
         const nonCredentialCount = nonCredentialVulns.response?.totalRecords || 0;
+
         if (totalCount === 0) return 0;
         const credentialCount = totalCount - nonCredentialCount;
+
         return (credentialCount / totalCount) * 100;
       }),
       catchError(() => of(0))
@@ -878,6 +903,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     return this.importService.postTenableAnalysis(analysisParams).pipe(
       catchError((error) => {
         console.error('Error fetching Tenable data:', error);
+
         return of({ response: { totalRecords: 0, results: [] } });
       })
     );
@@ -1028,6 +1054,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
   exportMetrics() {
     const cachedData = this.cachedVulnerabilityData();
+
     if (!cachedData) return;
 
     const selectedRange = this.lastObservedTimeRange();
@@ -1040,6 +1067,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
         detail: 'Please wait while data loads, then try exporting again.'
       });
       this.loadTimeRangeData(selectedRange);
+
       return;
     }
 
@@ -1082,9 +1110,11 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
         row
           .map((cell) => {
             const cellStr = String(cell || '');
+
             if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
               return `"${cellStr.replace(/"/g, '""')}"`;
             }
+
             return cellStr;
           })
           .join(',')

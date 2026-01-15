@@ -130,6 +130,7 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
           this.comments = null;
           this.hqsChecked = Boolean(poamResponse.hqs);
         }
+
         this.displayDialog = true;
       },
       error: (error) => {

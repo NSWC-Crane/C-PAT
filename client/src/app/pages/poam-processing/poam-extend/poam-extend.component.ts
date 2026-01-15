@@ -210,6 +210,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
                 this.completionDateWithExtension = format(parseISO(this.poam.extensionDeadline), 'EEE MMM dd yyyy');
               } else {
                 const extendedDate = addDays(new Date(), this.poam.extensionDays);
+
                 this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
               }
             } else {
@@ -343,6 +344,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           summary: 'Validation Error',
           detail: 'Milestone change date cannot be set to a past date.'
         });
+
         return false;
       }
 
@@ -357,6 +359,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             summary: 'Information',
             detail: 'The Milestone date provided exceeds the POAM scheduled completion date.'
           });
+
           return false;
         }
       } else if (isAfter(milestoneDate, this.completionDateWithExtension)) {
@@ -365,6 +368,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           summary: 'Information',
           detail: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
         });
+
         return false;
       }
     }
@@ -511,6 +515,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       this.completionDateWithExtension = format(this.poam.scheduledCompletionDate, 'EEE MMM dd yyyy');
     } else {
       const extendedDate = addDays(new Date(), this.poam.extensionDays);
+
       this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
     }
   }
@@ -573,6 +578,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         summary: 'Unsaved Changes',
         detail: 'Please save all milestone changes before submitting the extension request.'
       });
+
       return;
     }
 
@@ -663,6 +669,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         summary: 'Unsaved Changes',
         detail: 'Please save all milestone changes before approving the extension.'
       });
+
       return;
     }
 
@@ -678,6 +685,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         summary: 'Unsaved Changes',
         detail: 'Please save or remove any milestone changes before rejecting the extension.'
       });
+
       return;
     }
 
@@ -734,9 +742,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
               detail: `Extension requested for POAM: ${res.poamId}`
             });
           }
+
           if (status !== 'Rejected' && extensionData.extensionDays > 0) {
             this.poamService.updatePoamStatus(this.poamId, extensionData).subscribe();
           }
+
           setTimeout(() => {
             this.displayExtensionDialog = false;
             this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
@@ -800,6 +810,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   filterJustifications(event: any) {
     const query = event.query;
+
     this.filteredJustifications = this.justifications.filter((justification) => justification.toLowerCase().includes(query.toLowerCase()));
   }
 

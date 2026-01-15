@@ -78,6 +78,7 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
 
     for (let i = 0; i < urlSegments.length; i++) {
       const segment = urlSegments[i];
+
       currentPath += `/${segment}`;
 
       const isParameter = !Number.isNaN(Number(segment));

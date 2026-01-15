@@ -63,6 +63,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
       next: (assets) => {
         if (!assets || assets.length === 0) {
           this.showErrorMessage('No assets found.');
+
           return;
         }
 
