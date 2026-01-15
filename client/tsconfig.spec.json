@@ -2,24 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    "types": [
-      "jasmine",
-      "node"
-    ],
+    "target": "ES2022",
+    "types": ["vitest/globals", "node"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": [
-      "node_modules/@types",
-      "src"
-    ]
+    "typeRoots": ["node_modules/@types", "src"]
   },
-  "include": [
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts",
-    "src/test.ts",
-    "src/polyfills.ts"
-  ],
-  "files": [
-    "src/test.ts"
-  ]
+  "files": ["src/test-setup.ts"],
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
 }

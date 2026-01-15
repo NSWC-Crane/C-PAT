@@ -140,42 +140,7 @@
           }
         },
         "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "main": "src/test.ts",
-            "polyfills": ["zone.js", "zone.js/testing"],
-            "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico", "src/assets"],
-            "styles": [
-              {
-                "input": "src/assets/styles/global.scss",
-                "bundleName": "global",
-                "inject": true
-              },
-              {
-                "input": "node_modules/pace-js/templates/pace-theme-flash.tmpl.css",
-                "bundleName": "pace",
-                "inject": true
-              },
-              {
-                "input": "node_modules/primeicons/primeicons.css",
-                "bundleName": "primeicons",
-                "inject": true
-              }
-            ],
-            "scripts": []
-          },
-          "configurations": {
-            "ci": {
-              "browsers": "ChromeHeadlessCI",
-              "watch": false,
-              "singleRun": true,
-              "sourceMap": false,
-              "codeCoverage": true
-            }
-          }
+          "builder": "@analogjs/vitest-angular:test"
         }
       }
     }
