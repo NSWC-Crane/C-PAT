@@ -141,111 +141,6 @@ export class AppConfiguratorComponent implements OnInit {
 
   presets = Object.keys(presets);
 
-  onRTLChange(value: boolean) {
-    this.configService.appState.update((state) => ({ ...state, RTL: value }));
-
-    if (!(document as any).startViewTransition) {
-      this.toggleRTL(value);
-
-      return;
-    }
-
-    (document as any).startViewTransition(() => this.toggleRTL(value));
-
-    this.saveUserPreferences();
-  }
-
-  toggleRTL(value: boolean) {
-    const htmlElement = document.documentElement;
-
-    if (value) {
-      htmlElement.setAttribute('dir', 'rtl');
-    } else {
-      htmlElement.removeAttribute('dir');
-    }
-  }
-
-  ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.toggleRTL(this.configService.appState().RTL ?? false);
-    }
-
-    this.loadUserPreferences();
-  }
-
-  loadUserPreferences() {
-    this.payloadService.user$
-      .pipe(
-        filter((user) => user !== null),
-        take(1)
-      )
-      .subscribe({
-        next: (user) => {
-          if (user?.defaultTheme) {
-            const defaults = {
-              preset: 'Aura',
-              primary: 'noir',
-              surface: 'soho',
-              darkTheme: true,
-              rtl: false
-            };
-
-            try {
-              const prefs = JSON.parse(user.defaultTheme);
-              const preset = this.presets.includes(prefs.preset) ? prefs.preset : defaults.preset;
-
-              this.configService.appState.update((state) => ({ ...state, preset }));
-              const primary = this.primaryColors().some((c) => c.name === prefs.primary) ? prefs.primary : defaults.primary;
-              const surface = this.surfaces.some((s) => s.name === prefs.surface) ? prefs.surface : defaults.surface;
-              const darkTheme = typeof prefs.darkTheme === 'boolean' ? prefs.darkTheme : defaults.darkTheme;
-              const rtl = typeof prefs.rtl === 'boolean' ? prefs.rtl : defaults.rtl;
-
-              this.configService.appState.update((state) => ({
-                ...state,
-                preset,
-                primary,
-                surface,
-                darkTheme,
-                RTL: rtl
-              }));
-              this.onPresetChange(preset as PresetType);
-            } catch (error) {
-              console.error('Error parsing user preferences:', error);
-            }
-          }
-        },
-        error: (error) => console.error('Error loading user preferences:', error)
-      });
-  }
-
-  saveUserPreferences() {
-    this.payloadService.user$
-      .pipe(
-        filter((user) => user !== null),
-        take(1),
-        switchMap((user) => {
-          if (!user) throw new Error('No user found');
-
-          const currentState = this.configService.appState();
-          const preferences = {
-            userId: user.userId,
-            defaultTheme: JSON.stringify({
-              preset: currentState.preset,
-              primary: currentState.primary,
-              surface: currentState.surface,
-              darkTheme: currentState.darkTheme,
-              rtl: currentState.RTL
-            })
-          };
-
-          return this.userService.updateUserTheme(preferences);
-        })
-      )
-      .subscribe({
-        error: (error) => console.error('Error saving user preferences:', error)
-      });
-  }
-
   displayedSurfaces = computed(() => this.surfaces.filter((s) => s.display));
 
   surfaces: SurfacesType[] = [
@@ -596,6 +491,111 @@ export class AppConfiguratorComponent implements OnInit {
 
     return palettes;
   });
+
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.toggleRTL(this.configService.appState().RTL ?? false);
+    }
+
+    this.loadUserPreferences();
+  }
+
+  onRTLChange(value: boolean) {
+    this.configService.appState.update((state) => ({ ...state, RTL: value }));
+
+    if (!(document as any).startViewTransition) {
+      this.toggleRTL(value);
+
+      return;
+    }
+
+    (document as any).startViewTransition(() => this.toggleRTL(value));
+
+    this.saveUserPreferences();
+  }
+
+  toggleRTL(value: boolean) {
+    const htmlElement = document.documentElement;
+
+    if (value) {
+      htmlElement.setAttribute('dir', 'rtl');
+    } else {
+      htmlElement.removeAttribute('dir');
+    }
+  }
+
+  loadUserPreferences() {
+    this.payloadService.user$
+      .pipe(
+        filter((user) => user !== null),
+        take(1)
+      )
+      .subscribe({
+        next: (user) => {
+          if (user?.defaultTheme) {
+            const defaults = {
+              preset: 'Aura',
+              primary: 'noir',
+              surface: 'soho',
+              darkTheme: true,
+              rtl: false
+            };
+
+            try {
+              const prefs = JSON.parse(user.defaultTheme);
+              const preset = this.presets.includes(prefs.preset) ? prefs.preset : defaults.preset;
+
+              this.configService.appState.update((state) => ({ ...state, preset }));
+              const primary = this.primaryColors().some((c) => c.name === prefs.primary) ? prefs.primary : defaults.primary;
+              const surface = this.surfaces.some((s) => s.name === prefs.surface) ? prefs.surface : defaults.surface;
+              const darkTheme = typeof prefs.darkTheme === 'boolean' ? prefs.darkTheme : defaults.darkTheme;
+              const rtl = typeof prefs.rtl === 'boolean' ? prefs.rtl : defaults.rtl;
+
+              this.configService.appState.update((state) => ({
+                ...state,
+                preset,
+                primary,
+                surface,
+                darkTheme,
+                RTL: rtl
+              }));
+              this.onPresetChange(preset as PresetType);
+            } catch (error) {
+              console.error('Error parsing user preferences:', error);
+            }
+          }
+        },
+        error: (error) => console.error('Error loading user preferences:', error)
+      });
+  }
+
+  saveUserPreferences() {
+    this.payloadService.user$
+      .pipe(
+        filter((user) => user !== null),
+        take(1),
+        switchMap((user) => {
+          if (!user) throw new Error('No user found');
+
+          const currentState = this.configService.appState();
+          const preferences = {
+            userId: user.userId,
+            defaultTheme: JSON.stringify({
+              preset: currentState.preset,
+              primary: currentState.primary,
+              surface: currentState.surface,
+              darkTheme: currentState.darkTheme,
+              rtl: currentState.RTL
+            })
+          };
+
+          return this.userService.updateUserTheme(preferences);
+        })
+      )
+      .subscribe({
+        error: (error) => console.error('Error saving user preferences:', error)
+      });
+  }
 
   getPresetExt() {
     const color: SurfacesType | undefined = this.primaryColors().find((c) => c.name === this.selectedPrimaryColor());
