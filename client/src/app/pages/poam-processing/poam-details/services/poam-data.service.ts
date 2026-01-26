@@ -27,6 +27,7 @@ export interface AssetData {
   fqdn?: string;
   source: 'CPAT' | 'Tenable' | 'STIG Manager';
   sourceVulnIds?: any;
+  sourcePluginIDs?: any;
 }
 
 export interface CollectionInfo {
