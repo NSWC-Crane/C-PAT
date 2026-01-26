@@ -271,11 +271,11 @@ ${pluginData.description || ''}`,
                 lastRevisionDate: stig.lastRevisionDate
               }));
 
-              poam.vulnerabilitySource = stateData.vulnerabilitySource;
-              poam.vulnerabilityId = stateData.vulnerabilityId;
-              poam.rawSeverity = stateData.severity;
-              poam.stigCheckData = stateData.ruleData;
-              poam.stigBenchmarkId = stateData.benchmarkId;
+              poam.vulnerabilitySource = stateData.vulnerabilitySource || '';
+              poam.vulnerabilityId = stateData.vulnerabilityId || '';
+              poam.rawSeverity = stateData.severity || '';
+              poam.stigCheckData = stateData.ruleData || '';
+              poam.stigBenchmarkId = stateData.benchmarkId || '';
 
               const selectedStig = stigmanSTIGs.find((stig: any) => stig.benchmarkId === poam.stigBenchmarkId);
 
