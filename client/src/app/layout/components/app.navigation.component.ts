@@ -81,6 +81,19 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   readonly menuButton = viewChild.required<ElementRef>('menubutton');
   readonly menuContainer = viewChild.required<ElementRef>('menuContainer');
   readonly user$ = inject(AuthService).user$;
+
+  isNewsActive = computed(() => this.configService.newsActive());
+
+  isDarkMode = computed(() => this.configService.appState().darkTheme);
+
+  isMenuActive = computed(() => this.configService.appState().menuActive);
+
+  landingClass = computed(() => ({
+    'layout-dark': this.isDarkMode(),
+    'layout-light': !this.isDarkMode(),
+    'layout-news-active': this.isNewsActive()
+  }));
+
   constructor() {
     this.window = this.document.defaultView as Window;
 
@@ -101,18 +114,6 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
         this.getCollections();
       });
   }
-
-  isNewsActive = computed(() => this.configService.newsActive());
-
-  isDarkMode = computed(() => this.configService.appState().darkTheme);
-
-  isMenuActive = computed(() => this.configService.appState().menuActive);
-
-  landingClass = computed(() => ({
-    'layout-dark': this.isDarkMode(),
-    'layout-light': !this.isDarkMode(),
-    'layout-news-active': this.isNewsActive()
-  }));
 
   toggleDarkMode() {
     this.configService.appState.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
