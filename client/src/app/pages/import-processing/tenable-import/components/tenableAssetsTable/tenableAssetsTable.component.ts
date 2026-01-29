@@ -27,6 +27,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Observable, Subscription, catchError, map, of } from 'rxjs';
 import { SharedService } from '../../../../../common/services/shared.service';
+import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { AssetDeltaService } from '../../../../admin-processing/asset-delta/asset-delta.service';
 import { ImportService } from '../../../import.service';
@@ -50,6 +51,7 @@ interface ExportColumn {
 })
 export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
   private assetDeltaService = inject(AssetDeltaService);
+  private csvExportService = inject(CsvExportService);
   private importService = inject(ImportService);
   private sanitizer = inject(DomSanitizer);
   private messageService = inject(MessageService);
@@ -742,11 +744,38 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   exportCSV() {
-    const activeTable = this.getActiveTable();
+    const activeTab = this.teamTabs.find((tab) => tab.teamId === this.activeTab);
+    const assetsToExport = activeTab?.assets || this.affectedAssets;
 
-    if (activeTable) {
-      activeTable.exportCSV();
+    if (!assetsToExport || assetsToExport.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Export',
+        detail: 'No data to export'
+      });
+
+      return;
     }
+
+    const processedData = assetsToExport.map((asset) => {
+      const processedAsset = { ...asset };
+
+      if (asset.assignedTeams && Array.isArray(asset.assignedTeams)) {
+        processedAsset.teamAssigned = asset.assignedTeams.map((team: any) => team.assignedTeamName).join(', ');
+      }
+
+      if (asset.sourcePluginIDs && Array.isArray(asset.sourcePluginIDs)) {
+        processedAsset.sourcePluginIDs = asset.sourcePluginIDs.join(', ');
+      }
+
+      return processedAsset;
+    });
+
+    this.csvExportService.exportToCsv(processedData, {
+      filename: `CPAT_${this.pluginID}-affected-assets-${new Date().toISOString().split('T')[0]}`,
+      columns: this.selectedColumns,
+      includeTimestamp: false
+    });
   }
 
   private getActiveTable(): Table | null {
