@@ -535,14 +535,24 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
 
   loadVulnList() {
     this.tenableTool = 'listvuln';
+    this.stashCurrentFilters();
     this.expandColumnSelections();
     this.getApplicableFindings(this.applicablePluginIDs);
   }
 
   loadVulnSummary() {
     this.tenableTool = 'sumid';
+    this.stashCurrentFilters();
     this.resetColumnSelections();
     this.getApplicableFindings(this.applicablePluginIDs);
+  }
+
+  private stashCurrentFilters() {
+    const table = this.table();
+
+    if (table?.filters) {
+      this.filters = { ...table.filters } as { [key: string]: FilterMetadata[] };
+    }
   }
 
   onPluginIDClick(vulnerability: any, event: Event) {
