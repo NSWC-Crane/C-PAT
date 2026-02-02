@@ -266,6 +266,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
       dataKey: col.field
     }));
     this.navyComplyDateFilters = [
+      { label: 'All IAVs', value: null },
       { label: 'All Overdue', value: 'alloverdue' },
       { label: '90+ Days Overdue', value: 'overdue90Plus' },
       { label: '30-90 Days Overdue', value: 'overdue30To90' },
@@ -804,10 +805,16 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
     } else {
       delete this.filters['navyComplyDate'];
 
+      const col = this.cols.find((c) => c.field === 'navyComplyDate');
+
+      if (col) {
+        col.filterValue = '';
+      }
+
       const table = this.table();
 
       if (table) {
-        table.filters['navyComplyDate'] = [];
+        delete table.filters['navyComplyDate'];
         table._filter();
       }
     }
