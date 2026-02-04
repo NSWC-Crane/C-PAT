@@ -762,6 +762,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           .map((milestone) => ({
             milestoneDate: milestone.milestoneDate ? (typeof milestone.milestoneDate === 'string' ? milestone.milestoneDate : format(milestone.milestoneDate, 'yyyy-MM-dd')) : null,
             milestoneComments: milestone.milestoneComments || null,
+            milestoneChangeComments: milestone.milestoneChangeComments || null,
+            milestoneChangeDate: milestone.milestoneChangeDate ? (typeof milestone.milestoneChangeDate === 'string' ? milestone.milestoneChangeDate : format(milestone.milestoneChangeDate, 'yyyy-MM-dd')) : null,
             milestoneStatus: milestone.milestoneStatus || 'Pending',
             assignedTeamId: milestone.assignedTeamId || null
           }));
@@ -1056,10 +1058,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.poamMilestones = milestones;
 
     this.poamMilestones.forEach((milestone) => {
-      if (milestone.milestoneDate) {
-        if (milestone.milestoneDate instanceof Date) {
-          milestone.milestoneDate = format(milestone.milestoneDate, 'yyyy-MM-dd');
-        }
+      if (milestone.milestoneDate && milestone.milestoneDate instanceof Date) {
+        milestone.milestoneDate = format(milestone.milestoneDate, 'yyyy-MM-dd');
+      }
+
+      if (milestone.milestoneChangeDate && milestone.milestoneChangeDate instanceof Date) {
+        milestone.milestoneChangeDate = format(milestone.milestoneChangeDate, 'yyyy-MM-dd');
       }
     });
   }
