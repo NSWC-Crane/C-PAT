@@ -15,7 +15,20 @@
 }
 @if (collectionOrigin === 'Tenable' && originCollectionId) {
   <div class="card !mb-[6rem]">
-    <cpat-tenable-host-assets-table [tenableRepoId]="originCollectionId" />
+    <p-tabs value="0" scrollable>
+      <p-tablist>
+        <p-tab value="0">All Assets</p-tab>
+        <p-tab value="1">High-Risk Assets</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="0">
+          <cpat-tenable-host-assets-table [tenableRepoId]="originCollectionId" />
+        </p-tabpanel>
+        <p-tabpanel value="1">
+          <cpat-tenable-high-risk-assets-table [tenableRepoId]="originCollectionId" />
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
   </div>
 }
 
