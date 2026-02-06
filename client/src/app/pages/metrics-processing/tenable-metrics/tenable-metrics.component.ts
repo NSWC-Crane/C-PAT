@@ -23,6 +23,7 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
 import { MetricData } from '../../../common/models/metrics.model';
+import { TenableHighRiskAssetsTableComponent } from '../../import-processing/tenable-import/components/tenableHighRiskAssetsTable/tenableHighRiskAssetsTable.component';
 
 interface SeveritySummary {
   critical: number;
@@ -89,7 +90,7 @@ interface CachedVulnerabilityData {
   styleUrls: ['./tenable-metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ButtonModule, ButtonGroupModule, CardModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule]
+  imports: [CommonModule, ButtonModule, ButtonGroupModule, CardModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule, TenableHighRiskAssetsTableComponent]
 })
 export class TenableMetricsComponent implements OnInit, OnChanges {
   private readonly importService = inject(ImportService);

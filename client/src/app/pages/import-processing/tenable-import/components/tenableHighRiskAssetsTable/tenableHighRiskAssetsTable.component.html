@@ -1,0 +1,131 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+@if (isLoading()) {
+  <div class="flex justify-center py-8">
+    <p-progress-spinner strokeWidth="3" animationDuration=".8s" />
+  </div>
+} @else {
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center">
+      <p-iconField iconPosition="left">
+        <p-inputIcon>
+          <i class="pi pi-search"></i>
+        </p-inputIcon>
+        <input pInputText type="text" id="search" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search..." />
+      </p-iconField>
+      <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
+    </div>
+    <span class="text-sm text-gray-400">
+      {{ highRiskAssetsTotalRecords() }} Results
+      <span class="relative inline-block">
+        <i class="pi pi-info-circle ml-1" tooltipPosition="left" [pTooltip]="highRiskAssetsTooltip" tooltipStyleClass="wide-tooltip" appendTo="body" style="font-size: 0.875rem; color: var(--text-color-secondary)"> </i>
+      </span>
+      <ng-template #highRiskAssetsTooltip>
+        <div class="flex flex-col gap-2">
+          <span class="font-semibold">Tenable IP Summary tool</span>
+          <div>
+            <span class="font-semibold">Filters:</span>
+            <ul class="mt-1 ml-4 list-disc">
+              <li>Repository: Current Repository</li>
+              <li>Plugin Type: Active</li>
+              <li>Severity: Critical, High, Medium, Low</li>
+              <li>Vulnerability Last Observed: Within the last 30 days</li>
+              <li>Plugin Published: More than 30 days ago</li>
+            </ul>
+          </div>
+        </div>
+      </ng-template>
+    </span>
+  </div>
+  <p-table
+    #highRiskAssetTable
+    [value]="highRiskAssets()"
+    [paginator]="true"
+    [rows]="25"
+    [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    paginatorDropdownAppendTo="body"
+    [columns]="['DNS', 'IP Address', 'Score', 'Vulnerabilities']"
+    [globalFilterFields]="['dnsName', 'ip', 'score']"
+    [filterDelay]="300"
+    [totalRecords]="highRiskAssetsTotalRecords()"
+    [scrollable]="true"
+    scrollHeight="calc(100vh - 27rem)"
+    [rowHover]="true"
+    [sortField]="'score'"
+    [sortOrder]="-1"
+    dataKey="dnsName"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 25%" pSortableColumn="dnsName">DNS <p-columnFilter type="text" field="dnsName" display="menu" /></th>
+        <th style="width: 20%" pSortableColumn="ip">IP Address <p-columnFilter type="text" field="ip" display="menu" /></th>
+        <th style="width: 10%" pSortableColumn="score">Score <p-columnFilter type="numeric" field="score" display="menu" /></th>
+        <th style="width: 45%" pSortableColumn="total">Vulnerabilities</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-asset>
+      <tr>
+        <td>
+          <span class="asset-link" (click)="onHostNameClick(asset, $event)">
+            {{ asset.dnsName }}
+          </span>
+        </td>
+        <td>
+          <span>
+            {{ asset.ip }}
+          </span>
+        </td>
+        <td>
+          <span>{{ asset.score | number: '1.0-0' }}</span>
+        </td>
+        <td>
+          <div class="severity-bar" [pTooltip]="'Critical: ' + asset.severityCritical + '\nHigh: ' + asset.severityHigh + '\nMedium: ' + asset.severityMedium + '\nLow: ' + asset.severityLow" tooltipPosition="top">
+            <div class="bar-segment critical" [style.width.%]="asset.criticalPercent">
+              @if (asset.severityCritical && asset.criticalPercent > 10) {
+                <span class="segment-count">{{ asset.severityCritical }}</span>
+              }
+            </div>
+            <div class="bar-segment high" [style.width.%]="asset.highPercent">
+              @if (asset.severityHigh && asset.highPercent > 10) {
+                <span class="segment-count">{{ asset.severityHigh }}</span>
+              }
+            </div>
+            <div class="bar-segment medium" [style.width.%]="asset.mediumPercent">
+              @if (asset.severityMedium && asset.mediumPercent > 10) {
+                <span class="segment-count">{{ asset.severityMedium }}</span>
+              }
+            </div>
+            <div class="bar-segment low" [style.width.%]="asset.lowPercent">
+              @if (asset.severityLow && asset.lowPercent > 10) {
+                <span class="segment-count">{{ asset.severityLow }}</span>
+              }
+            </div>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4">
+          <div class="text-center py-8 text-gray-400">
+            <i class="pi pi-check-circle text-4xl text-green-500 mb-2 block"></i>
+            <p>No high-risk assets found</p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}
+
+@if (selectedHost) {
+  <cpat-tenable-host-dialog [host]="selectedHost" [tenableRepoId]="tenableRepoId" [(visible)]="displayDialog" />
+}

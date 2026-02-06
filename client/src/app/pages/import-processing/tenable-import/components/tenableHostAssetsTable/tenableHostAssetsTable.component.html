@@ -28,64 +28,64 @@
           <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
         </div>
       </div>
-      <div class="scrollable-hosts">
-        <p-table
-          #hostAssetTable
-          [value]="affectedAssets"
-          [columns]="selectedColumns"
-          [paginator]="true"
-          [rows]="25"
-          [showCurrentPageReport]="true"
-          [rowsPerPageOptions]="[10, 25, 50]"
-          [totalRecords]="totalRecords"
-          [loading]="isLoading"
-          [globalFilterFields]="['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes']"
-          [filterDelay]="300"
-          [rowHover]="true"
-          dataKey="id"
-          [resizableColumns]="true"
-          class="p-datatable-sm"
-        >
-          <ng-template pTemplate="header" let-columns>
-            <tr>
-              @for (col of columns; track col) {
-                <th scope="col" [pSortableColumn]="col.field" pResizableColumn>
-                  {{ col.header }}
-                  <ng-container>
-                    <p-columnFilter [type]="col.filterType" [field]="col.field" [showMatchModes]="true" [showOperator]="false" [showAddButton]="false" [showApplyButton]="true" [showClearButton]="true" [display]="'menu'" [showMenu]="true" />
-                  </ng-container>
-                </th>
-              }
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-host let-columns="columns">
-            <tr>
-              @for (col of columns; track col) {
-                <td>
-                  @switch (col.field) {
-                    @case ('name') {
-                      <span (click)="onHostNameClick(host, $event)" (keyup.enter)="onHostNameClick(host, $event)" style="cursor: pointer; color: var(--p-primary-color); font-weight: bold">
-                        {{ host[col.field] }}
-                      </span>
-                    }
-                    @case ('source') {
-                      <p-tag [value]="host[col.field]" [rounded]="false" />
-                    }
-                    @default {
+      <p-table
+        #hostAssetTable
+        [value]="affectedAssets"
+        [columns]="selectedColumns"
+        [paginator]="true"
+        [rows]="25"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [totalRecords]="totalRecords"
+        [loading]="isLoading"
+        [globalFilterFields]="['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes']"
+        [filterDelay]="300"
+        [rowHover]="true"
+        dataKey="id"
+        [resizableColumns]="true"
+        [scrollable]="true"
+        scrollHeight="calc(100vh - 27rem)"
+        class="p-datatable-sm"
+      >
+        <ng-template pTemplate="header" let-columns>
+          <tr>
+            @for (col of columns; track col) {
+              <th scope="col" [pSortableColumn]="col.field" pResizableColumn>
+                {{ col.header }}
+                <ng-container>
+                  <p-columnFilter [type]="col.filterType" [field]="col.field" [showMatchModes]="true" [showOperator]="false" [showAddButton]="false" [showApplyButton]="true" [showClearButton]="true" [display]="'menu'" [showMenu]="true" />
+                </ng-container>
+              </th>
+            }
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-host let-columns="columns">
+          <tr>
+            @for (col of columns; track col) {
+              <td>
+                @switch (col.field) {
+                  @case ('name') {
+                    <span (click)="onHostNameClick(host, $event)" (keyup.enter)="onHostNameClick(host, $event)" style="cursor: pointer; color: var(--p-primary-color); font-weight: bold">
                       {{ host[col.field] }}
-                    }
+                    </span>
                   }
-                </td>
-              }
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td [attr.colspan]="selectedColumns.length" style="text-align: center">No assets to display</td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
+                  @case ('source') {
+                    <p-tag [value]="host[col.field]" [rounded]="false" />
+                  }
+                  @default {
+                    {{ host[col.field] }}
+                  }
+                }
+              </td>
+            }
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="selectedColumns.length" style="text-align: center">No assets to display</td>
+          </tr>
+        </ng-template>
+      </p-table>
     </div>
   </div>
 </div>
