@@ -13,7 +13,7 @@ const poamService = require('../Services/poamService');
 module.exports.getAvailablePoams = async function getAvailablePoams(req, res, next) {
     try {
         const userId = req.userObject.userId;
-        const poams = await poamService.getAvailablePoams(userId, req);
+        const poams = await poamService.getAvailablePoams(userId, req, res, next);
         res.status(200).json(poams);
     } catch (error) {
         if (error.status === 400) {

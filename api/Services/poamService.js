@@ -35,7 +35,7 @@ function normalizeDate(date) {
     return d.toISOString().split('T')[0];
 }
 
-exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
+exports.getAvailablePoams = async function getAvailablePoams(userId, req, res, next) {
     try {
         return await withConnection(async connection => {
             let sql = `
