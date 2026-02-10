@@ -16,7 +16,7 @@ describe('CsvExportService', () => {
   let service: CsvExportService;
   let mockLink: HTMLAnchorElement;
   let createElementSpy: any;
-    let removeChildSpy: any;
+  let removeChildSpy: any;
   let createObjectURLSpy: any;
   let revokeObjectURLSpy: any;
 
