@@ -1,27 +1,27 @@
 ## What's Changed
 
 ### New Features
-* feat: Ensure 'One Milestone' validation does not include completed milestones (f74365c)
-* feat:style: Include first decimal in CORA metrics value and adjust color assignments (960b7da)
+* feat:chore: Component tests, 12 components, 475 tests added (d08b974)
+* feat: Tenable high-risk assets table for metrics component and asset processing component (de2e0b5)
+* feat: Maintain filter application between vuln summary and vuln list views (a3410c2)
+* feat: Add All IAV's filter option to IAV Vuln table (3d52b55)
+* feat: Sortable columns for Tenable Vuln components using Tenable's sumid tool (35662de)
+* feat:chore: Service tests, 33 services, 927 tests added (1d2b773)
 
 ### Bug Fixes
-* fix: Exclude informational severity findings from Tenable 'Manage POAMs' section metrics (327f5e8)
-* fix: Host dialog exporting requires col binding (8b9a3ac)
-* fix: resolve pagination display showing incorrect page count (ed0ae0c)
-* fix: resolve null reference error when closing team dialog (d902a8d)
+* fix: STIG Manager metrics asset count (09d9e70)
+* fix: getAvailablePoams API args (e216d2f)
+* fix: save milestone change data from the POAM details component (d60f0c4)
+* fix: resolve [object Object] display in affected assets CSV export (6b29635)
+* fix: lint move var placement before comp methods (7e1f161)
+* fix: Add sourcePluginIDs to AssetData interface (6bce030)
 
 ### Other Changes
-* chore: lint and format (9a212f5)
-* chore: migrate testing framework from Karma to Vitest (5ceac7a)
-* chore(deps): bump urllib3 in /docs in the pip group across 1 directory (4a4c823)
-* chore: Update current year references to 2026 (20aedb7)
-* style: Add custom tooltips for CORA and VPH calculations (fee74ea)
-* style: Remove unused table gridline class assignement (f6e1117)
-* style: Increase table search input width (83bcb0c)
-* style: Standardize metric component colors (1e73a95)
-* chore: Add shared metrics model (138a6e4)
-* chore: Add conditional display for host input variables (4f56bf3)
-* refactor: Tenable model update and helper util addition (bd37f92)
-* perf: Extract Tenable Host dialog to separate component (194fe63)
-* chore: Remove unused dependencies (45726a2)
+* chore: Update dependencies (4fa1073)
+* chore: remove NIPRGPT AI provider (f5aecd5)
+* chore: lint and format service test files (cf4970e)
+* chore: deprecate assets query parameter in POAM service (e5b177a)
+* chore: Remove associated vulns unused endpoint (9a49c64)
+* style: POAM menu button appearance changes (55378f8)
+* perf: Add non-null fallback to STIG Manager vars in POAM creation (a076ae0)
 
