@@ -219,20 +219,25 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
       return of(this.getEmptySTIGManagerMetrics());
     }
 
-    return combineLatest([this.sharedService.getCollectionSTIGSummaryFromSTIGMAN(+originCollectionId), this.sharedService.getFindingsMetricsFromSTIGMAN(+originCollectionId), this.collectionsService.getPoamsByCollection(collectionId)]).pipe(
-      map(([stigSummary, findings, poams]: [any, any[], any[]]) => {
+    return combineLatest([
+      this.sharedService.getCollectionSTIGSummaryFromSTIGMAN(+originCollectionId),
+      this.sharedService.getFindingsMetricsFromSTIGMAN(+originCollectionId),
+      this.sharedService.getCollectionMetricsSummaryFromSTIGMAN(+originCollectionId),
+      this.collectionsService.getPoamsByCollection(collectionId)
+    ]).pipe(
+      map(([stigSummary, findings, collectionMetrics, poams]: [any, any[], any, any[]]) => {
         let fullyAssessedSTIGsCount = 0;
         let totalSTIGsCount = 0;
         let aggregatedMetrics = {
           assessments: 0,
           assessed: 0,
-          assets: 0,
           findings: { high: 0, medium: 0, low: 0 },
           assessedBySeverity: { high: 0, medium: 0, low: 0 },
           assessmentsBySeverity: { high: 0, medium: 0, low: 0 },
           statuses: { submitted: 0, accepted: 0, rejected: 0, saved: 0 }
         };
 
+        const stigAssetCount = collectionMetrics?.assets || 0;
         const stigAssessmentData: any[] = [];
         const initialStigSummary = Array.isArray(stigSummary) ? stigSummary : stigSummary ? [stigSummary] : [];
 
@@ -288,7 +293,6 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
 
             aggregatedMetrics.assessments += assessments;
             aggregatedMetrics.assessed += assessed;
-            aggregatedMetrics.assets = Math.max(aggregatedMetrics.assets, stig.assets || 0);
 
             aggregatedMetrics.findings.high += metrics.findings?.high || 0;
             aggregatedMetrics.findings.medium += metrics.findings?.medium || 0;
@@ -360,7 +364,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         const coraData = this.calculateCORAScore(assessmentsBySeverity, assessedBySeverity, rawFindings);
 
         const metrics = {
-          assetCount: aggregatedMetrics.assets,
+          assetCount: stigAssetCount,
           catICompliance,
           catIICompliance,
           catIIICompliance,
