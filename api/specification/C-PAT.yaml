@@ -4426,6 +4426,8 @@ paths:
             type: boolean
         - in: query
           name: assets
+          deprecated: true
+          description: Returns manually created C-PAT assets associated with a POAM.
           schema:
             type: boolean
         - in: query
@@ -4492,6 +4494,8 @@ paths:
             type: boolean
         - in: query
           name: assets
+          deprecated: true
+          description: Returns manually created C-PAT assets associated with a POAM.
           schema:
             type: boolean
         - in: query
@@ -4579,6 +4583,8 @@ paths:
             type: boolean
         - in: query
           name: assets
+          deprecated: true
+          description: Returns manually created C-PAT assets associated with a POAM.
           schema:
             type: boolean
         - in: query
@@ -4645,6 +4651,8 @@ paths:
             type: boolean
         - in: query
           name: assets
+          deprecated: true
+          description: Returns manually created C-PAT assets associated with a POAM.
           schema:
             type: boolean
         - in: query
