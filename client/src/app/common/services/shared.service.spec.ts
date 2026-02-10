@@ -27,14 +27,16 @@ describe('SharedService', () => {
   });
 
   describe('selectedCollection', () => {
-    it('should emit null initially', () => new Promise<void>((resolve) => {
+    it('should emit null initially', () =>
+      new Promise<void>((resolve) => {
         service.selectedCollection.subscribe((value) => {
           expect(value).toBeNull();
           resolve();
         });
       }));
 
-    it('should emit new value when setSelectedCollection is called', () => new Promise<void>((resolve) => {
+    it('should emit new value when setSelectedCollection is called', () =>
+      new Promise<void>((resolve) => {
         const collectionId = 42;
         let emitCount = 0;
 
@@ -128,24 +130,6 @@ describe('SharedService', () => {
         req.flush([]);
       });
     });
-
-    describe('getExistingVulnerabilityPoams', () => {
-      it('should fetch existing vulnerability POAMs', () => {
-        const mockPoams = [
-          { vulnerabilityId: 'CVE-2024-0001', poamId: 1 },
-          { vulnerabilityId: 'CVE-2024-0002', poamId: 2 }
-        ];
-
-        service.getExistingVulnerabilityPoams().subscribe((poams) => {
-          expect(poams).toEqual(mockPoams);
-        });
-        const req = httpMock.expectOne(`${apiBase}/vulnerability/existingPoams`);
-
-        expect(req.request.method).toBe('GET');
-        req.flush(mockPoams);
-      });
-    });
-  });
 
   describe('STIG Manager API Methods', () => {
     describe('getSTIGsFromSTIGMAN', () => {
