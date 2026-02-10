@@ -126,6 +126,6 @@
   </p-table>
 }
 
-@if (selectedHost) {
-  <cpat-tenable-host-dialog [host]="selectedHost" [tenableRepoId]="tenableRepoId" [(visible)]="displayDialog" />
+@if (selectedHost()) {
+  <cpat-tenable-host-dialog [host]="selectedHost()" [tenableRepoId]="tenableRepoId" [(visible)]="displayDialog" />
 }

@@ -53,8 +53,8 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
   highRiskAssets = signal<HighRiskAsset[]>([]);
   highRiskAssetsTotalRecords = signal<number>(0);
   isLoading = signal<boolean>(false);
-  selectedHost: any;
-  displayDialog = false;
+  selectedHost = signal<any>(null);
+  displayDialog = signal<boolean>(false);
   filterValue: string = '';
 
   private subscriptions = new Subscription();
@@ -185,8 +185,8 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
 
   onHostNameClick(host: any, event: Event): void {
     event.stopPropagation();
-    this.selectedHost = host;
-    this.displayDialog = true;
+    this.selectedHost.set(host);
+    this.displayDialog.set(true);
   }
 
   onGlobalFilter(event: Event) {
