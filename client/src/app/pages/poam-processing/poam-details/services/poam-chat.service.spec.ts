@@ -23,11 +23,7 @@ describe('PoamChatService', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
     TestBed.configureTestingModule({
-      providers: [
-        PoamChatService,
-        provideHttpClient(),
-        provideHttpClientTesting()
-      ]
+      providers: [PoamChatService, provideHttpClient(), provideHttpClientTesting()]
     });
 
     service = TestBed.inject(PoamChatService);
@@ -51,7 +47,7 @@ describe('PoamChatService', () => {
         { messageId: 2, poamId: 123, userId: 2, text: 'Hi there', createdAt: '2024-01-01T10:05:00Z' }
       ];
 
-      service.getMessagesByPoamId(poamId).subscribe(messages => {
+      service.getMessagesByPoamId(poamId).subscribe((messages) => {
         expect(messages).toEqual(mockMessages);
       });
 
@@ -64,7 +60,7 @@ describe('PoamChatService', () => {
     it('should return empty array when no messages exist', () => {
       const poamId = 456;
 
-      service.getMessagesByPoamId(poamId).subscribe(messages => {
+      service.getMessagesByPoamId(poamId).subscribe((messages) => {
         expect(messages).toEqual([]);
       });
 
@@ -142,7 +138,7 @@ describe('PoamChatService', () => {
         createdAt: '2024-01-01T10:00:00Z'
       };
 
-      service.createMessage(poamId, messageText).subscribe(response => {
+      service.createMessage(poamId, messageText).subscribe((response) => {
         expect(response).toEqual(mockResponse);
       });
 
@@ -235,7 +231,7 @@ describe('PoamChatService', () => {
       const messageId = 456;
       const mockResponse = { success: true };
 
-      service.deleteMessage(poamId, messageId).subscribe(response => {
+      service.deleteMessage(poamId, messageId).subscribe((response) => {
         expect(response).toEqual(mockResponse);
       });
 
@@ -249,7 +245,7 @@ describe('PoamChatService', () => {
       const poamId = 123;
       const messageId = 456;
 
-      service.deleteMessage(poamId, messageId).subscribe(response => {
+      service.deleteMessage(poamId, messageId).subscribe((response) => {
         expect(response).toBeNull();
       });
 
@@ -333,9 +329,7 @@ describe('PoamChatService', () => {
 
     it('should convert createdAt to timestamp', () => {
       const userId = 1;
-      const messages = [
-        { messageId: 1, userId: 1, text: 'Test', createdAt: '2024-01-01T10:00:00Z' }
-      ];
+      const messages = [{ messageId: 1, userId: 1, text: 'Test', createdAt: '2024-01-01T10:00:00Z' }];
 
       const result = service.formatMessagesForUI(userId, messages);
 
@@ -369,9 +363,7 @@ describe('PoamChatService', () => {
 
     it('should preserve text content', () => {
       const userId = 1;
-      const messages = [
-        { messageId: 1, userId: 2, text: 'Hello <b>world</b>', createdAt: '2024-01-01T10:00:00Z' }
-      ];
+      const messages = [{ messageId: 1, userId: 2, text: 'Hello <b>world</b>', createdAt: '2024-01-01T10:00:00Z' }];
 
       const result = service.formatMessagesForUI(userId, messages);
 
@@ -380,9 +372,7 @@ describe('PoamChatService', () => {
 
     it('should include ownerId from userId', () => {
       const userId = 1;
-      const messages = [
-        { messageId: 1, userId: 42, text: 'Test', createdAt: '2024-01-01T10:00:00Z' }
-      ];
+      const messages = [{ messageId: 1, userId: 42, text: 'Test', createdAt: '2024-01-01T10:00:00Z' }];
 
       const result = service.formatMessagesForUI(userId, messages);
 
@@ -391,9 +381,7 @@ describe('PoamChatService', () => {
 
     it('should include messageId', () => {
       const userId = 1;
-      const messages = [
-        { messageId: 999, userId: 1, text: 'Test', createdAt: '2024-01-01T10:00:00Z' }
-      ];
+      const messages = [{ messageId: 999, userId: 1, text: 'Test', createdAt: '2024-01-01T10:00:00Z' }];
 
       const result = service.formatMessagesForUI(userId, messages);
 
@@ -411,7 +399,7 @@ describe('PoamChatService', () => {
       const result = service.formatMessagesForUI(userId, messages);
 
       expect(result.length).toBe(3);
-      expect(result.every(m => m.isCurrentUser)).toBe(true);
+      expect(result.every((m) => m.isCurrentUser)).toBe(true);
     });
 
     it('should handle messages from multiple different users', () => {

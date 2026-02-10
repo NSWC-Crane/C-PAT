@@ -23,10 +23,7 @@ describe('AssetTeamMappingService', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        AssetTeamMappingService,
-        { provide: MessageService, useValue: mockMessageService }
-      ]
+      providers: [AssetTeamMappingService, { provide: MessageService, useValue: mockMessageService }]
     });
 
     service = TestBed.inject(AssetTeamMappingService);
@@ -46,9 +43,7 @@ describe('AssetTeamMappingService', () => {
     });
 
     it('should return fallback string when asset is not found', () => {
-      const assetList = [
-        { assetId: 1, assetName: 'Server-01' }
-      ];
+      const assetList = [{ assetId: 1, assetName: 'Server-01' }];
 
       const result = service.getAssetName(999, assetList);
 
@@ -70,15 +65,11 @@ describe('AssetTeamMappingService', () => {
       assets: [
         {
           key: 'server-01',
-          assignedTeams: [
-            { assignedTeamId: 1, assignedTeamName: 'Team Alpha' }
-          ]
+          assignedTeams: [{ assignedTeamId: 1, assignedTeamName: 'Team Alpha' }]
         },
         {
           key: 'workstation',
-          assignedTeams: [
-            { assignedTeamId: 2, assignedTeamName: 'Team Beta' }
-          ]
+          assignedTeams: [{ assignedTeamId: 2, assignedTeamName: 'Team Beta' }]
         }
       ]
     };
@@ -92,15 +83,7 @@ describe('AssetTeamMappingService', () => {
       it('should return existing teams when assetDeltaList is null', () => {
         const existingTeams = [{ assignedTeamId: 99, assignedTeamName: 'Existing Team' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          null,
-          'C-PAT',
-          [],
-          [],
-          [],
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, null, 'C-PAT', [], [], [], existingTeams);
 
         expect(result).toEqual(existingTeams);
       });
@@ -108,15 +91,7 @@ describe('AssetTeamMappingService', () => {
       it('should return existing teams when assetDeltaList.assets is undefined', () => {
         const existingTeams = [{ assignedTeamId: 99, assignedTeamName: 'Existing Team' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          {},
-          'C-PAT',
-          [],
-          [],
-          [],
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, {}, 'C-PAT', [], [], [], existingTeams);
 
         expect(result).toEqual(existingTeams);
       });
@@ -124,15 +99,7 @@ describe('AssetTeamMappingService', () => {
       it('should return existing teams when C-PAT collection has no poamAssets', () => {
         const existingTeams = [{ assignedTeamId: 99, assignedTeamName: 'Existing Team' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'C-PAT',
-          [],
-          [],
-          mockAssetList,
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'C-PAT', [], [], mockAssetList, existingTeams);
 
         expect(result).toEqual(existingTeams);
       });
@@ -140,15 +107,7 @@ describe('AssetTeamMappingService', () => {
       it('should return existing teams when STIG Manager collection has no externalAssets', () => {
         const existingTeams = [{ assignedTeamId: 99, assignedTeamName: 'Existing Team' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          [],
-          mockAssetList,
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], [], mockAssetList, existingTeams);
 
         expect(result).toEqual(existingTeams);
       });
@@ -156,15 +115,7 @@ describe('AssetTeamMappingService', () => {
       it('should return existing teams when Tenable collection has no externalAssets', () => {
         const existingTeams = [{ assignedTeamId: 99, assignedTeamName: 'Existing Team' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'Tenable',
-          [],
-          [],
-          mockAssetList,
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'Tenable', [], [], mockAssetList, existingTeams);
 
         expect(result).toEqual(existingTeams);
       });
@@ -174,15 +125,7 @@ describe('AssetTeamMappingService', () => {
       it('should add teams when poamAsset matches delta key exactly', () => {
         const poamAssets = [{ assetId: 1 }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'C-PAT',
-          poamAssets,
-          [],
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'C-PAT', poamAssets, [], mockAssetList, []);
 
         expect(result).toHaveLength(1);
         expect(result[0]).toMatchObject({
@@ -201,15 +144,7 @@ describe('AssetTeamMappingService', () => {
       it('should not add team for partial match in C-PAT collection', () => {
         const poamAssets = [{ assetId: 2 }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'C-PAT',
-          poamAssets,
-          [],
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'C-PAT', poamAssets, [], mockAssetList, []);
 
         expect(result).toHaveLength(0);
       });
@@ -217,15 +152,7 @@ describe('AssetTeamMappingService', () => {
       it('should use ADDPOAM as poamId for new POAMs', () => {
         const poamAssets = [{ assetId: 1 }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockNewPoam,
-          mockAssetDeltaList,
-          'C-PAT',
-          poamAssets,
-          [],
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockNewPoam, mockAssetDeltaList, 'C-PAT', poamAssets, [], mockAssetList, []);
 
         expect(result[0].poamId).toBe('ADDPOAM');
       });
@@ -233,57 +160,27 @@ describe('AssetTeamMappingService', () => {
 
     describe('STIG Manager collection type', () => {
       it('should add teams when assetName contains delta key (partial match)', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'prod-server-01.domain.com', source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'prod-server-01.domain.com', source: 'STIG Manager' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(1);
       });
 
       it('should add teams when dnsName contains delta key', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'other-name', dnsName: 'server-01.local', source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'other-name', dnsName: 'server-01.local', source: 'STIG Manager' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(1);
       });
 
       it('should add teams when fqdn contains delta key', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'other-name', fqdn: 'server-01.example.com', source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'other-name', fqdn: 'server-01.example.com', source: 'STIG Manager' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(1);
@@ -292,19 +189,9 @@ describe('AssetTeamMappingService', () => {
 
     describe('Tenable collection type', () => {
       it('should add teams when assetName contains delta key (partial match)', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'workstation-dept-a', source: 'Tenable' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'workstation-dept-a', source: 'Tenable' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'Tenable',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'Tenable', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(2);
@@ -312,19 +199,9 @@ describe('AssetTeamMappingService', () => {
       });
 
       it('should add teams when dnsName contains delta key', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'other', dnsName: 'workstation.local', source: 'Tenable' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'other', dnsName: 'workstation.local', source: 'Tenable' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'Tenable',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'Tenable', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(2);
@@ -333,22 +210,10 @@ describe('AssetTeamMappingService', () => {
 
     describe('duplicate prevention', () => {
       it('should not add team if already assigned', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'server-01', source: 'STIG Manager' }
-        ];
-        const existingTeams = [
-          { assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: false }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'server-01', source: 'STIG Manager' }];
+        const existingTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: false }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, existingTeams);
 
         expect(result).toHaveLength(1);
         expect(mockMessageService.add).not.toHaveBeenCalled();
@@ -357,23 +222,13 @@ describe('AssetTeamMappingService', () => {
 
     describe('automated team removal', () => {
       it('should remove automated teams that no longer have matching assets for existing POAMs', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'completely-different-asset', source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'completely-different-asset', source: 'STIG Manager' }];
         const existingTeams = [
           { assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: true },
           { assignedTeamId: 99, assignedTeamName: 'Manual Team', automated: false }
         ];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, existingTeams);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(99);
@@ -385,44 +240,20 @@ describe('AssetTeamMappingService', () => {
       });
 
       it('should NOT remove automated teams for new POAMs (ADDPOAM)', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'completely-different-asset', source: 'STIG Manager' }
-        ];
-        const existingTeams = [
-          { assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: true }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'completely-different-asset', source: 'STIG Manager' }];
+        const existingTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: true }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockNewPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockNewPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, existingTeams);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(1);
       });
 
       it('should not remove manually assigned teams', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'no-match', source: 'STIG Manager' }
-        ];
-        const existingTeams = [
-          { assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: false }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'no-match', source: 'STIG Manager' }];
+        const existingTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: false }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, existingTeams);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(1);
@@ -436,18 +267,10 @@ describe('AssetTeamMappingService', () => {
           { assetName: 'workstation-01', source: 'STIG Manager' }
         ];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(2);
-        expect(result.map(t => t.assignedTeamId).sort()).toEqual([1, 2]);
+        expect(result.map((t) => t.assignedTeamId).sort()).toEqual([1, 2]);
         expect(mockMessageService.add).toHaveBeenCalledTimes(2);
       });
 
@@ -460,19 +283,9 @@ describe('AssetTeamMappingService', () => {
             }
           ]
         };
-        const externalAssets: AssetData[] = [
-          { assetName: 'single-team-asset', source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'single-team-asset', source: 'STIG Manager' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          deltaWithSingleTeam,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, deltaWithSingleTeam, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(5);
@@ -482,19 +295,9 @@ describe('AssetTeamMappingService', () => {
 
     describe('case insensitivity', () => {
       it('should match asset names case-insensitively', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'SERVER-01', source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'SERVER-01', source: 'STIG Manager' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(1);
@@ -505,25 +308,13 @@ describe('AssetTeamMappingService', () => {
           assets: [
             {
               key: 'SERVER-01',
-              assignedTeams: [
-                { assignedTeamId: 1, assignedTeamName: 'Team Alpha' }
-              ]
+              assignedTeams: [{ assignedTeamId: 1, assignedTeamName: 'Team Alpha' }]
             }
           ]
         };
-        const externalAssets: AssetData[] = [
-          { assetName: 'server-01', source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'server-01', source: 'STIG Manager' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          deltaWithUpperCase,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, deltaWithUpperCase, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(1);
       });
@@ -531,77 +322,35 @@ describe('AssetTeamMappingService', () => {
 
     describe('edge cases', () => {
       it('should handle empty assetName gracefully', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: '', source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: '', source: 'STIG Manager' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(0);
       });
 
       it('should handle undefined assetName gracefully', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: undefined as any, source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: undefined as any, source: 'STIG Manager' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result).toHaveLength(0);
       });
 
       it('should handle numeric poamId conversion', () => {
         const poamWithStringId = { poamId: '456' };
-        const externalAssets: AssetData[] = [
-          { assetName: 'server-01', source: 'STIG Manager' }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'server-01', source: 'STIG Manager' }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          poamWithStringId,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          []
-        );
+        const result = service.compareAssetsAndAssignTeams(poamWithStringId, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, []);
 
         expect(result[0].poamId).toBe(456);
       });
 
       it('should keep automated teams that still have matching assets', () => {
-        const externalAssets: AssetData[] = [
-          { assetName: 'server-01', source: 'STIG Manager' }
-        ];
-        const existingTeams = [
-          { assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: true }
-        ];
+        const externalAssets: AssetData[] = [{ assetName: 'server-01', source: 'STIG Manager' }];
+        const existingTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: true }];
 
-        const result = service.compareAssetsAndAssignTeams(
-          mockPoam,
-          mockAssetDeltaList,
-          'STIG Manager',
-          [],
-          externalAssets,
-          mockAssetList,
-          existingTeams
-        );
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], externalAssets, mockAssetList, existingTeams);
 
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(1);

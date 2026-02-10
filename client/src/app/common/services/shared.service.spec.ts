@@ -130,6 +130,7 @@ describe('SharedService', () => {
         req.flush([]);
       });
     });
+  });
 
   describe('STIG Manager API Methods', () => {
     describe('getSTIGsFromSTIGMAN', () => {
