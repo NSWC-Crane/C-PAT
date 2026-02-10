@@ -35,11 +35,7 @@ describe('PoamMitigationService', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [
-        PoamMitigationService,
-        { provide: PoamService, useValue: mockPoamService },
-        { provide: MessageService, useValue: mockMessageService }
-      ]
+      providers: [PoamMitigationService, { provide: PoamService, useValue: mockPoamService }, { provide: MessageService, useValue: mockMessageService }]
     });
 
     service = TestBed.inject(PoamMitigationService);
@@ -51,7 +47,7 @@ describe('PoamMitigationService', () => {
 
   describe('loadTeamMitigations', () => {
     it('should return empty array for null poamId', () => {
-      service.loadTeamMitigations(null).subscribe(result => {
+      service.loadTeamMitigations(null).subscribe((result) => {
         expect(result).toEqual([]);
       });
 
@@ -59,7 +55,7 @@ describe('PoamMitigationService', () => {
     });
 
     it('should return empty array for undefined poamId', () => {
-      service.loadTeamMitigations(undefined).subscribe(result => {
+      service.loadTeamMitigations(undefined).subscribe((result) => {
         expect(result).toEqual([]);
       });
 
@@ -67,7 +63,7 @@ describe('PoamMitigationService', () => {
     });
 
     it('should return empty array for ADDPOAM poamId', () => {
-      service.loadTeamMitigations('ADDPOAM').subscribe(result => {
+      service.loadTeamMitigations('ADDPOAM').subscribe((result) => {
         expect(result).toEqual([]);
       });
 
@@ -76,13 +72,11 @@ describe('PoamMitigationService', () => {
 
     it('should call poamService for valid poamId', () => {
       const poamId = 123;
-      const mockMitigations = [
-        { mitigationId: 1, assignedTeamId: 1, mitigationText: 'Test' }
-      ];
+      const mockMitigations = [{ mitigationId: 1, assignedTeamId: 1, mitigationText: 'Test' }];
 
       mockPoamService.getPoamTeamMitigations.mockReturnValue(of(mockMitigations));
 
-      service.loadTeamMitigations(poamId).subscribe(result => {
+      service.loadTeamMitigations(poamId).subscribe((result) => {
         expect(result).toEqual(mockMitigations);
       });
 
@@ -95,7 +89,7 @@ describe('PoamMitigationService', () => {
 
       mockPoamService.getPoamTeamMitigations.mockReturnValue(of(mockMitigations));
 
-      service.loadTeamMitigations(poamId).subscribe(result => {
+      service.loadTeamMitigations(poamId).subscribe((result) => {
         expect(result).toEqual(mockMitigations);
       });
 
@@ -149,9 +143,7 @@ describe('PoamMitigationService', () => {
       ];
       const teamMitigations: any[] = [];
 
-      mockPoamService.postPoamTeamMitigation
-        .mockReturnValueOnce(of({ mitigationId: 100 }))
-        .mockReturnValueOnce(of({ mitigationId: 101 }));
+      mockPoamService.postPoamTeamMitigation.mockReturnValueOnce(of({ mitigationId: 100 })).mockReturnValueOnce(of({ mitigationId: 101 }));
 
       service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
 
@@ -161,9 +153,7 @@ describe('PoamMitigationService', () => {
     it('should reactivate inactive existing mitigation', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
-      const teamMitigations = [
-        { mitigationId: 1, assignedTeamId: 1, isActive: false }
-      ];
+      const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, isActive: false }];
 
       mockPoamService.updatePoamTeamMitigationStatus.mockReturnValue(of({}));
 
@@ -175,9 +165,7 @@ describe('PoamMitigationService', () => {
     it('should set isActive to true after reactivation', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
-      const teamMitigations = [
-        { mitigationId: 1, assignedTeamId: 1, isActive: false }
-      ];
+      const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, isActive: false }];
 
       mockPoamService.updatePoamTeamMitigationStatus.mockReturnValue(of({}));
 
@@ -219,9 +207,7 @@ describe('PoamMitigationService', () => {
     it('should not deactivate already inactive mitigation', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams: any[] = [];
-      const teamMitigations = [
-        { mitigationId: 1, assignedTeamId: 1, isActive: false }
-      ];
+      const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, isActive: false }];
 
       service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
 
@@ -231,9 +217,7 @@ describe('PoamMitigationService', () => {
     it('should not modify active existing mitigation', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
-      const teamMitigations = [
-        { mitigationId: 1, assignedTeamId: 1, isActive: true }
-      ];
+      const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, isActive: true }];
 
       service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
 
@@ -256,9 +240,7 @@ describe('PoamMitigationService', () => {
     it('should handle error when updating mitigation status', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
-      const teamMitigations = [
-        { mitigationId: 1, assignedTeamId: 1, isActive: false }
-      ];
+      const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, isActive: false }];
 
       mockPoamService.updatePoamTeamMitigationStatus.mockReturnValue(throwError(() => new Error('Update failed')));
 
@@ -300,9 +282,7 @@ describe('PoamMitigationService', () => {
 
     it('should create mitigations for new teams', async () => {
       const poam = { poamId: 123 };
-      const poamAssignedTeams = [
-        { assignedTeamId: 1, assignedTeamName: 'Team A' }
-      ];
+      const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamMitigations: any[] = [];
 
       mockPoamService.postPoamTeamMitigation.mockReturnValue(of({ mitigationId: 100 }));
@@ -321,12 +301,8 @@ describe('PoamMitigationService', () => {
 
     it('should not create mitigation for existing team', async () => {
       const poam = { poamId: 123 };
-      const poamAssignedTeams = [
-        { assignedTeamId: 1, assignedTeamName: 'Team A' }
-      ];
-      const teamMitigations = [
-        { mitigationId: 1, assignedTeamId: 1, assignedTeamName: 'Team A' }
-      ];
+      const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
+      const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, assignedTeamName: 'Team A' }];
 
       const result = await service.initializeTeamMitigations(poam, poamAssignedTeams, teamMitigations);
 
@@ -342,9 +318,7 @@ describe('PoamMitigationService', () => {
       ];
       const teamMitigations: any[] = [];
 
-      mockPoamService.postPoamTeamMitigation
-        .mockReturnValueOnce(of({ mitigationId: 100 }))
-        .mockReturnValueOnce(of({ mitigationId: 101 }));
+      mockPoamService.postPoamTeamMitigation.mockReturnValueOnce(of({ mitigationId: 100 })).mockReturnValueOnce(of({ mitigationId: 101 }));
 
       const result = await service.initializeTeamMitigations(poam, poamAssignedTeams, teamMitigations);
 
@@ -354,9 +328,7 @@ describe('PoamMitigationService', () => {
 
     it('should remove duplicate mitigations', async () => {
       const poam = { poamId: 123 };
-      const poamAssignedTeams = [
-        { assignedTeamId: 1, assignedTeamName: 'Team A' }
-      ];
+      const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamMitigations = [
         { mitigationId: 1, assignedTeamId: 1, assignedTeamName: 'Team A' },
         { mitigationId: 2, assignedTeamId: 1, assignedTeamName: 'Team A' }
@@ -369,9 +341,7 @@ describe('PoamMitigationService', () => {
 
     it('should handle error when creating mitigation', async () => {
       const poam = { poamId: 123 };
-      const poamAssignedTeams = [
-        { assignedTeamId: 1, assignedTeamName: 'Team A' }
-      ];
+      const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamMitigations: any[] = [];
 
       mockPoamService.postPoamTeamMitigation.mockReturnValue(throwError(() => new Error('Create failed')));
@@ -390,9 +360,7 @@ describe('PoamMitigationService', () => {
       ];
       const teamMitigations: any[] = [];
 
-      mockPoamService.postPoamTeamMitigation
-        .mockReturnValueOnce(throwError(() => new Error('Create failed')))
-        .mockReturnValueOnce(of({ mitigationId: 101 }));
+      mockPoamService.postPoamTeamMitigation.mockReturnValueOnce(throwError(() => new Error('Create failed'))).mockReturnValueOnce(of({ mitigationId: 101 }));
 
       const result = await service.initializeTeamMitigations(poam, poamAssignedTeams, teamMitigations);
 
@@ -411,15 +379,11 @@ describe('PoamMitigationService', () => {
 
       mockPoamService.updatePoamTeamMitigation.mockReturnValue(of({ success: true }));
 
-      service.saveTeamMitigation(poam, teamMitigation).subscribe(result => {
+      service.saveTeamMitigation(poam, teamMitigation).subscribe((result) => {
         expect(result).toEqual({ success: true });
       });
 
-      expect(mockPoamService.updatePoamTeamMitigation).toHaveBeenCalledWith(
-        123,
-        1,
-        'Updated mitigation text'
-      );
+      expect(mockPoamService.updatePoamTeamMitigation).toHaveBeenCalledWith(123, 1, 'Updated mitigation text');
     });
 
     it('should handle empty mitigation text', () => {
@@ -470,7 +434,7 @@ describe('PoamMitigationService', () => {
 
       service.saveAllTeamMitigations(poam, teamMitigations);
 
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockPoamService.updatePoamTeamMitigation).toHaveBeenCalledTimes(2);
       expect(mockPoamService.updatePoamTeamMitigation).toHaveBeenCalledWith(123, 1, 'Active');
@@ -482,7 +446,7 @@ describe('PoamMitigationService', () => {
 
       service.saveAllTeamMitigations(poam, []);
 
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockPoamService.updatePoamTeamMitigation).not.toHaveBeenCalled();
     });
@@ -496,22 +460,20 @@ describe('PoamMitigationService', () => {
 
       service.saveAllTeamMitigations(poam, teamMitigations);
 
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockPoamService.updatePoamTeamMitigation).not.toHaveBeenCalled();
     });
 
     it('should show error message on failure', async () => {
       const poam = { poamId: 123 };
-      const teamMitigations = [
-        { assignedTeamId: 1, mitigationText: 'Test', isActive: true }
-      ];
+      const teamMitigations = [{ assignedTeamId: 1, mitigationText: 'Test', isActive: true }];
 
       mockPoamService.updatePoamTeamMitigation.mockReturnValue(throwError(() => new Error('Save failed')));
 
       service.saveAllTeamMitigations(poam, teamMitigations);
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'error',
@@ -522,15 +484,13 @@ describe('PoamMitigationService', () => {
 
     it('should not show error message on success', async () => {
       const poam = { poamId: 123 };
-      const teamMitigations = [
-        { assignedTeamId: 1, mitigationText: 'Test', isActive: true }
-      ];
+      const teamMitigations = [{ assignedTeamId: 1, mitigationText: 'Test', isActive: true }];
 
       mockPoamService.updatePoamTeamMitigation.mockReturnValue(of({ success: true }));
 
       service.saveAllTeamMitigations(poam, teamMitigations);
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockMessageService.add).not.toHaveBeenCalled();
     });

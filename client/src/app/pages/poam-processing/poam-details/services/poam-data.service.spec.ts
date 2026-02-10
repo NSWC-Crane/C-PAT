@@ -148,7 +148,10 @@ describe('PoamDataService', () => {
           { groupId: 'V-12345', assets: [{ assetId: 101, name: 'Asset 1' }] },
           { groupId: 'V-67890', assets: [{ assetId: 102, name: 'Asset 2' }] }
         ];
-        const mockAssetDetails = [{ assetId: 101, fqdn: 'asset1.example.com' }, { assetId: 102, fqdn: 'asset2.example.com' }];
+        const mockAssetDetails = [
+          { assetId: 101, fqdn: 'asset1.example.com' },
+          { assetId: 102, fqdn: 'asset2.example.com' }
+        ];
 
         mockSharedService.getPOAMAssetsFromSTIGMAN.mockReturnValue(of(mockPoamAssets));
         mockSharedService.getAssetDetailsFromSTIGMAN.mockReturnValue(of(mockAssetDetails));
@@ -357,7 +360,10 @@ describe('PoamDataService', () => {
 
   describe('getLabelData', () => {
     it('should return labels from poamService', async () => {
-      const mockLabels = [{ labelId: 1, labelName: 'Label 1' }, { labelId: 2, labelName: 'Label 2' }];
+      const mockLabels = [
+        { labelId: 1, labelName: 'Label 1' },
+        { labelId: 2, labelName: 'Label 2' }
+      ];
 
       mockPoamService.getLabels.mockReturnValue(of(mockLabels));
 
@@ -401,7 +407,10 @@ describe('PoamDataService', () => {
 
   describe('loadAAPackages', () => {
     it('should return AA packages from service', async () => {
-      const mockPackages = [{ aaPackageId: 1, aaPackage: 'Package 1' }, { aaPackageId: 2, aaPackage: 'Package 2' }];
+      const mockPackages = [
+        { aaPackageId: 1, aaPackage: 'Package 1' },
+        { aaPackageId: 2, aaPackage: 'Package 2' }
+      ];
 
       mockAAPackageService.getAAPackages.mockReturnValue(of(mockPackages));
 

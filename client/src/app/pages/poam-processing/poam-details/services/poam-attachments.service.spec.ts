@@ -22,11 +22,7 @@ describe('PoamAttachmentService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        PoamAttachmentService,
-        provideHttpClient(),
-        provideHttpClientTesting()
-      ]
+      providers: [PoamAttachmentService, provideHttpClient(), provideHttpClientTesting()]
     });
 
     service = TestBed.inject(PoamAttachmentService);
@@ -49,7 +45,7 @@ describe('PoamAttachmentService', () => {
         { attachmentId: 2, poamId: 123, filename: 'image.png', contentType: 'image/png' }
       ];
 
-      service.getAttachmentsByPoamId(poamId).subscribe(attachments => {
+      service.getAttachmentsByPoamId(poamId).subscribe((attachments) => {
         expect(attachments).toEqual(mockAttachments);
         expect(attachments.length).toBe(2);
       });
@@ -63,7 +59,7 @@ describe('PoamAttachmentService', () => {
     it('should return empty array when no attachments exist', () => {
       const poamId = 456;
 
-      service.getAttachmentsByPoamId(poamId).subscribe(attachments => {
+      service.getAttachmentsByPoamId(poamId).subscribe((attachments) => {
         expect(attachments).toEqual([]);
         expect(attachments.length).toBe(0);
       });
@@ -117,7 +113,7 @@ describe('PoamAttachmentService', () => {
       const mockFile = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
       const mockResponse = { attachmentId: 1, filename: 'test.pdf' };
 
-      service.uploadAttachment(mockFile, poamId).subscribe(event => {
+      service.uploadAttachment(mockFile, poamId).subscribe((event) => {
         if (event instanceof HttpResponse) {
           expect(event.body).toEqual(mockResponse);
         }
@@ -141,7 +137,7 @@ describe('PoamAttachmentService', () => {
       const mockFile = new File(['test content'], 'large-file.pdf', { type: 'application/pdf' });
       const events: any[] = [];
 
-      service.uploadAttachment(mockFile, poamId).subscribe(event => {
+      service.uploadAttachment(mockFile, poamId).subscribe((event) => {
         events.push(event);
       });
 
@@ -152,7 +148,7 @@ describe('PoamAttachmentService', () => {
       req.flush({ attachmentId: 1 });
 
       expect(events.length).toBeGreaterThan(1);
-      const progressEvents = events.filter(e => e.type === HttpEventType.UploadProgress);
+      const progressEvents = events.filter((e) => e.type === HttpEventType.UploadProgress);
 
       expect(progressEvents.length).toBe(2);
     });
@@ -212,7 +208,7 @@ describe('PoamAttachmentService', () => {
       const attachmentId = 456;
       const mockBlob = new Blob(['file content'], { type: 'application/pdf' });
 
-      service.downloadAttachment(poamId, attachmentId).subscribe(blob => {
+      service.downloadAttachment(poamId, attachmentId).subscribe((blob) => {
         expect(blob instanceof Blob).toBe(true);
         expect(blob.size).toBeGreaterThan(0);
       });
@@ -229,7 +225,7 @@ describe('PoamAttachmentService', () => {
       const attachmentId = 789;
       const mockImageBlob = new Blob(['PNG data'], { type: 'image/png' });
 
-      service.downloadAttachment(poamId, attachmentId).subscribe(blob => {
+      service.downloadAttachment(poamId, attachmentId).subscribe((blob) => {
         expect(blob instanceof Blob).toBe(true);
       });
 
@@ -302,7 +298,7 @@ describe('PoamAttachmentService', () => {
       const attachmentId = 456;
       const mockResponse = { success: true };
 
-      service.deleteAttachment(poamId, attachmentId).subscribe(response => {
+      service.deleteAttachment(poamId, attachmentId).subscribe((response) => {
         expect(response).toEqual(mockResponse);
       });
 
@@ -392,7 +388,7 @@ describe('PoamAttachmentService', () => {
       const poamId = 123;
       const attachmentId = 456;
 
-      service.deleteAttachment(poamId, attachmentId).subscribe(response => {
+      service.deleteAttachment(poamId, attachmentId).subscribe((response) => {
         expect(response).toBeNull();
       });
 
