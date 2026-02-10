@@ -5782,44 +5782,6 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/vulnerability/existingPoams':
-    get:
-      summary: Return a list of vulnerabilities associated with existing POAMs
-      operationId: getExistingVulnerabilityPoams
-      responses:
-        '200':
-          description: Successful response with existing vulnerability POAMs
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    poamId:
-                      type: integer
-                    status:
-                      type: string
-                    vulnerabilityId:
-                      type: string
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Vulnerability
-      security:
-        - oauth:
-            - 'c-pat:read'
-
 components:
   schemas:
     ApiClassification:

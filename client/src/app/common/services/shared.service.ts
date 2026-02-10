@@ -48,10 +48,6 @@ export class SharedService {
     return this.http.get(`${this.cpatApiBase}/vulnerability/poam/${vulnerabilityId}`).pipe(catchError(this.handleError));
   }
 
-  getExistingVulnerabilityPoams(): Observable<any> {
-    return this.http.get(`${this.cpatApiBase}/vulnerability/existingPoams`).pipe(catchError(this.handleError));
-  }
-
   getSTIGsFromSTIGMAN(): Observable<any[]> {
     return this.http.get<any[]>(`${this.STIGMANAGER_URL}/stigs/`).pipe(catchError(this.handleError));
   }
