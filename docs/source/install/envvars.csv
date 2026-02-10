@@ -110,7 +110,7 @@
 "CPAT_AI_ENABLED","| **Default** ``false``
 | By default, AI integration will be disabled. Set to ``true`` to enable. ","API, Client"
 "CPAT_AI_PROVIDER","| **No default**
-| Valid options include: ``anthropic`` ``cerebras`` ``cohere`` ``deepinfra`` ``fireworks`` ``google`` ``groq`` ``mistral`` ``niprgpt`` ``ollama`` ``openai`` ``perplexity`` ``replicate`` ``togetherai`` ``xai`` ","API"
+| Valid options include: ``anthropic`` ``cerebras`` ``cohere`` ``deepinfra`` ``fireworks`` ``google`` ``groq`` ``mistral`` ``ollama`` ``openai`` ``perplexity`` ``replicate`` ``togetherai`` ``xai`` ","API"
 "CPAT_AI_MODEL_NAME","| **No default**
 | Underlying AI integration is enabled by Vercel AI SDK. For precise model naming instructions, please visit the `Vercel docs <https://sdk.vercel.ai/providers/ai-sdk-providers/openai>`_. ","API"
 "CPAT_AI_API_KEY","| **No default**

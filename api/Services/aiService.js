@@ -37,7 +37,6 @@ const AI_BASE_URLS = {
     google: 'https://generativelanguage.googleapis.com/v1beta',
     groq: 'https://api.groq.com/openai/v1',
     mistral: 'https://api.mistral.ai/v1',
-    niprgpt: 'https://api.niprgpt.mil/v1',
     ollama: 'http://localhost:11434/v1',
     openai: 'https://api.openai.com/v1',
     perplexity: 'https://api.perplexity.ai',
@@ -47,21 +46,20 @@ const AI_BASE_URLS = {
 };
 
 const AI_MODELS = {
-    anthropic: 'claude-3-5-haiku-20241022',
+    anthropic: 'claude-sonnet-4-20250514',
     cerebras: 'llama3.1-8b',
     cohere: 'command-r-plus',
-    deepinfra: 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+    deepinfra: 'meta-llama/Meta-Llama-3.1-70B-Instruct',
     fireworks: 'accounts/fireworks/models/llama-v3p1-8b-instruct',
     google: 'gemini-2.5-pro',
     groq: 'gemma2-9b-it',
-    mistral: 'mistral-small-latest',
-    niprgpt: 'Anthropic Claude 4 Sonnet',
+    mistral: 'mistral-medium-latest',
     ollama: 'llama3.2',
     openai: 'gpt-5',
     perplexity: 'sonar-pro',
     replicate: 'meta/meta-llama-3-8b-instruct',
     togetherai: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
-    xai: 'grok-3-latest',
+    xai: 'grok-4-latest',
 };
 
 const ENV_KEYS = {
@@ -117,13 +115,6 @@ async function getAIModel() {
             return groq(modelName);
         case 'mistral':
             return mistral(modelName);
-        case 'niprgpt':
-            const niprgptProvider = createOpenAICompatible({
-                baseURL: AI_BASE_URLS.niprgpt,
-                apiKey: config.ai.apiKey,
-                name: 'niprgpt-provider',
-            });
-            return niprgptProvider.chatModel(modelName);
         case 'ollama':
             const ollamaProvider = createOpenAICompatible({
                 baseURL: AI_BASE_URLS.ollama,
