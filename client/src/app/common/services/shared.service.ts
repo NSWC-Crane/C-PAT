@@ -60,6 +60,10 @@ export class SharedService {
     return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/metrics/summary/stig`).pipe(catchError(this.handleError));
   }
 
+  getCollectionMetricsSummaryFromSTIGMAN(collectionId: number): Observable<any> {
+    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/metrics/summary/collection`).pipe(catchError(this.handleError));
+  }
+
   getCollectionsFromSTIGMAN(): Observable<any[]> {
     return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/`).pipe(catchError(this.handleError));
   }
