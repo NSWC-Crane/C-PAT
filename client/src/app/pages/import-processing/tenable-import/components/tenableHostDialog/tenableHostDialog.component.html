@@ -120,7 +120,7 @@
         [rowHover]="true"
         [globalFilterFields]="['poamStatus', 'pluginID', 'pluginName', 'severity', 'port', 'protocol', 'vprScore', 'epssScore', 'lastSeen']"
         [filterDelay]="300"
-        [loading]="isLoading || isLoadingPluginDetails"
+        [loading]="isLoading() || isLoadingPluginDetails()"
         dataKey="pluginID"
         [resizableColumns]="true"
         class="p-datatable-sm"
@@ -221,12 +221,12 @@
     </div>
   </ng-template>
   <ng-template pTemplate="content">
-    @if (isLoadingPluginDetails) {
+    @if (isLoadingPluginDetails()) {
       <div class="justify-content-center flex">
         <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
       </div>
     }
-    @if (!isLoadingPluginDetails && pluginDetailData) {
+    @if (!isLoadingPluginDetails() && pluginDetailData) {
       <div class="card">
         <div class="p-col-12 mb-2">
           <h3>Plugin Information</h3>

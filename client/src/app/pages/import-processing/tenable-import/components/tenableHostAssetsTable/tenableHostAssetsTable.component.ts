@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { MessageService } from 'primeng/api';
@@ -54,8 +54,8 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   isLoading: boolean = true;
   totalRecords: number = 0;
   filterValue: string = '';
-  selectedHost: any;
-  displayDialog: boolean = false;
+  selectedHost = signal<any>(null);
+  displayDialog = signal<boolean>(false);
   private subscriptions = new Subscription();
 
   ngOnInit() {
@@ -196,8 +196,8 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
 
   onHostNameClick(host: any, event: Event) {
     event.stopPropagation();
-    this.selectedHost = host;
-    this.displayDialog = true;
+    this.selectedHost.set(host);
+    this.displayDialog.set(true);
   }
 
   showErrorMessage(message: string) {
