@@ -62,7 +62,7 @@
             @case ('affectedAssets') {
               @if (row.isAffectedAssetsLoading) {
                 <p-progressSpinner [style]="{ width: '20px', height: '20px' }" strokeWidth="4" [pTooltip]="'Loading affected assets for Vulnerability ID: ' + row.vulnerabilityId" tooltipPosition="top" />
-              } @else if (row.isAffectedAssetsMissing) {
+              } @else if (row.shouldReviewForClosure) {
                 <div class="flex items-center">
                   <i class="pi pi-exclamation-triangle text-yellow-500 mr-2" [pTooltip]="'Review for closure. No affected assets found for Vulnerability ID: ' + row.vulnerabilityId" tooltipPosition="top"></i>
                 </div>

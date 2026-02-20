@@ -96,34 +96,40 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     }
 
     return poams.map((poam) => {
-      const primaryCount = assetCountMap.get(poam.vulnerabilityId);
+      const primaryCount = assetCountMap.get(poam.vulnerabilityId) ?? 0;
       const isAssetsLoading = !assetCountsLoaded;
-      const isAssetsMissing = assetCountsLoaded && primaryCount === undefined;
 
       let hasAssociatedVulnerabilities = false;
       let associatedVulnerabilitiesTooltip = 'Associated Vulnerabilities:';
+      let allAssociatedAssetsZero = true;
 
       if (poam?.associatedVulnerabilities.length > 0) {
         hasAssociatedVulnerabilities = true;
         poam.associatedVulnerabilities.forEach((vulnId: string) => {
-          const associatedCount = assetCountMap.get(vulnId);
+          const associatedCount = assetCountMap.get(vulnId) ?? 0;
 
-          if (associatedCount === undefined) {
-            associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
-          } else {
+          if (associatedCount > 0) {
+            allAssociatedAssetsZero = false;
+          }
+
+          if (assetCountMap.has(vulnId)) {
             associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}\n`;
+          } else {
+            associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
           }
         });
       }
+
+      const shouldReviewForClosure = assetCountsLoaded && primaryCount === 0 && allAssociatedAssetsZero;
 
       return {
         lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
         poamId: poam.poamId,
         status: poam.status,
         vulnerabilityId: poam.vulnerabilityId,
-        affectedAssets: isAssetsLoading || isAssetsMissing ? 0 : Number(primaryCount || 0),
+        affectedAssets: isAssetsLoading ? 0 : primaryCount,
         isAffectedAssetsLoading: isAssetsLoading,
-        isAffectedAssetsMissing: isAssetsMissing,
+        shouldReviewForClosure,
         hasAssociatedVulnerabilities,
         associatedVulnerabilitiesTooltip,
         iavmNumber: poam.iavmNumber,
