@@ -32,7 +32,7 @@ interface PoamAssignedData {
   vulnerabilityId: string;
   affectedAssets: number;
   isAffectedAssetsLoading: boolean;
-  isAffectedAssetsMissing: boolean;
+  shouldReviewForClosure: boolean;
   hasAssociatedVulnerabilities: boolean;
   associatedVulnerabilitiesTooltip: string;
   scheduledCompletionDate: string;
@@ -161,32 +161,38 @@ export class PoamAssignedGridComponent {
         adjustedDate = parseISO(item.extensionDeadline.split('T')[0]);
       }
 
-      const primaryCount = assetCountMap.get(item.vulnerabilityId);
+      const primaryCount = assetCountMap.get(item.vulnerabilityId) ?? 0;
       const isAssetsLoading = !assetCountsLoaded;
-      const isAssetsMissing = assetCountsLoaded && primaryCount === undefined;
 
       let hasAssociatedVulnerabilities = false;
       let associatedVulnerabilitiesTooltip = 'Associated Vulnerabilities:';
+      let allAssociatedAssetsZero = true;
 
       if (item.associatedVulnerabilities?.length > 0) {
         hasAssociatedVulnerabilities = true;
         item.associatedVulnerabilities.forEach((vulnId: string) => {
-          const associatedCount = assetCountMap.get(vulnId);
+          const associatedCount = assetCountMap.get(vulnId) ?? 0;
 
-          if (associatedCount === undefined) {
-            associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
-          } else {
+          if (associatedCount > 0) {
+            allAssociatedAssetsZero = false;
+          }
+
+          if (assetCountMap.has(vulnId)) {
             associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}\n`;
+          } else {
+            associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
           }
         });
       }
 
+      const shouldReviewForClosure = assetCountsLoaded && primaryCount === 0 && allAssociatedAssetsZero;
+
       return {
         poamId: item.poamId,
         vulnerabilityId: item.vulnerabilityId,
-        affectedAssets: isAssetsLoading || isAssetsMissing ? 0 : Number(primaryCount || 0),
+        affectedAssets: isAssetsLoading ? 0 : primaryCount,
         isAffectedAssetsLoading: isAssetsLoading,
-        isAffectedAssetsMissing: isAssetsMissing,
+        shouldReviewForClosure,
         hasAssociatedVulnerabilities,
         associatedVulnerabilitiesTooltip,
         scheduledCompletionDate: format(adjustedDate, 'yyyy-MM-dd'),
@@ -341,7 +347,7 @@ export class PoamAssignedGridComponent {
     const processedData = displayedData.map((row) => ({
       poamId: row.poamId,
       vulnerabilityId: row.vulnerabilityId,
-      affectedAssets: row.isAffectedAssetsMissing ? '' : (row.affectedAssets ?? ''),
+      affectedAssets: row.affectedAssets ?? '',
       scheduledCompletionDate: row.scheduledCompletionDate,
       adjSeverity: row.adjSeverity,
       status: row.status,

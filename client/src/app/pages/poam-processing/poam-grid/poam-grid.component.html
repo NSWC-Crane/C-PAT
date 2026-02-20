@@ -182,7 +182,7 @@
             <td>
               @if (row.isAffectedAssetsLoading) {
                 <p-progressSpinner [style]="{ width: '20px', height: '20px' }" strokeWidth="4" pTooltip="Loading affected assets for Vulnerability ID: {{ row.vulnerabilityId }}" tooltipPosition="top" />
-              } @else if (row.isAffectedAssetsMissing) {
+              } @else if (row.shouldReviewForClosure) {
                 <div class="align-items-center flex">
                   <i class="pi pi-exclamation-triangle mr-2 text-yellow-500" pTooltip="Review for closure. No affected assets found for Vulnerability ID: {{ row.vulnerabilityId }}" tooltipPosition="top"> </i>
                 </div>
