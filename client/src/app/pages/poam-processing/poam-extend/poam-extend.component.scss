@@ -110,3 +110,25 @@
     }
   }
 }
+
+.inactive-tab {
+  color: var(--text-secondary-color) !important;
+  opacity: 0.7;
+}
+
+:host ::ng-deep {
+  .team-mitigations-container {
+    .p-tabs {
+      .p-tablist {
+        .p-tab {
+          &.inactive-tab {
+            span {
+              color: var(--p-tabs-nav-button-color) !important;
+              opacity: 0.7;
+            }
+          }
+        }
+      }
+    }
+  }
+}

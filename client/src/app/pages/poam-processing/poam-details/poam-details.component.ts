@@ -419,6 +419,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.poamMilestones = (poam.milestones || []).map((milestone: any) => ({
             ...milestone,
             milestoneDate: milestone.milestoneDate ? parse(milestone.milestoneDate.split('T')[0], 'yyyy-MM-dd', new Date()) : null,
+            milestoneChangeDate: milestone.milestoneChangeDate ? parse(milestone.milestoneChangeDate.split('T')[0], 'yyyy-MM-dd', new Date()) : null,
             assignedTeamId: +milestone.assignedTeamId
           }));
           this.poamLabels = poam.labels || [];

@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, inject, viewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
@@ -54,7 +54,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
 
   hostDialogCols: any[];
   hostData: any[] = [];
-  isLoading: boolean = false;
+  isLoading = signal<boolean>(false);
   dialogFilterValue: string = '';
   selectedPoamStatuses: string[] = [];
   selectedSeverities: string[] = [];
@@ -62,8 +62,8 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   pluginData: any;
   selectedPlugin: any;
   pluginDetailData: any;
-  displayPluginDialog: boolean = false;
-  isLoadingPluginDetails: boolean = false;
+  displayPluginDialog = signal<boolean>(false);
+  isLoadingPluginDetails = signal<boolean>(false);
   cveReferences: any[] = [];
   iavReferences: any[] = [];
   otherReferences: any[] = [];
@@ -152,7 +152,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.selectedPoamStatuses = [];
     this.selectedSeverities = [];
     this.dialogFilterValue = '';
@@ -230,7 +230,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
               }
 
               if (!findingsData?.response) {
-                this.isLoading = false;
+                this.isLoading.set(false);
                 this.showErrorMessage('Invalid response from Tenable');
 
                 return;
@@ -258,10 +258,10 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
               });
 
               this.dataLoaded = true;
-              this.isLoading = false;
+              this.isLoading.set(false);
             },
             error: (error) => {
-              this.isLoading = false;
+              this.isLoading.set(false);
               this.messageService.add({
                 severity: 'error',
                 summary: 'Error',
@@ -302,13 +302,13 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
 
   onPluginIDClick(plugin: any, event: Event) {
     event.stopPropagation();
-    this.isLoadingPluginDetails = true;
+    this.isLoadingPluginDetails.set(true);
     this.showPluginDetails(plugin);
   }
 
   showPluginDetails(plugin: any): Promise<void> {
     if (!plugin?.pluginID) {
-      this.isLoadingPluginDetails = false;
+      this.isLoadingPluginDetails.set(false);
       this.showErrorMessage('Invalid plugin ID');
 
       return Promise.reject('Invalid plugin ID');
@@ -395,7 +395,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
         next: (data) => {
           if (!data?.response?.results?.length) {
             reject(new Error('Invalid response from postTenableAnalysis'));
-            this.isLoadingPluginDetails = false;
+            this.isLoadingPluginDetails.set(false);
 
             return;
           }
@@ -424,12 +424,12 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
             this.otherReferences = [];
           }
 
-          this.displayPluginDialog = true;
-          this.isLoadingPluginDetails = false;
+          this.displayPluginDialog.set(true);
+          this.isLoadingPluginDetails.set(false);
           resolve();
         },
         error: (error) => {
-          this.isLoadingPluginDetails = false;
+          this.isLoadingPluginDetails.set(false);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -442,7 +442,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   }
 
   goBackToHostDialog() {
-    this.displayPluginDialog = false;
+    this.displayPluginDialog.set(false);
   }
 
   async onPoamIconClick(vulnerability: any, event: Event) {

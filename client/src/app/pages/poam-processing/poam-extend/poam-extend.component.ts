@@ -18,6 +18,8 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePicker } from 'primeng/datepicker';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { TabsModule } from 'primeng/tabs';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -33,6 +35,8 @@ import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
 import { LabelService } from '../../label-processing/label.service';
+import { PoamMitigationGeneratorComponent } from '../poam-details/components/poam-mitigation-generator/poam-mitigation-generator.component';
+import { PoamMitigationService } from '../poam-details/services/poam-mitigation.service';
 import { PoamExtensionService } from '../poam-extend/poam-extend.service';
 import { PoamService } from '../poams.service';
 
@@ -48,16 +52,19 @@ import { PoamService } from '../poams.service';
     ButtonModule,
     DatePicker,
     DialogModule,
+    ProgressBarModule,
     SelectModule,
     SplitButtonModule,
     InputTextModule,
+    TabsModule,
     TextareaModule,
     TooltipModule,
     StepperModule,
     TableModule,
     ToastModule,
     ConfirmDialogModule,
-    DatePipe
+    DatePipe,
+    PoamMitigationGeneratorComponent
   ],
   providers: [ConfirmationService, MessageService]
 })
@@ -72,6 +79,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   private confirmationService = inject(ConfirmationService);
   private labelService = inject(LabelService);
   private messageService = inject(MessageService);
+  private poamMitigationService = inject(PoamMitigationService);
   private setPayloadService = inject(PayloadService);
 
   private subscriptions = new Subscription();
@@ -85,6 +93,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   completionDateWithExtension: any;
   labelList: any;
   assignedTeamOptions: any;
+  poamAssignedTeams: any[] = [];
+  teamMitigations: any[] = [];
+  activeTabIndex: number = 0;
+  mitigationSaving: boolean = false;
+  aiEnabled: boolean = CPAT.Env.features.aiEnabled;
   displayExtensionDialog: boolean = false;
   dates: any = {};
   poam: any;
@@ -173,8 +186,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   getData() {
     this.subscriptions.add(
-      forkJoin([this.poamService.getPoam(this.poamId), this.poamExtensionService.getPoamExtension(this.poamId), this.poamService.getPoamMilestones(this.poamId), this.assignedTeamService.getAssignedTeams()]).subscribe({
-        next: ([poamData, extension, poamMilestones, assignedTeamOptions]: any) => {
+      forkJoin([this.poamService.getPoam(this.poamId), this.poamExtensionService.getPoamExtension(this.poamId), this.poamService.getPoamMilestones(this.poamId), this.assignedTeamService.getAssignedTeams(), this.poamService.getPoamAssignedTeams(this.poamId)]).subscribe({
+        next: ([poamData, extension, poamMilestones, assignedTeamOptions, poamAssignedTeams]: any) => {
           const extensionDataset = extension;
 
           this.poamMilestones = poamMilestones.map((milestone: any) => ({
@@ -184,6 +197,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
           }));
 
           this.assignedTeamOptions = assignedTeamOptions;
+          this.poamAssignedTeams = poamAssignedTeams || [];
 
           if (extensionDataset.length > 0) {
             const extensionData = extensionDataset[0];
@@ -191,6 +205,12 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             this.poam = {
               poamId: +poamData.poamId,
               status: poamData.status,
+              isGlobalFinding: poamData.isGlobalFinding ?? false,
+              vulnerabilitySource: poamData.vulnerabilitySource,
+              vulnerabilityTitle: poamData.vulnerabilityTitle,
+              vulnerabilityId: poamData.vulnerabilityId,
+              stigCheckData: poamData.stigCheckData,
+              tenablePluginData: poamData.tenablePluginData,
               mitigations: poamData.mitigations,
               requiredResources: poamData.requiredResources,
               residualRisk: poamData.residualRisk,
@@ -218,21 +238,30 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             }
           } else {
             this.poam = {
+              poamId: +poamData.poamId,
+              status: poamData.status,
+              isGlobalFinding: poamData.isGlobalFinding ?? false,
+              vulnerabilitySource: poamData.vulnerabilitySource,
+              vulnerabilityTitle: poamData.vulnerabilityTitle,
+              vulnerabilityId: poamData.vulnerabilityId,
+              stigCheckData: poamData.stigCheckData,
+              tenablePluginData: poamData.tenablePluginData,
               extensionDays: 0,
               extensionJustification: '',
               scheduledCompletionDate: '',
-              mitigations: '',
-              requiredResources: '',
-              residualRisk: '',
-              likelihood: '',
-              localImpact: '',
-              impactDescription: ''
+              mitigations: poamData.mitigations || '',
+              requiredResources: poamData.requiredResources || '',
+              residualRisk: poamData.residualRisk || '',
+              likelihood: poamData.likelihood || '',
+              localImpact: poamData.localImpact || '',
+              impactDescription: poamData.impactDescription || ''
             };
 
             this.extensionJustification = '';
             this.completionDateWithExtension = '';
           }
 
+          this.loadTeamMitigations();
           this.getPoamLabels();
         }
       })
@@ -510,6 +539,104 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     );
   }
 
+  loadTeamMitigations() {
+    if (!this.poam?.poamId) {
+      this._ensureUniqueTeamMitigations();
+
+      return;
+    }
+
+    this.poamMitigationService.loadTeamMitigations(this.poam.poamId).subscribe({
+      next: async (mitigations) => {
+        this.teamMitigations = mitigations || [];
+        this._ensureUniqueTeamMitigations();
+
+        const needsInitialization = this.teamMitigations.length === 0 && this.poamAssignedTeams?.length > 0;
+        const needsSync = this.teamMitigations.length > 0 && this.poamAssignedTeams?.length > 0;
+
+        if (needsInitialization) {
+          this.teamMitigations = await this.poamMitigationService.initializeTeamMitigations(this.poam, this.poamAssignedTeams, this.teamMitigations);
+        } else if (needsSync) {
+          this.poamMitigationService.syncTeamMitigations(this.poam, this.poamAssignedTeams, this.teamMitigations);
+        }
+
+        this._ensureUniqueTeamMitigations();
+
+        if (this.activeTabIndex > 0 && this.activeTabIndex > this.teamMitigations.length) {
+          this.activeTabIndex = 0;
+        }
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load team mitigations: ${getErrorMessage(error)}`
+        });
+        this._ensureUniqueTeamMitigations();
+      }
+    });
+  }
+
+  saveTeamMitigation(teamMitigation: any) {
+    if (!this.poam || !teamMitigation || !teamMitigation.assignedTeamId) {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Cannot save, missing data.' });
+
+      return;
+    }
+
+    this.mitigationSaving = true;
+    this.poamMitigationService.saveTeamMitigation(this.poam, teamMitigation).subscribe({
+      next: () => {
+        this.mitigationSaving = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Mitigation for ${teamMitigation.assignedTeamName} saved successfully`
+        });
+      },
+      error: (error) => {
+        this.mitigationSaving = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to save team mitigation: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  onMitigationGenerated(event: { mitigation: string; teamId?: number }) {
+    if (this.poam.isGlobalFinding || !event.teamId) {
+      this.poam.mitigations = event.mitigation;
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Mitigation added'
+      });
+    } else {
+      const teamMitigation = this.teamMitigations.find((m) => m.assignedTeamId === event.teamId);
+
+      if (teamMitigation) {
+        teamMitigation.mitigationText = event.mitigation;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Mitigation updated for team ${teamMitigation.assignedTeamName}`
+        });
+      }
+    }
+
+    this._ensureUniqueTeamMitigations();
+  }
+
+  private _ensureUniqueTeamMitigations(): void {
+    if (Array.isArray(this.teamMitigations)) {
+      this.teamMitigations = this.teamMitigations.filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId));
+    } else {
+      this.teamMitigations = [];
+    }
+  }
+
   computeDeadlineWithExtension() {
     if (this.poam.extensionDays === 0 || this.poam.extensionDays == null) {
       this.completionDateWithExtension = format(this.poam.scheduledCompletionDate, 'EEE MMM dd yyyy');
@@ -602,14 +729,39 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.poam.mitigations) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Validation Error',
-        detail: 'Mitigations are required.'
-      });
+    if (this.poam.isGlobalFinding) {
+      if (!this.poam.mitigations) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'Mitigations are required.'
+        });
 
-      return;
+        return;
+      }
+    } else if (this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
+      const activeTeamMitigations = this.teamMitigations.filter((m) => m.isActive);
+      const hasTeamMitigationText = activeTeamMitigations.some((m) => m.mitigationText?.trim());
+
+      if (!hasTeamMitigationText) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'At least one team mitigation is required.'
+        });
+
+        return;
+      }
+    } else {
+      if (!this.poam.mitigations) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'Mitigations are required.'
+        });
+
+        return;
+      }
     }
 
     if (this.poam.extensionDays > 0) {
@@ -745,6 +897,10 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
           if (status !== 'Rejected' && extensionData.extensionDays > 0) {
             this.poamService.updatePoamStatus(this.poamId, extensionData).subscribe();
+          }
+
+          if (!this.poam.isGlobalFinding && this.teamMitigations.length > 0) {
+            this.poamMitigationService.saveAllTeamMitigations(this.poam, this.teamMitigations);
           }
 
           setTimeout(() => {
