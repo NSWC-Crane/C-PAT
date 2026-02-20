@@ -17,11 +17,12 @@ import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { ListboxModule } from 'primeng/listbox';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
-import { EMPTY, Observable, Subscription, catchError, forkJoin, from, map, of, switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, Subscription, catchError, forkJoin, from, map, of, switchMap, tap, throwError } from 'rxjs';
 import { SubSink } from 'subsink';
 import { AAPackage } from '../../../common/models/aaPackage.model';
 import { Collections } from '../../../common/models/collections.model';
@@ -45,7 +46,7 @@ interface TreeNode<T> {
   templateUrl: './collection-processing.component.html',
   styleUrls: ['./collection-processing.component.scss'],
   standalone: true,
-  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, TextareaModule, ToastModule, TreeTableModule]
+  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TextareaModule, ToastModule, TreeTableModule]
 })
 export class CollectionProcessingComponent implements OnInit, OnDestroy {
   private aaPackageService = inject(AAPackageService);
@@ -88,6 +89,10 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   tenableAffectedAssets: any;
   displayDeleteDialog: boolean = false;
   collectionToDelete: any = null;
+  displayExportDialog: boolean = false;
+  selectableCollections: any[] = [];
+  selectedExportCollections: any[] = [];
+  exporting: boolean = false;
   private findingsCache: Map<string, any[]> = new Map();
   private payloadSubscription: Subscription[] = [];
   private subs = new SubSink();
@@ -359,7 +364,16 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
       return this.sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, poam.stigBenchmarkId).pipe(
         tap((findings) => this.findingsCache.set(poam.stigBenchmarkId, findings)),
-        map((findings) => this.processSinglePoamWithFindings(poam, findings))
+        map((findings) => this.processSinglePoamWithFindings(poam, findings)),
+        catchError((error) => {
+          if (error?.message?.includes('403')) {
+            console.warn(`STIG Manager access denied for benchmark ${poam.stigBenchmarkId}, exporting POAM without enriched asset data.`);
+
+            return of(poam);
+          }
+
+          return throwError(() => error);
+        })
       );
     });
 
@@ -513,6 +527,127 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
   hideCollectionDialog() {
     this.displayCollectionDialog = false;
+  }
+
+  showExportDialog() {
+    this.selectableCollections = this.data.map((collection: any) => ({
+      label: collection.collectionName,
+      value: {
+        collectionId: collection.collectionId,
+        name: collection.collectionName,
+        collectionOrigin: collection.collectionOrigin || '',
+        originCollectionId: collection.originCollectionId ?? 0,
+        systemType: collection.systemType || '',
+        systemName: collection.systemName || '',
+        ccsafa: collection.ccsafa || '',
+        aaPackage: collection.aaPackage || '',
+        predisposingConditions: collection.predisposingConditions || ''
+      }
+    }));
+    this.selectedExportCollections = [];
+    this.displayExportDialog = true;
+  }
+
+  hideExportDialog() {
+    this.displayExportDialog = false;
+    this.selectedExportCollections = [];
+  }
+
+  exportMultipleCollections() {
+    if (!this.selectedExportCollections?.length) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Selection',
+        detail: 'Please select at least one collection to export.'
+      });
+
+      return;
+    }
+
+    this.exporting = true;
+    const skippedCollections: string[] = [];
+    const emptyCollections: string[] = [];
+
+    const collectionExports = this.selectedExportCollections.map((exportCollection) =>
+      this.collectionsService.getPoamsByCollection(exportCollection.collectionId).pipe(
+        switchMap((poams) => {
+          if (!poams?.length) {
+            emptyCollections.push(exportCollection.name);
+
+            return of([]);
+          }
+
+          return this.processPoamsData(poams, exportCollection);
+        }),
+        catchError((error) => {
+          if (error?.message?.includes('403')) {
+            skippedCollections.push(exportCollection.name);
+          } else {
+            skippedCollections.push(`${exportCollection.name} (${getErrorMessage(error)})`);
+          }
+
+          return of([]);
+        })
+      )
+    );
+
+    forkJoin(collectionExports)
+      .pipe(
+        switchMap((results: any[][]) => {
+          const allPoams = results.flat();
+
+          if (!allPoams.length) {
+            throw new Error('No POAMs were available to export from the selected collections.');
+          }
+
+          const primaryCollection = this.selectedExportCollections[0];
+          const syntheticExportCollection = {
+            ...primaryCollection,
+            name: this.selectedExportCollections.length > 1 ? 'Multi_Collection' : primaryCollection.name
+          };
+
+          return from(PoamExportService.convertToExcel(allPoams, this.user, syntheticExportCollection));
+        }),
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Export Failed',
+            detail: getErrorMessage(error)
+          });
+
+          return EMPTY;
+        })
+      )
+      .subscribe({
+        next: (excelData) => {
+          const exportName = this.selectedExportCollections.length > 1 ? 'Multi_Collection' : this.selectedExportCollections[0].name;
+
+          this.downloadExcel(excelData, exportName);
+
+          if (skippedCollections.length) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Partial Export',
+              detail: `The following collections were skipped due to permission or processing errors: ${skippedCollections.join(', ')}`,
+              life: 10000
+            });
+          }
+
+          if (emptyCollections.length) {
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Empty Collections',
+              detail: `The following collections had no POAMs to export: ${emptyCollections.join(', ')}`,
+              life: 10000
+            });
+          }
+
+          this.displayExportDialog = false;
+        },
+        complete: () => {
+          this.exporting = false;
+        }
+      });
   }
 
   filterGlobal(event: Event) {
