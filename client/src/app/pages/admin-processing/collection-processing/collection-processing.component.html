@@ -29,7 +29,10 @@
           </p-inputIcon>
           <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections" name="searchCollections" class="search-input" />
         </p-iconField>
-        <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Manually Add Collection" (onClick)="showAddCollectionDialog()" />
+        <div class="flex items-center gap-2">
+          <p-button icon="pi pi-download" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Export Multiple Collections" (onClick)="showExportDialog()" />
+          <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Manually Add Collection" (onClick)="showAddCollectionDialog()" />
+        </div>
       </div>
     </ng-template>
     <ng-template pTemplate="header" let-columns>
@@ -146,6 +149,28 @@
     <div class="m-2 flex w-full items-center justify-between">
       <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="hideDeleteDialog()" />
       <p-button label="Confirm" variant="outlined" (onClick)="deleteCollection()" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="displayExportDialog" styleClass="w-[40vw] overflow-hidden" [modal]="true" header="Export Collections">
+  <p class="mt-0 mb-4 text-sm text-gray-400">POAMs from all selected collections will be combined into a single Excel file export.</p>
+  <p-listbox
+    [options]="selectableCollections"
+    [(ngModel)]="selectedExportCollections"
+    optionLabel="label"
+    optionValue="value"
+    [multiple]="true"
+    [checkbox]="true"
+    [filter]="true"
+    filterPlaceHolder="Search collections..."
+    [listStyle]="{ 'max-height': '300px' }"
+    class="w-full"
+  />
+  <ng-template pTemplate="footer">
+    <div class="flex w-full items-center justify-between">
+      <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="hideExportDialog()" />
+      <p-button label="Export" variant="outlined" icon="pi pi-download" [loading]="exporting" [disabled]="!selectedExportCollections.length" (onClick)="exportMultipleCollections()" />
     </div>
   </ng-template>
 </p-dialog>
