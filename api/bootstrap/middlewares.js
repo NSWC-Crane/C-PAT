@@ -48,7 +48,8 @@ function configureMiddleware(app) {
 }
 
 function configureProxy(app) {
-    app.set('trust proxy', true);
+    const trustProxy = Number.parseInt(config.http.trustProxy) || 1;
+    app.set('trust proxy', trustProxy);
 }
 
 function configureCors(app) {

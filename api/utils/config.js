@@ -62,6 +62,7 @@ let config = {
         maxJsonBody: process.env.CPAT_API_MAX_JSON_BODY || '52428800',
         maxUpload: process.env.CPAT_API_MAX_UPLOAD || '52428800',
         rateLimit: process.env.CPAT_API_RATE_LIMIT || '10000',
+        trustProxy: process.env.CPAT_API_TRUST_PROXY || 1,
     },
     database: {
         acquire: process.env.CPAT_DB_ACQUIRE || 30000,
