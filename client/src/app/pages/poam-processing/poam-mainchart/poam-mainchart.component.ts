@@ -305,6 +305,8 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
 
   private updateAllCharts(): void {
     requestAnimationFrame(() => {
+      if (!this.initialized) return;
+
       this.updateStatusChart();
       this.updateLabelChart();
       this.updateSeverityChart();
@@ -409,6 +411,8 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
   }
 
   private applyFilters(filterType: string): any[] {
+    if (!this.poams?.length) return [];
+
     if (Object.values(this.selectedOptions()).every((value) => value === null)) {
       const result = this.computeChartData(filterType, this.poams);
 
