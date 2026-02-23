@@ -14,7 +14,7 @@ USER node
 WORKDIR /home/node/app/api
 
 COPY --chown=node:node api/package*.json ./
-RUN npm ci
+RUN npm ci --omit=dev
 
 COPY --chown=node:node api/. .
 
