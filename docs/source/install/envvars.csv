@@ -7,6 +7,8 @@
 | The maximum size in bytes of the file uploaded with Content-Type multipart/form-data","API"
 "CPAT_API_RATE_LIMIT","| **Default** ``1000``
 | API rate limit per 15 minutes","API"
+"CPAT_API_TRUST_PROXY","| **Default** ``1``
+| Number of trusted proxy hops for Express trust proxy setting","API"
 "CPAT_API_PORT","| **Default** ``8086``
 | The TCP port on which the server will listen ","API"
 "CPAT_CLASSIFICATION","| If CPAT_DOD_DEPLOYMENT is explicitly set to ``false``: **Default** ``NONE``, otherwise **Default** ``U``
