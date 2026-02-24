@@ -42,6 +42,9 @@ const CPAT = {
     apiBase: "${config.client.apiBase}",
     adminInactivityTimeout: ${config.settings.adminInactivityTimeout},
     inactivityTimeout: ${config.settings.inactivityTimeout},
+    client: {
+        authority:  "${config.client.authority}",
+    },
     oauth: {
         authority:  "${config.oauth.authority}",
         clientId: "${config.oauth.clientId}",
@@ -84,7 +87,7 @@ const CPAT = {
 
 function serveClientEnv(app) {
     const envJS = getClientEnv();
-    app.get('/cpat/Env.js', function (req, res) {
+    app.get('/init/Env.js', function (req, res) {
         req.component = 'static';
         writer.writeWithContentType(res, { payload: envJS, contentType: 'application/javascript' });
     });

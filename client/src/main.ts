@@ -87,7 +87,7 @@ bootstrapApplication(AppComponent, {
         config: [
           {
             configId: 'cpat',
-            authority: CPAT.Env.oauth.authority,
+            authority: CPAT.Env.client.authority,
             redirectUrl: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
             postLogoutRedirectUri: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
             clientId: CPAT.Env.oauth.clientId,
@@ -112,7 +112,7 @@ bootstrapApplication(AppComponent, {
           },
           {
             configId: 'stigman',
-            authority: CPAT.Env.oauth.authority,
+            authority: CPAT.Env.client.authority,
             redirectUrl: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
             postLogoutRedirectUri: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
             clientId: CPAT.Env.stigman.clientId,
