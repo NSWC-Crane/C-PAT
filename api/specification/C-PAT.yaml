@@ -6953,7 +6953,7 @@ components:
           readOnly: true
         userName:
           type: string
-          maxLength: 20
+          maxLength: 100
           readOnly: true
         email:
           type: string
