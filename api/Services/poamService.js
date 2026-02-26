@@ -383,9 +383,18 @@ exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnera
             SELECT poamId, status, vulnerabilityId, taskOrderNumber
             FROM ${config.database.schema}.poam
             WHERE collectionId = ? AND taskOrderNumber IS NOT NULL
+
+            UNION ALL
+
+            SELECT pav.poamId, 'Associated' AS status, pav.associatedVulnerability AS vulnerabilityId,
+                   po.taskOrderNumber
+            FROM ${config.database.schema}.poamassociatedvulnerabilities pav
+            JOIN ${config.database.schema}.poam po ON pav.poamId = po.poamId
+            WHERE po.collectionId = ? AND po.taskOrderNumber IS NOT NULL
+
             ORDER BY poamId;
             `;
-            let [vulnerabilityIds] = await connection.query(sql, [req.params.collectionId]);
+            let [vulnerabilityIds] = await connection.query(sql, [req.params.collectionId, req.params.collectionId]);
             return vulnerabilityIds;
         });
     } catch (error) {
