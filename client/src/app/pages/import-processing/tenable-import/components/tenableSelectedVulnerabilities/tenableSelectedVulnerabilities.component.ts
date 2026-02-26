@@ -76,6 +76,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   otherReferences: Reference[] = [];
   applicableVulnerabilities: any[] = [];
   applicablePluginIDs: string = '';
+  taskOrderMap: { [pluginId: string]: string } = {};
   selectedVulnerability: any;
   displayDialog: boolean = false;
   parsedVprContext: any[] = [];
@@ -204,6 +205,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         header: 'Plugin ID',
         filterType: 'text'
       },
+      ...(this.currentPreset === 'taskOrder' ? [{ field: 'taskOrderNumber', header: 'Task Order #', filterType: 'text' }] : []),
       {
         field: 'pluginName',
         header: 'Name',
@@ -319,6 +321,12 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         }
 
         const mappedPluginIDs = data.map((item: any) => item.vulnerabilityId).join(',');
+
+        this.taskOrderMap = data.reduce((acc: { [key: string]: string }, item: any) => {
+          acc[item.vulnerabilityId] = item.taskOrderNumber || '';
+
+          return acc;
+        }, {});
 
         this.applicablePluginIDs = mappedPluginIDs;
         this.getApplicableFindings(this.applicablePluginIDs);
@@ -454,7 +462,8 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
               hostTotal: vuln.hostTotal ? Number.parseInt(vuln.hostTotal) : '',
               acrScore: vuln.acrScore ? parseFloat(vuln.acrScore) : '',
               assetExposureScore: vuln.assetExposureScore ? Number.parseInt(vuln.assetExposureScore) : '',
-              port: vuln.port ? Number.parseInt(vuln.port) : ''
+              port: vuln.port ? Number.parseInt(vuln.port) : '',
+              ...(this.currentPreset === 'taskOrder' && { taskOrderNumber: this.taskOrderMap[vuln.pluginID] || '' })
             };
           });
 
@@ -860,7 +869,13 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   resetColumnSelections() {
-    this.selectedColumns = this.cols.filter((col) => ['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'supersededBy', 'total', 'hostTotal'].includes(col.field));
+    const defaultFields = ['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'supersededBy', 'total', 'hostTotal'];
+
+    if (this.currentPreset === 'taskOrder') {
+      defaultFields.push('taskOrderNumber');
+    }
+
+    this.selectedColumns = this.cols.filter((col) => defaultFields.includes(col.field));
   }
 
   expandColumnSelections() {
