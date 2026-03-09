@@ -41,6 +41,7 @@ export class PoamAssetsComponent implements OnChanges {
   @Input() poamAssociatedVulnerabilities: any[] = [];
   readonly assetsChanged = output<any[]>();
   private poamAssetsSignal = signal<any[]>([]);
+  private assetListSignal = signal<any[]>([]);
   private messageService = inject(MessageService);
   private previousTeamCount = 0;
   private previousTeams: any[] = [];
@@ -48,7 +49,7 @@ export class PoamAssetsComponent implements OnChanges {
   private assetNameMap = computed(() => {
     const map = new Map<number, string>();
 
-    for (const asset of this.assetList) {
+    for (const asset of this.assetListSignal()) {
       map.set(asset.assetId, asset.assetName);
     }
 
@@ -69,8 +70,8 @@ export class PoamAssetsComponent implements OnChanges {
       this.poamAssetsSignal.set(this.poamAssets || []);
     }
 
-    if (changes['assetList']) {
-      this.poamAssetsSignal.set([...this.poamAssetsSignal()]);
+    if (changes['assetList'] || changes['poamAssets']) {
+      this.assetListSignal.set(this.assetList || []);
     }
 
     if (changes['poamAssignedTeams'] && this.poamAssignedTeams) {
