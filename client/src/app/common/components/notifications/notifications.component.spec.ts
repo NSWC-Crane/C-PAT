@@ -42,11 +42,7 @@ describe('NotificationsComponent', () => {
     payload$: BehaviorSubject<any>;
     accessLevel$: BehaviorSubject<number>;
   };
-  let mockMessageService: {
-    add: ReturnType<typeof vi.fn>;
-    messageObserver: Subject<any>;
-    clearObserver: Subject<any>;
-  };
+  let mockMessageService: any;
 
   const mockNotifications = [
     {
@@ -89,8 +85,9 @@ describe('NotificationsComponent', () => {
 
     mockMessageService = {
       add: vi.fn(),
-      messageObserver: new Subject<any>(),
-      clearObserver: new Subject<any>()
+      clear: vi.fn(),
+      messageObserver: new Subject(),
+      clearObserver: new Subject()
     };
 
     await TestBed.configureTestingModule({
