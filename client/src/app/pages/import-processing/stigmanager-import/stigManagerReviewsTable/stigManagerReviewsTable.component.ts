@@ -28,7 +28,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
 import { forkJoin, map } from 'rxjs';
-import { SharedService } from 'src/app/common/services/shared.service';
+import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { CsvExportService } from '../../../../common/utils/csv-export.service';
 
