@@ -186,9 +186,7 @@ export class PoamValidationService {
         }
       }
 
-      const teamsWithoutMilestones = activeTeams.filter(
-        (activeTeam) => !poamMilestones.some((milestone) => (milestone.assignedTeamName === activeTeam.teamName || milestone.assignedTeamId === activeTeam.assignedTeamId) && milestone.milestoneComments && milestone.milestoneComments.trim() !== '')
-      );
+      const teamsWithoutMilestones = activeTeams.filter((activeTeam) => !poamMilestones.some((milestone) => milestone.assignedTeamIds?.includes(activeTeam.assignedTeamId) && milestone.milestoneComments && milestone.milestoneComments.trim() !== ''));
 
       if (teamsWithoutMilestones.length > 0) {
         if (teamsWithoutMilestones.length === 1) {
@@ -282,10 +280,10 @@ export class PoamValidationService {
         };
       }
 
-      if (!milestone.assignedTeamId) {
+      if (!milestone.assignedTeamIds?.length) {
         return {
           valid: false,
-          message: 'All milestones must be assigned to a team. Please complete all milestone fields.'
+          message: 'All milestones must have a team assigned. Please complete all milestone fields.'
         };
       }
 

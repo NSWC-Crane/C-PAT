@@ -17,8 +17,10 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
@@ -30,7 +32,7 @@ export interface Milestone {
   milestoneChangeComments?: string | null;
   milestoneChangeDate?: Date | string | null;
   milestoneStatus: string;
-  assignedTeamId: number | null;
+  assignedTeamIds: number[];
   isNew?: boolean;
   editing?: boolean;
   dateModified?: boolean;
@@ -41,7 +43,7 @@ export interface Milestone {
   templateUrl: './poam-milestones.component.html',
   styleUrls: ['./poam-milestones.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, DatePicker, TableModule, ToastModule, DialogModule, ConfirmDialogModule, SelectModule, TextareaModule, TooltipModule],
+  imports: [CommonModule, FormsModule, ButtonModule, DatePicker, MultiSelectModule, TableModule, TagModule, ToastModule, DialogModule, ConfirmDialogModule, SelectModule, TextareaModule, TooltipModule],
   providers: [DatePipe, ConfirmationService, MessageService]
 })
 export class PoamMilestonesComponent implements OnInit {
@@ -93,7 +95,7 @@ export class PoamMilestonesComponent implements OnInit {
       milestoneChangeComments: null,
       milestoneChangeDate: null,
       milestoneStatus: 'Pending',
-      assignedTeamId: null,
+      assignedTeamIds: [],
       isNew: true,
       editing: true,
       dateModified: false
@@ -261,19 +263,36 @@ export class PoamMilestonesComponent implements OnInit {
     });
   }
 
-  getTeamName(teamId: number): string {
-    if (!teamId || !this.assignedTeamOptions?.length) return '';
-    const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === teamId);
+  getTeamNames(teamIds: number[]): string {
+    if (!teamIds?.length || !this.assignedTeamOptions?.length) return '';
 
-    return team ? team.assignedTeamName : '';
+    return teamIds
+      .map((id) => {
+        const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === id);
+
+        return team ? team.assignedTeamName : '';
+      })
+      .filter((name) => name)
+      .join(', ');
+  }
+
+  getTeamNameList(teamIds: number[]): string[] {
+    if (!teamIds?.length || !this.assignedTeamOptions?.length) return [];
+
+    return teamIds
+      .map((id) => {
+        const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === id);
+
+        return team ? team.assignedTeamName : '';
+      })
+      .filter((name) => name);
   }
 
   private validateMilestoneFields(milestone: Milestone): boolean {
     const requiredFields = [
       { field: 'milestoneComments', message: 'Milestone Comments is a required field.' },
       { field: 'milestoneDate', message: 'Milestone Date is a required field.' },
-      { field: 'milestoneStatus', message: 'Milestone Status is a required field.' },
-      { field: 'assignedTeamId', message: 'Milestone Team is a required field.' }
+      { field: 'milestoneStatus', message: 'Milestone Status is a required field.' }
     ];
 
     for (const { field, message } of requiredFields) {
@@ -286,6 +305,16 @@ export class PoamMilestonesComponent implements OnInit {
 
         return false;
       }
+    }
+
+    if (!milestone.assignedTeamIds?.length) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail: 'At least one Milestone Team is required.'
+      });
+
+      return false;
     }
 
     return true;

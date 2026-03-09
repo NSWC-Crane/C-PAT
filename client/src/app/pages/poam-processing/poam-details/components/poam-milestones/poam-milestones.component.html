@@ -24,7 +24,7 @@
         <th scope="col" style="width: 15%">Change Comments</th>
         <th scope="col" style="width: 10%">Change Date</th>
         <th scope="col" pSortableColumn="milestoneStatus">Status</th>
-        <th scope="col" pSortableColumn="assignedTeamId">Team</th>
+        <th scope="col">Teams</th>
         <th scope="col" style="width: 8rem; text-align: center">
           <p-button icon="pi pi-plus" [rounded]="true" variant="text" (onClick)="onAddNewMilestone()" [disabled]="accessLevel < 2" />
         </th>
@@ -111,21 +111,26 @@
         <td>
           <p-cellEditor>
             <ng-template pTemplate="input">
-              <p-select
+              <p-multiselect
                 [options]="assignedTeamOptions"
-                placeholder="Select Team..."
-                [(ngModel)]="milestone.assignedTeamId"
+                placeholder="Select Teams..."
+                [(ngModel)]="milestone.assignedTeamIds"
                 [filter]="true"
                 filterBy="assignedTeamName"
                 optionLabel="assignedTeamName"
                 optionValue="assignedTeamId"
                 class="w-full"
                 appendTo="body"
+                [maxSelectedLabels]="1"
                 [disabled]="accessLevel < 2"
               />
             </ng-template>
             <ng-template pTemplate="output">
-              <span>{{ getTeamName(milestone.assignedTeamId) }}</span>
+              <div class="flex flex-wrap gap-1">
+                @for (name of getTeamNameList(milestone.assignedTeamIds); track name) {
+                  <p-tag [value]="name" [rounded]="true" />
+                }
+              </div>
             </ng-template>
           </p-cellEditor>
         </td>

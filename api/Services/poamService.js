@@ -568,18 +568,25 @@ exports.postPoam = async function postPoam(req) {
                     for (let milestone of req.body.milestones) {
                         let sql_query = `INSERT INTO ${config.database.schema}.poammilestones (
                             poamId, milestoneDate, milestoneComments, milestoneChangeDate,
-                            milestoneChangeComments, milestoneStatus, assignedTeamId
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+                            milestoneChangeComments, milestoneStatus
+                        ) VALUES (?, ?, ?, ?, ?, ?)`;
 
-                        await connection.query(sql_query, [
+                        let [milestoneResult] = await connection.query(sql_query, [
                             poam.poamId,
                             milestone.milestoneDate || null,
                             milestone.milestoneComments || null,
                             milestone.milestoneChangeDate || null,
                             milestone.milestoneChangeComments || null,
                             milestone.milestoneStatus || null,
-                            milestone.assignedTeamId || null,
                         ]);
+
+                        const milestoneId = milestoneResult.insertId;
+                        const assignedTeamIds = milestone.assignedTeamIds || [];
+
+                        for (const teamId of assignedTeamIds) {
+                            let teamSql = `INSERT INTO ${config.database.schema}.poammilestoneteams (milestoneId, assignedTeamId) VALUES (?, ?)`;
+                            await connection.query(teamSql, [milestoneId, teamId]);
+                        }
                     }
                 }
 
@@ -901,18 +908,25 @@ exports.putPoam = async function putPoam(req, res, next) {
                     for (let milestone of req.body.milestones) {
                         let sql_query = `INSERT INTO ${config.database.schema}.poammilestones (
                             poamId, milestoneDate, milestoneComments, milestoneChangeDate,
-                            milestoneChangeComments, milestoneStatus, assignedTeamId
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+                            milestoneChangeComments, milestoneStatus
+                        ) VALUES (?, ?, ?, ?, ?, ?)`;
 
-                        await connection.query(sql_query, [
+                        let [milestoneResult] = await connection.query(sql_query, [
                             updatedPoam.poamId,
                             milestone.milestoneDate || null,
                             milestone.milestoneComments || null,
                             milestone.milestoneChangeDate || null,
                             milestone.milestoneChangeComments || null,
                             milestone.milestoneStatus || null,
-                            milestone.assignedTeamId || null,
                         ]);
+
+                        const milestoneId = milestoneResult.insertId;
+                        const assignedTeamIds = milestone.assignedTeamIds || [];
+
+                        for (const teamId of assignedTeamIds) {
+                            let teamSql = `INSERT INTO ${config.database.schema}.poammilestoneteams (milestoneId, assignedTeamId) VALUES (?, ?)`;
+                            await connection.query(teamSql, [milestoneId, teamId]);
+                        }
                     }
                 }
 
