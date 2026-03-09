@@ -1,12 +1,12 @@
-# Contributing to C-PAT™
+# Contributing to C-PATâ„¢
 
-**NOTE: This CONTRIBUTING.md describes our software contribution policy. You do not need to follow the Developer's Certificate of Origin (DCO) process for commenting on the C-PAT™ repository documentation, such as CONTRIBUTING.md, INTENT.md, etc. or for submitting issues. 
+**NOTE: This CONTRIBUTING.md describes our software contribution policy. You do not need to follow the Developer's Certificate of Origin (DCO) process for commenting on the C-PATâ„¢ repository documentation, such as CONTRIBUTING.md, INTENT.md, etc. or for submitting issues. 
 
 ## Policy
 
 ### 1. Introduction
 
-The project maintainer for this Project will only accept contributions using the Developer's Certificate of Origin 1.1 located at [developercertificate.org](https://developercertificate.org) ("DCO"). The DCO is a legally binding statement asserting that you are the creator of your contribution, or that you otherwise have the authority to distribute the contribution, and that you are intentionally making the contribution available under the license associated with the C-PAT™ ("License").
+The project maintainer for this Project will only accept contributions using the Developer's Certificate of Origin 1.1 located at [developercertificate.org](https://developercertificate.org) ("DCO"). The DCO is a legally binding statement asserting that you are the creator of your contribution, or that you otherwise have the authority to distribute the contribution, and that you are intentionally making the contribution available under the license associated with the C-PATâ„¢ ("License").
 
 ### 2. Developer Certificate of Origin Process
 
