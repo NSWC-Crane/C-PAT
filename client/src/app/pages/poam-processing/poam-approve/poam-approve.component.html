@@ -12,12 +12,12 @@
   <ng-template pTemplate="content">
     <div class="container">
       <div class="form-group">
-        <label for="approvalStatus">Approval Status:</label>
-        <p-select [options]="approvalStatusOptions" [(ngModel)]="approvalStatus" placeholder="Approval Status..." name="approvalStatus" class="w-[25rem]" [disabled]="accessLevel < 3" />
+        <label for="approvalStatus">Approval Status: </label>
+        <p-select [options]="approvalStatusOptions" [(ngModel)]="approvalStatus" placeholder="Approval Status..." id="approvalStatus" name="approvalStatus" class="w-full" [disabled]="accessLevel < 3" />
       </div>
       <div class="form-group">
         <label for="approvedDate">Review Date: </label>
-        <p-datepicker [(ngModel)]="dates.approvedDate" name="approvedDate" placeholder="Approval Date..." class="approvalDatePicker" [inputStyle]="{ width: '25rem' }" [disabled]="accessLevel < 3" />
+        <p-datepicker [(ngModel)]="dates.approvedDate" name="approvedDate" placeholder="Approval Date..." class="approvalDatePicker w-full" [disabled]="accessLevel < 3" />
       </div>
       <div class="form-group">
         <label for="comments">Comments:</label>

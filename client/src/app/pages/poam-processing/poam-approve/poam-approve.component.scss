@@ -14,35 +14,14 @@
 }
 
 .form-group {
-  margin-bottom: 2%;
+  margin-bottom: 15px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 1%;
+  margin-bottom: 5px;
 }
 
-.status-group {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2%;
-}
-
-.status-group label {
-  margin-right: 1%;
-}
-
-.status-container {
-  display: flex;
-  justify-content: left;
-  gap: 2%;
-}
-
-hr {
-  background-color: black;
-  border-color: black;
-  color: black;
-  height: 1px;
-  border: 0;
+::ng-deep .cpat-poam-approve .p-dialog .p-dialog-header {
+  padding: 0 !important;
 }
