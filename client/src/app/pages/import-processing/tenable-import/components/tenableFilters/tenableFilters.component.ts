@@ -22,7 +22,7 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../import.service';
 import { TenableFilter } from '../../../../../common/models/tenable.model';
 import { Subscription } from 'rxjs';
-import { PayloadService } from 'src/app/common/services/setPayload.service';
+import { PayloadService } from '../../../../../common/services/setPayload.service';
 
 interface FilterOption {
   label: string;

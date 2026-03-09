@@ -22,7 +22,7 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
-import { SharedService } from 'src/app/common/services/shared.service';
+import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 
 @Component({

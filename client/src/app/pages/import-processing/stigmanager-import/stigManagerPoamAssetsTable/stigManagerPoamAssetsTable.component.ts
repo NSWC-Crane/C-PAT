@@ -24,7 +24,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
-import { SharedService } from 'src/app/common/services/shared.service';
+import { SharedService } from '../../../../common/services/shared.service';
 import { CsvExportService } from '../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
