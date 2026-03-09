@@ -10,7 +10,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { PoamMitigationService } from './poam-mitigation.service';
 import { PoamService } from '../../poams.service';
@@ -31,7 +31,10 @@ describe('PoamMitigationService', () => {
     };
 
     mockMessageService = {
-      add: vi.fn()
+      add: vi.fn(),
+      clear: vi.fn(),
+      messageObserver: new Subject(),
+      clearObserver: new Subject()
     };
 
     TestBed.configureTestingModule({

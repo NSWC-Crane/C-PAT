@@ -14,7 +14,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vitest';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, of, throwError, Subject } from 'rxjs';
 import { DialogService } from 'primeng/dynamicdialog';
 import { PoamManageComponent } from './poam-manage.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -92,7 +92,9 @@ describe('PoamManageComponent', () => {
 
     mockMessageService = {
       add: vi.fn(),
-      clear: vi.fn()
+      clear: vi.fn(),
+      messageObserver: new Subject(),
+      clearObserver: new Subject()
     };
 
     mockPayloadService = {
