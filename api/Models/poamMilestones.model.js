@@ -45,11 +45,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.DATEONLY,
                 allowNull: true,
             },
-            assignedTeamId: {
-                type: DataTypes.INTEGER,
-                allowNull: true,
-                defaultValue: null,
-            },
+
         },
         {
             tableName: 'poammilestones',

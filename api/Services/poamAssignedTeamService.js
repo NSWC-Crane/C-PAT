@@ -64,9 +64,10 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
         `;
         let [mitigations] = await connection.query(mitigationSql, [poamId]);
         let milestoneSql = `
-            SELECT assignedTeamId, milestoneComments
-            FROM ${config.database.schema}.poammilestones
-            WHERE poamId = ? AND assignedTeamId IS NOT NULL
+            SELECT pmt.assignedTeamId, pm.milestoneComments
+            FROM ${config.database.schema}.poammilestones pm
+            INNER JOIN ${config.database.schema}.poammilestoneteams pmt ON pm.milestoneId = pmt.milestoneId
+            WHERE pm.poamId = ?
         `;
         let [milestones] = await connection.query(milestoneSql, [poamId]);
         const poamAssignedTeams = rowPoamAssignedTeams.map(row => {

@@ -40,12 +40,36 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
         }
 
         return await withConnection(async connection => {
-            let sql = `SELECT pm.*, at.assignedTeamName
+            let sql = `SELECT pm.milestoneId, pm.poamId, pm.milestoneDate, pm.milestoneComments,
+                              pm.milestoneStatus, pm.milestoneChangeComments, pm.milestoneChangeDate
                        FROM ${config.database.schema}.poammilestones pm
-                       LEFT JOIN ${config.database.schema}.assignedteams at ON pm.assignedTeamId = at.assignedTeamId
                        WHERE pm.poamId = ?;`;
-            let [rows] = await connection.query(sql, [poamId]);
-            const poamMilestones = rows.map(row => ({ ...row }));
+            let [milestoneRows] = await connection.query(sql, [poamId]);
+
+            let teamSql = `SELECT pmt.milestoneId, pmt.assignedTeamId, at.assignedTeamName
+                           FROM ${config.database.schema}.poammilestoneteams pmt
+                           LEFT JOIN ${config.database.schema}.assignedteams at ON pmt.assignedTeamId = at.assignedTeamId
+                           WHERE pmt.milestoneId IN (
+                               SELECT milestoneId FROM ${config.database.schema}.poammilestones WHERE poamId = ?
+                           );`;
+            let [teamRows] = await connection.query(teamSql, [poamId]);
+
+            const teamsByMilestone = {};
+            for (const row of teamRows) {
+                if (!teamsByMilestone[row.milestoneId]) {
+                    teamsByMilestone[row.milestoneId] = [];
+                }
+                teamsByMilestone[row.milestoneId].push({
+                    assignedTeamId: row.assignedTeamId,
+                    assignedTeamName: row.assignedTeamName,
+                });
+            }
+
+            const poamMilestones = milestoneRows.map(row => ({
+                ...row,
+                assignedTeams: teamsByMilestone[row.milestoneId] || [],
+            }));
+
             return poamMilestones;
         });
     } catch (error) {
@@ -77,18 +101,26 @@ exports.postPoamMilestone = async function postPoamMilestone(poamId, req) {
         if (!req.body.milestoneComments) req.body.milestoneComments = null;
         if (!req.body.milestoneChangeComments) req.body.milestoneChangeComments = null;
         if (!req.body.milestoneStatus) req.body.milestoneStatus = null;
-        if (!req.body.assignedTeamId) req.body.assignedTeamId = null;
+
+        const assignedTeamIds = req.body.assignedTeamIds || [];
+
         return await withConnection(async connection => {
-            let sql_query = `INSERT INTO ${config.database.schema}.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneChangeComments, milestoneChangeDate, milestoneStatus, assignedTeamId) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-            await connection.query(sql_query, [
+            let sql_query = `INSERT INTO ${config.database.schema}.poamMilestones (poamId, milestoneDate, milestoneComments, milestoneChangeComments, milestoneChangeDate, milestoneStatus) VALUES (?, ?, ?, ?, ?, ?)`;
+            let [result] = await connection.query(sql_query, [
                 poamId,
                 req.body.milestoneDate,
                 req.body.milestoneComments,
                 req.body.milestoneChangeComments,
                 req.body.milestoneChangeDate,
                 req.body.milestoneStatus,
-                req.body.assignedTeamId,
             ]);
+
+            const milestoneId = result.insertId;
+
+            for (const teamId of assignedTeamIds) {
+                let teamSql = `INSERT INTO ${config.database.schema}.poammilestoneteams (milestoneId, assignedTeamId) VALUES (?, ?)`;
+                await connection.query(teamSql, [milestoneId, teamId]);
+            }
 
             let sql = `SELECT * FROM ${config.database.schema}.poamMilestones WHERE poamId = ?`;
             let [rows] = await connection.query(sql, [poamId]);
@@ -150,23 +182,31 @@ exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, 
         if (!req.body.milestoneComments) req.body.milestoneComments = null;
         if (!req.body.milestoneChangeComments) req.body.milestoneChangeComments = null;
         if (!req.body.milestoneStatus) req.body.milestoneStatus = null;
-        if (!req.body.assignedTeamId) req.body.assignedTeamId = null;
+
+        const assignedTeamIds = req.body.assignedTeamIds || [];
 
         return await withConnection(async connection => {
             let getMilestoneSql = `SELECT * FROM ${config.database.schema}.poammilestones WHERE poamId = ? AND milestoneId = ?`;
             let [existingMilestone] = await connection.query(getMilestoneSql, [poamId, milestoneId]);
 
-            let sql_query = `UPDATE ${config.database.schema}.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneChangeDate = ?, milestoneChangeComments = ?, milestoneStatus = ?, assignedTeamId = ? WHERE poamId = ? AND milestoneId = ?`;
+            let sql_query = `UPDATE ${config.database.schema}.poammilestones SET milestoneDate = ?, milestoneComments = ?, milestoneChangeDate = ?, milestoneChangeComments = ?, milestoneStatus = ? WHERE poamId = ? AND milestoneId = ?`;
             await connection.query(sql_query, [
                 req.body.milestoneDate,
                 req.body.milestoneComments,
                 req.body.milestoneChangeDate,
                 req.body.milestoneChangeComments,
                 req.body.milestoneStatus,
-                req.body.assignedTeamId,
                 poamId,
                 milestoneId,
             ]);
+
+            let deleteTeamsSql = `DELETE FROM ${config.database.schema}.poammilestoneteams WHERE milestoneId = ?`;
+            await connection.query(deleteTeamsSql, [milestoneId]);
+
+            for (const teamId of assignedTeamIds) {
+                let teamSql = `INSERT INTO ${config.database.schema}.poammilestoneteams (milestoneId, assignedTeamId) VALUES (?, ?)`;
+                await connection.query(teamSql, [milestoneId, teamId]);
+            }
 
             sql_query = `SELECT * FROM ${config.database.schema}.poamMilestones WHERE poamId = ?;`;
             let [rows] = await connection.query(sql_query, [poamId]);

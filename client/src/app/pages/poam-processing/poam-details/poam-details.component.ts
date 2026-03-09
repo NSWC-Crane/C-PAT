@@ -336,7 +336,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.loadAAPackages();
     this.loadAssetDeltaList();
     const isNewPoam = this.poamId === 'ADDPOAM';
-    const source = this.stateData.vulnerabilitySource;
+    const source = this.stateData?.vulnerabilitySource;
 
     if (this.poamId === undefined || !this.poamId) {
       console.error('Failed to create POAM. POAM ID is undefined.');
@@ -420,7 +420,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             ...milestone,
             milestoneDate: milestone.milestoneDate ? parse(milestone.milestoneDate.split('T')[0], 'yyyy-MM-dd', new Date()) : null,
             milestoneChangeDate: milestone.milestoneChangeDate ? parse(milestone.milestoneChangeDate.split('T')[0], 'yyyy-MM-dd', new Date()) : null,
-            assignedTeamId: +milestone.assignedTeamId
+            assignedTeamIds: milestone.assignedTeamIds || milestone.assignedTeams?.map((t: any) => t.assignedTeamId) || []
           }));
           this.poamLabels = poam.labels || [];
           this.poamAssociatedVulnerabilities = poam.associatedVulnerabilities || [];
@@ -766,7 +766,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             milestoneChangeComments: milestone.milestoneChangeComments || null,
             milestoneChangeDate: milestone.milestoneChangeDate ? (typeof milestone.milestoneChangeDate === 'string' ? milestone.milestoneChangeDate : format(milestone.milestoneChangeDate, 'yyyy-MM-dd')) : null,
             milestoneStatus: milestone.milestoneStatus || 'Pending',
-            assignedTeamId: milestone.assignedTeamId || null
+            assignedTeamIds: milestone.assignedTeamIds || []
           }));
       } else {
         poamToSubmit.milestones = [];

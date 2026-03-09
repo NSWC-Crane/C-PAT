@@ -22,10 +22,12 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TabsModule } from 'primeng/tabs';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { StepperModule } from 'primeng/stepper';
 import { Table, TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
@@ -56,11 +58,13 @@ import { PoamService } from '../poams.service';
     SelectModule,
     SplitButtonModule,
     InputTextModule,
+    MultiSelectModule,
     TabsModule,
     TextareaModule,
     TooltipModule,
     StepperModule,
     TableModule,
+    TagModule,
     ToastModule,
     ConfirmDialogModule,
     DatePipe,
@@ -186,14 +190,21 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   getData() {
     this.subscriptions.add(
-      forkJoin([this.poamService.getPoam(this.poamId), this.poamExtensionService.getPoamExtension(this.poamId), this.poamService.getPoamMilestones(this.poamId), this.assignedTeamService.getAssignedTeams(), this.poamService.getPoamAssignedTeams(this.poamId)]).subscribe({
+      forkJoin([
+        this.poamService.getPoam(this.poamId),
+        this.poamExtensionService.getPoamExtension(this.poamId),
+        this.poamService.getPoamMilestones(this.poamId),
+        this.assignedTeamService.getAssignedTeams(),
+        this.poamService.getPoamAssignedTeams(this.poamId)
+      ]).subscribe({
         next: ([poamData, extension, poamMilestones, assignedTeamOptions, poamAssignedTeams]: any) => {
           const extensionDataset = extension;
 
           this.poamMilestones = poamMilestones.map((milestone: any) => ({
             ...milestone,
             milestoneDate: milestone.milestoneDate ? milestone.milestoneDate.split('T')[0] : null,
-            milestoneChangeDate: milestone.milestoneChangeDate ? milestone.milestoneChangeDate.split('T')[0] : null
+            milestoneChangeDate: milestone.milestoneChangeDate ? milestone.milestoneChangeDate.split('T')[0] : null,
+            assignedTeamIds: milestone.assignedTeamIds || milestone.assignedTeams?.map((t: any) => t.assignedTeamId) || []
           }));
 
           this.assignedTeamOptions = assignedTeamOptions;
@@ -276,7 +287,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       milestoneChangeComments: null,
       milestoneChangeDate: new Date(),
       milestoneStatus: 'Pending',
-      assignedTeamId: null,
+      assignedTeamIds: [],
       isNew: true,
       editing: true
     };
@@ -339,10 +350,6 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       {
         field: 'milestoneStatus',
         message: 'Milestone Status is a required field.'
-      },
-      {
-        field: 'assignedTeamId',
-        message: 'Milestone Team is a required field.'
       }
     ];
 
@@ -356,6 +363,16 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
         return false;
       }
+    }
+
+    if (!milestone.assignedTeamIds?.length) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Information',
+        detail: 'At least one Milestone Team is required.'
+      });
+
+      return false;
     }
 
     return true;
@@ -413,7 +430,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         milestoneChangeComments: milestone.milestoneChangeComments || null,
         milestoneChangeDate: format(milestone.milestoneChangeDate, 'yyyy-MM-dd'),
         milestoneStatus: milestone.milestoneStatus || 'Pending',
-        assignedTeamId: milestone.assignedTeamId || null
+        assignedTeamIds: milestone.assignedTeamIds || []
       };
 
       this.poamService.addPoamMilestone(this.poam.poamId, newMilestone).subscribe({
@@ -460,9 +477,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         ...(milestone.milestoneStatus && {
           milestoneStatus: milestone.milestoneStatus
         }),
-        ...(milestone.assignedTeamId && {
-          assignedTeamId: milestone.assignedTeamId
-        })
+        assignedTeamIds: milestone.assignedTeamIds || []
       };
 
       this.poamService.updatePoamMilestone(this.poam.poamId, milestone.milestoneId, milestoneUpdate).subscribe({
@@ -486,11 +501,29 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     });
   }
 
-  getTeamName(teamId: number): string {
-    if (!teamId || !this.assignedTeamOptions) return '';
-    const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === teamId);
+  getTeamNames(teamIds: number[]): string {
+    if (!teamIds?.length || !this.assignedTeamOptions) return '';
 
-    return team ? team.assignedTeamName : '';
+    return teamIds
+      .map((id) => {
+        const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === id);
+
+        return team ? team.assignedTeamName : '';
+      })
+      .filter((name) => name)
+      .join(', ');
+  }
+
+  getTeamNameList(teamIds: number[]): string[] {
+    if (!teamIds?.length || !this.assignedTeamOptions) return [];
+
+    return teamIds
+      .map((id) => {
+        const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === id);
+
+        return team ? team.assignedTeamName : '';
+      })
+      .filter((name) => name);
   }
 
   onRowEditCancel(milestone: any, index: number) {

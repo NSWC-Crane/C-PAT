@@ -90,7 +90,7 @@ describe('PoamValidationService', () => {
 
     const validTeamMitigations = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: 'Test mitigation' }];
 
-    const validMilestones = [{ assignedTeamId: 1, assignedTeamName: 'Team A', milestoneComments: 'Test milestone', milestoneStatus: 'Pending' }];
+    const validMilestones = [{ assignedTeamIds: [1], milestoneComments: 'Test milestone', milestoneStatus: 'Pending' }];
 
     it('should return invalid if description is missing', () => {
       const poam = { ...validPoam, description: '' };
@@ -232,7 +232,7 @@ describe('PoamValidationService', () => {
       });
 
       it('should return invalid if no pending milestones exist', () => {
-        const milestones = [{ assignedTeamId: 1, assignedTeamName: 'Team A', milestoneComments: 'Test', milestoneStatus: 'Complete' }];
+        const milestones = [{ assignedTeamIds: [1], milestoneComments: 'Test', milestoneStatus: 'Complete' }];
         const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, milestones, validDates);
 
         expect(result.valid).toBe(false);
@@ -241,8 +241,8 @@ describe('PoamValidationService', () => {
 
       it('should return valid when at least one pending milestone exists', () => {
         const milestones = [
-          { assignedTeamId: 1, assignedTeamName: 'Team A', milestoneComments: 'Test 1', milestoneStatus: 'Complete' },
-          { assignedTeamId: 1, assignedTeamName: 'Team A', milestoneComments: 'Test 2', milestoneStatus: 'Pending' }
+          { assignedTeamIds: [1], milestoneComments: 'Test 1', milestoneStatus: 'Complete' },
+          { assignedTeamIds: [1], milestoneComments: 'Test 2', milestoneStatus: 'Pending' }
         ];
         const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, milestones, validDates);
 
@@ -255,8 +255,8 @@ describe('PoamValidationService', () => {
           { assignedTeamId: 2, assignedTeamName: 'Team B', isActive: true, mitigationText: 'Test' }
         ];
         const milestones = [
-          { assignedTeamId: 1, assignedTeamName: 'Team A', milestoneComments: 'Test 1', milestoneStatus: 'Complete' },
-          { assignedTeamId: 2, assignedTeamName: 'Team B', milestoneComments: 'Test 2', milestoneStatus: 'Pending' }
+          { assignedTeamIds: [1], milestoneComments: 'Test 1', milestoneStatus: 'Complete' },
+          { assignedTeamIds: [2], milestoneComments: 'Test 2', milestoneStatus: 'Pending' }
         ];
         const result = service.validateSubmissionRequirements(validPoam, teams, milestones, validDates);
 
@@ -416,7 +416,7 @@ describe('PoamValidationService', () => {
           milestoneComments: '',
           milestoneDate: new Date(),
           milestoneStatus: 'Pending',
-          assignedTeamId: 1
+          assignedTeamIds: [1]
         }
       ];
       const result = service.validateMilestoneCompleteness(milestones);
@@ -432,7 +432,7 @@ describe('PoamValidationService', () => {
           milestoneComments: 'Test',
           milestoneDate: null,
           milestoneStatus: 'Pending',
-          assignedTeamId: 1
+          assignedTeamIds: [1]
         }
       ];
       const result = service.validateMilestoneCompleteness(milestones);
@@ -448,7 +448,7 @@ describe('PoamValidationService', () => {
           milestoneComments: 'Test',
           milestoneDate: new Date(),
           milestoneStatus: '',
-          assignedTeamId: 1
+          assignedTeamIds: [1]
         }
       ];
       const result = service.validateMilestoneCompleteness(milestones);
@@ -457,20 +457,20 @@ describe('PoamValidationService', () => {
       expect(result.message).toBe('All milestones must have a status. Please complete all milestone fields.');
     });
 
-    it('should return invalid if milestone has no assigned team', () => {
+    it('should return invalid if milestone has no assigned teams', () => {
       const milestones = [
         {
           milestoneId: 1,
           milestoneComments: 'Test',
           milestoneDate: new Date(),
           milestoneStatus: 'Pending',
-          assignedTeamId: null
+          assignedTeamIds: []
         }
       ];
       const result = service.validateMilestoneCompleteness(milestones);
 
       expect(result.valid).toBe(false);
-      expect(result.message).toBe('All milestones must be assigned to a team. Please complete all milestone fields.');
+      expect(result.message).toBe('All milestones must have a team assigned. Please complete all milestone fields.');
     });
 
     it('should return invalid if pending milestone has past due date', () => {
@@ -484,7 +484,7 @@ describe('PoamValidationService', () => {
           milestoneComments: 'Test',
           milestoneDate: pastDate,
           milestoneStatus: 'Pending',
-          assignedTeamId: 1
+          assignedTeamIds: [1]
         }
       ];
       const result = service.validateMilestoneCompleteness(milestones);
@@ -505,7 +505,7 @@ describe('PoamValidationService', () => {
           milestoneComments: 'Test',
           milestoneDate: pastDate,
           milestoneStatus: 'Complete',
-          assignedTeamId: 1
+          assignedTeamIds: [1]
         }
       ];
       const result = service.validateMilestoneCompleteness(milestones);
@@ -524,7 +524,7 @@ describe('PoamValidationService', () => {
           milestoneComments: 'Test milestone',
           milestoneDate: futureDate,
           milestoneStatus: 'Pending',
-          assignedTeamId: 1
+          assignedTeamIds: [1]
         }
       ];
       const result = service.validateMilestoneCompleteness(milestones);
@@ -543,14 +543,14 @@ describe('PoamValidationService', () => {
           milestoneComments: 'Test 1',
           milestoneDate: futureDate,
           milestoneStatus: 'Pending',
-          assignedTeamId: 1
+          assignedTeamIds: [1]
         },
         {
           milestoneId: 2,
           milestoneComments: 'Test 2',
           milestoneDate: futureDate,
           milestoneStatus: 'Complete',
-          assignedTeamId: 2
+          assignedTeamIds: [2]
         }
       ];
       const result = service.validateMilestoneCompleteness(milestones);

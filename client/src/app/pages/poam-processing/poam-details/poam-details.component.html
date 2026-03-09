@@ -396,7 +396,7 @@
               (onClose)="validateScheduledCompletion()"
               [showIcon]="true"
               class="w-[25rem]"
-              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              [disabled]="poam.status !== 'Draft' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
             />
           </div>
 
@@ -801,7 +801,7 @@
 
 <p-dialog class="poam-chat" [(visible)]="showPoamNotes" [modal]="true" [closable]="true" styleClass="w-[80vw] h-[80vh] max-h-[80vh] overflow-hidden">
   @if (poam?.poamId && poam.poamId !== 'ADDPOAM') {
-    <cpat-poam-chat [poamId]="poam.poamId" [userId]="user?.userId" />
+    <cpat-poam-chat class="w-full" [poamId]="poam.poamId" [userId]="user?.userId" />
   }
 </p-dialog>
 

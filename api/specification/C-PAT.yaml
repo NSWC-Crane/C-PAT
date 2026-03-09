@@ -6626,8 +6626,11 @@ components:
                 type: [string, 'null']
               milestoneStatus:
                 type: [string, 'null']
-              assignedTeamId:
-                type: [integer, 'null']
+              assignedTeamIds:
+                type: array
+                items:
+                  type: integer
+                default: []
         teamMitigations:
           type: array
           items:
@@ -6766,8 +6769,20 @@ components:
           type: [string, 'null']
         milestoneStatus:
           type: [string, 'null']
-        assignedTeamId:
-          type: [integer, 'null']
+        assignedTeamIds:
+          type: array
+          items:
+            type: integer
+          default: []
+        assignedTeams:
+          type: array
+          items:
+            type: object
+            properties:
+              assignedTeamId:
+                type: integer
+              assignedTeamName:
+                type: string
 
     PoamMilestoneRequest:
       type: object
@@ -6789,8 +6804,11 @@ components:
           type: [string, 'null']
         milestoneStatus:
           type: [string, 'null']
-        assignedTeamId:
-          type: [integer, 'null']
+        assignedTeamIds:
+          type: array
+          items:
+            type: integer
+          default: []
 
     PoamMilestoneUpdateRequest:
       type: object
@@ -6812,8 +6830,11 @@ components:
           type: [string, 'null']
         milestoneStatus:
           type: [string, 'null']
-        assignedTeamId:
-          type: [integer, 'null']
+        assignedTeamIds:
+          type: array
+          items:
+            type: integer
+          default: []
 
     assetLabel:
       type: object
