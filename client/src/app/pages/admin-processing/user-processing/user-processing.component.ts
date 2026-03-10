@@ -75,6 +75,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
       { field: 'Status', header: 'Status' },
       { field: 'First Name', header: 'First Name' },
       { field: 'Last Name', header: 'Last Name' },
+      { field: 'Username', header: 'Username' },
       { field: 'Email', header: 'Email' },
       { field: 'Last Access', header: 'Last Access' },
       { field: 'Collection', header: 'Collection' },
@@ -117,8 +118,8 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   getUsersTree() {
     const sortOrder = { PENDING: 0, ACTIVE: 1, DISABLED: 2 };
     const sortedUserData = [...this.data].sort((a, b) => sortOrder[a.accountStatus as keyof typeof sortOrder] - sortOrder[b.accountStatus as keyof typeof sortOrder]);
-
     const treeData: any[] = [];
+    const usernameClaimKey = CPAT.Env.oauth.claims.username;
 
     for (const user of sortedUserData) {
       const userPermissions = user.permissions;
@@ -153,6 +154,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
           Status: user.accountStatus,
           'First Name': user.firstName,
           'Last Name': user.lastName,
+          Username: user.userName || user.lastClaims?.[usernameClaimKey] || '',
           Email: user.email,
           'Last Access': user.lastAccess ? user.lastAccess.split('T')[0] : ''
         },
@@ -185,7 +187,7 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   exportCSV() {
-    const flattenedData = this.csvExportService.flattenTreeData(this.treeData, ['User', 'Status', 'First Name', 'Last Name', 'Email', 'Last Access'], ['Collection', 'Access Level']);
+    const flattenedData = this.csvExportService.flattenTreeData(this.treeData, ['User', 'Status', 'First Name', 'Last Name', 'Username', 'Email', 'Last Access'], ['Collection', 'Access Level']);
 
     this.csvExportService.exportToCsv(flattenedData, {
       filename: 'users_export',
