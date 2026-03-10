@@ -21,7 +21,7 @@
         [scrollable]="true"
         scrollHeight="calc(100vh - 35rem)"
         selectionMode="single"
-        [globalFilterFields]="['User', 'Status', 'First Name', 'Last Name', 'Email', 'Collection', 'Access Level']"
+        [globalFilterFields]="['User', 'Status', 'First Name', 'Last Name', 'Username', 'Email', 'Collection', 'Access Level']"
       >
         <ng-template pTemplate="caption">
           <div class="flex justify-between align-items-center">
@@ -57,7 +57,7 @@
         </ng-template>
         <ng-template pTemplate="expansion" let-rowNode let-rowData="rowData">
           <tr>
-            <td colspan="6">
+            <td colspan="7">
               <div class="p-ml-4">
                 <p-table [value]="rowNode.children" [columns]="['Collection', 'Access Level']">
                   <ng-template pTemplate="header" let-columns>
