@@ -32,6 +32,9 @@ export interface HighRiskAsset {
   severityMedium: number;
   severityHigh: number;
   severityCritical: number;
+  catI: number;
+  catII: number;
+  catIII: number;
   lowPercent: number;
   mediumPercent: number;
   highPercent: number;
