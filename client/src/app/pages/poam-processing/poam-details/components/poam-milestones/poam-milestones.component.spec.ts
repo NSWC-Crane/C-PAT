@@ -13,8 +13,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { DatePipe } from '@angular/common';
-import { Subject } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { createMockConfirmationService, createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 import { PoamMilestonesComponent, Milestone } from './poam-milestones.component';
 import { addDays } from 'date-fns';
 
@@ -47,19 +47,8 @@ describe('PoamMilestonesComponent', () => {
   }
 
   beforeEach(async () => {
-    mockConfirmationService = {
-      confirm: vi.fn(),
-      close: vi.fn(),
-      requireConfirmation$: new Subject()
-    };
-
-    mockMessageService = {
-      add: vi.fn(),
-      addAll: vi.fn(),
-      clear: vi.fn(),
-      messageObserver: new Subject(),
-      clearObserver: new Subject()
-    };
+    mockConfirmationService = createMockConfirmationService();
+    mockMessageService = createMockMessageService();
 
     await TestBed.configureTestingModule({
       imports: [PoamMilestonesComponent],

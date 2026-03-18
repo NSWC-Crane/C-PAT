@@ -12,6 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DoDConsentComponent } from './dod-consent.component';
 import { Router } from '@angular/router';
+import { createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -21,9 +22,7 @@ describe('DoDConsentComponent', () => {
   let mockRouter: { navigate: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    mockRouter = {
-      navigate: vi.fn()
-    };
+    mockRouter = createMockRouter();
 
     await TestBed.configureTestingModule({
       imports: [DoDConsentComponent, NoopAnimationsModule],

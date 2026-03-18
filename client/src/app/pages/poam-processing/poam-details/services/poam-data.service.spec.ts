@@ -10,8 +10,9 @@
 
 import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { of, throwError, firstValueFrom, Subject } from 'rxjs';
+import { of, throwError, firstValueFrom } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { createMockMessageService } from '../../../../../testing/mocks/service-mocks';
 import { PoamDataService } from './poam-data.service';
 import { SharedService } from '../../../../common/services/shared.service';
 import { AAPackageService } from '../../../admin-processing/aaPackage-processing/aaPackage-processing.service';
@@ -54,12 +55,7 @@ describe('PoamDataService', () => {
       getAAPackages: vi.fn()
     };
 
-    mockMessageService = {
-      add: vi.fn(),
-      clear: vi.fn(),
-      messageObserver: new Subject(),
-      clearObserver: new Subject()
-    };
+    mockMessageService = createMockMessageService();
 
     mockImportService = {
       postTenableAnalysis: vi.fn()

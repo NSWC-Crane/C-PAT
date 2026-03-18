@@ -11,6 +11,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { NgZone } from '@angular/core';
+import { createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { of, BehaviorSubject, throwError } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -43,9 +44,7 @@ describe('InactivityService', () => {
       logout: vi.fn().mockReturnValue(of(undefined))
     };
 
-    mockRouter = {
-      navigate: vi.fn().mockReturnValue(Promise.resolve(true))
-    };
+    mockRouter = createMockRouter();
 
     mockPayloadService = {
       isAdmin$: isAdmin$.asObservable()

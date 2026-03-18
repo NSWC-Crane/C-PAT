@@ -12,6 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi, afterEach } from 'vitest';
 import { AppSearchComponent } from './app.search.component';
 import { Router } from '@angular/router';
+import { createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -31,9 +32,7 @@ describe('AppSearchComponent', () => {
   });
 
   beforeEach(async () => {
-    mockRouter = {
-      navigate: vi.fn()
-    };
+    mockRouter = createMockRouter();
 
     await TestBed.configureTestingModule({
       imports: [AppSearchComponent, NoopAnimationsModule],

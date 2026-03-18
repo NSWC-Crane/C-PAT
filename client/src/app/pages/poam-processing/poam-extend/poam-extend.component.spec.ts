@@ -13,8 +13,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
+import { createMockActivatedRoute, createMockConfirmationService, createMockMessageService, createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
@@ -108,23 +109,9 @@ describe('PoamExtendComponent', () => {
     selectedCollectionSubject = new BehaviorSubject<number>(1);
     accessLevelSubject = new BehaviorSubject<number>(0);
 
-    mockRouter = {
-      navigateByUrl: vi.fn().mockResolvedValue(true),
-      navigate: vi.fn().mockResolvedValue(true)
-    };
-
-    mockMessageService = {
-      add: vi.fn(),
-      clear: vi.fn(),
-      messageObserver: new Subject(),
-      clearObserver: new Subject()
-    };
-
-    mockConfirmationService = {
-      confirm: vi.fn(),
-      close: vi.fn(),
-      requireConfirmation$: new Subject()
-    };
+    mockRouter = createMockRouter();
+    mockMessageService = createMockMessageService();
+    mockConfirmationService = createMockConfirmationService();
 
     mockPayloadService = {
       setPayload: vi.fn(),
@@ -178,7 +165,7 @@ describe('PoamExtendComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: Router, useValue: mockRouter },
-        { provide: ActivatedRoute, useValue: { params: of({ poamId: '42' }), queryParams: of({}) } },
+        { provide: ActivatedRoute, useValue: createMockActivatedRoute({ poamId: '42' }) },
         { provide: MessageService, useValue: mockMessageService },
         { provide: ConfirmationService, useValue: mockConfirmationService },
         { provide: PayloadService, useValue: mockPayloadService },

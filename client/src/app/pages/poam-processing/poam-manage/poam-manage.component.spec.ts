@@ -14,8 +14,9 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vitest';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { BehaviorSubject, of, throwError, Subject } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 import { DialogService } from 'primeng/dynamicdialog';
+import { createMockDialogService, createMockMessageService, createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { PoamManageComponent } from './poam-manage.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
@@ -86,16 +87,8 @@ describe('PoamManageComponent', () => {
   beforeEach(async () => {
     selectedCollectionSubject = new BehaviorSubject<number>(1);
 
-    mockRouter = {
-      navigateByUrl: vi.fn()
-    };
-
-    mockMessageService = {
-      add: vi.fn(),
-      clear: vi.fn(),
-      messageObserver: new Subject(),
-      clearObserver: new Subject()
-    };
+    mockRouter = createMockRouter();
+    mockMessageService = createMockMessageService();
 
     mockPayloadService = {
       setPayload: vi.fn(),
@@ -135,7 +128,7 @@ describe('PoamManageComponent', () => {
         { provide: SharedService, useValue: mockSharedService },
         { provide: CollectionsService, useValue: mockCollectionsService },
         { provide: ImportService, useValue: mockImportService },
-        { provide: DialogService, useValue: { open: vi.fn() } }
+        { provide: DialogService, useValue: createMockDialogService() }
       ]
     }).compileComponents();
 
