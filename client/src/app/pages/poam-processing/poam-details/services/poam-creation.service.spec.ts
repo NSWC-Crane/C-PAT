@@ -10,8 +10,9 @@
 
 import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { of, throwError, Subject } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { createMockMessageService } from '../../../../../testing/mocks/service-mocks';
 import { PoamCreationService } from './poam-creation.service';
 import { ImportService } from '../../../import-processing/import.service';
 import { SharedService } from '../../../../common/services/shared.service';
@@ -106,12 +107,7 @@ describe('PoamCreationService', () => {
       calculateScheduledCompletionDate: vi.fn().mockReturnValue('2025-03-15')
     };
 
-    mockMessageService = {
-      add: vi.fn(),
-      clear: vi.fn(),
-      messageObserver: new Subject(),
-      clearObserver: new Subject()
-    };
+    mockMessageService = createMockMessageService();
 
     TestBed.configureTestingModule({
       providers: [

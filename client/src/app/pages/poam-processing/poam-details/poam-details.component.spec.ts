@@ -16,6 +16,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { createMockConfirmationService, createMockMessageService, createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { AppConfigurationService } from '../../admin-processing/app-configuration/app-configuration.service';
@@ -77,23 +78,9 @@ describe('PoamDetailsComponent', () => {
       configurable: true
     });
 
-    mockRouter = {
-      navigate: vi.fn().mockResolvedValue(true),
-      navigateByUrl: vi.fn().mockResolvedValue(true)
-    };
-
-    mockMessageService = {
-      add: vi.fn(),
-      clear: vi.fn(),
-      messageObserver: new Subject(),
-      clearObserver: new Subject()
-    };
-
-    mockConfirmationService = {
-      confirm: vi.fn(),
-      close: vi.fn(),
-      requireConfirmation$: new Subject()
-    };
+    mockRouter = createMockRouter();
+    mockMessageService = createMockMessageService();
+    mockConfirmationService = createMockConfirmationService();
 
     mockPayloadService = {
       setPayload: vi.fn(),
@@ -225,10 +212,6 @@ describe('PoamDetailsComponent', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
-
-  // =========================================================================
-  // Step 1: Creation, Initialization & Static Properties
-  // =========================================================================
 
   describe('Creation', () => {
     it('should create the component', () => {
@@ -513,10 +496,6 @@ describe('PoamDetailsComponent', () => {
     });
   });
 
-  // =========================================================================
-  // Step 2: Data Loading
-  // =========================================================================
-
   describe('obtainCollectionDataAsync', () => {
     it('should call obtainCollectionData with selectedCollection and background flag', async () => {
       component.selectedCollection = 5;
@@ -594,7 +573,7 @@ describe('PoamDetailsComponent', () => {
     beforeEach(() => {
       component.payload = mockPayload;
       component.stateData = { vulnerabilitySource: 'STIG' };
-      // Stub helper methods called inside getData
+
       vi.spyOn(component, 'loadAppConfiguration').mockImplementation(() => {});
       vi.spyOn(component, 'loadAAPackages').mockImplementation(() => {});
       vi.spyOn(component, 'loadAssetDeltaList').mockImplementation(() => {});
@@ -1026,7 +1005,7 @@ describe('PoamDetailsComponent', () => {
     it('should set loadingTeams to true initially', () => {
       mockPoamDataService.loadAssets.mockReturnValue(of({}));
       (component as any).loadAssets();
-      // loadingTeams gets set to true then false; verify the call was made
+
       expect(mockPoamDataService.loadAssets).toHaveBeenCalledWith('STIG', 10, { poamId: 42 }, 1);
     });
 
@@ -1086,10 +1065,6 @@ describe('PoamDetailsComponent', () => {
       expect(component.loadingTeams()).toBe(false);
     });
   });
-
-  // =========================================================================
-  // Step 3: POAM Creation Methods
-  // =========================================================================
 
   describe('createNewACASPoam', () => {
     const mockCreationResult = {
@@ -1473,10 +1448,6 @@ describe('PoamDetailsComponent', () => {
       expect(component['_ensureUniqueTeamMitigations']).toHaveBeenCalled();
     });
   });
-
-  // =========================================================================
-  // Step 4: Save, Submit & Validation
-  // =========================================================================
 
   describe('validateData', () => {
     it('should return true when validation passes', () => {
@@ -2303,10 +2274,6 @@ describe('PoamDetailsComponent', () => {
     });
   });
 
-  // =========================================================================
-  // Step 5: Team Mitigations & Event Handlers
-  // =========================================================================
-
   describe('_ensureUniqueTeamMitigations (private)', () => {
     it('should remove duplicate mitigations by assignedTeamId', () => {
       component.teamMitigations = [
@@ -2504,7 +2471,7 @@ describe('PoamDetailsComponent', () => {
     it('should set mitigationSaving to true during save', () => {
       mockPoamMitigationService.saveTeamMitigation.mockReturnValue(of({}));
       component.saveTeamMitigation({ assignedTeamId: 1, assignedTeamName: 'Team A' });
-      // After subscribe completes synchronously, it resets
+
       expect(component.mitigationSaving).toBe(false);
     });
 
@@ -2802,7 +2769,6 @@ describe('PoamDetailsComponent', () => {
       component.poam.isGlobalFinding = false;
       const team = { assignedTeamId: 1, assignedTeamName: 'Team A' };
 
-      // Need to actually let _ensureUnique run to count active teams
       vi.spyOn(component as any, '_ensureUniqueTeamMitigations').mockRestore();
 
       component.handleTeamsChanged({ teams: [team], action: 'added', team });
@@ -2846,10 +2812,6 @@ describe('PoamDetailsComponent', () => {
       expect(component.activeTabIndex).toBe(0);
     });
   });
-
-  // =========================================================================
-  // Step 6: Navigation, UI & Miscellaneous
-  // =========================================================================
 
   describe('approvePoam', () => {
     it('should navigate to poam-approve with poamId', async () => {
@@ -2963,7 +2925,6 @@ describe('PoamDetailsComponent', () => {
 
       component.deletePoam();
 
-      // Extract and invoke the accept callback
       const confirmCall = mockConfirmationService.confirm.mock.calls[0][0];
 
       confirmCall.accept();

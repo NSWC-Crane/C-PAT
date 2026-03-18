@@ -12,6 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StatusMessageComponent } from './status-message.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { of, Observable } from 'rxjs';
 import { By } from '@angular/platform-browser';
 
@@ -22,9 +23,7 @@ describe('StatusMessageComponent', () => {
   let mockActivatedRoute: { data: Observable<{ statusCode: number }> };
 
   beforeEach(async () => {
-    mockRouter = {
-      navigate: vi.fn().mockResolvedValue(true)
-    };
+    mockRouter = createMockRouter();
 
     mockActivatedRoute = {
       data: of({ statusCode: 404 })

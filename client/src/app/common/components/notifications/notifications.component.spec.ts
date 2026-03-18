@@ -14,7 +14,8 @@ import { NotificationsComponent } from './notifications.component';
 import { NotificationService } from './notifications.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { MessageService } from 'primeng/api';
-import { of, throwError, BehaviorSubject, Subject } from 'rxjs';
+import { of, throwError, BehaviorSubject } from 'rxjs';
+import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -83,12 +84,7 @@ describe('NotificationsComponent', () => {
       accessLevel$: new BehaviorSubject(1)
     };
 
-    mockMessageService = {
-      add: vi.fn(),
-      clear: vi.fn(),
-      messageObserver: new Subject(),
-      clearObserver: new Subject()
-    };
+    mockMessageService = createMockMessageService();
 
     await TestBed.configureTestingModule({
       imports: [NotificationsComponent, NoopAnimationsModule],

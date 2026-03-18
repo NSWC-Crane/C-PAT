@@ -17,6 +17,7 @@ import { MessageService } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { signal } from '@angular/core';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
+import { createMockDialogService } from '../../../../testing/mocks/service-mocks';
 import { PoamGridComponent } from './poam-grid.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
@@ -90,9 +91,7 @@ describe('PoamGridComponent', () => {
     mockMessageService = new MessageService();
     vi.spyOn(mockMessageService, 'add');
 
-    mockDialogService = {
-      open: vi.fn()
-    };
+    mockDialogService = createMockDialogService();
 
     mockPayloadService = {
       setPayload: vi.fn(),
@@ -148,6 +147,7 @@ describe('PoamGridComponent', () => {
       filterGlobal: vi.fn()
     };
     const mockFileUpload = { clear: vi.fn() };
+
     Object.defineProperty(component, 'table', { value: signal(mockTable) });
     Object.defineProperty(component, 'fileUpload', { value: signal(mockFileUpload) });
   });

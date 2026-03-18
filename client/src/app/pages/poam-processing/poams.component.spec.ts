@@ -14,7 +14,8 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { BehaviorSubject, of, throwError, Subject } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
+import { createMockMessageService } from '../../../testing/mocks/service-mocks';
 import { PoamsComponent } from './poams.component';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
@@ -39,12 +40,7 @@ describe('PoamsComponent', () => {
       navigateByUrl: vi.fn()
     };
 
-    mockMessageService = {
-      add: vi.fn(),
-      clear: vi.fn(),
-      messageObserver: new Subject(),
-      clearObserver: new Subject()
-    };
+    mockMessageService = createMockMessageService();
 
     mockPayloadService = {
       setPayload: vi.fn(),

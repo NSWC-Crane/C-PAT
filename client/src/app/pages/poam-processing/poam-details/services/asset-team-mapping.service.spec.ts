@@ -9,22 +9,17 @@
 */
 
 import { TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { MessageService } from 'primeng/api';
+import { createMockMessageService } from '../../../../../testing/mocks/service-mocks';
 import { AssetTeamMappingService, AssetData } from './asset-team-mapping.service';
-import { Subject } from 'rxjs';
 
 describe('AssetTeamMappingService', () => {
   let service: AssetTeamMappingService;
   let mockMessageService: any;
 
   beforeEach(() => {
-    mockMessageService = {
-      add: vi.fn(),
-      clear: vi.fn(),
-      messageObserver: new Subject(),
-      clearObserver: new Subject()
-    };
+    mockMessageService = createMockMessageService();
 
     TestBed.configureTestingModule({
       providers: [AssetTeamMappingService, { provide: MessageService, useValue: mockMessageService }]
