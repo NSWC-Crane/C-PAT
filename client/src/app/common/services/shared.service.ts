@@ -129,7 +129,7 @@ export class SharedService {
   }
 
   getReviewsFromSTIGMAN(collectionId: number, result: string, benchmarkId: string): Observable<any[]> {
-    let queryUrl: string = '';
+    let queryUrl: string;
 
     if (result === 'all') {
       queryUrl = `${this.STIGMANAGER_URL}/collections/${collectionId}/reviews?rules=default-mapped&benchmarkId=${benchmarkId}&projection=rule`;
