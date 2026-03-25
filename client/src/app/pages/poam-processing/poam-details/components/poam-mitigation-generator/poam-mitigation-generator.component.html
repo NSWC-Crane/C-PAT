@@ -50,7 +50,7 @@
       }
     </div>
     <p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" />
-    <p-dialog [(visible)]="consentDialogVisible" [modal]="true" styleClass="w-[50vw] overflow-hidden" [draggable]="false" [resizable]="false" [closeOnEscape]="false" [closable]="false">
+    <p-dialog [(visible)]="consentDialogVisible" [modal]="true" styleClass="w-auto max-w-[50vw] overflow-hidden" [draggable]="false" [resizable]="false" [closeOnEscape]="false" [closable]="false">
       <div class="confirm-popup">
         <div class="icon-container">
           <i class="pi pi-exclamation-triangle"></i>
@@ -63,7 +63,8 @@
             <li>The mitigation controls described are verifiable and will be subject to validation</li>
             <li>You take responsibility for the implementation of these security controls</li>
           </ul>
-          <p class="!mt-4" style="text-align: left">AI-generated content requires human review and verification. Incorrect or unimplemented mitigations may result in continued risk.</p>
+          <p class="!mt-4 !mb-0" style="text-align: center">AI-generated content requires human review and verification.</p>
+          <p class="!mt-1" style="text-align: center">Incorrect or unimplemented mitigations may result in continued risk.</p>
         </div>
       </div>
       <ng-template pTemplate="footer">
