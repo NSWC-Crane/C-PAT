@@ -168,7 +168,8 @@ Remember:
 - Focus only on concrete measures that WILL be implemented, not theoretical possibilities or recommendations.
 - Your response should be written as a formal POAM mitigation statement that stands on its own without restating the vulnerability details unless they are applicable to the mitigation.
 - Write in a professional, direct tone appropriate for a formal security document.
-- Structure your response as a complete mitigation plan that could be copied directly into a POAM document.`;
+- Structure your response as a complete mitigation plan that could be copied directly into a POAM document.
+- Ensure the output is suitable for a textarea input; do not apply markdown formatting or any other form of special formatting.`;
   }
 
   applyMitigation() {
