@@ -13,7 +13,6 @@ const config = require('../utils/config');
 const dbUtils = require('./utils');
 const SmError = require('../utils/error');
 const crypto = require('crypto');
-const fs = require('fs').promises;
 const path = require('path');
 
 async function withConnection(callback) {

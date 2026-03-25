@@ -11,7 +11,6 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
-const mysql = require('mysql2');
 const poamApproverService = require('./poamApproverService');
 const poamAssetService = require('./poamAssetService');
 const poamAssignedTeamService = require('./poamAssignedTeamService');
