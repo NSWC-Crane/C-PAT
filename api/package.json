@@ -58,5 +58,8 @@
   "devDependencies": {
     "npm-check-updates": "^19.6.5",
     "prettier": "^3.8.1"
+  },
+  "overrides": {
+    "ajv": "^8.17.2"
   }
 }
