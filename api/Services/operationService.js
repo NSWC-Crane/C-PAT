@@ -11,7 +11,6 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
-const mysql = require('mysql2');
 const klona = require('../utils/klona');
 const logger = require('../utils/logger');
 const os = require('node:os');

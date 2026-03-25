@@ -11,7 +11,6 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
-const mysql = require('mysql2');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();

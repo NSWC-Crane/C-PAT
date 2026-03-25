@@ -67,8 +67,6 @@ async function write(level, component, type, data) {
 
 const atob = data => Buffer.from(data, 'base64').toString('ascii');
 
-const serializeUserObject = ({ username, display, privileges }) => ({ username, fullname: display, privileges });
-
 function sanitizeHeaders() {
     let { authorization, ...headers } = this;
     if (authorization !== undefined) {
