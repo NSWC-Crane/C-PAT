@@ -34,6 +34,7 @@ const AI_BASE_URLS = {
     cohere: 'https://api.cohere.com/v2',
     deepinfra: 'https://api.deepinfra.com/v1/openai',
     fireworks: 'https://api.fireworks.ai/inference/v1',
+    genai: 'https://api.genai.mil/v1',
     google: 'https://generativelanguage.googleapis.com/v1beta',
     groq: 'https://api.groq.com/openai/v1',
     mistral: 'https://api.mistral.ai/v1',
@@ -51,6 +52,7 @@ const AI_MODELS = {
     cohere: 'command-r-plus',
     deepinfra: 'meta-llama/Meta-Llama-3.1-70B-Instruct',
     fireworks: 'accounts/fireworks/models/llama-v3p1-8b-instruct',
+    genai: 'gemini-2.5-pro',
     google: 'gemini-2.5-pro',
     groq: 'gemma2-9b-it',
     mistral: 'mistral-medium-latest',
@@ -68,6 +70,7 @@ const ENV_KEYS = {
     cohere: 'COHERE_API_KEY',
     deepinfra: 'DEEPINFRA_API_KEY',
     fireworks: 'FIREWORKS_API_KEY',
+    genai: 'GENAI_API_KEY',
     google: 'GOOGLE_GENERATIVE_AI_API_KEY',
     groq: 'GROQ_API_KEY',
     mistral: 'MISTRAL_API_KEY',
@@ -109,6 +112,13 @@ async function getAIModel() {
             return deepinfra(modelName);
         case 'fireworks':
             return fireworks(modelName);
+        case 'genai':
+            const genaiProvider = createOpenAICompatible({
+                baseURL: AI_BASE_URLS.genai,
+                apiKey: config.ai.apiKey,
+                name: 'genai-provider',
+            });
+            return genaiProvider.chatModel(modelName);
         case 'google':
             return google(modelName);
         case 'groq':
