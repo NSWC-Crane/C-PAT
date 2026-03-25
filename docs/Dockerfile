@@ -1,4 +1,4 @@
-FROM sphinxdoc/sphinx:7.4.6
+FROM sphinxdoc/sphinx:8.2.3
 
 WORKDIR /docs
 COPY requirements.txt /docs
