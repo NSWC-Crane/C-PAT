@@ -11,6 +11,19 @@
 <p-dialog [(visible)]="displayDialog" [modal]="true" [closable]="false" styleClass="w-[40vw] h-auto max-h-[80vh] overflow-hidden">
   <ng-template pTemplate="content">
     <div class="container">
+      @if (previousApproval) {
+        <div class="form-group">
+          <div class="switch-container">
+            <p-toggleswitch id="approvalHistory" name="approvalHistory" [(ngModel)]="showApprovalHistory" />
+            <label for="approvalHistory">View Previous Approval</label>
+          </div>
+          @if (showApprovalHistory) {
+            <div class="card showApprovalHistory mt-4">
+              <pre>{{ formattedApprovalHistory }}</pre>
+            </div>
+          }
+        </div>
+      }
       <div class="form-group">
         <label for="approvalStatus">Approval Status: </label>
         <p-select [options]="approvalStatusOptions" [(ngModel)]="approvalStatus" placeholder="Approval Status..." id="approvalStatus" name="approvalStatus" class="w-full" [disabled]="accessLevel < 3" />

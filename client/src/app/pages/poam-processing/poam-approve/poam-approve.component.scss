@@ -22,6 +22,29 @@
   margin-bottom: 5px;
 }
 
+.switch-container {
+  display: flex;
+  align-items: center;
+}
+
+.switch-container label {
+  margin-left: 0.5rem;
+}
+
+.showApprovalHistory {
+  background-color: var(--ground-background);
+  border: 1px solid var(--border-color);
+  padding: 1rem;
+  overflow: auto;
+  max-height: 300px;
+}
+
+.showApprovalHistory pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+}
+
 ::ng-deep .cpat-poam-approve .p-dialog .p-dialog-header {
   padding: 0 !important;
 }

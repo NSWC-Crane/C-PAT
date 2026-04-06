@@ -21,6 +21,7 @@ import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Subscription, forkJoin } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
@@ -42,7 +43,7 @@ export interface PoamApproval {
   templateUrl: './poam-approve.component.html',
   styleUrls: ['./poam-approve.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, DatePicker, CheckboxModule, DialogModule, SelectModule, TextareaModule, ToastModule],
+  imports: [FormsModule, ButtonModule, DatePicker, CheckboxModule, DialogModule, SelectModule, TextareaModule, ToastModule, ToggleSwitch],
   providers: [DatePipe]
 })
 export class PoamApproveComponent implements OnInit, OnDestroy {
@@ -73,6 +74,9 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
     { label: 'Approved', value: 'Approved' },
     { label: 'Rejected', value: 'Rejected' }
   ];
+  showApprovalHistory: boolean = false;
+  previousApproval: any = null;
+  formattedApprovalHistory: string = '';
   displayDialog: boolean = false;
   displayConfirmDialog: boolean = false;
   confirmDialogMessage: string = '';
@@ -120,16 +124,18 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
         const userApproval = approversResponse.find((approval: any) => approval.userId === this.user.userId);
 
         if (userApproval) {
-          this.approvalStatus = userApproval.approvalStatus;
-          this.dates.approvedDate = userApproval.approvedDate ? parseISO(userApproval.approvedDate.substr(0, 10)) : currentDate;
-          this.comments = userApproval.comments;
-          this.hqsChecked = Boolean(poamResponse.hqs);
+          this.previousApproval = userApproval;
+          this.formattedApprovalHistory = this.formatApprovalHistory(userApproval);
         } else {
-          this.approvalStatus = null;
-          this.dates.approvedDate = currentDate;
-          this.comments = null;
-          this.hqsChecked = Boolean(poamResponse.hqs);
+          this.previousApproval = null;
+          this.formattedApprovalHistory = '';
         }
+
+        this.approvalStatus = null;
+        this.dates.approvedDate = currentDate;
+        this.comments = null;
+        this.showApprovalHistory = false;
+        this.hqsChecked = Boolean(poamResponse.hqs);
 
         this.displayDialog = true;
       },
@@ -141,6 +147,14 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  formatApprovalHistory(approval: any): string {
+    const status = approval.approvalStatus || 'Not Reviewed';
+    const date = approval.approvedDate ? format(parseISO(approval.approvedDate.substr(0, 10)), 'yyyy-MM-dd') : 'N/A';
+    const comments = approval.comments || 'No comments';
+
+    return `Status: ${status}\nDate: ${date}\nComments: ${comments}`;
   }
 
   confirm(message: string) {
