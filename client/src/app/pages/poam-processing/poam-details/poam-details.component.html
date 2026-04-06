@@ -538,12 +538,7 @@
                           ></i>
                         </div>
                         @if (
-                          ((aiEnabled && poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) ||
-                            (aiEnabled &&
-                              poam.vulnerabilitySource ===
-                                'Assured Compliance Assessment Solution (ACAS) Nessus
-                      Scanner' &&
-                              poam.tenablePluginData)) &&
+                          ((aiEnabled && poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) || (aiEnabled && poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData)) &&
                           (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0))
                         ) {
                           <cpat-poam-mitigation-generator
