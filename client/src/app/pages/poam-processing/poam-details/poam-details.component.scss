@@ -158,9 +158,8 @@ hr {
 
 ::ng-deep .poam-control-menu {
   background-color: var(--card-background) !important;
-  width: 14.5rem !important;
-  top: -7.5rem;
-  right: 0;
+  width: 15rem !important;
+  top: 5rem !important;
 }
 
 ::ng-deep .poam-control-menu .p-menu-list {
@@ -298,6 +297,10 @@ hr {
 }
 
 :host ::ng-deep {
+  .p-steppanel-content-wrapper {
+    overflow: hidden;
+  }
+
   .team-mitigations-container {
     .p-tabs {
       .p-tablist {
