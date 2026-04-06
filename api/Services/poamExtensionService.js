@@ -25,6 +25,11 @@ exports.getPoamExtension = async function (poamId) {
     return withConnection(async connection => {
         let sql = `SELECT poamId, extensionDays, extensionDeadline, extensionJustification, scheduledCompletionDate FROM ${config.database.schema}.poam WHERE poamId = ?`;
         let [poamExtensions] = await connection.query(sql, [poamId]);
+        if (poamExtensions.length > 0) {
+            let historySql = `SELECT extensionHistoryId, extensionRequestedDate, extensionDays FROM ${config.database.schema}.poamextensionhistory WHERE poamId = ? ORDER BY extensionRequestedDate ASC, extensionHistoryId ASC`;
+            let [history] = await connection.query(historySql, [poamId]);
+            poamExtensions[0].extensionHistory = history;
+        }
         return poamExtensions;
     });
 };
@@ -57,6 +62,11 @@ exports.putPoamExtension = async function (req, res, next) {
                 req.body.poamId,
             ];
             await connection.query(sql, params);
+
+            if (req.body.status === 'Extension Requested' && req.body.extensionDays > 0) {
+                let historySql = `INSERT INTO ${config.database.schema}.poamextensionhistory (poamId, extensionRequestedDate, extensionDays) VALUES (?, CURDATE(), ?)`;
+                await connection.query(historySql, [req.body.poamId, req.body.extensionDays]);
+            }
 
             let action = `POAM Updated. Status: ${req.body.status}`;
             if (req.body.extensionDays > 0) {
