@@ -481,7 +481,7 @@ exports.postPoam = async function postPoam(req) {
                 }))[0];
 
                 if (req.body.assignedTeams) {
-                    let assignedTeams = req.body.assignedTeams;
+                    let assignedTeams = [...new Map(req.body.assignedTeams.map(t => [t.assignedTeamId, t])).values()];
                     for (let team of assignedTeams) {
                         if (!team.assignedTeamId) {
                             await connection.rollback();
@@ -852,7 +852,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                     let sqlDeletePoamAssignedTeams = `DELETE FROM ${config.database.schema}.poamassignedteams WHERE poamId = ?`;
                     await connection.query(sqlDeletePoamAssignedTeams, [req.body.poamId]);
 
-                    let assignedTeams = req.body.assignedTeams;
+                    let assignedTeams = [...new Map(req.body.assignedTeams.map(t => [t.assignedTeamId, t])).values()];
                     for (let team of assignedTeams) {
                         if (!team.assignedTeamId) {
                             await connection.rollback();

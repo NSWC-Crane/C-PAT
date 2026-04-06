@@ -34,7 +34,7 @@
             }
             @if (assignedTeam.isNew) {
               <p-select
-                [options]="assignedTeamOptions"
+                [options]="availableTeamOptions"
                 [(ngModel)]="assignedTeam.assignedTeamId"
                 [filter]="true"
                 filterBy="assignedTeamName"
