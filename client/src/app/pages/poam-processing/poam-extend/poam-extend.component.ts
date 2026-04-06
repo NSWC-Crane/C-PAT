@@ -113,6 +113,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     { label: 'Pending', value: 'Pending' },
     { label: 'Complete', value: 'Complete' }
   ];
+  extensionHistory: any[] = [];
   extensionJustification: string = '';
   extensionJustificationPlaceholder: string = 'Select from the available options, modify a provided option, or provide a custom justification';
   justifications: string[] = [
@@ -234,6 +235,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
               scheduledCompletionDate: extensionData.scheduledCompletionDate ? extensionData.scheduledCompletionDate.split('T')[0] : ''
             };
 
+            this.extensionHistory = extensionData.extensionHistory || [];
             this.extensionJustification = this.poam.extensionJustification;
 
             if (this.poam.scheduledCompletionDate) {
@@ -268,6 +270,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
               impactDescription: poamData.impactDescription || ''
             };
 
+            this.extensionHistory = [];
             this.extensionJustification = '';
             this.completionDateWithExtension = '';
           }
@@ -995,6 +998,19 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         }
       })
     );
+  }
+
+  get extensionHistoryTooltip(): string {
+    if (!this.extensionHistory?.length) return '';
+
+    return this.extensionHistory
+      .map((e, i) => {
+        const dateStr = e.extensionRequestedDate ? e.extensionRequestedDate.split('T')[0] : '';
+        const date = dateStr ? new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US') : 'N/A';
+
+        return `Extension ${i + 1}: Requested ${date} &mdash; ${e.extensionDays} days`;
+      })
+      .join('<br>');
   }
 
   filterJustifications(event: any) {

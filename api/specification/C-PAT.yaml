@@ -6461,6 +6461,18 @@ components:
           type: [string, 'null']
         status:
           type: string
+        extensionHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              extensionHistoryId:
+                type: integer
+              extensionRequestedDate:
+                type: string
+                format: date
+              extensionDays:
+                type: integer
 
     poam_status_object:
       type: object

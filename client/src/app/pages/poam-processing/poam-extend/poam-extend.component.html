@@ -43,7 +43,18 @@
         <div class="p-col-12">
           <div class="p-field">
             <label for="extensionDeadline">Deadline With Extension:</label>
-            <input type="text" pInputText [value]="completionDateWithExtension" name="extensionDeadline" disabled class="w-full" />
+            <div class="flex items-center gap-3">
+              <input type="text" pInputText [value]="completionDateWithExtension" name="extensionDeadline" disabled class="w-full" />
+              @if (extensionHistory?.length) {
+                <i
+                  class="pi pi-history flex shrink-0 cursor-help items-center"
+                  style="color: var(--p-text-muted-color); font-size: 1.25rem; line-height: 1.1; padding: 0.5rem"
+                  [pTooltip]="extensionHistoryTooltip"
+                  [escape]="false"
+                  tooltipPosition="top"
+                ></i>
+              }
+            </div>
           </div>
         </div>
         <!-- Justification for Extension -->
