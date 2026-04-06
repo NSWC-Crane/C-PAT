@@ -697,6 +697,49 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     });
   }
 
+  exportDeduplicatedCSV() {
+    if (!this.treeNodes || this.treeNodes.length === 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Export',
+        detail: 'No data to export'
+      });
+
+      return;
+    }
+
+    const flattenedData = this.csvExportService.flattenTreeNodes(this.treeNodes);
+    const seen = new Set<string>();
+    const deduplicatedData = flattenedData.filter((row) => {
+      const assetName = row.assetName || '';
+
+      if (seen.has(assetName)) return false;
+      seen.add(assetName);
+
+      return true;
+    });
+
+    const processedData = deduplicatedData.map((row) => {
+      const processedRow = { ...row };
+
+      if (processedRow.evaluatedDate instanceof Date) {
+        processedRow.evaluatedDate = processedRow.evaluatedDate.toLocaleString();
+      }
+
+      if (row.assetLabels) {
+        processedRow.labels = row.assetLabels.map((label: any) => label.name).join('; ');
+      }
+
+      return processedRow;
+    });
+
+    this.csvExportService.exportToCsv(processedData, {
+      filename: `CPAT_stig-manager-reviews-deduplicated-${new Date().toISOString().split('T')[0]}`,
+      columns: this.selectedColumns,
+      includeTimestamp: false
+    });
+  }
+
   flattenTreeNodes(nodes: TreeNode[]): any[] {
     let result: any[] = [];
 
