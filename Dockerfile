@@ -9,7 +9,7 @@ RUN npm run build
 
 FROM ${BASE_IMAGE}
 WORKDIR /home/node
-RUN chown -R node:node /home/node
+RUN mkdir -p /home/node/app/api && chown -R node:node /home/node
 USER node
 WORKDIR /home/node/app/api
 
