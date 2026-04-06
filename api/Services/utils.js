@@ -20,7 +20,7 @@ const semverCoerce = require('semver/functions/coerce');
 const Importer = require('./migrations/lib/mysql-import.js');
 const MySqlStorage = require('./migrations/lib/umzug-mysql-storage');
 const state = require('../utils/state');
-const minMySqlVersion = '8.0.21';
+const minMySqlVersion = '8.0.24';
 let _this = this;
 let initAttempt = 0;
 let NetKeepAlive;
