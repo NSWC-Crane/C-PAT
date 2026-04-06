@@ -25,7 +25,7 @@
             UNSAVED DRAFT
           }
           <div class="team-badges-container ml-4">
-            @for (team of poamAssignedTeams; track team.assignedTeamName) {
+            @for (team of poamAssignedTeams; track $index) {
               <p-tag
                 [value]="team.assignedTeamName"
                 [rounded]="true"

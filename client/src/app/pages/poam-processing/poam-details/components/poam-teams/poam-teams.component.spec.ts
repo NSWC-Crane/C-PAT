@@ -88,6 +88,53 @@ describe('PoamTeamsComponent', () => {
     });
   });
 
+  describe('availableTeamOptions', () => {
+    it('should return all options when no teams are assigned', () => {
+      component.poamAssignedTeams = [];
+
+      expect(component.availableTeamOptions).toHaveLength(3);
+    });
+
+    it('should exclude teams already assigned to the POAM', () => {
+      component.poamAssignedTeams = [createTeam({ assignedTeamId: 1, assignedTeamName: 'Alpha Team' })];
+      const available = component.availableTeamOptions;
+
+      expect(available).toHaveLength(2);
+      expect(available.find((t: any) => t.assignedTeamId === 1)).toBeUndefined();
+    });
+
+    it('should exclude multiple assigned teams', () => {
+      component.poamAssignedTeams = [createTeam({ assignedTeamId: 1 }), createTeam({ assignedTeamId: 3, assignedTeamName: 'Gamma Team' })];
+      const available = component.availableTeamOptions;
+
+      expect(available).toHaveLength(1);
+      expect(available[0].assignedTeamId).toBe(2);
+    });
+
+    it('should return empty when all teams are assigned', () => {
+      component.poamAssignedTeams = [createTeam({ assignedTeamId: 1 }), createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' }), createTeam({ assignedTeamId: 3, assignedTeamName: 'Gamma Team' })];
+
+      expect(component.availableTeamOptions).toHaveLength(0);
+    });
+
+    it('should not exclude new teams with null assignedTeamId', () => {
+      component.poamAssignedTeams = [createTeam({ assignedTeamId: null, isNew: true })];
+
+      expect(component.availableTeamOptions).toHaveLength(3);
+    });
+
+    it('should update dynamically when poamAssignedTeams changes', () => {
+      component.poamAssignedTeams = [];
+
+      expect(component.availableTeamOptions).toHaveLength(3);
+
+      component.poamAssignedTeams = [createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' })];
+
+      expect(component.availableTeamOptions).toHaveLength(2);
+      expect(component.availableTeamOptions.find((t: any) => t.assignedTeamId === 2)).toBeUndefined();
+    });
+  });
+
   describe('addAssignedTeam', () => {
     let emitSpy: any;
 

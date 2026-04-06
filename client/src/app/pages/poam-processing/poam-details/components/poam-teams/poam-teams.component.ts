@@ -33,6 +33,12 @@ export class PoamTeamsComponent {
   @Input() accessLevel: number;
   @Input() poamAssignedTeams: any[] = [];
   @Input() assignedTeamOptions: any[] = [];
+
+  get availableTeamOptions(): any[] {
+    const assignedIds = new Set(this.poamAssignedTeams.filter((t: any) => t.assignedTeamId).map((t: any) => t.assignedTeamId));
+
+    return this.assignedTeamOptions.filter((t: any) => !assignedIds.has(t.assignedTeamId));
+  }
   @Input() loading: boolean = false;
   @Input() poamService!: PoamService;
   readonly teamsChanged = output<{
