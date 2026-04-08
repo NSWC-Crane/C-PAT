@@ -69,8 +69,10 @@ export interface Poam {
     milestoneStatus: string | null;
     milestoneChangeComments: string | null;
     milestoneChangeDate: string | null;
-    milestoneTeam?: string;
-    assignedTeamId?: number | null;
+    assignedTeams: {
+      assignedTeamId: number;
+      assignedTeamName: string;
+    }[];
   }[];
   assignedTeams?: {
     assignedTeamId: number;
