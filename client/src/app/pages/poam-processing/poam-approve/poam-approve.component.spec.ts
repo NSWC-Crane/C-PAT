@@ -195,17 +195,32 @@ describe('PoamApproveComponent', () => {
       expect(mockPoamService.getPoam).toHaveBeenCalledWith('42');
     });
 
-    it('should set approvalStatus from matching user approval', () => {
-      expect(component.approvalStatus).toBe('Not Reviewed');
+    it('should reset approvalStatus to null regardless of prior approval', () => {
+      expect(component.approvalStatus).toBeNull();
     });
 
-    it('should set approvedDate from matching user approval', () => {
+    it('should reset approvedDate to current date regardless of prior approval', () => {
       expect(component.dates.approvedDate).toBeDefined();
       expect(component.dates.approvedDate instanceof Date).toBe(true);
     });
 
-    it('should set comments from matching user approval', () => {
-      expect(component.comments).toBe('Pending review');
+    it('should reset comments to null regardless of prior approval', () => {
+      expect(component.comments).toBeNull();
+    });
+
+    it('should store prior approval in previousApproval when user has existing record', () => {
+      expect(component.previousApproval).toBeDefined();
+      expect(component.previousApproval.userId).toBe(100);
+      expect(component.previousApproval.approvalStatus).toBe('Not Reviewed');
+    });
+
+    it('should populate formattedApprovalHistory when user has existing record', () => {
+      expect(component.formattedApprovalHistory).toContain('Status: Not Reviewed');
+      expect(component.formattedApprovalHistory).toContain('Comments: Pending review');
+    });
+
+    it('should reset showApprovalHistory to false', () => {
+      expect(component.showApprovalHistory).toBe(false);
     });
 
     it('should set hqsChecked from poam response', () => {
@@ -243,6 +258,14 @@ describe('PoamApproveComponent', () => {
 
       it('should still show the dialog', () => {
         expect(component.displayDialog).toBe(true);
+      });
+
+      it('should set previousApproval to null', () => {
+        expect(component.previousApproval).toBeNull();
+      });
+
+      it('should set formattedApprovalHistory to empty string', () => {
+        expect(component.formattedApprovalHistory).toBe('');
       });
     });
 
@@ -450,6 +473,36 @@ describe('PoamApproveComponent', () => {
 
         expect(component.displayDialog).toBe(true);
       });
+    });
+  });
+
+  describe('formatApprovalHistory', () => {
+    it('should format approval with all fields', () => {
+      const approval = { approvalStatus: 'Rejected', approvedDate: '2025-03-15T00:00:00Z', comments: 'Missing RAR' };
+      const result = (component as any).formatApprovalHistory(approval);
+
+      expect(result).toBe('Status: Rejected\nDate: 2025-03-15\nComments: Missing RAR');
+    });
+
+    it('should use Not Reviewed when approvalStatus is missing', () => {
+      const approval = { approvalStatus: null, approvedDate: '2025-01-01T00:00:00Z', comments: 'test' };
+      const result = (component as any).formatApprovalHistory(approval);
+
+      expect(result).toContain('Status: Not Reviewed');
+    });
+
+    it('should use N/A when approvedDate is null', () => {
+      const approval = { approvalStatus: 'Approved', approvedDate: null, comments: 'ok' };
+      const result = (component as any).formatApprovalHistory(approval);
+
+      expect(result).toContain('Date: N/A');
+    });
+
+    it('should use No comments when comments is null', () => {
+      const approval = { approvalStatus: 'Approved', approvedDate: '2025-01-01T00:00:00Z', comments: null };
+      const result = (component as any).formatApprovalHistory(approval);
+
+      expect(result).toContain('Comments: No comments');
     });
   });
 
