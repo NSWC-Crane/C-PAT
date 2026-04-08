@@ -3006,7 +3006,8 @@ describe('PoamDetailsComponent', () => {
   describe('onStigSelected', () => {
     it('should set vulnerabilityTitle and stigBenchmarkId from event', () => {
       component.poam = {};
-      component.onStigSelected({ value: { title: 'Windows 10 STIG', benchmarkId: 'V-12345' } });
+      component.stigmanSTIGs = [{ title: 'Windows 10 STIG', benchmarkId: 'V-12345' }];
+      component.onStigSelected({ value: 'Windows 10 STIG' });
       expect(component.poam.vulnerabilityTitle).toBe('Windows 10 STIG');
       expect(component.poam.stigBenchmarkId).toBe('V-12345');
     });

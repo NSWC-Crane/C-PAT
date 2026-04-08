@@ -228,7 +228,6 @@
                 name="stigInput"
                 placeholder="Select STIG..."
                 [dropdown]="true"
-                field="title"
                 class="w-full"
                 [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
               />
