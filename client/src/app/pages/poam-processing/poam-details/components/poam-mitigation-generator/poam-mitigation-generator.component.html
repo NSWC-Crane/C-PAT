@@ -42,7 +42,7 @@
               <p class="mb-2 text-sm">Review and edit the generated mitigation before applying it to your POAM.</p>
             </div>
             <div>
-              <p-splitButton outlined severity="success" label="Apply Mitigation" (onClick)="applyMitigation()" [model]="mitigationActionItems" />
+              <p-splitButton outlined severity="success" label="Document Mitigation" (onClick)="applyMitigation()" [model]="mitigationActionItems" />
             </div>
           </div>
           <textarea pTextarea class="w-full" [(ngModel)]="generatedMitigation" rows="10" placeholder="Generated mitigation will appear here" [autoResize]="true"></textarea>
