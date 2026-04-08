@@ -885,8 +885,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   onStigSelected(event: any) {
-    this.poam.vulnerabilityTitle = event.value.title;
-    this.poam.stigBenchmarkId = event.value.benchmarkId;
+    const selectedTitle = event.value;
+    const matchedStig = this.stigmanSTIGs?.find((stig: any) => stig.title === selectedTitle);
+
+    this.poam.vulnerabilityTitle = selectedTitle;
+
+    if (matchedStig) {
+      this.poam.stigBenchmarkId = matchedStig.benchmarkId;
+    }
   }
 
   onMitigationGenerated(event: { mitigation: string; teamId?: number }) {
@@ -1279,7 +1285,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.filteredStigmanSTIGs = this.stigmanSTIGs.filter((stig: any) => stig?.title?.toLowerCase().includes(query));
+    this.filteredStigmanSTIGs = this.stigmanSTIGs.filter((stig: any) => stig?.title?.toLowerCase().includes(query)).map((stig: any) => stig.title);
   }
 
   loadAppConfiguration() {
