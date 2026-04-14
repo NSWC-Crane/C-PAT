@@ -28,13 +28,14 @@ import { PoamAdvancedPieComponent } from '../poam-advanced-pie/poam-advanced-pie
 import { PoamAssignedGridComponent } from '../poam-assigned-grid/poam-assigned-grid.component';
 import { PoamGridComponent } from '../poam-grid/poam-grid.component';
 import { PoamMainchartComponent } from '../poam-mainchart/poam-mainchart.component';
+import { PoamMilestoneGridComponent } from '../poam-milestone-grid/poam-milestone-grid.component';
 
 @Component({
   selector: 'cpat-poam-manage',
   templateUrl: './poam-manage.component.html',
   styleUrls: ['./poam-manage.component.scss'],
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamMainchartComponent, PoamAssignedGridComponent, PoamGridComponent]
+  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamMainchartComponent, PoamAssignedGridComponent, PoamGridComponent, PoamMilestoneGridComponent]
 })
 export class PoamManageComponent implements OnInit, OnDestroy {
   private collectionsService = inject(CollectionsService);
