@@ -1,0 +1,304 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<p-card styleClass="flex flex-col">
+  <p-tabs value="0" scrollable>
+    <p-tablist>
+      <p-tab value="0">All Milestones</p-tab>
+      <p-tab value="1">Needs Attention</p-tab>
+      @if (accessLevelSignal() >= 1) {
+        <p-tab value="2">Team Milestones</p-tab>
+      }
+    </p-tablist>
+
+    <p-tabpanels>
+      <p-tabpanel value="0">
+        <p-table
+          #allDt
+          [value]="allMilestoneRows()"
+          [columns]="columns"
+          [scrollable]="true"
+          scrollHeight="40rem"
+          sortMode="multiple"
+          [globalFilterFields]="['poamId', 'vulnerabilityId', 'poamStatus', 'milestoneDate', 'milestoneStatus', 'milestoneComments', 'milestoneChangeDate', 'milestoneChangeComments', 'assignedTeamNames']"
+        >
+          <ng-template pTemplate="caption">
+            <div class="toolbar">
+              <div class="flex items-center">
+                <p-iconField iconPosition="left">
+                  <p-inputIcon><i class="pi pi-search"></i></p-inputIcon>
+                  <input pInputText type="text" [ngModel]="globalFilterAll()" (ngModelChange)="globalFilterAll.set($event); allDt.filterGlobal($event, 'contains')" placeholder="Search..." />
+                </p-iconField>
+                <p-button styleClass="ml-2" icon="pi pi-filter-slash" severity="secondary" [rounded]="true" [text]="true" [raised]="true" (click)="allDt.clear(); globalFilterAll.set('')" pTooltip="Clear filters" tooltipPosition="top" />
+              </div>
+              <div class="right-buttons">
+                <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (click)="exportToCSV(allMilestoneRows(), 'all')" pTooltip="Export to CSV" tooltipPosition="top" />
+              </div>
+            </div>
+          </ng-template>
+
+          <ng-template pTemplate="header">
+            <tr>
+              @for (col of columns; track col.field) {
+                @if (col.field === 'milestoneComments' || col.field === 'milestoneChangeComments' || col.field === 'assignedTeamNames') {
+                  <th scope="col">
+                    <div class="flex items-center">
+                      {{ col.header }}
+                      <p-columnFilter type="text" [field]="col.field" [showOperator]="false" display="menu" />
+                    </div>
+                  </th>
+                } @else {
+                  <th scope="col" [pSortableColumn]="col.field">
+                    <div class="flex items-center">
+                      {{ col.header }}
+
+                      @if (col.field === 'poamStatus') {
+                        <p-columnFilter type="text" field="poamStatus" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
+                          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <p-select [ngModel]="value" [options]="poamStatusOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
+                          </ng-template>
+                        </p-columnFilter>
+                      } @else if (col.field === 'milestoneStatus') {
+                        <p-columnFilter type="text" field="milestoneStatus" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
+                          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <p-select [ngModel]="value" [options]="milestoneStatusOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
+                          </ng-template>
+                        </p-columnFilter>
+                      } @else if (col.field === 'milestoneDate' || col.field === 'milestoneChangeDate') {
+                        <p-columnFilter type="date" [field]="col.field" [showOperator]="false" display="menu" />
+                      } @else if (col.field === 'poamId') {
+                        <p-columnFilter type="numeric" [field]="col.field" [showOperator]="false" display="menu" />
+                      } @else {
+                        <p-columnFilter type="text" [field]="col.field" [showOperator]="false" display="menu" />
+                      }
+                    </div>
+                  </th>
+                }
+              }
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-row>
+            <ng-container *ngTemplateOutlet="milestoneRow; context: { row: row }" />
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="columns.length" class="text-center">No milestones found.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-tabpanel>
+
+      <p-tabpanel value="1">
+        <p-table
+          #needsAttentionDt
+          [value]="needsAttentionRows()"
+          [columns]="columns"
+          [scrollable]="true"
+          scrollHeight="40rem"
+          sortMode="multiple"
+          [globalFilterFields]="['poamId', 'vulnerabilityId', 'poamStatus', 'milestoneDate', 'milestoneStatus', 'milestoneComments', 'milestoneChangeDate', 'milestoneChangeComments', 'assignedTeamNames']"
+        >
+          <ng-template pTemplate="caption">
+            <div class="toolbar">
+              <div class="flex items-center">
+                <p-iconField iconPosition="left">
+                  <p-inputIcon><i class="pi pi-search"></i></p-inputIcon>
+                  <input pInputText type="text" [ngModel]="globalFilterNeedsAttention()" (ngModelChange)="globalFilterNeedsAttention.set($event); needsAttentionDt.filterGlobal($event, 'contains')" placeholder="Search..." />
+                </p-iconField>
+                <p-button
+                  styleClass="ml-2"
+                  icon="pi pi-filter-slash"
+                  severity="secondary"
+                  [rounded]="true"
+                  [text]="true"
+                  [raised]="true"
+                  (click)="needsAttentionDt.clear(); globalFilterNeedsAttention.set('')"
+                  pTooltip="Clear filters"
+                  tooltipPosition="top"
+                />
+              </div>
+              <div class="right-buttons">
+                <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (click)="exportToCSV(needsAttentionRows(), 'needs-attention')" pTooltip="Export to CSV" tooltipPosition="top" />
+              </div>
+            </div>
+          </ng-template>
+
+          <ng-template pTemplate="header">
+            <tr>
+              @for (col of columns; track col.field) {
+                @if (col.field === 'milestoneComments' || col.field === 'milestoneChangeComments' || col.field === 'assignedTeamNames') {
+                  <th scope="col">
+                    <div class="flex items-center">
+                      {{ col.header }}
+                      <p-columnFilter type="text" [field]="col.field" [showOperator]="false" display="menu" />
+                    </div>
+                  </th>
+                } @else {
+                  <th scope="col" [pSortableColumn]="col.field">
+                    <div class="flex items-center">
+                      {{ col.header }}
+                      @if (col.field === 'poamStatus') {
+                        <p-columnFilter type="text" field="poamStatus" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
+                          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <p-select [ngModel]="value" [options]="poamStatusOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
+                          </ng-template>
+                        </p-columnFilter>
+                      } @else if (col.field === 'milestoneStatus') {
+                        <p-columnFilter type="text" field="milestoneStatus" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
+                          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                            <p-select [ngModel]="value" [options]="milestoneStatusOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
+                          </ng-template>
+                        </p-columnFilter>
+                      } @else if (col.field === 'milestoneDate' || col.field === 'milestoneChangeDate') {
+                        <p-columnFilter type="date" [field]="col.field" [showOperator]="false" display="menu" />
+                      } @else if (col.field === 'poamId') {
+                        <p-columnFilter type="numeric" [field]="col.field" [showOperator]="false" display="menu" />
+                      } @else {
+                        <p-columnFilter type="text" [field]="col.field" [showOperator]="false" display="menu" />
+                      }
+                    </div>
+                  </th>
+                }
+              }
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-row>
+            <ng-container *ngTemplateOutlet="milestoneRow; context: { row: row }" />
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="columns.length" class="text-center">No milestones need attention.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-tabpanel>
+
+      @if (accessLevelSignal() >= 1) {
+        <p-tabpanel value="2">
+          <p-table
+            #teamDt
+            [value]="teamMilestoneRows()"
+            [columns]="columns"
+            [scrollable]="true"
+            scrollHeight="40rem"
+            sortMode="multiple"
+            [globalFilterFields]="['poamId', 'vulnerabilityId', 'poamStatus', 'milestoneDate', 'milestoneStatus', 'milestoneComments', 'milestoneChangeDate', 'milestoneChangeComments', 'assignedTeamNames']"
+          >
+            <ng-template pTemplate="caption">
+              <div class="toolbar">
+                <div class="flex items-center">
+                  <p-iconField iconPosition="left">
+                    <p-inputIcon><i class="pi pi-search"></i></p-inputIcon>
+                    <input pInputText type="text" [ngModel]="globalFilterTeam()" (ngModelChange)="globalFilterTeam.set($event); teamDt.filterGlobal($event, 'contains')" placeholder="Search..." />
+                  </p-iconField>
+                  <p-button styleClass="ml-2" icon="pi pi-filter-slash" severity="secondary" [rounded]="true" [text]="true" [raised]="true" (click)="teamDt.clear(); globalFilterTeam.set('')" pTooltip="Clear filters" tooltipPosition="top" />
+                </div>
+                <div class="right-buttons">
+                  <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (click)="exportToCSV(teamMilestoneRows(), 'team')" pTooltip="Export to CSV" tooltipPosition="top" />
+                </div>
+              </div>
+            </ng-template>
+
+            <ng-template pTemplate="header">
+              <tr>
+                @for (col of columns; track col.field) {
+                  @if (col.field === 'milestoneComments' || col.field === 'milestoneChangeComments' || col.field === 'assignedTeamNames') {
+                    <th scope="col">
+                      <div class="flex items-center">
+                        {{ col.header }}
+                        <p-columnFilter type="text" [field]="col.field" [showOperator]="false" display="menu" />
+                      </div>
+                    </th>
+                  } @else {
+                    <th scope="col" [pSortableColumn]="col.field">
+                      <div class="flex items-center">
+                        {{ col.header }}
+                        @if (col.field === 'poamStatus') {
+                          <p-columnFilter type="text" field="poamStatus" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                              <p-select [ngModel]="value" [options]="poamStatusOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
+                            </ng-template>
+                          </p-columnFilter>
+                        } @else if (col.field === 'milestoneStatus') {
+                          <p-columnFilter type="text" field="milestoneStatus" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                              <p-select [ngModel]="value" [options]="milestoneStatusOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
+                            </ng-template>
+                          </p-columnFilter>
+                        } @else if (col.field === 'milestoneDate' || col.field === 'milestoneChangeDate') {
+                          <p-columnFilter type="date" [field]="col.field" [showOperator]="false" display="menu" />
+                        } @else if (col.field === 'poamId') {
+                          <p-columnFilter type="numeric" [field]="col.field" [showOperator]="false" display="menu" />
+                        } @else {
+                          <p-columnFilter type="text" [field]="col.field" [showOperator]="false" display="menu" />
+                        }
+                      </div>
+                    </th>
+                  }
+                }
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-row>
+              <ng-container *ngTemplateOutlet="milestoneRow; context: { row: row }" />
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td [attr.colspan]="columns.length" class="text-center">No team milestones found.</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-tabpanel>
+      }
+    </p-tabpanels>
+  </p-tabs>
+</p-card>
+
+<ng-template #milestoneRow let-row="row">
+  <tr>
+    @for (col of columns; track col.field) {
+      <td>
+        @switch (col.field) {
+          @case ('poamId') {
+            <a href="javascript:void(0)" (click)="managePoam(row.poamId)" class="text-primary cursor-pointer font-semibold hover:font-bold" pTooltip="Navigate to this POAM" tooltipPosition="top">
+              {{ row.poamId }}
+            </a>
+          }
+          @case ('poamStatus') {
+            <p-tag [value]="row.poamStatus" [severity]="getPoamStatusSeverity(row.poamStatus)" [rounded]="true" />
+          }
+          @case ('milestoneStatus') {
+            @if (row.milestoneStatus) {
+              <p-tag [value]="row.milestoneStatus" [severity]="getMilestoneStatusSeverity(row.milestoneStatus)" [rounded]="true" />
+            }
+          }
+          @case ('assignedTeams') {
+            <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto overflow-x-hidden">
+              @for (team of row.assignedTeams; track team.teamId) {
+                <p-tag [value]="team.teamName" [rounded]="true" />
+              }
+              @if (!row.assignedTeams.length) {
+                <span class="text-color-secondary">-</span>
+              }
+            </div>
+          }
+          @default {
+            {{ row[col.field] ?? '-' }}
+          }
+        }
+      </td>
+    }
+  </tr>
+</ng-template>
