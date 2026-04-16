@@ -68,7 +68,7 @@ export class AppSearchComponent {
     this.searchItems = [
       { title: 'Add POAM', path: '/poam-processing/poam-details/ADDPOAM' },
       { title: 'Asset Processing', path: '/asset-processing' },
-      { title: 'Home', path: '/poam-processing' },
+      { title: 'Home', path: '/home' },
       { title: 'Import Processing', path: '/import-processing' },
       { title: 'Label Processing', path: '/label-processing' },
       { title: 'Manage POAMs', path: '/poam-processing/poam-manage' },

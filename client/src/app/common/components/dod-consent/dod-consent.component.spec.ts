@@ -64,9 +64,9 @@ describe('DoDConsentComponent', () => {
       expect(component.visible).toBe(false);
     });
 
-    it('should navigate to /poam-processing', () => {
+    it('should navigate to /home', () => {
       component.consentOk();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
     });
 
     it('should navigate to correct route when OK button is clicked', () => {
@@ -81,7 +81,7 @@ describe('DoDConsentComponent', () => {
           component.consentOk();
         }
 
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing']);
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
       }
     });
   });
@@ -243,11 +243,11 @@ describe('DoDConsentComponent', () => {
       expect(Array.isArray(navigateCall[0])).toBe(true);
     });
 
-    it('should navigate to poam-processing path specifically', () => {
+    it('should navigate to home path specifically', () => {
       component.consentOk();
       const navigateCall = mockRouter.navigate.mock.calls[0];
 
-      expect(navigateCall[0][0]).toBe('/poam-processing');
+      expect(navigateCall[0][0]).toBe('/home');
     });
   });
 
@@ -274,7 +274,7 @@ describe('DoDConsentComponent', () => {
 
       component.consentOk();
       expect(component.visible).toBe(false);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
     });
 
     it('should allow multiple consent acceptances (edge case)', () => {

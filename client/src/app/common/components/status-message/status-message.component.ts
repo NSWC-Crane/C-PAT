@@ -40,8 +40,8 @@ export class StatusMessageComponent implements OnInit {
     this.setMessage();
   }
 
-  navigateToPoamProcessing() {
-    this.router.navigate(['/poam-processing']);
+  navigateHome() {
+    this.router.navigate(['/home']);
   }
 
   setMessage() {

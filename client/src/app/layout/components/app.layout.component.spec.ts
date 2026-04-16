@@ -92,7 +92,7 @@ describe('AppLayoutComponent', () => {
 
     mockRouter = {
       events: new Subject().asObservable(),
-      url: '/poam-processing',
+      url: '/home',
       createUrlTree: vi.fn().mockReturnValue({}),
       serializeUrl: vi.fn().mockReturnValue(''),
       navigate: vi.fn()

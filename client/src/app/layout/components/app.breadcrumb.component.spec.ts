@@ -60,7 +60,7 @@ describe('AppBreadcrumbComponent', () => {
     it('should have home property configured', () => {
       expect(component.home).toBeDefined();
       expect(component.home.icon).toBe('pi pi-home');
-      expect(component.home.routerLink).toBe('/poam-processing');
+      expect(component.home.routerLink).toBe('/home');
     });
 
     it('should initialize items as empty signal', () => {
@@ -70,32 +70,32 @@ describe('AppBreadcrumbComponent', () => {
 
   describe('ngOnInit', () => {
     it('should call updateBreadcrumbs on init', () => {
-      mockLocation.path.mockReturnValue('/poam-processing');
+      mockLocation.path.mockReturnValue('/home');
       fixture.detectChanges();
 
       expect(mockLocation.path).toHaveBeenCalled();
       expect(component.items().length).toBeGreaterThan(0);
     });
 
-    it('should set POAM Processing breadcrumb for empty path', () => {
+    it('should set Home breadcrumb for empty path', () => {
       mockLocation.path.mockReturnValue('');
       fixture.detectChanges();
 
-      expect(component.items()).toEqual([{ label: 'POAM Processing', routerLink: '/poam-processing' }]);
+      expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
     });
 
-    it('should set POAM Processing breadcrumb for root path', () => {
+    it('should set Home breadcrumb for root path', () => {
       mockLocation.path.mockReturnValue('/');
       fixture.detectChanges();
 
-      expect(component.items()).toEqual([{ label: 'POAM Processing', routerLink: '/poam-processing' }]);
+      expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
     });
 
-    it('should set POAM Processing breadcrumb for /poam-processing path', () => {
-      mockLocation.path.mockReturnValue('/poam-processing');
+    it('should set Home breadcrumb for /home path', () => {
+      mockLocation.path.mockReturnValue('/home');
       fixture.detectChanges();
 
-      expect(component.items()).toEqual([{ label: 'POAM Processing', routerLink: '/poam-processing' }]);
+      expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
     });
   });
 
@@ -104,7 +104,7 @@ describe('AppBreadcrumbComponent', () => {
       mockLocation.path.mockReturnValue('');
       fixture.detectChanges();
 
-      expect(component.items()).toEqual([{ label: 'POAM Processing', routerLink: '/poam-processing' }]);
+      expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
 
       mockLocation.path.mockReturnValue('/user-processing');
       routerEventsSubject.next(new NavigationEnd(1, '/user-processing', '/user-processing'));
@@ -113,7 +113,7 @@ describe('AppBreadcrumbComponent', () => {
     });
 
     it('should not update breadcrumbs for non-NavigationEnd events', () => {
-      mockLocation.path.mockReturnValue('/poam-processing');
+      mockLocation.path.mockReturnValue('/home');
       fixture.detectChanges();
 
       const initialItems = component.items();
@@ -141,7 +141,7 @@ describe('AppBreadcrumbComponent', () => {
     });
 
     it('should unsubscribe from router events after destroy', () => {
-      mockLocation.path.mockReturnValue('/poam-processing');
+      mockLocation.path.mockReturnValue('/home');
       fixture.detectChanges();
 
       component.ngOnDestroy();
@@ -149,7 +149,7 @@ describe('AppBreadcrumbComponent', () => {
       mockLocation.path.mockReturnValue('/user-processing');
       routerEventsSubject.next(new NavigationEnd(1, '/user-processing', '/user-processing'));
 
-      expect(component.items()).toEqual([{ label: 'POAM Processing', routerLink: '/poam-processing' }]);
+      expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
     });
   });
 
@@ -162,12 +162,12 @@ describe('AppBreadcrumbComponent', () => {
     });
 
     it('should handle multi-segment URL', () => {
-      mockLocation.path.mockReturnValue('/poam-processing/poam-details');
+      mockLocation.path.mockReturnValue('/home/poam-details');
       fixture.detectChanges();
 
       expect(component.items()).toEqual([
-        { label: 'POAM Processing', routerLink: '/poam-processing' },
-        { label: 'POAM Details', routerLink: '/poam-processing/poam-details' }
+        { label: 'Home', routerLink: '/home' },
+        { label: 'POAM Details', routerLink: '/home/poam-details' }
       ]);
     });
 
@@ -182,13 +182,13 @@ describe('AppBreadcrumbComponent', () => {
     });
 
     it('should handle multiple segments with numeric ID', () => {
-      mockLocation.path.mockReturnValue('/poam-processing/poam-details/42');
+      mockLocation.path.mockReturnValue('/home/poam-details/42');
       fixture.detectChanges();
 
       expect(component.items()).toEqual([
-        { label: 'POAM Processing', routerLink: '/poam-processing' },
-        { label: 'POAM Details', routerLink: '/poam-processing/poam-details' },
-        { label: 'POAM 42', routerLink: '/poam-processing/poam-details/42' }
+        { label: 'Home', routerLink: '/home' },
+        { label: 'POAM Details', routerLink: '/home/poam-details' },
+        { label: 'POAM 42', routerLink: '/home/poam-details/42' }
       ]);
     });
 
@@ -202,7 +202,7 @@ describe('AppBreadcrumbComponent', () => {
 
   describe('createLabel - Known Routes', () => {
     const knownRoutes = [
-      { path: 'poam-processing', expected: 'POAM Processing' },
+      { path: 'home', expected: 'Home' },
       { path: 'poam-approve', expected: 'Approve POAM' },
       { path: 'poam-details', expected: 'POAM Details' },
       { path: 'poam-extend', expected: 'Extend POAM' },
@@ -217,7 +217,8 @@ describe('AppBreadcrumbComponent', () => {
       { path: 'import-processing', expected: 'Import Processing' },
       { path: 'asset-processing', expected: 'Asset Processing' },
       { path: 'label-processing', expected: 'Label Processing' },
-      { path: 'metrics', expected: 'Metrics' }
+      { path: 'metrics', expected: 'Metrics' },
+      { path: 'home', expected: 'Home' }
     ];
 
     knownRoutes.forEach(({ path, expected }) => {
@@ -262,10 +263,10 @@ describe('AppBreadcrumbComponent', () => {
 
   describe('Complex Navigation Scenarios', () => {
     it('should handle navigation from one route to another', () => {
-      mockLocation.path.mockReturnValue('/poam-processing');
+      mockLocation.path.mockReturnValue('/home');
       fixture.detectChanges();
 
-      expect(component.items()).toEqual([{ label: 'POAM Processing', routerLink: '/poam-processing' }]);
+      expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
 
       mockLocation.path.mockReturnValue('/admin-processing');
       routerEventsSubject.next(new NavigationEnd(2, '/admin-processing', '/admin-processing'));
@@ -274,14 +275,14 @@ describe('AppBreadcrumbComponent', () => {
     });
 
     it('should handle deep navigation with POAM ID', () => {
-      mockLocation.path.mockReturnValue('/poam-processing/poam-manage/poam-details/999');
+      mockLocation.path.mockReturnValue('/home/poam-manage/poam-details/999');
       fixture.detectChanges();
 
       expect(component.items()).toEqual([
-        { label: 'POAM Processing', routerLink: '/poam-processing' },
-        { label: 'Manage POAMs', routerLink: '/poam-processing/poam-manage' },
-        { label: 'POAM Details', routerLink: '/poam-processing/poam-manage/poam-details' },
-        { label: 'POAM 999', routerLink: '/poam-processing/poam-manage/poam-details/999' }
+        { label: 'Home', routerLink: '/home' },
+        { label: 'Manage POAMs', routerLink: '/home/poam-manage' },
+        { label: 'POAM Details', routerLink: '/home/poam-manage/poam-details' },
+        { label: 'POAM 999', routerLink: '/home/poam-manage/poam-details/999' }
       ]);
     });
 
@@ -294,7 +295,7 @@ describe('AppBreadcrumbComponent', () => {
       mockLocation.path.mockReturnValue('/');
       routerEventsSubject.next(new NavigationEnd(3, '/', '/'));
 
-      expect(component.items()).toEqual([{ label: 'POAM Processing', routerLink: '/poam-processing' }]);
+      expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
     });
 
     it('should handle stigmanager admin path', () => {
@@ -320,7 +321,7 @@ describe('AppBreadcrumbComponent', () => {
 
   describe('Edge Cases', () => {
     it('should handle multiple consecutive navigation events', () => {
-      mockLocation.path.mockReturnValue('/poam-processing');
+      mockLocation.path.mockReturnValue('/home');
       fixture.detectChanges();
 
       mockLocation.path.mockReturnValue('/metrics');
@@ -365,7 +366,7 @@ describe('AppBreadcrumbComponent', () => {
 
   describe('Template Bindings', () => {
     it('should render breadcrumb with correct model', () => {
-      mockLocation.path.mockReturnValue('/poam-processing');
+      mockLocation.path.mockReturnValue('/home');
       fixture.detectChanges();
 
       const breadcrumb = fixture.nativeElement.querySelector('p-breadcrumb');
@@ -374,13 +375,13 @@ describe('AppBreadcrumbComponent', () => {
     });
 
     it('should update view when items signal changes', () => {
-      mockLocation.path.mockReturnValue('/poam-processing');
+      mockLocation.path.mockReturnValue('/home');
       fixture.detectChanges();
 
       const initialLength = component.items().length;
 
-      mockLocation.path.mockReturnValue('/poam-processing/poam-details/123');
-      routerEventsSubject.next(new NavigationEnd(1, '/poam-processing/poam-details/123', '/poam-processing/poam-details/123'));
+      mockLocation.path.mockReturnValue('/home/poam-details/123');
+      routerEventsSubject.next(new NavigationEnd(1, '/home/poam-details/123', '/home/poam-details/123'));
 
       expect(component.items().length).toBeGreaterThan(initialLength);
     });

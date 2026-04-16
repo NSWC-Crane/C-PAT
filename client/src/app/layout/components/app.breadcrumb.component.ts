@@ -38,7 +38,7 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   items = signal<MenuItem[]>([]);
-  home: MenuItem = { icon: 'pi pi-home', routerLink: '/poam-processing' };
+  home: MenuItem = { icon: 'pi pi-home', routerLink: '/home' };
 
   ngOnInit() {
     this.router.events
@@ -61,11 +61,11 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
   private updateBreadcrumbs() {
     const currentUrl = this.location.path();
 
-    if (currentUrl === '' || currentUrl === '/' || currentUrl === '/poam-processing') {
+    if (currentUrl === '' || currentUrl === '/' || currentUrl === '/home') {
       this.items.set([
         {
-          label: 'POAM Processing',
-          routerLink: '/poam-processing'
+          label: 'Home',
+          routerLink: '/home'
         }
       ]);
 
@@ -135,6 +135,8 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
         return 'Label Processing';
       case 'metrics':
         return 'Metrics';
+      case 'home':
+        return 'Home';
       default:
         return path
           .split('-')
