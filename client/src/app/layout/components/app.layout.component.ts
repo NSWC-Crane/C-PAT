@@ -147,7 +147,7 @@ import { CardModule } from 'primeng/card';
               @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin !== true) {
                 <cpat-status-message [statusCode]="998" />
               }
-              @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin === true && router.url === '/poam-processing') {
+              @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin === true && router.url === '/home') {
                 <cpat-status-message [statusCode]="998" />
               }
               @if ((user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId !== 0) || user.isAdmin === true) {
@@ -374,7 +374,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: () => {
-          globalThis.location.pathname = `${CPAT.Env.basePath ?? ''}poam-processing`;
+          globalThis.location.pathname = `${CPAT.Env.basePath ?? ''}home`;
         },
         error: (error) => {
           console.error('Error updating user:', error);
@@ -445,7 +445,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       {
         label: 'Home',
         icon: 'pi pi-home',
-        routerLink: ['/poam-processing'],
+        routerLink: ['/home'],
         visible: true
       },
       {

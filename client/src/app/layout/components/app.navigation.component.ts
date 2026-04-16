@@ -286,7 +286,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (result) => {
             if (result) {
-              globalThis.location.pathname = `${CPAT.Env.basePath ?? ''}poam-processing`;
+              globalThis.location.pathname = `${CPAT.Env.basePath ?? ''}home`;
             }
           },
           error: (error) => console.error('Error updating user:', error)

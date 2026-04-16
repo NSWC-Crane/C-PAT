@@ -18,6 +18,7 @@ import { importProcessingRoutes } from './pages/import-processing/import-process
 import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
 import { metricsRoutes } from './pages/metrics-processing/metrics.routing';
 import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
+import { homeRoutes } from './pages/home/home.routing';
 import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
 
 const routerOptions: ExtraOptions = {
@@ -31,7 +32,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing',
+        redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'home',
         pathMatch: 'full'
       },
       {
@@ -85,6 +86,11 @@ export const routes: Routes = [
         path: 'marketplace',
         canActivate: [AuthGuard],
         children: marketplaceRoutes
+      },
+      {
+        path: 'home',
+        canActivate: [AuthGuard],
+        children: homeRoutes
       }
     ]
   },
@@ -113,7 +119,7 @@ export const routes: Routes = [
     loadComponent: () => import('./common/components/status-message/status-message.component').then((m) => m.StatusMessageComponent),
     data: { statusCode: 999 }
   },
-  { path: '**', redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'poam-processing' }
+  { path: '**', redirectTo: CPAT.Env.dodDeployment ? 'consent' : 'home' }
 ];
 @NgModule({
   imports: [RouterModule.forRoot(routes, routerOptions)],

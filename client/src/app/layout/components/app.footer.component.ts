@@ -22,7 +22,7 @@ import { TooltipModule } from 'primeng/tooltip';
       <div class="landing-footer-container">
         <hr class="section-divider" />
         <div class="flex flex-wrap justify-between py-12 gap-8">
-          <a [routerLink]="['/poam-processing']" class="cursor-pointer">
+          <a [routerLink]="['/home']" class="cursor-pointer">
             <svg width="170" height="50" viewBox="0 0 170 50" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">

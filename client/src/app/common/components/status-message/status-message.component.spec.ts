@@ -262,19 +262,19 @@ describe('StatusMessageComponent', () => {
     });
   });
 
-  describe('navigateToPoamProcessing', () => {
-    it('should navigate to /poam-processing when called', () => {
-      component.navigateToPoamProcessing();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing']);
+  describe('navigateHome', () => {
+    it('should navigate to /home when called', () => {
+      component.navigateHome();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
     });
 
-    it('should navigate to /poam-processing when button is clicked', () => {
+    it('should navigate to /home when button is clicked', () => {
       fixture.detectChanges();
       const button = fixture.debugElement.query(By.css('p-button'));
 
       if (button) {
         button.triggerEventHandler('click', null);
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing']);
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
       }
     });
   });

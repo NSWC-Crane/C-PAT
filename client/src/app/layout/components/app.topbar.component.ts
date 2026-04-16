@@ -35,7 +35,7 @@ import { PayloadService } from '../../common/services/setPayload.service';
   template: `<div class="layout-topbar">
     <div class="layout-topbar-inner">
       <div class="layout-topbar-logo-container">
-        <a [routerLink]="['/poam-processing']" class="layout-topbar-logo" aria-label="PrimeNG Logo">
+        <a [routerLink]="['/home']" class="layout-topbar-logo" aria-label="PrimeNG Logo">
           <svg width="170" height="50" viewBox="0 0 170 50" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">

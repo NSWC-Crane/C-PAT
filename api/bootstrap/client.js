@@ -115,19 +115,20 @@ function setupAngularRoutes(app) {
         '/admin-processing',
         '/admin-processing/app-info',
         '/asset-processing',
+        '/consent',
+        '/home',
         '/import-processing/stigmanager-import',
         '/import-processing/tenable-import',
         '/label-processing',
         '/marketplace',
         '/metrics',
+        '/notifications',
         '/poam-processing',
         '/poam-processing/poam-manage',
         '/poam-processing/poam-approve/:poamId',
         '/poam-processing/poam-details/:poamId',
         '/poam-processing/poam-extend/:poamId',
         '/poam-processing/poam-log/:poamId',
-        '/notifications',
-        '/consent',
     ];
 
     const serveIndexWithBaseHref = (req, res) => {

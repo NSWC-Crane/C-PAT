@@ -1,0 +1,158 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<div class="grid grid-cols-10 gap-4">
+  <div class="col-span-12 md:col-span-2">
+    <p-card class="h-full">
+      <ng-template pTemplate="header">
+        <div class="home-card-header px-4 pt-4 pb-2">
+          <span class="text-lg font-semibold">Welcome</span>
+        </div>
+        <p-divider styleClass="mt-0 mb-0" />
+      </ng-template>
+      <div class="flex flex-col gap-4">
+        <div class="flex justify-center">
+          <img src="assets/images/navy.svg" alt="NSWC Crane" class="home-logo mb-2" />
+        </div>
+        <p class="home-description">
+          <strong>C-PAT™</strong> is an API and web client being developed through <a class="home-link" href="https://www.navsea.navy.mil/" target="_blank" rel="noopener noreferrer"> NAVSEA </a> and
+          <a class="home-link" href="https://www.navsea.navy.mil/Home/Warfare-Centers/NSWC-Crane/" target="_blank" rel="noopener noreferrer"> NSWC Crane </a>
+          that aims to automate vulnerability documentation and tracking.
+        </p>
+        <p class="home-description">
+          C-PAT™ is architected with an emphasis towards interoperability with other RMF Tools, and is designed to integrate with <strong>STIG Manager</strong> and <strong>Tenable.sc (ACAS)</strong> to provide a comprehensive solution throughout the
+          RMF process.
+        </p>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="col-span-12 md:col-span-2">
+    <p-card class="h-full">
+      <ng-template pTemplate="header">
+        <div class="home-card-header px-4 pt-4 pb-2">
+          <span class="text-lg font-semibold">Documentation</span>
+        </div>
+        <p-divider styleClass="mt-0 mb-0" />
+      </ng-template>
+      <div class="flex flex-col gap-4">
+        <div>
+          <p class="home-section-title">Need Help?</p>
+          <ul class="home-link-list">
+            <li><a class="home-link" href="https://c-pat.readthedocs.io/" target="_blank" rel="noopener noreferrer"> C-PAT Documentation </a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="home-section-title">Getting Started?</p>
+          <p class="home-description">
+            Check out the
+            <a class="home-link" href="https://c-pat.readthedocs.io/en/main/source/user/index.html" target="_blank" rel="noopener noreferrer">User Guide</a>
+            to learn how to create and manage POAMs.
+          </p>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="col-span-12 md:col-span-2">
+    <p-card class="h-full">
+      <ng-template pTemplate="header">
+        <div class="home-card-header px-4 pt-4 pb-2">
+          <span class="text-lg font-semibold">Development</span>
+        </div>
+        <p-divider styleClass="mt-0 mb-0" />
+      </ng-template>
+      <div class="flex flex-col gap-4">
+        <div>
+          <p class="home-section-title">Open Source</p>
+          <p class="home-description">
+            C-PAT is being developed as part of the
+            <a
+              class="home-link"
+              href="https://repo1.dso.mil/platform-one/bullhorn-delivery-static-assets/-/raw/master/p1/docs/DoD%20Enterprise%20DevSecOps%20Reference%20Design%20-%20CNCF%20Kubernetes%20w-DD1910_cleared_20211022.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              DoD Enterprise DevSecOps
+            </a>
+            and
+            <a class="home-link" href="https://code.mil/" target="_blank" rel="noopener noreferrer"> Code.mil </a>
+            Open Source initiatives.
+          </p>
+        </div>
+        <div>
+          <p class="home-section-title">Issues, Requests, and Contributions</p>
+          <p class="home-description">
+            Want to report a bug, request a feature, or contribute?
+            <a class="home-link" href="https://github.com/NSWC-Crane/C-PAT/issues" target="_blank" rel="noopener noreferrer"> Check out our GitHub Issues. </a>
+          </p>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="col-span-12 md:col-span-2">
+    <p-card class="h-full">
+      <ng-template pTemplate="header">
+        <div class="home-card-header px-4 pt-4 pb-2">
+          <span class="text-lg font-semibold">Key Integrations</span>
+        </div>
+        <p-divider styleClass="mt-0 mb-0" />
+      </ng-template>
+      <div class="flex flex-col gap-4">
+        <div>
+          <p class="home-section-title">STIG Manager</p>
+          <ul class="home-link-list">
+            <li><a class="home-link" href="https://github.com/NUWCDIVNPT/stig-manager" target="_blank" rel="noopener noreferrer">STIG Manager GitHub</a></li>
+            <li><a class="home-link" href="https://stig-manager.readthedocs.io/en/latest/" target="_blank" rel="noopener noreferrer">STIG Manager Documentation</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="home-section-title">Tenable / ACAS</p>
+          <ul class="home-link-list">
+            <li><a class="home-link" href="https://www.tenable.com/products/security-center" target="_blank" rel="noopener noreferrer">Tenable Security Center</a></li>
+            <li><a class="home-link" href="https://docs.tenable.com/security-center/api/index.htm" target="_blank" rel="noopener noreferrer">Tenable.sc API Documentation</a></li>
+          </ul>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <div class="col-span-12 md:col-span-2">
+    <p-card class="h-full">
+      <ng-template pTemplate="header">
+        <div class="home-card-header px-4 pt-4 pb-2">
+          <span class="text-lg font-semibold">Resources</span>
+        </div>
+        <p-divider styleClass="mt-0 mb-0" />
+      </ng-template>
+      <div class="flex flex-col gap-4">
+        <div>
+          <p class="home-section-title">GitHub</p>
+          <ul class="home-link-list">
+            <li><a class="home-link" href="https://github.com/NSWC-Crane/C-PAT" target="_blank" rel="noopener noreferrer"> NSWC-Crane/C-PAT </a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="home-section-title">Docker Hub</p>
+          <ul class="home-link-list">
+            <li><a class="home-link" href="https://hub.docker.com/r/nswccrane/c-pat" target="_blank" rel="noopener noreferrer"> nswccrane/c-pat </a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="home-section-title">Risk Management Framework</p>
+          <ul class="home-link-list">
+            <li><a class="home-link" href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-37r2.pdf" target="_blank" rel="noopener noreferrer"> RMF Process</a></li>
+          </ul>
+        </div>
+      </div>
+    </p-card>
+  </div>
+</div>

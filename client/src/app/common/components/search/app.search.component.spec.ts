@@ -89,7 +89,7 @@ describe('AppSearchComponent', () => {
       const item = component['searchItems'].find((i) => i.title === 'Home');
 
       expect(item).toBeTruthy();
-      expect(item?.path).toBe('/poam-processing');
+      expect(item?.path).toBe('/home');
     });
 
     it('should include Import Processing item', () => {
@@ -228,15 +228,15 @@ describe('AppSearchComponent', () => {
 
   describe('navigateTo', () => {
     it('should navigate to item path', () => {
-      const item = { title: 'Home', path: '/poam-processing' };
+      const item = { title: 'Home', path: '/home' };
 
       component.navigateTo({ value: item });
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
     });
 
     it('should clear query after navigation', () => {
       component.query = 'test';
-      const item = { title: 'Home', path: '/poam-processing' };
+      const item = { title: 'Home', path: '/home' };
 
       component.navigateTo({ value: item });
       expect(component.query).toBe('');
@@ -341,7 +341,7 @@ describe('AppSearchComponent', () => {
       expect(component.filteredItems[0].title).toBe('Home');
 
       component.navigateTo({ value: component.filteredItems[0] });
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
       expect(component.query).toBe('');
     });
 

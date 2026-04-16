@@ -32,6 +32,6 @@ export class DoDConsentComponent implements OnInit {
 
   consentOk() {
     this.visible = false;
-    this.router.navigate(['/poam-processing']);
+    this.router.navigate(['/home']);
   }
 }
