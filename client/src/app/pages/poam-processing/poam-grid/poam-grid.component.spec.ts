@@ -25,6 +25,7 @@ import { CollectionsService } from '../../admin-processing/collection-processing
 import { ImportService } from '../../import-processing/import.service';
 import { PoamService } from '../poams.service';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
+import { CsvExportService } from '../../../common/utils/csv-export.service';
 
 function createMockPoam(overrides: any = {}) {
   return {
@@ -65,6 +66,7 @@ describe('PoamGridComponent', () => {
   let mockCollectionsService: any;
   let mockImportService: any;
   let mockPoamService: any;
+  let mockCsvExportService: any;
   let selectedCollectionSubject: BehaviorSubject<number>;
 
   beforeAll(() => {
@@ -122,6 +124,10 @@ describe('PoamGridComponent', () => {
       getPoamAssetsByCollectionId: vi.fn().mockReturnValue(of([]))
     };
 
+    mockCsvExportService = {
+      exportToCsv: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [PoamGridComponent],
       providers: [
@@ -134,7 +140,8 @@ describe('PoamGridComponent', () => {
         { provide: SharedService, useValue: mockSharedService },
         { provide: CollectionsService, useValue: mockCollectionsService },
         { provide: ImportService, useValue: mockImportService },
-        { provide: PoamService, useValue: mockPoamService }
+        { provide: PoamService, useValue: mockPoamService },
+        { provide: CsvExportService, useValue: mockCsvExportService }
       ]
     }).compileComponents();
 
@@ -1151,6 +1158,220 @@ describe('PoamGridComponent', () => {
           summary: 'Export Failed'
         })
       );
+    });
+  });
+
+  describe('Input: variant', () => {
+    it('should accept variant input', () => {
+      component.variant = 'team';
+      expect(component.variant).toBe('team');
+    });
+  });
+
+  describe('Input: userId', () => {
+    it('should accept userId input', () => {
+      component.userId = 42;
+      expect(component.userId).toBe(42);
+    });
+  });
+
+  describe('getTeamSeverity', () => {
+    it('should return success for complete=true', () => {
+      expect(component.getTeamSeverity('true')).toBe('success');
+    });
+
+    it('should return warn for complete=partial', () => {
+      expect(component.getTeamSeverity('partial')).toBe('warn');
+    });
+
+    it('should return undefined for complete=global', () => {
+      expect(component.getTeamSeverity('global')).toBeUndefined();
+    });
+
+    it('should return danger for complete=false', () => {
+      expect(component.getTeamSeverity('false')).toBe('danger');
+    });
+
+    it('should return danger for unknown complete values', () => {
+      expect(component.getTeamSeverity('unknown')).toBe('danger');
+    });
+  });
+
+  describe('getTeamTooltip', () => {
+    it('should return fulfilled message for complete=true', () => {
+      expect(component.getTeamTooltip('true')).toBe('Team has fulfilled all POAM requirements');
+    });
+
+    it('should return partial message for complete=partial', () => {
+      expect(component.getTeamTooltip('partial')).toBe('Team has partially fulfilled POAM requirements');
+    });
+
+    it('should return global message for complete=global', () => {
+      expect(component.getTeamTooltip('global')).toBe('Global Finding - No Team Requirements');
+    });
+
+    it('should return not-fulfilled message for complete=false', () => {
+      expect(component.getTeamTooltip('false')).toBe('Team has not fulfilled any POAM requirements');
+    });
+  });
+
+  describe('status sort cycling', () => {
+    beforeEach(() => {
+      component.poamsData = [
+        createMockPoam({ poamId: 1, status: 'Draft' }),
+        createMockPoam({ poamId: 2, status: 'Expired' }),
+        createMockPoam({ poamId: 3, status: 'Approved' })
+      ];
+      component.affectedAssetCounts = [];
+    });
+
+    it('should start with cycle 0 (no sort icon)', () => {
+      expect(component.getCurrentStatusSortIcon()).toBe('');
+      expect(component.getCurrentStatusSortName()).toBe('');
+      expect(component.getStatusSortIconColor()).toBe('');
+    });
+
+    it('should advance to Critical First on first click', () => {
+      const mockTable = { value: [], cd: { detectChanges: vi.fn() }, clear: vi.fn(), filters: {} };
+
+      Object.defineProperty(component, 'table', { value: signal(mockTable), configurable: true });
+
+      component.onStatusHeaderClick();
+      expect(component.getCurrentStatusSortName()).toBe('Critical First');
+      expect(component.getCurrentStatusSortIcon()).toBe('pi-exclamation-circle');
+      expect(component.getStatusSortIconColor()).toBe('#e74c3c');
+    });
+
+    it('should advance to In-Progress First on second click', () => {
+      const mockTable = { value: [], cd: { detectChanges: vi.fn() }, clear: vi.fn(), filters: {} };
+
+      Object.defineProperty(component, 'table', { value: signal(mockTable), configurable: true });
+
+      component.onStatusHeaderClick();
+      component.onStatusHeaderClick();
+      expect(component.getCurrentStatusSortName()).toBe('In-Progress First');
+      expect(component.getCurrentStatusSortIcon()).toBe('pi-info-circle');
+      expect(component.getStatusSortIconColor()).toBe('#3498db');
+    });
+
+    it('should advance to Completed First on third click', () => {
+      const mockTable = { value: [], cd: { detectChanges: vi.fn() }, clear: vi.fn(), filters: {} };
+
+      Object.defineProperty(component, 'table', { value: signal(mockTable), configurable: true });
+
+      component.onStatusHeaderClick();
+      component.onStatusHeaderClick();
+      component.onStatusHeaderClick();
+      expect(component.getCurrentStatusSortName()).toBe('Completed First');
+      expect(component.getCurrentStatusSortIcon()).toBe('pi-check-circle');
+      expect(component.getStatusSortIconColor()).toBe('#27ae60');
+    });
+
+    it('should wrap back to cycle 0 on fourth click', () => {
+      const mockTable = { value: [], cd: { detectChanges: vi.fn() }, clear: vi.fn(), filters: {} };
+
+      Object.defineProperty(component, 'table', { value: signal(mockTable), configurable: true });
+
+      component.onStatusHeaderClick();
+      component.onStatusHeaderClick();
+      component.onStatusHeaderClick();
+      component.onStatusHeaderClick();
+      expect(component.getCurrentStatusSortIcon()).toBe('');
+      expect(component.getCurrentStatusSortName()).toBe('');
+    });
+
+    it('should reset sort cycle to 0 via resetStatusSort', () => {
+      const mockTable = { value: [], cd: { detectChanges: vi.fn() }, clear: vi.fn(), filters: {} };
+
+      Object.defineProperty(component, 'table', { value: signal(mockTable), configurable: true });
+
+      component.onStatusHeaderClick();
+      component.onStatusHeaderClick();
+      component.resetStatusSort();
+      expect(component['statusSortCycle']()).toBe(0);
+    });
+
+    it('should stop event propagation when event is provided', () => {
+      const mockTable = { value: [], cd: { detectChanges: vi.fn() }, clear: vi.fn(), filters: {} };
+
+      Object.defineProperty(component, 'table', { value: signal(mockTable), configurable: true });
+
+      const mockEvent = { stopPropagation: vi.fn() } as any;
+
+      component.onStatusHeaderClick(mockEvent);
+      expect(mockEvent.stopPropagation).toHaveBeenCalled();
+    });
+  });
+
+  describe('exportToCSV', () => {
+    it('should call csvExportService.exportToCsv with all columns', () => {
+      component.poamsData = [createMockPoam()];
+      component.affectedAssetCounts = [{ vulnerabilityId: 'V-12345', assetCount: 3 }];
+
+      component.exportToCSV();
+
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(
+        expect.any(Array),
+        expect.objectContaining({
+          columns: expect.arrayContaining([
+            expect.objectContaining({ field: 'poamId', header: 'POAM ID' }),
+            expect.objectContaining({ field: 'status', header: 'POAM Status' }),
+            expect.objectContaining({ field: 'source', header: 'Vulnerability Source' }),
+            expect.objectContaining({ field: 'assignedTeams', header: 'Assigned Teams' }),
+            expect.objectContaining({ field: 'labels', header: 'Labels' })
+          ]),
+          includeTimestamp: false
+        })
+      );
+    });
+
+    it('should use variant as filename prefix', () => {
+      component.poamsData = [createMockPoam()];
+      component.affectedAssetCounts = [];
+      component.variant = 'team';
+
+      component.exportToCSV();
+
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(
+        expect.any(Array),
+        expect.objectContaining({ filename: expect.stringMatching(/^team-/) })
+      );
+    });
+
+    it('should use "poams" as filename prefix when no variant', () => {
+      component.poamsData = [createMockPoam()];
+      component.affectedAssetCounts = [];
+
+      component.exportToCSV();
+
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(
+        expect.any(Array),
+        expect.objectContaining({ filename: expect.stringMatching(/^poams-/) })
+      );
+    });
+
+    it('should warn and not call exportToCsv when no data', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(vi.fn());
+
+      component.poamsData = [];
+      component.affectedAssetCounts = [];
+
+      component.exportToCSV();
+
+      expect(warnSpy).toHaveBeenCalledWith('No data to export');
+      expect(mockCsvExportService.exportToCsv).not.toHaveBeenCalled();
+    });
+
+    it('should serialize assignedTeams and labels as semicolon-separated strings', () => {
+      component.poamsData = [createMockPoam()];
+      component.affectedAssetCounts = [{ vulnerabilityId: 'V-12345', assetCount: 1 }];
+
+      component.exportToCSV();
+
+      const exportedData = mockCsvExportService.exportToCsv.mock.calls[0][0];
+
+      expect(exportedData[0].assignedTeams).toBe('Team Alpha; Team Beta');
+      expect(exportedData[0].labels).toBe('Critical; Infrastructure');
     });
   });
 

@@ -31,7 +31,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
         align-items: center;
         height: 100%;
         width: 100%;
-        min-height: 20rem;
+        min-height: 18rem;
 
         &::before {
           content: '';

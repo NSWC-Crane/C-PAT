@@ -25,9 +25,7 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
 import { PoamAdvancedPieComponent } from '../poam-advanced-pie/poam-advanced-pie.component';
-import { PoamAssignedGridComponent } from '../poam-assigned-grid/poam-assigned-grid.component';
 import { PoamGridComponent } from '../poam-grid/poam-grid.component';
-import { PoamMainchartComponent } from '../poam-mainchart/poam-mainchart.component';
 import { PoamMilestoneGridComponent } from '../poam-milestone-grid/poam-milestone-grid.component';
 
 @Component({
@@ -35,7 +33,7 @@ import { PoamMilestoneGridComponent } from '../poam-milestone-grid/poam-mileston
   templateUrl: './poam-manage.component.html',
   styleUrls: ['./poam-manage.component.scss'],
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamMainchartComponent, PoamAssignedGridComponent, PoamGridComponent, PoamMilestoneGridComponent]
+  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamGridComponent, PoamMilestoneGridComponent]
 })
 export class PoamManageComponent implements OnInit, OnDestroy {
   private collectionsService = inject(CollectionsService);
