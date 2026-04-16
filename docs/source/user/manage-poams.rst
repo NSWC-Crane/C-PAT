@@ -4,48 +4,112 @@
 Manage POAMs
 ------------
 
-The Manage POAMs component is a compilation of charts, tables, and grids that are ultimately designed to assist a user in quickly and easily identifying the data they want or need to view. The Manage POAMs component is broken down into the following interactive sections: POAM Status Grid (tabset), Main POAM Chart, and the Main POAM Chart expansion table.
+The Manage POAMs component is composed of four interactive sections: the Severity Charts, the Milestone Grid, and the POAM Grid. When the POAM Grid is in its default (non-expanded) state, the charts and milestone grid are visible alongside it. Expanding the POAM Grid hides the charts and milestone grid so the full screen width is available for the table.
 
-POAM Main Chart
+Severity Charts
 ^^^^^^^^^^^^^^^^
 
-The POAM Main Chart contains a single dataset that is seperated into 4 different viewing formats; POAM Status, Severity, Scheduled Completion, and Labels. Each section is filterable via the filter dropdown located below the chart.
-Filters are available for Status, Severity, Scheduled Completion, Labels, and Vulnerability Source. Multiple filters can be applied.
+Three pie charts display the distribution of POAMs by severity category — CAT I (Critical/High), CAT II (Medium), and CAT III (Low). Each slice represents a POAM status (Approved, Submitted, Extension Requested, etc.) and the total count is shown in the chart title.
 
-POAM Expanded Grid
-^^^^^^^^^^^^^^^^^^^
+For Tenable collections, each chart includes a tab option allowing you to toggle between **All Findings** and **30+ Days** (findings where the plugin has been published for more than 30 days and was last seen within the past 30 days).
 
-The expanded POAM grid is a table that dynamically reflects the POAMs from the POAM Main Chart. When the main chart is filtered, the resulting data displayed in the expanded grid will also be filtered. In addition to the filters available in the Main Chart, the expanded POAM grid also contains column filters for the following fields:
-Last Updated, POAM ID, Vulnerability ID, POAM Status, Vulnerability Source, STIG Benchmark, Adjusted Severity, Submitter, Assigned Teams, Submitted Date, and Scheduled Completion Date.
+Milestone Grid
+^^^^^^^^^^^^^^^
 
-The far right column of the expanded POAM grid contains an icon that will direct users to the POAM details page for further information.
+The Milestone Grid flattens all milestones from active POAMs in the collection into a single searchable, filterable table. POAMs with a status of Closed or Draft are excluded. Each row represents one milestone and includes the following columns:
 
-.. note::
-   POAM's are also exportable from within the expanded grid. The export will contain all POAMs displayed in the grid, formatted into the eMASS excel format.
+- **POAM ID**
+- **Vulnerability ID**
+- **POAM Status**
+- **Milestone Date**
+- **Milestone Status**
+- **Comments**
+- **Change Date**
+- **Change Comments**
+- **Assigned Teams**
 
-Assigned Grid
-^^^^^^^^^^^^^^
+The Milestone Grid has three tabs:
 
-The Assigned Grid is a table that displays POAMs segmented into one of four seperate categories; All POAMs, Needs Attention, My POAMs, and Pending Approval.
-
-.. note::
-   The tabs contained within the Assigned Grid are displayed based upon a users assigned permissions within a collection. To see all 4 tabs, a user must be assigned to an access level 3 or higher (Approver).
-
-
-All POAMs
-""""""""""
-The All POAMs tab displays all POAMs that are currently available within the collection. No filtering is conducted on the dataset for the All POAMs tab. Access Level of 1 (Viewer) or greater is required to view this tab.
-
+All Milestones
+""""""""""""""
+Displays every milestone across all active POAMs in the collection.
 
 Needs Attention
 """"""""""""""""
-The Needs Attention tab contains POAMs where the Scheduled Completion Date is less than 30 days and where the POAM status is not Draft, Closed, or False Positive. Access Level of 1 (Viewer) or greater is required to view this tab.
+Displays milestones whose status is **Pending** and whose Milestone Date is within the next 30 days (or has no date set).
 
+Team Milestones
+""""""""""""""""
+Displays milestones for POAMs assigned to at least one team that the current user belongs to.
+
+Each tab provides a global search input, column-level filters, and a CSV export button.
+
+POAM Grid
+^^^^^^^^^^
+
+All tabs share the same column set:
+
+- POAM ID (links to POAM)
+- POAM Status
+- Vulnerability Source
+- Vulnerability ID
+- Affected Assets
+- Vulnerability Name
+- Task Order #
+- IAV
+- Adjusted Severity
+- Owner
+- Submitted Date
+- Scheduled Completion
+- Last Updated
+- Associated Vulnerabilities
+- Assigned Teams (color-coded by team completion status)
+- Labels
+
+**Filtering**
+
+Each column has an individual filter accessible via the filter icon in the column header. The Status column includes a dropdown filter with all available POAM statuses. By default, POAMs with a status of **Closed** are hidden; use the filter icon on the Status column or the reset button to change this.
+
+A global search field in the toolbar searches across all columns simultaneously.
+
+**Status Sort**
+
+Clicking the **POAM Status** column header cycles through three custom sort modes in addition to clearing the sort:
+
+1. **Critical First** — surfaces Expired and Rejected POAMs first, followed by those awaiting action, then closed/resolved statuses.
+2. **In-Progress First** — surfaces Draft, Submitted, and Extension Requested POAMs first.
+3. **Completed First** — surfaces Closed, False-Positive, and Approved POAMs first.
+
+Clicking any other sortable column header resets the status sort cycle.
+
+**Export**
+
+Two export options are available in the toolbar of every tab:
+
+- **eMASS Excel Template** — prompts for which POAM statuses to include, then generates an eMASS-formatted ``.xlsx`` file populated with affected device data from STIG Manager or Tenable as appropriate.
+- **CSV** — exports the currently displayed rows (after all active filters) to a ``.csv`` file containing all columns.
+
+An additional file upload control accepts an existing eMASSter ``.xlsx`` file and overwrites select fields with current C-PAT data before re-downloading the updated file.
+
+.. note::
+   The tabs displayed within the POAM Grid depend on a user's access level within the collection. A user with Access Level 1 (Viewer) sees All POAMs, Needs Attention, and Team POAMs. Submitters (level 2) also see My POAMs. Approvers (level 3 or higher) additionally see Pending Approval.
+
+All POAMs
+""""""""""
+Displays every POAM in the collection with no additional filtering applied (beyond the default closed-status filter).
+
+Needs Attention
+""""""""""""""""
+Displays POAMs whose Scheduled Completion Date falls within the next 30 days and whose status is not Draft, Closed, or False-Positive. 
 
 My POAMs
 """""""""
-The My POAMs tab displays all POAMs that have been submitted by the user where the POAM status is not Closed. Access Level of 2 (Submitter) or greater is required to view this tab.
+Displays POAMs submitted by or owned by the current user where the POAM status is not Closed. Access Level of 2 (Submitter) or greater is required.
+
+Team POAMs
+"""""""""""
+Displays POAMs assigned to at least one team that the current user belongs to.
 
 Pending Approval
 """""""""""""""""
-The Pending Approval tab displays all POAMs that are Pending Approval within the current collection [POAM Status of Submitted, Extension Requested, or Pending CAT-I Approval]. Access Level of 3 (Approver) or greater is required to view this tab.
+Displays POAMs with a status of Submitted, Extension Requested, or Pending CAT-I Approval.
