@@ -16,7 +16,7 @@
           <p-inputIcon>
             <i class="pi pi-search"></i>
           </p-inputIcon>
-          <input id="poamGridSearch" name="poamGridSearch" id="poamGridSearch" pInputText type="text" [ngModel]="globalFilter" (ngModelChange)="globalFilterSignal.set($event)" placeholder="Search..." />
+          <input id="poamGridSearch" name="poamGridSearch" pInputText type="text" [ngModel]="globalFilter" (ngModelChange)="globalFilterSignal.set($event)" placeholder="Search..." />
         </p-iconField>
         <p-button styleClass="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Reset default filters" />
       </div>
@@ -37,21 +37,22 @@
         >
         </p-fileUpload>
         <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export POAMs to eMASS excel template" tooltipPosition="top" (onClick)="exportCollection()" />
+        <p-button icon="pi pi-download" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export table data to CSV" tooltipPosition="top" (onClick)="exportToCSV()" />
       </div>
     </div>
     <div class="table-container">
       <p-table
         #dt
         [value]="displayedData()"
-        [resizableColumns]="true"
         [scrollable]="true"
-        scrollHeight="50rem"
-        columnResizeMode="fit"
+        scrollHeight="flex"
         selectionMode="single"
         [globalFilterFields]="[
           'lastUpdated',
           'poamId',
           'status',
+          'vulnerabilityId',
+          'source',
           'taskOrderNumber',
           'iavmNumber',
           'vulnerabilityTitle',
@@ -67,13 +68,13 @@
       >
         <ng-template pTemplate="header">
           <tr>
-            <th scope="col" pResizableColumn>
+            <th scope="col" (click)="resetStatusSort()">
               <div class="flex items-center">
                 POAM ID
                 <p-columnFilter type="text" field="poamId" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="status">
+            <th scope="col" (click)="onStatusHeaderClick($event)" [pTooltip]="getCurrentStatusSortName()" tooltipPosition="top" class="cursor-pointer">
               <div class="flex items-center">
                 POAM Status
                 <p-columnFilter type="text" field="status" [type]="'text'" [showOperator]="false" [showMatchModes]="true" [showAddButton]="false" [showButtons]="true" display="menu">
@@ -81,87 +82,90 @@
                     <p-select [ngModel]="value" [options]="poamStatusOptions()" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
                   </ng-template>
                 </p-columnFilter>
+                @if (getCurrentStatusSortIcon()) {
+                  <i [class]="'mt-1 ml-1 pi ' + getCurrentStatusSortIcon()" [style.color]="getStatusSortIconColor()" style="opacity: 0.75"></i>
+                }
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="source">
+            <th scope="col" pSortableColumn="source" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Vulnerability Source
                 <p-columnFilter type="text" field="source" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="vulnerabilityId">
+            <th scope="col" pSortableColumn="vulnerabilityId" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Vulnerability ID
                 <p-columnFilter type="text" field="vulnerabilityId" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="affectedAssets">
+            <th scope="col" pSortableColumn="affectedAssets" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Affected Assets
                 <p-columnFilter type="numeric" field="affectedAssets" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="vulnerabilityTitle">
+            <th scope="col" style="min-width: 20rem" pSortableColumn="vulnerabilityTitle" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Vulnerability Name
                 <p-columnFilter type="text" field="vulnerabilityTitle" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="taskOrderNumber">
+            <th scope="col" pSortableColumn="taskOrderNumber" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Task Order #
                 <p-columnFilter type="text" field="taskOrderNumber" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="iavmNumber">
+            <th scope="col" pSortableColumn="iavmNumber" (click)="resetStatusSort()">
               <div class="flex items-center">
                 IAV
                 <p-columnFilter type="text" field="iavmNumber" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="adjSeverity">
+            <th scope="col" pSortableColumn="adjSeverity" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Adjusted Severity
                 <p-columnFilter type="text" field="adjSeverity" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="owner">
+            <th scope="col" pSortableColumn="owner" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Owner
                 <p-columnFilter type="text" field="owner" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="submittedDate">
+            <th scope="col" pSortableColumn="submittedDate" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Submitted Date
                 <p-columnFilter type="date" field="submittedDate" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="scheduledCompletionDate">
+            <th scope="col" pSortableColumn="scheduledCompletionDate" (click)="resetStatusSort()" pTooltip="Date shown includes extension time if applicable" tooltipPosition="top">
               <div class="flex items-center">
                 Scheduled Completion
                 <p-columnFilter type="date" field="scheduledCompletionDate" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn pSortableColumn="lastUpdated">
+            <th scope="col" pSortableColumn="lastUpdated" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Last Updated
                 <p-columnFilter type="date" field="lastUpdated" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn>
+            <th scope="col">
               <div class="flex items-center">
                 Associated Vulnerabilities
                 <p-columnFilter type="text" field="associatedVulnerabilities" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn>
+            <th scope="col">
               <div class="flex items-center">
                 Assigned Teams
                 <p-columnFilter type="text" field="assignedTeamNames" [showOperator]="false" display="menu" />
               </div>
             </th>
-            <th scope="col" pResizableColumn>
+            <th scope="col">
               <div class="flex items-center">
                 Labels
                 <p-columnFilter type="text" field="labels" [showOperator]="false" display="menu" />
@@ -204,7 +208,7 @@
             <td>{{ row.scheduledCompletionDate }}</td>
             <td style="text-align: center">{{ row.lastUpdated }}</td>
             <td>
-              <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto overflow-x-hidden">
+              <div class="flex flex-wrap gap-2 max-h-36 overflow-y-auto overflow-x-hidden">
                 @for (vuln of row.associatedVulnerabilities; track vuln) {
                   @if (vuln?.trim()) {
                     <p-tag [rounded]="true" [value]="vuln.trim()" />
@@ -213,29 +217,14 @@
               </div>
             </td>
             <td>
-              <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto overflow-x-hidden">
+              <div class="flex flex-wrap gap-2 max-h-36 overflow-y-auto overflow-x-hidden">
                 @for (team of row.assignedTeams; track team) {
-                  <p-tag
-                    [rounded]="true"
-                    [value]="team.name"
-                    [severity]="team.complete === 'true' ? 'success' : team.complete === 'partial' ? 'warn' : team.complete === 'global' ? undefined : 'danger'"
-                    [pTooltip]="
-                      team.complete === 'true'
-                        ? 'Team has fulfilled all POAM requirements'
-                        : team.complete === 'partial'
-                          ? 'Team has partially fulfilled POAM requirements'
-                          : team.complete === 'global'
-                            ? 'Global Finding - No Team Requirements'
-                            : 'Team has not fulfilled any POAM requirements'
-                    "
-                    tooltipPosition="top"
-                    [class.hidden]="!team.name"
-                  />
+                  <p-tag [rounded]="true" [value]="team.name" [severity]="getTeamSeverity(team.complete)" [pTooltip]="getTeamTooltip(team.complete)" tooltipPosition="top" [class.hidden]="!team.name" />
                 }
               </div>
             </td>
             <td>
-              <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto overflow-x-hidden">
+              <div class="flex flex-wrap gap-2 max-h-36 overflow-y-auto overflow-x-hidden">
                 @for (label of row.labels; track label) {
                   <p-tag [rounded]="true" [value]="label" [class.hidden]="!label" />
                 }
@@ -245,7 +234,7 @@
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td colspan="9">No POAMs found.</td>
+            <td colspan="16">No POAMs found.</td>
           </tr>
         </ng-template>
       </p-table>

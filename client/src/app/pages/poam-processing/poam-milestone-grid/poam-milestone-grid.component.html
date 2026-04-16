@@ -25,7 +25,8 @@
           [value]="allMilestoneRows()"
           [columns]="columns"
           [scrollable]="true"
-          scrollHeight="40rem"
+          scrollHeight="flex"
+          selectionMode="single"
           sortMode="multiple"
           [globalFilterFields]="['poamId', 'vulnerabilityId', 'poamStatus', 'milestoneDate', 'milestoneStatus', 'milestoneComments', 'milestoneChangeDate', 'milestoneChangeComments', 'assignedTeamNames']"
         >
@@ -285,7 +286,7 @@
             }
           }
           @case ('assignedTeams') {
-            <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto overflow-x-hidden">
+            <div class="flex flex-wrap gap-2 max-h-36 overflow-y-auto overflow-x-hidden">
               @for (team of row.assignedTeams; track team.teamId) {
                 <p-tag [value]="team.teamName" [rounded]="true" />
               }

@@ -12,9 +12,10 @@
   height: fit-content;
   overflow: visible !important;
   position: relative;
+  padding: 0.25rem;
 
   .chart-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
     text-align: center;
     padding: 1rem 0 1rem 0;
@@ -36,9 +37,9 @@
 
 ::ng-deep .poam-category-advanced-pie {
   display: block;
-  height: 20rem;
-  min-height: 20rem;
-  max-height: 20rem;
+  height: 18rem;
+  min-height: 18rem;
+  max-height: 18rem;
   width: 100%;
   position: relative;
 
@@ -188,7 +189,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
             margin-left: 0.25rem;
             margin-right: 0rem;
@@ -198,7 +199,7 @@
           .item-value {
             color: var(--text-color);
             opacity: 0.7;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
             margin-left: 0.25rem;
             margin-right: 0.25rem;
@@ -209,7 +210,7 @@
           .item-percent {
             color: var(--text-color);
             opacity: 0.7;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             margin-left: 0.5rem;
             margin-bottom: 0.375rem;
             width: 2rem;
@@ -237,12 +238,40 @@
       .p-card-header {
         padding: 0;
       }
-    }
-  }
 
-  .tenable-collection {
-    ::ng-deep .p-datatable-table-container {
-      max-height: 67rem !important;
+      > .p-card-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+
+        > .p-card-content {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-height: 0;
+          padding-bottom: 0;
+        }
+      }
+    }
+
+    .p-tabs {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+
+      .p-tablist {
+        flex-shrink: 0;
+      }
+
+      .p-tabpanels {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
     }
   }
 
@@ -254,10 +283,6 @@
 
   .category-chart-card .p-card-header {
     padding-bottom: 0rem !important;
-  }
-
-  .assigned-grid .p-card-body {
-    padding: 0rem 0.5rem 0.6rem 0rem;
   }
 
   .poam-mainchart .p-card-body {

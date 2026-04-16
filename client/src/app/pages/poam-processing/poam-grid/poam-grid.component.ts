@@ -11,6 +11,7 @@
 import { Component, Input, OnDestroy, OnInit, computed, effect, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { format } from 'date-fns';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -28,6 +29,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
+import { CsvExportService } from '../../../common/utils/csv-export.service';
 import { EMASSOverwriteSelectionComponent } from '../../../common/utils/emasster-overwrite-selection';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
@@ -52,14 +54,18 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   private sharedService = inject(SharedService);
   private poamService = inject(PoamService);
   private messageService = inject(MessageService);
+  private csvExportService = inject(CsvExportService);
 
   protected fileUpload = viewChild.required<FileUpload>('fileUpload');
   protected table = viewChild.required<Table>('dt');
-  @Input() allColumns!: string[];
+
+  @Input() userId?: number;
+  @Input() variant?: string;
 
   globalFilterSignal = signal<string>('');
 
   private poamsDataSignal = signal<any[]>([]);
+
   @Input() set poamsData(value: any[]) {
     this.poamsDataSignal.set(value || []);
   }
@@ -82,6 +88,39 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   get affectedAssetCounts(): { vulnerabilityId: string; assetCount: number }[] {
     return this.affectedAssetCountsSignal();
   }
+
+  private statusSortCycle = signal<number>(0);
+  private readonly STATUS_SORT_CYCLES = 4;
+  private readonly statusPriorityGroups = [
+    {
+      groups: []
+    },
+    {
+      name: 'Critical First',
+      icon: 'pi-exclamation-circle',
+      groups: [
+        ['Expired', 'Rejected'],
+        ['Extension Requested', 'Pending CAT-I Approval', 'Submitted'],
+        ['Approved', 'Closed', 'False-Positive'],
+        ['Draft', 'Associated']
+      ]
+    },
+    {
+      name: 'In-Progress First',
+      icon: 'pi-info-circle',
+      groups: [['Draft', 'Submitted', 'Extension Requested'], ['Pending CAT-I Approval', 'Associated'], ['Approved'], ['Expired', 'Rejected', 'Closed', 'False-Positive']]
+    },
+    {
+      name: 'Completed First',
+      icon: 'pi-check-circle',
+      groups: [
+        ['Closed', 'False-Positive', 'Approved'],
+        ['Submitted', 'Pending CAT-I Approval', 'Extension Requested'],
+        ['Rejected', 'Expired'],
+        ['Draft', 'Associated']
+      ]
+    }
+  ];
 
   protected preparedData = computed(() => {
     const poams = this.poamsDataSignal();
@@ -122,11 +161,14 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
       const shouldReviewForClosure = assetCountsLoaded && primaryCount === 0 && allAssociatedAssetsZero;
 
+      const rawScheduled = poam.extensionDeadline ? poam.extensionDeadline.split('T')[0] : poam.scheduledCompletionDate?.split('T')[0];
+
       return {
         lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
         poamId: poam.poamId,
         status: poam.status,
         vulnerabilityId: poam.vulnerabilityId,
+        source: poam.vulnerabilitySource,
         affectedAssets: isAssetsLoading ? 0 : primaryCount,
         isAffectedAssetsLoading: isAssetsLoading,
         shouldReviewForClosure,
@@ -134,12 +176,11 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         associatedVulnerabilitiesTooltip,
         iavmNumber: poam.iavmNumber,
         taskOrderNumber: poam.taskOrderNumber,
-        source: poam.vulnerabilitySource,
         vulnerabilityTitle: poam.vulnerabilityTitle ?? '',
         adjSeverity: poam.adjSeverity,
         owner: poam.ownerName ?? poam.submitterName,
         submittedDate: poam.submittedDate?.split('T')[0],
-        scheduledCompletionDate: poam.extensionDeadline ? poam.extensionDeadline.split('T')[0] : poam.scheduledCompletionDate?.split('T')[0],
+        scheduledCompletionDate: rawScheduled,
         assignedTeams: poam.assignedTeams
           ? poam.assignedTeams.map((team: any) => ({
               name: team.assignedTeamName,
@@ -266,6 +307,153 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         this.user.set(user);
       })
     );
+  }
+
+  getCurrentStatusSortIcon(): string {
+    const cycle = this.statusSortCycle();
+
+    return this.statusPriorityGroups[cycle].icon ?? '';
+  }
+
+  getStatusSortIconColor(): string {
+    const cycle = this.statusSortCycle();
+    const colors = ['', '#e74c3c', '#3498db', '#27ae60'];
+
+    return colors[cycle];
+  }
+
+  getCurrentStatusSortName(): string {
+    const cycle = this.statusSortCycle();
+
+    return this.statusPriorityGroups[cycle].name ?? '';
+  }
+
+  onStatusHeaderClick(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const currentCycle = this.statusSortCycle();
+    const nextCycle = (currentCycle + 1) % this.STATUS_SORT_CYCLES;
+
+    this.statusSortCycle.set(nextCycle);
+
+    if (nextCycle === 0) {
+      this.table().value = [...this.displayedData()];
+      this.table().cd.detectChanges();
+
+      return;
+    }
+
+    const currentData = [...this.displayedData()];
+    const priorityConfig = this.statusPriorityGroups[nextCycle];
+    const statusPriority = new Map<string, number>();
+
+    priorityConfig.groups.forEach((group, groupIndex) => {
+      group.forEach((status, statusIndex) => {
+        statusPriority.set(status, groupIndex * 100 + statusIndex);
+      });
+    });
+
+    currentData.sort((a, b) => {
+      const priority1 = statusPriority.get(a.status) ?? 9999;
+      const priority2 = statusPriority.get(b.status) ?? 9999;
+
+      if (priority1 !== priority2) {
+        return priority1 - priority2;
+      }
+
+      return a.status.localeCompare(b.status);
+    });
+
+    this.table().value = currentData;
+    this.table().cd.detectChanges();
+  }
+
+  resetStatusSort(): void {
+    this.statusSortCycle.set(0);
+  }
+
+  getTeamSeverity(complete: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    switch (complete) {
+      case 'true':
+        return 'success';
+      case 'partial':
+        return 'warn';
+      case 'global':
+        return undefined;
+      default:
+        return 'danger';
+    }
+  }
+
+  getTeamTooltip(complete: string): string {
+    switch (complete) {
+      case 'true':
+        return 'Team has fulfilled all POAM requirements';
+      case 'partial':
+        return 'Team has partially fulfilled POAM requirements';
+      case 'global':
+        return 'Global Finding - No Team Requirements';
+      default:
+        return 'Team has not fulfilled any POAM requirements';
+    }
+  }
+
+  exportToCSV() {
+    const data = this.displayedData();
+
+    if (!data || data.length === 0) {
+      console.warn('No data to export');
+
+      return;
+    }
+
+    const processedData = data.map((row) => ({
+      poamId: row.poamId,
+      status: row.status,
+      vulnerabilityId: row.vulnerabilityId,
+      source: row.source,
+      affectedAssets: row.affectedAssets ?? '',
+      vulnerabilityTitle: row.vulnerabilityTitle,
+      taskOrderNumber: row.taskOrderNumber ?? '',
+      iavmNumber: row.iavmNumber ?? '',
+      adjSeverity: row.adjSeverity,
+      owner: row.owner,
+      submittedDate: row.submittedDate ?? '',
+      scheduledCompletionDate: row.scheduledCompletionDate ?? '',
+      lastUpdated: row.lastUpdated ?? '',
+      associatedVulnerabilities: row.associatedVulnerabilities?.join('; ') || '',
+      assignedTeams: row.assignedTeams.map((t: any) => t.name).join('; '),
+      labels: row.labels.join('; ')
+    }));
+
+    const columns = [
+      { field: 'poamId', header: 'POAM ID' },
+      { field: 'status', header: 'POAM Status' },
+      { field: 'vulnerabilityId', header: 'Vulnerability ID' },
+      { field: 'source', header: 'Vulnerability Source' },
+      { field: 'affectedAssets', header: 'Affected Assets' },
+      { field: 'vulnerabilityTitle', header: 'Vulnerability Name' },
+      { field: 'taskOrderNumber', header: 'Task Order #' },
+      { field: 'iavmNumber', header: 'IAV' },
+      { field: 'adjSeverity', header: 'Adjusted Severity' },
+      { field: 'owner', header: 'Owner' },
+      { field: 'submittedDate', header: 'Submitted Date' },
+      { field: 'scheduledCompletionDate', header: 'Scheduled Completion' },
+      { field: 'lastUpdated', header: 'Last Updated' },
+      { field: 'associatedVulnerabilities', header: 'Associated Vulnerabilities' },
+      { field: 'assignedTeams', header: 'Assigned Teams' },
+      { field: 'labels', header: 'Labels' }
+    ];
+
+    const filename = `${this.variant ?? 'poams'}-${format(new Date(), 'yyyy-MM-dd')}`;
+
+    this.csvExportService.exportToCsv(processedData, {
+      filename,
+      columns,
+      includeTimestamp: false
+    });
   }
 
   exportCollection() {

@@ -8,6 +8,61 @@
 !##########################################################################
 */
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+::ng-deep .p-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .p-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    padding: 0.25rem;
+
+    .p-card-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      padding-bottom: 0;
+    }
+  }
+}
+
+::ng-deep .p-tabs {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+
+  .p-tablist {
+    flex-shrink: 0;
+  }
+
+  .p-tabpanels {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .p-tabpanel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
 .toolbar {
   display: flex;
   justify-content: space-between;
