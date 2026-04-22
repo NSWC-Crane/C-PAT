@@ -1218,11 +1218,7 @@ describe('PoamGridComponent', () => {
 
   describe('status sort cycling', () => {
     beforeEach(() => {
-      component.poamsData = [
-        createMockPoam({ poamId: 1, status: 'Draft' }),
-        createMockPoam({ poamId: 2, status: 'Expired' }),
-        createMockPoam({ poamId: 3, status: 'Approved' })
-      ];
+      component.poamsData = [createMockPoam({ poamId: 1, status: 'Draft' }), createMockPoam({ poamId: 2, status: 'Expired' }), createMockPoam({ poamId: 3, status: 'Approved' })];
       component.affectedAssetCounts = [];
     });
 
@@ -1333,10 +1329,7 @@ describe('PoamGridComponent', () => {
 
       component.exportToCSV();
 
-      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(
-        expect.any(Array),
-        expect.objectContaining({ filename: expect.stringMatching(/^team-/) })
-      );
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ filename: expect.stringMatching(/^team-/) }));
     });
 
     it('should use "poams" as filename prefix when no variant', () => {
@@ -1345,10 +1338,7 @@ describe('PoamGridComponent', () => {
 
       component.exportToCSV();
 
-      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(
-        expect.any(Array),
-        expect.objectContaining({ filename: expect.stringMatching(/^poams-/) })
-      );
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ filename: expect.stringMatching(/^poams-/) }));
     });
 
     it('should warn and not call exportToCsv when no data', () => {

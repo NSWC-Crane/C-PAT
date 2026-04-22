@@ -206,6 +206,31 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     return dataToFilter.filter((poam) => Object.values(poam).some((value) => value?.toString().toLowerCase().includes(filterValue.toLowerCase())));
   });
 
+  protected tableData = computed(() => {
+    const cycle = this.statusSortCycle();
+    const data = [...this.displayedData()];
+
+    if (cycle === 0) return data;
+
+    const priorityConfig = this.statusPriorityGroups[cycle];
+    const statusPriority = new Map<string, number>();
+
+    priorityConfig.groups.forEach((group: string[], groupIndex: number) => {
+      group.forEach((status: string, statusIndex: number) => {
+        statusPriority.set(status, groupIndex * 100 + statusIndex);
+      });
+    });
+
+    return data.sort((a, b) => {
+      const p1 = statusPriority.get(a.status) ?? 9999;
+      const p2 = statusPriority.get(b.status) ?? 9999;
+
+      if (p1 !== p2) return p1 - p2;
+
+      return a.status.localeCompare(b.status);
+    });
+  });
+
   dialogRef: DynamicDialogRef | undefined;
   batchSize = 20;
   user = signal<any>(null);
@@ -334,41 +359,9 @@ export class PoamGridComponent implements OnInit, OnDestroy {
       event.stopPropagation();
     }
 
-    const currentCycle = this.statusSortCycle();
-    const nextCycle = (currentCycle + 1) % this.STATUS_SORT_CYCLES;
+    const nextCycle = (this.statusSortCycle() + 1) % this.STATUS_SORT_CYCLES;
 
     this.statusSortCycle.set(nextCycle);
-
-    if (nextCycle === 0) {
-      this.table().value = [...this.displayedData()];
-      this.table().cd.detectChanges();
-
-      return;
-    }
-
-    const currentData = [...this.displayedData()];
-    const priorityConfig = this.statusPriorityGroups[nextCycle];
-    const statusPriority = new Map<string, number>();
-
-    priorityConfig.groups.forEach((group, groupIndex) => {
-      group.forEach((status, statusIndex) => {
-        statusPriority.set(status, groupIndex * 100 + statusIndex);
-      });
-    });
-
-    currentData.sort((a, b) => {
-      const priority1 = statusPriority.get(a.status) ?? 9999;
-      const priority2 = statusPriority.get(b.status) ?? 9999;
-
-      if (priority1 !== priority2) {
-        return priority1 - priority2;
-      }
-
-      return a.status.localeCompare(b.status);
-    });
-
-    this.table().value = currentData;
-    this.table().cd.detectChanges();
   }
 
   resetStatusSort(): void {
