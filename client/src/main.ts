@@ -8,6 +8,8 @@
 !##########################################################################
 */
 
+import './pace-config';
+import 'pace-js';
 import { APP_BASE_HREF } from '@angular/common';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { enableProdMode, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';

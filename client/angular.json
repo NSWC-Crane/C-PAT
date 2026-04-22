@@ -62,7 +62,6 @@
                 "inject": true
               }
             ],
-            "scripts": ["src/pace-config.js", "node_modules/pace-js/pace.min.js"],
             "sourceMap": {
               "scripts": true,
               "styles": true,
@@ -75,8 +74,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "6mb",
-                  "maximumError": "12mb"
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
                 },
                 {
                   "type": "anyComponentStyle",
