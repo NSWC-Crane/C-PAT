@@ -252,73 +252,6 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
     }
 };
 
-exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamStatus(req) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-        SELECT
-          CASE
-            WHEN status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Extension Requested') THEN 'Open'
-            WHEN status = 'Closed' THEN 'Closed'
-          END AS status,
-          COUNT(*) AS statusCount
-        FROM poam
-        WHERE submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-        AND status IN ('Submitted', 'Approved', 'Rejected', 'Expired', 'Extension Requested', 'Closed')
-      `;
-
-            let params = [];
-
-            if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(
-                    `
-          SELECT collectionId
-          FROM ${config.database.schema}.collectionpermissions
-          WHERE userId = ? AND accessLevel >= 3
-        `,
-                    [req.userObject.userId]
-                );
-
-                const collectionIds = permissionRows.map(row => row.collectionId);
-
-                if (collectionIds.length === 0) {
-                    return { poamStatus: [] };
-                }
-
-                sql += ' AND collectionId IN (?)';
-                params.push(collectionIds);
-            }
-
-            sql += ' GROUP BY status';
-
-            const [rows] = await connection.query(sql, params);
-
-            const poamStatusMap = {};
-
-            rows.forEach(row => {
-                if (row.status !== null) {
-                    if (poamStatusMap[row.status]) {
-                        poamStatusMap[row.status] += row.statusCount;
-                    } else {
-                        poamStatusMap[row.status] = row.statusCount;
-                    }
-                }
-            });
-
-            const poamStatus = Object.entries(poamStatusMap)
-                .filter(([status]) => status !== 'null')
-                .map(([status, statusCount]) => ({
-                    status,
-                    statusCount,
-                }));
-
-            return { poamStatus };
-        });
-    } catch (error) {
-        return { null: 'Undefined collection' };
-    }
-};
-
 exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
     try {
         return await withConnection(async connection => {
@@ -409,113 +342,128 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) 
     }
 };
 
-exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(req) {
+exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(collectionId, months = 12) {
     try {
         return await withConnection(async connection => {
-            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE submittedDate >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`;
-            let params = [];
+            const summarySql = `
+                SELECT rawSeverity,
+                    ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
+                    MIN(DATEDIFF(closedDate, created)) AS minDays,
+                    MAX(DATEDIFF(closedDate, created)) AS maxDays,
+                    COUNT(*) AS count
+                FROM ${config.database.schema}.poam
+                WHERE collectionId = ?
+                    AND status = 'Closed'
+                    AND closedDate IS NOT NULL
+                    AND created IS NOT NULL
+                    AND created != '1900-01-01'
+                    AND DATEDIFF(closedDate, created) >= 0
+                GROUP BY rawSeverity
+            `;
 
-            if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(
-                    `
-          SELECT collectionId
-          FROM ${config.database.schema}.collectionpermissions
-          WHERE userId = ? AND accessLevel >= 3
-        `,
-                    [req.userObject.userId]
-                );
+            const trendSql = `
+                SELECT DATE_FORMAT(closedDate, '%Y-%m') AS period,
+                    rawSeverity,
+                    ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
+                    COUNT(*) AS count
+                FROM ${config.database.schema}.poam
+                WHERE collectionId = ?
+                    AND status = 'Closed'
+                    AND closedDate >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+                    AND created IS NOT NULL
+                    AND created != '1900-01-01'
+                    AND DATEDIFF(closedDate, created) >= 0
+                GROUP BY period, rawSeverity
+                ORDER BY period ASC
+            `;
 
-                const collectionIds = permissionRows.map(row => row.collectionId);
+            const [[summaryRows], [trendRows]] = await Promise.all([
+                connection.query(summarySql, [collectionId]),
+                connection.query(trendSql, [collectionId, months]),
+            ]);
 
-                if (collectionIds.length === 0) {
-                    return { poamSeverity: [] };
-                }
-
-                sql += ' AND collectionId IN (?)';
-                params.push(collectionIds);
-            }
-
-            sql += ' GROUP BY rawSeverity';
-
-            const [rows] = await connection.query(sql, params);
-
-            const poamSeverity = rows.map(row => ({
-                severity: row.rawSeverity,
-                severityCount: row.severityCount,
-            }));
-
-            return { poamSeverity };
+            return {
+                summary: summaryRows.map(row => ({
+                    rawSeverity: row.rawSeverity,
+                    avgDays: row.avgDays,
+                    minDays: row.minDays,
+                    maxDays: row.maxDays,
+                    count: row.count,
+                })),
+                trend: trendRows.map(row => ({ period: row.period, rawSeverity: row.rawSeverity, avgDays: row.avgDays, count: row.count })),
+            };
         });
     } catch (error) {
-        return { null: 'Undefined collection' };
+        return { error: error.message };
     }
 };
 
-exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(req) {
+exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req) {
+    const months = parseInt(req.query?.months, 10) || 12;
+
     try {
         return await withConnection(async connection => {
-            let sql = `
-                SELECT
-                    scheduledCompletionDate,
-                    extensionDays,
-                    DATEDIFF(
-                        DATE_ADD(scheduledCompletionDate, INTERVAL IFNULL(extensionDays, 0) DAY),
-                        CURDATE()
-                    ) AS daysUntilCompletion
-                FROM poam
-            `;
-
+            let collectionFilter = '';
             let params = [];
 
             if (req.userObject.isAdmin !== true) {
                 const [permissionRows] = await connection.query(
-                    `
-                    SELECT collectionId
-                    FROM ${config.database.schema}.collectionpermissions
-                    WHERE userId = ? AND accessLevel >= 3
-                `,
+                    `SELECT collectionId FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND accessLevel >= 3`,
                     [req.userObject.userId]
                 );
-
                 const collectionIds = permissionRows.map(row => row.collectionId);
-
-                if (collectionIds.length === 0) {
-                    return { poamScheduledCompletion: [] };
-                }
-
-                sql += ' WHERE collectionId IN (?)';
+                if (collectionIds.length === 0) return { summary: [], trend: [] };
+                collectionFilter = ' AND collectionId IN (?)';
                 params.push(collectionIds);
             }
 
-            const [rows] = await connection.query(sql, params);
+            const summarySql = `
+                SELECT rawSeverity,
+                    ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
+                    MIN(DATEDIFF(closedDate, created)) AS minDays,
+                    MAX(DATEDIFF(closedDate, created)) AS maxDays,
+                    COUNT(*) AS count
+                FROM ${config.database.schema}.poam
+                WHERE status = 'Closed'
+                    AND closedDate IS NOT NULL
+                    AND created IS NOT NULL
+                    AND created != '1900-01-01'
+                    AND DATEDIFF(closedDate, created) >= 0
+                    ${collectionFilter}
+                GROUP BY rawSeverity
+            `;
 
-            let buckets = {
-                OVERDUE: 0,
-                '< 30 Days': 0,
-                '30-60 Days': 0,
-                '60-90 Days': 0,
-                '90-180 Days': 0,
-                '180-365 Days': 0,
-                '> 365 Days': 0,
+            const trendSql = `
+                SELECT DATE_FORMAT(closedDate, '%Y-%m') AS period,
+                    rawSeverity,
+                    ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
+                    COUNT(*) AS count
+                FROM ${config.database.schema}.poam
+                WHERE status = 'Closed'
+                    AND closedDate >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+                    AND created IS NOT NULL
+                    AND created != '1900-01-01'
+                    AND DATEDIFF(closedDate, created) >= 0
+                    ${collectionFilter}
+                GROUP BY period, rawSeverity
+                ORDER BY period ASC
+            `;
+
+            const [[summaryRows], [trendRows]] = await Promise.all([
+                connection.query(summarySql, [...params]),
+                connection.query(trendSql, [months, ...params]),
+            ]);
+
+            return {
+                summary: summaryRows.map(row => ({
+                    rawSeverity: row.rawSeverity,
+                    avgDays: row.avgDays,
+                    minDays: row.minDays,
+                    maxDays: row.maxDays,
+                    count: row.count,
+                })),
+                trend: trendRows.map(row => ({ period: row.period, rawSeverity: row.rawSeverity, avgDays: row.avgDays, count: row.count })),
             };
-
-            rows.forEach(row => {
-                let days = row.daysUntilCompletion;
-                if (days <= 0) buckets['OVERDUE']++;
-                else if (days <= 30) buckets['< 30 Days']++;
-                else if (days <= 60) buckets['30-60 Days']++;
-                else if (days <= 90) buckets['60-90 Days']++;
-                else if (days <= 180) buckets['90-180 Days']++;
-                else if (days <= 365) buckets['180-365 Days']++;
-                else if (days > 365) buckets['> 365 Days']++;
-            });
-
-            let poamScheduledCompletion = Object.keys(buckets).map(key => ({
-                scheduledCompletion: key,
-                scheduledCompletionCount: buckets[key],
-            }));
-
-            return { poamScheduledCompletion };
         });
     } catch (error) {
         return { error: error.message };

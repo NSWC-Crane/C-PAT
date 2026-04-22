@@ -130,32 +130,6 @@ describe('PoamService', () => {
       req.flush(mockResponse);
     });
 
-    it('should get available monthly POAM status', () => {
-      const mockResponse = [{ month: '2024-01', count: 10 }];
-
-      service.getAvailableMonthlyPoamStatus().subscribe((data) => {
-        expect(data).toEqual(mockResponse);
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/metrics/available/monthlypoamstatus`);
-
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
-    });
-
-    it('should get available POAM scheduled completion', () => {
-      const mockResponse = [{ date: '2024-03-01', count: 5 }];
-
-      service.getAvailablePoamScheduledCompletion().subscribe((data) => {
-        expect(data).toEqual(mockResponse);
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/metrics/available/poamScheduledCompletion`);
-
-      expect(req.request.method).toBe('GET');
-      req.flush(mockResponse);
-    });
-
     it('should get available POAM labels list', () => {
       const mockResponse = [{ labelId: 1, labelName: 'Label1' }];
 
