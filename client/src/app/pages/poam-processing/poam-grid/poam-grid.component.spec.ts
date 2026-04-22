@@ -35,6 +35,7 @@ function createMockPoam(overrides: any = {}) {
     vulnerabilitySource: 'STIG',
     vulnerabilityTitle: 'Test Vulnerability',
     status: 'Draft',
+    rawSeverity: 'High',
     adjSeverity: 'High',
     ownerName: 'Test Owner',
     submitterName: 'Test Submitter',
