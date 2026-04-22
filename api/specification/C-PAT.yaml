@@ -2302,17 +2302,29 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/metrics/available/monthlypoamseverity':
+  '/metrics/collection/{collectionId}/poamMTTR':
+    parameters:
+      - $ref: '#/components/parameters/collectionIdPath'
     get:
-      summary: Get all POAM severity and severity counts from within the last 30 days available to the user
-      operationId: getAvailableMonthlyPoamSeverity
+      summary: Get mean time to remediate (MTTR) by severity for a Collection
+      operationId: getCollectionPoamMTTR
+      parameters:
+        - name: months
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 60
+            default: 12
+          description: Number of months of history to return
       responses:
         '200':
-          description: POAM severity retrieved successfully
+          description: POAM MTTR data retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamSeverity'
+                $ref: '#/components/schemas/poamMTTR'
         '204':
           description: No Content
         '400':
@@ -2333,17 +2345,27 @@ paths:
         - oauth:
             - 'c-pat:read'
 
-  '/metrics/available/monthlypoamstatus':
+  '/metrics/available/poamMTTR':
     get:
-      summary: Get a status of all POAMs available to the user with status and status counts grouped under Open or Closed from POAMs submitted within the last 30 days
-      operationId: getAvailableMonthlyPoamStatus
+      summary: Get POAM mean time to remediate available to the user
+      operationId: getAvailablePoamMTTR
+      parameters:
+        - name: months
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 60
+            default: 12
+          description: Number of months of history to return
       responses:
         '200':
-          description: POAM status retrieved successfully
+          description: POAM MTTR data retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamStatus'
+                $ref: '#/components/schemas/poamMTTR'
         '204':
           description: No Content
         '400':
@@ -2362,38 +2384,7 @@ paths:
         - Metrics
       security:
         - oauth:
-            - 'c-pat:read'
-
-  '/metrics/available/poamScheduledCompletion':
-    get:
-      summary: Get all POAM scheduled completion and scheduled completion counts available to the user
-      operationId: getAvailablePoamScheduledCompletion
-      responses:
-        '200':
-          description: POAM scheduled completion counts retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/poamScheduledCompletion'
-        '204':
-          description: No Content
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Metrics
-      security:
-        - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
 
   /notifications/all:
     get:
@@ -6938,6 +6929,38 @@ components:
           type: string
         scheduledCompletionCount:
           type: integer
+
+    poamMTTR:
+      type: object
+      properties:
+        summary:
+          type: array
+          items:
+            type: object
+            properties:
+              rawSeverity:
+                type: string
+              avgDays:
+                type: integer
+              minDays:
+                type: integer
+              maxDays:
+                type: integer
+              count:
+                type: integer
+        trend:
+          type: array
+          items:
+            type: object
+            properties:
+              period:
+                type: string
+              rawSeverity:
+                type: string
+              avgDays:
+                type: integer
+              count:
+                type: integer
 
     UpdateThemeRequest:
       type: object

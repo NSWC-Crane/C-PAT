@@ -14,6 +14,37 @@
   } @else {
     <cpat-tenable-metrics [collection]="selectedCollection()" (componentInit)="onTenableMetricsInit($event)"> </cpat-tenable-metrics>
   }
+  <div class="card flex flex-row mt-4 two-col-panel">
+    <div class="basis-2/5">
+      <h3 class="chart-title">Mean Time to Remediate (MTTR)</h3>
+      <p class="text-xs text-gray-400 mb-4">Average days to close by severity (all time)</p>
+      @if (isMttrLoading()) {
+        <div class="flex justify-center items-center">
+          <p-progress-spinner class="!w-12 !h-12" strokeWidth="3" animationDuration=".8s" />
+        </div>
+      } @else if (mttrSummaryChartData()) {
+        <p-chart type="bar" height="225px" [data]="mttrSummaryChartData()" [options]="horizontalBarChartOptions" />
+      } @else {
+        <div class="no-data-message">No closed POAMs with data</div>
+      }
+    </div>
+
+    <p-divider layout="vertical" class="!p-8 !mt-4 !mb-4" />
+
+    <div class="basis-3/5">
+      <h3 class="chart-title">MTTR Trend</h3>
+      <p class="text-xs text-gray-400 mb-4">Average MTTR trend over the last 12 months</p>
+      @if (isMttrLoading()) {
+        <div class="flex justify-center items-center">
+          <p-progress-spinner class="!w-12 !h-12" strokeWidth="3" animationDuration=".8s" />
+        </div>
+      } @else if (mttrTrendChartData()) {
+        <p-chart type="line" height="225px" [data]="mttrTrendChartData()" [options]="lineChartOptions" />
+      } @else {
+        <div class="no-data-message">No MTTR trend data available</div>
+      }
+    </div>
+  </div>
 </div>
 
 <p-toast position="top-right"></p-toast>

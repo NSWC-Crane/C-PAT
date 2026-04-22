@@ -269,14 +269,6 @@ export class PoamService {
     return this.http.get(`${this.cpatApiBase}/metrics/available/poamseverity`).pipe(catchError(this.handleError));
   }
 
-  getAvailableMonthlyPoamStatus(): Observable<any> {
-    return this.http.get(`${this.cpatApiBase}/metrics/available/monthlypoamstatus`).pipe(catchError(this.handleError));
-  }
-
-  getAvailablePoamScheduledCompletion(): Observable<any> {
-    return this.http.get(`${this.cpatApiBase}/metrics/available/poamScheduledCompletion`).pipe(catchError(this.handleError));
-  }
-
   getAvailablePoamLabels(): Observable<any> {
     return this.http.get(`${this.cpatApiBase}/poamLabels`).pipe(catchError(this.handleError));
   }

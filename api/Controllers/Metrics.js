@@ -132,10 +132,12 @@ module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverit
     }
 };
 
-module.exports.getAvailableMonthlyPoamSeverity = async function getAvailableMonthlyPoamSeverity(req, res, next) {
+module.exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(req, res, next) {
     try {
-        const getMetrics = await metricsService.getAvailableMonthlyPoamSeverity(req);
-        if (getMetrics?.poamSeverity) {
+        const collectionId = req.params.collectionId;
+        const months = parseInt(req.query?.months, 10) || 12;
+        const getMetrics = await metricsService.getCollectionPoamMTTR(collectionId, months);
+        if (getMetrics?.summary || getMetrics?.trend) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
@@ -145,23 +147,10 @@ module.exports.getAvailableMonthlyPoamSeverity = async function getAvailableMont
     }
 };
 
-module.exports.getAvailableMonthlyPoamStatus = async function getAvailableMonthlyPoamStatus(req, res, next) {
+module.exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req, res, next) {
     try {
-        const getMetrics = await metricsService.getAvailableMonthlyPoamStatus(req);
-        if (getMetrics?.poamStatus) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-    }
-};
-
-module.exports.getAvailablePoamScheduledCompletion = async function getAvailablePoamScheduledCompletion(req, res, next) {
-    try {
-        const getMetrics = await metricsService.getAvailablePoamScheduledCompletion(req);
-        if (getMetrics?.poamScheduledCompletion) {
+        const getMetrics = await metricsService.getAvailablePoamMTTR(req);
+        if (getMetrics?.summary || getMetrics?.trend) {
             res.status(200).json(getMetrics);
         } else {
             res.status(204).send();
