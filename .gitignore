@@ -182,3 +182,4 @@ cython_debug/
 /client/.eslintcache
 .prettierignore
 .serena
+client/out-tsc
