@@ -30,7 +30,7 @@
               },
               "fonts": true
             },
-            "allowedCommonJsDependencies": ["base64-js", "js-sha256", "lodash", "chart.js", "rfdc", "exceljs", "chalk"],
+            "allowedCommonJsDependencies": ["base64-js", "exceljs"],
             "outputPath": "dist",
             "browser": "src/main.ts",
             "polyfills": ["src/polyfills.ts"],
