@@ -2386,6 +2386,29 @@ paths:
         - oauth:
             - 'c-pat:op'
 
+  '/health/uptime':
+    get:
+      summary: Get system uptime and health check history
+      operationId: getUptimeStatus
+      responses:
+        '200':
+          description: Uptime status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UptimeStatus'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - Health
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   /notifications/all:
     get:
       summary: Get all notifications for a user
@@ -5783,6 +5806,73 @@ paths:
 
 components:
   schemas:
+    DailyCheck:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        status:
+          type: integer
+        downtimeMinutes:
+          type: integer
+    ServiceUptimeStatus:
+      type: object
+      properties:
+        currentStatus:
+          type: string
+          enum:
+            - operational
+            - outage
+            - unknown
+        uptimePercent:
+          type: number
+          nullable: true
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyCheck'
+    OptionalServiceUptimeStatus:
+      type: object
+      nullable: true
+      properties:
+        available:
+          type: boolean
+        currentStatus:
+          type: string
+          enum:
+            - operational
+            - outage
+            - unknown
+        uptimePercent:
+          type: number
+          nullable: true
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyCheck'
+    UptimeStatus:
+      type: object
+      properties:
+        cpat:
+          $ref: '#/components/schemas/ServiceUptimeStatus'
+        oidc:
+          $ref: '#/components/schemas/ServiceUptimeStatus'
+        stigman:
+          $ref: '#/components/schemas/OptionalServiceUptimeStatus'
+        tenable:
+          $ref: '#/components/schemas/OptionalServiceUptimeStatus'
+        responseTimeSeries:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              response_ms:
+                type: integer
+                nullable: true
     ApiClassification:
       type: string
       enum:

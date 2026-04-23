@@ -41,13 +41,14 @@ let config = {
         },
     },
     stigman: {
+        enabled: !!process.env.STIGMAN_API_URL,
         clientId: process.env.STIGMAN_OIDC_CLIENT_ID || 'stig-manager',
         apiUrl: process.env.STIGMAN_API_URL || 'http://localhost:54000/api',
         scopePrefix: process.env.STIGMAN_SCOPE_PREFIX,
         extraScopes: process.env.STIGMAN_EXTRA_SCOPES,
     },
     tenable: {
-        enabled: process.env.TENABLE_ENABLED === 'true',
+        enabled: !!process.env.TENABLE_URL,
         url: process.env.TENABLE_URL || '',
         accessKey: process.env.TENABLE_ACCESS_KEY,
         secretKey: process.env.TENABLE_SECRET_KEY,

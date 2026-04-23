@@ -11,12 +11,16 @@
 import { Component } from '@angular/core';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
+import { UptimeMonitorComponent } from './uptime-monitor/uptime-monitor.component';
 
 @Component({
   selector: 'cpat-home',
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   standalone: true,
-  imports: [CardModule, DividerModule]
+  imports: [CardModule, DividerModule, UptimeMonitorComponent]
 })
-export class HomeComponent {}
+export class HomeComponent {
+  protected version = CPAT.Env.version ?? '';
+  protected basePath = CPAT.Env.basePath ?? '';
+}

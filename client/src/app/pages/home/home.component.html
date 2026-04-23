@@ -12,23 +12,19 @@
   <div class="col-span-12 md:col-span-2">
     <p-card class="h-full">
       <ng-template pTemplate="header">
-        <div class="home-card-header px-4 pt-4 pb-2">
-          <span class="text-lg font-semibold">Welcome</span>
+        <div class="home-card-header px-5 pt-5">
+          <span class="text-lg font-semibold">C-PAT™</span>
+          <span class="home-version-pill">{{ version }}</span>
         </div>
-        <p-divider styleClass="mt-0 mb-0" />
+        <p-divider class="mt-0 mb-0" />
       </ng-template>
-      <div class="flex flex-col gap-4">
-        <div class="flex justify-center">
-          <img src="assets/images/navy.svg" alt="NSWC Crane" class="home-logo mb-2" />
-        </div>
+      <div class="home-about-body">
+        <img src="assets/images/navy.svg" alt="NSWC Crane" class="home-logo" />
         <p class="home-description">
-          <strong>C-PAT™</strong> is an API and web client being developed through <a class="home-link" href="https://www.navsea.navy.mil/" target="_blank" rel="noopener noreferrer"> NAVSEA </a> and
+          <strong>C-PAT™</strong> is an API and web client developed through <a class="home-link" href="https://www.navsea.navy.mil/" target="_blank" rel="noopener noreferrer"> NAVSEA </a> and
           <a class="home-link" href="https://www.navsea.navy.mil/Home/Warfare-Centers/NSWC-Crane/" target="_blank" rel="noopener noreferrer"> NSWC Crane </a>
-          that aims to automate vulnerability documentation and tracking.
-        </p>
-        <p class="home-description">
-          C-PAT™ is architected with an emphasis towards interoperability with other RMF Tools, and is designed to integrate with <strong>STIG Manager</strong> and <strong>Tenable.sc (ACAS)</strong> to provide a comprehensive solution throughout the
-          RMF process.
+          that aims to automate vulnerability documentation and tracking. C-PAT™ is architected with an emphasis towards interoperability with other RMF Tools, and is designed to integrate with <strong>STIG Manager</strong> and
+          <strong>Tenable.sc</strong> to provide a comprehensive solution throughout the RMF process.
         </p>
       </div>
     </p-card>
@@ -37,16 +33,17 @@
   <div class="col-span-12 md:col-span-2">
     <p-card class="h-full">
       <ng-template pTemplate="header">
-        <div class="home-card-header px-4 pt-4 pb-2">
+        <div class="home-card-header px-5 pt-5">
           <span class="text-lg font-semibold">Documentation</span>
         </div>
-        <p-divider styleClass="mt-0 mb-0" />
+        <p-divider class="mt-0 mb-0" />
       </ng-template>
       <div class="flex flex-col gap-4">
         <div>
           <p class="home-section-title">Need Help?</p>
           <ul class="home-link-list">
-            <li><a class="home-link" href="https://c-pat.readthedocs.io/" target="_blank" rel="noopener noreferrer"> C-PAT Documentation </a></li>
+            <li><a class="home-link" href="https://c-pat.readthedocs.io/" target="_blank" rel="noopener noreferrer"> C-PAT™ Documentation </a></li>
+            <li><a class="home-link" [href]="basePath + 'api-docs/'" target="_blank" rel="noopener noreferrer"> C-PAT™ API Documentation </a></li>
           </ul>
         </div>
         <div>
@@ -64,16 +61,16 @@
   <div class="col-span-12 md:col-span-2">
     <p-card class="h-full">
       <ng-template pTemplate="header">
-        <div class="home-card-header px-4 pt-4 pb-2">
+        <div class="home-card-header px-5 pt-5">
           <span class="text-lg font-semibold">Development</span>
         </div>
-        <p-divider styleClass="mt-0 mb-0" />
+        <p-divider class="mt-0 mb-0" />
       </ng-template>
       <div class="flex flex-col gap-4">
         <div>
           <p class="home-section-title">Open Source</p>
           <p class="home-description">
-            C-PAT is being developed as part of the
+            C-PAT™ is being developed as part of the
             <a
               class="home-link"
               href="https://repo1.dso.mil/platform-one/bullhorn-delivery-static-assets/-/raw/master/p1/docs/DoD%20Enterprise%20DevSecOps%20Reference%20Design%20-%20CNCF%20Kubernetes%20w-DD1910_cleared_20211022.pdf"
@@ -101,10 +98,10 @@
   <div class="col-span-12 md:col-span-2">
     <p-card class="h-full">
       <ng-template pTemplate="header">
-        <div class="home-card-header px-4 pt-4 pb-2">
+        <div class="home-card-header px-5 pt-5">
           <span class="text-lg font-semibold">Key Integrations</span>
         </div>
-        <p-divider styleClass="mt-0 mb-0" />
+        <p-divider class="mt-0 mb-0" />
       </ng-template>
       <div class="flex flex-col gap-4">
         <div>
@@ -128,10 +125,10 @@
   <div class="col-span-12 md:col-span-2">
     <p-card class="h-full">
       <ng-template pTemplate="header">
-        <div class="home-card-header px-4 pt-4 pb-2">
+        <div class="home-card-header px-5 pt-5">
           <span class="text-lg font-semibold">Resources</span>
         </div>
-        <p-divider styleClass="mt-0 mb-0" />
+        <p-divider class="mt-0 mb-0" />
       </ng-template>
       <div class="flex flex-col gap-4">
         <div>
@@ -154,5 +151,8 @@
         </div>
       </div>
     </p-card>
+  </div>
+  <div class="col-span-10 mb-2">
+    <cpat-uptime-monitor />
   </div>
 </div>
