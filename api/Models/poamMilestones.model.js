@@ -45,7 +45,6 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.DATEONLY,
                 allowNull: true,
             },
-
         },
         {
             tableName: 'poammilestones',
