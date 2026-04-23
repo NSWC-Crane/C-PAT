@@ -12,11 +12,19 @@
 const schedule = require('node-schedule');
 const logger = require('../utils/logger');
 const poamNotificationService = require('./poamNotificationService');
+const healthService = require('./healthService');
 
 const jobs = {};
 
 exports.initializeScheduledTasks = function initializeScheduledTasks() {
     logger.writeInfo('scheduledTasks', 'init', { message: 'Initializing scheduled tasks' });
+
+    healthService.backfillDowntime().catch(error => {
+        logger.writeError('scheduledTasks', 'backfillDowntime', {
+            message: 'Error during startup downtime backfill',
+            error: error.message,
+        });
+    });
 
     jobs.poamDeadlineNotifications = schedule.scheduleJob('0 1 * * *', async () => {
         logger.writeInfo('scheduledTasks', 'poamDeadlineNotifications', {
@@ -37,6 +45,29 @@ exports.initializeScheduledTasks = function initializeScheduledTasks() {
         }
     });
 
+    jobs.healthCheck = schedule.scheduleJob('*/5 * * * *', async () => {
+        try {
+            await healthService.recordHealthCheck();
+        } catch (error) {
+            logger.writeError('scheduledTasks', 'healthCheck', {
+                message: 'Error recording health check',
+                error: error.message,
+            });
+        }
+    });
+
+    jobs.healthCheckPrune = schedule.scheduleJob('0 2 * * *', async () => {
+        logger.writeInfo('scheduledTasks', 'healthCheckPrune', { message: 'Pruning old health check records' });
+        try {
+            await healthService.pruneOldHealthChecks();
+        } catch (error) {
+            logger.writeError('scheduledTasks', 'healthCheckPrune', {
+                message: 'Error pruning health check records',
+                error: error.message,
+            });
+        }
+    });
+
     logger.writeInfo('scheduledTasks', 'init', {
         message: 'Scheduled tasks initialized',
         tasks: [
@@ -44,6 +75,16 @@ exports.initializeScheduledTasks = function initializeScheduledTasks() {
                 name: 'poamDeadlineNotifications',
                 schedule: 'Daily at 01:00',
                 nextRun: jobs.poamDeadlineNotifications?.nextInvocation()?.toISOString() || 'Not scheduled',
+            },
+            {
+                name: 'healthCheck',
+                schedule: 'Every 5 minutes',
+                nextRun: jobs.healthCheck?.nextInvocation()?.toISOString() || 'Not scheduled',
+            },
+            {
+                name: 'healthCheckPrune',
+                schedule: 'Daily at 02:00',
+                nextRun: jobs.healthCheckPrune?.nextInvocation()?.toISOString() || 'Not scheduled',
             },
         ],
     });

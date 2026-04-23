@@ -8,15 +8,39 @@
 !##########################################################################
 */
 
+:host ::ng-deep .p-card-body {
+  padding-top: 0.25rem !important;
+}
+
+.home-about-body {
+  overflow: hidden;
+}
+
 .home-logo {
-  width: 120px;
+  float: left;
+  width: 100px;
   height: auto;
   opacity: 0.9;
+  margin: 0 1rem 0.5rem 0;
 }
 
 .home-card-header {
   font-size: 1rem;
   font-weight: 600;
+}
+
+.home-version-pill {
+  display: inline-block;
+  vertical-align: top;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--p-primary-color);
+  background: color-mix(in srgb, var(--p-primary-color) 12%, transparent);
+  border-radius: 6px;
+  padding: 0.2rem 0.3rem;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  margin-left: 0.3rem;
 }
 
 .home-section-title {
@@ -26,8 +50,8 @@
 }
 
 .home-description {
-  font-size: 0.875rem;
-  margin-bottom: 0.125rem;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
 }
 
 .home-link {

@@ -1,0 +1,202 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<p-card class="uptime-monitor-card">
+  <ng-template pTemplate="header">
+    <div class="px-5 pt-4 pb-0">
+      <span class="text-lg font-semibold">System Status</span>
+    </div>
+    <p-divider class="mt-2 !mb-2" />
+  </ng-template>
+
+  @if (isLoading()) {
+    <div class="uptime-service uptime-service-bordered">
+      <p-skeleton height="1rem" width="60%" />
+      <p-skeleton height="12px" borderRadius="3px" class="mt-3" />
+    </div>
+    <div class="uptime-service">
+      <p-skeleton height="1rem" width="60%" />
+      <p-skeleton height="12px" borderRadius="3px" class="mt-3" />
+    </div>
+  } @else if (!uptimeData()) {
+    <p class="text-sm uptime-muted">Status data is currently unavailable.</p>
+  } @else {
+    <div class="uptime-service uptime-service-bordered">
+      <div class="uptime-row-header">
+        <div class="flex items-center gap-2 min-w-0 grow mr-2">
+          <i [class]="getStatusIcon(uptimeData()!.cpat.currentStatus) + ' ' + getStatusColorClass(uptimeData()!.cpat.currentStatus)"></i>
+          <span class="uptime-label truncate">C-PAT™</span>
+        </div>
+        <span [class]="'uptime-pct ' + getStatusColorClass(uptimeData()!.cpat.currentStatus)">
+          @if (uptimeData()!.cpat.uptimePercent !== null) {
+            {{ uptimeData()!.cpat.uptimePercent }}% uptime
+          } @else {
+            Monitoring started
+          }
+        </span>
+      </div>
+      <div class="uptime-bar">
+        @for (check of uptimeData()!.cpat.checks; track check.date) {
+          <div
+            class="uptime-segment"
+            [class.segment-first]="$first"
+            [class.segment-last]="$last"
+            [class.segment-up]="check.status === 1"
+            [class.segment-down]="check.status === 0"
+            [class.segment-unknown]="check.status == null"
+            (mouseenter)="onSegmentMouseEnter($event, check)"
+            [pTooltip]="segmentTooltip"
+            tooltipPosition="top"
+            [appendTo]="'body'"
+          ></div>
+        }
+        @if (!uptimeData()!.cpat.checks.length) {
+          <span class="text-xs uptime-muted">No data yet — check back in 24 hours.</span>
+        }
+      </div>
+    </div>
+
+    <div class="uptime-service" [class.uptime-service-bordered]="oidcHasBorder()">
+      <div class="uptime-row-header">
+        <div class="flex items-center gap-2 min-w-0 grow mr-2">
+          <i [class]="getStatusIcon(uptimeData()!.oidc.currentStatus) + ' ' + getStatusColorClass(uptimeData()!.oidc.currentStatus)"></i>
+          <span class="uptime-label truncate">OIDC</span>
+        </div>
+        <span [class]="'uptime-pct ' + getStatusColorClass(uptimeData()!.oidc.currentStatus)">
+          @if (uptimeData()!.oidc.uptimePercent !== null) {
+            {{ uptimeData()!.oidc.uptimePercent }}% uptime
+          } @else {
+            Monitoring started
+          }
+        </span>
+      </div>
+      <div class="uptime-bar">
+        @for (check of uptimeData()!.oidc.checks; track check.date) {
+          <div
+            class="uptime-segment"
+            [class.segment-first]="$first"
+            [class.segment-last]="$last"
+            [class.segment-up]="check.status === 1"
+            [class.segment-down]="check.status === 0"
+            [class.segment-unknown]="check.status == null"
+            (mouseenter)="onSegmentMouseEnter($event, check)"
+            [pTooltip]="segmentTooltip"
+            tooltipPosition="top"
+            [appendTo]="'body'"
+          ></div>
+        }
+        @if (!uptimeData()!.oidc.checks.length) {
+          <span class="text-xs uptime-muted">No data yet — check back in 24 hours.</span>
+        }
+      </div>
+    </div>
+
+    @if (showStigman()) {
+      <div class="uptime-service" [class.uptime-service-bordered]="stigmanHasBorder()">
+        <div class="uptime-row-header">
+          <div class="flex items-center gap-2 min-w-0 grow mr-2">
+            <i [class]="getStatusIcon(uptimeData()!.stigman!.currentStatus) + ' ' + getStatusColorClass(uptimeData()!.stigman!.currentStatus)"></i>
+            <span class="uptime-label truncate">STIG Manager</span>
+          </div>
+          <span [class]="'uptime-pct ' + getStatusColorClass(uptimeData()!.stigman!.currentStatus)">
+            @if (uptimeData()!.stigman!.uptimePercent !== null) {
+              {{ uptimeData()!.stigman!.uptimePercent }}% uptime
+            } @else {
+              Monitoring started
+            }
+          </span>
+        </div>
+        <div class="uptime-bar">
+          @for (check of uptimeData()!.stigman!.checks; track check.date) {
+            <div
+              class="uptime-segment"
+              [class.segment-first]="$first"
+              [class.segment-last]="$last"
+              [class.segment-up]="check.status === 1"
+              [class.segment-down]="check.status === 0"
+              [class.segment-unknown]="check.status == null"
+              (mouseenter)="onSegmentMouseEnter($event, check)"
+              [pTooltip]="segmentTooltip"
+              tooltipPosition="top"
+              [appendTo]="'body'"
+            ></div>
+          }
+          @if (!uptimeData()!.stigman!.checks.length) {
+            <span class="text-xs uptime-muted">No data yet — check back in 24 hours.</span>
+          }
+        </div>
+      </div>
+    }
+
+    @if (showTenable()) {
+      <div class="uptime-service uptime-service-bordered">
+        <div class="uptime-row-header">
+          <div class="flex items-center gap-2 min-w-0 grow mr-2">
+            <i [class]="getStatusIcon(uptimeData()!.tenable!.currentStatus) + ' ' + getStatusColorClass(uptimeData()!.tenable!.currentStatus)"></i>
+            <span class="uptime-label truncate">Tenable</span>
+          </div>
+          <span [class]="'uptime-pct ' + getStatusColorClass(uptimeData()!.tenable!.currentStatus)">
+            @if (uptimeData()!.tenable!.uptimePercent !== null) {
+              {{ uptimeData()!.tenable!.uptimePercent }}% uptime
+            } @else {
+              Monitoring started
+            }
+          </span>
+        </div>
+        <div class="uptime-bar">
+          @for (check of uptimeData()!.tenable!.checks; track check.date) {
+            <div
+              class="uptime-segment"
+              [class.segment-first]="$first"
+              [class.segment-last]="$last"
+              [class.segment-up]="check.status === 1"
+              [class.segment-down]="check.status === 0"
+              [class.segment-unknown]="check.status == null"
+              (mouseenter)="onSegmentMouseEnter($event, check)"
+              [pTooltip]="segmentTooltip"
+              tooltipPosition="top"
+              [appendTo]="'body'"
+            ></div>
+          }
+          @if (!uptimeData()!.tenable!.checks.length) {
+            <span class="text-xs uptime-muted">No data yet — check back in 24 hours.</span>
+          }
+        </div>
+      </div>
+    }
+    <div class="uptime-service">
+      <div class="flex items-center gap-2 min-w-0 grow mr-2 mt-2">
+        <i [class]="getStatusIcon(uptimeData()!.cpat.currentStatus) + ' ' + getStatusColorClass(uptimeData()!.cpat.currentStatus)"></i>
+        <span class="uptime-label truncate">C-PAT™ Latency</span>
+      </div>
+      @if (responseChartData()) {
+        <div #chart class="uptime-chart"></div>
+      } @else {
+        <p class="text-xs uptime-muted">No latency data yet.</p>
+      }
+    </div>
+  }
+</p-card>
+
+<ng-template #segmentTooltip>
+  @if (activeCheck()) {
+    <div class="uptime-segment-tip">
+      <div class="uptime-segment-tip-status">
+        <i
+          [class]="
+            getStatusIcon(activeCheck()!.status === 1 ? 'operational' : activeCheck()!.status === 0 ? 'outage' : 'unknown') + ' ' + getStatusColorClass(activeCheck()!.status === 1 ? 'operational' : activeCheck()!.status === 0 ? 'outage' : 'unknown')
+          "
+        ></i>
+        <span>{{ getSegmentStatusLabel(activeCheck()!) }}</span>
+      </div>
+      <div class="uptime-segment-tip-date">{{ formatCheckDate(activeCheck()!) }}</div>
+    </div>
+  }
+</ng-template>
