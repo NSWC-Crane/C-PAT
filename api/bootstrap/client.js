@@ -37,7 +37,7 @@ const CPAT = {
   Env: {
     basePath: "${basePath}",
     classification: "${config.settings.dodDeployment ? config.settings.setClassification : 'NONE'}",
-    dod: ${config.settings.dodDeployment},
+    dodDeployment: ${config.settings.dodDeployment},
     version: "${config.version}",
     apiBase: "${config.client.apiBase}",
     adminInactivityTimeout: ${config.settings.adminInactivityTimeout},
