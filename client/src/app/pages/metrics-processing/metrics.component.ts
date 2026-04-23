@@ -195,7 +195,7 @@ export class MetricsComponent implements OnInit, OnDestroy {
                 return entry?.count ? Math.round(entry.weightedDays / entry.count) : null;
               }),
               borderColor: SEVERITY_COLORS[sev] ?? SEVERITY_COLORS['default'],
-              backgroundColor: 'transparent',
+              backgroundColor: SEVERITY_COLORS[sev] ?? SEVERITY_COLORS['default'],
               pointBackgroundColor: SEVERITY_COLORS[sev] ?? SEVERITY_COLORS['default'],
               tension: 0.3,
               spanGaps: true
