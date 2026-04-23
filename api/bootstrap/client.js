@@ -78,6 +78,7 @@ const CPAT = {
         docsDisabled: ${config.docs.disabled},
         swaggerUiEnabled: ${config.swaggerUi.enabled},
         aiEnabled: ${config.ai.enabled},
+        stigmanEnabled: ${config.stigman.enabled},
         tenableEnabled: ${config.tenable.enabled}
     }
   }
