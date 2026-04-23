@@ -12,7 +12,7 @@ Markdown==3.10.2
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 packaging==26.0
-Pygments==2.19.2
+Pygments==2.20.0
 pyparsing==3.3.2
 pytz==2026.1
 requests==2.33.0
