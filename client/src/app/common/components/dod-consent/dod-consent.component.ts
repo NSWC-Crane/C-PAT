@@ -19,7 +19,7 @@ import { DialogModule } from 'primeng/dialog';
   templateUrl: './dod-consent.component.html',
   styleUrls: ['./dod-consent.component.scss'],
   standalone: true,
-  imports: [DialogModule, FormsModule, ButtonModule]
+  imports: [ButtonModule, DialogModule, FormsModule]
 })
 export class DoDConsentComponent implements OnInit {
   private router = inject(Router);
