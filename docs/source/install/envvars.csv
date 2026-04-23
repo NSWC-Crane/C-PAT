@@ -99,8 +99,6 @@
 | String used as a prefix for each scope when authenticating to the OIDC Provider. Some providers (Azure AD) expect scope requests in the format ``api://<application_id>/<scope>``, where ``api://<application_id>/`` is the required prefix.","Client"
 "STIGMAN_EXTRA_SCOPES","| **No default**
 | OAuth2 scopes to request in addition to ``stig-manager:stig`` ``stig-manager:stig:read`` ``stig-manager:collection`` ``stig-manager:user`` ``stig-manager:user:read`` ``stig-manager:op`` ``openid``. Some OIDC providers (Okta) generate a refresh token only if the scope ``offline_access`` is requested","Client"
-"TENABLE_ENABLED","| **Default** ``false``
-| API proxying for Tenable enabled. ","API, Client"
 "TENABLE_URL","| **No default**
 | The URL for Tenable.sc. No trailing slash required. ","API"
 "TENABLE_ACCESS_KEY","| **No default**
