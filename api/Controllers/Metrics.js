@@ -135,7 +135,7 @@ module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverit
 module.exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(req, res, next) {
     try {
         const collectionId = req.params.collectionId;
-        const months = parseInt(req.query?.months, 10) || 12;
+        const months = Number.parseInt(req.query?.months, 10) || 12;
         const getMetrics = await metricsService.getCollectionPoamMTTR(collectionId, months);
         if (getMetrics?.summary || getMetrics?.trend) {
             res.status(200).json(getMetrics);

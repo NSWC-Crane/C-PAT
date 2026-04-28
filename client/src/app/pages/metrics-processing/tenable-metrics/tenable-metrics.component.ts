@@ -503,7 +503,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
         results.forEach((item: any) => {
           const severityId = item.severity?.id;
-          const count = parseInt(item.count) || 0;
+          const count = Number.parseInt(item.count) || 0;
 
           switch (severityId) {
             case '4':
