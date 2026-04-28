@@ -186,7 +186,7 @@ exports.getUptimeStatus = async function getUptimeStatus() {
                 totalDowntimeMinutes += Number(r.downtimeMinutes);
             }
             if (totalKnownMinutes === 0) return null;
-            return parseFloat((((totalKnownMinutes - totalDowntimeMinutes) / totalKnownMinutes) * 100).toFixed(2));
+            return Number.parseFloat((((totalKnownMinutes - totalDowntimeMinutes) / totalKnownMinutes) * 100).toFixed(2));
         };
 
         const result = {

@@ -457,10 +457,10 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
               family: vuln.family?.name || '',
               severity: vuln.severity?.name || '',
               pluginID: vuln.pluginID ? Number.parseInt(vuln.pluginID) : '',
-              vprScore: vuln.vprScore ? parseFloat(vuln.vprScore) : '',
+              vprScore: vuln.vprScore ? Number.parseFloat(vuln.vprScore) : '',
               total: vuln.total ? Number.parseInt(vuln.total) : '',
               hostTotal: vuln.hostTotal ? Number.parseInt(vuln.hostTotal) : '',
-              acrScore: vuln.acrScore ? parseFloat(vuln.acrScore) : '',
+              acrScore: vuln.acrScore ? Number.parseFloat(vuln.acrScore) : '',
               assetExposureScore: vuln.assetExposureScore ? Number.parseInt(vuln.assetExposureScore) : '',
               port: vuln.port ? Number.parseInt(vuln.port) : '',
               ...(this.currentPreset === 'taskOrder' && { taskOrderNumber: this.taskOrderMap[vuln.pluginID] || '' })
