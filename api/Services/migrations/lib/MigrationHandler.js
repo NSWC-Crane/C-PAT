@@ -10,7 +10,7 @@
 
 "use strict";
 
-const path = require('path');
+const path = require('node:path');
 const logger = require('../../../utils/logger');
 
 module.exports = class MigrationHandler {

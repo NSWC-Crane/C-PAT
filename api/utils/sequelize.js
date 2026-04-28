@@ -30,7 +30,7 @@ const sequelize = new Sequelize(config.database.schema, config.database.username
 
 function getSslConfig() {
     const fs = require('fs');
-    const path = require('path');
+    const path = require('node:path');
 
     if (config.database.tls.ca_file || config.database.tls.cert_file || config.database.tls.key_file) {
         const sslConfig = {};
