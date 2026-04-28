@@ -9,7 +9,7 @@
 */
 
 const express = require('express');
-const path = require('path');
+const path = require('node:path');
 const fs = require('fs');
 const logger = require('../utils/logger');
 const config = require('../utils/config');

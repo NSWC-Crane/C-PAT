@@ -11,7 +11,7 @@
 const logger = require('../utils/logger');
 const smErrors = require('../utils/error');
 const { serializeError } = require('../utils/serializeError');
-const path = require('path');
+const path = require('node:path');
 
 function configureErrorHandlers(app) {
     const eovPath = path.dirname(require.resolve('express-openapi-validator'));

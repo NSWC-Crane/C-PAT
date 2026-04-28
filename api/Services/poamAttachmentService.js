@@ -12,8 +12,8 @@
 const config = require('../utils/config');
 const dbUtils = require('./utils');
 const SmError = require('../utils/error');
-const crypto = require('crypto');
-const path = require('path');
+const crypto = require('node:crypto');
+const path = require('node:path');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
