@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-const EventEmitter = require('events');
+const EventEmitter = require('node:events');
 const logger = require('./logger');
 const { serializeError } = require('./serializeError');
 

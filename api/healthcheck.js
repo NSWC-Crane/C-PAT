@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-const http = require('http');
+const http = require('node:http');
 const config = require('./utils/config');
 
 const options = {
