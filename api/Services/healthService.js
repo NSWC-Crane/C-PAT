@@ -11,6 +11,8 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const logger = require('../utils/logger');
+const { serializeError } = require('../utils/serializeError');
 const state = require('../utils/state');
 
 async function withConnection(callback) {
@@ -22,13 +24,18 @@ async function withConnection(callback) {
     }
 }
 
-async function checkExternalService(url, timeoutMs = 10_000) {
+async function checkExternalService(url, timeoutMs = 15_000) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
         const response = await fetch(url, { signal: controller.signal });
         return response.ok ? 1 : 0;
-    } catch {
+    } catch (err) {
+        logger.writeError('healthcheck', 'externalServiceCheckFailed', {
+            url,
+            timeoutMs,
+            error: serializeError(err),
+        });
         return 0;
     } finally {
         clearTimeout(timer);
@@ -57,9 +64,11 @@ exports.recordHealthCheck = async function recordHealthCheck() {
     const oidcUp = state.dependencyStatus.oidc ? 1 : 0;
     const systemUp = dbUp && oidcUp ? 1 : 0;
 
-    const stigmanStatus = config.stigman.enabled ? await checkExternalService(`${config.stigman.apiUrl}/op/configuration`) : null;
+    const stigmanBaseUrl = config.stigman.apiUrl.replace(/\/+$/, '');
+    const tenableBaseUrl = config.tenable.url.replace(/\/+$/, '');
+    const stigmanStatus = config.stigman.enabled ? await checkExternalService(`${stigmanBaseUrl}/op/configuration`) : null;
 
-    const tenableStatus = config.tenable.enabled ? await checkExternalService(`${config.tenable.url}/rest/system`) : null;
+    const tenableStatus = config.tenable.enabled ? await checkExternalService(`${tenableBaseUrl}/rest/system`) : null;
 
     try {
         await withConnection(async connection => {
