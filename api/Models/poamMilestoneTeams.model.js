@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = function poamMilestoneTeamsModel(sequelize, DataTypes) {
     const poamMilestoneTeams = sequelize.define(
         'poammilestoneteams',
         {

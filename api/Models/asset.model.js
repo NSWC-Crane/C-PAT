@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = function assetModel(sequelize, DataTypes) {
     const Asset = sequelize.define(
         'Asset',
         {

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = function configModel(sequelize, DataTypes) {
     const Config = sequelize.define(
         'Config',
         {

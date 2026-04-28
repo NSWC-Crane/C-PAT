@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = function poamAssetModel(sequelize, DataTypes) {
     const poamAsset = sequelize.define(
         'poamassets',
         {
