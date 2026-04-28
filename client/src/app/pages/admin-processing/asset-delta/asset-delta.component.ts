@@ -821,7 +821,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   checkTenableStatus(hostnames: string[]): Observable<any> {
@@ -1168,7 +1168,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
 
               const chartWidth = chart.width;
 
-              if (parseFloat(tooltipEl.style.left) + tooltipWidth > chartWidth) {
+              if (Number.parseFloat(tooltipEl.style.left) + tooltipWidth > chartWidth) {
                 tooltipEl.style.left = positionX + tooltip.caretX - tooltipWidth - 8 + 'px';
               }
             }
