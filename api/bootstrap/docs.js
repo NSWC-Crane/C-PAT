@@ -10,7 +10,7 @@
 
 const express = require('express');
 const path = require('node:path');
-const fs = require('fs');
+const fs = require('node:fs');
 const logger = require('../utils/logger');
 const config = require('../utils/config');
 const swaggerUi = require('swagger-ui-express');
