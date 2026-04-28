@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = function poamMilestonesModel(sequelize, DataTypes) {
     const poamMilestones = sequelize.define(
         'poammilestones',
         {

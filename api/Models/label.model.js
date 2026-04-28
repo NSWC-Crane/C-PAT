@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = function labelModel(sequelize, DataTypes) {
     const Label = sequelize.define(
         'label',
         {

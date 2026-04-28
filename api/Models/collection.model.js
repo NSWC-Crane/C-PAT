@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = function collectionModel(sequelize, DataTypes) {
     const Collection = sequelize.define(
         'Collection',
         {

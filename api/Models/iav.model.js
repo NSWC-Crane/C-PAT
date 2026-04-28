@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = function iavModel(sequelize, DataTypes) {
     const IAV = sequelize.define(
         'IAV',
         {
