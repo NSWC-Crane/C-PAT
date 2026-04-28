@@ -139,24 +139,24 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
       .pipe(
         map((response: any) => {
           const results = response?.response?.results || [];
-          const totalRecords = parseInt(response?.response?.totalRecords) || 0;
+          const totalRecords = Number.parseInt(response?.response?.totalRecords) || 0;
 
           this.highRiskAssetsTotalRecords.set(totalRecords);
 
           return results.map((item: any) => {
-            const low = parseInt(item.severityLow) || 0;
-            const medium = parseInt(item.severityMedium) || 0;
-            const high = parseInt(item.severityHigh) || 0;
-            const critical = parseInt(item.severityCritical) || 0;
+            const low = Number.parseInt(item.severityLow) || 0;
+            const medium = Number.parseInt(item.severityMedium) || 0;
+            const high = Number.parseInt(item.severityHigh) || 0;
+            const critical = Number.parseInt(item.severityCritical) || 0;
             const totalSeverity = medium + high + critical;
 
             return {
               ...item,
               ip: item.ip,
               dnsName: item.dnsName || item.netbiosName?.split('\\').pop() || item.dns || item.ip,
-              score: parseInt(item.score) || 0,
-              total: parseInt(item.total) || 0,
-              severityInfo: parseInt(item.severityInfo) || 0,
+              score: Number.parseInt(item.score) || 0,
+              total: Number.parseInt(item.total) || 0,
+              severityInfo: Number.parseInt(item.severityInfo) || 0,
               severityLow: low,
               severityMedium: medium,
               severityHigh: high,

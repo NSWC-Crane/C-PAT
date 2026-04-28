@@ -399,7 +399,7 @@ exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(collectionI
 };
 
 exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req) {
-    const months = parseInt(req.query?.months, 10) || 12;
+    const months = Number.parseInt(req.query?.months, 10) || 12;
 
     try {
         return await withConnection(async connection => {
