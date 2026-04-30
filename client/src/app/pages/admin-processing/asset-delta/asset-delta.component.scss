@@ -8,6 +8,11 @@
 !##########################################################################
 */
 
+.scrollable-assets {
+  height: calc(100vh - 40rem);
+  min-height: 200px;
+}
+
 ::ng-deep {
   .assetDeltas {
     padding: 0rem;
@@ -44,5 +49,5 @@
 
   .p-dialog .p-dialog-header {
     padding: var(--p-dialog-header-padding);
-}
+  }
 }
