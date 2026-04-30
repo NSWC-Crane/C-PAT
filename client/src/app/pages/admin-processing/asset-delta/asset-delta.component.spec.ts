@@ -76,15 +76,6 @@ describe('AssetDeltaComponent', () => {
         oauth: { claims: { username: 'preferred_username' } }
       }
     };
-
-    vi.stubGlobal(
-      'MutationObserver',
-      vi.fn().mockImplementation(() => ({
-        observe: vi.fn(),
-        disconnect: vi.fn(),
-        takeRecords: vi.fn()
-      }))
-    );
   });
 
   beforeEach(async () => {
@@ -636,22 +627,6 @@ describe('AssetDeltaComponent', () => {
       (component as any).assetDeltaTable = vi.fn().mockReturnValue(mockTable);
       component.clearAllFilters();
       expect(mockTable.clear).toHaveBeenCalled();
-    });
-  });
-
-  describe('activated input setter', () => {
-    it('should set isVisible and schedule table height calculation when activated', () => {
-      vi.useFakeTimers();
-      component.activated = true;
-      vi.runAllTimers();
-      expect(component.tableScrollHeight).toBeDefined();
-      vi.useRealTimers();
-    });
-
-    it('should update isVisible when deactivated', () => {
-      component.activated = true;
-      component.activated = false;
-      expect((component as any).isVisible).toBe(false);
     });
   });
 

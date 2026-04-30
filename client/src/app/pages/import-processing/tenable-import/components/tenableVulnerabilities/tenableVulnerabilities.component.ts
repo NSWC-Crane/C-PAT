@@ -117,7 +117,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   formattedDescription: SafeHtml = '';
   totalRecords: number = 0;
   iavVulnerabilitiesCount: number = 0;
-  rows: number = 25;
+  rows: number = 100;
   cols: any[];
   filterSearch: string = '';
   filteredAccordionItems: AccordionItem[] = [];
@@ -1389,7 +1389,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.isLoading = true;
 
     const startOffset = this.tenableTool === 'sumid' ? 0 : (event.first ?? 0);
-    const endOffset = this.tenableTool === 'sumid' ? 5000 : startOffset + (event.rows ?? 25);
+    const endOffset = this.tenableTool === 'sumid' ? 5000 : startOffset + (event.rows ?? 100);
     const analysisParams = {
       query: {
         description: '',

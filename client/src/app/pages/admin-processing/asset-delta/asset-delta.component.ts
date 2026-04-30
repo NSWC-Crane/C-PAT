@@ -10,7 +10,7 @@
 
 import { CommonModule } from '@angular/common';
 import { HttpEvent, HttpResponse } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnInit, effect, signal, OnDestroy, inject, viewChild, output } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, effect, signal, OnDestroy, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -97,18 +97,17 @@ interface ChartData {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
-  private importService = inject(ImportService);
-  private messageService = inject(MessageService);
-  private assetDeltaService = inject(AssetDeltaService);
-  private collectionsService = inject(CollectionsService);
-  private sharedService = inject(SharedService);
-  private configService = inject(AppConfigService);
-  private cdr = inject(ChangeDetectorRef);
-  private elementRef = inject(ElementRef);
-  private payloadService = inject(PayloadService);
+  private readonly importService = inject(ImportService);
+  private readonly messageService = inject(MessageService);
+  private readonly assetDeltaService = inject(AssetDeltaService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly sharedService = inject(SharedService);
+  private readonly configService = inject(AppConfigService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly payloadService = inject(PayloadService);
 
-  readonly assetDeltaTable = viewChild<any>('assetDeltaTable');
-  readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
+  private readonly assetDeltaTable = viewChild<any>('assetDeltaTable');
+  private readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
   readonly navigateToPluginMapping = output<void>();
   cols!: Column[];
   exportColumns!: Column[];
@@ -122,9 +121,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = signal<boolean>(false);
   totalSize = signal<string>('0');
   totalSizePercent = signal<number>(0);
-  tableScrollHeight: string = '50vh';
-  private isVisible = false;
-
   stackedBarData = signal<ChartData>({ labels: [], datasets: [] });
   doughnutData = signal<ChartData>({ labels: [], datasets: [] });
   barData = signal<ChartData>({ labels: [], datasets: [] });
@@ -140,17 +136,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   themeInitialized = signal<boolean>(false);
   chartInitialized = signal<boolean>(false);
 
-  private destroy$ = new Subject<void>();
-
-  @Input()
-  set activated(isActive: boolean) {
-    if (isActive && !this.isVisible) {
-      this.isVisible = true;
-      setTimeout(() => this.calculateTableHeight(), 100);
-    }
-
-    this.isVisible = isActive;
-  }
+  private readonly destroy$ = new Subject<void>();
 
   constructor() {
     effect(() => {
@@ -297,78 +283,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
           this.updateFilteredTotal();
         });
       });
-    }
-
-    setTimeout(() => this.calculateTableHeight(), 100);
-
-    const observer = new MutationObserver(() => {
-      if (this.isVisible) {
-        this.calculateTableHeight();
-      }
-    });
-
-    const componentElement = this.elementRef.nativeElement;
-
-    if (componentElement) {
-      observer.observe(componentElement, {
-        childList: true,
-        subtree: true
-      });
-
-      const tabPanel = componentElement.closest('.p-tabpanel');
-
-      if (tabPanel) {
-        observer.observe(tabPanel, {
-          attributes: true,
-          childList: true,
-          subtree: false
-        });
-      }
-    }
-  }
-
-  @HostListener('window:resize')
-  onResize() {
-    this.calculateTableHeight();
-  }
-
-  calculateTableHeight() {
-    try {
-      setTimeout(() => {
-        const componentElement = this.elementRef.nativeElement;
-        const tabPanel = componentElement.closest('.p-tabpanel');
-
-        if (!tabPanel) {
-          this.tableScrollHeight = '50vh';
-
-          return;
-        }
-
-        const cardContainer = tabPanel.closest('.card');
-
-        if (!cardContainer) {
-          this.tableScrollHeight = '50vh';
-
-          return;
-        }
-
-        const chartsContainer = componentElement.querySelector('.charts-container');
-        const tableHeader = componentElement.querySelector('.p-datatable-header');
-        const tabPanelTop = tabPanel.getBoundingClientRect().top;
-        const cardBottom = cardContainer.getBoundingClientRect().bottom;
-        const chartsHeight = chartsContainer ? chartsContainer.offsetHeight : 0;
-        const headerHeight = tableHeader ? tableHeader.offsetHeight : 0;
-        const bottomPadding = 90;
-        const availableHeight = cardBottom - tabPanelTop - chartsHeight - headerHeight - bottomPadding;
-        const finalHeight = Math.max(availableHeight, 200);
-
-        this.tableScrollHeight = `${finalHeight}px`;
-
-        this.cdr.detectChanges();
-      }, 0);
-    } catch (error) {
-      console.error('Error calculating table height:', error);
-      this.tableScrollHeight = '50vh';
     }
   }
 

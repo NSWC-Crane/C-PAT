@@ -74,15 +74,18 @@
     </div>
   </div>
 
-  <div class="mt-4">
+  <div class="scrollable-assets mt-4 overflow-hidden">
     <p-table
       #assetDeltaTable
       [value]="filteredAssets()"
       [columns]="cols"
+      [paginator]="true"
+      [rows]="100"
+      [rowsPerPageOptions]="[25, 50, 100]"
       [globalFilterFields]="['key', 'value']"
       selectionMode="single"
       [scrollable]="true"
-      [scrollHeight]="tableScrollHeight"
+      scrollHeight="flex"
       [tableStyle]="{ 'min-width': '50rem' }"
       class="p-datatable-sm"
       (onFilter)="updateFilteredTotal()"
