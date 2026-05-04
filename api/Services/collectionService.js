@@ -141,6 +141,12 @@ exports.putCollection = async function putCollection(req, res, next) {
     }
     if (!req.body.collectionName) req.body.collectionName = undefined;
     if (!req.body.description) req.body.description = '';
+    if (!req.body.collectionType) req.body.collectionType = 'C-PAT';
+    if (req.body.collectionType === 'C-PAT') {
+        req.body.originCollectionId = 0;
+    } else if (!req.body.originCollectionId) {
+        req.body.originCollectionId = null;
+    }
     if (!req.body.systemType) req.body.systemType = '';
     if (!req.body.systemName) req.body.systemName = '';
     if (!req.body.ccsafa) req.body.ccsafa = '';
@@ -150,10 +156,12 @@ exports.putCollection = async function putCollection(req, res, next) {
 
     try {
         return await withConnection(async connection => {
-            let sql_query = `UPDATE ${config.database.schema}.collection SET collectionName = ?, description = ?, systemType = ?, systemName = ?, ccsafa = ?, aaPackage = ?, predisposingConditions = ?, manualCreationAllowed = ? WHERE collectionId = ?`;
+            let sql_query = `UPDATE ${config.database.schema}.collection SET collectionName = ?, description = ?, collectionType = ?, originCollectionId = ?, systemType = ?, systemName = ?, ccsafa = ?, aaPackage = ?, predisposingConditions = ?, manualCreationAllowed = ? WHERE collectionId = ?`;
             await connection.query(sql_query, [
                 req.body.collectionName,
                 req.body.description,
+                req.body.collectionType,
+                req.body.originCollectionId,
                 req.body.systemType,
                 req.body.systemName,
                 req.body.ccsafa,
@@ -167,6 +175,8 @@ exports.putCollection = async function putCollection(req, res, next) {
             message.collectionId = req.body.collectionId;
             message.collectionName = req.body.collectionName;
             message.description = req.body.description;
+            message.collectionType = req.body.collectionType;
+            message.originCollectionId = req.body.originCollectionId;
             message.systemType = req.body.systemType;
             message.systemName = req.body.systemName;
             message.ccsafa = req.body.ccsafa;

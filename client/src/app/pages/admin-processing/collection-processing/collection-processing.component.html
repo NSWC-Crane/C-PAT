@@ -73,10 +73,44 @@
 
 <p-dialog [(visible)]="displayCollectionDialog" styleClass="w-[50vw] overflow-hidden" [modal]="true">
   <ng-template pTemplate="content">
-    <div class="field">
+    <div class="field mt-2">
       <label for="collectionName">Collection Name:</label>
       <input type="text" pInputText id="collectionName" class="w-full" [(ngModel)]="editingCollection.collectionName" required />
     </div>
+    <div class="field">
+      <label for="collectionType">Collection Type:</label>
+      <p-select
+        id="collectionType"
+        name="collectionType"
+        [options]="collectionTypeOptions"
+        [ngModel]="editingCollection.collectionType"
+        (onChange)="onCollectionTypeChange($event.value)"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select Collection Type..."
+        class="w-full"
+        appendTo="body"
+      />
+    </div>
+    @if (editingCollection.collectionType && editingCollection.collectionType !== 'C-PAT') {
+      <div class="field">
+        <label for="originCollectionId">Origin Collection ID:</label>
+        <p-select
+          id="originCollectionId"
+          name="originCollectionId"
+          [options]="originCollectionOptions"
+          [ngModel]="editingCollection.originCollectionId"
+          (onChange)="onOriginCollectionIdChange($event.value)"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          [loading]="loadingOriginCollections"
+          [placeholder]="'Select ' + editingCollection.collectionType + ' Collection...'"
+          class="w-full"
+          appendTo="body"
+        />
+      </div>
+    }
     <div class="field">
       <label for="description">Description:</label>
       <textarea pTextarea id="description" class="w-full" [(ngModel)]="editingCollection.description" required rows="6" cols="20" fluid></textarea>
@@ -150,6 +184,40 @@
     <div class="m-2 flex w-full items-center justify-between">
       <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="hideDeleteDialog()" />
       <p-button label="Confirm" variant="outlined" (onClick)="deleteCollection()" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="displayCollectionTypeConfirmDialog" styleClass="w-auto overflow-hidden" [modal]="true" header="Confirm Collection Type Update">
+  <div class="custom-confirm-popup">
+    <div class="icon-container">
+      <i class="pi pi-exclamation-triangle"></i>
+    </div>
+    <h3>Update Collection Type?</h3>
+    <h5>Are you sure you would like to change the collection type to "{{ pendingCollectionType }}"?</h5>
+    <p class="!mb-0 text-sm text-red-400">The currently selected collection will be cleared and you will need to select a new one.</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="m-2 flex w-full items-center justify-between">
+      <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="cancelCollectionTypeChange()" />
+      <p-button label="Confirm" variant="outlined" (onClick)="confirmCollectionTypeChange()" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="displayOriginIdConfirmDialog" styleClass="w-auto overflow-hidden" [modal]="true" header="Confirm Origin Collection Update">
+  <div class="custom-confirm-popup">
+    <div class="icon-container">
+      <i class="pi pi-exclamation-triangle"></i>
+    </div>
+    <h3>Update Origin Collection?</h3>
+    <h5>Are you sure you would like to update the origin collection?</h5>
+    <p class="!mb-0 text-sm text-red-400">Existing POAMs and collection data will use the new collection for data acquisition.</p>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="m-2 flex w-full items-center justify-between">
+      <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="cancelOriginCollectionIdChange()" />
+      <p-button label="Confirm" variant="outlined" (onClick)="confirmOriginCollectionIdChange()" />
     </div>
   </ng-template>
 </p-dialog>
