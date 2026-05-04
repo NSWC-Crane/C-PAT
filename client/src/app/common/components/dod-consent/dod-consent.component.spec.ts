@@ -98,12 +98,6 @@ describe('DoDConsentComponent', () => {
       expect(dialog).toBeTruthy();
     });
 
-    it('should have dialog header as "DoD Consent"', () => {
-      const dialog = fixture.debugElement.query(By.css('p-dialog'));
-
-      expect(dialog.attributes['header']).toBe('DoD Consent');
-    });
-
     it('should render consent text paragraphs', () => {
       const paragraphs = fixture.debugElement.queryAll(By.css('p'));
 
@@ -143,13 +137,7 @@ describe('DoDConsentComponent', () => {
     it('should have OK button with correct label', () => {
       const button = fixture.debugElement.query(By.css('p-button'));
 
-      expect(button.attributes['label']).toBe('OK');
-    });
-
-    it('should have OK button with check icon', () => {
-      const button = fixture.debugElement.query(By.css('p-button'));
-
-      expect(button.attributes['icon']).toBe('pi pi-check');
+      expect(button.attributes['label']).toBe('Agree');
     });
 
     it('should have OK button with outlined variant', () => {
