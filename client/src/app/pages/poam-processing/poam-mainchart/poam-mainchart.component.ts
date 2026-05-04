@@ -19,6 +19,7 @@ import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
+import { TooltipModule } from 'primeng/tooltip';
 
 interface ChartDataset {
   label: string;
@@ -45,7 +46,7 @@ interface SelectedOptions {
   templateUrl: './poam-mainchart.component.html',
   styleUrls: ['./poam-mainchart.component.scss'],
   standalone: true,
-  imports: [ButtonModule, ChartModule, FormsModule, CardModule, SelectModule, TabsModule, MultiSelectModule]
+  imports: [ButtonModule, ChartModule, FormsModule, CardModule, SelectModule, TabsModule, MultiSelectModule, TooltipModule]
 })
 export class PoamMainchartComponent implements OnChanges, OnDestroy {
   private readonly router = inject(Router);

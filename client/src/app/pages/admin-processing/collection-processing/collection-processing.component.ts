@@ -21,6 +21,7 @@ import { ListboxModule } from 'primeng/listbox';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
 import { EMPTY, Observable, Subscription, catchError, forkJoin, from, map, of, switchMap, tap, throwError } from 'rxjs';
 import { SubSink } from 'subsink';
@@ -46,7 +47,7 @@ interface TreeNode<T> {
   templateUrl: './collection-processing.component.html',
   styleUrls: ['./collection-processing.component.scss'],
   standalone: true,
-  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TextareaModule, ToastModule, TreeTableModule]
+  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TextareaModule, ToastModule, TooltipModule, TreeTableModule]
 })
 export class CollectionProcessingComponent implements OnInit, OnDestroy {
   private readonly aaPackageService = inject(AAPackageService);

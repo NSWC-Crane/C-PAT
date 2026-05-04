@@ -19,6 +19,7 @@ import { CardModule } from 'primeng/card';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { Subject, takeUntil } from 'rxjs';
 import { VramPopupComponent } from '../../../common/components/vram-popup/vram-popup.component';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -29,7 +30,7 @@ import { VRAMImportService } from './vram-import.service';
   templateUrl: './vram-import.component.html',
   styleUrls: ['./vram-import.component.scss'],
   standalone: true,
-  imports: [BadgeModule, ButtonModule, CardModule, CommonModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, VramPopupComponent]
+  imports: [BadgeModule, ButtonModule, CardModule, CommonModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, TooltipModule, VramPopupComponent]
 })
 export class VRAMImportComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);
