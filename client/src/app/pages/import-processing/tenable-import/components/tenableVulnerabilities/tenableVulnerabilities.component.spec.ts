@@ -141,8 +141,8 @@ describe('TenableVulnerabilitiesComponent', () => {
       expect(component.totalRecords).toBe(0);
     });
 
-    it('should default rows to 25', () => {
-      expect(component.rows).toBe(25);
+    it('should default rows to 100', () => {
+      expect(component.rows).toBe(100);
     });
 
     it('should default sidebarVisible to false', () => {
