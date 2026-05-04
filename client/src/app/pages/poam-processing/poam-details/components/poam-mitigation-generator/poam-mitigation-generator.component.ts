@@ -12,7 +12,6 @@ import { Component, Input, OnChanges, SimpleChanges, signal, inject, output } fr
 import { FormsModule } from '@angular/forms';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SplitButtonModule } from 'primeng/splitbutton';
@@ -25,7 +24,7 @@ import { PoamService } from '../../../poams.service';
 @Component({
   selector: 'cpat-poam-mitigation-generator',
   standalone: true,
-  imports: [FormsModule, ButtonModule, TextareaModule, ProgressBarModule, TooltipModule, DialogModule, ConfirmDialogModule, SplitButtonModule, ToastModule],
+  imports: [FormsModule, ButtonModule, TextareaModule, ProgressBarModule, TooltipModule, DialogModule, SplitButtonModule, ToastModule],
   templateUrl: './poam-mitigation-generator.component.html'
 })
 export class PoamMitigationGeneratorComponent implements OnChanges {
