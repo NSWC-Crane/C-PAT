@@ -165,7 +165,7 @@ export class TenableAdminComponent implements OnInit, OnDestroy {
     const collectionData = {
       collectionName: repository.name,
       description: repository.description,
-      collectionOrigin: 'Tenable',
+      collectionType: 'Tenable',
       originCollectionId: +repository.id
     };
 

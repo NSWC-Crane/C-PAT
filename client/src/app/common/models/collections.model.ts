@@ -17,7 +17,7 @@ export interface Collections {
   aaPackage?: string;
   predisposingConditions?: string;
   created?: string;
-  collectionOrigin?: string;
+  collectionType?: string;
   originCollectionId?: number;
   manualCreationAllowed?: boolean;
 }

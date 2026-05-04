@@ -110,7 +110,7 @@ describe('PoamManageComponent', () => {
 
     mockCollectionsService = {
       getPoamsByCollection: vi.fn().mockReturnValue(of([])),
-      getCollectionBasicList: vi.fn().mockReturnValue(of([{ collectionId: 1, collectionName: 'Test Collection', originCollectionId: 100, collectionOrigin: 'STIG Manager' }]))
+      getCollectionBasicList: vi.fn().mockReturnValue(of([{ collectionId: 1, collectionName: 'Test Collection', originCollectionId: 100, collectionType: 'STIG Manager' }]))
     };
 
     mockImportService = {
@@ -225,7 +225,7 @@ describe('PoamManageComponent', () => {
   describe('ngOnInit', () => {
     it('should subscribe to selectedCollection and call setPayload', async () => {
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
-      mockCollectionsService.getCollectionBasicList.mockReturnValue(of([{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionOrigin: 'STIG Manager' }]));
+      mockCollectionsService.getCollectionBasicList.mockReturnValue(of([{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionType: 'STIG Manager' }]));
 
       await component.ngOnInit();
 
@@ -266,7 +266,7 @@ describe('PoamManageComponent', () => {
 
     it('should set poams and selectedCollection on successful data load', async () => {
       const mockPoams = [createMockPoam()];
-      const mockCollections = [{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionOrigin: 'STIG Manager' }];
+      const mockCollections = [{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionType: 'STIG Manager' }];
 
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of(mockPoams));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
@@ -277,9 +277,9 @@ describe('PoamManageComponent', () => {
       expect(component.selectedCollection()).toEqual(mockCollections[0]);
     });
 
-    it('should fetch STIG Manager findings when collection origin is STIG Manager', async () => {
+    it('should fetch STIG Manager findings when collection type is STIG Manager', async () => {
       const mockPoams = [createMockPoam()];
-      const mockCollections = [{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionOrigin: 'STIG Manager' }];
+      const mockCollections = [{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionType: 'STIG Manager' }];
 
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of(mockPoams));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
@@ -290,9 +290,9 @@ describe('PoamManageComponent', () => {
       expect(mockSharedService.getFindingsMetricsFromSTIGMAN).toHaveBeenCalledWith(100);
     });
 
-    it('should fetch Tenable findings when collection origin is Tenable', async () => {
+    it('should fetch Tenable findings when collection type is Tenable', async () => {
       const mockPoams = [createMockPoam()];
-      const mockCollections = [{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionOrigin: 'Tenable' }];
+      const mockCollections = [{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionType: 'Tenable' }];
 
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of(mockPoams));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
@@ -881,7 +881,7 @@ describe('PoamManageComponent', () => {
   });
 
   describe('fetchFindingsData - Tenable', () => {
-    it('should call postTenableAnalysis twice for Tenable origin', () => {
+    it('should call postTenableAnalysis twice for Tenable collection type', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
 
       (component as any).fetchFindingsData(100, 'Tenable');
@@ -984,8 +984,8 @@ describe('PoamManageComponent', () => {
     });
   });
 
-  describe('fetchFindingsData - Other Origins', () => {
-    it('should clear affectedAssetCounts for non-STIG/Tenable origins', () => {
+  describe('fetchFindingsData - Other collection types', () => {
+    it('should clear affectedAssetCounts for non-STIG/Tenable collection types', () => {
       component.affectedAssetCounts.set([{ vulnerabilityId: 'old', assetCount: 5 }]);
 
       (component as any).fetchFindingsData(100, 'Other');

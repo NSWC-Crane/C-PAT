@@ -109,9 +109,9 @@ describe('PoamGridComponent', () => {
     mockCollectionsService = {
       getCollectionBasicList: vi.fn().mockReturnValue(
         of([
-          { collectionId: 1, collectionName: 'Test Collection', collectionOrigin: 'C-PAT', originCollectionId: 100 },
-          { collectionId: 2, collectionName: 'STIG Collection', collectionOrigin: 'STIG Manager', originCollectionId: 200 },
-          { collectionId: 3, collectionName: 'Tenable Collection', collectionOrigin: 'Tenable', originCollectionId: 300 }
+          { collectionId: 1, collectionName: 'Test Collection', collectionType: 'C-PAT', originCollectionId: 100 },
+          { collectionId: 2, collectionName: 'STIG Collection', collectionType: 'STIG Manager', originCollectionId: 200 },
+          { collectionId: 3, collectionName: 'Tenable Collection', collectionType: 'Tenable', originCollectionId: 300 }
         ])
       )
     };
@@ -232,16 +232,16 @@ describe('PoamGridComponent', () => {
       expect(component.selectedCollection()).toEqual({
         collectionId: 1,
         collectionName: 'Test Collection',
-        collectionOrigin: 'C-PAT',
+        collectionType: 'C-PAT',
         originCollectionId: 100
       });
     });
 
-    it('should set collectionOriginSignal from loaded collection', async () => {
+    it('should set collectionTypeSignal from loaded collection', async () => {
       await component.setPayload();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(component['collectionOriginSignal']()).toBe('C-PAT');
+      expect(component['collectionTypeSignal']()).toBe('C-PAT');
     });
 
     it('should show error message when loading fails', async () => {
@@ -536,7 +536,7 @@ describe('PoamGridComponent', () => {
     });
   });
 
-  describe('filteredByOrigin computed', () => {
+  describe('filteredByCollectionType computed', () => {
     const stigPoam = createMockPoam({ poamId: 1, vulnerabilitySource: 'STIG' });
     const tenablePoam = createMockPoam({
       poamId: 2,
@@ -544,28 +544,28 @@ describe('PoamGridComponent', () => {
     });
     const cpatPoam = createMockPoam({ poamId: 3, vulnerabilitySource: 'C-PAT' });
 
-    it('should return all poams when no origin filter', () => {
+    it('should return all poams when no collection type filter', () => {
       component.poamsData = [stigPoam, tenablePoam, cpatPoam];
-      component['collectionOriginSignal'].set('');
+      component['collectionTypeSignal'].set('');
 
-      expect(component.filteredByOrigin()).toHaveLength(3);
+      expect(component.filteredByCollectionType()).toHaveLength(3);
     });
 
-    it('should filter STIG poams when origin is STIG Manager', () => {
+    it('should filter STIG poams when collection type is STIG Manager', () => {
       component.poamsData = [stigPoam, tenablePoam, cpatPoam];
-      component['collectionOriginSignal'].set('STIG Manager');
+      component['collectionTypeSignal'].set('STIG Manager');
 
-      const filtered = component.filteredByOrigin();
+      const filtered = component.filteredByCollectionType();
 
       expect(filtered).toHaveLength(1);
       expect(filtered[0].vulnerabilitySource).toBe('STIG');
     });
 
-    it('should filter Tenable poams when origin is Tenable', () => {
+    it('should filter Tenable poams when collection type is Tenable', () => {
       component.poamsData = [stigPoam, tenablePoam, cpatPoam];
-      component['collectionOriginSignal'].set('Tenable');
+      component['collectionTypeSignal'].set('Tenable');
 
-      const filtered = component.filteredByOrigin();
+      const filtered = component.filteredByCollectionType();
 
       expect(filtered).toHaveLength(1);
       expect(filtered[0].vulnerabilitySource).toBe('Assured Compliance Assessment Solution (ACAS) Nessus Scanner');
@@ -632,7 +632,7 @@ describe('PoamGridComponent', () => {
     it('should show export started message when statuses are selected', () => {
       component.poamsData = [createMockPoam({ status: 'draft' })];
       component.selectedCollectionId.set(1);
-      component.selectedCollection.set({ collectionId: 1, collectionName: 'Test', collectionOrigin: 'C-PAT' });
+      component.selectedCollection.set({ collectionId: 1, collectionName: 'Test', collectionType: 'C-PAT' });
 
       component.exportCollection();
       dialogCloseSubject.next(['draft']);
@@ -648,7 +648,7 @@ describe('PoamGridComponent', () => {
     it('should show error when no POAMs match selected statuses', () => {
       component.poamsData = [createMockPoam({ status: 'approved' })];
       component.selectedCollectionId.set(1);
-      component.selectedCollection.set({ collectionId: 1, collectionName: 'Test', collectionOrigin: 'C-PAT' });
+      component.selectedCollection.set({ collectionId: 1, collectionName: 'Test', collectionType: 'C-PAT' });
 
       component.exportCollection();
       dialogCloseSubject.next(['draft']);
@@ -661,12 +661,12 @@ describe('PoamGridComponent', () => {
       );
     });
 
-    it('should call processDefaultPoams for C-PAT origin collections', () => {
+    it('should call processDefaultPoams for C-PAT type collections', () => {
       const processDefaultSpy = vi.spyOn(component as any, 'processDefaultPoams');
 
       component.poamsData = [createMockPoam({ status: 'draft' })];
       component.selectedCollectionId.set(1);
-      component.selectedCollection.set({ collectionId: 1, collectionName: 'Test', collectionOrigin: 'C-PAT' });
+      component.selectedCollection.set({ collectionId: 1, collectionName: 'Test', collectionType: 'C-PAT' });
 
       component.exportCollection();
       dialogCloseSubject.next(['draft']);
@@ -674,14 +674,14 @@ describe('PoamGridComponent', () => {
       expect(processDefaultSpy).toHaveBeenCalled();
     });
 
-    it('should call processPoamsWithStigFindings for STIG Manager origin', () => {
+    it('should call processPoamsWithStigFindings for STIG Manager type collections', () => {
       const processStigSpy = vi.spyOn(component, 'processPoamsWithStigFindings').mockResolvedValue([]);
 
       vi.spyOn(component as any, 'generateExcelFile').mockResolvedValue(undefined);
 
       component.poamsData = [createMockPoam({ status: 'draft' })];
       component.selectedCollectionId.set(2);
-      component.selectedCollection.set({ collectionId: 2, collectionName: 'STIG Test', collectionOrigin: 'STIG Manager', originCollectionId: 200 });
+      component.selectedCollection.set({ collectionId: 2, collectionName: 'STIG Test', collectionType: 'STIG Manager', originCollectionId: 200 });
 
       component.exportCollection();
       dialogCloseSubject.next(['draft']);
@@ -689,14 +689,14 @@ describe('PoamGridComponent', () => {
       expect(processStigSpy).toHaveBeenCalled();
     });
 
-    it('should call processPoamsWithTenableFindings for Tenable origin', () => {
+    it('should call processPoamsWithTenableFindings for Tenable type collections', () => {
       const processTenableSpy = vi.spyOn(component, 'processPoamsWithTenableFindings').mockResolvedValue([]);
 
       vi.spyOn(component as any, 'generateExcelFile').mockResolvedValue(undefined);
 
       component.poamsData = [createMockPoam({ status: 'draft' })];
       component.selectedCollectionId.set(3);
-      component.selectedCollection.set({ collectionId: 3, collectionName: 'Tenable Test', collectionOrigin: 'Tenable', originCollectionId: 300 });
+      component.selectedCollection.set({ collectionId: 3, collectionName: 'Tenable Test', collectionType: 'Tenable', originCollectionId: 300 });
 
       component.exportCollection();
       dialogCloseSubject.next(['draft']);

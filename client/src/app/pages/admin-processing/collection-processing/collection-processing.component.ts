@@ -57,7 +57,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   private readonly importService = inject(ImportService);
   private readonly poamService = inject(PoamService);
 
-  private readonly table = viewChild.required<TreeTable>('dt');
+  public readonly table = viewChild.required<TreeTable>('dt');
   cols: any = [];
   aaPackages: AAPackage[] = [];
   filteredAAPackages: string[] = [];
@@ -111,7 +111,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       { field: 'System Name', header: 'System Name' },
       { field: 'CC/S/A/FA', header: 'CC/S/A/FA' },
       { field: 'A&A Package', header: 'A&A Package' },
-      { field: 'Collection Origin', header: 'Collection Origin' },
+      { field: 'Collection Type', header: 'Collection Type' },
       { field: 'Origin Collection ID', header: 'Origin Collection ID' }
     ];
   }
@@ -174,7 +174,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         ccsafa: any;
         aaPackage: any;
         predisposingConditions: any;
-        collectionOrigin: any;
+        collectionType: any;
         originCollectionId: number;
         manualCreationAllowed: boolean;
       }) => {
@@ -190,7 +190,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             'CC/S/A/FA': collection.ccsafa || '',
             'A&A Package': collection.aaPackage || '',
             'Predisposing Conditions': collection.predisposingConditions || '',
-            'Collection Origin': collection.collectionOrigin || '',
+            'Collection Type': collection.collectionType || 'C-PAT',
             'Origin Collection ID': collection.originCollectionId ?? 0,
             'Manual Creation Allowed': collection.manualCreationAllowed ?? true
           },
@@ -206,7 +206,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     const exportCollection = {
       collectionId: rowData['Collection ID'],
       name: rowData['Name'],
-      collectionOrigin: rowData['Collection Origin'],
+      collectionType: rowData['Collection Type'],
       originCollectionId: rowData['Origin Collection ID'],
       systemType: rowData['System Type'],
       systemName: rowData['System Name'],
@@ -252,11 +252,11 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   }
 
   private processPoamsData(poams: any[], exportCollection: any): Observable<any[]> {
-    if (exportCollection.collectionOrigin === 'STIG Manager') {
+    if (exportCollection.collectionType === 'STIG Manager') {
       return this.processPoamsWithStigFindings(poams, exportCollection.originCollectionId);
     }
 
-    if (exportCollection.collectionOrigin === 'Tenable') {
+    if (exportCollection.collectionType === 'Tenable') {
       return this.processPoamsWithTenableData(poams);
     }
 
@@ -535,7 +535,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       value: {
         collectionId: collection.collectionId,
         name: collection.collectionName,
-        collectionOrigin: collection.collectionOrigin || '',
+        collectionType: collection.collectionType || '',
         originCollectionId: collection.originCollectionId ?? 0,
         systemType: collection.systemType || '',
         systemName: collection.systemName || '',

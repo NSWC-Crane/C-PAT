@@ -228,7 +228,7 @@ describe('TenableAdminComponent', () => {
       expect(mockCollectionsService.addCollection).toHaveBeenCalledWith({
         collectionName: 'Repo Beta',
         description: 'Second repo',
-        collectionOrigin: 'Tenable',
+        collectionType: 'Tenable',
         originCollectionId: 102
       });
     });

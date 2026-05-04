@@ -57,7 +57,7 @@ const mockPoams = [
   { poamId: 2, vulnerabilityId: 'V-002', status: 'Draft', labels: [{ labelName: 'CORA STIG KIOR' }], associatedVulnerabilities: ['V-010'] }
 ];
 
-const mockCollection = { collectionId: 1, collectionName: 'Test Collection', originCollectionId: 42, collectionOrigin: 'STIG Manager' };
+const mockCollection = { collectionId: 1, collectionName: 'Test Collection', originCollectionId: 42, collectionType: 'STIG Manager' };
 
 describe('STIGManagerMetricsComponent', () => {
   let component: STIGManagerMetricsComponent;

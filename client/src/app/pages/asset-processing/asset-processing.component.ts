@@ -99,7 +99,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   selectedCollection: any;
   assetDialogVisible: boolean = false;
   selectedAssets: AssetEntry[] = [];
-  collectionOrigin: string;
+  collectionType: string;
   originCollectionId: number;
   protected accessLevel: number;
   user: any;
@@ -124,7 +124,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
         const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
 
         if (selectedCollectionData) {
-          this.collectionOrigin = selectedCollectionData.collectionOrigin;
+          this.collectionType = selectedCollectionData.collectionType;
           this.originCollectionId = selectedCollectionData.originCollectionId;
         }
       },
@@ -134,7 +134,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
           summary: 'Error',
           detail: `An error occurred: ${getErrorMessage(error)}`
         });
-        this.collectionOrigin = '';
+        this.collectionType = '';
       }
     });
 

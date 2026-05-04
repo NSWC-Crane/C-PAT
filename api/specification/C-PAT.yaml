@@ -6168,7 +6168,7 @@ components:
         created:
           type: string
           format: date
-        collectionOrigin:
+        collectionType:
           type: [string, 'null']
         originCollectionId:
           type: [integer, 'null']
@@ -6182,7 +6182,7 @@ components:
           type: integer
         collectionName:
           type: string
-        collectionOrigin:
+        collectionType:
           type: [string, 'null']
         originCollectionId:
           type: [integer, 'null']

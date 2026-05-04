@@ -300,7 +300,7 @@ export class PoamExportService {
     for (const poam of poams) {
       let processedPoam = { ...poam };
 
-      if (collection.collectionOrigin === 'STIG Manager' && poam.vulnerabilityId && poam.stigBenchmarkId) {
+      if (collection.collectionType === 'STIG Manager' && poam.vulnerabilityId && poam.stigBenchmarkId) {
         const findings = await sharedService.getSTIGMANAffectedAssetsByPoam(collection.originCollectionId, poam.stigBenchmarkId).toPromise();
 
         const matchingFinding = findings.find((finding) => finding.groupId === poam.vulnerabilityId);
@@ -308,7 +308,7 @@ export class PoamExportService {
         if (matchingFinding) {
           processedPoam.devicesAffected = matchingFinding.assets.map((asset: { name: string }) => asset.name).join(' ');
         }
-      } else if (collection.collectionOrigin === 'Tenable' && poam.vulnerabilityId) {
+      } else if (collection.collectionType === 'Tenable' && poam.vulnerabilityId) {
         const analysisParams = {
           query: {
             description: '',

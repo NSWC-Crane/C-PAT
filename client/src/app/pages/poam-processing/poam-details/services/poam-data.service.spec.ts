@@ -465,8 +465,8 @@ describe('PoamDataService', () => {
   });
 
   describe('obtainCollectionData', () => {
-    it('should return collection info for C-PAT collection', async () => {
-      const mockCollections = [{ collectionId: 100, aaPackage: 'AA Package 1', predisposingConditions: 'Conditions', collectionOrigin: null }];
+    it('should return collection info for a C-PAT collection', async () => {
+      const mockCollections = [{ collectionId: 100, aaPackage: 'AA Package 1', predisposingConditions: 'Conditions', collectionType: null }];
 
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
 
@@ -478,7 +478,7 @@ describe('PoamDataService', () => {
     });
 
     it('should return collection info for STIG Manager collection', async () => {
-      const mockCollections = [{ collectionId: 100, aaPackage: 'AA Package 1', predisposingConditions: 'Conditions', collectionOrigin: 'STIG Manager', originCollectionId: 50 }];
+      const mockCollections = [{ collectionId: 100, aaPackage: 'AA Package 1', predisposingConditions: 'Conditions', collectionType: 'STIG Manager', originCollectionId: 50 }];
 
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
 
@@ -489,7 +489,7 @@ describe('PoamDataService', () => {
     });
 
     it('should return collection info for Tenable collection', async () => {
-      const mockCollections = [{ collectionId: 100, collectionOrigin: 'Tenable', originCollectionId: 75 }];
+      const mockCollections = [{ collectionId: 100, collectionType: 'Tenable', originCollectionId: 75 }];
 
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
 
@@ -518,7 +518,7 @@ describe('PoamDataService', () => {
     });
 
     it('should show warning when STIG Manager collection has no originCollectionId', async () => {
-      const mockCollections = [{ collectionId: 100, collectionOrigin: 'STIG Manager', originCollectionId: null }];
+      const mockCollections = [{ collectionId: 100, collectionType: 'STIG Manager', originCollectionId: null }];
 
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
 
@@ -546,7 +546,7 @@ describe('PoamDataService', () => {
     });
 
     it('should handle collectionId as string in comparison', async () => {
-      const mockCollections = [{ collectionId: '100', collectionOrigin: 'C-PAT' }];
+      const mockCollections = [{ collectionId: '100', collectionType: 'C-PAT' }];
 
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
 

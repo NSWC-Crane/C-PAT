@@ -50,7 +50,7 @@ exports.getCollections = async function getCollections(elevate, req) {
                     collectionId: collection.collectionId,
                     collectionName: collection.collectionName,
                     description: collection.description,
-                    collectionOrigin: collection.collectionOrigin,
+                    collectionType: collection.collectionType,
                     systemType: collection.systemType,
                     systemName: collection.systemName,
                     ccsafa: collection.ccsafa,
@@ -69,7 +69,7 @@ exports.getCollections = async function getCollections(elevate, req) {
 exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
     try {
         return await withConnection(async connection => {
-            const sql = `SELECT collectionId, collectionName, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions, manualCreationAllowed FROM ${config.database.schema}.collection`;
+            const sql = `SELECT collectionId, collectionName, collectionType, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions, manualCreationAllowed FROM ${config.database.schema}.collection`;
             const [rows] = await connection.query(sql);
             return rows.map(row => ({
                 ...row,
@@ -91,7 +91,7 @@ exports.postCollection = async function postCollection(req, res, next) {
         });
     }
 
-    if (!req.body.collectionOrigin) req.body.collectionOrigin = 'C-PAT';
+    if (!req.body.collectionType) req.body.collectionType = 'C-PAT';
     if (!req.body.originCollectionId) req.body.originCollectionId = null;
     if (!req.body.description) req.body.description = '';
     if (!req.body.systemType) req.body.systemType = '';
@@ -103,11 +103,11 @@ exports.postCollection = async function postCollection(req, res, next) {
 
     try {
         return await withConnection(async connection => {
-            let sql_query = `INSERT INTO ${config.database.schema}.collection (collectionName, description, collectionOrigin, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions, manualCreationAllowed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) `;
+            let sql_query = `INSERT INTO ${config.database.schema}.collection (collectionName, description, collectionType, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions, manualCreationAllowed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) `;
             await connection.query(sql_query, [
                 req.body.collectionName,
                 req.body.description,
-                req.body.collectionOrigin,
+                req.body.collectionType,
                 req.body.originCollectionId,
                 req.body.systemType,
                 req.body.systemName,

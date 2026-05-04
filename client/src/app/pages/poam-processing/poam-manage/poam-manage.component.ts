@@ -119,7 +119,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
           this.updateGridData();
 
           if (this.selectedCollection()) {
-            this.fetchFindingsData(this.selectedCollection().originCollectionId, this.selectedCollection().collectionOrigin);
+            this.fetchFindingsData(this.selectedCollection().originCollectionId, this.selectedCollection().collectionType);
           }
         },
         error: (error) => {
@@ -132,8 +132,8 @@ export class PoamManageComponent implements OnInit, OnDestroy {
       });
   }
 
-  private fetchFindingsData(collectionId: number, collectionOrigin: string): void {
-    if (collectionOrigin === 'STIG Manager') {
+  private fetchFindingsData(collectionId: number, collectionType: string): void {
+    if (collectionType === 'STIG Manager') {
       this.subs.sink = this.sharedService.getFindingsMetricsFromSTIGMAN(collectionId).subscribe({
         next: (data) => {
           this.findingsData.set(data);
@@ -155,7 +155,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
           });
         }
       });
-    } else if (collectionOrigin === 'Tenable') {
+    } else if (collectionType === 'Tenable') {
       const baseQuery = {
         description: '',
         context: '',

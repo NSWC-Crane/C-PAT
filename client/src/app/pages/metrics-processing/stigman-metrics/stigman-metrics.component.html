@@ -137,7 +137,7 @@
           <div class="metric-line"></div>
         </div>
         <div class="metric-text-container">
-          <div class="metric-origin">STIG Manager</div>
+          <div class="metric-type">STIG Manager</div>
           <div class="metric-description pr-[7.5px]">CAT-I POAM Compliance %</div>
         </div>
       </div>
@@ -157,7 +157,7 @@
           <div class="metric-line"></div>
         </div>
         <div class="metric-text-container">
-          <div class="metric-origin">STIG Manager</div>
+          <div class="metric-type">STIG Manager</div>
           <div class="metric-description pr-[3.75px]">CAT-II POAM Compliance %</div>
         </div>
       </div>
@@ -177,7 +177,7 @@
           <div class="metric-line"></div>
         </div>
         <div class="metric-text-container">
-          <div class="metric-origin">STIG Manager</div>
+          <div class="metric-type">STIG Manager</div>
           <div class="metric-description">CAT-III POAM Compliance %</div>
         </div>
       </div>
@@ -331,9 +331,9 @@
                 </div>
               </div>
             }
-            @if (metric.origin) {
+            @if (metric.type) {
               <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] opacity-70 font-medium leading-tight">
-                {{ metric.origin }}
+                {{ metric.type }}
               </div>
             }
             <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] font-semibold leading-tight">
