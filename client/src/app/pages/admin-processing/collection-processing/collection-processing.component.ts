@@ -574,6 +574,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     this.editingCollection.originCollectionId = null;
     this.previousOriginCollectionId = null;
     this.originCollectionOptions = [];
+    this.editingCollection.manualCreationAllowed = false;
     this.loadOriginCollections(newCollectionType);
   }
 
