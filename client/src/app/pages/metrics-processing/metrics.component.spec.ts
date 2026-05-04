@@ -22,9 +22,9 @@ beforeAll(() => {
 });
 
 const mockCollections = [
-  { collectionId: 1, collectionName: 'STIG Collection', collectionOrigin: 'STIG Manager' },
-  { collectionId: 2, collectionName: 'Tenable Collection', collectionOrigin: 'Tenable' },
-  { collectionId: 3, collectionName: 'C-PAT Collection', collectionOrigin: 'C-PAT' }
+  { collectionId: 1, collectionName: 'STIG Collection', collectionType: 'STIG Manager' },
+  { collectionId: 2, collectionName: 'Tenable Collection', collectionType: 'Tenable' },
+  { collectionId: 3, collectionName: 'C-PAT Collection', collectionType: 'C-PAT' }
 ];
 
 describe('MetricsComponent', () => {
@@ -68,8 +68,8 @@ describe('MetricsComponent', () => {
       expect(component.selectedCollectionId()).toBeNull();
     });
 
-    it('should initialize collectionOrigin signal as C-PAT', () => {
-      expect(component.collectionOrigin()).toBe('C-PAT');
+    it('should initialize collectionType signal as C-PAT', () => {
+      expect(component.collectionType()).toBe('C-PAT');
     });
 
     it('should initialize isLoading signal as false', () => {
@@ -101,16 +101,16 @@ describe('MetricsComponent', () => {
       expect(component.selectedCollection()).toEqual(mockCollections[0]);
     });
 
-    it('should set collectionOrigin from matching collection', () => {
+    it('should set collectionType from matching collection', () => {
       component.ngOnInit();
-      expect(component.collectionOrigin()).toBe('STIG Manager');
+      expect(component.collectionType()).toBe('STIG Manager');
     });
 
     it('should update when selectedCollection changes', () => {
       component.ngOnInit();
       selectedCollectionSubject.next(2);
       expect(component.selectedCollectionId()).toBe(2);
-      expect(component.collectionOrigin()).toBe('Tenable');
+      expect(component.collectionType()).toBe('Tenable');
     });
 
     it('should set selectedCollection to undefined when no match', () => {
@@ -119,16 +119,16 @@ describe('MetricsComponent', () => {
       expect(component.selectedCollection()).toBeUndefined();
     });
 
-    it('should not change collectionOrigin when collection has no collectionOrigin', () => {
-      mockCollectionsService.getCollectionBasicList.mockReturnValue(of([{ collectionId: 1, collectionName: 'No Origin' }]));
+    it('should have C-PAT collectionType when no other collectionType has been specified', () => {
+      mockCollectionsService.getCollectionBasicList.mockReturnValue(of([{ collectionId: 1, collectionName: 'No Type' }]));
       component.ngOnInit();
-      expect(component.collectionOrigin()).toBe('C-PAT');
+      expect(component.collectionType()).toBe('C-PAT');
     });
   });
 
   describe('refreshMetrics', () => {
-    it('should call stigManagerMetrics.refreshMetrics when origin is STIG Manager', () => {
-      component.collectionOrigin.set('STIG Manager');
+    it('should call stigManagerMetrics.refreshMetrics when type is STIG Manager', () => {
+      component.collectionType.set('STIG Manager');
       const mockStigMetrics = { refreshMetrics: vi.fn() } as any;
 
       component.stigManagerMetrics = mockStigMetrics;
@@ -136,8 +136,8 @@ describe('MetricsComponent', () => {
       expect(mockStigMetrics.refreshMetrics).toHaveBeenCalled();
     });
 
-    it('should not call stigManagerMetrics.refreshMetrics when origin is not STIG Manager', () => {
-      component.collectionOrigin.set('Tenable');
+    it('should not call stigManagerMetrics.refreshMetrics when type is not STIG Manager', () => {
+      component.collectionType.set('Tenable');
       const mockStigMetrics = { refreshMetrics: vi.fn() } as any;
 
       component.stigManagerMetrics = mockStigMetrics;
@@ -145,8 +145,8 @@ describe('MetricsComponent', () => {
       expect(mockStigMetrics.refreshMetrics).not.toHaveBeenCalled();
     });
 
-    it('should call tenableMetrics.refreshMetrics when origin is not STIG Manager', () => {
-      component.collectionOrigin.set('Tenable');
+    it('should call tenableMetrics.refreshMetrics when type is not STIG Manager', () => {
+      component.collectionType.set('Tenable');
       const mockTenableMetrics = { refreshMetrics: vi.fn() } as any;
 
       component.tenableMetrics = mockTenableMetrics;
@@ -154,8 +154,8 @@ describe('MetricsComponent', () => {
       expect(mockTenableMetrics.refreshMetrics).toHaveBeenCalled();
     });
 
-    it('should call tenableMetrics.refreshMetrics for C-PAT origin', () => {
-      component.collectionOrigin.set('C-PAT');
+    it('should call tenableMetrics.refreshMetrics for C-PAT type', () => {
+      component.collectionType.set('C-PAT');
       const mockTenableMetrics = { refreshMetrics: vi.fn() } as any;
 
       component.tenableMetrics = mockTenableMetrics;
@@ -163,14 +163,14 @@ describe('MetricsComponent', () => {
       expect(mockTenableMetrics.refreshMetrics).toHaveBeenCalled();
     });
 
-    it('should not throw when stigManagerMetrics is undefined for STIG Manager origin', () => {
-      component.collectionOrigin.set('STIG Manager');
+    it('should not throw when stigManagerMetrics is undefined for STIG Manager type', () => {
+      component.collectionType.set('STIG Manager');
       component.stigManagerMetrics = undefined;
       expect(() => component.refreshMetrics()).not.toThrow();
     });
 
-    it('should not throw when tenableMetrics is undefined for non-STIG Manager origin', () => {
-      component.collectionOrigin.set('Tenable');
+    it('should not throw when tenableMetrics is undefined for non-STIG Manager type', () => {
+      component.collectionType.set('Tenable');
       component.tenableMetrics = undefined;
       expect(() => component.refreshMetrics()).not.toThrow();
     });

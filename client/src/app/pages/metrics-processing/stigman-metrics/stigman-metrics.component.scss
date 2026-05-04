@@ -127,7 +127,7 @@ $color-low: rgba(230, 190, 45, 0.8);
       margin-top: -1rem;
       font-family: 'Red Hat Display Variable';
 
-      .metric-origin {
+      .metric-type {
         font-size: 2rem;
         font-weight: 500;
         opacity: 0.9;
@@ -244,7 +244,7 @@ $color-low: rgba(230, 190, 45, 0.8);
     .metric-text-container {
       padding-left: 140px;
 
-      .metric-origin {
+      .metric-type {
         font-size: 0.75rem;
       }
       .metric-description {

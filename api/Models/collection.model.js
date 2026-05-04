@@ -49,9 +49,10 @@ module.exports = function collectionModel(sequelize, DataTypes) {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
             },
-            collectionOrigin: {
+            collectionType: {
                 type: DataTypes.STRING(15),
                 allowNull: true,
+                defaultValue: 'C-PAT',
             },
             originCollectionId: {
                 type: DataTypes.INTEGER,

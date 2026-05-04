@@ -216,7 +216,7 @@ describe('STIGManagerAdminComponent', () => {
       expect(mockCollectionsService.addCollection).toHaveBeenCalledWith({
         collectionName: 'Collection Beta',
         description: 'Second collection',
-        collectionOrigin: 'STIG Manager',
+        collectionType: 'STIG Manager',
         originCollectionId: 2
       });
     });

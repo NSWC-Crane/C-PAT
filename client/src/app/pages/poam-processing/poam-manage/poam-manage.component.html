@@ -12,7 +12,7 @@
   @if (!isGridExpanded()) {
     <div class="col-span-8 md:col-span-6 flex flex-col h-[calc(100vh-11rem)] overflow-hidden">
       <div class="mb-4 grid grid-cols-12 gap-4 flex-shrink-0">
-        @if (this.selectedCollection()?.collectionOrigin === 'Tenable') {
+        @if (this.selectedCollection()?.collectionType === 'Tenable') {
           <div class="col-span-12 md:col-span-4">
             <p-card class="category-chart-card">
               <p-tabs value="0">
@@ -130,20 +130,20 @@
 
         <p-tabpanels>
           <p-tabpanel value="0" styleClass="flex flex-1 flex-col">
-            <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
+            <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
               <cpat-poam-grid [poamsData]="allPoams()" variant="all" [affectedAssetCounts]="affectedAssetCounts()" />
             </div>
           </p-tabpanel>
 
           <p-tabpanel value="1" styleClass="flex flex-1 flex-col">
-            <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
+            <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
               <cpat-poam-grid [poamsData]="poamsNeedingAttention()" variant="needs-attention" [affectedAssetCounts]="affectedAssetCounts()" />
             </div>
           </p-tabpanel>
 
           @if (accessLevel() >= 2) {
             <p-tabpanel value="2" styleClass="flex flex-1 flex-col">
-              <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
+              <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
                 <cpat-poam-grid [poamsData]="submittedPoams()" variant="my" [affectedAssetCounts]="affectedAssetCounts()" />
               </div>
             </p-tabpanel>
@@ -151,7 +151,7 @@
 
           @if (accessLevel() >= 1) {
             <p-tabpanel value="3" styleClass="flex flex-1 flex-col">
-              <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
+              <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
                 <cpat-poam-grid [poamsData]="teamPoams()" variant="team" [affectedAssetCounts]="affectedAssetCounts()" />
               </div>
             </p-tabpanel>
@@ -159,7 +159,7 @@
 
           @if (accessLevel() >= 3) {
             <p-tabpanel value="4" styleClass="flex flex-1 flex-col">
-              <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionOrigin === 'Tenable' }">
+              <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
                 <cpat-poam-grid [poamsData]="poamsPendingApproval()" variant="pending-approval" [affectedAssetCounts]="affectedAssetCounts()" />
               </div>
             </p-tabpanel>

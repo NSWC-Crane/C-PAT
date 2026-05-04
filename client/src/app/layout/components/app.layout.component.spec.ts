@@ -24,13 +24,13 @@ describe('AppLayoutComponent', () => {
   let accessLevelSubject: BehaviorSubject<any>;
 
   const mockCollections = [
-    { collectionId: 1, collectionName: 'Collection A', collectionOrigin: 'C-PAT' },
-    { collectionId: 2, collectionName: 'Collection B', collectionOrigin: 'STIG Manager' }
+    { collectionId: 1, collectionName: 'Collection A', collectionType: 'C-PAT' },
+    { collectionId: 2, collectionName: 'Collection B', collectionType: 'STIG Manager' }
   ];
 
   const mockCollectionBasicList = [
-    { collectionId: 1, collectionName: 'Collection A', collectionOrigin: 'C-PAT', manualCreationAllowed: true },
-    { collectionId: 2, collectionName: 'Collection B', collectionOrigin: 'STIG Manager', manualCreationAllowed: false }
+    { collectionId: 1, collectionName: 'Collection A', collectionType: 'C-PAT', manualCreationAllowed: true },
+    { collectionId: 2, collectionName: 'Collection B', collectionType: 'STIG Manager', manualCreationAllowed: false }
   ];
 
   beforeAll(() => {
@@ -300,7 +300,7 @@ describe('AppLayoutComponent', () => {
       expect(component.getTagColor('Tenable')).toBe('danger');
     });
 
-    it('should return "info" for unknown origin', () => {
+    it('should return "info" for unknown collectionType', () => {
       expect(component.getTagColor('Unknown')).toBe('info');
     });
   });

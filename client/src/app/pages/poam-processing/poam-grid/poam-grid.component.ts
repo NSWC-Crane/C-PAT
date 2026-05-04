@@ -244,7 +244,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   private readonly payloadSubscription: Subscription[] = [];
   private readonly subscriptions = new Subscription();
 
-  protected collectionOriginSignal = signal<string>('');
+  protected collectionTypeSignal = signal<string>('');
   poamStatusOptions = signal([
     { label: 'Any', value: null },
     { label: 'Approved', value: 'approved' },
@@ -267,13 +267,13 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     this.globalFilterSignal.set(value);
   }
 
-  filteredByOrigin = computed(() => {
+  filteredByCollectionType = computed(() => {
     const poams = this.poamsDataSignal();
-    const origin = this.collectionOriginSignal();
+    const collectionType = this.collectionTypeSignal();
 
-    if (origin === 'STIG Manager') {
+    if (collectionType === 'STIG Manager') {
       return poams.filter((poam) => poam.vulnerabilitySource === 'STIG');
-    } else if (origin === 'Tenable') {
+    } else if (collectionType === 'Tenable') {
       return poams.filter((poam) => poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner');
     }
 
@@ -309,7 +309,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
       if (collection) {
         this.selectedCollection.set(collection);
-        this.collectionOriginSignal.set(collection.collectionOrigin);
+        this.collectionTypeSignal.set(collection.collectionType);
       }
     } catch (error) {
       this.messageService.add({
@@ -486,9 +486,9 @@ export class PoamGridComponent implements OnInit, OnDestroy {
         return;
       }
 
-      if (collection.collectionOrigin === 'STIG Manager') {
+      if (collection.collectionType === 'STIG Manager') {
         this.processPoamsWithStigFindings(poams, collection.originCollectionId).then((processedPoams) => this.generateExcelFile(processedPoams));
-      } else if (collection.collectionOrigin === 'Tenable') {
+      } else if (collection.collectionType === 'Tenable') {
         this.processPoamsWithTenableFindings(poams).then((processedPoams) => this.generateExcelFile(processedPoams));
       } else {
         this.processDefaultPoams(poams, collectionId);

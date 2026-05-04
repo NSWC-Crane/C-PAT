@@ -11,7 +11,7 @@
 export interface MetricData {
   label: string;
   tooltip?: string;
-  origin?: string;
+  type?: string;
   value: number | string;
   category?: string;
   severity?: string;

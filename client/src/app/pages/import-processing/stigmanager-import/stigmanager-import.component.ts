@@ -230,7 +230,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
           return;
         }
 
-        if (selectedCollection.collectionOrigin !== 'STIG Manager') {
+        if (selectedCollection.collectionType !== 'STIG Manager') {
           this.showWarn('The current collection is not associated with STIG Manager.');
 
           return;

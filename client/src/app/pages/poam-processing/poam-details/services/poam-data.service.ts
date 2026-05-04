@@ -356,10 +356,10 @@ export class PoamDataService {
         const collectionInfo: CollectionInfo = {
           collectionAAPackage: currentCollection.aaPackage,
           collectionPredisposingConditions: currentCollection.predisposingConditions,
-          collectionType: currentCollection.collectionOrigin ? currentCollection.collectionOrigin : 'C-PAT'
+          collectionType: currentCollection.collectionType ? currentCollection.collectionType : 'C-PAT'
         };
 
-        if (currentCollection.collectionOrigin === 'STIG Manager' || currentCollection.collectionOrigin === 'Tenable') {
+        if (currentCollection.collectionType === 'STIG Manager' || currentCollection.collectionType === 'Tenable') {
           collectionInfo.originCollectionId = currentCollection.originCollectionId;
         }
 

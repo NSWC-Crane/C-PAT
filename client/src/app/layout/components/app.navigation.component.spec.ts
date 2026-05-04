@@ -86,8 +86,8 @@ describe('AppNavigationComponent', () => {
     mockCollectionsService = {
       getCollections: vi.fn().mockReturnValue(
         of([
-          { collectionId: 1, collectionName: 'Collection A', collectionOrigin: 'C-PAT' },
-          { collectionId: 2, collectionName: 'Collection B', collectionOrigin: 'STIG Manager' }
+          { collectionId: 1, collectionName: 'Collection A', collectionType: 'C-PAT' },
+          { collectionId: 2, collectionName: 'Collection B', collectionType: 'STIG Manager' }
         ])
       ),
       getCollectionBasicList: vi.fn().mockReturnValue(of([]))
@@ -266,7 +266,7 @@ describe('AppNavigationComponent', () => {
       authUserSubject.next({ userId: 1, accountStatus: 'ACTIVE', lastCollectionAccessedId: 1 });
       fixture.detectChanges();
 
-      expect(component.selectedCollection).toEqual({ collectionId: 1, collectionName: 'Collection A', collectionOrigin: 'C-PAT' });
+      expect(component.selectedCollection).toEqual({ collectionId: 1, collectionName: 'Collection A', collectionType: 'C-PAT' });
     });
 
     it('should call sharedService.setSelectedCollection when user has lastCollectionAccessedId', () => {
@@ -417,8 +417,8 @@ describe('AppNavigationComponent', () => {
     beforeEach(() => {
       component.user = { userId: 1, lastCollectionAccessedId: 1 };
       component.collections = [
-        { collectionId: 1, collectionName: 'Collection A', collectionOrigin: 'C-PAT' },
-        { collectionId: 2, collectionName: 'Collection B', collectionOrigin: 'STIG Manager' }
+        { collectionId: 1, collectionName: 'Collection A', collectionType: 'C-PAT' },
+        { collectionId: 2, collectionName: 'Collection B', collectionType: 'STIG Manager' }
       ];
     });
 

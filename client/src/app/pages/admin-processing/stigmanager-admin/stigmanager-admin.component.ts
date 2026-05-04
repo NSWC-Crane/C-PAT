@@ -169,7 +169,7 @@ export class STIGManagerAdminComponent implements OnInit, OnDestroy {
     const collectionData = {
       collectionName: collection.name,
       description: collection.description ?? '',
-      collectionOrigin: 'STIG Manager',
+      collectionType: 'STIG Manager',
       originCollectionId: +collection.collectionId
     };
 

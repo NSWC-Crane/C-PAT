@@ -976,7 +976,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       {
         label: 'Exploitable Findings (7+ Days)',
         tooltip: `Count of vulnerabilities with known exploits available\n\nFilters: Published 7+ days ago${lastObservedText ? ', last observed ' + lastObservedText : ''}, exploit available = true`,
-        origin: 'Tenable',
+        type: 'Tenable',
         value: loading ? '-' : m.exploitableFindingsCount,
         category: 'exploit',
         severity: 'critical',
@@ -985,7 +985,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       {
         label: 'Past Due IAVs',
         tooltip: `Count of IAVs past their Navy compliance date\n\nExcludes Informational severity and superseded IAVs`,
-        origin: 'Tenable',
+        type: 'Tenable',
         value: loading ? '-' : m.pastDueIAVCount,
         category: 'iav',
         severity: 'critical',
@@ -994,7 +994,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       {
         label: 'Security End of Life Vulnerabilities',
         tooltip: `Filters: SEoL date 30+ days ago${lastObservedText ? ', seen ' + lastObservedText : ''}, plugin name contains 'SEoL'`,
-        origin: 'Tenable',
+        type: 'Tenable',
         value: loading ? '-' : m.seolVulnerabilitiesCount,
         category: 'seol',
         severity: 'high',
@@ -1003,7 +1003,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       {
         label: 'Vulnerabilities with Approved POAMs',
         tooltip: `Percentage calculation: Unique vulnerability IDs with approved POAMs ÷ Total vulnerabilities × 100\n\nIncludes both primary vulnerability IDs and associated vulnerabilities in POAMs`,
-        origin: 'Tenable',
+        type: 'Tenable',
         value: loading ? '-' : `${m.poamApprovalPercentage.toFixed(1)}%`,
         category: 'poam',
         isPercentage: true,
@@ -1012,7 +1012,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       {
         label: 'Credential Scan Coverage',
         tooltip: `Percentage calculation: (Total vulnerabilities - Non-credentialed scan findings) ÷ Total vulnerabilities × 100\n\nNon-credentialed plugin IDs: 117886, 10428, 21745, 24786, 26917, 102094, 104410, 110385, 110723`,
-        origin: 'Tenable',
+        type: 'Tenable',
         value: loading ? '-' : `${m.credentialScanPercentage.toFixed(1)}%`,
         category: 'credential',
         severity: 'medium',
@@ -1022,7 +1022,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       {
         label: `Valid Online Assets${hostRangeText}`,
         tooltip: `Total count of hosts that were last seen within ${this.hostTimeRange() === 'all' ? '∞ days' : `${this.hostTimeRange()} days`}`,
-        origin: 'Tenable',
+        type: 'Tenable',
         value: loading ? '-' : m.validOnlineAssets,
         category: 'hosts',
         severity: 'info',

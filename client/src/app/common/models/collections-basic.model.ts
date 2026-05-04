@@ -10,7 +10,7 @@
 export interface CollectionsBasicList {
   collectionId: number;
   collectionName: string;
-  collectionOrigin?: string;
+  collectionType?: string;
   originCollectionId?: number;
   systemType?: string;
   systemName?: string;

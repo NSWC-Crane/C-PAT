@@ -34,7 +34,7 @@ const mockCollections = [
     ccsafa: 'CC-A',
     aaPackage: 'Package A',
     predisposingConditions: 'None',
-    collectionOrigin: 'C-PAT',
+    collectionType: 'C-PAT',
     originCollectionId: 0,
     manualCreationAllowed: true
   },
@@ -47,7 +47,7 @@ const mockCollections = [
     ccsafa: 'CC-B',
     aaPackage: 'Package B',
     predisposingConditions: 'Conditions',
-    collectionOrigin: 'STIG Manager',
+    collectionType: 'STIG Manager',
     originCollectionId: 42,
     manualCreationAllowed: false
   }
@@ -699,10 +699,10 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should default empty strings for null optional fields', () => {
-      component.data = [{ ...mockCollections[0], collectionOrigin: null, systemType: null }];
+      component.data = [{ ...mockCollections[0], collectionType: null, systemType: null }];
       component.showExportDialog();
 
-      expect(component.selectableCollections[0].value.collectionOrigin).toBe('');
+      expect(component.selectableCollections[0].value.collectionType).toBe('');
       expect(component.selectableCollections[0].value.systemType).toBe('');
     });
   });
@@ -739,7 +739,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should set exporting to true during export', () => {
-      const exportCol = { collectionId: 1, name: 'Col A', collectionOrigin: 'C-PAT' };
+      const exportCol = { collectionId: 1, name: 'Col A', collectionType: 'C-PAT' };
 
       component.selectedExportCollections = [exportCol];
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
@@ -750,8 +750,8 @@ describe('CollectionProcessingComponent', () => {
 
     it('should call getPoamsByCollection for each selected collection', () => {
       const exportCols = [
-        { collectionId: 1, name: 'Col A', collectionOrigin: 'C-PAT' },
-        { collectionId: 2, name: 'Col B', collectionOrigin: 'C-PAT' }
+        { collectionId: 1, name: 'Col A', collectionType: 'C-PAT' },
+        { collectionId: 2, name: 'Col B', collectionType: 'C-PAT' }
       ];
 
       component.selectedExportCollections = exportCols;
@@ -762,7 +762,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should show error when all collections are empty', () => {
-      const exportCol = { collectionId: 1, name: 'Col A', collectionOrigin: 'C-PAT' };
+      const exportCol = { collectionId: 1, name: 'Col A', collectionType: 'C-PAT' };
 
       component.selectedExportCollections = [exportCol];
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
@@ -774,8 +774,8 @@ describe('CollectionProcessingComponent', () => {
 
     it('should use Multi_Collection name for multi-collection export', async () => {
       const exportCols = [
-        { collectionId: 1, name: 'Col A', collectionOrigin: 'C-PAT' },
-        { collectionId: 2, name: 'Col B', collectionOrigin: 'C-PAT' }
+        { collectionId: 1, name: 'Col A', collectionType: 'C-PAT' },
+        { collectionId: 2, name: 'Col B', collectionType: 'C-PAT' }
       ];
 
       component.selectedExportCollections = exportCols;
@@ -799,7 +799,7 @@ describe('CollectionProcessingComponent', () => {
       const rowData = {
         'Collection ID': null,
         Name: 'Test',
-        'Collection Origin': 'C-PAT',
+        'Collection Type': 'C-PAT',
         'Origin Collection ID': 0,
         'System Type': '',
         'System Name': '',
@@ -817,7 +817,7 @@ describe('CollectionProcessingComponent', () => {
       const rowData = {
         'Collection ID': 1,
         Name: 'Col A',
-        'Collection Origin': 'C-PAT',
+        'Collection Type': 'C-PAT',
         'Origin Collection ID': 0,
         'System Type': '',
         'System Name': '',
@@ -837,7 +837,7 @@ describe('CollectionProcessingComponent', () => {
       const rowData = {
         'Collection ID': 1,
         Name: 'Col A',
-        'Collection Origin': 'C-PAT',
+        'Collection Type': 'C-PAT',
         'Origin Collection ID': 0,
         'System Type': '',
         'System Name': '',
@@ -855,7 +855,7 @@ describe('CollectionProcessingComponent', () => {
       const rowData = {
         'Collection ID': 2,
         Name: 'STIG Col',
-        'Collection Origin': 'STIG Manager',
+        'Collection Type': 'STIG Manager',
         'Origin Collection ID': 42,
         'System Type': '',
         'System Name': '',
@@ -883,7 +883,7 @@ describe('CollectionProcessingComponent', () => {
       const rowData = {
         'Collection ID': 3,
         Name: 'Tenable Col',
-        'Collection Origin': 'Tenable',
+        'Collection Type': 'Tenable',
         'Origin Collection ID': 0,
         'System Type': '',
         'System Name': '',
@@ -903,7 +903,7 @@ describe('CollectionProcessingComponent', () => {
       const rowData = {
         'Collection ID': 1,
         Name: 'CPAT Col',
-        'Collection Origin': 'C-PAT',
+        'Collection Type': 'C-PAT',
         'Origin Collection ID': 0,
         'System Type': '',
         'System Name': '',

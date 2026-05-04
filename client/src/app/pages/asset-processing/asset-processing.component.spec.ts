@@ -37,8 +37,8 @@ const mockAssetLabelResponse = {
 };
 
 const mockCollections = [
-  { collectionId: 1, collectionName: 'Col A', collectionOrigin: 'Tenable', originCollectionId: 42 },
-  { collectionId: 2, collectionName: 'Col B', collectionOrigin: 'STIG', originCollectionId: null }
+  { collectionId: 1, collectionName: 'Col A', collectionType: 'Tenable', originCollectionId: 42 },
+  { collectionId: 2, collectionName: 'Col B', collectionType: 'STIG', originCollectionId: null }
 ];
 
 describe('AssetProcessingComponent', () => {
@@ -172,10 +172,10 @@ describe('AssetProcessingComponent', () => {
       expect(mockCollectionsService.getCollectionBasicList).toHaveBeenCalled();
     });
 
-    it('should set collectionOrigin from matched collection', async () => {
+    it('should set collectionType from matched collection', async () => {
       component.selectedCollection = 1;
       await component.ngOnInit();
-      expect(component.collectionOrigin).toBe('Tenable');
+      expect(component.collectionType).toBe('Tenable');
     });
 
     it('should set originCollectionId from matched collection', async () => {
@@ -184,11 +184,11 @@ describe('AssetProcessingComponent', () => {
       expect(component.originCollectionId).toBe(42);
     });
 
-    it('should call messageService.add and set collectionOrigin empty on getCollectionBasicList error', async () => {
+    it('should call messageService.add and set collectionType empty on getCollectionBasicList error', async () => {
       mockCollectionsService.getCollectionBasicList.mockReturnValue(throwError(() => new Error('Network error')));
       await component.ngOnInit();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
-      expect(component.collectionOrigin).toBe('');
+      expect(component.collectionType).toBe('');
     });
 
     it('should call initializeColumns on init', async () => {

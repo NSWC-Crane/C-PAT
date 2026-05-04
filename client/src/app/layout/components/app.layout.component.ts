@@ -116,7 +116,7 @@ import { CardModule } from 'primeng/card';
               <p-menu #collectionMenu [popup]="true" [model]="collections" appendTo="body" styleClass="collections-menu">
                 <ng-template let-collection pTemplate="item">
                   <div class="flex items-center gap-2 p-2 cursor-pointer" (click)="onCollectionClick(collection)">
-                    <p-tag [value]="collection.collectionOrigin" [severity]="getTagColor(collection.collectionOrigin)" class="text-xs px-1 py-0.5 shrink-0" />
+                    <p-tag [value]="collection.collectionType" [severity]="getTagColor(collection.collectionType)" class="text-xs px-1 py-0.5 shrink-0" />
                     <span class="break-words overflow-hidden">{{ collection.collectionName }}</span>
                   </div>
                 </ng-template>
@@ -318,7 +318,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
           this.selectedCollection = collections.find((c) => c.collectionId === user.lastCollectionAccessedId);
           const selectedCollectionData = collectionData.find((c) => c.collectionId === +user.lastCollectionAccessedId);
 
-          this.collectionType = selectedCollectionData?.collectionOrigin || 'C-PAT';
+          this.collectionType = selectedCollectionData?.collectionType || 'C-PAT';
           this.collectionName = selectedCollectionData?.collectionName || '';
           this.manualCreationAllowed = selectedCollectionData?.manualCreationAllowed ?? true;
         }
@@ -332,8 +332,8 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  getTagColor(origin: string): 'secondary' | 'success' | 'warn' | 'danger' | 'info' | undefined {
-    switch (origin) {
+  getTagColor(collectionType: string): 'secondary' | 'success' | 'warn' | 'danger' | 'info' | undefined {
+    switch (collectionType) {
       case 'C-PAT':
         return 'secondary';
       case 'STIG Manager':

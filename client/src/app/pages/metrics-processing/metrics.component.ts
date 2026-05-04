@@ -54,7 +54,7 @@ export class MetricsComponent implements OnInit, OnDestroy {
 
   selectedCollection = signal<any>(null);
   selectedCollectionId = signal<any>(null);
-  collectionOrigin = signal<string>('C-PAT');
+  collectionType = signal<string>('C-PAT');
   isLoading = signal<boolean>(false);
   isMttrLoading = signal<boolean>(false);
   mttrSummaryChartData = signal<any>(null);
@@ -98,8 +98,8 @@ export class MetricsComponent implements OnInit, OnDestroy {
           tap((collection) => {
             this.selectedCollection.set(collection);
 
-            if (collection?.collectionOrigin) {
-              this.collectionOrigin.set(collection.collectionOrigin);
+            if (collection?.collectionType) {
+              this.collectionType.set(collection.collectionType);
             }
 
             if (collection?.collectionId) {
@@ -219,9 +219,9 @@ export class MetricsComponent implements OnInit, OnDestroy {
   }
 
   refreshMetrics() {
-    const origin = this.collectionOrigin();
+    const collectionType = this.collectionType();
 
-    if (origin === 'STIG Manager' && this.stigManagerMetrics) {
+    if (collectionType === 'STIG Manager' && this.stigManagerMetrics) {
       this.stigManagerMetrics.refreshMetrics();
     } else if (this.tenableMetrics) {
       this.tenableMetrics.refreshMetrics();

@@ -65,7 +65,7 @@ export const mockUserList = [
 export const mockCollection = {
   collectionId: 1,
   collectionName: 'Test Collection',
-  collectionOrigin: 'C-PAT',
+  collectionType: 'C-PAT',
   originCollectionId: null,
   ccsafa: 'TEST-CCSAFA',
   systemName: 'Test System',
@@ -80,7 +80,7 @@ export const mockStigManagerCollection = {
   ...mockCollection,
   collectionId: 2,
   collectionName: 'STIG Manager Collection',
-  collectionOrigin: 'STIG Manager',
+  collectionType: 'STIG Manager',
   originCollectionId: 123
 };
 
@@ -91,7 +91,7 @@ export const mockTenableCollection = {
   ...mockCollection,
   collectionId: 3,
   collectionName: 'Tenable Collection',
-  collectionOrigin: 'Tenable',
+  collectionType: 'Tenable',
   originCollectionId: 456
 };
 

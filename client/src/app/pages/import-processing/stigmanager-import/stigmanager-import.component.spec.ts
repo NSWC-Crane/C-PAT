@@ -47,8 +47,8 @@ class MockSTIGManagerControlsTableComponent {}
 const mockUser = { userId: 1, lastCollectionAccessedId: 10, permissions: { accessLevel: 4 } };
 
 const mockCollectionBasicList = [
-  { collectionId: 10, collectionName: 'STIG Collection', collectionOrigin: 'STIG Manager', originCollectionId: 100 },
-  { collectionId: 11, collectionName: 'Other Collection', collectionOrigin: 'C-PAT', originCollectionId: null }
+  { collectionId: 10, collectionName: 'STIG Collection', collectionType: 'STIG Manager', originCollectionId: 100 },
+  { collectionId: 11, collectionName: 'Other Collection', collectionType: 'C-PAT', originCollectionId: null }
 ];
 
 const mockBenchmarkData = [
@@ -336,14 +336,14 @@ describe('STIGManagerImportComponent', () => {
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn' }));
     });
 
-    it('should show warn when collection is not STIG Manager origin', () => {
+    it('should show warn when collection type is not STIG Manager', () => {
       component.user = { ...mockUser, lastCollectionAccessedId: 11 };
       component.validateStigManagerCollection();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn', detail: 'The current collection is not associated with STIG Manager.' }));
     });
 
     it('should show warn when originCollectionId is missing', () => {
-      mockCollectionsService.getCollectionBasicList.mockReturnValue(of([{ collectionId: 10, collectionName: 'Test', collectionOrigin: 'STIG Manager', originCollectionId: null }]));
+      mockCollectionsService.getCollectionBasicList.mockReturnValue(of([{ collectionId: 10, collectionName: 'Test', collectionType: 'STIG Manager', originCollectionId: null }]));
       component.user = mockUser;
       component.validateStigManagerCollection();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn' }));
