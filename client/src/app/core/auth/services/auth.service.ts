@@ -24,13 +24,13 @@ interface AuthState {
   providedIn: 'root'
 })
 export class AuthService {
-  private oidcSecurityService = inject(OidcSecurityService);
-  private usersService = inject(UsersService);
-  private router = inject(Router);
+  private readonly oidcSecurityService = inject(OidcSecurityService);
+  private readonly usersService = inject(UsersService);
+  private readonly router = inject(Router);
 
-  private currentUser = new BehaviorSubject<any>(null);
-  private accessLevel = new BehaviorSubject<number>(0);
-  private authState = new BehaviorSubject<AuthState>({
+  private readonly currentUser = new BehaviorSubject<any>(null);
+  private readonly accessLevel = new BehaviorSubject<number>(0);
+  private readonly authState = new BehaviorSubject<AuthState>({
     isAuthenticatedStigman: false,
     isAuthenticatedCpat: false
   });

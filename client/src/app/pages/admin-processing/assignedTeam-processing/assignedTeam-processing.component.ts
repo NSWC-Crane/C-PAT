@@ -46,13 +46,13 @@ interface AssignedTeam {
   imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule]
 })
 export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
-  private assetDeltaService = inject(AssetDeltaService);
-  private assignedTeamService = inject(AssignedTeamService);
-  private collectionsService = inject(CollectionsService);
-  private messageService = inject(MessageService);
-  private sharedService = inject(SharedService);
+  private readonly assetDeltaService = inject(AssetDeltaService);
+  private readonly assignedTeamService = inject(AssignedTeamService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly messageService = inject(MessageService);
+  private readonly sharedService = inject(SharedService);
 
-  readonly table = viewChild.required<Table>('dt');
+  private readonly table = viewChild.required<Table>('dt');
   private allCollections: CollectionsBasicList[] = [];
   assignedTeams: AssignedTeam[] = [];
   uniqueTeams: any;
@@ -63,7 +63,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   teamDialog: boolean = false;
   dialogMode: 'new' | 'edit' = 'new';
   selectedAdTeams: string[] = [];
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
 
   ngOnInit() {
     this.loadAssetDeltaList();

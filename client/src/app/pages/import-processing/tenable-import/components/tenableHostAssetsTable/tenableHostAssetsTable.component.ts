@@ -40,12 +40,12 @@ interface ExportColumn {
   imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, ToastModule, TooltipModule, TagModule, TenableHostDialogComponent]
 })
 export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
-  private importService = inject(ImportService);
-  private messageService = inject(MessageService);
+  private readonly importService = inject(ImportService);
+  private readonly messageService = inject(MessageService);
 
   @Input() tenableRepoId: number;
-  readonly hostAssetTable = viewChild.required<Table>('hostAssetTable');
-  readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly hostAssetTable = viewChild.required<Table>('hostAssetTable');
+  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
 
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -56,7 +56,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   filterValue: string = '';
   selectedHost = signal<any>(null);
   displayDialog = signal<boolean>(false);
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
 
   ngOnInit() {
     this.initColumnsAndFilters();

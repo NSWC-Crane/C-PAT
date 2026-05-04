@@ -87,15 +87,15 @@ import { TenableFiltersComponent } from '../../components/tenableFilters/tenable
   ]
 })
 export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
-  private importService = inject(ImportService);
-  private sanitizer = inject(DomSanitizer);
-  private cdr = inject(ChangeDetectorRef);
-  private collectionsService = inject(CollectionsService);
+  private readonly importService = inject(ImportService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly collectionsService = inject(CollectionsService);
   protected messageService = inject(MessageService);
-  private poamService = inject(PoamService);
-  private setPayloadService = inject(PayloadService);
-  private sharedService = inject(SharedService);
-  private router = inject(Router);
+  private readonly poamService = inject(PoamService);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly sharedService = inject(SharedService);
+  private readonly router = inject(Router);
 
   aaPackage: string = '';
   cveReferences: Reference[] = [];
@@ -140,15 +140,15 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   accessLevel = signal<number>(0);
   user: any;
   payload: any;
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
   @Input() parentSidebarVisible: boolean = false;
   @Input() currentPreset: string = 'main';
   readonly sidebarToggle = output<boolean>();
   readonly totalRecordsChange = output<number>();
 
-  readonly multiSelect = viewChild.required<MultiSelect>('ms');
-  readonly overlayPanel = viewChild.required<Popover>('op');
-  readonly table = viewChild.required<Table>('dt');
+  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly overlayPanel = viewChild.required<Popover>('op');
+  private readonly table = viewChild.required<Table>('dt');
 
   acceptRiskStatusOptions = [
     { label: 'All', value: 'all' },

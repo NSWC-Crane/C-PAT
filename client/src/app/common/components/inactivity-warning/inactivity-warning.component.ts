@@ -52,7 +52,7 @@ import { InactivityService } from '../../../core/auth/services/inactivity.servic
   ]
 })
 export class InactivityWarningComponent implements OnInit, OnDestroy {
-  private inactivityService = inject(InactivityService);
+  private readonly inactivityService = inject(InactivityService);
 
   visible = false;
   countdown = 60;

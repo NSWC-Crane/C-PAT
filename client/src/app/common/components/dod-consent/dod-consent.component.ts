@@ -22,7 +22,7 @@ import { DialogModule } from 'primeng/dialog';
   imports: [ButtonModule, DialogModule, FormsModule]
 })
 export class DoDConsentComponent implements OnInit {
-  private router = inject(Router);
+  private readonly router = inject(Router);
 
   visible: boolean = false;
 

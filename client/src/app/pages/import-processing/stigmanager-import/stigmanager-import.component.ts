@@ -75,15 +75,15 @@ interface STIGManagerFinding {
   ]
 })
 export class STIGManagerImportComponent implements OnInit, OnDestroy {
-  private router = inject(Router);
-  private collectionsService = inject(CollectionsService);
-  private sharedService = inject(SharedService);
-  private payloadService = inject(PayloadService);
-  private messageService = inject(MessageService);
-  private poamService = inject(PoamService);
+  private readonly router = inject(Router);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly sharedService = inject(SharedService);
+  private readonly payloadService = inject(PayloadService);
+  private readonly messageService = inject(MessageService);
+  private readonly poamService = inject(PoamService);
 
-  readonly findingsTable = viewChild.required<Table>('stigFindingsTable');
-  readonly benchmarksTable = viewChild.required<Table>('stigBenchmarksTable');
+  private readonly findingsTable = viewChild.required<Table>('stigFindingsTable');
+  private readonly benchmarksTable = viewChild.required<Table>('stigBenchmarksTable');
   allColumns = [
     {
       field: 'poam',
@@ -131,7 +131,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   public displayDataSource: STIGManagerFinding[] = [];
   public existingPoams: any[] = [];
   loadingTableInfo: boolean = true;
-  loadingSkeletonData: any[] = Array(15).fill({});
+  loadingSkeletonData: any[] = new Array(15).fill({});
   multiSortMeta: any[] = [];
   selectedCollection: any;
   stigmanCollection: any;
@@ -139,7 +139,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   benchmarkSummaries: any[] = [];
   selectedBenchmark: any = null;
   viewMode: 'summary' | 'findings' = 'summary';
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
   benchmarksCount: number = 0;
   findingsCount: number = 0;
   reviewsCount: number = 0;

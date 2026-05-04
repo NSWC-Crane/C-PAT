@@ -18,9 +18,9 @@ import { Label } from '../../common/models/label.model';
   providedIn: 'root'
 })
 export class LabelService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-  private cpatApiBase = CPAT.Env.apiBase;
+  private readonly cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {

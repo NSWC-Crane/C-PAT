@@ -299,30 +299,28 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
                         }
                         sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
                         await connection.query(sql_query, ['Pending CAT-I Approval', req.body.poamId]);
-                    } else {
-                        if (req.body.approvalStatus === 'Approved') {
-                            sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
-                            await connection.query(sql_query, ['Approved', req.body.poamId]);
+                    } else if (req.body.approvalStatus === 'Approved') {
+                        sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
+                        await connection.query(sql_query, ['Approved', req.body.poamId]);
 
-                            const statusNotification = {
-                                title: `POAM status changed to Approved`,
-                                message: `POAM ${req.body.poamId} has met the approval requirements. POAM Status has changed to Approved.`,
-                                userId: submitterId,
-                            };
-                            const statusNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                            await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
-                        } else if (req.body.approvalStatus === 'False-Positive') {
-                            sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
-                            await connection.query(sql_query, ['False-Positive', req.body.poamId]);
+                        const statusNotification = {
+                            title: `POAM status changed to Approved`,
+                            message: `POAM ${req.body.poamId} has met the approval requirements. POAM Status has changed to Approved.`,
+                            userId: submitterId,
+                        };
+                        const statusNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
+                        await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
+                    } else if (req.body.approvalStatus === 'False-Positive') {
+                        sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
+                        await connection.query(sql_query, ['False-Positive', req.body.poamId]);
 
-                            const statusNotification = {
-                                title: `POAM status changed to False-Positive`,
-                                message: `POAM ${req.body.poamId} has met the review requirements. POAM Status has changed to False-Positive.`,
-                                userId: submitterId,
-                            };
-                            const statusNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                            await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
-                        }
+                        const statusNotification = {
+                            title: `POAM status changed to False-Positive`,
+                            message: `POAM ${req.body.poamId} has met the review requirements. POAM Status has changed to False-Positive.`,
+                            userId: submitterId,
+                        };
+                        const statusNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
+                        await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
                     }
                 } else if (req.body.approvalStatus === 'Rejected') {
                     sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;

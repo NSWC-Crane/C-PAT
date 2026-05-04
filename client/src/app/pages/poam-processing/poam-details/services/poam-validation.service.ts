@@ -16,7 +16,7 @@ import { PoamVariableMappingService } from './poam-variable-mapping.service';
   providedIn: 'root'
 })
 export class PoamValidationService {
-  private mappingService = inject(PoamVariableMappingService);
+  private readonly mappingService = inject(PoamVariableMappingService);
 
   validateData(poam: any): { valid: boolean; message?: string } {
     if (!poam.status) {

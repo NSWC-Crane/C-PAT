@@ -34,7 +34,7 @@ exports.getCollections = async function getCollections(elevate, req) {
                 for (let counter = 0; counter < size; counter++) {
                     user.collections.push({
                         ...row2[counter],
-                        manualCreationAllowed: row2[counter].manualCreationAllowed != null ? Boolean(row2[counter].manualCreationAllowed) : null,
+                        manualCreationAllowed: row2[counter].manualCreationAllowed == null ? null : Boolean(row2[counter].manualCreationAllowed),
                     });
                 }
                 return user.collections;
@@ -57,7 +57,7 @@ exports.getCollections = async function getCollections(elevate, req) {
                     aaPackage: collection.aaPackage,
                     predisposingConditions: collection.predisposingConditions,
                     created: collection.created,
-                    manualCreationAllowed: collection.manualCreationAllowed != null ? Boolean(collection.manualCreationAllowed) : null,
+                    manualCreationAllowed: collection.manualCreationAllowed == null ? null : Boolean(collection.manualCreationAllowed),
                 }));
             }
         });
@@ -73,7 +73,7 @@ exports.getCollectionBasicList = async function getCollectionBasicList(req, res,
             const [rows] = await connection.query(sql);
             return rows.map(row => ({
                 ...row,
-                manualCreationAllowed: row.manualCreationAllowed != null ? Boolean(row.manualCreationAllowed) : null,
+                manualCreationAllowed: row.manualCreationAllowed == null ? null : Boolean(row.manualCreationAllowed),
             }));
         });
     } catch (error) {
@@ -121,7 +121,7 @@ exports.postCollection = async function postCollection(req, res, next) {
 
             const collection = {
                 ...rowCollection[0],
-                manualCreationAllowed: rowCollection[0].manualCreationAllowed != null ? Boolean(rowCollection[0].manualCreationAllowed) : null,
+                manualCreationAllowed: rowCollection[0].manualCreationAllowed == null ? null : Boolean(rowCollection[0].manualCreationAllowed),
             };
             return collection;
         });
@@ -172,7 +172,7 @@ exports.putCollection = async function putCollection(req, res, next) {
             message.ccsafa = req.body.ccsafa;
             message.aaPackage = req.body.aaPackage;
             message.predisposingConditions = req.body.predisposingConditions;
-            message.manualCreationAllowed = req.body.manualCreationAllowed != null ? Boolean(req.body.manualCreationAllowed) : null;
+            message.manualCreationAllowed = req.body.manualCreationAllowed == null ? null : Boolean(req.body.manualCreationAllowed);
             return message;
         });
     } catch (error) {

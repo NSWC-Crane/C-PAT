@@ -49,19 +49,19 @@ interface NavyComplyDateFilter {
   imports: [ButtonModule, CommonModule, DialogModule, SelectModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, SkeletonModule, TableModule, ToastModule, TooltipModule, TagModule]
 })
 export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestroy {
-  private importService = inject(ImportService);
-  private sanitizer = inject(DomSanitizer);
-  private messageService = inject(MessageService);
-  private poamService = inject(PoamService);
-  private collectionsService = inject(CollectionsService);
-  private sharedService = inject(SharedService);
-  private router = inject(Router);
+  private readonly importService = inject(ImportService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly messageService = inject(MessageService);
+  private readonly poamService = inject(PoamService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly sharedService = inject(SharedService);
+  private readonly router = inject(Router);
 
   readonly totalRecordsChange = output<number>();
   @Input() currentPreset: string = 'iav';
-  readonly table = viewChild.required<Table>('dt');
-  readonly select = viewChild.required<Select>('dd');
-  readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly table = viewChild.required<Table>('dt');
+  private readonly select = viewChild.required<Select>('dd');
+  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
   filters: { [key: string]: FilterMetadata[] } = {
     supersededBy: [{ value: 'N/A', matchMode: 'contains', operator: 'and' }],
     severity: [{ value: ['Low', 'Medium', 'High', 'Critical'], matchMode: 'in', operator: 'and' }]

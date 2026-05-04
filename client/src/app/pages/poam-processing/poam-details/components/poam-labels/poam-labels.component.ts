@@ -31,7 +31,7 @@ export class PoamLabelsComponent implements OnInit {
   @Input() poamService: any;
   readonly labelsChanged = output<any[]>();
 
-  private messageService = inject(MessageService);
+  private readonly messageService = inject(MessageService);
 
   ngOnInit() {
     if (!Array.isArray(this.poamLabels)) {

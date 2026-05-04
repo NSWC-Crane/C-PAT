@@ -38,14 +38,14 @@ interface UserCollectionPermission {
   providedIn: 'root'
 })
 export class PoamCreationService {
-  private importService = inject(ImportService);
-  private sharedService = inject(SharedService);
-  private appConfigurationService = inject(AppConfigurationService);
-  private collectionsService = inject(CollectionsService);
-  private assignedTeamService = inject(AssignedTeamService);
-  private assetService = inject(AssetService);
-  private mappingService = inject(PoamVariableMappingService);
-  private messageService = inject(MessageService);
+  private readonly importService = inject(ImportService);
+  private readonly sharedService = inject(SharedService);
+  private readonly appConfigurationService = inject(AppConfigurationService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly assignedTeamService = inject(AssignedTeamService);
+  private readonly assetService = inject(AssetService);
+  private readonly mappingService = inject(PoamVariableMappingService);
+  private readonly messageService = inject(MessageService);
 
   appConfigSettings: AppConfiguration[] = [];
 

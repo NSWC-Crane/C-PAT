@@ -15,9 +15,9 @@ import { catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AdminProcessingService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-  private cpatApiBase = CPAT.Env.apiBase;
+  private readonly cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: any) {
     let errorMessage = 'An unknown error occurred!';

@@ -53,7 +53,7 @@ interface SearchItem {
   ]
 })
 export class AppSearchComponent {
-  private router = inject(Router);
+  private readonly router = inject(Router);
 
   public filteredItems: SearchItem[] = [];
   public query: string = '';

@@ -75,12 +75,12 @@ interface AssetEntry {
 })
 export class AssetProcessingComponent implements OnInit, OnDestroy {
   private assetService = inject(AssetService);
-  private setPayloadService = inject(PayloadService);
-  private sharedService = inject(SharedService);
-  private collectionsService = inject(CollectionsService);
-  private messageService = inject(MessageService);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly sharedService = inject(SharedService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly messageService = inject(MessageService);
 
-  readonly assetTable = viewChild.required<Table>('assetTable');
+  private readonly assetTable = viewChild.required<Table>('assetTable');
   public assetLabel: any[] = [];
   chartData: any;
   chartOptions: any;
@@ -104,9 +104,9 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   protected accessLevel: number;
   user: any;
   payload: any;
-  private payloadSubscription: Subscription[] = [];
-  private subs = new SubSink();
-  private subscriptions = new Subscription();
+  private readonly payloadSubscription: Subscription[] = [];
+  private readonly subs = new SubSink();
+  private readonly subscriptions = new Subscription();
 
   constructor() {
     this.initializeChartOptions();

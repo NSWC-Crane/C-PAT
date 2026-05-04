@@ -29,10 +29,10 @@ import { AAPackageService } from './aaPackage-processing.service';
   imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
 })
 export class AAPackageProcessingComponent implements OnInit {
-  private aaPackageService = inject(AAPackageService);
-  private messageService = inject(MessageService);
+  private readonly aaPackageService = inject(AAPackageService);
+  private readonly messageService = inject(MessageService);
 
-  readonly table = viewChild.required<Table>('dt');
+  private readonly table = viewChild.required<Table>('dt');
 
   aaPackages: AAPackage[] = [];
   newAAPackage: AAPackage = { aaPackageId: 0, aaPackage: '' };

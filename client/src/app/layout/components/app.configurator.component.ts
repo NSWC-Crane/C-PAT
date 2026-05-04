@@ -133,9 +133,8 @@ export class AppConfiguratorComponent implements OnInit {
 
   configService: AppConfigService = inject(AppConfigService);
 
-  private payloadService = inject(PayloadService);
-
-  private userService = inject(UsersService);
+  private readonly payloadService = inject(PayloadService);
+  private readonly userService = inject(UsersService);
 
   platformId = inject(PLATFORM_ID);
 

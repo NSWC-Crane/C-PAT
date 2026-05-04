@@ -33,7 +33,7 @@ export class PoamApproversComponent implements OnInit {
   @Input() poamService: any;
   readonly approversChanged = output<any[]>();
 
-  private messageService = inject(MessageService);
+  private readonly messageService = inject(MessageService);
 
   ngOnInit() {
     if (!Array.isArray(this.poamApprovers)) {

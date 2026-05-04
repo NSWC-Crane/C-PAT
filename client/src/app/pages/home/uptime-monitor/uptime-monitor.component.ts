@@ -56,7 +56,7 @@ function formatHourLabel(d: Date): string {
   imports: [CommonModule, CardModule, DividerModule, SkeletonModule, TooltipModule]
 })
 export class UptimeMonitorComponent implements OnInit, OnDestroy {
-  private uptimeService = inject(UptimeService);
+  private readonly uptimeService = inject(UptimeService);
 
   isLoading = signal(true);
   uptimeData = signal<UptimeStatus | null>(null);
@@ -71,7 +71,7 @@ export class UptimeMonitorComponent implements OnInit, OnDestroy {
   chartContainer = viewChild<ElementRef<HTMLDivElement>>('chart');
 
   private chart: echarts.ECharts | null = null;
-  private subscription = new Subscription();
+  private readonly subscriptions = new Subscription();
 
   constructor() {
     effect(() => {
@@ -98,7 +98,7 @@ export class UptimeMonitorComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.subscription.add(
+    this.subscriptions.add(
       interval(300_000)
         .pipe(
           startWith(0),
@@ -118,7 +118,7 @@ export class UptimeMonitorComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.chart?.dispose();
     this.chart = null;
-    this.subscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   @HostListener('window:resize')

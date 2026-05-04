@@ -83,19 +83,19 @@ interface PermissionChangeSummary {
   providers: [ConfirmationService, MessageService]
 })
 export class UserComponent implements OnInit, OnChanges, OnDestroy {
-  private assignedTeamService = inject(AssignedTeamService);
-  private collectionsService = inject(CollectionsService);
-  private userService = inject(UsersService);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
-  private payloadService = inject(PayloadService);
+  private readonly assignedTeamService = inject(AssignedTeamService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly userService = inject(UsersService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
+  private readonly payloadService = inject(PayloadService);
 
   @Input() user: any;
   @Input() users: any;
   @Input() payload: any;
   readonly userChange = output<void>();
-  readonly teamTable = viewChild<Table>('teamTable');
-  readonly permissionsTable = viewChild<Table>('permissionsTable');
+  private readonly teamTable = viewChild<Table>('teamTable');
+  private readonly permissionsTable = viewChild<Table>('permissionsTable');
   accessLevelOptions = [
     { label: 'Viewer', value: 1 },
     { label: 'Submitter', value: 2 },
@@ -129,7 +129,7 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
   filteredOfficeOrgs: string[];
   showLastClaims: boolean = false;
   marketplaceDisabled: boolean = false;
-  private subs = new SubSink();
+  private readonly subs = new SubSink();
   teamCols: any[] = [
     { field: 'assignedTeamName', header: 'Assigned Teams' },
     { field: 'accessLevelLabel', header: 'Access Level' }

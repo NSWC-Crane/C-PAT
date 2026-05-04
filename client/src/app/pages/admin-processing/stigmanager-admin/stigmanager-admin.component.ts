@@ -37,16 +37,16 @@ interface STIGManagerCollection {
   providers: [ConfirmationService, MessageService]
 })
 export class STIGManagerAdminComponent implements OnInit, OnDestroy {
-  private collectionsService = inject(CollectionsService);
-  private sharedService = inject(SharedService);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly sharedService = inject(SharedService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
 
   stigmanCollections: STIGManagerCollection[] = [];
   filteredCollections: STIGManagerCollection[] = [];
   selectedSTIGManagerCollection: STIGManagerCollection | null = null;
   existingCollections: CollectionsBasicList[] = [];
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   ngOnInit() {
     this.fetchDataAndCompare();

@@ -79,8 +79,8 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req, res, n
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
                 submitterName: row.submitterName || null,
                 ownerName: row.ownerName || null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null,
-                isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null,
+                hqs: row.hqs == null ? null : Boolean(row.hqs),
+                isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
             }));
 
             if (req.query.approvers) {
@@ -151,8 +151,8 @@ exports.getPoam = async function getPoam(req, res, next) {
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null,
-                isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null,
+                hqs: row.hqs == null ? null : Boolean(row.hqs),
+                isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
             }))[0];
 
             if (req.query.approvers) {
@@ -213,8 +213,8 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null,
-                isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null,
+                hqs: row.hqs == null ? null : Boolean(row.hqs),
+                isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
             }));
 
             if (req.query.approvers) {
@@ -281,8 +281,8 @@ exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next)
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null,
-                isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null,
+                hqs: row.hqs == null ? null : Boolean(row.hqs),
+                isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
             }));
 
             if (req.query.approvers) {
@@ -476,8 +476,8 @@ exports.postPoam = async function postPoam(req) {
                     submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                     closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                     iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                    hqs: row.hqs != null ? Boolean(row.hqs) : null,
-                    isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null,
+                    hqs: row.hqs == null ? null : Boolean(row.hqs),
+                    isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
                 }))[0];
 
                 if (req.body.assignedTeams) {
@@ -743,8 +743,8 @@ exports.putPoam = async function putPoam(req, res, next) {
                     submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                     closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                     iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                    hqs: row.hqs != null ? Boolean(row.hqs) : null,
-                    isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null,
+                    hqs: row.hqs == null ? null : Boolean(row.hqs),
+                    isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
                 }))[0];
 
                 let poamId = req.body.poamId;
@@ -1025,8 +1025,8 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
                 submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
                 closedDate: row.closedDate ? row.closedDate.toISOString() : null,
                 iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs != null ? Boolean(row.hqs) : null,
-                isGlobalFinding: row.isGlobalFinding != null ? Boolean(row.isGlobalFinding) : null,
+                hqs: row.hqs == null ? null : Boolean(row.hqs),
+                isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
             }))[0];
 
             let poamId = req.params.poamId;

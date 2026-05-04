@@ -37,12 +37,12 @@ import { CsvExportService } from '../../../common/utils/csv-export.service';
   imports: [ButtonModule, CommonModule, SelectModule, FormsModule, InputIconModule, InputTextModule, IconFieldModule, TableModule, TreeTableModule, UserComponent]
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {
-  private collectionsService = inject(CollectionsService);
-  private userService = inject(UsersService);
-  private confirmationService = inject(ConfirmationService);
-  private router = inject(Router);
-  private setPayloadService = inject(PayloadService);
-  private csvExportService = inject(CsvExportService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly userService = inject(UsersService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly router = inject(Router);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly csvExportService = inject(CsvExportService);
 
   readonly usersTable = viewChild.required<TreeTable>('usersTable');
   public isLoggedIn = false;
@@ -57,8 +57,8 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   protected accessLevel: any;
   user: any = {};
   payload: any;
-  private payloadSubscription: Subscription[] = [];
-  private subs = new SubSink();
+  private readonly payloadSubscription: Subscription[] = [];
+  private readonly subs = new SubSink();
 
   onSubmit() {
     this.resetData();

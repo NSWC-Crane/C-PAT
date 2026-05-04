@@ -15,11 +15,11 @@ import { catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class SharedService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-  private cpatApiBase = CPAT.Env.apiBase;
-  private STIGMANAGER_URL = CPAT.Env.stigman.apiUrl;
-  private _selectedCollection = new BehaviorSubject<any>(null);
+  private readonly cpatApiBase = CPAT.Env.apiBase;
+  private readonly STIGMANAGER_URL = CPAT.Env.stigman.apiUrl;
+  private readonly _selectedCollection = new BehaviorSubject<any>(null);
   public readonly selectedCollection = this._selectedCollection.asObservable();
 
   private handleError(error: any) {

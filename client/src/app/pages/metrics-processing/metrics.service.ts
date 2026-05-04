@@ -37,8 +37,8 @@ export interface MTTRData {
   providedIn: 'root'
 })
 export class MetricsService {
-  private http = inject(HttpClient);
-  private cpatApiBase = CPAT.Env.apiBase;
+  private readonly http = inject(HttpClient);
+  private readonly cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {

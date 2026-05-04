@@ -29,7 +29,7 @@ import { SharedService } from '../../common/services/shared.service';
   imports: [FormsModule]
 })
 export class AppClassificationComponent implements OnInit {
-  private sharedService = inject(SharedService);
+  private readonly sharedService = inject(SharedService);
 
   classification: Classification | undefined;
   isClassificationActive: boolean = false;

@@ -49,10 +49,10 @@ export interface HighRiskAsset {
   imports: [CommonModule, FormsModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule, ProgressSpinnerModule, TableModule, TooltipModule, TenableHostDialogComponent]
 })
 export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy {
-  private importService = inject(ImportService);
+  private readonly importService = inject(ImportService);
 
   @Input({ required: true }) tenableRepoId!: number;
-  readonly highRiskAssetTable = viewChild.required<Table>('highRiskAssetTable');
+  private readonly highRiskAssetTable = viewChild.required<Table>('highRiskAssetTable');
   highRiskAssets = signal<HighRiskAsset[]>([]);
   highRiskAssetsTotalRecords = signal<number>(0);
   isLoading = signal<boolean>(false);
@@ -60,7 +60,7 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
   displayDialog = signal<boolean>(false);
   filterValue: string = '';
 
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tenableRepoId'] && this.tenableRepoId) {

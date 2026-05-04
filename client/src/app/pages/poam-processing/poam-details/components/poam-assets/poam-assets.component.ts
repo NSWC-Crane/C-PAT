@@ -40,13 +40,13 @@ export class PoamAssetsComponent implements OnChanges {
   @Input() poamAssignedTeams: any[] = [];
   @Input() poamAssociatedVulnerabilities: any[] = [];
   readonly assetsChanged = output<any[]>();
-  private poamAssetsSignal = signal<any[]>([]);
-  private assetListSignal = signal<any[]>([]);
-  private messageService = inject(MessageService);
+  private readonly poamAssetsSignal = signal<any[]>([]);
+  private readonly assetListSignal = signal<any[]>([]);
+  private readonly messageService = inject(MessageService);
   private previousTeamCount = 0;
   private previousTeams: any[] = [];
 
-  private assetNameMap = computed(() => {
+  private readonly assetNameMap = computed(() => {
     const map = new Map<number, string>();
 
     for (const asset of this.assetListSignal()) {

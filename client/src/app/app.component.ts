@@ -25,10 +25,10 @@ import { InactivityWarningComponent } from './common/components/inactivity-warni
   imports: [RouterOutlet, InactivityWarningComponent]
 })
 export class AppComponent implements OnInit, OnDestroy {
-  private authService = inject(AuthService);
-  private sharedService = inject(SharedService);
-  private payloadService = inject(PayloadService);
-  private inactivityService = inject(InactivityService);
+  private readonly authService = inject(AuthService);
+  private readonly sharedService = inject(SharedService);
+  private readonly payloadService = inject(PayloadService);
+  private readonly inactivityService = inject(InactivityService);
 
   classification: Classification | undefined;
   private authSubscription: Subscription | undefined;

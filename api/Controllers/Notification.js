@@ -49,7 +49,7 @@ module.exports.dismissNotification = async function dismissNotification(req, res
         const notificationId = req.params.notificationId;
         const unreadNotifications = await notificationService.dismissNotification(userId, notificationId);
 
-        if (unreadNotifications !== null) {
+        if (unreadNotifications) {
             res.status(200).json(unreadNotifications);
         } else {
             res.status(404).json({ error: 'Notification not found' });

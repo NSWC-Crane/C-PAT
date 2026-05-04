@@ -125,21 +125,21 @@ import { PayloadService } from '../../common/services/setPayload.service';
   </div>`
 })
 export class AppTopBarComponent implements OnInit, OnDestroy {
-  private document = inject<Document>(DOCUMENT);
-  private userService = inject(UsersService);
-  private el = inject(ElementRef);
-  private renderer = inject(Renderer2);
-  private configService = inject(AppConfigService);
-  private router = inject(Router);
-  private notificationService = inject(NotificationService);
-  private payloadService = inject(PayloadService);
+  private readonly document = inject<Document>(DOCUMENT);
+  private readonly userService = inject(UsersService);
+  private readonly el = inject(ElementRef);
+  private readonly renderer = inject(Renderer2);
+  private readonly configService = inject(AppConfigService);
+  private readonly router = inject(Router);
+  private readonly notificationService = inject(NotificationService);
+  private readonly payloadService = inject(PayloadService);
 
   @Input({ transform: booleanAttribute }) showConfigurator = true;
   scrollListener: VoidFunction | null = null;
-  private window: Window;
+  private readonly window: Window;
   notificationCount: number | null = null;
   readonly docsDisabled: boolean;
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
   readonly user$ = inject(AuthService).user$;
   readonly basePath: string;
   constructor() {

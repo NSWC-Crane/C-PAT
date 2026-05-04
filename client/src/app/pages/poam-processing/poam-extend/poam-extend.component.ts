@@ -74,20 +74,20 @@ import { PoamService } from '../poams.service';
 })
 export class PoamExtendComponent implements OnInit, OnDestroy {
   @ViewChild('dt') table!: Table;
-  private assignedTeamService = inject(AssignedTeamService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private poamService = inject(PoamService);
-  private sharedService = inject(SharedService);
-  private poamExtensionService = inject(PoamExtensionService);
-  private confirmationService = inject(ConfirmationService);
-  private labelService = inject(LabelService);
-  private messageService = inject(MessageService);
-  private poamMitigationService = inject(PoamMitigationService);
-  private setPayloadService = inject(PayloadService);
+  private readonly assignedTeamService = inject(AssignedTeamService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly poamService = inject(PoamService);
+  private readonly sharedService = inject(SharedService);
+  private readonly poamExtensionService = inject(PoamExtensionService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly labelService = inject(LabelService);
+  private readonly messageService = inject(MessageService);
+  private readonly poamMitigationService = inject(PoamMitigationService);
+  private readonly setPayloadService = inject(PayloadService);
 
-  private subscriptions = new Subscription();
-  private payloadSubscription: Subscription[] = [];
+  private readonly subscriptions = new Subscription();
+  private readonly payloadSubscription: Subscription[] = [];
 
   selectedCollection: any;
   user: any;

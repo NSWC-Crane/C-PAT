@@ -80,16 +80,16 @@ interface FilterState {
   ]
 })
 export class STIGManagerReviewsTableComponent implements OnInit {
-  private messageService = inject(MessageService);
-  private sharedService = inject(SharedService);
-  private csvExportService = inject(CsvExportService);
+  private readonly messageService = inject(MessageService);
+  private readonly sharedService = inject(SharedService);
+  private readonly csvExportService = inject(CsvExportService);
 
   readonly reviewsCountChange = output<number>();
   @Input() stigmanCollectionId!: number;
-  readonly multiSelect = viewChild.required<MultiSelect>('ms');
-  readonly benchmarkMultiSelect = viewChild.required<MultiSelect>('benchmarkMs');
+  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly benchmarkMultiSelect = viewChild.required<MultiSelect>('benchmarkMs');
   readonly treeTable = viewChild.required<TreeTable>('tt');
-  readonly filterPopover = viewChild.required<Popover>('filterPopover');
+  private readonly filterPopover = viewChild.required<Popover>('filterPopover');
   currentFilterColumn: any = null;
   treeNodes: TreeNode[] = [];
   assetCount: number = 0;
@@ -114,7 +114,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     result: 'fail'
   };
 
-  readonly resultMapping: ValueMapping = {
+  private readonly resultMapping: ValueMapping = {
     all: 'All',
     notchecked: 'Not checked',
     notapplicable: 'Not Applicable',
@@ -127,20 +127,20 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     fixed: 'Fixed'
   };
 
-  readonly severityMapping: ValueMapping = {
+  private readonly severityMapping: ValueMapping = {
     low: 'CAT III - Low',
     medium: 'CAT II - Medium',
     high: 'CAT I - High'
   };
 
-  readonly statusMapping: ValueMapping = {
+  private readonly statusMapping: ValueMapping = {
     saved: 'Saved',
     submitted: 'Submitted',
     rejected: 'Rejected',
     accepted: 'Accepted'
   };
 
-  readonly statusIcons = {
+  private readonly statusIcons = {
     Accepted: 'pi-star',
     Rejected: 'pi-times-circle',
     Saved: 'pi-bookmark-fill',

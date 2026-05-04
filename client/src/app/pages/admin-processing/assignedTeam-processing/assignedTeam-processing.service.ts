@@ -28,9 +28,9 @@ interface AssignedTeamPermission {
   providedIn: 'root'
 })
 export class AssignedTeamService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-  private cpatApiBase = CPAT.Env.apiBase;
+  private readonly cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: any) {
     console.error('An error occurred:', error);

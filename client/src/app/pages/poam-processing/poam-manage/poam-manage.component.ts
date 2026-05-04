@@ -36,12 +36,12 @@ import { PoamMilestoneGridComponent } from '../poam-milestone-grid/poam-mileston
   imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamGridComponent, PoamMilestoneGridComponent]
 })
 export class PoamManageComponent implements OnInit, OnDestroy {
-  private collectionsService = inject(CollectionsService);
-  private sharedService = inject(SharedService);
-  private router = inject(Router);
-  private setPayloadService = inject(PayloadService);
-  private importService = inject(ImportService);
-  private messageService = inject(MessageService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly sharedService = inject(SharedService);
+  private readonly router = inject(Router);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly importService = inject(ImportService);
+  private readonly messageService = inject(MessageService);
 
   catIPieChartData = signal<any[]>([]);
   catIIPieChartData = signal<any[]>([]);
@@ -68,7 +68,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
   payload = signal<any>(null);
   accessLevel = signal<number>(0);
   isGridExpanded = signal<boolean>(false);
-  private subs = new SubSink();
+  private readonly subs = new SubSink();
 
   private readonly CLOSED_STATUSES = new Set(['Closed', 'Draft', 'False-Positive']);
   private readonly PENDING_STATUSES = new Set(['Submitted', 'Extension Requested', 'Pending CAT-I Approval']);

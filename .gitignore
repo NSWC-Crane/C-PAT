@@ -183,3 +183,5 @@ cython_debug/
 .prettierignore
 .serena
 client/out-tsc
+sonar-project.properties
+.mcp.json

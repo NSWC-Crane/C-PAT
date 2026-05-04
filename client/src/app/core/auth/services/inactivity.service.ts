@@ -19,10 +19,10 @@ import { PayloadService } from '../../../common/services/setPayload.service';
   providedIn: 'root'
 })
 export class InactivityService {
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private payloadService = inject(PayloadService);
-  private ngZone = inject(NgZone);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly payloadService = inject(PayloadService);
+  private readonly ngZone = inject(NgZone);
 
   private readonly DEFAULT_INACTIVITY_TIMEOUT = CPAT.Env.inactivityTimeout || 900000;
   private readonly ADMIN_INACTIVITY_TIMEOUT = CPAT.Env.adminInactivityTimeout || 600000;
@@ -30,7 +30,7 @@ export class InactivityService {
   private readonly CHECK_INTERVAL = 10000;
 
   private destroy$ = new Subject<void>();
-  private showWarning$ = new Subject<{ show: boolean; countdown?: number }>();
+  private readonly showWarning$ = new Subject<{ show: boolean; countdown?: number }>();
   public warningState$ = this.showWarning$.asObservable();
 
   private checkSubscription?: Subscription;

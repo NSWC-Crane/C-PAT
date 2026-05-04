@@ -16,7 +16,7 @@ import { AppConfiguration } from '../../../../common/models/appConfiguration.mod
   providedIn: 'root'
 })
 export class PoamVariableMappingService {
-  private severityToRatingMap: any = {
+  private readonly severityToRatingMap: any = {
     'CAT I - Critical': 'Very High',
     'CAT I - High': 'High',
     'CAT II - Medium': 'Moderate',

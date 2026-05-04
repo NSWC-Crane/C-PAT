@@ -29,10 +29,10 @@ import { AppConfigurationService } from './app-configuration.service';
   imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
 })
 export class AppConfigurationComponent implements OnInit {
-  private appConfigurationService = inject(AppConfigurationService);
-  private messageService = inject(MessageService);
+  private readonly appConfigurationService = inject(AppConfigurationService);
+  private readonly messageService = inject(MessageService);
 
-  readonly table = viewChild.required<Table>('dt');
+  private readonly table = viewChild.required<Table>('dt');
 
   appConfiguration: AppConfiguration[] = [];
   editingAppConfiguration: AppConfiguration | null = null;

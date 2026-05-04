@@ -39,10 +39,10 @@ interface ExportColumn {
   imports: [FormsModule, ButtonModule, DialogModule, SkeletonModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule, ToastModule]
 })
 export class TenableSolutionsComponent implements OnInit, OnDestroy {
-  private importService = inject(ImportService);
-  private collectionsService = inject(CollectionsService);
-  private sharedService = inject(SharedService);
-  private messageService = inject(MessageService);
+  private readonly importService = inject(ImportService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly sharedService = inject(SharedService);
+  private readonly messageService = inject(MessageService);
 
   solutions: any[] = [];
   cols: any[];
@@ -57,10 +57,10 @@ export class TenableSolutionsComponent implements OnInit, OnDestroy {
   dialogFilterValue: string = '';
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
-  readonly table = viewChild.required<Table>('dt');
-  readonly dialogTable = viewChild.required<Table>('dialogTable');
+  private readonly table = viewChild.required<Table>('dt');
+  private readonly dialogTable = viewChild.required<Table>('dialogTable');
   readonly vulnDetailsTable = viewChild.required<Table>('vulnDetailsTable');
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
 
   ngOnInit() {
     this.loadingSolutions = true;

@@ -40,14 +40,14 @@ import { LabelComponent } from './label/label.component';
   imports: [FormsModule, ButtonModule, CardModule, DialogModule, SelectModule, InputTextModule, InputIconModule, IconFieldModule, TableModule, ToastModule, TooltipModule, LabelComponent]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
-  private labelService = inject(LabelService);
-  private dialogService = inject(DialogService);
-  private setPayloadService = inject(PayloadService);
-  private sharedService = inject(SharedService);
-  private messageService = inject(MessageService);
+  private readonly labelService = inject(LabelService);
+  private readonly dialogService = inject(DialogService);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly sharedService = inject(SharedService);
+  private readonly messageService = inject(MessageService);
 
   readonly labelPopup = viewChild.required<TemplateRef<any>>('labelPopup');
-  readonly labelTable = viewChild.required<Table>('labelTable');
+  private readonly labelTable = viewChild.required<Table>('labelTable');
   labelDialogVisible: boolean = false;
   customColumn = 'label';
   defaultColumns = ['Name', 'Description'];
@@ -66,9 +66,9 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   protected accessLevel: any;
   user: any;
   payload: any;
-  private payloadSubscription: Subscription[] = [];
-  private subscriptions = new Subscription();
-  private subs = new SubSink();
+  private readonly payloadSubscription: Subscription[] = [];
+  private readonly subscriptions = new Subscription();
+  private readonly subs = new SubSink();
 
   onSubmit() {
     this.resetData();

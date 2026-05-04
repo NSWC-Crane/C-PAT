@@ -24,8 +24,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
   imports: [ButtonModule, CardModule, DialogModule, FormsModule, ProgressBarModule]
 })
 export class StatusMessageComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   @Input() statusCode: number;
   message: string = '';

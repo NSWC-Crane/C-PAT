@@ -52,9 +52,8 @@ const EXCLUDED_POAM_STATUSES = new Set(['Closed', 'Draft']);
   imports: [NgTemplateOutlet, ButtonModule, CardModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, TableModule, TabsModule, TagModule, TooltipModule]
 })
 export class PoamMilestoneGridComponent {
-  private router = inject(Router);
-  private csvExportService = inject(CsvExportService);
-
+  private readonly router = inject(Router);
+  private readonly csvExportService = inject(CsvExportService);
   readonly allTable = viewChild<Table>('allDt');
   readonly needsAttentionTable = viewChild<Table>('needsAttentionDt');
   readonly teamTable = viewChild<Table>('teamDt');
@@ -63,12 +62,12 @@ export class PoamMilestoneGridComponent {
   globalFilterNeedsAttention = signal<string>('');
   globalFilterTeam = signal<string>('');
 
-  private poamsSignal = signal<Poam[]>([]);
+  private readonly poamsSignal = signal<Poam[]>([]);
   @Input() set poams(value: Poam[]) {
     this.poamsSignal.set(value || []);
   }
 
-  private userSignal = signal<any>(null);
+  private readonly userSignal = signal<any>(null);
   @Input() set user(value: any) {
     this.userSignal.set(value);
   }
@@ -78,7 +77,7 @@ export class PoamMilestoneGridComponent {
     this.accessLevelSignal.set(value);
   }
 
-  readonly poamStatusOptions = [
+  protected readonly poamStatusOptions = [
     { label: 'Approved', value: 'Approved' },
     { label: 'Expired', value: 'Expired' },
     { label: 'Extension Requested', value: 'Extension Requested' },
@@ -88,7 +87,7 @@ export class PoamMilestoneGridComponent {
     { label: 'Submitted', value: 'Submitted' }
   ];
 
-  readonly milestoneStatusOptions = [
+  protected readonly milestoneStatusOptions = [
     { label: 'Complete', value: 'Complete' },
     { label: 'Pending', value: 'Pending' }
   ];

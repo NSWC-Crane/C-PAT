@@ -33,12 +33,12 @@ import { getErrorMessage } from '../../../../common/utils/error-utils';
   imports: [ButtonModule, CardModule, CommonModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, TableModule, ToastModule, TagModule]
 })
 export class STIGManagerAssetsTableComponent implements OnInit {
-  private messageService = inject(MessageService);
-  private sharedService = inject(SharedService);
+  private readonly messageService = inject(MessageService);
+  private readonly sharedService = inject(SharedService);
 
   @Input() stigmanCollectionId!: number;
-  readonly table = viewChild.required<Table>('dt');
-  readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly table = viewChild.required<Table>('dt');
+  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
 
   cols: any[];
   selectedColumns: any[];

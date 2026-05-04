@@ -37,7 +37,7 @@ exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
             assignedTeamId: row.assignedTeamId,
             assignedTeamName: row.assignedTeamName,
             mitigationText: row.mitigationText,
-            isActive: row.isActive != null ? Boolean(row.isActive) : null,
+            isActive: row.isActive == null ? null : Boolean(row.isActive),
         }));
         return { poamTeamMitigations };
     });
@@ -64,7 +64,7 @@ exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsBy
             assignedTeamId: row.assignedTeamId,
             assignedTeamName: row.assignedTeamName,
             mitigationText: row.mitigationText,
-            isActive: row.isActive != null ? Boolean(row.isActive) : null,
+            isActive: row.isActive == null ? null : Boolean(row.isActive),
         }));
         return poamTeamMitigations;
     });
@@ -89,7 +89,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
                 await connection.query(updateSql, [existingTeamMitigation[0].mitigationId]);
 
                 const result = { ...existingTeamMitigation[0] };
-                result.isActive = result.isActive != null ? Boolean(result.isActive) : null;
+                result.isActive = result.isActive == null ? null : Boolean(result.isActive);
                 return result;
             }
 
@@ -114,7 +114,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
 
             if (newTeamMitigation.length > 0) {
                 const result = { ...newTeamMitigation[0] };
-                result.isActive = result.isActive != null ? Boolean(result.isActive) : null;
+                result.isActive = result.isActive == null ? null : Boolean(result.isActive);
                 return result;
             } else {
                 throw new Error('Team Mitigation not found after insertion');
@@ -126,7 +126,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
                     const [existingTeamMitigation] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
                     if (existingTeamMitigation.length > 0) {
                         const result = { ...existingTeamMitigation[0] };
-                        result.isActive = result.isActive != null ? Boolean(result.isActive) : null;
+                        result.isActive = result.isActive == null ? null : Boolean(result.isActive);
                         return result;
                     } else {
                         return existingTeamMitigation[0];
@@ -168,7 +168,7 @@ exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, 
 
             if (teamMitigation.length > 0) {
                 const result = { ...teamMitigation[0] };
-                result.isActive = result.isActive != null ? Boolean(result.isActive) : null;
+                result.isActive = result.isActive == null ? null : Boolean(result.isActive);
                 return result;
             } else {
                 throw new Error('Team Mitigation not found after update');
@@ -227,7 +227,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
 
                     if (teamMitigation.length > 0) {
                         const result = { ...teamMitigation[0] };
-                        result.isActive = result.isActive != null ? Boolean(result.isActive) : null;
+                        result.isActive = result.isActive == null ? null : Boolean(result.isActive);
                         result.assignedTeamName = teamName;
                         return result;
                     } else {

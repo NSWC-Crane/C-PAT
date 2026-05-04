@@ -16,9 +16,9 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class PoamAttachmentService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-  private cpatApiBase = CPAT.Env.apiBase;
+  private readonly cpatApiBase = CPAT.Env.apiBase;
 
   getAttachmentsByPoamId(poamId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.cpatApiBase}/poamAttachments/poam/${poamId}`);

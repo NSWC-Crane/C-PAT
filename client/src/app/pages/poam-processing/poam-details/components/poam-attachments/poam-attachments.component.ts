@@ -33,11 +33,11 @@ import { PoamAttachmentService } from '../../services/poam-attachments.service';
   imports: [CommonModule, FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, ToastModule, TooltipModule, DatePipe]
 })
 export class PoamAttachmentsComponent implements OnInit, OnDestroy {
-  private messageService = inject(MessageService);
-  private poamAttachmentService = inject(PoamAttachmentService);
-  private setPayloadService = inject(PayloadService);
+  private readonly messageService = inject(MessageService);
+  private readonly poamAttachmentService = inject(PoamAttachmentService);
+  private readonly setPayloadService = inject(PayloadService);
 
-  readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
+  private readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
   @Input() poamId: number | string;
   private accessLevelSubscription: Subscription;
   protected accessLevel: any;

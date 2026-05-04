@@ -39,12 +39,12 @@ import { PoamService } from '../../poam-processing/poams.service';
   imports: [CommonModule, FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, ToastModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
-  private labelService = inject(LabelService);
-  private poamService = inject(PoamService);
-  private dialogService = inject(DialogService);
-  private sharedService = inject(SharedService);
-  private messageService = inject(MessageService);
-  private setPayloadService = inject(PayloadService);
+  private readonly labelService = inject(LabelService);
+  private readonly poamService = inject(PoamService);
+  private readonly dialogService = inject(DialogService);
+  private readonly sharedService = inject(SharedService);
+  private readonly messageService = inject(MessageService);
+  private readonly setPayloadService = inject(PayloadService);
 
   @Input() label: any;
   @Input() labels: any;
@@ -54,8 +54,8 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   data: any = [];
   showLaborCategorySelect: boolean = false;
   selectedCollection: any;
-  private subscriptions = new Subscription();
-  private subs = new SubSink();
+  private readonly subscriptions = new Subscription();
+  private readonly subs = new SubSink();
   protected accessLevel: any;
   displayPoams: any[] = [];
   loadingPoams: boolean = false;

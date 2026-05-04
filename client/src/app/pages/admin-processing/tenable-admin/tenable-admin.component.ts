@@ -38,16 +38,16 @@ interface TenableRepository {
   providers: [ConfirmationService, MessageService]
 })
 export class TenableAdminComponent implements OnInit, OnDestroy {
-  private collectionsService = inject(CollectionsService);
-  private importService = inject(ImportService);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly importService = inject(ImportService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
 
   tenableRepositories: TenableRepository[] = [];
   filteredRepositories: TenableRepository[] = [];
   selectedTenableRepository: TenableRepository | null = null;
   existingCollections: CollectionsBasicList[] = [];
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   ngOnInit() {
     this.fetchDataAndCompare();

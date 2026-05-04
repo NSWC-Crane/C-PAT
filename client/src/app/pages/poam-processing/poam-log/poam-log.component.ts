@@ -33,12 +33,12 @@ interface FSEntry {
   imports: [DialogModule, TableModule, ToastModule]
 })
 export class PoamLogComponent implements OnInit, OnDestroy {
-  private router = inject(Router);
-  private sharedService = inject(SharedService);
-  private route = inject(ActivatedRoute);
-  private poamLogService = inject(PoamLogService);
-  private messageService = inject(MessageService);
-  private subscriptions = new Subscription();
+  private readonly router = inject(Router);
+  private readonly sharedService = inject(SharedService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly poamLogService = inject(PoamLogService);
+  private readonly messageService = inject(MessageService);
+  private readonly subscriptions = new Subscription();
 
   customColumn = 'Timestamp';
   defaultColumns = ['User', 'Action'];
