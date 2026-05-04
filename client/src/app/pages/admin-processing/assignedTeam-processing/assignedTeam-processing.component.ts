@@ -22,6 +22,7 @@ import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, Subscription, catchError, firstValueFrom } from 'rxjs';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { Permission } from '../../../common/models/permission.model';
@@ -43,7 +44,7 @@ interface AssignedTeam {
   templateUrl: './assignedTeam-processing.component.html',
   styleUrls: ['./assignedTeam-processing.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule]
+  imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule, TooltipModule]
 })
 export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   private readonly assetDeltaService = inject(AssetDeltaService);

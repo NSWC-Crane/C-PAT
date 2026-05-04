@@ -22,6 +22,7 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 
@@ -30,7 +31,7 @@ import { getErrorMessage } from '../../../../common/utils/error-utils';
   templateUrl: './stigManagerAssetsTable.component.html',
   styleUrls: ['./stigManagerAssetsTable.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CardModule, CommonModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, TableModule, ToastModule, TagModule]
+  imports: [ButtonModule, CardModule, CommonModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, TableModule, ToastModule, TagModule, TooltipModule]
 })
 export class STIGManagerAssetsTableComponent implements OnInit {
   private readonly messageService = inject(MessageService);
