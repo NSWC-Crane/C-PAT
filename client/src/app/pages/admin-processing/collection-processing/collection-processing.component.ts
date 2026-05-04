@@ -81,6 +81,19 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   displayCollectionDialog: boolean = false;
   dialogMode: 'add' | 'modify' = 'add';
   editingCollection: any = {};
+  collectionTypeOptions = [
+    { label: 'C-PAT', value: 'C-PAT' },
+    { label: 'STIG Manager', value: 'STIG Manager' },
+    { label: 'Tenable', value: 'Tenable' }
+  ];
+  originCollectionOptions: { label: string; value: number }[] = [];
+  loadingOriginCollections: boolean = false;
+  previousCollectionType: string | null = null;
+  pendingCollectionType: string | null = null;
+  displayCollectionTypeConfirmDialog: boolean = false;
+  previousOriginCollectionId: number | null = null;
+  pendingOriginCollectionId: number | null = null;
+  displayOriginIdConfirmDialog: boolean = false;
   protected accessLevel: any;
   user: any;
   payload: any;
@@ -192,7 +205,9 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             'Predisposing Conditions': collection.predisposingConditions || '',
             'Collection Type': collection.collectionType || 'C-PAT',
             'Origin Collection ID': collection.originCollectionId ?? 0,
-            'Manual Creation Allowed': collection.manualCreationAllowed ?? true
+            'Manual Creation Allowed': collection.manualCreationAllowed ?? true,
+            _collectionType: collection.collectionType || 'C-PAT',
+            _originCollectionId: collection.originCollectionId ?? 0
           },
           children: myChildren
         };
@@ -418,8 +433,22 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   saveCollection() {
     if (!this.editingCollection.collectionName?.trim()) return;
 
+    const collectionType = this.editingCollection.collectionType || 'C-PAT';
+
+    if (collectionType !== 'C-PAT' && (this.editingCollection.originCollectionId === null || this.editingCollection.originCollectionId === undefined)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Origin Collection Required',
+        detail: `Please select a ${collectionType} collection.`
+      });
+
+      return;
+    }
+
     const collectionToSave = {
       ...this.editingCollection,
+      collectionType: collectionType,
+      originCollectionId: collectionType === 'C-PAT' ? 0 : this.editingCollection.originCollectionId,
       collectionId: Number.parseInt(this.dialogMode === 'add' ? '0' : this.editingCollection.collectionId || '0', 10)
     };
 
@@ -463,13 +492,21 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       ccsafa: '',
       aaPackage: '',
       predisposingConditions: '',
-      manualCreationAllowed: true
+      manualCreationAllowed: true,
+      collectionType: 'C-PAT',
+      originCollectionId: 0
     };
+    this.previousCollectionType = 'C-PAT';
+    this.previousOriginCollectionId = 0;
+    this.originCollectionOptions = [];
     this.displayCollectionDialog = true;
   }
 
   showModifyCollectionDialog(rowData: any) {
     this.dialogMode = 'modify';
+    const collectionType = rowData._collectionType || rowData['Collection Type'] || 'C-PAT';
+    const originId = rowData._originCollectionId ?? rowData['Origin Collection ID'] ?? 0;
+
     this.editingCollection = {
       collectionId: rowData['Collection ID'].toString(),
       collectionName: rowData['Name'],
@@ -479,9 +516,118 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       ccsafa: rowData['CC/S/A/FA'],
       aaPackage: rowData['A&A Package'],
       predisposingConditions: rowData['Predisposing Conditions'],
-      manualCreationAllowed: rowData['Manual Creation Allowed'] ?? true
+      manualCreationAllowed: rowData['Manual Creation Allowed'] ?? true,
+      collectionType: collectionType,
+      originCollectionId: collectionType === 'C-PAT' ? 0 : originId
     };
+    this.previousCollectionType = collectionType;
+    this.previousOriginCollectionId = collectionType === 'C-PAT' ? 0 : originId;
+    this.originCollectionOptions = [];
+
+    if (collectionType !== 'C-PAT') {
+      this.loadOriginCollections(collectionType);
+    }
+
     this.displayCollectionDialog = true;
+  }
+
+  onCollectionTypeChange(newCollectionType: string) {
+    if (newCollectionType === this.previousCollectionType) return;
+
+    if (this.dialogMode === 'add') {
+      this.applyCollectionTypeChange(newCollectionType);
+
+      return;
+    }
+
+    this.pendingCollectionType = newCollectionType;
+    this.editingCollection.collectionType = this.previousCollectionType;
+    this.displayCollectionTypeConfirmDialog = true;
+  }
+
+  confirmCollectionTypeChange() {
+    if (this.pendingCollectionType) {
+      this.applyCollectionTypeChange(this.pendingCollectionType);
+    }
+
+    this.pendingCollectionType = null;
+    this.displayCollectionTypeConfirmDialog = false;
+  }
+
+  cancelCollectionTypeChange() {
+    this.pendingCollectionType = null;
+    this.displayCollectionTypeConfirmDialog = false;
+  }
+
+  private applyCollectionTypeChange(newCollectionType: string) {
+    this.editingCollection.collectionType = newCollectionType;
+    this.previousCollectionType = newCollectionType;
+
+    if (newCollectionType === 'C-PAT') {
+      this.editingCollection.originCollectionId = 0;
+      this.previousOriginCollectionId = 0;
+      this.originCollectionOptions = [];
+
+      return;
+    }
+
+    this.editingCollection.originCollectionId = null;
+    this.previousOriginCollectionId = null;
+    this.originCollectionOptions = [];
+    this.loadOriginCollections(newCollectionType);
+  }
+
+  private loadOriginCollections(collectionType: string) {
+    this.loadingOriginCollections = true;
+
+    const source$ =
+      collectionType === 'STIG Manager'
+        ? this.sharedService.getCollectionsFromSTIGMAN().pipe(map((list: any[]) => (list ?? []).map((c: any) => ({ label: c.name, value: +c.collectionId }))))
+        : this.importService.getTenableRepositories().pipe(map((res: any) => (res?.response ?? []).map((r: any) => ({ label: r.name, value: +r.id }))));
+
+    source$
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load ${collectionType} collections: ${getErrorMessage(error)}`
+          });
+
+          return of([] as { label: string; value: number }[]);
+        })
+      )
+      .subscribe((options) => {
+        this.originCollectionOptions = options;
+        this.loadingOriginCollections = false;
+      });
+  }
+
+  onOriginCollectionIdChange(newValue: number) {
+    if (newValue === this.previousOriginCollectionId) return;
+
+    if (this.dialogMode === 'add') {
+      this.editingCollection.originCollectionId = newValue;
+      this.previousOriginCollectionId = newValue;
+
+      return;
+    }
+
+    this.pendingOriginCollectionId = newValue;
+    this.editingCollection.originCollectionId = this.previousOriginCollectionId;
+    this.displayOriginIdConfirmDialog = true;
+  }
+
+  confirmOriginCollectionIdChange() {
+    this.editingCollection.originCollectionId = this.pendingOriginCollectionId;
+    this.previousOriginCollectionId = this.pendingOriginCollectionId;
+    this.pendingOriginCollectionId = null;
+    this.displayOriginIdConfirmDialog = false;
+  }
+
+  cancelOriginCollectionIdChange() {
+    this.pendingOriginCollectionId = null;
+    this.displayOriginIdConfirmDialog = false;
   }
 
   confirmDeleteCollection(rowData: any) {
