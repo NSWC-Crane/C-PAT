@@ -42,17 +42,17 @@ interface ExportColumn {
   imports: [ButtonModule, CardModule, CommonModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, MultiSelectModule, TabsModule, TableModule, ToastModule, TagModule, TooltipModule]
 })
 export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
-  private assetDeltaService = inject(AssetDeltaService);
-  private csvExportService = inject(CsvExportService);
-  private messageService = inject(MessageService);
-  private sharedService = inject(SharedService);
+  private readonly assetDeltaService = inject(AssetDeltaService);
+  private readonly csvExportService = inject(CsvExportService);
+  private readonly messageService = inject(MessageService);
+  private readonly sharedService = inject(SharedService);
 
   @Input() stigmanCollectionId!: number;
   @Input() groupId!: string;
   @Input() associatedVulnerabilities: any[] = [];
 
-  readonly tables = viewChildren(Table);
-  readonly multiSelect = viewChild<MultiSelect>('ms');
+  private readonly tables = viewChildren(Table);
+  private readonly multiSelect = viewChild<MultiSelect>('ms');
 
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -66,9 +66,9 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   teamTabs: { teamId: string; teamName: string; assets: any[] }[] = [];
   activeTab: string = 'all';
   loading: boolean = true;
-  private tableMap = new Map<string, Table>();
+  private readonly tableMap = new Map<string, Table>();
   selectedCollection: any;
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
 
   constructor() {
     effect(() => {

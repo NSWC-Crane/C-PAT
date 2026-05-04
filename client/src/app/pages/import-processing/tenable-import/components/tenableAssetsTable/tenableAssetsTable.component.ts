@@ -50,19 +50,19 @@ interface ExportColumn {
   imports: [CommonModule, FormsModule, TableModule, TabsModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, DialogModule, ToastModule, TooltipModule, TagModule]
 })
 export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
-  private assetDeltaService = inject(AssetDeltaService);
-  private csvExportService = inject(CsvExportService);
-  private importService = inject(ImportService);
-  private sanitizer = inject(DomSanitizer);
-  private messageService = inject(MessageService);
-  private sharedService = inject(SharedService);
+  private readonly assetDeltaService = inject(AssetDeltaService);
+  private readonly csvExportService = inject(CsvExportService);
+  private readonly importService = inject(ImportService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly messageService = inject(MessageService);
+  private readonly sharedService = inject(SharedService);
 
   @Input() pluginID!: string;
   @Input() assetProcessing: boolean = false;
   @Input() tenableRepoId: number;
   @Input() associatedVulnerabilities: any[] = [];
-  readonly tables = viewChildren(Table);
-  readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly tables = viewChildren(Table);
+  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
 
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -85,8 +85,8 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   assetsByTeam: { [teamId: string]: any[] } = {};
   teamTabs: { teamId: string; teamName: string; assets: any[] }[] = [];
   activeTab: string = 'all';
-  private tableMap = new Map<string, Table>();
-  private subscriptions = new Subscription();
+  private readonly tableMap = new Map<string, Table>();
+  private readonly subscriptions = new Subscription();
 
   constructor() {
     effect(() => {

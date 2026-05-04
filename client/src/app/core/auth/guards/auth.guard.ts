@@ -21,11 +21,11 @@ import { PayloadService } from '../../../common/services/setPayload.service';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  private poamService = inject(PoamService);
-  private userService = inject(UsersService);
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private payloadService = inject(PayloadService);
+  private readonly poamService = inject(PoamService);
+  private readonly userService = inject(UsersService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly payloadService = inject(PayloadService);
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
     if (route.data['guardType'] === 'admin') {

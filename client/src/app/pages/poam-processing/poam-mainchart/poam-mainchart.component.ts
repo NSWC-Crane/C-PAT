@@ -48,23 +48,23 @@ interface SelectedOptions {
   imports: [ButtonModule, ChartModule, FormsModule, CardModule, SelectModule, TabsModule, MultiSelectModule]
 })
 export class PoamMainchartComponent implements OnChanges, OnDestroy {
-  private router = inject(Router);
+  private readonly router = inject(Router);
 
   @Input() poams!: any[];
   @Input() canvasHeight = '35rem';
-  readonly statusChartRef = viewChild<any>('statusChart');
-  readonly labelChartRef = viewChild<any>('labelChart');
-  readonly severityChartRef = viewChild<any>('severityChart');
-  readonly scheduledCompletionChartRef = viewChild<any>('scheduledCompletionChart');
-  readonly taskOrderChartRef = viewChild<any>('taskOrderChart');
+  private readonly statusChartRef = viewChild<any>('statusChart');
+  private readonly labelChartRef = viewChild<any>('labelChart');
+  private readonly severityChartRef = viewChild<any>('severityChart');
+  private readonly scheduledCompletionChartRef = viewChild<any>('scheduledCompletionChart');
+  private readonly taskOrderChartRef = viewChild<any>('taskOrderChart');
 
   selectedStatus = signal<string | null>(null);
   selectedLabel = signal<string | null>(null);
   selectedSeverity = signal<string | null>(null);
   selectedScheduledCompletion = signal<string | null>(null);
 
-  private labelSetCache = signal<Set<string> | null>(null);
-  private chartDataCache = signal<Map<string, any>>(new Map());
+  private readonly labelSetCache = signal<Set<string> | null>(null);
+  private readonly chartDataCache = signal<Map<string, any>>(new Map());
 
   poamsForChart = signal<any[]>([]);
   poamLabel = signal<any[]>([]);
@@ -261,7 +261,7 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
     );
   });
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
   private initialized = false;
 
   constructor() {

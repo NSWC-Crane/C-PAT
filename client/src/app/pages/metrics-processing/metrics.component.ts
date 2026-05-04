@@ -45,12 +45,12 @@ const SEVERITY_COLORS: Record<string, string> = {
   providers: [MessageService]
 })
 export class MetricsComponent implements OnInit, OnDestroy {
-  private collectionsService = inject(CollectionsService);
-  private sharedService = inject(SharedService);
-  private trendService = inject(MetricsService);
-  private cdr = inject(ChangeDetectorRef);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly sharedService = inject(SharedService);
+  private readonly trendService = inject(MetricsService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
 
   selectedCollection = signal<any>(null);
   selectedCollectionId = signal<any>(null);

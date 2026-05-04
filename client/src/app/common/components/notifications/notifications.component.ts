@@ -31,10 +31,10 @@ import { NotificationService } from './notifications.service';
   imports: [ButtonModule, CardModule, CommonModule, TableModule, ToastModule, SelectModule, FormsModule]
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
-  private notificationService = inject(NotificationService);
-  private setPayloadService = inject(PayloadService);
-  private sanitizer = inject(DomSanitizer);
-  private messageService = inject(MessageService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly messageService = inject(MessageService);
 
   notifications: any[] = [];
   filteredNotifications: any[] = [];
@@ -44,7 +44,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   user: any;
   payload: any;
   poam: any;
-  private payloadSubscription: Subscription[] = [];
+  private readonly payloadSubscription: Subscription[] = [];
   layout: 'list' | 'grid grid-cols-12 gap-4' = 'list';
   sortField: string = 'timestamp';
   sortOrder: number = -1;

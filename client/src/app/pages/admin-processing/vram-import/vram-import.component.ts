@@ -32,16 +32,16 @@ import { VRAMImportService } from './vram-import.service';
   imports: [BadgeModule, ButtonModule, CardModule, CommonModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, VramPopupComponent]
 })
 export class VRAMImportComponent implements OnInit, OnDestroy {
-  private messageService = inject(MessageService);
-  private vramImportService = inject(VRAMImportService);
+  private readonly messageService = inject(MessageService);
+  private readonly vramImportService = inject(VRAMImportService);
 
-  readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
+  private readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
   readonly navigateToPluginMapping = output<void>();
   uploadUrl: string = '/api/import/vram';
   totalSize: string = '0';
   totalSizePercent: number = 0;
   vramUpdatedDate: string = '';
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   ngOnInit() {
     this.getVramUpdatedDate();

@@ -39,18 +39,18 @@ import { ImportService } from '../../../import.service';
   imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, DialogModule, ToastModule, TooltipModule, TagModule]
 })
 export class TenableHostDialogComponent implements OnChanges, OnDestroy {
-  private importService = inject(ImportService);
-  private messageService = inject(MessageService);
-  private poamService = inject(PoamService);
-  private sharedService = inject(SharedService);
-  private router = inject(Router);
+  private readonly importService = inject(ImportService);
+  private readonly messageService = inject(MessageService);
+  private readonly poamService = inject(PoamService);
+  private readonly sharedService = inject(SharedService);
+  private readonly router = inject(Router);
 
   @Input() host: any;
   @Input() tenableRepoId: number;
   @Input() visible: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
 
-  readonly hostFindingsTable = viewChild.required<Table>('hostFindingsTable');
+  private readonly hostFindingsTable = viewChild.required<Table>('hostFindingsTable');
 
   hostDialogCols: any[];
   hostData: any[] = [];
@@ -69,7 +69,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   otherReferences: any[] = [];
 
   private existingPoamPluginIDs: any;
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
   private dataLoaded: boolean = false;
 
   get hostDns(): string {

@@ -206,7 +206,17 @@ class JWKSCache extends EventEmitter {
 
     updateCache() {
         return new Promise(resolve => {
-            if (!this.isCacheUpdating) {
+            if (this.isCacheUpdating) {
+                logger.writeDebug('jwksCache', 'updateCache', { message: 'update already in progress' });
+                this.once('cacheUpdate', () => {
+                    logger.writeDebug('jwksCache', 'cacheUpdate', { message: 'concurrent update event' });
+                    resolve(true);
+                });
+                this.once('cacheError', () => {
+                    logger.writeDebug('jwksCache', 'cacheError', { message: 'concurrent update event' });
+                    resolve(false);
+                });
+            } else {
                 this.isCacheUpdating = true;
                 this.request(new URL(this.jwksUri), { method: 'GET' })
                     .then(jwks => {
@@ -227,17 +237,6 @@ class JWKSCache extends EventEmitter {
                         this.emit('cacheError', error);
                         resolve(false);
                     });
-            } else {
-                // an update is already in progress
-                logger.writeDebug('jwksCache', 'updateCache', { message: 'update already in progress' });
-                this.once('cacheUpdate', () => {
-                    logger.writeDebug('jwksCache', 'cacheUpdate', { message: 'concurrent update event' });
-                    resolve(true);
-                });
-                this.once('cacheError', () => {
-                    logger.writeDebug('jwksCache', 'cacheError', { message: 'concurrent update event' });
-                    resolve(false);
-                });
             }
         });
     }

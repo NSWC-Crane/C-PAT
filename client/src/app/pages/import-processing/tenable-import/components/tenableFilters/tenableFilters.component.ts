@@ -41,9 +41,9 @@ interface FilterOption {
   imports: [FormsModule, AutoCompleteModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, ToastModule, TooltipModule]
 })
 export class TenableFiltersComponent implements OnInit, OnDestroy {
-  private importService = inject(ImportService);
-  private messageService = inject(MessageService);
-  private setPayloadService = inject(PayloadService);
+  private readonly importService = inject(ImportService);
+  private readonly messageService = inject(MessageService);
+  private readonly setPayloadService = inject(PayloadService);
 
   @Input() collectionId: number = 0;
   @Input() activeFilters: any[] = [];
@@ -61,7 +61,7 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
   canUpdate: boolean = false;
   accessLevel = signal<number>(0);
   currentUser: any;
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
 
   ngOnInit() {
     this.setPayloadService.setPayload();

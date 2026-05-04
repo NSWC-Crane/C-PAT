@@ -47,13 +47,13 @@ export interface PoamApproval {
   providers: [DatePipe]
 })
 export class PoamApproveComponent implements OnInit, OnDestroy {
-  private messageService = inject(MessageService);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private setPayloadService = inject(PayloadService);
-  private sharedService = inject(SharedService);
-  private poamApproveService = inject(PoamApproveService);
-  private poamService = inject(PoamService);
+  private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly sharedService = inject(SharedService);
+  private readonly poamApproveService = inject(PoamApproveService);
+  private readonly poamService = inject(PoamService);
   protected accessLevel: number = 0;
   user: any;
   payload: any;
@@ -66,8 +66,8 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
   dates: any = {};
   comments: any;
   selectedCollection: any;
-  private payloadSubscription: Subscription[] = [];
-  private subscriptions = new Subscription();
+  private readonly payloadSubscription: Subscription[] = [];
+  private readonly subscriptions = new Subscription();
   approvalStatusOptions = [
     { label: 'Not Reviewed', value: 'Not Reviewed' },
     { label: 'False-Positive', value: 'False-Positive' },

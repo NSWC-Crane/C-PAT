@@ -29,8 +29,8 @@ import { PoamService } from '../../../poams.service';
   templateUrl: './poam-mitigation-generator.component.html'
 })
 export class PoamMitigationGeneratorComponent implements OnChanges {
-  private poamService = inject(PoamService);
-  private messageService = inject(MessageService);
+  private readonly poamService = inject(PoamService);
+  private readonly messageService = inject(MessageService);
 
   @Input() poam: any;
   @Input() team: any = null;

@@ -22,7 +22,7 @@ export interface AssetData {
   providedIn: 'root'
 })
 export class AssetTeamMappingService {
-  private messageService = inject(MessageService);
+  private readonly messageService = inject(MessageService);
 
   getAssetName(assetId: number, assetList: any[]): string {
     const asset = assetList.find((asset: any) => asset.assetId === assetId);
@@ -52,9 +52,10 @@ export class AssetTeamMappingService {
 
         let assetMatchesRule = false;
 
-        if ((asset.source === 'STIG Manager' || asset.source === 'Tenable') && (assetName.includes(deltaKey) || asset.dnsName?.toLowerCase().includes(deltaKey) || asset.fqdn?.toLowerCase().includes(deltaKey))) {
-          assetMatchesRule = true;
-        } else if (asset.source === 'CPAT' && assetName === deltaKey) {
+        if (
+          ((asset.source === 'STIG Manager' || asset.source === 'Tenable') && (assetName.includes(deltaKey) || asset.dnsName?.toLowerCase().includes(deltaKey) || asset.fqdn?.toLowerCase().includes(deltaKey))) ||
+          (asset.source === 'CPAT' && assetName === deltaKey)
+        ) {
           assetMatchesRule = true;
         }
 

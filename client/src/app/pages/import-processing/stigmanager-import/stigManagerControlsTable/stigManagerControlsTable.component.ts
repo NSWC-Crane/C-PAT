@@ -102,13 +102,13 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   @Input() selectedCollection!: number;
   @Output() controlsCountChange = new EventEmitter<number>();
 
-  private router = inject(Router);
-  private sharedService = inject(SharedService);
-  private messageService = inject(MessageService);
-  private poamService = inject(PoamService);
+  private readonly router = inject(Router);
+  private readonly sharedService = inject(SharedService);
+  private readonly messageService = inject(MessageService);
+  private readonly poamService = inject(PoamService);
 
-  readonly controlsTable = viewChild<Table>('controlsTable');
-  readonly findingsTable = viewChild<Table>('controlFindingsTable');
+  private readonly controlsTable = viewChild<Table>('controlsTable');
+  private readonly findingsTable = viewChild<Table>('controlFindingsTable');
 
   controlSummaries: ControlSummary[] = [];
   controlFindings: ControlFinding[] = [];
@@ -125,7 +125,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   findingsCount: number = 0;
 
   private rawFindings: RawCciFinding[] = [];
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
 
   controlColumns = [
     { field: 'control', header: 'Control', width: '14%', filterType: 'text' },

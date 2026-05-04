@@ -18,8 +18,8 @@ import { PoamService } from '../../poams.service';
   providedIn: 'root'
 })
 export class PoamMitigationService {
-  private poamService = inject(PoamService);
-  private messageService = inject(MessageService);
+  private readonly poamService = inject(PoamService);
+  private readonly messageService = inject(MessageService);
 
   loadTeamMitigations(poamId: any): Observable<any[]> {
     if (!poamId || poamId === 'ADDPOAM') {

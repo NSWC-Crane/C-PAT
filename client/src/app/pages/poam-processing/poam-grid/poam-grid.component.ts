@@ -46,15 +46,15 @@ import { PoamExportStatusSelectionComponent } from '../../../common/utils/poam-e
   imports: [FormsModule, ButtonModule, CardModule, SelectModule, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, TableModule, TooltipModule, ToastModule, TagModule]
 })
 export class PoamGridComponent implements OnInit, OnDestroy {
-  private dialogService = inject(DialogService);
-  private router = inject(Router);
-  private setPayloadService = inject(PayloadService);
-  private collectionsService = inject(CollectionsService);
-  private importService = inject(ImportService);
-  private sharedService = inject(SharedService);
-  private poamService = inject(PoamService);
-  private messageService = inject(MessageService);
-  private csvExportService = inject(CsvExportService);
+  private readonly dialogService = inject(DialogService);
+  private readonly router = inject(Router);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly importService = inject(ImportService);
+  private readonly sharedService = inject(SharedService);
+  private readonly poamService = inject(PoamService);
+  private readonly messageService = inject(MessageService);
+  private readonly csvExportService = inject(CsvExportService);
 
   protected fileUpload = viewChild.required<FileUpload>('fileUpload');
   protected table = viewChild.required<Table>('dt');
@@ -64,14 +64,14 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
   globalFilterSignal = signal<string>('');
 
-  private poamsDataSignal = signal<any[]>([]);
+  private readonly poamsDataSignal = signal<any[]>([]);
 
   @Input() set poamsData(value: any[]) {
     this.poamsDataSignal.set(value || []);
   }
 
-  private affectedAssetCountsSignal = signal<{ vulnerabilityId: string; assetCount: number }[]>([]);
-  private _assetCountsLoaded = signal<boolean>(false);
+  private readonly affectedAssetCountsSignal = signal<{ vulnerabilityId: string; assetCount: number }[]>([]);
+  private readonly _assetCountsLoaded = signal<boolean>(false);
   private _hasReceivedData = false;
 
   @Input() set affectedAssetCounts(value: { vulnerabilityId: string; assetCount: number }[]) {
@@ -89,7 +89,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     return this.affectedAssetCountsSignal();
   }
 
-  private statusSortCycle = signal<number>(0);
+  private readonly statusSortCycle = signal<number>(0);
   private readonly STATUS_SORT_CYCLES = 4;
   private readonly statusPriorityGroups = [
     {
@@ -240,9 +240,9 @@ export class PoamGridComponent implements OnInit, OnDestroy {
   selectedCollectionId = signal<any>(null);
   selectedCollection = signal<any>(null);
 
-  private findingsCache: Map<string, any[]> = new Map();
-  private payloadSubscription: Subscription[] = [];
-  private subscriptions = new Subscription();
+  private readonly findingsCache: Map<string, any[]> = new Map();
+  private readonly payloadSubscription: Subscription[] = [];
+  private readonly subscriptions = new Subscription();
 
   protected collectionOriginSignal = signal<string>('');
   poamStatusOptions = signal([

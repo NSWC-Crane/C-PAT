@@ -44,8 +44,8 @@ export interface UptimeStatus {
 
 @Injectable({ providedIn: 'root' })
 export class UptimeService {
-  private http = inject(HttpClient);
-  private cpatApiBase = CPAT.Env.apiBase;
+  private readonly http = inject(HttpClient);
+  private readonly cpatApiBase = CPAT.Env.apiBase;
 
   getUptimeStatus(): Observable<UptimeStatus> {
     return this.http.get<UptimeStatus>(`${this.cpatApiBase}/health/uptime`);

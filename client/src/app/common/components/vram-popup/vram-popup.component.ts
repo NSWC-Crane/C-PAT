@@ -87,7 +87,7 @@ import { StepperModule } from 'primeng/stepper';
   imports: [ButtonModule, CommonModule, ImageModule, FormsModule, StepperModule]
 })
 export class VramPopupComponent implements OnDestroy {
-  private ngZone = inject(NgZone);
+  private readonly ngZone = inject(NgZone);
 
   authWindow: Window | null = null;
   isPopupOpen = false;

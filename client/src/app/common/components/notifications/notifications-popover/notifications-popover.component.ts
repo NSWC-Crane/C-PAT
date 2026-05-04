@@ -28,10 +28,10 @@ import { NotificationService } from '../notifications.service';
   imports: [ButtonModule, CommonModule, FormsModule, ListboxModule]
 })
 export class NotificationsPanelComponent implements OnInit, OnDestroy {
-  private notificationService = inject(NotificationService);
-  private setPayloadService = inject(PayloadService);
-  private router = inject(Router);
-  private sanitizer = inject(DomSanitizer);
+  private readonly notificationService = inject(NotificationService);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly router = inject(Router);
+  private readonly sanitizer = inject(DomSanitizer);
 
   @Input() overlayPanel: Popover;
   notifications: any[] = [];
@@ -40,7 +40,7 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   user: any;
   payload: any;
   poam: any;
-  private payloadSubscription: Subscription[] = [];
+  private readonly payloadSubscription: Subscription[] = [];
 
   async ngOnInit() {
     this.setPayload();

@@ -22,12 +22,12 @@ interface Payload extends Users {
   providedIn: 'root'
 })
 export class PayloadService {
-  private userService = inject(UsersService);
+  private readonly userService = inject(UsersService);
 
-  private userSubject = new BehaviorSubject<any>(null);
-  private payloadSubject = new BehaviorSubject<any>(null);
-  private accessLevelSubject = new BehaviorSubject<number>(0);
-  private isAdminSubject = new BehaviorSubject<boolean>(false);
+  private readonly userSubject = new BehaviorSubject<any>(null);
+  private readonly payloadSubject = new BehaviorSubject<any>(null);
+  private readonly accessLevelSubject = new BehaviorSubject<number>(0);
+  private readonly isAdminSubject = new BehaviorSubject<boolean>(false);
 
   user$ = this.userSubject.asObservable();
   payload$ = this.payloadSubject.asObservable();

@@ -233,7 +233,7 @@ exports.getUptimeStatus = async function getUptimeStatus() {
             const latestStigman = latest?.stigman_status;
             result.stigman = {
                 available: true,
-                currentStatus: latestIsBackfill ? 'unknown' : latestStigman != null ? (latestStigman === 1 ? 'operational' : 'outage') : 'unknown',
+                currentStatus: latestIsBackfill ? 'unknown' : latestStigman == null ? 'unknown' : latestStigman === 1 ? 'operational' : 'outage',
                 uptimePercent: computeUptime(stigmanRows),
                 checks: stigmanRows.map(r => ({
                     date: r.date,
@@ -262,7 +262,7 @@ exports.getUptimeStatus = async function getUptimeStatus() {
             const latestTenable = latest?.tenable_status;
             result.tenable = {
                 available: true,
-                currentStatus: latestIsBackfill ? 'unknown' : latestTenable != null ? (latestTenable === 1 ? 'operational' : 'outage') : 'unknown',
+                currentStatus: latestIsBackfill ? 'unknown' : latestTenable == null ? 'unknown' : latestTenable === 1 ? 'operational' : 'outage',
                 uptimePercent: computeUptime(tenableRows),
                 checks: tenableRows.map(r => ({
                     date: r.date,

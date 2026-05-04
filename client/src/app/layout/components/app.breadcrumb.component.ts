@@ -33,9 +33,9 @@ import { filter, takeUntil } from 'rxjs/operators';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppBreadcrumbComponent implements OnInit, OnDestroy {
-  private router = inject(Router);
-  private location = inject(Location);
-  private destroy$ = new Subject<void>();
+  private readonly router = inject(Router);
+  private readonly location = inject(Location);
+  private readonly destroy$ = new Subject<void>();
 
   items = signal<MenuItem[]>([]);
   home: MenuItem = { icon: 'pi pi-home', routerLink: '/home' };

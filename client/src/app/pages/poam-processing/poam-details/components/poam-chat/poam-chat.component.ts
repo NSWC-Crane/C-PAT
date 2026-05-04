@@ -28,13 +28,13 @@ import { PoamChatService } from '../../services/poam-chat.service';
   imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule, ToastModule]
 })
 export class PoamChatComponent implements OnInit {
-  private poamChatService = inject(PoamChatService);
-  private messageService = inject(MessageService);
+  private readonly poamChatService = inject(PoamChatService);
+  private readonly messageService = inject(MessageService);
 
   @Input() poamId!: number;
   @Input() userId!: number;
 
-  readonly chatWindow = viewChild.required<ElementRef>('chatWindow');
+  private readonly chatWindow = viewChild.required<ElementRef>('chatWindow');
 
   messages: any[] = [];
   groupedMessages: { date: string; messages: any[] }[] = [];

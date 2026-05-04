@@ -34,7 +34,7 @@ exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
         const poamAssignedTeams = rowPoamAssignedTeams.map(row => ({
             assignedTeamId: row.assignedTeamId,
             assignedTeamName: row.assignedTeamName,
-            automated: row.automated != null ? Boolean(row.automated) : false,
+            automated: row.automated == null ? false : Boolean(row.automated),
             poamId: row.poamId,
             status: row.status,
         }));
@@ -91,7 +91,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
             return {
                 assignedTeamId: teamId,
                 assignedTeamName: row.assignedTeamName,
-                automated: row.automated != null ? Boolean(row.automated) : false,
+                automated: row.automated == null ? false : Boolean(row.automated),
                 poamId: row.poamId,
                 status: row.status,
                 complete: complete,
@@ -135,7 +135,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
 
             if (newAssignedTeam.length > 0) {
                 const result = { ...newAssignedTeam[0] };
-                result.automated = result.automated != null ? Boolean(result.automated) : null;
+                result.automated = result.automated == null ? null : !!result.automated;
                 return result;
             } else {
                 throw new Error('Assigned Team not found after insertion');
@@ -147,7 +147,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
                     const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.assignedTeamId, req.body.poamId]);
 
                     const result = { ...existingAssignedTeam[0] };
-                    result.automated = result.automated != null ? Boolean(result.automated) : null;
+                    result.automated = result.automated == null ? null : !!result.automated;
                     return result;
                 });
             } else {

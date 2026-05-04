@@ -27,7 +27,7 @@ import { PoamService } from '../../../poams.service';
   imports: [FormsModule, TableModule, ProgressBarModule, SelectModule, ButtonModule, ToastModule]
 })
 export class PoamTeamsComponent {
-  private messageService = inject(MessageService);
+  private readonly messageService = inject(MessageService);
 
   @Input() poam: any;
   @Input() accessLevel: number;

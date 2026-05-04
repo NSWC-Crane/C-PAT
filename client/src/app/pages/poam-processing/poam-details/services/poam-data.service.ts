@@ -41,14 +41,14 @@ export interface CollectionInfo {
   providedIn: 'root'
 })
 export class PoamDataService {
-  private assetDeltaService = inject(AssetDeltaService);
-  private poamService = inject(PoamService);
-  private collectionsService = inject(CollectionsService);
-  private assetService = inject(AssetService);
-  private aaPackageService = inject(AAPackageService);
-  private messageService = inject(MessageService);
-  private importService = inject(ImportService);
-  private sharedService = inject(SharedService);
+  private readonly assetDeltaService = inject(AssetDeltaService);
+  private readonly poamService = inject(PoamService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly assetService = inject(AssetService);
+  private readonly aaPackageService = inject(AAPackageService);
+  private readonly messageService = inject(MessageService);
+  private readonly importService = inject(ImportService);
+  private readonly sharedService = inject(SharedService);
 
   loadAssets(collectionType: string, originCollectionId: number, poam: any, collectionId: number): Observable<{ externalAssets?: AssetData[]; assetList?: any[]; poamAssets?: any[] }> {
     if (!poam || !collectionId) {

@@ -27,19 +27,19 @@ import { PoamMainchartComponent } from './poam-mainchart/poam-mainchart.componen
   imports: [PoamMainchartComponent, ToastModule]
 })
 export class PoamsComponent implements OnInit, OnDestroy {
-  private collectionsService = inject(CollectionsService);
-  private router = inject(Router);
-  private setPayloadService = inject(PayloadService);
-  private messageService = inject(MessageService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly router = inject(Router);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly messageService = inject(MessageService);
 
   protected accessLevel: any;
-  private subs = new SubSink();
+  private readonly subs = new SubSink();
   public isLoggedIn = false;
   poams: any;
   user: any;
   payload: any;
   selectedCollection: any;
-  private payloadSubscription: Subscription[] = [];
+  private readonly payloadSubscription: Subscription[] = [];
 
   ngOnInit() {
     this.setPayload();

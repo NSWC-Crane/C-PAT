@@ -34,9 +34,9 @@ import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
   imports: [ButtonModule, CommonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule]
 })
 export class NessusPluginMappingComponent implements OnInit, OnDestroy {
-  private messageService = inject(MessageService);
-  private nessusPluginMappingService = inject(NessusPluginMappingService);
-  private importService = inject(ImportService);
+  private readonly messageService = inject(MessageService);
+  private readonly nessusPluginMappingService = inject(NessusPluginMappingService);
+  private readonly importService = inject(ImportService);
 
   readonly dt = viewChild.required<Table>('dt');
   @Input() activated: boolean = false;
@@ -50,9 +50,9 @@ export class NessusPluginMappingComponent implements OnInit, OnDestroy {
   nessusPluginsMapped: string | null = null;
   estimatedTimeRemaining: string = '';
   private expectedTotalRecords: number = 20000;
-  private batchSize: number = 5000;
-  private estimatedRequestTime: number = 15000;
-  private destroy$ = new Subject<void>();
+  private readonly batchSize: number = 5000;
+  private readonly estimatedRequestTime: number = 15000;
+  private readonly destroy$ = new Subject<void>();
 
   ngOnInit() {
     this.initColumns();

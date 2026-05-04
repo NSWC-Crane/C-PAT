@@ -215,9 +215,9 @@ interface OperationError {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppInfoComponent implements OnInit {
-  private adminProcessingService = inject(AdminProcessingService);
-  private configService = inject(AppConfigService);
-  private messageService = inject(MessageService);
+  private readonly adminProcessingService = inject(AdminProcessingService);
+  private readonly configService = inject(AppConfigService);
+  private readonly messageService = inject(MessageService);
 
   appInfo = signal<AppInfoData | null>(null);
   operationRows = signal<OperationRow[]>([]);

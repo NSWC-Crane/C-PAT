@@ -44,12 +44,12 @@ interface Theme {
   providers: [ConfirmationService, MessageService]
 })
 export class MarketplaceComponent implements OnInit, OnDestroy {
-  private marketplaceService = inject(MarketplaceService);
-  private userService = inject(UsersService);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
-  private configService = inject(AppConfigService);
-  private payloadService = inject(PayloadService);
+  private readonly marketplaceService = inject(MarketplaceService);
+  private readonly userService = inject(UsersService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
+  private readonly configService = inject(AppConfigService);
+  private readonly payloadService = inject(PayloadService);
 
   userPoints = 0;
   themes: Theme[] = [];
@@ -57,7 +57,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   user: any;
   selectedTheme: Theme | null = null;
   themeImageUrls: { [themeId: number]: string } = {};
-  private subs = new SubSink();
+  private readonly subs = new SubSink();
   dialogRef: DynamicDialogRef | undefined;
 
   surfaces = [

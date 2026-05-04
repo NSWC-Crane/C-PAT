@@ -33,10 +33,10 @@ import { AssetService } from '../assets.service';
   imports: [ButtonModule, CardModule, DialogModule, Select, FormsModule, InputTextModule, TableModule, ToastModule]
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {
-  private assetService = inject(AssetService);
-  private sharedService = inject(SharedService);
-  private messageService = inject(MessageService);
-  private setPayloadService = inject(PayloadService);
+  private readonly assetService = inject(AssetService);
+  private readonly sharedService = inject(SharedService);
+  private readonly messageService = inject(MessageService);
+  private readonly setPayloadService = inject(PayloadService);
 
   @Input() asset: any;
   @Input() assets: any;
@@ -48,10 +48,10 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   assetLabels: any[] = [];
   data: any = [];
   selectedCollection: any;
-  private subscriptions = new Subscription();
+  private readonly subscriptions = new Subscription();
   labelOptions: any[] = [];
   invalidDataMessage: string = '';
-  private subs = new SubSink();
+  private readonly subs = new SubSink();
   protected accessLevel: any;
 
   ngOnInit(): void {

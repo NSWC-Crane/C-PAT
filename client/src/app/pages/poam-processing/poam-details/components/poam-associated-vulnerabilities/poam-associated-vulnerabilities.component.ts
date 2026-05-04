@@ -59,8 +59,8 @@ interface AutocompleteSuggestion {
   ]
 })
 export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges {
-  private importService = inject(ImportService);
-  private messageService = inject(MessageService);
+  private readonly importService = inject(ImportService);
+  private readonly messageService = inject(MessageService);
   poamService = inject(PoamService);
   sharedService = inject(SharedService);
 
@@ -69,8 +69,8 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   @Input() currentCollection: any;
   @Input() poamAssociatedVulnerabilities: any[] = [];
   readonly vulnerabilitiesChanged = output<string[]>();
-  private vulnTitleMap = new Map<string, string>();
-  private vulnSeverityMap = new Map<string, string>();
+  private readonly vulnTitleMap = new Map<string, string>();
+  private readonly vulnSeverityMap = new Map<string, string>();
 
   private readonly severityToCategoryMap: Record<string, string> = {
     critical: 'CAT I - Critical',

@@ -49,15 +49,15 @@ interface TreeNode<T> {
   imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TextareaModule, ToastModule, TreeTableModule]
 })
 export class CollectionProcessingComponent implements OnInit, OnDestroy {
-  private aaPackageService = inject(AAPackageService);
-  private collectionsService = inject(CollectionsService);
-  private setPayloadService = inject(PayloadService);
-  private messageService = inject(MessageService);
-  private sharedService = inject(SharedService);
-  private importService = inject(ImportService);
-  private poamService = inject(PoamService);
+  private readonly aaPackageService = inject(AAPackageService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly messageService = inject(MessageService);
+  private readonly sharedService = inject(SharedService);
+  private readonly importService = inject(ImportService);
+  private readonly poamService = inject(PoamService);
 
-  readonly table = viewChild.required<TreeTable>('dt');
+  private readonly table = viewChild.required<TreeTable>('dt');
   cols: any = [];
   aaPackages: AAPackage[] = [];
   filteredAAPackages: string[] = [];
@@ -93,9 +93,9 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   selectableCollections: any[] = [];
   selectedExportCollections: any[] = [];
   exporting: boolean = false;
-  private findingsCache: Map<string, any[]> = new Map();
-  private payloadSubscription: Subscription[] = [];
-  private subs = new SubSink();
+  private readonly findingsCache: Map<string, any[]> = new Map();
+  private readonly payloadSubscription: Subscription[] = [];
+  private readonly subs = new SubSink();
 
   async ngOnInit() {
     this.initColumnsAndFilters();

@@ -50,12 +50,12 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
   ]
 })
 export class AdminProcessingComponent implements OnInit, OnDestroy {
-  private payloadService = inject(PayloadService);
-  private router = inject(Router);
+  private readonly payloadService = inject(PayloadService);
+  private readonly router = inject(Router);
   @ViewChild(NessusPluginMappingComponent) nessusPluginMappingComponent!: NessusPluginMappingComponent;
   value: number = 0;
   user: any;
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
   tenableEnabled = CPAT.Env.features.tenableEnabled;
 
   ngOnInit() {

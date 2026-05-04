@@ -69,7 +69,9 @@ const atob = data => Buffer.from(data, 'base64').toString('ascii');
 
 function sanitizeHeaders() {
     let { authorization, ...headers } = this;
-    if (authorization !== undefined) {
+    if (authorization == null) {
+        headers.authorization = false;
+    } else {
         headers.authorization = true;
         if (config.log.mode !== 'combined') {
             const payload = authorization.match(/^Bearer [[A-Za-z0-9-_=]+\.([[A-Za-z0-9-_=]+?)\./)?.[1];
@@ -77,8 +79,6 @@ function sanitizeHeaders() {
                 headers.accessToken = JSON.parse(atob(payload));
             }
         }
-    } else {
-        headers.authorization = false;
     }
     return headers;
 }

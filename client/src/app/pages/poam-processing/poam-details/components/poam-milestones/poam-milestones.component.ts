@@ -47,8 +47,8 @@ export interface Milestone {
   providers: [DatePipe, ConfirmationService, MessageService]
 })
 export class PoamMilestonesComponent implements OnInit {
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
 
   table = viewChild<Table>('dt');
   @Input() poam: any = { status: '' };

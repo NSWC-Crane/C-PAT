@@ -44,16 +44,16 @@ import { AppTopBarComponent } from './app.topbar.component';
   `
 })
 export class AppNavigationComponent implements OnInit, OnDestroy {
-  private document = inject<Document>(DOCUMENT);
-  private renderer = inject(Renderer2);
-  private configService = inject(AppConfigService);
-  private authService = inject(AuthService);
-  private collectionsService = inject(CollectionsService);
-  private sharedService = inject(SharedService);
-  private userService = inject(UsersService);
-  private router = inject(Router);
-  private setPayloadService = inject(PayloadService);
-  private notificationService = inject(NotificationService);
+  private readonly document = inject<Document>(DOCUMENT);
+  private readonly renderer = inject(Renderer2);
+  private readonly configService = inject(AppConfigService);
+  private readonly authService = inject(AuthService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly sharedService = inject(SharedService);
+  private readonly userService = inject(UsersService);
+  private readonly router = inject(Router);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly notificationService = inject(NotificationService);
   el = inject(ElementRef);
 
   @Input({ transform: booleanAttribute }) showConfigurator = true;
@@ -62,7 +62,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
 
   scrollListener: VoidFunction | null;
 
-  private window: Window;
+  private readonly window: Window;
 
   collections: any = [];
   user: any;
@@ -74,10 +74,10 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   selectedCollection: any = null;
   selectCollectionMsg: boolean = false;
   collectionName: string = 'Select Collection';
-  private subs = new SubSink();
+  private readonly subs = new SubSink();
   timeout: any = null;
-  private destroy$ = new Subject<void>();
-  private payloadSubscription: Subscription[] = [];
+  private readonly destroy$ = new Subject<void>();
+  private readonly payloadSubscription: Subscription[] = [];
   readonly menuButton = viewChild.required<ElementRef>('menubutton');
   readonly menuContainer = viewChild.required<ElementRef>('menuContainer');
   readonly user$ = inject(AuthService).user$;
