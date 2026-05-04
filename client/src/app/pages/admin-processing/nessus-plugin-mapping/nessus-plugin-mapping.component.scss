@@ -9,12 +9,5 @@
 */
 
 .scrollable-plugins {
-  height: calc(100vh - 20rem);
-}
-
-::ng-deep {
-  .card {
-    padding-bottom: 1rem;
-    margin-bottom: 0rem;
-  }
+  height: calc(100vh - 19rem);
 }
