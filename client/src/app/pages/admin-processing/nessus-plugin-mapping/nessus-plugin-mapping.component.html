@@ -56,7 +56,7 @@
         </p-iconField>
         <p-button #mapButton class="ml-4" variant="outlined" label="Map Plugins to IAV" (onClick)="updatePluginIds()" [disabled]="isUpdating" />
         <p-button class="ml-auto" icon="pi pi-filter-slash" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Clear" (onClick)="clear(dt)" />
-        <p-button icon="pi pi-download" (onClick)="dt.exportCSV()" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Export Data" tooltipPosition="bottom" />
+        <p-button icon="pi pi-external-link" (onClick)="dt.exportCSV()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Export to CSV" tooltipPosition="bottom" />
       </div>
     </ng-template>
     <ng-template pTemplate="header">
