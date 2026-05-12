@@ -71,7 +71,7 @@ export class InactivityService {
   private setupActivityListeners(): void {
     const passiveOptions = { passive: true };
 
-    const events = [fromEvent(document, 'click'), fromEvent(document, 'keydown'), fromEvent(document, 'scroll', passiveOptions), fromEvent(document, 'touchstart', passiveOptions), fromEvent(window, 'focus')];
+    const events = [fromEvent(document, 'click'), fromEvent(document, 'keydown'), fromEvent(document, 'scroll', passiveOptions), fromEvent(document, 'touchstart', passiveOptions), fromEvent(globalThis, 'focus')];
 
     this.ngZone.runOutsideAngular(() => {
       merge(...events)
