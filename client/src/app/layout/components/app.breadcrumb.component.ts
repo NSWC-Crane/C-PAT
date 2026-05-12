@@ -76,9 +76,7 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
     const breadcrumbs: MenuItem[] = [];
     let currentPath = '';
 
-    for (let i = 0; i < urlSegments.length; i++) {
-      const segment = urlSegments[i];
-
+    for (const segment of urlSegments) {
       currentPath += `/${segment}`;
 
       const isParameter = !Number.isNaN(Number(segment));
@@ -89,10 +87,8 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
           routerLink: currentPath
         });
       } else {
-        const label = this.createLabel(segment!);
-
         breadcrumbs.push({
-          label: label,
+          label: this.createLabel(segment),
           routerLink: currentPath
         });
       }
@@ -115,8 +111,6 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
         return 'POAM Log';
       case 'poam-manage':
         return 'Manage POAMs';
-      case 'stigmanager-admin':
-        return 'STIG Manager Admin';
       case 'stigmanager-import':
         return 'STIG Manager';
       case 'tenable-import':

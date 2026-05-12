@@ -22,8 +22,6 @@ import { AssetDeltaComponent } from './asset-delta/asset-delta.component';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
 import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
 import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plugin-mapping.component';
-import { STIGManagerAdminComponent } from './stigmanager-admin/stigmanager-admin.component';
-import { TenableAdminComponent } from './tenable-admin/tenable-admin.component';
 import { UserProcessingComponent } from './user-processing/user-processing.component';
 import { VRAMImportComponent } from './vram-import/vram-import.component';
 
@@ -40,10 +38,8 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
     CollectionProcessingComponent,
     FormsModule,
     NessusPluginMappingComponent,
-    STIGManagerAdminComponent,
     TabsModule,
     ToastModule,
-    TenableAdminComponent,
     UserProcessingComponent,
     AssetDeltaComponent,
     VRAMImportComponent
@@ -78,7 +74,7 @@ export class AdminProcessingComponent implements OnInit, OnDestroy {
   }
 
   switchToPluginMapping() {
-    this.value = 6;
+    this.value = 4;
 
     setTimeout(() => {
       if (this.nessusPluginMappingComponent) {

@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, OnDestroy, inject, viewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -40,7 +40,6 @@ export class NessusPluginMappingComponent implements OnInit, OnDestroy {
   private readonly importService = inject(ImportService);
 
   readonly dt = viewChild.required<Table>('dt');
-  @Input() activated: boolean = false;
   tableData: any[] = [];
   loading: boolean = true;
   totalRecords: number = 0;

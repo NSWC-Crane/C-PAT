@@ -101,11 +101,13 @@ describe('CollectionProcessingComponent', () => {
     mockMessageService = createMockMessageService();
 
     mockSharedService = {
-      getSTIGMANAffectedAssetsByPoam: vi.fn().mockReturnValue(of([]))
+      getSTIGMANAffectedAssetsByPoam: vi.fn().mockReturnValue(of([])),
+      getCollectionsFromSTIGMAN: vi.fn().mockReturnValue(of([]))
     };
 
     mockImportService = {
-      postTenableAnalysis: vi.fn().mockReturnValue(of({ response: { results: [] } }))
+      postTenableAnalysis: vi.fn().mockReturnValue(of({ response: { results: [] } })),
+      getTenableRepositories: vi.fn().mockReturnValue(of({ response: [] }))
     };
 
     mockPoamService = {
@@ -185,6 +187,39 @@ describe('CollectionProcessingComponent', () => {
       expect(component.collection.collectionName).toBe('');
       expect(component.collection.manualCreationAllowed).toBe(true);
     });
+
+    it('should initialize displayBulkImportDialog as false', () => {
+      expect(component.displayBulkImportDialog).toBe(false);
+    });
+
+    it('should initialize bulkImportSource to STIG Manager', () => {
+      expect(component.bulkImportSource).toBe('STIG Manager');
+    });
+
+    it('should initialize bulkImporting as false', () => {
+      expect(component.bulkImporting).toBe(false);
+    });
+
+    it('should initialize loadingBulkImports as false', () => {
+      expect(component.loadingBulkImports).toBe(false);
+    });
+
+    it('should initialize bulkImportAvailable as empty array', () => {
+      expect(component.bulkImportAvailable).toEqual([]);
+    });
+
+    it('should initialize selectedBulkImports as empty array', () => {
+      expect(component.selectedBulkImports).toEqual([]);
+    });
+
+    it('should set tenableEnabled from CPAT.Env.features', () => {
+      expect(component.tenableEnabled).toBe(true);
+    });
+
+    it('should include both sources in bulkImportSourceOptions when tenableEnabled', () => {
+      expect(component.bulkImportSourceOptions).toHaveLength(2);
+      expect(component.bulkImportSourceOptions.map((o) => o.value)).toEqual(['STIG Manager', 'Tenable']);
+    });
   });
 
   describe('ngOnInit', () => {
@@ -200,28 +235,28 @@ describe('CollectionProcessingComponent', () => {
   });
 
   describe('initColumnsAndFilters', () => {
-    it('should set 9 columns', () => {
+    it('should set 8 columns', () => {
       component.initColumnsAndFilters();
 
-      expect(component.cols).toHaveLength(9);
+      expect(component.cols).toHaveLength(8);
     });
 
     it('should include Collection ID column', () => {
       component.initColumnsAndFilters();
 
-      expect(component.cols[0]).toEqual({ field: 'Collection ID', header: 'Collection ID' });
+      expect(component.cols[0]).toEqual({ field: 'collectionId', header: 'Collection ID' });
     });
 
     it('should include Name column', () => {
       component.initColumnsAndFilters();
 
-      expect(component.cols[1]).toEqual({ field: 'Name', header: 'Name' });
+      expect(component.cols[1]).toEqual({ field: 'collectionName', header: 'Name' });
     });
 
     it('should include A&A Package column', () => {
       component.initColumnsAndFilters();
 
-      const aaPackageCol = component.cols.find((c: any) => c.field === 'A&A Package');
+      const aaPackageCol = component.cols.find((c: any) => c.field === 'aaPackage');
 
       expect(aaPackageCol).toBeDefined();
     });
@@ -375,50 +410,50 @@ describe('CollectionProcessingComponent', () => {
       expect(component.collectionTreeData).toHaveLength(2);
     });
 
-    it('should map collectionId to Collection ID field', () => {
+    it('should map collectionId to collectionId field', () => {
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data['Collection ID']).toBe(1);
+      expect(component.collectionTreeData[0].data.collectionId).toBe(1);
     });
 
-    it('should map collectionName to Name field', () => {
+    it('should map collectionName to collectionName field', () => {
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data['Name']).toBe('Collection Alpha');
+      expect(component.collectionTreeData[0].data.collectionName).toBe('Collection Alpha');
     });
 
-    it('should map description to Description field', () => {
+    it('should map description to description field', () => {
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data['Description']).toBe('Alpha description');
+      expect(component.collectionTreeData[0].data.description).toBe('Alpha description');
     });
 
     it('should use empty string for null systemType', () => {
       component.data = [{ ...mockCollections[0], systemType: null }];
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data['System Type']).toBe('');
+      expect(component.collectionTreeData[0].data.systemType).toBe('');
     });
 
     it('should use empty string for null ccsafa', () => {
       component.data = [{ ...mockCollections[0], ccsafa: null }];
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data['CC/S/A/FA']).toBe('');
+      expect(component.collectionTreeData[0].data.ccsafa).toBe('');
     });
 
     it('should use 0 for null originCollectionId', () => {
       component.data = [{ ...mockCollections[0], originCollectionId: null }];
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data['Origin Collection ID']).toBe(0);
+      expect(component.collectionTreeData[0].data.originCollectionId).toBe(0);
     });
 
     it('should default manualCreationAllowed to true when not provided', () => {
       component.data = [{ ...mockCollections[0], manualCreationAllowed: undefined }];
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data['Manual Creation Allowed']).toBe(true);
+      expect(component.collectionTreeData[0].data.manualCreationAllowed).toBe(true);
     });
 
     it('should include empty children array on each node', () => {
@@ -459,15 +494,15 @@ describe('CollectionProcessingComponent', () => {
 
   describe('showModifyCollectionDialog', () => {
     const rowData = {
-      'Collection ID': 5,
-      Name: 'My Collection',
-      Description: 'My Desc',
-      'System Type': 'TypeX',
-      'System Name': 'SysX',
-      'CC/S/A/FA': 'CC-X',
-      'A&A Package': 'PkgX',
-      'Predisposing Conditions': 'PredX',
-      'Manual Creation Allowed': false
+      collectionId: 5,
+      collectionName: 'My Collection',
+      description: 'My Desc',
+      systemType: 'TypeX',
+      systemName: 'SysX',
+      ccsafa: 'CC-X',
+      aaPackage: 'PkgX',
+      predisposingConditions: 'PredX',
+      manualCreationAllowed: false
     };
 
     it('should set dialogMode to modify', () => {
@@ -492,7 +527,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should default manualCreationAllowed to true if not in rowData', () => {
-      const rowWithoutManual = { ...rowData, 'Manual Creation Allowed': undefined };
+      const rowWithoutManual = { ...rowData, manualCreationAllowed: undefined };
 
       component.showModifyCollectionDialog(rowWithoutManual);
 
@@ -597,7 +632,7 @@ describe('CollectionProcessingComponent', () => {
 
   describe('confirmDeleteCollection', () => {
     it('should set collectionToDelete', () => {
-      const rowData = { 'Collection ID': 3, Name: 'Test' };
+      const rowData = { collectionId: 3, collectionName: 'Test' };
 
       component.confirmDeleteCollection(rowData);
 
@@ -605,7 +640,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should set displayDeleteDialog to true', () => {
-      component.confirmDeleteCollection({ 'Collection ID': 3 });
+      component.confirmDeleteCollection({ collectionId: 3 });
 
       expect(component.displayDeleteDialog).toBe(true);
     });
@@ -620,21 +655,21 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should call deleteCollection with correct id', () => {
-      component.collectionToDelete = { 'Collection ID': 7, Name: 'ToDelete' };
+      component.collectionToDelete = { collectionId: 7, collectionName: 'ToDelete' };
       component.deleteCollection();
 
       expect(mockCollectionsService.deleteCollection).toHaveBeenCalledWith(7);
     });
 
     it('should show success message after deletion', () => {
-      component.collectionToDelete = { 'Collection ID': 7 };
+      component.collectionToDelete = { collectionId: 7 };
       component.deleteCollection();
 
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: 'Collection Deleted' }));
     });
 
     it('should call hideDeleteDialog after deletion', () => {
-      component.collectionToDelete = { 'Collection ID': 7 };
+      component.collectionToDelete = { collectionId: 7 };
       const spy = vi.spyOn(component, 'hideDeleteDialog');
 
       component.deleteCollection();
@@ -643,7 +678,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should show error message on delete failure', () => {
-      component.collectionToDelete = { 'Collection ID': 7 };
+      component.collectionToDelete = { collectionId: 7 };
       mockCollectionsService.deleteCollection.mockReturnValue(throwError(() => new Error('Delete failed')));
       component.deleteCollection();
 
@@ -660,7 +695,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should set collectionToDelete to null', () => {
-      component.collectionToDelete = { 'Collection ID': 1 };
+      component.collectionToDelete = { collectionId: 1 };
       component.hideDeleteDialog();
 
       expect(component.collectionToDelete).toBeNull();
@@ -797,15 +832,15 @@ describe('CollectionProcessingComponent', () => {
   describe('exportCollection', () => {
     it('should show error when collectionId is missing', () => {
       const rowData = {
-        'Collection ID': null,
-        Name: 'Test',
-        'Collection Type': 'C-PAT',
-        'Origin Collection ID': 0,
-        'System Type': '',
-        'System Name': '',
-        'CC/S/A/FA': '',
-        'A&A Package': '',
-        'Predisposing Conditions': ''
+        collectionId: null,
+        collectionName: 'Test',
+        collectionType: 'C-PAT',
+        originCollectionId: 0,
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: ''
       };
 
       component.exportCollection(rowData);
@@ -815,15 +850,15 @@ describe('CollectionProcessingComponent', () => {
 
     it('should call getPoamsByCollection with correct id', () => {
       const rowData = {
-        'Collection ID': 1,
-        Name: 'Col A',
-        'Collection Type': 'C-PAT',
-        'Origin Collection ID': 0,
-        'System Type': '',
-        'System Name': '',
-        'CC/S/A/FA': '',
-        'A&A Package': '',
-        'Predisposing Conditions': ''
+        collectionId: 1,
+        collectionName: 'Col A',
+        collectionType: 'C-PAT',
+        originCollectionId: 0,
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: ''
       };
 
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
@@ -835,15 +870,15 @@ describe('CollectionProcessingComponent', () => {
     it('should show error when no POAMs found', () => {
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
       const rowData = {
-        'Collection ID': 1,
-        Name: 'Col A',
-        'Collection Type': 'C-PAT',
-        'Origin Collection ID': 0,
-        'System Type': '',
-        'System Name': '',
-        'CC/S/A/FA': '',
-        'A&A Package': '',
-        'Predisposing Conditions': ''
+        collectionId: 1,
+        collectionName: 'Col A',
+        collectionType: 'C-PAT',
+        originCollectionId: 0,
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: ''
       };
 
       component.exportCollection(rowData);
@@ -853,15 +888,15 @@ describe('CollectionProcessingComponent', () => {
 
     it('should route to STIG Manager processing for STIG Manager origin', () => {
       const rowData = {
-        'Collection ID': 2,
-        Name: 'STIG Col',
-        'Collection Type': 'STIG Manager',
-        'Origin Collection ID': 42,
-        'System Type': '',
-        'System Name': '',
-        'CC/S/A/FA': '',
-        'A&A Package': '',
-        'Predisposing Conditions': ''
+        collectionId: 2,
+        collectionName: 'STIG Col',
+        collectionType: 'STIG Manager',
+        originCollectionId: 42,
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: ''
       };
 
       const findings = [
@@ -881,15 +916,15 @@ describe('CollectionProcessingComponent', () => {
 
     it('should route to Tenable processing for Tenable origin', () => {
       const rowData = {
-        'Collection ID': 3,
-        Name: 'Tenable Col',
-        'Collection Type': 'Tenable',
-        'Origin Collection ID': 0,
-        'System Type': '',
-        'System Name': '',
-        'CC/S/A/FA': '',
-        'A&A Package': '',
-        'Predisposing Conditions': ''
+        collectionId: 3,
+        collectionName: 'Tenable Col',
+        collectionType: 'Tenable',
+        originCollectionId: 0,
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: ''
       };
 
       mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
@@ -901,15 +936,15 @@ describe('CollectionProcessingComponent', () => {
 
     it('should route to C-PAT processing for C-PAT origin', () => {
       const rowData = {
-        'Collection ID': 1,
-        Name: 'CPAT Col',
-        'Collection Type': 'C-PAT',
-        'Origin Collection ID': 0,
-        'System Type': '',
-        'System Name': '',
-        'CC/S/A/FA': '',
-        'A&A Package': '',
-        'Predisposing Conditions': ''
+        collectionId: 1,
+        collectionName: 'CPAT Col',
+        collectionType: 'C-PAT',
+        originCollectionId: 0,
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: ''
       };
 
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
@@ -930,7 +965,7 @@ describe('CollectionProcessingComponent', () => {
 
       (component as any).processPoamsWithCpatData(poams, 1).subscribe((r: any) => (result = r));
 
-      expect(result![0].devicesAffected).toBe('TEST-ASSET');
+      expect(result[0].devicesAffected).toBe('TEST-ASSET');
     });
 
     it('should uppercase asset names', async () => {
@@ -943,7 +978,7 @@ describe('CollectionProcessingComponent', () => {
 
       (component as any).processPoamsWithCpatData(poams, 1).subscribe((r: any) => (result = r));
 
-      expect(result![0].devicesAffected).toBe('LOWERCASE-NAME');
+      expect(result[0].devicesAffected).toBe('LOWERCASE-NAME');
     });
 
     it('should set empty devicesAffected when no matching assets', () => {
@@ -956,7 +991,7 @@ describe('CollectionProcessingComponent', () => {
 
       (component as any).processPoamsWithCpatData(poams, 1).subscribe((r: any) => (result = r));
 
-      expect(result![0].devicesAffected).toBe('');
+      expect(result[0].devicesAffected).toBe('');
     });
   });
 
@@ -971,7 +1006,7 @@ describe('CollectionProcessingComponent', () => {
 
       (component as any).processPoamsWithTenableData(poams).subscribe((r: any) => (result = r));
 
-      expect(result![0].devicesAffected).toBe('WORKSTATION');
+      expect(result[0].devicesAffected).toBe('WORKSTATION');
     });
 
     it('should use dnsName first segment uppercased when no netbiosName', () => {
@@ -984,7 +1019,7 @@ describe('CollectionProcessingComponent', () => {
 
       (component as any).processPoamsWithTenableData(poams).subscribe((r: any) => (result = r));
 
-      expect(result![0].devicesAffected).toBe('HOST');
+      expect(result[0].devicesAffected).toBe('HOST');
     });
 
     it('should set empty devicesAffected when no matching assets', () => {
@@ -997,7 +1032,7 @@ describe('CollectionProcessingComponent', () => {
 
       (component as any).processPoamsWithTenableData(poams).subscribe((r: any) => (result = r));
 
-      expect(result![0].devicesAffected).toBe('');
+      expect(result[0].devicesAffected).toBe('');
     });
   });
 
@@ -1009,7 +1044,7 @@ describe('CollectionProcessingComponent', () => {
 
       (component as any).processPoamsWithStigFindings(poams, 1).subscribe((r: any) => (result = r));
 
-      expect(result![0]).toEqual(poams[0]);
+      expect(result[0]).toEqual(poams[0]);
     });
 
     it('should fetch findings and enrich poam with devicesAffected', () => {
@@ -1031,7 +1066,7 @@ describe('CollectionProcessingComponent', () => {
 
       (component as any).processPoamsWithStigFindings(poams, 10).subscribe((r: any) => (result = r));
 
-      expect(result![0].devicesAffected).toBe('ASSET-1 ASSET-2');
+      expect(result[0].devicesAffected).toBe('ASSET-1 ASSET-2');
     });
 
     it('should use findings cache on second invocation with same benchmarkId', () => {
@@ -1056,7 +1091,7 @@ describe('CollectionProcessingComponent', () => {
 
       (component as any).processPoamsWithStigFindings(poams, 10).subscribe((r: any) => (result = r));
 
-      expect(result![0]).toEqual(poams[0]);
+      expect(result[0]).toEqual(poams[0]);
     });
 
     it('should propagate non-403 errors', () => {
@@ -1171,6 +1206,416 @@ describe('CollectionProcessingComponent', () => {
       fixture.detectChanges();
 
       expect(() => component.ngOnDestroy()).not.toThrow();
+    });
+  });
+
+  describe('showBulkImportDialog', () => {
+    it('should set displayBulkImportDialog to true', () => {
+      component.showBulkImportDialog();
+
+      expect(component.displayBulkImportDialog).toBe(true);
+    });
+
+    it('should default bulkImportSource to STIG Manager', () => {
+      component.bulkImportSource = 'Tenable';
+      component.showBulkImportDialog();
+
+      expect(component.bulkImportSource).toBe('STIG Manager');
+    });
+
+    it('should reset selectedBulkImports', () => {
+      component.selectedBulkImports = [{ collectionName: 'X' }];
+      component.showBulkImportDialog();
+
+      expect(component.selectedBulkImports).toEqual([]);
+    });
+
+    it('should reset bulkImportAvailable', () => {
+      component.bulkImportAvailable = [{ label: 'A', value: {} }];
+      component.showBulkImportDialog();
+
+      expect(component.bulkImportAvailable).toEqual([]);
+    });
+
+    it('should trigger STIG Manager fetch by default', () => {
+      component.showBulkImportDialog();
+
+      expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalled();
+    });
+  });
+
+  describe('hideBulkImportDialog', () => {
+    it('should set displayBulkImportDialog to false', () => {
+      component.displayBulkImportDialog = true;
+      component.hideBulkImportDialog();
+
+      expect(component.displayBulkImportDialog).toBe(false);
+    });
+
+    it('should reset selectedBulkImports', () => {
+      component.selectedBulkImports = [{ collectionName: 'X' }];
+      component.hideBulkImportDialog();
+
+      expect(component.selectedBulkImports).toEqual([]);
+    });
+
+    it('should reset bulkImportAvailable', () => {
+      component.bulkImportAvailable = [{ label: 'A', value: {} }];
+      component.hideBulkImportDialog();
+
+      expect(component.bulkImportAvailable).toEqual([]);
+    });
+  });
+
+  describe('onBulkImportSourceChange', () => {
+    it('should reset selectedBulkImports', () => {
+      component.selectedBulkImports = [{ collectionName: 'X' }];
+      component.bulkImportSource = 'Tenable';
+      component.onBulkImportSourceChange();
+
+      expect(component.selectedBulkImports).toEqual([]);
+    });
+
+    it('should fetch Tenable repositories when source is Tenable', () => {
+      component.bulkImportSource = 'Tenable';
+      component.onBulkImportSourceChange();
+
+      expect(mockImportService.getTenableRepositories).toHaveBeenCalled();
+    });
+
+    it('should fetch STIG Manager collections when source is STIG Manager', () => {
+      component.bulkImportSource = 'STIG Manager';
+      component.onBulkImportSourceChange();
+
+      expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalled();
+    });
+  });
+
+  describe('loadAvailableImports (bulk)', () => {
+    it('should populate bulkImportAvailable from STIG Manager source', () => {
+      mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(
+        of([
+          { collectionId: 1, name: 'Coll One', description: 'Desc One' },
+          { collectionId: 2, name: 'Coll Two' }
+        ])
+      );
+      component.data = [];
+      component.bulkImportSource = 'STIG Manager';
+
+      (component as any).loadAvailableImports();
+
+      expect(component.bulkImportAvailable).toHaveLength(2);
+      expect(component.bulkImportAvailable[0].label).toBe('Coll One');
+      expect(component.bulkImportAvailable[0].value.collectionType).toBe('STIG Manager');
+      expect(component.bulkImportAvailable[0].value.originCollectionId).toBe(1);
+      expect(component.bulkImportAvailable[0].value.description).toBe('Desc One');
+    });
+
+    it('should default missing description to empty string', () => {
+      mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(of([{ collectionId: 1, name: 'NoDesc' }]));
+      component.data = [];
+      component.bulkImportSource = 'STIG Manager';
+
+      (component as any).loadAvailableImports();
+
+      expect(component.bulkImportAvailable[0].value.description).toBe('');
+    });
+
+    it('should filter STIG Manager collections already imported by originCollectionId', () => {
+      mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(
+        of([
+          { collectionId: 1, name: 'Imported' },
+          { collectionId: 2, name: 'New' }
+        ])
+      );
+      component.data = [{ collectionType: 'STIG Manager', originCollectionId: 1 }];
+      component.bulkImportSource = 'STIG Manager';
+
+      (component as any).loadAvailableImports();
+
+      expect(component.bulkImportAvailable).toHaveLength(1);
+      expect(component.bulkImportAvailable[0].label).toBe('New');
+    });
+
+    it('should populate bulkImportAvailable from Tenable source', () => {
+      mockImportService.getTenableRepositories.mockReturnValue(
+        of({
+          response: [
+            { id: 10, name: 'Repo A', description: 'Desc A' },
+            { id: 20, name: 'Repo B' }
+          ]
+        })
+      );
+      component.data = [];
+      component.bulkImportSource = 'Tenable';
+
+      (component as any).loadAvailableImports();
+
+      expect(component.bulkImportAvailable).toHaveLength(2);
+      expect(component.bulkImportAvailable[0].value.collectionType).toBe('Tenable');
+      expect(component.bulkImportAvailable[0].value.originCollectionId).toBe(10);
+    });
+
+    it('should filter Tenable repositories already imported by originCollectionId', () => {
+      mockImportService.getTenableRepositories.mockReturnValue(
+        of({
+          response: [
+            { id: 10, name: 'Imported' },
+            { id: 20, name: 'New' }
+          ]
+        })
+      );
+      component.data = [{ collectionType: 'Tenable', originCollectionId: 10 }];
+      component.bulkImportSource = 'Tenable';
+
+      (component as any).loadAvailableImports();
+
+      expect(component.bulkImportAvailable).toHaveLength(1);
+      expect(component.bulkImportAvailable[0].label).toBe('New');
+    });
+
+    it('should not filter Tenable when matching originIds belong to STIG Manager type', () => {
+      mockImportService.getTenableRepositories.mockReturnValue(of({ response: [{ id: 10, name: 'Repo A' }] }));
+      component.data = [{ collectionType: 'STIG Manager', originCollectionId: 10 }];
+      component.bulkImportSource = 'Tenable';
+
+      (component as any).loadAvailableImports();
+
+      expect(component.bulkImportAvailable).toHaveLength(1);
+    });
+
+    it('should show error message when STIG Manager fetch fails', () => {
+      mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(throwError(() => new Error('Boom')));
+      component.bulkImportSource = 'STIG Manager';
+
+      (component as any).loadAvailableImports();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
+    });
+
+    it('should set loadingBulkImports to false after success', () => {
+      mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(of([]));
+      component.bulkImportSource = 'STIG Manager';
+
+      (component as any).loadAvailableImports();
+
+      expect(component.loadingBulkImports).toBe(false);
+    });
+
+    it('should handle null STIG Manager response gracefully', () => {
+      mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(of(null));
+      component.bulkImportSource = 'STIG Manager';
+
+      (component as any).loadAvailableImports();
+
+      expect(component.bulkImportAvailable).toEqual([]);
+    });
+
+    it('should handle null Tenable response gracefully', () => {
+      mockImportService.getTenableRepositories.mockReturnValue(of({ response: null }));
+      component.bulkImportSource = 'Tenable';
+
+      (component as any).loadAvailableImports();
+
+      expect(component.bulkImportAvailable).toEqual([]);
+    });
+  });
+
+  describe('executeBulkImport', () => {
+    it('should show warning when no selection', () => {
+      component.selectedBulkImports = [];
+      component.executeBulkImport();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn', summary: 'No Selection' }));
+    });
+
+    it('should not call addCollection when no selection', () => {
+      component.selectedBulkImports = [];
+      component.executeBulkImport();
+
+      expect(mockCollectionsService.addCollection).not.toHaveBeenCalled();
+    });
+
+    it('should call addCollection for each selected entry', () => {
+      component.selectedBulkImports = [
+        { collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 },
+        { collectionName: 'B', description: '', collectionType: 'STIG Manager', originCollectionId: 2 }
+      ];
+      component.executeBulkImport();
+
+      expect(mockCollectionsService.addCollection).toHaveBeenCalledTimes(2);
+    });
+
+    it('should pass each selection payload to addCollection', () => {
+      const payload = { collectionName: 'A', description: 'D', collectionType: 'Tenable', originCollectionId: 5 };
+
+      component.selectedBulkImports = [payload];
+      component.executeBulkImport();
+
+      expect(mockCollectionsService.addCollection).toHaveBeenCalledWith(payload);
+    });
+
+    it('should show success toast for each successful import', () => {
+      component.selectedBulkImports = [{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }];
+      component.executeBulkImport();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: expect.stringContaining('A') }));
+    });
+
+    it('should set bulkImporting to false after completion', () => {
+      component.selectedBulkImports = [{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }];
+      component.executeBulkImport();
+
+      expect(component.bulkImporting).toBe(false);
+    });
+
+    it('should close dialog after successful import', () => {
+      component.displayBulkImportDialog = true;
+      component.selectedBulkImports = [{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }];
+      component.executeBulkImport();
+
+      expect(component.displayBulkImportDialog).toBe(false);
+    });
+
+    it('should refresh collection data after successful import', () => {
+      const spy = vi.spyOn(component, 'getCollectionData');
+
+      component.selectedBulkImports = [{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }];
+      component.executeBulkImport();
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should report individual failure but continue with the rest', () => {
+      mockCollectionsService.addCollection.mockReturnValueOnce(throwError(() => new Error('Failed'))).mockReturnValueOnce(of({ collectionId: 2 }));
+      component.selectedBulkImports = [
+        { collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 },
+        { collectionName: 'B', description: '', collectionType: 'STIG Manager', originCollectionId: 2 }
+      ];
+      component.executeBulkImport();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('A') }));
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: expect.stringContaining('B') }));
+    });
+  });
+
+  describe('loadOriginCollections filtering (via showModifyCollectionDialog)', () => {
+    it('should exclude origin IDs used by other STIG Manager collections, keep current', () => {
+      component.data = [
+        { collectionId: 1, collectionType: 'STIG Manager', originCollectionId: 100 },
+        { collectionId: 2, collectionType: 'STIG Manager', originCollectionId: 200 }
+      ];
+      mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(
+        of([
+          { collectionId: 100, name: 'UsedByOther' },
+          { collectionId: 200, name: 'CurrentOwn' },
+          { collectionId: 300, name: 'Available' }
+        ])
+      );
+
+      component.showModifyCollectionDialog({
+        collectionId: 2,
+        collectionName: 'Test',
+        collectionType: 'STIG Manager',
+        originCollectionId: 200,
+        description: '',
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: '',
+        manualCreationAllowed: false
+      });
+
+      const ids = component.originCollectionOptions.map((o) => o.value);
+
+      expect(ids).toContain(200);
+      expect(ids).toContain(300);
+      expect(ids).not.toContain(100);
+    });
+
+    it('should not load origin options for C-PAT collection type', () => {
+      mockSharedService.getCollectionsFromSTIGMAN.mockClear();
+      mockImportService.getTenableRepositories.mockClear();
+
+      component.showModifyCollectionDialog({
+        collectionId: 1,
+        collectionName: 'Test',
+        collectionType: 'C-PAT',
+        originCollectionId: 0,
+        description: '',
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: '',
+        manualCreationAllowed: true
+      });
+
+      expect(mockSharedService.getCollectionsFromSTIGMAN).not.toHaveBeenCalled();
+      expect(mockImportService.getTenableRepositories).not.toHaveBeenCalled();
+    });
+
+    it('should filter Tenable origin options the same way', () => {
+      component.data = [{ collectionId: 1, collectionType: 'Tenable', originCollectionId: 10 }];
+      mockImportService.getTenableRepositories.mockReturnValue(
+        of({
+          response: [
+            { id: 10, name: 'Used' },
+            { id: 20, name: 'Available' }
+          ]
+        })
+      );
+
+      component.showModifyCollectionDialog({
+        collectionId: 99,
+        collectionName: 'New',
+        collectionType: 'Tenable',
+        originCollectionId: 0,
+        description: '',
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: '',
+        manualCreationAllowed: false
+      });
+
+      const ids = component.originCollectionOptions.map((o) => o.value);
+
+      expect(ids).not.toContain(10);
+      expect(ids).toContain(20);
+    });
+  });
+
+  describe('Bulk Import - Tenable Disabled', () => {
+    it('should only include STIG Manager source when tenableEnabled is false', async () => {
+      (globalThis as any).CPAT.Env.features.tenableEnabled = false;
+
+      await TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [CollectionProcessingComponent],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: CollectionsService, useValue: mockCollectionsService },
+          { provide: PayloadService, useValue: mockPayloadService },
+          { provide: MessageService, useValue: mockMessageService },
+          { provide: SharedService, useValue: mockSharedService },
+          { provide: ImportService, useValue: mockImportService },
+          { provide: PoamService, useValue: mockPoamService },
+          { provide: AAPackageService, useValue: mockAAPackageService }
+        ]
+      }).compileComponents();
+
+      const newFixture = TestBed.createComponent(CollectionProcessingComponent);
+      const newComponent = newFixture.componentInstance;
+
+      expect(newComponent.tenableEnabled).toBe(false);
+      expect(newComponent.bulkImportSourceOptions).toHaveLength(1);
+      expect(newComponent.bulkImportSourceOptions[0].value).toBe('STIG Manager');
+
+      (globalThis as any).CPAT.Env.features.tenableEnabled = true;
     });
   });
 });

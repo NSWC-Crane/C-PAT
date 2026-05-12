@@ -208,7 +208,6 @@ describe('AppBreadcrumbComponent', () => {
       { path: 'poam-extend', expected: 'Extend POAM' },
       { path: 'poam-log', expected: 'POAM Log' },
       { path: 'poam-manage', expected: 'Manage POAMs' },
-      { path: 'stigmanager-admin', expected: 'STIG Manager Admin' },
       { path: 'stigmanager-import', expected: 'STIG Manager' },
       { path: 'tenable-import', expected: 'Tenable' },
       { path: 'user-processing', expected: 'User Processing' },
@@ -296,16 +295,6 @@ describe('AppBreadcrumbComponent', () => {
       routerEventsSubject.next(new NavigationEnd(3, '/', '/'));
 
       expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
-    });
-
-    it('should handle stigmanager admin path', () => {
-      mockLocation.path.mockReturnValue('/import-processing/stigmanager-admin');
-      fixture.detectChanges();
-
-      expect(component.items()).toEqual([
-        { label: 'Import Processing', routerLink: '/import-processing' },
-        { label: 'STIG Manager Admin', routerLink: '/import-processing/stigmanager-admin' }
-      ]);
     });
 
     it('should handle tenable import path', () => {
