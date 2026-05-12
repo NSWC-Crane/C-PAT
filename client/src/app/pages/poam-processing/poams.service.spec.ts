@@ -712,6 +712,70 @@ describe('PoamService', () => {
     });
   });
 
+  describe('POAM Team Resources Methods', () => {
+    it('should get POAM team resources', () => {
+      const mockResponse = [{ poamId: 1, assignedTeamId: 1, resourceText: 'Test' }];
+
+      service.getPoamTeamResources(1).subscribe((data) => {
+        expect(data).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/poamTeamResources/poam/1`);
+
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+
+    it('should post a POAM team resource', () => {
+      const resource = { poamId: 1, assignedTeamId: 1, resourceText: 'Test resource' };
+
+      service.postPoamTeamResource(resource).subscribe((data) => {
+        expect(data).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/poamTeamResource`);
+
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(resource);
+      req.flush({ success: true });
+    });
+
+    it('should update a POAM team resource', () => {
+      service.updatePoamTeamResource(1, 100, 'Updated resource').subscribe((data) => {
+        expect(data).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/poamTeamResource/1/100`);
+
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual({ resourceText: 'Updated resource' });
+      req.flush({ success: true });
+    });
+
+    it('should update POAM team resource status', () => {
+      service.updatePoamTeamResourceStatus(1, 100, true).subscribe((data) => {
+        expect(data).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/poamTeamResource/1/100/status`);
+
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({ isActive: true });
+      req.flush({ success: true });
+    });
+
+    it('should delete a POAM team resource', () => {
+      service.deletePoamTeamResource(1, 100).subscribe((data) => {
+        expect(data).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/poamTeamResource/1/100`);
+
+      expect(req.request.method).toBe('DELETE');
+      req.flush({ success: true });
+    });
+  });
+
   describe('AI Mitigation Methods', () => {
     it('should automate mitigation', () => {
       const prompt = 'Generate mitigation for vulnerability V-12345';
@@ -731,11 +795,12 @@ describe('PoamService', () => {
 
   describe('Error Handling', () => {
     it('should handle client-side errors', () => {
-      const errorEvent = new ErrorEvent('Network error', {
-        message: 'Network unavailable'
-      });
+      const mockError = new ProgressEvent('error');
 
       service.getPoam(1).subscribe({
+        next: () => {
+          throw new Error('expected an error');
+        },
         error: (error) => {
           expect(error.message).toBe('Something bad happened; please try again later.');
         }
@@ -743,7 +808,7 @@ describe('PoamService', () => {
 
       const req = httpMock.expectOne((request) => request.url === `${apiBase}/poam/1`);
 
-      req.error(errorEvent);
+      req.error(mockError);
     });
 
     it('should handle server-side errors', () => {

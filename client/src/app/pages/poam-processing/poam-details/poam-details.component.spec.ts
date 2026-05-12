@@ -28,6 +28,7 @@ import { AssetTeamMappingService } from './services/asset-team-mapping.service';
 import { PoamCreationService } from './services/poam-creation.service';
 import { PoamDataService } from './services/poam-data.service';
 import { PoamMitigationService } from './services/poam-mitigation.service';
+import { PoamResourceService } from './services/poam-resource.service';
 import { PoamValidationService } from './services/poam-validation.service';
 import { PoamVariableMappingService } from './services/poam-variable-mapping.service';
 
@@ -43,6 +44,7 @@ describe('PoamDetailsComponent', () => {
   let mockPoamDataService: any;
   let mockPoamCreationService: any;
   let mockPoamMitigationService: any;
+  let mockPoamResourceService: any;
   let mockPoamValidationService: any;
   let mockAppConfigurationService: any;
   let mockAssignedTeamService: any;
@@ -132,6 +134,13 @@ describe('PoamDetailsComponent', () => {
       initializeTeamMitigations: vi.fn().mockResolvedValue([])
     };
 
+    mockPoamResourceService = {
+      loadTeamResources: vi.fn().mockReturnValue(of([])),
+      saveTeamResource: vi.fn().mockReturnValue(of({})),
+      syncTeamResources: vi.fn(),
+      initializeTeamResources: vi.fn().mockResolvedValue([])
+    };
+
     mockPoamValidationService = {
       validateData: vi.fn().mockReturnValue({ valid: true }),
       validateSubmissionRequirements: vi.fn().mockReturnValue({ valid: true }),
@@ -180,6 +189,7 @@ describe('PoamDetailsComponent', () => {
         { provide: PoamDataService, useValue: mockPoamDataService },
         { provide: PoamCreationService, useValue: mockPoamCreationService },
         { provide: PoamMitigationService, useValue: mockPoamMitigationService },
+        { provide: PoamResourceService, useValue: mockPoamResourceService },
         { provide: PoamValidationService, useValue: mockPoamValidationService },
         { provide: AppConfigurationService, useValue: mockAppConfigurationService },
         { provide: AssignedTeamService, useValue: mockAssignedTeamService },
@@ -235,6 +245,7 @@ describe('PoamDetailsComponent', () => {
       expect(component.poamAssets).toEqual([]);
       expect(component.poamAssignedTeams).toEqual([]);
       expect(component.teamMitigations).toEqual([]);
+      expect(component.teamResources).toEqual([]);
       expect(component.milestoneTeamOptions).toEqual([]);
       expect(component.appConfigSettings).toEqual([]);
       expect(component.labelList).toEqual([]);
@@ -257,8 +268,16 @@ describe('PoamDetailsComponent', () => {
       expect(component.activeTabIndex).toBe(0);
     });
 
+    it('should initialize activeResourceTabIndex to 0', () => {
+      expect(component.activeResourceTabIndex).toBe(0);
+    });
+
     it('should initialize mitigationSaving to false', () => {
       expect(component.mitigationSaving).toBe(false);
+    });
+
+    it('should initialize resourceSaving to false', () => {
+      expect(component.resourceSaving).toBe(false);
     });
 
     it('should set aiEnabled from CPAT.Env.features', () => {
@@ -629,7 +648,8 @@ describe('PoamDetailsComponent', () => {
         milestones: [{ milestoneDate: '2024-09-01T00:00:00Z', milestoneChangeDate: null, assignedTeams: [{ assignedTeamId: 1, assignedTeamName: 'Team A' }] }],
         labels: [{ labelId: 1 }],
         associatedVulnerabilities: ['CVE-2024-0001'],
-        teamMitigations: [{ assignedTeamId: 1, mitigationText: 'test' }]
+        teamMitigations: [{ assignedTeamId: 1, mitigationText: 'test' }],
+        teamResources: [{ assignedTeamId: 1, resourceText: 'test' }]
       };
 
       const mockUsers = [
@@ -646,6 +666,7 @@ describe('PoamDetailsComponent', () => {
         mockAssignedTeamService.getAssignedTeams.mockReturnValue(of(mockTeamOptions));
         vi.spyOn(component as any, 'loadAssets').mockImplementation(() => {});
         vi.spyOn(component as any, 'loadTeamMitigations').mockImplementation(() => {});
+        vi.spyOn(component as any, 'loadTeamResources').mockImplementation(() => {});
       });
 
       it('should call forkJoin with getPoam, getCollectionPermissions, getAssignedTeams', async () => {
@@ -747,6 +768,19 @@ describe('PoamDetailsComponent', () => {
         await component.getData();
         expect(component.teamMitigations).toEqual([{ assignedTeamId: 1, mitigationText: 'test' }]);
         expect(ensureSpy).toHaveBeenCalled();
+      });
+
+      it('should set teamResources and call _ensureUniqueTeamResources', async () => {
+        const ensureSpy = vi.spyOn(component as any, '_ensureUniqueTeamResources');
+
+        await component.getData();
+        expect(component.teamResources).toEqual([{ assignedTeamId: 1, resourceText: 'test' }]);
+        expect(ensureSpy).toHaveBeenCalled();
+      });
+
+      it('should call loadTeamResources alongside loadTeamMitigations', async () => {
+        await component.getData();
+        expect(component['loadTeamResources']).toHaveBeenCalled();
       });
 
       it('should filter collectionApprovers to users with accessLevel >= 3', async () => {
@@ -1148,6 +1182,12 @@ describe('PoamDetailsComponent', () => {
       expect(component.teamMitigations).toEqual([]);
     });
 
+    it('should reset teamResources to empty array', async () => {
+      component.teamResources = [{ assignedTeamId: 1, resourceText: 'old' }];
+      await component.createNewACASPoam();
+      expect(component.teamResources).toEqual([]);
+    });
+
     it('should show error on creation failure', async () => {
       mockPoamCreationService.createNewACASPoam.mockRejectedValue(new Error('creation failed'));
       await component.createNewACASPoam();
@@ -1198,11 +1238,13 @@ describe('PoamDetailsComponent', () => {
       expect(component.poamApprovers[0].approvedDate).toBeInstanceOf(Date);
     });
 
-    it('should set poam and reset teamMitigations', async () => {
+    it('should set poam and reset teamMitigations and teamResources', async () => {
       component.teamMitigations = [{ assignedTeamId: 1 }];
+      component.teamResources = [{ assignedTeamId: 1, resourceText: 'old' }];
       await component.createNewSTIGManagerPoam();
       expect(component.poam).toEqual(mockCreationResult.poam);
       expect(component.teamMitigations).toEqual([]);
+      expect(component.teamResources).toEqual([]);
     });
 
     it('should show error on creation failure', async () => {
@@ -1261,11 +1303,13 @@ describe('PoamDetailsComponent', () => {
       expect(component.poamApprovers[0].approvedDate).toBeNull();
     });
 
-    it('should set poam and reset teamMitigations', async () => {
+    it('should set poam and reset teamMitigations and teamResources', async () => {
       component.teamMitigations = [{ assignedTeamId: 99 }];
+      component.teamResources = [{ assignedTeamId: 99, resourceText: 'old' }];
       await component.createNewPoam();
       expect(component.poam).toEqual(mockCreationResult.poam);
       expect(component.teamMitigations).toEqual([]);
+      expect(component.teamResources).toEqual([]);
     });
 
     it('should show error on creation failure', async () => {
@@ -2169,7 +2213,7 @@ describe('PoamDetailsComponent', () => {
 
     it('should run all three validations', async () => {
       await component.verifySubmitPoam();
-      expect(mockPoamValidationService.validateSubmissionRequirements).toHaveBeenCalledWith(component.poam, component.teamMitigations, component.poamMilestones, component.dates);
+      expect(mockPoamValidationService.validateSubmissionRequirements).toHaveBeenCalledWith(component.poam, component.teamMitigations, component.teamResources, component.poamMilestones, component.dates);
       expect(mockPoamValidationService.validateMilestoneDates).toHaveBeenCalledWith(component.poam, component.poamMilestones);
       expect(mockPoamValidationService.validateMilestoneCompleteness).toHaveBeenCalledWith(component.poamMilestones);
     });

@@ -79,7 +79,6 @@ describe('PoamValidationService', () => {
       rawSeverity: 'High',
       submitterId: 1,
       predisposingConditions: 'Test conditions',
-      requiredResources: 'Test resources',
       localImpact: 'Low',
       isGlobalFinding: false
     };
@@ -90,11 +89,13 @@ describe('PoamValidationService', () => {
 
     const validTeamMitigations = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: 'Test mitigation' }];
 
+    const validTeamResources = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, resourceText: 'Test resource' }];
+
     const validMilestones = [{ assignedTeamIds: [1], milestoneComments: 'Test milestone', milestoneStatus: 'Pending' }];
 
     it('should return invalid if description is missing', () => {
       const poam = { ...validPoam, description: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, validDates);
+      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('Description is a required field');
@@ -102,7 +103,7 @@ describe('PoamValidationService', () => {
 
     it('should return invalid if aaPackage is missing', () => {
       const poam = { ...validPoam, aaPackage: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, validDates);
+      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('A&A Package is a required field');
@@ -110,7 +111,7 @@ describe('PoamValidationService', () => {
 
     it('should return invalid if scheduledCompletionDate is missing', () => {
       const dates = { scheduledCompletionDate: null };
-      const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, validMilestones, dates);
+      const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, validTeamResources, validMilestones, dates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('Scheduled Completion Date is a required field');
@@ -120,7 +121,7 @@ describe('PoamValidationService', () => {
       mockMappingService.isIavmNumberValid.mockReturnValue(true);
       const poam = { ...validPoam, iavmNumber: '2024-A-0001' };
       const dates = { ...validDates, iavComplyByDate: null };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, dates);
+      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, dates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('IAV Comply By Date is required if an IAVM Number is provided.');
@@ -128,7 +129,7 @@ describe('PoamValidationService', () => {
 
     it('should require mitigations when adjSeverity differs from rawSeverity', () => {
       const poam = { ...validPoam, adjSeverity: 'Low', mitigations: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, validDates);
+      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('If Adjusted Severity deviates from the Raw Severity, Mitigations becomes a required field.');
@@ -136,23 +137,15 @@ describe('PoamValidationService', () => {
 
     it('should return invalid if predisposingConditions is missing', () => {
       const poam = { ...validPoam, predisposingConditions: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, validDates);
+      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('Predisposing Conditions is a required field for submission.');
     });
 
-    it('should return invalid if requiredResources is missing', () => {
-      const poam = { ...validPoam, requiredResources: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, validDates);
-
-      expect(result.valid).toBe(false);
-      expect(result.message).toBe('Required Resources is a required field for submission.');
-    });
-
     it('should return invalid if localImpact is missing', () => {
       const poam = { ...validPoam, localImpact: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, validDates);
+      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('Local Impact is a required field for submission.');
@@ -160,7 +153,7 @@ describe('PoamValidationService', () => {
 
     it('should require impactDescription when localImpact is Moderate or higher', () => {
       const poam = { ...validPoam, localImpact: 'Moderate', impactDescription: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, validDates);
+      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('If Local Impact is Moderate or higher, Impact Description becomes a required field.');
@@ -168,7 +161,7 @@ describe('PoamValidationService', () => {
 
     it('should require impactDescription when localImpact is High', () => {
       const poam = { ...validPoam, localImpact: 'High', impactDescription: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, validDates);
+      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('If Local Impact is Moderate or higher, Impact Description becomes a required field.');
@@ -176,7 +169,7 @@ describe('PoamValidationService', () => {
 
     it('should require impactDescription when localImpact is Very High', () => {
       const poam = { ...validPoam, localImpact: 'Very High', impactDescription: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validMilestones, validDates);
+      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(false);
       expect(result.message).toBe('If Local Impact is Moderate or higher, Impact Description becomes a required field.');
@@ -185,7 +178,7 @@ describe('PoamValidationService', () => {
     describe('non-global finding validation', () => {
       it('should return invalid if no active teams', () => {
         const teams = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: false, mitigationText: 'Test' }];
-        const result = service.validateSubmissionRequirements(validPoam, teams, validMilestones, validDates);
+        const result = service.validateSubmissionRequirements(validPoam, teams, [], validMilestones, validDates);
 
         expect(result.valid).toBe(false);
         expect(result.message).toBe('At least one active team is required for submission.');
@@ -193,7 +186,7 @@ describe('PoamValidationService', () => {
 
       it('should return invalid if single team missing mitigations', () => {
         const teams = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: '' }];
-        const result = service.validateSubmissionRequirements(validPoam, teams, validMilestones, validDates);
+        const result = service.validateSubmissionRequirements(validPoam, teams, [], validMilestones, validDates);
 
         expect(result.valid).toBe(false);
         expect(result.message).toBe('Team "Team A" is missing mitigations. All teams must have mitigations for submission.');
@@ -204,16 +197,41 @@ describe('PoamValidationService', () => {
           { assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: '' },
           { assignedTeamId: 2, assignedTeamName: 'Team B', isActive: true, mitigationText: '' }
         ];
-        const result = service.validateSubmissionRequirements(validPoam, teams, [], validDates);
+        const result = service.validateSubmissionRequirements(validPoam, teams, [], [], validDates);
 
         expect(result.valid).toBe(false);
         expect(result.message).toContain('Teams "Team A", "Team B" are missing mitigations');
       });
 
+      it('should return invalid if single team missing resources', () => {
+        const teams = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: 'Test mitigation' }];
+        const teamResources = [{ assignedTeamId: 1, isActive: true, resourceText: '' }];
+        const result = service.validateSubmissionRequirements(validPoam, teams, teamResources, validMilestones, validDates);
+
+        expect(result.valid).toBe(false);
+        expect(result.message).toBe('Team "Team A" is missing required resources. All teams must have required resources for submission.');
+      });
+
+      it('should return invalid if multiple teams missing resources', () => {
+        const teams = [
+          { assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: 'Test' },
+          { assignedTeamId: 2, assignedTeamName: 'Team B', isActive: true, mitigationText: 'Test' }
+        ];
+        const teamResources = [
+          { assignedTeamId: 1, resourceText: '' },
+          { assignedTeamId: 2, resourceText: '' }
+        ];
+        const result = service.validateSubmissionRequirements(validPoam, teams, teamResources, [], validDates);
+
+        expect(result.valid).toBe(false);
+        expect(result.message).toContain('Teams "Team A", "Team B" are missing required resources');
+      });
+
       it('should return invalid if single team missing milestones', () => {
         const teams = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: 'Test' }];
+        const teamResources = [{ assignedTeamId: 1, resourceText: 'Test resource', isActive: true }];
         const milestones: any[] = [];
-        const result = service.validateSubmissionRequirements(validPoam, teams, milestones, validDates);
+        const result = service.validateSubmissionRequirements(validPoam, teams, teamResources, milestones, validDates);
 
         expect(result.valid).toBe(false);
         expect(result.message).toBe('Team "Team A" is missing milestones. All teams must have milestones for submission.');
@@ -224,8 +242,12 @@ describe('PoamValidationService', () => {
           { assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: 'Test' },
           { assignedTeamId: 2, assignedTeamName: 'Team B', isActive: true, mitigationText: 'Test' }
         ];
+        const teamResources = [
+          { assignedTeamId: 1, resourceText: 'Test resource', isActive: true },
+          { assignedTeamId: 2, resourceText: 'Test resource', isActive: true }
+        ];
         const milestones: any[] = [];
-        const result = service.validateSubmissionRequirements(validPoam, teams, milestones, validDates);
+        const result = service.validateSubmissionRequirements(validPoam, teams, teamResources, milestones, validDates);
 
         expect(result.valid).toBe(false);
         expect(result.message).toContain('Teams "Team A", "Team B" are missing milestones');
@@ -233,7 +255,7 @@ describe('PoamValidationService', () => {
 
       it('should return invalid if no pending milestones exist', () => {
         const milestones = [{ assignedTeamIds: [1], milestoneComments: 'Test', milestoneStatus: 'Complete' }];
-        const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, milestones, validDates);
+        const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, validTeamResources, milestones, validDates);
 
         expect(result.valid).toBe(false);
         expect(result.message).toBe('A minimum of one POAM milestone in a Pending status is required before the POAM can be submitted for review.');
@@ -244,7 +266,7 @@ describe('PoamValidationService', () => {
           { assignedTeamIds: [1], milestoneComments: 'Test 1', milestoneStatus: 'Complete' },
           { assignedTeamIds: [1], milestoneComments: 'Test 2', milestoneStatus: 'Pending' }
         ];
-        const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, milestones, validDates);
+        const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, validTeamResources, milestones, validDates);
 
         expect(result.valid).toBe(true);
       });
@@ -254,30 +276,42 @@ describe('PoamValidationService', () => {
           { assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: 'Test' },
           { assignedTeamId: 2, assignedTeamName: 'Team B', isActive: true, mitigationText: 'Test' }
         ];
+        const teamResources = [
+          { assignedTeamId: 1, resourceText: 'Test resource', isActive: true },
+          { assignedTeamId: 2, resourceText: 'Test resource', isActive: true }
+        ];
         const milestones = [
           { assignedTeamIds: [1], milestoneComments: 'Test 1', milestoneStatus: 'Complete' },
           { assignedTeamIds: [2], milestoneComments: 'Test 2', milestoneStatus: 'Pending' }
         ];
-        const result = service.validateSubmissionRequirements(validPoam, teams, milestones, validDates);
+        const result = service.validateSubmissionRequirements(validPoam, teams, teamResources, milestones, validDates);
 
         expect(result.valid).toBe(true);
       });
     });
 
     describe('global finding validation', () => {
-      const globalPoam = { ...validPoam, isGlobalFinding: true };
+      const globalPoam = { ...validPoam, isGlobalFinding: true, requiredResources: 'Test resources' };
 
       it('should require mitigations for global findings', () => {
         const poam = { ...globalPoam, mitigations: '' };
-        const result = service.validateSubmissionRequirements(poam, [], [], validDates);
+        const result = service.validateSubmissionRequirements(poam, [], [], [], validDates);
 
         expect(result.valid).toBe(false);
         expect(result.message).toBe('Global Mitigations is a required field for submission when using Global Finding mode.');
       });
 
+      it('should require requiredResources for global findings', () => {
+        const poam = { ...globalPoam, mitigations: 'Test mitigations', requiredResources: '' };
+        const result = service.validateSubmissionRequirements(poam, [], [], [], validDates);
+
+        expect(result.valid).toBe(false);
+        expect(result.message).toBe('Global Required Resources is a required field for submission when using Global Finding mode.');
+      });
+
       it('should require at least one pending milestone for global findings', () => {
         const poam = { ...globalPoam, mitigations: 'Test mitigations' };
-        const result = service.validateSubmissionRequirements(poam, [], [], validDates);
+        const result = service.validateSubmissionRequirements(poam, [], [], [], validDates);
 
         expect(result.valid).toBe(false);
         expect(result.message).toBe('A minimum of one POAM milestone in a Pending status is required before a Global POAM can be submitted for review.');
@@ -286,23 +320,23 @@ describe('PoamValidationService', () => {
       it('should return invalid for global finding with only completed milestones', () => {
         const poam = { ...globalPoam, mitigations: 'Test mitigations' };
         const milestones = [{ milestoneId: 1, milestoneComments: 'Test', milestoneStatus: 'Complete' }];
-        const result = service.validateSubmissionRequirements(poam, [], milestones, validDates);
+        const result = service.validateSubmissionRequirements(poam, [], [], milestones, validDates);
 
         expect(result.valid).toBe(false);
         expect(result.message).toBe('A minimum of one POAM milestone in a Pending status is required before a Global POAM can be submitted for review.');
       });
 
-      it('should return valid for global finding with mitigations and pending milestones', () => {
+      it('should return valid for global finding with mitigations, requiredResources, and pending milestones', () => {
         const poam = { ...globalPoam, mitigations: 'Test mitigations' };
         const milestones = [{ milestoneId: 1, milestoneComments: 'Test', milestoneStatus: 'Pending' }];
-        const result = service.validateSubmissionRequirements(poam, [], milestones, validDates);
+        const result = service.validateSubmissionRequirements(poam, [], [], milestones, validDates);
 
         expect(result.valid).toBe(true);
       });
     });
 
     it('should return valid when all requirements are met', () => {
-      const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, validMilestones, validDates);
+      const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(true);
     });

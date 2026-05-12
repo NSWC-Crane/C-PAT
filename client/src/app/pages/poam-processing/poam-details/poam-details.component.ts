@@ -59,6 +59,7 @@ import { AssetTeamMappingService } from './services/asset-team-mapping.service';
 import { PoamCreationService } from './services/poam-creation.service';
 import { AssetData, PoamDataService } from './services/poam-data.service';
 import { PoamMitigationService } from './services/poam-mitigation.service';
+import { PoamResourceService } from './services/poam-resource.service';
 import { PoamValidationService } from './services/poam-validation.service';
 import { PoamVariableMappingService } from './services/poam-variable-mapping.service';
 
@@ -118,6 +119,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   private readonly poamDataService = inject(PoamDataService);
   private readonly poamCreationService = inject(PoamCreationService);
   private readonly poamMitigationService = inject(PoamMitigationService);
+  private readonly poamResourceService = inject(PoamResourceService);
   private readonly assetTeamMappingService = inject(AssetTeamMappingService);
   private readonly poamValidationService = inject(PoamValidationService);
   private readonly route = inject(ActivatedRoute);
@@ -167,9 +169,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   user: any;
   payload: any;
   teamMitigations: any[] = [];
+  teamResources: any[] = [];
   milestoneTeamOptions: any[] = [];
   activeTabIndex: number = 0;
+  activeResourceTabIndex: number = 0;
   mitigationSaving: boolean = false;
+  resourceSaving: boolean = false;
   isGlobalFinding: boolean;
   showPoamNotes: boolean = false;
 
@@ -432,6 +437,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           this.poamAssociatedVulnerabilities = poam.associatedVulnerabilities || [];
           this.teamMitigations = poam.teamMitigations || [];
           this._ensureUniqueTeamMitigations();
+          this.teamResources = poam.teamResources || [];
+          this._ensureUniqueTeamResources();
 
           this.collectionApprovers = Array.isArray(this.collectionUsers) ? this.collectionUsers.filter((user: Permission) => user.accessLevel >= 3) : [];
 
@@ -457,6 +464,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
           }
 
           this.loadTeamMitigations();
+          this.loadTeamResources();
           this.loadAssets();
         },
         error: (error) => {
@@ -573,6 +581,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       }));
       this.poam = result.poam;
       this.teamMitigations = [];
+      this.teamResources = [];
     } catch (error) {
       this.messageService.add({
         severity: 'error',
@@ -603,6 +612,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       }));
       this.poam = result.poam;
       this.teamMitigations = [];
+      this.teamResources = [];
     } catch (error) {
       this.messageService.add({
         severity: 'error',
@@ -633,6 +643,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       }));
       this.poam = result.poam;
       this.teamMitigations = [];
+      this.teamResources = [];
     } catch (error) {
       this.messageService.add({
         severity: 'error',
@@ -888,6 +899,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     if (this.teamMitigations) {
       this.teamMitigations.forEach((mitigation) => (mitigation.poamId = poamId));
     }
+
+    if (this.teamResources) {
+      this.teamResources.forEach((resource) => (resource.poamId = poamId));
+    }
   }
 
   onStigSelected(event: any) {
@@ -947,7 +962,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this._ensureUniqueTeamMitigations();
 
     const validations = [
-      this.poamValidationService.validateSubmissionRequirements(this.poam, this.teamMitigations, this.poamMilestones, this.dates),
+      this.poamValidationService.validateSubmissionRequirements(this.poam, this.teamMitigations, this.teamResources, this.poamMilestones, this.dates),
       this.poamValidationService.validateMilestoneDates(this.poam, this.poamMilestones),
       this.poamValidationService.validateMilestoneCompleteness(this.poamMilestones)
     ];
@@ -1111,6 +1126,24 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       if (!this.poam.isGlobalFinding && this.teamMitigations.filter((m) => m.isActive).length === 1) {
         this.activeTabIndex = 0;
       }
+
+      const existingResourceIndex = this.teamResources.findIndex((r) => r.assignedTeamId === event.team.assignedTeamId);
+
+      if (existingResourceIndex === -1) {
+        this.teamResources.push({
+          assignedTeamId: event.team.assignedTeamId,
+          assignedTeamName: event.team.assignedTeamName,
+          resourceText: '',
+          isActive: true
+        });
+      } else {
+        this.teamResources[existingResourceIndex].isActive = true;
+        this.teamResources[existingResourceIndex].assignedTeamName = event.team.assignedTeamName;
+      }
+
+      if (!this.poam.isGlobalFinding && this.teamResources.filter((r) => r.isActive).length === 1) {
+        this.activeResourceTabIndex = 0;
+      }
     } else if (event.action === 'deleted' && event.team?.assignedTeamId) {
       const mitigationIndex = this.teamMitigations.findIndex((m) => m.assignedTeamId === event.team.assignedTeamId);
 
@@ -1118,14 +1151,23 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
         this.teamMitigations[mitigationIndex].isActive = false;
 
         if (!this.poam.isGlobalFinding && this.activeTabIndex === mitigationIndex) {
-          const activeTeams = this.teamMitigations.filter((m) => m.isActive);
+          this.activeTabIndex = 0;
+        }
+      }
 
-          this.activeTabIndex = activeTeams.length > 0 ? 0 : 0;
+      const resourceIndex = this.teamResources.findIndex((r) => r.assignedTeamId === event.team.assignedTeamId);
+
+      if (resourceIndex > -1) {
+        this.teamResources[resourceIndex].isActive = false;
+
+        if (!this.poam.isGlobalFinding && this.activeResourceTabIndex === resourceIndex) {
+          this.activeResourceTabIndex = 0;
         }
       }
     }
 
     this._ensureUniqueTeamMitigations();
+    this._ensureUniqueTeamResources();
 
     if (this.poam && event.action !== 'save-request') {
       this.poam.assignedTeams = this.poamAssignedTeams
@@ -1142,6 +1184,12 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
       if (this.activeTabIndex >= activeTeams.length && activeTeams.length > 0) {
         this.activeTabIndex = 0;
+      }
+
+      const activeResourceTeams = this.teamResources.filter((r) => r.isActive);
+
+      if (this.activeResourceTabIndex >= activeResourceTeams.length && activeResourceTeams.length > 0) {
+        this.activeResourceTabIndex = 0;
       }
     }
   }
@@ -1246,6 +1294,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   onGlobalFindingToggle(): void {
     if (this.poam.isGlobalFinding) {
       this.activeTabIndex = 0;
+      this.activeResourceTabIndex = 0;
       this.messageService.add({
         severity: 'info',
         summary: 'Global Finding Mode',
@@ -1253,6 +1302,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       });
     } else if (this.teamMitigations?.length > 0) {
       this.activeTabIndex = 0;
+      this.activeResourceTabIndex = 0;
     } else {
       this.messageService.add({
         severity: 'info',
@@ -1387,11 +1437,115 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadTeamResources() {
+    if (!this.poam?.poamId || this.poam.poamId === 'ADDPOAM') {
+      this._ensureUniqueTeamResources();
+
+      return;
+    }
+
+    this.poamResourceService.loadTeamResources(this.poam.poamId).subscribe({
+      next: async (resources) => {
+        this.teamResources = resources || [];
+        this._ensureUniqueTeamResources();
+
+        const needsInitialization = this.teamResources.length === 0 && this.poamAssignedTeams?.length > 0;
+        const needsSync = this.teamResources.length > 0 && this.poamAssignedTeams?.length > 0;
+
+        if (needsInitialization) {
+          await this.initializeTeamResources();
+        } else if (needsSync) {
+          this.syncTeamResources();
+        }
+
+        this._ensureUniqueTeamResources();
+
+        if (this.activeResourceTabIndex > 0 && this.activeResourceTabIndex > this.teamResources.length) {
+          this.activeResourceTabIndex = 0;
+        }
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load team resources: ${getErrorMessage(error)}`
+        });
+        this._ensureUniqueTeamResources();
+      }
+    });
+  }
+
+  syncTeamResources() {
+    if (!this.poam || !this.poamAssignedTeams || !this.teamResources) {
+      console.warn('Cannot sync team resources: Missing required data.');
+
+      return;
+    }
+
+    this.poamResourceService.syncTeamResources(this.poam, this.poamAssignedTeams, this.teamResources);
+  }
+
+  saveTeamResource(teamResource: any) {
+    if (!this.poam || !teamResource || !teamResource.assignedTeamId) {
+      console.error('Cannot save team resource: Missing POAM or team resource data.');
+
+      return;
+    }
+
+    this.resourceSaving = true;
+    this.poamResourceService.saveTeamResource(this.poam, teamResource).subscribe({
+      next: () => {
+        this.resourceSaving = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Required resources for ${teamResource.assignedTeamName} saved successfully`
+        });
+      },
+      error: (error) => {
+        this.resourceSaving = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to save team resources: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  async initializeTeamResources() {
+    this.teamResources = await this.poamResourceService.initializeTeamResources(this.poam, this.poamAssignedTeams, this.teamResources);
+  }
+
+  onResourceTabChange(event: any): void {
+    if (this.poam.isGlobalFinding && event.index !== 0) {
+      setTimeout(() => (this.activeResourceTabIndex = 0), 0);
+
+      return;
+    }
+
+    if (!this.poam.isGlobalFinding && this.teamResources) {
+      const maxIndex = this.teamResources.length - 1;
+
+      if (event.index > maxIndex) {
+        setTimeout(() => (this.activeResourceTabIndex = 0), 0);
+      }
+    }
+  }
+
   private _ensureUniqueTeamMitigations(): void {
     if (Array.isArray(this.teamMitigations)) {
       this.teamMitigations = this.teamMitigations.filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId));
     } else {
       this.teamMitigations = [];
+    }
+  }
+
+  private _ensureUniqueTeamResources(): void {
+    if (Array.isArray(this.teamResources)) {
+      this.teamResources = this.teamResources.filter((resource, index, self) => index === self.findIndex((r) => r.assignedTeamId === resource.assignedTeamId));
+    } else {
+      this.teamResources = [];
     }
   }
 

@@ -5169,6 +5169,216 @@ paths:
         - oauth:
             - 'c-pat:write'
 
+  /poamTeamResources/poam/{poamId}:
+    get:
+      summary: Get all team resources for a specific POAM
+      operationId: getPoamTeamResourcesByPoamId
+      parameters:
+        - in: path
+          name: poamId
+          required: true
+          schema:
+            type: integer
+          description: The ID of the POAM
+      responses:
+        '200':
+          description: Successfully retrieved team resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamTeamResource_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamResource
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  /poamTeamResource:
+    post:
+      summary: Create a new team resource
+      operationId: postPoamTeamResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                poamId:
+                  type: integer
+                assignedTeamId:
+                  type: integer
+                resourceText:
+                  type: string
+                isActive:
+                  type: boolean
+              required:
+                - poamId
+                - assignedTeamId
+      responses:
+        '201':
+          description: Team resource created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamTeamResource_Object'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamResource
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  /poamTeamResource/{poamId}/{assignedTeamId}:
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+    put:
+      summary: Update a team resource
+      operationId: updatePoamTeamResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resourceText:
+                  type: string
+              required:
+                - resourceText
+      responses:
+        '200':
+          description: Team resource updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamTeamResource_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamResource
+      security:
+        - oauth:
+            - 'c-pat:write'
+    delete:
+      summary: Delete a team resource
+      operationId: deletePoamTeamResource
+      responses:
+        '204':
+          description: Team resource deleted successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamResource
+      security:
+        - oauth:
+            - 'c-pat:write'
+
+  /poamTeamResource/{poamId}/{assignedTeamId}/status:
+    parameters:
+      - in: path
+        name: poamId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+    patch:
+      summary: Update a team resource status
+      operationId: updatePoamTeamResourceStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isActive:
+                  type: boolean
+              required:
+                - isActive
+      responses:
+        '200':
+          description: Team resource status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/poamTeamResource_Object'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - PoamTeamResource
+      security:
+        - oauth:
+            - 'c-pat:write'
+
   '/tenableFilters/{collectionId}':
     get:
       summary: Return all Tenable Filters for a collection
@@ -6752,6 +6962,25 @@ components:
         assignedTeamName:
           type: string
         mitigationText:
+          type: string
+        isActive:
+          type: boolean
+      required:
+        - poamId
+        - assignedTeamId
+
+    poamTeamResource_Object:
+      type: object
+      properties:
+        resourceId:
+          type: integer
+        poamId:
+          type: integer
+        assignedTeamId:
+          type: integer
+        assignedTeamName:
+          type: string
+        resourceText:
           type: string
         isActive:
           type: boolean

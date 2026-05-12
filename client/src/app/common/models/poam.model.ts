@@ -93,4 +93,12 @@ export interface Poam {
     mitigationText: string;
     isActive: boolean;
   }[];
+  teamResources?: {
+    resourceId: number;
+    poamId: number;
+    assignedTeamId: number;
+    assignedTeamName: string;
+    resourceText: string;
+    isActive: boolean;
+  }[];
 }

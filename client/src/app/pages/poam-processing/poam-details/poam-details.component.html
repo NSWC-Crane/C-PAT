@@ -635,9 +635,92 @@
             <p-step-panel [value]="5">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
-                  <div class="stepper-content">
-                    <i class="pi pi-info-circle mb-4" style="color: var(--p-text-color)" pTooltip="Resources Required: Estimated funding or manpower resources required to resolve the security vulnerability (i.e., full-time equivalent)."></i>
-                    <textarea pTextarea class="w-full" [(ngModel)]="poam.requiredResources" id="requiredResources" name="requiredResources" rows="16" maxlength="10000" placeholder="Required Resources..." [disabled]="accessLevel() < 2"></textarea>
+                  <div class="stepper-content !pt-0">
+                    <div class="info-container mb-3">
+                      <div class="align-items-center justify-content-between mb-2 flex">
+                        <div class="align-items-center flex">
+                          <i class="pi pi-info-circle mt-3 shrink-0" pTooltip="Resources Required: Estimated funding or manpower resources required to resolve the security vulnerability (i.e., full-time equivalent)."></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="team-resources-container">
+                      @if (resourceSaving) {
+                        <p-progressBar mode="indeterminate" [style]="{ height: '4px' }" />
+                      }
+
+                      @if (!poam.isGlobalFinding && (!poamAssignedTeams || poamAssignedTeams.length === 0)) {
+                        <div class="card p-4 text-center justify-items-center">
+                          <div class="mb-4">
+                            <i class="pi pi-info-circle text-4xl text-blue-500"></i>
+                          </div>
+                          <h4 class="mb-2">No Required Resources Options Available</h4>
+                          <p class="text-muted mb-4">To enter required resources, you must either enable the "Global Finding" toggle or assign teams to this POAM.</p>
+                        </div>
+                      }
+
+                      @if (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0)) {
+                        <p-tabs [(value)]="activeResourceTabIndex" (onChange)="onResourceTabChange($event)" scrollable>
+                          <p-tablist>
+                            @if (poam.isGlobalFinding) {
+                              <p-tab [value]="0">
+                                <span>Global Finding</span>
+                              </p-tab>
+                            }
+
+                            @if (!poam.isGlobalFinding) {
+                              @for (teamResource of teamResources; track teamResource.assignedTeamId; let i = $index) {
+                                <p-tab [value]="i" [class]="teamResource.isActive ? '' : 'inactive-tab'">
+                                  <span [ngClass]="{ 'inactive-tab': !teamResource.isActive }">{{ teamResource.assignedTeamName }}</span>
+                                </p-tab>
+                              }
+                            }
+                          </p-tablist>
+
+                          <p-tabpanels>
+                            @if (poam.isGlobalFinding) {
+                              <p-tabpanel [value]="0">
+                                <textarea
+                                  pTextarea
+                                  class="w-full"
+                                  [(ngModel)]="poam.requiredResources"
+                                  id="requiredResources"
+                                  name="requiredResources"
+                                  rows="16"
+                                  maxlength="10000"
+                                  placeholder="Global POAM Required Resources..."
+                                  [disabled]="accessLevel() < 2"
+                                ></textarea>
+                              </p-tabpanel>
+                            }
+
+                            @if (!poam.isGlobalFinding) {
+                              @for (teamResource of teamResources; track teamResource.assignedTeamId; let i = $index) {
+                                <p-tabpanel [value]="i">
+                                  <div [ngClass]="{ 'opacity-70': !teamResource.isActive }">
+                                    @if (!teamResource.isActive) {
+                                      <div class="mb-2 rounded-md bg-yellow-600 p-2">
+                                        <i class="pi pi-info-circle mr-2"></i>
+                                        This team is no longer assigned to this POAM. Required resources content is preserved but cannot be edited.
+                                      </div>
+                                    }
+                                    <textarea
+                                      pTextarea
+                                      class="w-full"
+                                      [(ngModel)]="teamResource.resourceText"
+                                      rows="16"
+                                      maxlength="10000"
+                                      placeholder="Team-specific required resources..."
+                                      [disabled]="!teamResource.isActive && accessLevel() < 3"
+                                    ></textarea>
+                                  </div>
+                                </p-tabpanel>
+                              }
+                            }
+                          </p-tabpanels>
+                        </p-tabs>
+                      }
+                    </div>
                   </div>
                   <div class="stepper-buttons">
                     <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(4)" />
