@@ -14,36 +14,37 @@
   </div>
 } @else {
   <div class="flex items-center justify-between mb-2">
-    <div class="flex items-center">
+    <div class="flex items-center gap-3">
       <p-iconField iconPosition="left">
         <p-inputIcon>
           <i class="pi pi-search"></i>
         </p-inputIcon>
         <input pInputText type="text" id="search" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search..." />
       </p-iconField>
-      <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
-    </div>
-    <span class="text-sm text-gray-400">
-      {{ highRiskAssetsTotalRecords() }} Results
-      <span class="relative inline-block">
-        <i class="pi pi-info-circle ml-1" tooltipPosition="left" [pTooltip]="highRiskAssetsTooltip" tooltipStyleClass="wide-tooltip" appendTo="body" style="font-size: 0.875rem; color: var(--text-color-secondary)"> </i>
-      </span>
-      <ng-template #highRiskAssetsTooltip>
-        <div class="flex flex-col gap-2">
-          <span class="font-semibold">Tenable IP Summary tool</span>
-          <div>
-            <span class="font-semibold">Filters:</span>
-            <ul class="mt-1 ml-4 list-disc">
-              <li>Repository: Current Repository</li>
-              <li>Plugin Type: Active</li>
-              <li>Severity: Critical, High, Medium, Low</li>
-              <li>Vulnerability Last Observed: Within the last 30 days</li>
-              <li>Plugin Published: More than 30 days ago</li>
-            </ul>
+      <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" tooltipPosition="bottom" />
+      <span class="text-color-secondary flex items-center text-sm ml-2">
+        {{ highRiskAssetsTotalRecords() }} Results
+        <i class="pi pi-info-circle ml-1" tooltipPosition="bottom" [pTooltip]="highRiskAssetsTooltip" tooltipStyleClass="wide-tooltip" appendTo="body" style="font-size: 0.875rem; color: var(--text-color-secondary)"></i>
+        <ng-template #highRiskAssetsTooltip>
+          <div class="flex flex-col gap-2">
+            <span class="font-semibold">Tenable IP Summary tool</span>
+            <div>
+              <span class="font-semibold">Filters:</span>
+              <ul class="mt-1 ml-4 list-disc">
+                <li>Repository: Current Repository</li>
+                <li>Plugin Type: Active</li>
+                <li>Severity: Critical, High, Medium, Low</li>
+                <li>Vulnerability Last Observed: Within the last 30 days</li>
+                <li>Plugin Published: More than 30 days ago</li>
+              </ul>
+            </div>
           </div>
-        </div>
-      </ng-template>
-    </span>
+        </ng-template>
+      </span>
+    </div>
+    <div class="flex gap-2">
+      <p-button icon="pi pi-external-link" (click)="exportCSV()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Export to CSV" tooltipPosition="bottom" />
+    </div>
   </div>
   <p-table
     #highRiskAssetTable

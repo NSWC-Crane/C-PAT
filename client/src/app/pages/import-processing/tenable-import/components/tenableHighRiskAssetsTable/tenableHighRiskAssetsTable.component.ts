@@ -19,6 +19,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { Subscription, catchError, map, of } from 'rxjs';
+import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 import { ImportService } from '../../../import.service';
 import { TenableHostDialogComponent } from '../tenableHostDialog/tenableHostDialog.component';
 
@@ -49,6 +50,7 @@ export interface HighRiskAsset {
   imports: [CommonModule, FormsModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule, ProgressSpinnerModule, TableModule, TooltipModule, TenableHostDialogComponent]
 })
 export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy {
+  private readonly csvExportService = inject(CsvExportService);
   private readonly importService = inject(ImportService);
 
   @Input({ required: true }) tenableRepoId!: number;
@@ -201,6 +203,24 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
   clear() {
     this.highRiskAssetTable().clear();
     this.filterValue = '';
+  }
+
+  exportCSV() {
+    const table = this.highRiskAssetTable();
+    const rows = (table.filteredValue ?? this.highRiskAssets()) as HighRiskAsset[];
+
+    this.csvExportService.exportToCsv(rows, {
+      filename: 'tenable_high_risk_assets',
+      columns: [
+        { field: 'dnsName', header: 'DNS' },
+        { field: 'ip', header: 'IP Address' },
+        { field: 'score', header: 'Score' },
+        { field: 'severityCritical', header: 'Critical' },
+        { field: 'severityHigh', header: 'High' },
+        { field: 'severityMedium', header: 'Medium' },
+        { field: 'severityLow', header: 'Low' }
+      ]
+    });
   }
 
   private createRepositoryFilter(repoId: number) {
