@@ -99,7 +99,7 @@
               </p-inputicon>
               <input pInputText type="text" (input)="filterGlobal($event)" id="assetDeltaSearch" id="search" placeholder="Search..." />
             </p-iconfield>
-            <p-button icon="pi pi-filter-slash" (onClick)="clearAllFilters()" [rounded]="true" [text]="true" severity="secondary" pTooltip="Clear All Filters" tooltipPosition="bottom" />
+            <p-button icon="pi pi-filter-slash" (onClick)="clearAllFilters()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear All Filters" tooltipPosition="bottom" />
             <div class="text-color-secondary ml-2 flex items-center gap-4 text-sm">
               <div class="flex items-center gap-2">
                 <i class="pi pi-list"></i>
@@ -132,7 +132,7 @@
               pTooltip="Query Tenable and STIG Manager to establish asset deltas"
               tooltipPosition="bottom"
             />
-            <p-button icon="pi pi-download" (onClick)="assetDeltaTable.exportCSV({ selectionOnly: false })" [rounded]="true" [text]="true" [raised]="true" severity="primary" pTooltip="Export Data" tooltipPosition="bottom" />
+            <p-button icon="pi pi-external-link" (onClick)="assetDeltaTable.exportCSV({ selectionOnly: false })" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Export Data" tooltipPosition="bottom" />
           </div>
         </div>
       </ng-template>
