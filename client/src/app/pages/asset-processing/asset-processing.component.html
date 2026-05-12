@@ -126,7 +126,7 @@
               </p-tabpanel>
               <p-tabpanel value="1">
                 <div class="canvas" id="canvas" style="margin-top: 20px">
-                  <p-button icon="pi pi-download" [rounded]="true" variant="text" class="export-button" (onClick)="exportChart()" />
+                  <p-button icon="pi pi-external-link" [rounded]="true" variant="text" class="export-button" severity="secondary" pTooltip="Export to CSV" (onClick)="exportChart()" />
                   <p-chart type="bar" [data]="chartData" [options]="chartOptions" class="h-50 w-full" />
                 </div>
               </p-tabpanel>
