@@ -19,6 +19,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { ListboxModule } from 'primeng/listbox';
 import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
@@ -47,7 +48,7 @@ interface TreeNode<T> {
   templateUrl: './collection-processing.component.html',
   styleUrls: ['./collection-processing.component.scss'],
   standalone: true,
-  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TextareaModule, ToastModule, TooltipModule, TreeTableModule]
+  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TagModule, TextareaModule, ToastModule, TooltipModule, TreeTableModule]
 })
 export class CollectionProcessingComponent implements OnInit, OnDestroy {
   private readonly aaPackageService = inject(AAPackageService);
@@ -107,26 +108,38 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   selectableCollections: any[] = [];
   selectedExportCollections: any[] = [];
   exporting: boolean = false;
+  displayBulkImportDialog: boolean = false;
+  bulkImportSource: 'STIG Manager' | 'Tenable' = 'STIG Manager';
+  bulkImportSourceOptions = CPAT.Env.features.tenableEnabled
+    ? [
+        { label: 'STIG Manager', value: 'STIG Manager' as const },
+        { label: 'Tenable', value: 'Tenable' as const }
+      ]
+    : [{ label: 'STIG Manager', value: 'STIG Manager' as const }];
+  bulkImportAvailable: { label: string; value: any }[] = [];
+  selectedBulkImports: any[] = [];
+  bulkImporting: boolean = false;
+  loadingBulkImports: boolean = false;
+  tenableEnabled = CPAT.Env.features.tenableEnabled;
   private readonly findingsCache: Map<string, any[]> = new Map();
   private readonly payloadSubscription: Subscription[] = [];
   private readonly subs = new SubSink();
 
-  async ngOnInit() {
+  ngOnInit() {
     this.initColumnsAndFilters();
     this.setPayload();
   }
 
   initColumnsAndFilters() {
     this.cols = [
-      { field: 'Collection ID', header: 'Collection ID' },
-      { field: 'Name', header: 'Name' },
-      { field: 'Description', header: 'Description' },
-      { field: 'System Type', header: 'System Type' },
-      { field: 'System Name', header: 'System Name' },
-      { field: 'CC/S/A/FA', header: 'CC/S/A/FA' },
-      { field: 'A&A Package', header: 'A&A Package' },
-      { field: 'Collection Type', header: 'Collection Type' },
-      { field: 'Origin Collection ID', header: 'Origin Collection ID' }
+      { field: 'collectionId', header: 'Collection ID' },
+      { field: 'collectionName', header: 'Name' },
+      { field: 'description', header: 'Description' },
+      { field: 'systemType', header: 'System Type' },
+      { field: 'systemName', header: 'System Name' },
+      { field: 'ccsafa', header: 'CC/S/A/FA' },
+      { field: 'aaPackage', header: 'A&A Package' },
+      { field: 'collectionType', header: 'Collection Type' }
     ];
   }
 
@@ -142,6 +155,19 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       this.accessLevel = level;
     });
     this.getCollectionData();
+  }
+
+  getTagColor(collectionType: string): 'secondary' | 'success' | 'warn' | 'danger' | 'info' | undefined {
+    switch (collectionType) {
+      case 'C-PAT':
+        return 'secondary';
+      case 'STIG Manager':
+        return 'success';
+      case 'Tenable':
+        return 'danger';
+      default:
+        return 'info';
+    }
   }
 
   getCollectionData() {
@@ -196,19 +222,17 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
         return {
           data: {
-            'Collection ID': collection.collectionId,
-            Name: collection.collectionName,
-            Description: collection.description,
-            'System Type': collection.systemType || '',
-            'System Name': collection.systemName || '',
-            'CC/S/A/FA': collection.ccsafa || '',
-            'A&A Package': collection.aaPackage || '',
-            'Predisposing Conditions': collection.predisposingConditions || '',
-            'Collection Type': collection.collectionType || 'C-PAT',
-            'Origin Collection ID': collection.originCollectionId ?? 0,
-            'Manual Creation Allowed': collection.manualCreationAllowed ?? true,
-            _collectionType: collection.collectionType || 'C-PAT',
-            _originCollectionId: collection.originCollectionId ?? 0
+            collectionId: collection.collectionId,
+            collectionName: collection.collectionName,
+            description: collection.description,
+            systemType: collection.systemType || '',
+            systemName: collection.systemName || '',
+            ccsafa: collection.ccsafa || '',
+            aaPackage: collection.aaPackage || '',
+            predisposingConditions: collection.predisposingConditions || '',
+            collectionType: collection.collectionType || 'C-PAT',
+            originCollectionId: collection.originCollectionId ?? 0,
+            manualCreationAllowed: collection.manualCreationAllowed ?? true
           },
           children: myChildren
         };
@@ -220,15 +244,15 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
   exportCollection(rowData: any) {
     const exportCollection = {
-      collectionId: rowData['Collection ID'],
-      name: rowData['Name'],
-      collectionType: rowData['Collection Type'],
-      originCollectionId: rowData['Origin Collection ID'],
-      systemType: rowData['System Type'],
-      systemName: rowData['System Name'],
-      ccsafa: rowData['CC/S/A/FA'],
-      aaPackage: rowData['A&A Package'],
-      predisposingConditions: rowData['Predisposing Conditions']
+      collectionId: rowData.collectionId,
+      name: rowData.collectionName,
+      collectionType: rowData.collectionType,
+      originCollectionId: rowData.originCollectionId,
+      systemType: rowData.systemType,
+      systemName: rowData.systemName,
+      ccsafa: rowData.ccsafa,
+      aaPackage: rowData.aaPackage,
+      predisposingConditions: rowData.predisposingConditions
     };
 
     if (!exportCollection.collectionId) {
@@ -505,19 +529,19 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
   showModifyCollectionDialog(rowData: any) {
     this.dialogMode = 'modify';
-    const collectionType = rowData._collectionType || rowData['Collection Type'] || 'C-PAT';
-    const originId = rowData._originCollectionId ?? rowData['Origin Collection ID'] ?? 0;
+    const collectionType = rowData.collectionType || 'C-PAT';
+    const originId = rowData.originCollectionId ?? 0;
 
     this.editingCollection = {
-      collectionId: rowData['Collection ID'].toString(),
-      collectionName: rowData['Name'],
-      description: rowData['Description'],
-      systemType: rowData['System Type'],
-      systemName: rowData['System Name'],
-      ccsafa: rowData['CC/S/A/FA'],
-      aaPackage: rowData['A&A Package'],
-      predisposingConditions: rowData['Predisposing Conditions'],
-      manualCreationAllowed: rowData['Manual Creation Allowed'] ?? true,
+      collectionId: rowData.collectionId.toString(),
+      collectionName: rowData.collectionName,
+      description: rowData.description,
+      systemType: rowData.systemType,
+      systemName: rowData.systemName,
+      ccsafa: rowData.ccsafa,
+      aaPackage: rowData.aaPackage,
+      predisposingConditions: rowData.predisposingConditions,
+      manualCreationAllowed: rowData.manualCreationAllowed ?? true,
       collectionType: collectionType,
       originCollectionId: collectionType === 'C-PAT' ? 0 : originId
     };
@@ -600,9 +624,17 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe((options) => {
-        this.originCollectionOptions = options;
+        this.originCollectionOptions = this.filterAvailableOriginOptions(options, collectionType);
         this.loadingOriginCollections = false;
       });
+  }
+
+  private filterAvailableOriginOptions(options: { label: string; value: number }[], collectionType: string): { label: string; value: number }[] {
+    const currentCollectionId = this.dialogMode === 'modify' && this.editingCollection.collectionId ? Number.parseInt(this.editingCollection.collectionId, 10) : null;
+
+    const usedOriginIds = new Set((this.data ?? []).filter((c: any) => c.collectionType === collectionType && c.collectionId !== currentCollectionId).map((c: any) => +c.originCollectionId));
+
+    return options.filter((opt) => !usedOriginIds.has(+opt.value));
   }
 
   onOriginCollectionIdChange(newValue: number) {
@@ -640,7 +672,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   deleteCollection() {
     if (!this.collectionToDelete) return;
 
-    const collectionId = this.collectionToDelete['Collection ID'];
+    const collectionId = this.collectionToDelete.collectionId;
 
     this.collectionsService
       .deleteCollection(collectionId)
@@ -796,6 +828,129 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
           this.exporting = false;
         }
       });
+  }
+
+  showBulkImportDialog() {
+    this.bulkImportSource = 'STIG Manager';
+    this.selectedBulkImports = [];
+    this.bulkImportAvailable = [];
+    this.displayBulkImportDialog = true;
+    this.loadAvailableImports();
+  }
+
+  hideBulkImportDialog() {
+    this.displayBulkImportDialog = false;
+    this.selectedBulkImports = [];
+    this.bulkImportAvailable = [];
+  }
+
+  onBulkImportSourceChange() {
+    this.selectedBulkImports = [];
+    this.loadAvailableImports();
+  }
+
+  private loadAvailableImports() {
+    this.loadingBulkImports = true;
+    const collectionType = this.bulkImportSource;
+    const usedOriginIds = new Set((this.data ?? []).filter((c: any) => c.collectionType === collectionType).map((c: any) => +c.originCollectionId));
+
+    const source$ =
+      collectionType === 'STIG Manager'
+        ? this.sharedService.getCollectionsFromSTIGMAN().pipe(
+            map((list: any[]) =>
+              (list ?? [])
+                .filter((c: any) => !usedOriginIds.has(+c.collectionId))
+                .map((c: any) => ({
+                  label: c.name,
+                  value: {
+                    collectionName: c.name,
+                    description: c.description ?? '',
+                    collectionType: 'STIG Manager',
+                    originCollectionId: +c.collectionId
+                  }
+                }))
+            )
+          )
+        : this.importService.getTenableRepositories().pipe(
+            map((res: any) =>
+              (res?.response ?? [])
+                .filter((r: any) => !usedOriginIds.has(+r.id))
+                .map((r: any) => ({
+                  label: r.name,
+                  value: {
+                    collectionName: r.name,
+                    description: r.description ?? '',
+                    collectionType: 'Tenable',
+                    originCollectionId: +r.id
+                  }
+                }))
+            )
+          );
+
+    source$
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load ${collectionType} collections: ${getErrorMessage(error)}`
+          });
+          this.loadingBulkImports = false;
+
+          return of([] as { label: string; value: any }[]);
+        })
+      )
+      .subscribe((options) => {
+        this.bulkImportAvailable = options;
+        this.loadingBulkImports = false;
+      });
+  }
+
+  executeBulkImport() {
+    if (!this.selectedBulkImports?.length) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Selection',
+        detail: 'Please select at least one collection to import.'
+      });
+
+      return;
+    }
+
+    this.bulkImporting = true;
+    forkJoin(
+      this.selectedBulkImports.map((data) =>
+        this.collectionsService.addCollection(data).pipe(
+          tap(() => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: `Imported "${data.collectionName}"`
+            });
+          }),
+          catchError((error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to import "${data.collectionName}": ${getErrorMessage(error)}`
+            });
+
+            return of(null);
+          })
+        )
+      )
+    ).subscribe({
+      next: () => {
+        this.bulkImporting = false;
+        this.displayBulkImportDialog = false;
+        this.selectedBulkImports = [];
+        this.bulkImportAvailable = [];
+        this.getCollectionData();
+      },
+      error: () => {
+        this.bulkImporting = false;
+      }
+    });
   }
 
   filterGlobal(event: Event) {

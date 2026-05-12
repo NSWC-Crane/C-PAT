@@ -14,20 +14,16 @@
     <p-tablist class="mt-[-1.5rem]">
       <p-tab [value]="0">User Management</p-tab>
       <p-tab [value]="1">Collection Management</p-tab>
-      <p-tab [value]="2">STIG Manager</p-tab>
+      <p-tab [value]="2">Asset Deltas</p-tab>
       @if (tenableEnabled) {
-        <p-tab [value]="3">Tenable Import</p-tab>
-      }
-      <p-tab [value]="4">Asset Deltas</p-tab>
-      @if (tenableEnabled) {
-        <p-tab [value]="5">VRAM IAV Import</p-tab>
+        <p-tab [value]="3">VRAM IAV Import</p-tab>
       }
       @if (tenableEnabled) {
-        <p-tab [value]="6">Nessus Plugin Mapping</p-tab>
+        <p-tab [value]="4">Nessus Plugin Mapping</p-tab>
       }
-      <p-tab [value]="7">A&A Packages</p-tab>
-      <p-tab [value]="8">Assigned Teams</p-tab>
-      <p-tab [value]="9">App Configuration</p-tab>
+      <p-tab [value]="5">A&A Packages</p-tab>
+      <p-tab [value]="6">Assigned Teams</p-tab>
+      <p-tab [value]="7">App Configuration</p-tab>
     </p-tablist>
     <p-tabpanels>
       <p-tabpanel [value]="0">
@@ -39,40 +35,30 @@
       </p-tabpanel>
 
       <p-tabpanel [value]="2">
-        <cpat-stigmanager-admin />
-      </p-tabpanel>
-
-      @if (tenableEnabled) {
-        <p-tabpanel [value]="3">
-          <cpat-tenable-admin />
-        </p-tabpanel>
-      }
-
-      <p-tabpanel [value]="4">
         <cpat-asset-delta />
       </p-tabpanel>
 
       @if (tenableEnabled) {
-        <p-tabpanel [value]="5">
+        <p-tabpanel [value]="3">
           <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()" />
         </p-tabpanel>
       }
 
       @if (tenableEnabled) {
-        <p-tabpanel [value]="6">
-          <cpat-nessus-plugin-mapping [activated]="value === 6" />
+        <p-tabpanel [value]="4">
+          <cpat-nessus-plugin-mapping />
         </p-tabpanel>
       }
 
-      <p-tabpanel [value]="7">
+      <p-tabpanel [value]="5">
         <cpat-aa-package-processing />
       </p-tabpanel>
 
-      <p-tabpanel [value]="8">
+      <p-tabpanel [value]="6">
         <cpat-assigned-team-processing />
       </p-tabpanel>
 
-      <p-tabpanel [value]="9">
+      <p-tabpanel [value]="7">
         <cpat-app-configuration />
       </p-tabpanel>
     </p-tabpanels>

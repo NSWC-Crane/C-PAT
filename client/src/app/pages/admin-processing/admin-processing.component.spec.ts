@@ -30,12 +30,6 @@ class MockUserProcessingComponent {}
 @Component({ selector: 'cpat-collection-processing', template: '', standalone: true })
 class MockCollectionProcessingComponent {}
 
-@Component({ selector: 'cpat-stigmanager-admin', template: '', standalone: true })
-class MockSTIGManagerAdminComponent {}
-
-@Component({ selector: 'cpat-tenable-admin', template: '', standalone: true })
-class MockTenableAdminComponent {}
-
 @Component({ selector: 'cpat-asset-delta', template: '', standalone: true })
 class MockAssetDeltaComponent {
   @Input() activated: boolean = false;
@@ -101,8 +95,6 @@ describe('AdminProcessingComponent', () => {
             MockAssignedTeamProcessingComponent,
             MockCollectionProcessingComponent,
             MockNessusPluginMappingComponent,
-            MockSTIGManagerAdminComponent,
-            MockTenableAdminComponent,
             MockUserProcessingComponent,
             MockVRAMImportComponent,
             TabsModule,
@@ -192,10 +184,10 @@ describe('AdminProcessingComponent', () => {
   });
 
   describe('switchToPluginMapping', () => {
-    it('should set value to 6', () => {
+    it('should set value to 4', () => {
       component.switchToPluginMapping();
 
-      expect(component.value).toBe(6);
+      expect(component.value).toBe(4);
     });
 
     it('should call updatePluginIds on nessusPluginMappingComponent after timeout', async () => {
@@ -275,8 +267,6 @@ describe('AdminProcessingComponent', () => {
               MockAssignedTeamProcessingComponent,
               MockCollectionProcessingComponent,
               MockNessusPluginMappingComponent,
-              MockSTIGManagerAdminComponent,
-              MockTenableAdminComponent,
               MockUserProcessingComponent,
               MockVRAMImportComponent,
               TabsModule,

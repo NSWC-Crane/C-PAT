@@ -20,7 +20,7 @@
     [scrollable]="true"
     scrollHeight="calc(100vh - 32rem)"
     selectionMode="single"
-    [globalFilterFields]="['Collection ID', 'Name', 'Description', 'System Type', 'System Name', 'CC/S/A/FA', 'A&A Package', 'Collection Type', 'Origin Collection ID']"
+    [globalFilterFields]="['collectionId', 'collectionName', 'description', 'systemType', 'systemName', 'ccsafa', 'aaPackage', 'collectionType']"
   >
     <ng-template pTemplate="caption">
       <div class="flex items-center justify-between">
@@ -31,8 +31,9 @@
           <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections" name="searchCollections" class="search-input" />
         </p-iconField>
         <div class="flex items-center gap-2">
-          <p-button icon="pi pi-download" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Export Multiple Collections" (onClick)="showExportDialog()" />
-          <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Manually Add Collection" (onClick)="showAddCollectionDialog()" />
+          <p-button icon="pi pi-cloud-download" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Bulk Import Collections" tooltipPosition="top" (onClick)="showBulkImportDialog()" />
+          <p-button icon="pi pi-download" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Export Multiple Collections" tooltipPosition="top" (onClick)="showExportDialog()" />
+          <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add Collection" tooltipPosition="top" (onClick)="showAddCollectionDialog()" />
         </div>
       </div>
     </ng-template>
@@ -47,13 +48,17 @@
     <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
       <tr (click)="showModifyCollectionDialog(rowData)" class="cursor-pointer hover:surface-200">
         @for (col of columns; track col; let i = $index) {
-          <td class="break-all" [style]="col.field === 'Name' ? { 'max-width': '200px' } : {}">
+          <td class="break-all" [style]="col.field === 'collectionName' ? { 'max-width': '200px' } : {}">
             @if (i === 0) {
               <p-treeTableToggler [rowNode]="rowNode" />
             }
-            <span [style]="col.field === 'Name' ? { 'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', display: 'inline-block', width: '100%' } : {}">
-              {{ rowData[col.field] }}
-            </span>
+            @if (col.field === 'collectionType') {
+              <p-tag [value]="rowData[col.field]" [severity]="getTagColor(rowData[col.field])" class="text-xs cursor-pointer" />
+            } @else {
+              <span [style]="col.field === 'collectionName' ? { 'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', display: 'inline-block', width: '100%' } : {}">
+                {{ rowData[col.field] }}
+              </span>
+            }
           </td>
         }
         <td>
@@ -71,7 +76,7 @@
   </p-treeTable>
 </div>
 
-<p-dialog [(visible)]="displayCollectionDialog" styleClass="w-[50vw] overflow-hidden" [modal]="true">
+<p-dialog [(visible)]="displayCollectionDialog" styleClass="w-[60vw] overflow-hidden" [modal]="true">
   <ng-template pTemplate="content">
     <div class="field mt-2">
       <label for="collectionName">Collection Name:</label>
@@ -94,7 +99,7 @@
     </div>
     @if (editingCollection.collectionType && editingCollection.collectionType !== 'C-PAT') {
       <div class="field">
-        <label for="originCollectionId">Origin Collection ID:</label>
+        <label for="originCollectionId">{{ editingCollection.collectionType }} Collection:</label>
         <p-select
           id="originCollectionId"
           name="originCollectionId"
@@ -112,26 +117,6 @@
       </div>
     }
     <div class="field">
-      <label for="description">Description:</label>
-      <textarea pTextarea id="description" class="w-full" [(ngModel)]="editingCollection.description" required rows="6" cols="20" fluid></textarea>
-    </div>
-    <div class="field">
-      <label for="manualCreationAllowed">Manual POAM Creation Allowed:</label>
-      <p-select
-        [options]="[
-          { label: 'True', value: true },
-          { label: 'False', value: false }
-        ]"
-        [(ngModel)]="editingCollection.manualCreationAllowed"
-        placeholder="Select..."
-        optionLabel="label"
-        optionValue="value"
-        id="manualCreationAllowed"
-        name="manualCreationAllowed"
-        class="w-full"
-      />
-    </div>
-    <div class="field">
       <label for="aaPackage">A&A Package:</label>
       <p-autoComplete
         [(ngModel)]="editingCollection.aaPackage"
@@ -144,6 +129,10 @@
         class="w-full"
         readonly
       />
+    </div>
+    <div class="field">
+      <label for="description">Description:</label>
+      <textarea pTextarea id="description" class="w-full" [(ngModel)]="editingCollection.description" required rows="6" cols="20" fluid></textarea>
     </div>
     <div class="field">
       <label for="predisposingConditions">Predisposing Conditions:</label>
@@ -161,6 +150,22 @@
       <label for="ccsafa">CC/S/A/FA:</label>
       <input pInputText type="text" id="ccsafa" name="ccsafa" [(ngModel)]="editingCollection.ccsafa" placeholder="CC/S/A/FA" class="w-full" />
     </div>
+    <div class="field">
+      <label for="manualCreationAllowed">Manual POAM Creation Allowed:</label>
+      <p-select
+        [options]="[
+          { label: 'True', value: true },
+          { label: 'False', value: false }
+        ]"
+        [(ngModel)]="editingCollection.manualCreationAllowed"
+        placeholder="Select..."
+        optionLabel="label"
+        optionValue="value"
+        id="manualCreationAllowed"
+        name="manualCreationAllowed"
+        class="w-full"
+      />
+    </div>
   </ng-template>
 
   <ng-template pTemplate="footer">
@@ -177,7 +182,7 @@
       <i class="pi pi-exclamation-triangle"></i>
     </div>
     <h3>Confirm Collection Deletion</h3>
-    <h5>Are you sure that you would like to delete the "{{ collectionToDelete?.Name }}" collection?</h5>
+    <h5>Are you sure that you would like to delete the "{{ collectionToDelete?.collectionName }}" collection?</h5>
     <p class="!mb-0 text-sm text-red-400">This is an irreversible action and will result in all data associated with this collection being deleted.</p>
   </div>
   <ng-template pTemplate="footer">
@@ -218,6 +223,35 @@
     <div class="m-2 flex w-full items-center justify-between">
       <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="cancelOriginCollectionIdChange()" />
       <p-button label="Confirm" variant="outlined" (onClick)="confirmOriginCollectionIdChange()" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="displayBulkImportDialog" styleClass="w-[50vw] overflow-hidden" [modal]="true" header="Bulk Import Collections">
+  @if (bulkImportSourceOptions.length > 1) {
+    <div class="field">
+      <label for="bulkImportSource">Source:</label>
+      <p-select id="bulkImportSource" name="bulkImportSource" [options]="bulkImportSourceOptions" [(ngModel)]="bulkImportSource" (onChange)="onBulkImportSourceChange()" optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
+      <p class="!m-1 text-sm text-gray-400">* Already-imported collections are excluded. Select one or more to import in bulk.</p>
+    </div>
+  }
+  <p-listbox
+    [options]="bulkImportAvailable"
+    [(ngModel)]="selectedBulkImports"
+    optionLabel="label"
+    optionValue="value"
+    [multiple]="true"
+    [checkbox]="true"
+    [filter]="true"
+    filterPlaceHolder="Search..."
+    [listStyle]="{ 'max-height': '300px' }"
+    [emptyMessage]="loadingBulkImports ? 'Loading...' : 'No collections available to import.'"
+    class="w-full mb-4 mt-4"
+  />
+  <ng-template pTemplate="footer">
+    <div class="flex w-full items-center justify-between">
+      <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="hideBulkImportDialog()" />
+      <p-button label="Import" variant="outlined" icon="pi pi-cloud-download" [loading]="bulkImporting" [disabled]="!selectedBulkImports.length" (onClick)="executeBulkImport()" />
     </div>
   </ng-template>
 </p-dialog>

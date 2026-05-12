@@ -38,10 +38,13 @@ C-PAT Collection Privileges
 Collection Management
 ---------------------
 
-Collection management provides C-PAT administrators with the ability to manually create new collections, alter existing collections, or export all of the POAMs contained within a collection into the eMASS excel format. Additionally, each collection has the ability to enable or disable manual POAM creation.
+Collection Management provides C-PAT administrators with the ability to manually create new collections, import collections from STIG Manager or Tenable.sc, modify existing collections, and export the POAMs contained within one or more collections into the eMASS excel format. Each collection also has the ability to enable or disable manual POAM creation.
 
-.. warning::
-   Manual creation of collections is not recommended when data ingestion from STIG Manager or Tenable is desired. Collections should be automatically imported via the STIG Manager or Tenable Import section within the Admin Portal to ensure the proper collection association.
+The toolbar above the collection table contains three actions:
+
+- **Bulk Import** (cloud download icon): Opens the Bulk Import dialog to import one or more collections from STIG Manager or Tenable.sc in a single operation.
+- **Export Multiple Collections** (download icon): Opens the export dialog to combine POAMs from one or more collections into a single eMASS excel file.
+- **Add Collection** (plus icon): Opens the Add Collection dialog to manually create a collection or to import a single collection from STIG Manager or Tenable.sc.
 
 .. note::
    While the Collection Name is the only required field for a collection, it is strongly recommended that all Collection fields are entered to ensure proper data flow within C-PAT.
@@ -51,49 +54,43 @@ Collection Field Mappings
 
 - **Collection Name**: The name of the collection. For collections that are imported from STIG Manager or Tenable, the collection name should match the collection name from the respective system. The collection name will be displayed in navigation across C-PAT and be contained in the file name of POAM exports.
 - **Collection Description**: A brief description of the collection.
+- **Collection Type**: ``C-PAT`` for manually created collections, or ``STIG Manager`` / ``Tenable`` to associate the C-PAT collection with an origin in the corresponding system.
 - **System Type**: This field will map to Cell ``L2`` in the eMASS format excel export.
 - **System Name**: This field will map to Cell ``D5`` in the eMASS format excel export.
 - **CC/S/A/FA**: This field will map to Cell ``D4`` in the eMASS format excel export.
 - **A&A Package**: C-PAT provides the ability to associate an A&A package with a collection. When a collection has an A&A package set, this field will be automatically populated for any POAM created within the collection.
 
-Integrations
-------------
+Importing a Single Collection from STIG Manager or Tenable.sc
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-STIG Manager
-^^^^^^^^^^^^
+The Add Collection dialog handles both manual creation and single-collection imports. To import a single collection:
 
-The STIG Manager component allows administrators to import collections from STIG Manager into C-PAT, or more precisely, create a collection shell that will interface with a particular STIG Manager collection. To import collections:
+1. Click the **Add Collection** button (plus icon) in the toolbar above the collection table.
+2. In the **Collection Type** dropdown, select ``STIG Manager`` or ``Tenable``.
+3. The collection dropdown will populate with available origins. Collections that have already been imported are filtered out automatically, leaving only origins that have not yet been associated with a C-PAT collection.
+4. Choose the desired STIG Manager collection or Tenable repository.
+5. Fill in any additional fields as desired, then click **Save**.
 
-1. Navigate to the "STIG Manager" tab in the Admin Portal.
-2. You will see a dropdown menu labeled "Select Collection to Import...".
-3. Click on the dropdown to view available collections from STIG Manager.
-4. Select the collection you wish to import.
-5. Click the "IMPORT SELECTED" button to import the chosen collection.
-6. To import all remaining collections at once, click the "IMPORT ALL REMAINING" button.
+When a collection is imported, the C-PAT collection becomes a shell that interfaces with the selected STIG Manager collection or Tenable repository.
 
 .. note::
-   Once all collections have been imported, the list will be empty, and no items will be displayed.
+   To convert an existing manually created collection into an integrated one (or vice versa), click the row to open the modify dialog, change the **Collection Type**, and confirm the prompt before selecting the new origin.
 
-   After importing a collection, users must still be assigned the appropriate permissions to the newly imported collection before they can view or access it.
+Bulk Importing Collections
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Tenable.sc
-^^^^^^^^^^
+To import multiple collections at once:
 
-The Tenable Import component enables administrators to import repositories from Tenable.sc as collections in C-PAT. To import repositories:
-
-1. Go to the "TENABLE IMPORT" tab in the Admin Portal.
-2. You will see a dropdown menu labeled "Select Repository to Import...".
-3. Click on the dropdown to view available repositories from Tenable.sc.
-4. Choose the repository you want to import.
-5. Click the "IMPORT SELECTED" button to import the selected repository.
-6. To import all remaining repositories at once, click the "IMPORT ALL REMAINING" button.
+1. Click the **Bulk Import** button (cloud download icon) in the toolbar above the collection table.
+2. If more than one source is available, choose the **Source** (``STIG Manager`` or ``Tenable``). The Tenable option is only displayed when the Tenable feature is enabled in App Configuration.
+3. The list will populate with collections that have not yet been imported.
+4. Use the search box to filter, then check one or more entries.
+5. Click **Import**. Each selected entry is imported as a new C-PAT collection and the table refreshes when the operation completes.
 
 .. note::
-   Once all repositories have been imported, the list will be empty, and no items will be displayed.
+   Once all collections from a source have been imported, the list will be empty.
 
-   After importing a repository, users must still be assigned the appropriate permissions to the newly imported collection before they can view or access it.
-
-The STIG Manager and Tenable Import components streamline the process of creating collections in C-PAT by automatically mapping them to the appropriate external systems, ensuring consistency and reducing manual effort. Currently, there is no way to associate a manually created collection with a STIG Manager collection or Tenable repository.
+   After importing, users must still be assigned the appropriate permissions to the newly imported collection before they can view or access it.
 
 
 
