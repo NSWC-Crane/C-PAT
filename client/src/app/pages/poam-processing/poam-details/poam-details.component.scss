@@ -156,60 +156,10 @@ hr {
   }
 }
 
-::ng-deep .poam-control-menu {
-  background-color: var(--card-background) !important;
-  width: 15rem !important;
-  top: 5rem !important;
-}
-
-::ng-deep .poam-control-menu .p-menu-list {
-  background: transparent;
-}
-
-::ng-deep .poam-control-menu .p-menu-item {
-  margin: 0 0.25rem 0;
-  font-size: 1.05rem;
-}
-
-::ng-deep .poam-control-menu .p-menu-item-icon {
-  font-size: 1.4rem;
-  margin-right: 0.5rem;
-  margin-left: -0.35rem;
-}
-
-::ng-deep .poam-control-menu .p-menu-item-link {
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  transition: all 0.3s ease-in-out;
-}
-
-::ng-deep .poam-control-menu .p-menu-item-link:hover {
-  color: rgba(255, 255, 255, 0.87);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-::ng-deep .menu-item-secondary .p-menu-item-icon {
-  color: var(--p-surface-600) !important;
-}
-
-::ng-deep .menu-item-warning .p-menu-item-icon {
-  color: var(--p-yellow-600) !important;
-}
-
-::ng-deep .menu-item-success .p-menu-item-icon {
-  color: var(--p-green-600) !important;
-}
-
-::ng-deep .menu-item-primary .p-menu-item-icon {
-  color: var(--p-blue-600) !important;
-}
-
-::ng-deep .menu-item-danger .p-menu-item-icon {
-  color: var(--p-red-600) !important;
-}
-
-::ng-deep .menu-item-info .p-menu-item-icon {
-  color: var(--p-blue-400) !important;
+.action-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 ::ng-deep .p-dialog {

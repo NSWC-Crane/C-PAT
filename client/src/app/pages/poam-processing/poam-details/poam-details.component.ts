@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parse, parseISO } from 'date-fns';
 import { AccordionModule } from 'primeng/accordion';
-import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -24,7 +24,6 @@ import { DialogModule } from 'primeng/dialog';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MenuModule } from 'primeng/menu';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectModule } from 'primeng/select';
 import { StepperModule } from 'primeng/stepper';
@@ -63,6 +62,14 @@ import { PoamMitigationService } from './services/poam-mitigation.service';
 import { PoamValidationService } from './services/poam-validation.service';
 import { PoamVariableMappingService } from './services/poam-variable-mapping.service';
 
+interface PoamAction {
+  label: string;
+  icon: string;
+  severity?: 'secondary' | 'success' | 'info' | 'warn' | 'danger';
+  command: () => void;
+  visible?: boolean;
+}
+
 @Component({
   selector: 'cpat-poamdetails',
   templateUrl: './poam-details.component.html',
@@ -84,7 +91,6 @@ import { PoamVariableMappingService } from './services/poam-variable-mapping.ser
     InputGroupModule,
     InputGroupAddonModule,
     TextareaModule,
-    MenuModule,
     StepperModule,
     TabsModule,
     TagModule,
@@ -104,23 +110,24 @@ import { PoamVariableMappingService } from './services/poam-variable-mapping.ser
   providers: [DatePipe, ConfirmationService, MessageService]
 })
 export class PoamDetailsComponent implements OnInit, OnDestroy {
-  private appConfigurationService = inject(AppConfigurationService);
-  private assignedTeamService = inject(AssignedTeamService);
-  private confirmationService = inject(ConfirmationService);
-  private messageService = inject(MessageService);
+  private readonly appConfigurationService = inject(AppConfigurationService);
+  private readonly assignedTeamService = inject(AssignedTeamService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
   protected poamService = inject(PoamService);
-  private poamDataService = inject(PoamDataService);
-  private poamCreationService = inject(PoamCreationService);
-  private poamMitigationService = inject(PoamMitigationService);
-  private assetTeamMappingService = inject(AssetTeamMappingService);
-  private poamValidationService = inject(PoamValidationService);
-  private route = inject(ActivatedRoute);
-  private sharedService = inject(SharedService);
-  private router = inject(Router);
-  private collectionsService = inject(CollectionsService);
-  private setPayloadService = inject(PayloadService);
-  private mappingService = inject(PoamVariableMappingService);
-  private location = inject(Location);
+  private readonly poamDataService = inject(PoamDataService);
+  private readonly poamCreationService = inject(PoamCreationService);
+  private readonly poamMitigationService = inject(PoamMitigationService);
+  private readonly assetTeamMappingService = inject(AssetTeamMappingService);
+  private readonly poamValidationService = inject(PoamValidationService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly sharedService = inject(SharedService);
+  private readonly router = inject(Router);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly mappingService = inject(PoamVariableMappingService);
+  private readonly location = inject(Location);
+  private readonly subs = new SubSink();
 
   appConfigSettings: AppConfiguration[] = [];
   accessLevel = signal<number>(0);
@@ -165,7 +172,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   mitigationSaving: boolean = false;
   isGlobalFinding: boolean;
   showPoamNotes: boolean = false;
-  private subs = new SubSink();
 
   vulnerabilitySources: string[] = ['Assured Compliance Assessment Solution (ACAS) Nessus Scanner', 'STIG', 'Other'];
 
@@ -200,11 +206,11 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   ];
 
   menuItems = computed(() => {
-    const items: MenuItem[] = [
+    const items: PoamAction[] = [
       {
         label: 'POAM History',
         icon: 'pi pi-history',
-        styleClass: 'menu-item-secondary',
+        severity: 'secondary',
         command: () => {
           this.poamLog();
         }
@@ -212,7 +218,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       {
         label: 'POAM Chat',
         icon: 'pi pi-comment',
-        styleClass: 'menu-item-info',
+        severity: 'info',
         command: () => {
           this.showPoamNotes = true;
         },
@@ -221,7 +227,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       {
         label: 'POAM Extension',
         icon: 'pi pi-hourglass',
-        styleClass: 'menu-item-warning',
+        severity: 'warn',
         command: () => {
           this.extendPoam();
         }
@@ -232,7 +238,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       items.push({
         label: 'Submit for Review',
         icon: 'pi pi-file-plus',
-        styleClass: 'menu-item-success',
+        severity: 'success',
         command: () => {
           this.verifySubmitPoam();
         }
@@ -243,7 +249,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       items.push({
         label: 'POAM Approval',
         icon: 'pi pi-verified',
-        styleClass: 'menu-item-primary',
+        severity: 'info',
         command: () => {
           if (this.poam.status === 'Extension Requested') {
             this.extendPoam();
@@ -258,7 +264,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       items.push({
         label: 'Delete POAM',
         icon: 'pi pi-trash',
-        styleClass: 'menu-item-danger',
+        severity: 'danger',
         command: () => {
           this.deletePoam();
         }

@@ -51,8 +51,13 @@
           }
         </div>
 
-        <p-menu #menu [popup]="true" [model]="menuItems()" styleClass="poam-control-menu" (mouseleave)="menu.hide()" />
-        <p-button severity="secondary" icon="pi pi-ellipsis-v" (click)="menu.toggle($event)" />
+        <div class="action-toolbar">
+          @for (action of menuItems(); track action.label) {
+            @if (action.visible !== false) {
+              <p-button [icon]="action.icon" [severity]="action.severity" [rounded]="true" [text]="true" [raised]="true" [pTooltip]="action.label" tooltipPosition="bottom" (onClick)="action.command()" />
+            }
+          }
+        </div>
       </div>
 
       <div class="card-body">
