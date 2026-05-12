@@ -22,7 +22,7 @@ export class PoamService {
   private readonly cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
+    if (error.status === 0) {
       console.error('An error occurred:', error.error.message);
     } else {
       console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
@@ -299,5 +299,25 @@ export class PoamService {
 
   deletePoamTeamMitigation(poamId: number, assignedTeamId: number): Observable<any> {
     return this.http.delete<any>(`${this.cpatApiBase}/poamTeamMitigation/${poamId}/${assignedTeamId}`).pipe(catchError(this.handleError));
+  }
+
+  getPoamTeamResources(poamId: number): Observable<any> {
+    return this.http.get<any>(`${this.cpatApiBase}/poamTeamResources/poam/${poamId}`).pipe(catchError(this.handleError));
+  }
+
+  postPoamTeamResource(teamResource: any): Observable<any> {
+    return this.http.post<any>(`${this.cpatApiBase}/poamTeamResource`, teamResource).pipe(catchError(this.handleError));
+  }
+
+  updatePoamTeamResource(poamId: number, assignedTeamId: number, resourceText: string): Observable<any> {
+    return this.http.put<any>(`${this.cpatApiBase}/poamTeamResource/${poamId}/${assignedTeamId}`, { resourceText }).pipe(catchError(this.handleError));
+  }
+
+  updatePoamTeamResourceStatus(poamId: number, assignedTeamId: number, isActive: boolean): Observable<any> {
+    return this.http.patch<any>(`${this.cpatApiBase}/poamTeamResource/${poamId}/${assignedTeamId}/status`, { isActive }).pipe(catchError(this.handleError));
+  }
+
+  deletePoamTeamResource(poamId: number, assignedTeamId: number): Observable<any> {
+    return this.http.delete<any>(`${this.cpatApiBase}/poamTeamResource/${poamId}/${assignedTeamId}`).pipe(catchError(this.handleError));
   }
 }

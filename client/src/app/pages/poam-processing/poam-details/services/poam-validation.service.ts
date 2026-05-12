@@ -50,7 +50,7 @@ export class PoamValidationService {
     return { valid: true };
   }
 
-  validateSubmissionRequirements(poam: any, teamMitigations: any[], poamMilestones: any[], dates: any): { valid: boolean; message?: string } {
+  validateSubmissionRequirements(poam: any, teamMitigations: any[], teamResources: any[], poamMilestones: any[], dates: any): { valid: boolean; message?: string } {
     if (!poam.description) {
       return {
         valid: false,
@@ -121,13 +121,6 @@ export class PoamValidationService {
       };
     }
 
-    if (!poam.requiredResources || poam.requiredResources.trim() === '') {
-      return {
-        valid: false,
-        message: 'Required Resources is a required field for submission.'
-      };
-    }
-
     if (!poam.localImpact) {
       return {
         valid: false,
@@ -147,6 +140,13 @@ export class PoamValidationService {
         return {
           valid: false,
           message: 'Global Mitigations is a required field for submission when using Global Finding mode.'
+        };
+      }
+
+      if (!poam.requiredResources || poam.requiredResources.trim() === '') {
+        return {
+          valid: false,
+          message: 'Global Required Resources is a required field for submission when using Global Finding mode.'
         };
       }
 
@@ -182,6 +182,28 @@ export class PoamValidationService {
           return {
             valid: false,
             message: `Teams "${teamNames}" are missing mitigations. All teams must have mitigations for submission.`
+          };
+        }
+      }
+
+      const teamsWithoutResources = activeTeams.filter((tm) => {
+        const teamResource = teamResources.find((r) => r.assignedTeamId === tm.assignedTeamId);
+
+        return !teamResource?.resourceText || teamResource.resourceText.trim() === '';
+      });
+
+      if (teamsWithoutResources.length > 0) {
+        if (teamsWithoutResources.length === 1) {
+          return {
+            valid: false,
+            message: `Team "${teamsWithoutResources[0].assignedTeamName}" is missing required resources. All teams must have required resources for submission.`
+          };
+        } else {
+          const teamNames = teamsWithoutResources.map((t) => t.assignedTeamName).join('", "');
+
+          return {
+            valid: false,
+            message: `Teams "${teamNames}" are missing required resources. All teams must have required resources for submission.`
           };
         }
       }
