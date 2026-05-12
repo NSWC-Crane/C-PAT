@@ -22,7 +22,7 @@ describe('VramPopupComponent', () => {
 
   beforeEach(async () => {
     mockWindow = { closed: false };
-    windowOpenSpy = vi.spyOn(window, 'open').mockReturnValue(mockWindow as unknown as Window);
+    windowOpenSpy = vi.spyOn(globalThis, 'open').mockReturnValue(mockWindow as unknown as Window);
 
     await TestBed.configureTestingModule({
       imports: [VramPopupComponent, NoopAnimationsModule]
@@ -64,7 +64,7 @@ describe('VramPopupComponent', () => {
   });
 
   describe('openVRAM', () => {
-    it('should call window.open with correct URL', () => {
+    it('should call globalThis.open with correct URL', () => {
       component.openVRAM();
       expect(windowOpenSpy).toHaveBeenCalledWith('https://vram.navy.mil/iav', 'Auth Window', 'width=600,height=600');
     });
@@ -86,13 +86,13 @@ describe('VramPopupComponent', () => {
       expect(startCheckingSpy).toHaveBeenCalled();
     });
 
-    it('should not set isPopupOpen if window.open returns null', () => {
+    it('should not set isPopupOpen if globalThis.open returns null', () => {
       windowOpenSpy.mockReturnValue(null);
       component.openVRAM();
       expect(component.isPopupOpen).toBe(false);
     });
 
-    it('should not start checking if window.open returns null', () => {
+    it('should not start checking if globalThis.open returns null', () => {
       windowOpenSpy.mockReturnValue(null);
       const startCheckingSpy = vi.spyOn(component, 'startCheckingWindow');
 

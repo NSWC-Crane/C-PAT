@@ -74,7 +74,7 @@ describe('PoamDetailsComponent', () => {
     payloadSubject = new BehaviorSubject<any>(mockPayload);
     accessLevelSubject = new BehaviorSubject<number>(0);
 
-    Object.defineProperty(window, 'history', {
+    Object.defineProperty(globalThis, 'history', {
       value: { state: { vulnerabilitySource: 'STIG' } },
       writable: true,
       configurable: true
@@ -3008,10 +3008,11 @@ describe('PoamDetailsComponent', () => {
 
   describe('openIavLink', () => {
     it('should open VRAM link in new window', () => {
-      const windowSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+      const openSpy = vi.spyOn(globalThis, 'open').mockImplementation(() => null);
 
       component.openIavLink('2024-A-0001');
-      expect(windowSpy).toHaveBeenCalledWith('https://vram.navy.mil/standalone_pages/iav_display?notice_number=2024-A-0001', '_blank');
+
+      expect(openSpy).toHaveBeenCalledWith('https://vram.navy.mil/standalone_pages/iav_display?notice_number=2024-A-0001', '_blank');
     });
   });
 

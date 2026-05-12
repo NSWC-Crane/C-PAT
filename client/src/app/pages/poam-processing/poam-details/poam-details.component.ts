@@ -1329,7 +1329,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   openIavLink(iavmNumber: string) {
-    window.open(`https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavmNumber}`, '_blank');
+    globalThis.open(`https://vram.navy.mil/standalone_pages/iav_display?notice_number=${iavmNumber}`, '_blank');
   }
 
   searchStigTitles(event: any) {

@@ -14,7 +14,7 @@ if (typeof SVGElement.prototype.contains === 'undefined') {
   SVGElement.prototype.contains = HTMLDivElement.prototype.contains;
 }
 
-if (!('ResizeObserver' in window)) {
+if (!('ResizeObserver' in globalThis)) {
   import('resize-observer-polyfill');
 }
 

@@ -94,7 +94,7 @@ export class VramPopupComponent implements OnDestroy {
   checkInterval: any;
 
   openVRAM() {
-    this.authWindow = window.open('https://vram.navy.mil/iav', 'Auth Window', 'width=600,height=600');
+    this.authWindow = globalThis.open('https://vram.navy.mil/iav', 'Auth Window', 'width=600,height=600');
 
     if (this.authWindow) {
       this.isPopupOpen = true;
