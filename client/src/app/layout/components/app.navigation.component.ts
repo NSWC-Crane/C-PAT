@@ -140,7 +140,6 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
 
   async initializeUser() {
     try {
-      this.setPayloadService.setPayload();
       this.payloadSubscription.push(
         this.setPayloadService.user$.subscribe((user) => {
           this.user = user;

@@ -15,7 +15,6 @@ import { Subject, of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { AuthService } from './core/auth/services/auth.service';
 import { SharedService } from './common/services/shared.service';
-import { PayloadService } from './common/services/setPayload.service';
 import { InactivityService } from './core/auth/services/inactivity.service';
 
 describe('AppComponent', () => {
@@ -23,7 +22,6 @@ describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
   let mockAuthService: any;
   let mockSharedService: any;
-  let mockPayloadService: any;
   let mockInactivityService: any;
   let authStateSubject: Subject<{ isAuthenticatedStigman: boolean; isAuthenticatedCpat: boolean }>;
 
@@ -39,10 +37,6 @@ describe('AppComponent', () => {
       getApiConfig: vi.fn().mockReturnValue(of({ classification: 'U' }))
     };
 
-    mockPayloadService = {
-      setPayload: vi.fn().mockResolvedValue(undefined)
-    };
-
     mockInactivityService = {
       startMonitoring: vi.fn(),
       stopMonitoring: vi.fn(),
@@ -54,7 +48,6 @@ describe('AppComponent', () => {
       providers: [
         { provide: AuthService, useValue: mockAuthService },
         { provide: SharedService, useValue: mockSharedService },
-        { provide: PayloadService, useValue: mockPayloadService },
         { provide: InactivityService, useValue: mockInactivityService }
       ],
       schemas: [NO_ERRORS_SCHEMA]
@@ -80,11 +73,11 @@ describe('AppComponent', () => {
       expect(component['authSubscription']).toBeDefined();
     });
 
-    it('should call handleAuthState when authState$ emits', async () => {
+    it('should call getApiConfig once fully authenticated', async () => {
       await component.ngOnInit();
       authStateSubject.next({ isAuthenticatedStigman: true, isAuthenticatedCpat: true });
       await Promise.resolve();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
+      expect(mockSharedService.getApiConfig).toHaveBeenCalled();
     });
   });
 
@@ -109,13 +102,6 @@ describe('AppComponent', () => {
       await Promise.resolve();
       expect(mockAuthService.handleAuthFlow).toHaveBeenCalled();
     });
-
-    it('should not call setPayload when not fully authenticated', async () => {
-      await component.ngOnInit();
-      authStateSubject.next({ isAuthenticatedStigman: false, isAuthenticatedCpat: false });
-      await Promise.resolve();
-      expect(mockPayloadService.setPayload).not.toHaveBeenCalled();
-    });
   });
 
   describe('handleAuthState — fully authenticated', () => {
@@ -135,13 +121,6 @@ describe('AppComponent', () => {
       authStateSubject.next(fullyAuthenticated);
       await Promise.resolve();
       expect(mockInactivityService.startMonitoring).not.toHaveBeenCalled();
-    });
-
-    it('should call payloadService.setPayload', async () => {
-      await component.ngOnInit();
-      authStateSubject.next(fullyAuthenticated);
-      await Promise.resolve();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
     });
 
     it('should call sharedService.getApiConfig', async () => {

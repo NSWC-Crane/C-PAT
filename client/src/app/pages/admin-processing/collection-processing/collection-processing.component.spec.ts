@@ -92,7 +92,6 @@ describe('CollectionProcessingComponent', () => {
     };
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: userSubject.asObservable(),
       payload$: payloadSubject.asObservable(),
       accessLevel$: accessLevelSubject.asObservable()
@@ -263,12 +262,6 @@ describe('CollectionProcessingComponent', () => {
   });
 
   describe('setPayload', () => {
-    it('should call setPayloadService.setPayload', () => {
-      component.setPayload();
-
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
-    });
-
     it('should assign user from user$ subscription', () => {
       component.setPayload();
 

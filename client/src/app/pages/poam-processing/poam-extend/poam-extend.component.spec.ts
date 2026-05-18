@@ -114,7 +114,6 @@ describe('PoamExtendComponent', () => {
     mockConfirmationService = createMockConfirmationService();
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: new BehaviorSubject(mockUser),
       payload$: new BehaviorSubject({ lastCollectionAccessedId: 1 }),
       accessLevel$: accessLevelSubject
@@ -260,11 +259,6 @@ describe('PoamExtendComponent', () => {
       fixture.detectChanges();
       selectedCollectionSubject.next(5);
       expect(component.selectedCollection).toBe(5);
-    });
-
-    it('should call setPayload', () => {
-      fixture.detectChanges();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
     });
   });
 

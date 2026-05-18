@@ -295,7 +295,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   }
 
   setPayload() {
-    this.setPayloadService.setPayload();
     this.subs.add(
       this.setPayloadService.user$.subscribe((user) => {
         this.user = user;

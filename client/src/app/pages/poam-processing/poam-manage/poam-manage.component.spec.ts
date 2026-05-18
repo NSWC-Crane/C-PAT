@@ -91,7 +91,6 @@ describe('PoamManageComponent', () => {
     mockMessageService = createMockMessageService();
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: new BehaviorSubject({
         userId: 200,
         userName: 'testuser',
@@ -230,7 +229,6 @@ describe('PoamManageComponent', () => {
       await component.ngOnInit();
 
       expect(component.selectedCollectionId()).toBe(1);
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
     });
 
     it('should update selectedCollectionId when collection changes', async () => {

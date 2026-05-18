@@ -10,14 +10,14 @@
 
 import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { of, throwError, firstValueFrom, filter } from 'rxjs';
+import { Subject, firstValueFrom, filter } from 'rxjs';
 import { PayloadService } from './setPayload.service';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { AuthService } from '../../core/auth/services/auth.service';
 import { Users } from '../models/users.model';
 
 describe('PayloadService', () => {
   let service: PayloadService;
-  let mockUsersService: { getCurrentUser: ReturnType<typeof vi.fn> };
+  let userSubject: Subject<Users | null>;
 
   const mockUser: Users = {
     userId: 1,
@@ -49,12 +49,10 @@ describe('PayloadService', () => {
   };
 
   beforeEach(() => {
-    mockUsersService = {
-      getCurrentUser: vi.fn()
-    };
+    userSubject = new Subject<Users | null>();
 
     TestBed.configureTestingModule({
-      providers: [PayloadService, { provide: UsersService, useValue: mockUsersService }]
+      providers: [PayloadService, { provide: AuthService, useValue: { user$: userSubject.asObservable() } }]
     });
 
     service = TestBed.inject(PayloadService);
@@ -90,11 +88,9 @@ describe('PayloadService', () => {
     });
   });
 
-  describe('setPayload', () => {
-    it('should set user data when getCurrentUser succeeds', async () => {
-      mockUsersService.getCurrentUser.mockReturnValue(of(mockUser));
-
-      service.setPayload();
+  describe('when authService.user$ emits a valid user', () => {
+    it('should set user data', async () => {
+      userSubject.next(mockUser);
 
       const user = await firstValueFrom(service.user$.pipe(filter((u) => u !== null)));
 
@@ -103,9 +99,7 @@ describe('PayloadService', () => {
     });
 
     it('should set payload with mapped permissions', async () => {
-      mockUsersService.getCurrentUser.mockReturnValue(of(mockUser));
-
-      service.setPayload();
+      userSubject.next(mockUser);
 
       const payload = await firstValueFrom(service.payload$.pipe(filter((p) => p !== null)));
 
@@ -115,9 +109,7 @@ describe('PayloadService', () => {
     });
 
     it('should set access level based on lastCollectionAccessedId', async () => {
-      mockUsersService.getCurrentUser.mockReturnValue(of(mockUser));
-
-      service.setPayload();
+      userSubject.next(mockUser);
 
       await firstValueFrom(service.user$.pipe(filter((u) => u !== null)));
       const level = await firstValueFrom(service.accessLevel$);
@@ -126,9 +118,7 @@ describe('PayloadService', () => {
     });
 
     it('should set isAdmin to false for non-admin user', async () => {
-      mockUsersService.getCurrentUser.mockReturnValue(of(mockUser));
-
-      service.setPayload();
+      userSubject.next(mockUser);
 
       await firstValueFrom(service.user$.pipe(filter((u) => u !== null)));
       const isAdmin = await firstValueFrom(service.isAdmin$);
@@ -137,9 +127,7 @@ describe('PayloadService', () => {
     });
 
     it('should set isAdmin to true for admin user', async () => {
-      mockUsersService.getCurrentUser.mockReturnValue(of(mockAdminUser));
-
-      service.setPayload();
+      userSubject.next(mockAdminUser);
 
       await firstValueFrom(service.user$.pipe(filter((u) => u !== null)));
       const isAdmin = await firstValueFrom(service.isAdmin$);
@@ -147,15 +135,8 @@ describe('PayloadService', () => {
       expect(isAdmin).toBe(true);
     });
 
-    it('should handle user with no permissions', async () => {
-      const userNoPermissions: Users = {
-        ...mockUser,
-        permissions: []
-      };
-
-      mockUsersService.getCurrentUser.mockReturnValue(of(userNoPermissions));
-
-      service.setPayload();
+    it('should set accessLevel to 0 when user has no permissions', async () => {
+      userSubject.next({ ...mockUser, permissions: [] });
 
       await firstValueFrom(service.user$.pipe(filter((u) => u !== null)));
       const level = await firstValueFrom(service.accessLevel$);
@@ -163,30 +144,16 @@ describe('PayloadService', () => {
       expect(level).toBe(0);
     });
 
-    it('should handle user with undefined permissions', async () => {
-      const userUndefinedPermissions: Users = {
-        ...mockUser,
-        permissions: undefined as any
-      };
-
-      mockUsersService.getCurrentUser.mockReturnValue(of(userUndefinedPermissions));
-
-      service.setPayload();
+    it('should set payload.collections to undefined when permissions are undefined', async () => {
+      userSubject.next({ ...mockUser, permissions: undefined as any });
 
       const payload = await firstValueFrom(service.payload$.pipe(filter((p) => p !== null)));
 
       expect(payload.collections).toBeUndefined();
     });
 
-    it('should set accessLevel to 0 when lastCollectionAccessedId not found in permissions', async () => {
-      const userDifferentCollection: Users = {
-        ...mockUser,
-        lastCollectionAccessedId: 999
-      };
-
-      mockUsersService.getCurrentUser.mockReturnValue(of(userDifferentCollection));
-
-      service.setPayload();
+    it('should set accessLevel to 0 when lastCollectionAccessedId not in permissions', async () => {
+      userSubject.next({ ...mockUser, lastCollectionAccessedId: 999 });
 
       await firstValueFrom(service.user$.pipe(filter((u) => u !== null)));
       const level = await firstValueFrom(service.accessLevel$);
@@ -194,56 +161,42 @@ describe('PayloadService', () => {
       expect(level).toBe(0);
     });
 
-    it('should handle error when getCurrentUser fails', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      mockUsersService.getCurrentUser.mockReturnValue(throwError(() => new Error('API Error')));
-
-      service.setPayload();
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
-      expect(consoleSpy).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle response with no userId', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      mockUsersService.getCurrentUser.mockReturnValue(of({} as Users));
-
-      service.setPayload();
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
-      expect(consoleSpy).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle null response', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      mockUsersService.getCurrentUser.mockReturnValue(of(null));
-
-      service.setPayload();
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
-      expect(consoleSpy).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle user with isAdmin undefined', async () => {
-      const userUndefinedAdmin: Users = {
-        ...mockUser,
-        isAdmin: undefined as any
-      };
-
-      mockUsersService.getCurrentUser.mockReturnValue(of(userUndefinedAdmin));
-
-      service.setPayload();
+    it('should set isAdmin to false when isAdmin is undefined', async () => {
+      userSubject.next({ ...mockUser, isAdmin: undefined as any });
 
       await firstValueFrom(service.user$.pipe(filter((u) => u !== null)));
       const isAdmin = await firstValueFrom(service.isAdmin$);
 
       expect(isAdmin).toBe(false);
+    });
+  });
+
+  describe('when authService.user$ emits a value that should be filtered', () => {
+    it('should not update subjects when user has no userId', async () => {
+      userSubject.next({} as Users);
+
+      const user = await firstValueFrom(service.user$);
+
+      expect(user).toBeNull();
+    });
+
+    it('should not update subjects when null is emitted', async () => {
+      userSubject.next(null);
+
+      const user = await firstValueFrom(service.user$);
+
+      expect(user).toBeNull();
+    });
+  });
+
+  describe('when authService.user$ errors', () => {
+    it('should log the error', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      userSubject.error(new Error('Auth error'));
+
+      expect(consoleSpy).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
+      consoleSpy.mockRestore();
     });
   });
 });

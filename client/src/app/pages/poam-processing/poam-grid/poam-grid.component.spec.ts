@@ -97,7 +97,6 @@ describe('PoamGridComponent', () => {
     mockDialogService = createMockDialogService();
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: new BehaviorSubject({ userId: 1, userName: 'testuser' })
     };
 
@@ -210,11 +209,6 @@ describe('PoamGridComponent', () => {
       await component.setPayload();
       selectedCollectionSubject.next(2);
       expect(component.selectedCollectionId()).toBe(2);
-    });
-
-    it('should call payloadService.setPayload', async () => {
-      await component.setPayload();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
     });
 
     it('should subscribe to user$', async () => {

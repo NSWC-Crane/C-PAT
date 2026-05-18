@@ -62,7 +62,6 @@ describe('LabelProcessingComponent', () => {
     };
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: userSubject.asObservable(),
       payload$: payloadSubject.asObservable(),
       accessLevel$: accessLevelSubject.asObservable()
@@ -137,11 +136,6 @@ describe('LabelProcessingComponent', () => {
       component.ngOnInit();
       selectedCollectionSubject.next(5);
       expect(component.selectedCollection).toBe(5);
-    });
-
-    it('should call setPayloadService.setPayload', () => {
-      component.ngOnInit();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
     });
   });
 

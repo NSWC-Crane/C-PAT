@@ -105,8 +105,7 @@ describe('UserComponent', () => {
     mockMessageService = createMockMessageService();
 
     mockPayloadService = {
-      user$: of(null),
-      setPayload: vi.fn()
+      user$: of(null)
     };
 
     await TestBed.configureTestingModule({

@@ -85,7 +85,6 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   async setPayload() {
-    this.setPayloadService.setPayload();
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe((user) => {
         this.user = user;

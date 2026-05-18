@@ -74,7 +74,6 @@ describe('AssetProcessingComponent', () => {
     };
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: userSubject.asObservable(),
       payload$: payloadSubject.asObservable(),
       accessLevel$: accessLevelSubject.asObservable()
@@ -195,11 +194,6 @@ describe('AssetProcessingComponent', () => {
       await component.ngOnInit();
       expect(component.cols).toBeDefined();
       expect(component.cols.length).toBe(5);
-    });
-
-    it('should call setPayloadService.setPayload', async () => {
-      await component.ngOnInit();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
     });
   });
 

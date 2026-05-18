@@ -64,8 +64,7 @@ describe('AppNavigationComponent', () => {
     mockPayloadService = {
       user$: payloadUserSubject.asObservable(),
       payload$: new BehaviorSubject<any>(null).asObservable(),
-      accessLevel$: new BehaviorSubject<any>(0).asObservable(),
-      setPayload: vi.fn()
+      accessLevel$: new BehaviorSubject<any>(0).asObservable()
     };
 
     mockUserService = {

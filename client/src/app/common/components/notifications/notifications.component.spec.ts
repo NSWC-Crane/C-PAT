@@ -38,7 +38,6 @@ describe('NotificationsComponent', () => {
     deleteAllNotifications: ReturnType<typeof vi.fn>;
   };
   let mockPayloadService: {
-    setPayload: ReturnType<typeof vi.fn>;
     user$: BehaviorSubject<any>;
     payload$: BehaviorSubject<any>;
     accessLevel$: BehaviorSubject<number>;
@@ -78,7 +77,6 @@ describe('NotificationsComponent', () => {
     };
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: new BehaviorSubject({ userId: 1, userName: 'testuser' }),
       payload$: new BehaviorSubject({}),
       accessLevel$: new BehaviorSubject(1)
@@ -134,11 +132,6 @@ describe('NotificationsComponent', () => {
   });
 
   describe('setPayload', () => {
-    it('should call setPayload on PayloadService', () => {
-      component.setPayload();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
-    });
-
     it('should subscribe to user$', () => {
       component.setPayload();
       expect(component.user).toEqual({ userId: 1, userName: 'testuser' });

@@ -43,7 +43,6 @@ describe('PoamsComponent', () => {
     mockMessageService = createMockMessageService();
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: userSubject.asObservable(),
       payload$: payloadSubject.asObservable(),
       accessLevel$: accessLevelSubject.asObservable()
@@ -87,11 +86,6 @@ describe('PoamsComponent', () => {
   });
 
   describe('setPayload', () => {
-    it('should call payloadService.setPayload', async () => {
-      await component.setPayload();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
-    });
-
     it('should subscribe to user$', async () => {
       await component.setPayload();
       expect(component.user).toEqual({ userId: 1, userName: 'testuser', lastCollectionAccessedId: 1 });

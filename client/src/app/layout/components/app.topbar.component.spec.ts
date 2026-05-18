@@ -59,8 +59,7 @@ describe('AppTopBarComponent', () => {
     mockPayloadService = {
       user$: userSubject.asObservable(),
       payload$: new BehaviorSubject(null).asObservable(),
-      accessLevel$: new BehaviorSubject(0).asObservable(),
-      setPayload: vi.fn()
+      accessLevel$: new BehaviorSubject(0).asObservable()
     };
 
     mockUserService = {
