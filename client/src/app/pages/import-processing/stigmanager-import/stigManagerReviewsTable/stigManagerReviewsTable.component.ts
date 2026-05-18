@@ -449,13 +449,13 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   }
 
   applyFilters() {
-    if (!this.hasActiveFilters()) {
-      this.resetTreeNodes();
-    } else {
+    if (this.hasActiveFilters()) {
       this.treeNodes = this.filterTreeNodes(this.originalTreeNodes);
       this.assetCount = this.treeNodes.length;
       this.totalRecords = this.countAllNodes(this.treeNodes);
       this.reviewsCountChange.emit(this.totalRecords);
+    } else {
+      this.resetTreeNodes();
     }
   }
 
