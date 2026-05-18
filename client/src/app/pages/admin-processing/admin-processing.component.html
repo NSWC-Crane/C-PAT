@@ -10,7 +10,7 @@
 
 <div class="card overflow-hidden relative">
   <p-button icon="pi pi-cog" [rounded]="true" variant="text" (onClick)="navigateToAppInfo()" styleClass="!absolute top-1 right-1 z-10" />
-  <p-tabs [(value)]="value" scrollable>
+  <p-tabs [(value)]="value" scrollable lazy>
     <p-tablist class="mt-[-1.5rem]">
       <p-tab [value]="0">User Management</p-tab>
       <p-tab [value]="1">Collection Management</p-tab>

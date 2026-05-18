@@ -10,7 +10,7 @@
 
 <div class="tenable-container" [ngClass]="{ 'sidebar-visible': sidebarVisible, 'sidebar-hidden': !sidebarVisible }">
   <p-card class="h-full">
-    <p-tabs #tabComponent [(value)]="activeTabIndex" (valueChange)="onTabChange($event)" scrollable>
+    <p-tabs #tabComponent [(value)]="activeTabIndex" (valueChange)="onTabChange($event)" scrollable lazy>
       <p-tablist>
         <p-tab value="0">Vulnerabilities ({{ mainTotal }})</p-tab>
         <p-tab value="1">30+ Days{{ loadedTabs.has('1') ? ' (' + thirtyPlusTotal + ')' : '' }}</p-tab>
