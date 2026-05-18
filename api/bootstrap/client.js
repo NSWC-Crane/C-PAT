@@ -140,6 +140,7 @@ function setupAngularRoutes(app) {
 
     const serveIndexWithBaseHref = (req, res) => {
         const indexPath = path.join(__dirname, '..', config.client.directory, 'index.html');
+        const envJS = getClientEnv();
 
         fs.readFile(indexPath, 'utf8', (err, data) => {
             if (err) {
@@ -148,9 +149,14 @@ function setupAngularRoutes(app) {
             }
 
             const basePath = config.settings.basePath || '';
-            const baseHref = basePath ? (basePath.endsWith('/') ? basePath : basePath + '/') : '/';
+            let baseHref = '/';
+            if (basePath) {
+                baseHref = basePath.endsWith('/') ? basePath : basePath + '/';
+            }
 
-            const modifiedHtml = data.replace(/<base\s+href="[^"]*">/i, `<base href="${baseHref}">`);
+            const modifiedHtml = data
+                .replace(/<base\s+href="[^"]*">/i, `<base href="${baseHref}">`)
+                .replace('</head>', `<script>${envJS}</script>\n  </head>`);
 
             res.setHeader('Content-Type', 'text/html');
             res.send(modifiedHtml);
