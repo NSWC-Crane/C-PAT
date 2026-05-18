@@ -90,7 +90,13 @@ function serveClientEnv(app) {
     const envJS = getClientEnv();
     app.get('/init/Env.js', function (req, res) {
         req.component = 'static';
-        writer.writeWithContentType(res, { payload: envJS, contentType: 'application/javascript' });
+
+        res.set('Cache-Control', 'public, max-age=3600');
+
+        writer.writeWithContentType(res, {
+            payload: envJS,
+            contentType: 'application/javascript',
+        });
     });
 }
 function serveStaticFiles(app) {
