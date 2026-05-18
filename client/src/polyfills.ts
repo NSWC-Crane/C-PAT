@@ -10,9 +10,7 @@
 
 import 'zone.js';
 
-if (typeof SVGElement.prototype.contains === 'undefined') {
-  SVGElement.prototype.contains = HTMLDivElement.prototype.contains;
-}
+SVGElement.prototype.contains ??= HTMLDivElement.prototype.contains;
 
 if (!('ResizeObserver' in globalThis)) {
   import('resize-observer-polyfill');
