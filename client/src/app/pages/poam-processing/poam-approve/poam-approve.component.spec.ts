@@ -70,7 +70,6 @@ describe('PoamApproveComponent', () => {
     mockMessageService = createMockMessageService();
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: new BehaviorSubject(mockUser),
       payload$: new BehaviorSubject({ lastCollectionAccessedId: 1 }),
       accessLevel$: accessLevelSubject
@@ -147,11 +146,6 @@ describe('PoamApproveComponent', () => {
       fixture.detectChanges();
       selectedCollectionSubject.next(5);
       expect(component.selectedCollection).toBe(5);
-    });
-
-    it('should call setPayload on init', () => {
-      fixture.detectChanges();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
     });
   });
 

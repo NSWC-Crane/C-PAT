@@ -99,8 +99,6 @@ export class PoamManageComponent implements OnInit, OnDestroy {
   }
 
   private async setPayload() {
-    this.setPayloadService.setPayload();
-
     this.subs.sink = combineLatest([this.setPayloadService.user$, this.setPayloadService.payload$, this.setPayloadService.accessLevel$])
       .pipe(
         filter(([user, payload, level]) => !!user && !!payload && level > 0),

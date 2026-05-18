@@ -44,7 +44,6 @@ describe('PoamAttachmentsComponent', () => {
     };
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       accessLevel$: new BehaviorSubject(2)
     };
 
@@ -104,11 +103,6 @@ describe('PoamAttachmentsComponent', () => {
   });
 
   describe('ngOnInit', () => {
-    it('should call setPayload on PayloadService', async () => {
-      await component.ngOnInit();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
-    });
-
     it('should subscribe to accessLevel$ and set accessLevel', async () => {
       await component.ngOnInit();
       expect(component['accessLevel']).toBe(2);

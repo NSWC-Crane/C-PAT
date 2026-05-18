@@ -945,8 +945,6 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
       this.tempFilters = this.initializeTempFilters();
     }
 
-    this.setPayloadService.setPayload();
-
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;

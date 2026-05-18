@@ -64,8 +64,6 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
   private readonly subscriptions = new Subscription();
 
   ngOnInit() {
-    this.setPayloadService.setPayload();
-
     this.subscriptions.add(
       this.setPayloadService.accessLevel$.subscribe(async (level) => {
         this.accessLevel.set(level);

@@ -144,7 +144,6 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   }
 
   setPayload() {
-    this.setPayloadService.setPayload();
     this.subs.sink = this.setPayloadService.user$.subscribe((user) => {
       this.user = user;
     });

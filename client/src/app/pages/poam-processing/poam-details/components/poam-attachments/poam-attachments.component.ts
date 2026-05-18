@@ -93,7 +93,6 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   ];
 
   async ngOnInit() {
-    this.setPayloadService.setPayload();
     this.accessLevelSubscription = this.setPayloadService.accessLevel$.subscribe((level) => {
       this.accessLevel = level;
 

@@ -84,7 +84,6 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   setPayload() {
-    this.setPayloadService.setPayload();
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe((user) => {
         this.user = user;

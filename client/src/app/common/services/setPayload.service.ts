@@ -9,10 +9,10 @@
 */
 
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, map } from 'rxjs';
+import { BehaviorSubject, filter } from 'rxjs';
 import { Permission } from '../../common/models/permission.model';
 import { Users } from '../../common/models/users.model';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { AuthService } from '../../core/auth/services/auth.service';
 
 interface Payload extends Users {
   collections: Permission[];
@@ -22,7 +22,7 @@ interface Payload extends Users {
   providedIn: 'root'
 })
 export class PayloadService {
-  private readonly userService = inject(UsersService);
+  private readonly authService = inject(AuthService);
 
   private readonly userSubject = new BehaviorSubject<any>(null);
   private readonly payloadSubject = new BehaviorSubject<any>(null);
@@ -34,51 +34,37 @@ export class PayloadService {
   accessLevel$ = this.accessLevelSubject.asObservable();
   isAdmin$ = this.isAdminSubject.asObservable();
 
-  setPayload() {
-    this.userService
-      .getCurrentUser()
-      .pipe(
-        map((response: Users) => {
-          if (response?.userId) {
-            const user = response;
-            const mappedPermissions: Permission[] = user.permissions?.map((permission) => ({
-              collectionId: permission.collectionId,
-              accessLevel: permission.accessLevel
-            }));
+  constructor() {
+    this.authService.user$.pipe(filter((user): user is Users => !!user?.userId)).subscribe({
+      next: (user: Users) => {
+        const mappedPermissions: Permission[] = user.permissions?.map((permission) => ({
+          collectionId: permission.collectionId,
+          accessLevel: permission.accessLevel
+        }));
 
-            const payload: Payload = {
-              ...user,
-              collections: mappedPermissions
-            };
+        const payload: Payload = {
+          ...user,
+          collections: mappedPermissions
+        };
 
-            let accessLevel = 0;
+        let accessLevel = 0;
 
-            if (mappedPermissions?.length > 0) {
-              const selectedPermissions = payload.collections.find((x) => x.collectionId === payload.lastCollectionAccessedId);
+        if (mappedPermissions?.length > 0) {
+          const selectedPermissions = payload.collections.find((x) => x.collectionId === payload.lastCollectionAccessedId);
 
-              if (selectedPermissions) {
-                accessLevel = selectedPermissions.accessLevel;
-              }
-            }
-
-            const isAdmin = user.isAdmin || false;
-
-            return { user, payload, accessLevel, isAdmin };
+          if (selectedPermissions) {
+            accessLevel = selectedPermissions.accessLevel;
           }
-
-          throw new Error('User ID is not available');
-        })
-      )
-      .subscribe({
-        next: ({ user, payload, accessLevel, isAdmin }) => {
-          this.userSubject.next(user);
-          this.payloadSubject.next(payload);
-          this.accessLevelSubject.next(accessLevel);
-          this.isAdminSubject.next(isAdmin);
-        },
-        error: (error) => {
-          console.error('An error occurred:', error);
         }
-      });
+
+        this.userSubject.next(user);
+        this.payloadSubject.next(payload);
+        this.accessLevelSubject.next(accessLevel);
+        this.isAdminSubject.next(user.isAdmin || false);
+      },
+      error: (error) => {
+        console.error('An error occurred:', error);
+      }
+    });
   }
 }

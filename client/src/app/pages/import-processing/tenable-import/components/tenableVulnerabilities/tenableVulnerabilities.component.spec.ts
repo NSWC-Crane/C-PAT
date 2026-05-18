@@ -78,7 +78,6 @@ describe('TenableVulnerabilitiesComponent', () => {
     };
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       user$: new BehaviorSubject<any>(null).asObservable(),
       accessLevel$: new BehaviorSubject<number>(2).asObservable()
     };

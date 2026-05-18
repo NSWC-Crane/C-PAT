@@ -103,8 +103,7 @@ describe('AssetDeltaComponent', () => {
     };
 
     mockPayloadService = {
-      user$: of(mockUser),
-      setPayload: vi.fn()
+      user$: of(mockUser)
     };
 
     mockMessageService = createMockMessageService();

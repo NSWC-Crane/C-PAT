@@ -16,8 +16,7 @@ import { vi } from 'vitest';
  */
 export function createMockPayloadService() {
   return {
-    user$: new Subject(),
-    setPayload: vi.fn()
+    user$: new Subject()
   };
 }
 

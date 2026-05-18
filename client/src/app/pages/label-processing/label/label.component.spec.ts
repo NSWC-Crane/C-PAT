@@ -61,7 +61,6 @@ describe('LabelComponent', () => {
     };
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       accessLevel$: accessLevelSubject.asObservable()
     };
 

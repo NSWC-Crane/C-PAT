@@ -56,7 +56,6 @@ describe('TenableFiltersComponent', () => {
     mockMessageService = createMockMessageService();
 
     mockPayloadService = {
-      setPayload: vi.fn(),
       accessLevel$: accessLevelSubject.asObservable(),
       user$: userSubject.asObservable()
     };
@@ -117,11 +116,6 @@ describe('TenableFiltersComponent', () => {
   });
 
   describe('ngOnInit', () => {
-    it('should call setPayload', () => {
-      component.ngOnInit();
-      expect(mockPayloadService.setPayload).toHaveBeenCalled();
-    });
-
     it('should subscribe to accessLevel$ and update signal', () => {
       component.ngOnInit();
       expect(component.accessLevel()).toBe(2);

@@ -327,7 +327,6 @@ export class PoamGridComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.setPayloadService.setPayload();
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe((user) => {
         this.user.set(user);

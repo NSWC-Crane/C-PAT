@@ -12,7 +12,6 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Classification } from './common/models/classification.model';
-import { PayloadService } from './common/services/setPayload.service';
 import { SharedService } from './common/services/shared.service';
 import { AuthService } from './core/auth/services/auth.service';
 import { InactivityService } from './core/auth/services/inactivity.service';
@@ -27,7 +26,6 @@ import { InactivityWarningComponent } from './common/components/inactivity-warni
 export class AppComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly sharedService = inject(SharedService);
-  private readonly payloadService = inject(PayloadService);
   private readonly inactivityService = inject(InactivityService);
 
   classification: Classification | undefined;
@@ -58,8 +56,6 @@ export class AppComponent implements OnInit, OnDestroy {
       if (this.inactivityService.shouldMonitor()) {
         this.inactivityService.startMonitoring();
       }
-
-      await this.payloadService.setPayload();
 
       this.sharedService.getApiConfig().subscribe({
         next: (apiConfig) => {
