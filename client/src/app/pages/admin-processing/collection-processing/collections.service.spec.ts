@@ -231,4 +231,90 @@ describe('CollectionsService', () => {
       req.flush('Not Found', { status: 404, statusText: 'Not Found' });
     });
   });
+
+  describe('Caching behavior', () => {
+    it('should return cached result for getCollections without a second HTTP request', () => {
+      service.getCollections().subscribe();
+      httpMock.expectOne(`${apiBase}/collections`).flush(mockCollectionList);
+
+      let result: any;
+
+      service.getCollections().subscribe((data) => {
+        result = data;
+      });
+      httpMock.expectNone(`${apiBase}/collections`);
+      expect(result).toEqual(mockCollectionList);
+    });
+
+    it('should return cached result for getCollectionBasicList without a second HTTP request', () => {
+      const basicList = mockCollectionList.map((c) => ({ collectionId: c.collectionId, collectionName: c.collectionName }));
+
+      service.getCollectionBasicList().subscribe();
+      httpMock.expectOne(`${apiBase}/collections/basiclist`).flush(basicList);
+
+      let result: any;
+
+      service.getCollectionBasicList().subscribe((data) => {
+        result = data;
+      });
+      httpMock.expectNone(`${apiBase}/collections/basiclist`);
+      expect(result).toEqual(basicList);
+    });
+
+    it('should return cached result for getAllCollections without a second HTTP request', () => {
+      service.getAllCollections().subscribe();
+      httpMock.expectOne(`${apiBase}/collections?elevate=true`).flush(mockCollectionList);
+
+      let result: any;
+
+      service.getAllCollections().subscribe((data) => {
+        result = data;
+      });
+      httpMock.expectNone(`${apiBase}/collections?elevate=true`);
+      expect(result).toEqual(mockCollectionList);
+    });
+
+    it('should invalidate all caches after addCollection', () => {
+      service.getCollections().subscribe();
+      httpMock.expectOne(`${apiBase}/collections`).flush(mockCollectionList);
+
+      service.addCollection({ collectionName: 'New' }).subscribe();
+      httpMock.expectOne(`${apiBase}/collection`).flush(mockCollection);
+
+      service.getCollections().subscribe();
+      httpMock.expectOne(`${apiBase}/collections`).flush(mockCollectionList);
+    });
+
+    it('should invalidate all caches after updateCollection', () => {
+      const basicList = mockCollectionList.map((c) => ({ collectionId: c.collectionId, collectionName: c.collectionName }));
+
+      service.getCollectionBasicList().subscribe();
+      httpMock.expectOne(`${apiBase}/collections/basiclist`).flush(basicList);
+
+      service.updateCollection(mockCollection).subscribe();
+      httpMock.expectOne(`${apiBase}/collection`).flush(mockCollection);
+
+      service.getCollectionBasicList().subscribe();
+      httpMock.expectOne(`${apiBase}/collections/basiclist`).flush(basicList);
+    });
+
+    it('should invalidate all caches after deleteCollection', () => {
+      service.getAllCollections().subscribe();
+      httpMock.expectOne(`${apiBase}/collections?elevate=true`).flush(mockCollectionList);
+
+      service.deleteCollection(1).subscribe();
+      httpMock.expectOne(`${apiBase}/collection/1?elevate=true`).flush({ success: true });
+
+      service.getAllCollections().subscribe();
+      httpMock.expectOne(`${apiBase}/collections?elevate=true`).flush(mockCollectionList);
+    });
+
+    it('should reset cache on HTTP error so next call retries', () => {
+      service.getCollections().subscribe({ error: () => {} });
+      httpMock.expectOne(`${apiBase}/collections`).flush('Server Error', { status: 500, statusText: 'Server Error' });
+
+      service.getCollections().subscribe();
+      httpMock.expectOne(`${apiBase}/collections`).flush(mockCollectionList);
+    });
+  });
 });

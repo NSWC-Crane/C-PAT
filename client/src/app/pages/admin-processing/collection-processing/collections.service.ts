@@ -11,7 +11,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { Collections } from '../../../common/models/collections.model';
 
@@ -23,34 +23,77 @@ export class CollectionsService {
 
   private readonly cpatApiBase = CPAT.Env.apiBase;
 
+  private collectionsCache$: Observable<Collections[]> | null = null;
+  private allCollectionsCache$: Observable<Collections[]> | null = null;
+  private basicListCache$: Observable<CollectionsBasicList[]> | null = null;
+
   private handleError(error: any) {
     console.error('An error occurred:', error);
 
     return throwError(() => error);
   }
 
+  private invalidateCollectionCache() {
+    this.collectionsCache$ = null;
+    this.allCollectionsCache$ = null;
+    this.basicListCache$ = null;
+  }
+
   getAllCollections(): Observable<Collections[]> {
-    return this.http.get<Collections[]>(`${this.cpatApiBase}/collections?elevate=true`).pipe(catchError(this.handleError));
+    if (!this.allCollectionsCache$) {
+      this.allCollectionsCache$ = this.http.get<Collections[]>(`${this.cpatApiBase}/collections?elevate=true`).pipe(
+        shareReplay(1),
+        catchError((error) => {
+          this.allCollectionsCache$ = null;
+
+          return this.handleError(error);
+        })
+      );
+    }
+
+    return this.allCollectionsCache$;
   }
 
   getCollections(): Observable<Collections[]> {
-    return this.http.get<Collections[]>(`${this.cpatApiBase}/collections`).pipe(catchError(this.handleError));
+    if (!this.collectionsCache$) {
+      this.collectionsCache$ = this.http.get<Collections[]>(`${this.cpatApiBase}/collections`).pipe(
+        shareReplay(1),
+        catchError((error) => {
+          this.collectionsCache$ = null;
+
+          return this.handleError(error);
+        })
+      );
+    }
+
+    return this.collectionsCache$;
   }
 
   getCollectionBasicList(): Observable<CollectionsBasicList[]> {
-    return this.http.get<CollectionsBasicList[]>(`${this.cpatApiBase}/collections/basiclist`).pipe(catchError(this.handleError));
+    if (!this.basicListCache$) {
+      this.basicListCache$ = this.http.get<CollectionsBasicList[]>(`${this.cpatApiBase}/collections/basiclist`).pipe(
+        shareReplay(1),
+        catchError((error) => {
+          this.basicListCache$ = null;
+
+          return this.handleError(error);
+        })
+      );
+    }
+
+    return this.basicListCache$;
   }
 
   addCollection(collection: any): Observable<Collections> {
-    return this.http.post<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(catchError(this.handleError));
+    return this.http.post<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(tap(() => this.invalidateCollectionCache()), catchError(this.handleError));
   }
 
   updateCollection(collection: any): Observable<Collections> {
-    return this.http.put<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(catchError(this.handleError));
+    return this.http.put<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(tap(() => this.invalidateCollectionCache()), catchError(this.handleError));
   }
 
   deleteCollection(collectionId: number): Observable<Collections> {
-    return this.http.delete<Collections>(`${this.cpatApiBase}/collection/${collectionId}?elevate=true`).pipe(catchError(this.handleError));
+    return this.http.delete<Collections>(`${this.cpatApiBase}/collection/${collectionId}?elevate=true`).pipe(tap(() => this.invalidateCollectionCache()), catchError(this.handleError));
   }
 
   getCollectionPermissions(collectionId: number): Observable<any> {
