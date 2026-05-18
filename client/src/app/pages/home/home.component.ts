@@ -11,6 +11,7 @@
 import { Component } from '@angular/core';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
+import { ImageModule } from 'primeng/image';
 import { UptimeMonitorComponent } from './uptime-monitor/uptime-monitor.component';
 
 @Component({
@@ -18,7 +19,7 @@ import { UptimeMonitorComponent } from './uptime-monitor/uptime-monitor.componen
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
   standalone: true,
-  imports: [CardModule, DividerModule, UptimeMonitorComponent]
+  imports: [CardModule, DividerModule, ImageModule, UptimeMonitorComponent]
 })
 export class HomeComponent {
   protected version = CPAT.Env.version ?? '';
