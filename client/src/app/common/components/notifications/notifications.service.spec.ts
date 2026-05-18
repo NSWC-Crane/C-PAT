@@ -210,6 +210,102 @@ describe('NotificationService', () => {
     });
   });
 
+  describe('Caching behavior', () => {
+    const mockUnread = [{ notificationId: 1, title: 'POAM Due', message: 'POAM 123 is due tomorrow', read: false }];
+    const mockCount = { count: 1 };
+
+    it('should return cached result for getUnreadNotifications without a second HTTP request', () => {
+      service.getUnreadNotifications().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread`).flush(mockUnread);
+
+      let result: any;
+
+      service.getUnreadNotifications().subscribe((data) => {
+        result = data;
+      });
+      httpMock.expectNone(`${apiBase}/notifications/unread`);
+      expect(result).toEqual(mockUnread);
+    });
+
+    it('should return cached result for getUnreadNotificationCount without a second HTTP request', () => {
+      service.getUnreadNotificationCount().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread/count`).flush(mockCount);
+
+      let result: any;
+
+      service.getUnreadNotificationCount().subscribe((data) => {
+        result = data;
+      });
+      httpMock.expectNone(`${apiBase}/notifications/unread/count`);
+      expect(result).toEqual(mockCount);
+    });
+
+    it('should refresh getUnreadNotifications cache after TTL expires', () => {
+      const dateSpy = vi.spyOn(Date, 'now');
+
+      dateSpy.mockReturnValue(0);
+      service.getUnreadNotifications().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread`).flush(mockUnread);
+
+      service.getUnreadNotifications().subscribe();
+      httpMock.expectNone(`${apiBase}/notifications/unread`);
+
+      dateSpy.mockReturnValue(31000);
+      service.getUnreadNotifications().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread`).flush(mockUnread);
+
+      dateSpy.mockRestore();
+    });
+
+    it('should refresh getUnreadNotificationCount cache after TTL expires', () => {
+      const dateSpy = vi.spyOn(Date, 'now');
+
+      dateSpy.mockReturnValue(0);
+      service.getUnreadNotificationCount().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread/count`).flush(mockCount);
+
+      dateSpy.mockReturnValue(31000);
+      service.getUnreadNotificationCount().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread/count`).flush(mockCount);
+
+      dateSpy.mockRestore();
+    });
+
+    it('should invalidate cache after dismissNotification', () => {
+      service.getUnreadNotifications().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread`).flush(mockUnread);
+
+      service.dismissNotification(1).subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/dismiss/1`).flush({ success: true });
+
+      service.getUnreadNotifications().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread`).flush(mockUnread);
+    });
+
+    it('should invalidate cache after dismissAllNotifications', () => {
+      service.getUnreadNotificationCount().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread/count`).flush(mockCount);
+
+      service.dismissAllNotifications().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/all/dismiss`).flush({ success: true });
+
+      service.getUnreadNotificationCount().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread/count`).flush(mockCount);
+    });
+
+    it('should reset cache on HTTP error so next call retries', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      service.getUnreadNotifications().subscribe({ error: () => {} });
+      httpMock.expectOne(`${apiBase}/notifications/unread`).flush('Error', { status: 500, statusText: 'Server Error' });
+
+      service.getUnreadNotifications().subscribe();
+      httpMock.expectOne(`${apiBase}/notifications/unread`).flush(mockUnread);
+
+      consoleSpy.mockRestore();
+    });
+  });
+
   describe('handleError', () => {
     it('should handle client-side errors (ErrorEvent)', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
