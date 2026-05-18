@@ -23,7 +23,7 @@ import { RippleModule } from 'primeng/ripple';
 import { Tag } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subject, combineLatest, filter, forkJoin, switchMap, take, takeUntil } from 'rxjs';
+import { Subject, combineLatest, distinctUntilChanged, filter, forkJoin, switchMap, take, takeUntil } from 'rxjs';
 import { StatusMessageComponent } from '../../common/components/status-message/status-message.component';
 import { SharedService } from '../../common/services/shared.service';
 import { AuthService } from '../../core/auth/services/auth.service';
@@ -289,7 +289,10 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       });
 
     combineLatest([this.user$.pipe(filter((user) => !!user)), this.accessLevel$.pipe(filter((level) => level != null))])
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        distinctUntilChanged(([prevUser, prevLevel], [nextUser, nextLevel]) => prevUser.userId === nextUser.userId && prevUser.lastCollectionAccessedId === nextUser.lastCollectionAccessedId && prevLevel === nextLevel),
+        takeUntil(this.destroy$)
+      )
       .subscribe({
         next: ([user, accessLevel]) => {
           this.setUserMenuItems();
