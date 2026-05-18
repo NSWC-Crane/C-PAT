@@ -114,7 +114,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     result: 'fail'
   };
 
-  private readonly resultMapping: ValueMapping = {
+  public readonly resultMapping: ValueMapping = {
     all: 'All',
     notchecked: 'Not checked',
     notapplicable: 'Not Applicable',
@@ -127,13 +127,13 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     fixed: 'Fixed'
   };
 
-  private readonly severityMapping: ValueMapping = {
+  public readonly severityMapping: ValueMapping = {
     low: 'CAT III - Low',
     medium: 'CAT II - Medium',
     high: 'CAT I - High'
   };
 
-  private readonly statusMapping: ValueMapping = {
+  public readonly statusMapping: ValueMapping = {
     saved: 'Saved',
     submitted: 'Submitted',
     rejected: 'Rejected',
