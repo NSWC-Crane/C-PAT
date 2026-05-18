@@ -220,6 +220,34 @@ describe('AppLayoutComponent', () => {
       expect(mockCollectionsService.getCollections).not.toHaveBeenCalled();
     });
 
+    it('should not call loadCollections again when same userId, collectionId, and accessLevel are emitted', () => {
+      fixture.detectChanges();
+      const callCount = mockCollectionsService.getCollections.mock.calls.length;
+
+      authUserSubject.next({ ...authUserSubject.getValue() });
+      accessLevelSubject.next(accessLevelSubject.getValue());
+
+      expect(mockCollectionsService.getCollections.mock.calls.length).toBe(callCount);
+    });
+
+    it('should call loadCollections again when lastCollectionAccessedId changes', () => {
+      fixture.detectChanges();
+      const callCount = mockCollectionsService.getCollections.mock.calls.length;
+
+      authUserSubject.next({ ...authUserSubject.getValue(), lastCollectionAccessedId: 2 });
+
+      expect(mockCollectionsService.getCollections.mock.calls.length).toBe(callCount + 1);
+    });
+
+    it('should call loadCollections again when accessLevel changes', () => {
+      fixture.detectChanges();
+      const callCount = mockCollectionsService.getCollections.mock.calls.length;
+
+      accessLevelSubject.next(3);
+
+      expect(mockCollectionsService.getCollections.mock.calls.length).toBe(callCount + 1);
+    });
+
     it('should handle error from combineLatest', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
