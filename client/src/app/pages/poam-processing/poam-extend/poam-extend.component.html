@@ -250,7 +250,7 @@
                     }
 
                     @if (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0)) {
-                      <p-tabs [(value)]="activeTabIndex" scrollable>
+                      <p-tabs [(value)]="activeTabIndex" scrollable lazy>
                         <p-tablist>
                           @if (poam.isGlobalFinding) {
                             <p-tab [value]="0">
