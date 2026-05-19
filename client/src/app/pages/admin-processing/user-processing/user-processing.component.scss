@@ -8,30 +8,14 @@
 !##########################################################################
 */
 
-.form-container {
-  display: flex;
-  flex-direction: column;
-}
+.pending-status {
+  background: color-mix(in srgb, var(--p-primary-color) 30%, transparent) !important;
 
-.form-group label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
-
-.form-group input,
-.form-group p-select {
-  width: 100%;
-}
-
-:host ::ng-deep {
-  .p-treetable {
-    .pending-status {
-      background: color-mix(in srgb, var(--p-primary-color) 30%, transparent) !important;
-
-      &:hover {
-        background: color-mix(in srgb, var(--p-primary-color) 50%, transparent) !important;
-      }
-    }
+  &:hover {
+    background: color-mix(in srgb, var(--p-primary-color) 50%, transparent) !important;
   }
+}
+
+:host ::ng-deep .scrollable-users .p-datatable-header {
+  padding: var(--p-treetable-header-padding);
 }

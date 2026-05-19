@@ -10,81 +10,56 @@
 
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ConfirmationService, TreeNode } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
-import { TreeTable, TreeTableModule } from 'primeng/treetable';
-import { Subscription, forkJoin } from 'rxjs';
-import { SubSink } from 'subsink';
-import { ConfirmationDialogOptions } from '../../../common/components/confirmation-dialog/confirmation-dialog.component';
+import { Subscription } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CsvExportService } from '../../../common/utils/csv-export.service';
 import { UserComponent } from './user/user.component';
 import { UsersService } from './users.service';
-import { CsvExportService } from '../../../common/utils/csv-export.service';
 
 @Component({
   selector: 'cpat-user-processing',
   templateUrl: './user-processing.component.html',
   styleUrls: ['./user-processing.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, SelectModule, FormsModule, InputIconModule, InputTextModule, IconFieldModule, TableModule, TooltipModule, TreeTableModule, UserComponent]
+  imports: [ButtonModule, CommonModule, InputIconModule, InputTextModule, IconFieldModule, TableModule, TooltipModule, UserComponent]
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {
-  private readonly collectionsService = inject(CollectionsService);
   private readonly userService = inject(UsersService);
-  private readonly confirmationService = inject(ConfirmationService);
   private readonly router = inject(Router);
   private readonly setPayloadService = inject(PayloadService);
   private readonly csvExportService = inject(CsvExportService);
 
-  readonly usersTable = viewChild.required<TreeTable>('usersTable');
-  public isLoggedIn = false;
-  cols: any = [];
-  collectionList: any[] = [];
-  users: TreeNode[] = [];
-  data: any = [];
-  selected: any;
-  showUserSelect: boolean = true;
-  treeData: any[] = [];
-  selectedUser: any;
+  readonly usersTable = viewChild.required<Table>('usersTable');
+
+  cols: any[] = [];
+  data: any[] = [];
+  users: any[] = [];
+  showUserSelect = true;
   protected accessLevel: any;
   user: any = {};
   payload: any;
   private readonly payloadSubscription: Subscription[] = [];
-  private readonly subs = new SubSink();
 
-  onSubmit() {
-    this.resetData();
-  }
-
-  async ngOnInit() {
-    this.initColumnsAndFilters();
+  ngOnInit() {
+    this.cols = [
+      { field: 'accountStatus', header: 'Status' },
+      { field: 'firstName', header: 'First Name' },
+      { field: 'lastName', header: 'Last Name' },
+      { field: 'displayUsername', header: 'Username' },
+      { field: 'email', header: 'Email' },
+      { field: 'lastAccessDate', header: 'Last Access' }
+    ];
     this.setPayload();
   }
 
-  initColumnsAndFilters() {
-    this.cols = [
-      { field: 'User', header: 'User' },
-      { field: 'Status', header: 'Status' },
-      { field: 'First Name', header: 'First Name' },
-      { field: 'Last Name', header: 'Last Name' },
-      { field: 'Username', header: 'Username' },
-      { field: 'Email', header: 'Email' },
-      { field: 'Last Access', header: 'Last Access' },
-      { field: 'Collection', header: 'Collection' },
-      { field: 'Access Level', header: 'Access Level' }
-    ];
-  }
-
-  async setPayload() {
+  setPayload() {
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
@@ -104,72 +79,23 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     );
   }
 
-  async getUserData() {
-    forkJoin([await this.userService.getUsers(), await this.collectionsService.getCollectionBasicList()]).subscribe(([userData, collectionData]: [any, any]) => {
-      this.data = userData;
-      this.collectionList = collectionData.map((collection: any) => ({
-        collectionId: collection.collectionId,
-        collectionName: collection.collectionName
-      }));
-      this.getUsersTree();
+  getUserData() {
+    const usernameClaimKey = CPAT.Env.oauth.claims.username;
+    const sortOrder = { PENDING: 0, ACTIVE: 1, DISABLED: 2 };
+
+    this.userService.getUsers().subscribe((userData: any) => {
+      this.data = [...userData]
+        .sort((a, b) => (sortOrder[a.accountStatus as keyof typeof sortOrder] ?? 3) - (sortOrder[b.accountStatus as keyof typeof sortOrder] ?? 3))
+        .map((u: any) => ({
+          ...u,
+          displayUsername: u.userName || u.lastClaims?.[usernameClaimKey] || '',
+          lastAccessDate: u.lastAccess ? u.lastAccess.split('T')[0] : ''
+        }));
     });
   }
 
-  getUsersTree() {
-    const sortOrder = { PENDING: 0, ACTIVE: 1, DISABLED: 2 };
-    const sortedUserData = [...this.data].sort((a, b) => sortOrder[a.accountStatus as keyof typeof sortOrder] - sortOrder[b.accountStatus as keyof typeof sortOrder]);
-    const treeData: any[] = [];
-    const usernameClaimKey = CPAT.Env.oauth.claims.username;
-
-    for (const user of sortedUserData) {
-      const userPermissions = user.permissions;
-      const children: any[] = [];
-
-      if (userPermissions && userPermissions.length > 0) {
-        for (const permission of userPermissions) {
-          const collection = this.collectionList.find((c) => c.collectionId === permission.collectionId);
-          const collectionName = collection ? collection.collectionName : '';
-
-          const accessLevelMap: { [key: number]: string } = {
-            1: 'Viewer',
-            2: 'Submitter',
-            3: 'Approver',
-            4: 'CAT-I Approver'
-          };
-
-          const accessLevelDisplay = accessLevelMap[permission.accessLevel] || '';
-
-          children.push({
-            data: {
-              Collection: collectionName,
-              'Access Level': accessLevelDisplay
-            }
-          });
-        }
-      }
-
-      treeData.push({
-        data: {
-          User: user.userId,
-          Status: user.accountStatus,
-          'First Name': user.firstName,
-          'Last Name': user.lastName,
-          Username: user.userName || user.lastClaims?.[usernameClaimKey] || '',
-          Email: user.email,
-          'Last Access': user.lastAccess ? user.lastAccess.split('T')[0] : ''
-        },
-        children: children,
-        styleClass: user.accountStatus === 'PENDING' ? 'pending-row' : ''
-      });
-    }
-
-    this.treeData = treeData;
-  }
-
   filterGlobal(event: any) {
-    const filterValue = (event.target as HTMLInputElement).value;
-
-    this.usersTable().filterGlobal(filterValue, 'contains');
+    this.usersTable().filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
 
   setUser(selectedUser: any) {
@@ -177,19 +103,8 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     this.showUserSelect = false;
   }
 
-  setUserFromTable(rowData: any) {
-    const selectedUser = this.data.find((user: any) => user.userId === rowData['User']);
-
-    if (selectedUser) {
-      this.selectedUser = selectedUser;
-      this.setUser(selectedUser);
-    }
-  }
-
   exportCSV() {
-    const flattenedData = this.csvExportService.flattenTreeData(this.treeData, ['User', 'Status', 'First Name', 'Last Name', 'Username', 'Email', 'Last Access'], ['Collection', 'Access Level']);
-
-    this.csvExportService.exportToCsv(flattenedData, {
+    this.csvExportService.exportToCsv(this.data, {
       filename: 'users_export',
       columns: this.cols,
       includeTimestamp: true
@@ -197,29 +112,12 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   resetData() {
-    this.user = [];
+    this.user = {};
     this.showUserSelect = true;
-    this.selectedUser = '';
     this.getUserData();
-    this.user.userId = 'USER';
   }
 
   ngOnDestroy(): void {
-    this.subs.unsubscribe();
     this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
-
-  confirm = (dialogOptions: ConfirmationDialogOptions): void => {
-    this.confirmationService.confirm({
-      message: dialogOptions.body,
-      header: dialogOptions.header,
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Confirm',
-      rejectLabel: 'Cancel',
-      acceptButtonStyleClass: 'p-button-outlined p-button-primary',
-      rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
-      accept: () => {},
-      reject: () => {}
-    });
-  };
 }
