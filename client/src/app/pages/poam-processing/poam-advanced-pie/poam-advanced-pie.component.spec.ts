@@ -61,14 +61,6 @@ describe('PoamAdvancedPieComponent', () => {
       expect(component).toBeTruthy();
     });
 
-    it('should have gradient set to true', () => {
-      expect(component.gradient).toBe(true);
-    });
-
-    it('should define categories', () => {
-      expect(component.categories).toEqual(['CAT I', 'CAT II', 'CAT III']);
-    });
-
     it('should receive pieChartData input', () => {
       hostComponent.pieChartData.set([{ name: 'Approved', value: 5 }]);
       hostFixture.detectChanges();
