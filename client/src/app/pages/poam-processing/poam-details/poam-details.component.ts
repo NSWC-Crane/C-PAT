@@ -279,7 +279,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     return items;
   });
 
-  async ngOnInit() {
+  ngOnInit() {
     this.subs.add(
       this.route.params.subscribe(async (params) => {
         this.stateData = history.state;

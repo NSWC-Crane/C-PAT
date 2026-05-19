@@ -92,13 +92,13 @@ export class PoamManageComponent implements OnInit, OnDestroy {
 
   catIIITotal30Days = computed(() => this.catIIIPieChartData30Days().reduce((sum, item) => sum + item.value, 0));
 
-  async ngOnInit() {
+  ngOnInit() {
     this.subs.sink = this.sharedService.selectedCollection.pipe(tap((collectionId) => this.selectedCollectionId.set(collectionId))).subscribe();
 
-    await this.setPayload();
+    this.setPayload();
   }
 
-  private async setPayload() {
+  private setPayload() {
     this.subs.sink = combineLatest([this.setPayloadService.user$, this.setPayloadService.payload$, this.setPayloadService.accessLevel$])
       .pipe(
         filter(([user, payload, level]) => !!user && !!payload && level > 0),

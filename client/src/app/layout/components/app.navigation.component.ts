@@ -10,16 +10,15 @@
 
 import { Component, DOCUMENT, ElementRef, Input, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NavigationEnd, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { TagModule } from 'primeng/tag';
-import { Subject, Subscription, filter, take, takeUntil } from 'rxjs';
+import { Subject, filter, take, takeUntil } from 'rxjs';
 import { SubSink } from 'subsink';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
-import { PayloadService } from '../../common/services/setPayload.service';
 import { SharedService } from '../../common/services/shared.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
@@ -52,7 +51,6 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   private readonly sharedService = inject(SharedService);
   private readonly userService = inject(UsersService);
   private readonly router = inject(Router);
-  private readonly setPayloadService = inject(PayloadService);
   private readonly notificationService = inject(NotificationService);
   el = inject(ElementRef);
 
@@ -77,7 +75,6 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   private readonly subs = new SubSink();
   timeout: any = null;
   private readonly destroy$ = new Subject<void>();
-  private readonly payloadSubscription: Subscription[] = [];
   readonly menuButton = viewChild.required<ElementRef>('menubutton');
   readonly menuContainer = viewChild.required<ElementRef>('menuContainer');
   readonly user$ = inject(AuthService).user$;
@@ -95,14 +92,14 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   }));
 
   constructor() {
-    this.window = this.document.defaultView as Window;
+    this.window = this.document.defaultView;
 
     afterNextRender(() => {
       this.bindScrollListener();
     });
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.authService.user$
       .pipe(
         filter((user) => !!user),
@@ -135,32 +132,6 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
     if (this.scrollListener) {
       this.scrollListener();
       this.scrollListener = null;
-    }
-  }
-
-  async initializeUser() {
-    try {
-      this.payloadSubscription.push(
-        this.setPayloadService.user$.subscribe((user) => {
-          this.user = user;
-          this.getNotificationCount();
-          this.getCollections();
-          this.setMenuItems();
-          this.setupUserMenuActions();
-          this.router.events
-            .pipe(
-              filter((event) => event instanceof NavigationEnd),
-              takeUntil(this.destroy$)
-            )
-            .subscribe(() => {
-              if (this.user.userId) {
-                this.getNotificationCount();
-              }
-            });
-        })
-      );
-    } catch (error) {
-      console.error('Error initializing user:', error);
     }
   }
 

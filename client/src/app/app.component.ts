@@ -31,11 +31,11 @@ export class AppComponent implements OnInit, OnDestroy {
   classification: Classification | undefined;
   private authSubscription: Subscription | undefined;
 
-  public async ngOnInit() {
+  public ngOnInit() {
     try {
       this.authSubscription = this.authService.authState$.subscribe({
         next: async (authState) => {
-          await this.handleAuthState(authState.isAuthenticatedStigman, authState.isAuthenticatedCpat);
+          this.handleAuthState(authState.isAuthenticatedStigman, authState.isAuthenticatedCpat);
         },
         error: (error) => console.error('Auth state subscription error:', error)
       });
@@ -44,11 +44,11 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async handleAuthState(isAuthenticatedStigman: boolean, isAuthenticatedCpat: boolean) {
+  private handleAuthState(isAuthenticatedStigman: boolean, isAuthenticatedCpat: boolean) {
     try {
       if (!isAuthenticatedStigman || !isAuthenticatedCpat) {
         this.inactivityService.stopMonitoring();
-        await this.authService.handleAuthFlow();
+        this.authService.handleAuthFlow();
 
         return;
       }

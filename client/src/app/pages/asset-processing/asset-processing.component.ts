@@ -112,7 +112,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
     this.initializeChartOptions();
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
@@ -172,7 +172,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
     };
   }
 
-  async setPayload() {
+  setPayload() {
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe((user) => {
         this.user = user;

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnDestroy, OnInit, computed, effect, signal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, computed, effect, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
@@ -45,7 +45,7 @@ import { PoamExportStatusSelectionComponent } from '../../../common/utils/poam-e
   standalone: true,
   imports: [FormsModule, ButtonModule, CardModule, SelectModule, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, TableModule, TooltipModule, ToastModule, TagModule]
 })
-export class PoamGridComponent implements OnInit, OnDestroy {
+export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly dialogService = inject(DialogService);
   private readonly router = inject(Router);
   private readonly setPayloadService = inject(PayloadService);
@@ -290,16 +290,16 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     });
   }
 
-  async ngOnInit() {
-    await this.setPayload();
+  ngOnInit() {
+    this.setPayload();
+  }
 
-    setTimeout(() => {
-      const table = this.table();
+  ngAfterViewInit() {
+    this.resetDefaultFilters();
+  }
 
-      if (table) {
-        table.filters['status'] = [{ value: 'closed', matchMode: 'notEquals' }];
-      }
-    });
+  private resetDefaultFilters() {
+    this.table().filters['status'] = [{ value: 'closed', matchMode: 'notEquals' }];
   }
 
   private async loadCollectionData(collectionId: any) {
@@ -320,7 +320,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
     }
   }
 
-  async setPayload() {
+  setPayload() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollectionId.set(collectionId);
@@ -863,7 +863,7 @@ export class PoamGridComponent implements OnInit, OnDestroy {
 
   clear() {
     this.table().clear();
-    this.table().filters['status'] = [{ value: 'closed', matchMode: 'notEquals' }];
+    this.resetDefaultFilters();
     this.globalFilterSignal.set('');
   }
 
