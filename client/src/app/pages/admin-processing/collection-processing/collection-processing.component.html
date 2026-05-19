@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<div class="scrollable-collections">
+<div class="scrollable-collections overflow-hidden">
   <p-treeTable
     #dt
     [value]="collectionTreeData"
@@ -18,7 +18,7 @@
     [rowsPerPageOptions]="[25, 50, 100]"
     [paginator]="true"
     [scrollable]="true"
-    scrollHeight="calc(100vh - 32rem)"
+    scrollHeight="calc(100vh - 28rem)"
     selectionMode="single"
     [globalFilterFields]="['collectionId', 'collectionName', 'description', 'systemType', 'systemName', 'ccsafa', 'aaPackage', 'collectionType']"
   >
@@ -70,7 +70,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="6" style="text-align: center">No Data to Display</td>
+        <td colspan="9" style="text-align: center">No Data to Display</td>
       </tr>
     </ng-template>
   </p-treeTable>
