@@ -25,13 +25,6 @@
   </p-message>
 }
 
-@if (nessusPluginsMapped) {
-  <div class="text-color-secondary mb-4 flex items-center gap-2 text-sm">
-    <i class="pi pi-clock"></i>
-    <span>Nessus Plugins Mapped: {{ nessusPluginsMapped | date: 'medium' }}</span>
-  </div>
-}
-
 <div class="scrollable-plugins overflow-hidden">
   <p-table
     #dt
@@ -54,8 +47,14 @@
           </p-inputIcon>
           <input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Search..." />
         </p-iconField>
-        <p-button #mapButton class="ml-4" variant="outlined" label="Map Plugins to IAV" (onClick)="updatePluginIds()" [disabled]="isUpdating" />
-        <p-button class="ml-auto" icon="pi pi-filter-slash" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Clear" (onClick)="clear(dt)" />
+        <p-button #mapButton class="ml-4" icon="pi pi-sync" [outlined]="true" label="Map Plugins to IAV" (onClick)="updatePluginIds()" [disabled]="isUpdating" />
+        @if (nessusPluginsMapped) {
+          <div class="text-color-secondary ml-4 flex items-center gap-2 text-sm">
+            <i class="pi pi-clock"></i>
+            <span>Nessus Plugins Mapped: {{ nessusPluginsMapped | date: 'medium' }}</span>
+          </div>
+        }
+        <p-button class="ml-auto" icon="pi pi-filter-slash" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Clear filters" (onClick)="clear(dt)" />
         <p-button icon="pi pi-external-link" (onClick)="dt.exportCSV()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Export to CSV" tooltipPosition="bottom" />
       </div>
     </ng-template>

@@ -8,6 +8,10 @@
 !##########################################################################
 */
 
+.scrollable-users {
+  height: calc(100vh - 17.5rem);
+}
+
 .pending-status {
   background: color-mix(in srgb, var(--p-primary-color) 30%, transparent) !important;
 
