@@ -185,7 +185,9 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
         assignedTeams: poam.assignedTeams
           ? poam.assignedTeams.map((team: any) => ({
               name: team.assignedTeamName,
-              complete: team.complete
+              complete: team.complete,
+              severity: this.getTeamSeverity(team.complete),
+              tooltip: this.getTeamTooltip(team.complete)
             }))
           : [],
         assignedTeamNames: poam.assignedTeams ? poam.assignedTeams.map((team: any) => team.assignedTeamName).join(', ') : '',
