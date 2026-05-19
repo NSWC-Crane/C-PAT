@@ -90,3 +90,8 @@ svg[data-p-icon='filter-fill'] path {
     max-width: none;
   }
 }
+
+.ngx-charts-outer {
+  -webkit-animation: chartFadeIn linear 0 !important;
+  animation: chartFadeIn linear 0 !important;
+}
