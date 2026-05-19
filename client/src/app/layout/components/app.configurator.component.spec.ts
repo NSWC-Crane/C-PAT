@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { PLATFORM_ID } from '@angular/core';
-import { signal, WritableSignal } from '@angular/core';
+import { PLATFORM_ID, signal, WritableSignal } from '@angular/core';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { AppConfiguratorComponent } from './app.configurator.component';
 import { AppConfigService } from '../services/appconfigservice';
@@ -38,6 +37,18 @@ vi.mock('@primeuix/themes/lara', () => ({ default: { primitive: createMockPrimit
 vi.mock('@primeuix/themes/material', () => ({ default: { primitive: createMockPrimitive() } }));
 vi.mock('@primeuix/themes/nora', () => ({ default: { primitive: createMockPrimitive() } }));
 
+function createAppState(overrides: any = {}) {
+  return {
+    preset: 'Aura',
+    primary: 'noir',
+    surface: 'soho',
+    darkTheme: true,
+    menuActive: false,
+    RTL: false,
+    ...overrides
+  };
+}
+
 describe('AppConfiguratorComponent', () => {
   let component: AppConfiguratorComponent;
   let fixture: ComponentFixture<AppConfiguratorComponent>;
@@ -46,18 +57,6 @@ describe('AppConfiguratorComponent', () => {
   let mockUserService: any;
   let appStateSignal: WritableSignal<any>;
   let userSubject: BehaviorSubject<any>;
-
-  function createAppState(overrides: any = {}) {
-    return {
-      preset: 'Aura',
-      primary: 'noir',
-      surface: 'soho',
-      darkTheme: true,
-      menuActive: false,
-      RTL: false,
-      ...overrides
-    };
-  }
 
   beforeEach(async () => {
     appStateSignal = signal(createAppState());
@@ -506,51 +505,51 @@ describe('AppConfiguratorComponent', () => {
   });
 
   describe('onPresetChange', () => {
-    it('should update appState preset', () => {
-      component.onPresetChange('Lara' as any);
+    it('should update appState preset', async () => {
+      await component.onPresetChange('Lara' as any);
       expect(appStateSignal().preset).toBe('Lara');
     });
 
-    it('should return early for null event', () => {
+    it('should return early for null event', async () => {
       const saveSpy = vi.spyOn(component, 'saveUserPreferences');
 
-      component.onPresetChange(null as any);
+      await component.onPresetChange(null as any);
       expect(saveSpy).not.toHaveBeenCalled();
     });
 
-    it('should return early for invalid preset name', () => {
+    it('should return early for invalid preset name', async () => {
       const saveSpy = vi.spyOn(component, 'saveUserPreferences');
 
-      component.onPresetChange('InvalidPreset' as any);
+      await component.onPresetChange('InvalidPreset' as any);
       expect(saveSpy).not.toHaveBeenCalled();
     });
 
-    it('should add material class for Material preset', () => {
-      component.onPresetChange('Material' as any);
+    it('should add material class for Material preset', async () => {
+      await component.onPresetChange('Material' as any);
       expect(document.body.classList.contains('material')).toBe(true);
     });
 
-    it('should set ripple to true for Material preset', () => {
-      component.onPresetChange('Material' as any);
+    it('should set ripple to true for Material preset', async () => {
+      await component.onPresetChange('Material' as any);
       expect(component.config.ripple()).toBe(true);
     });
 
-    it('should remove material class for non-Material preset', () => {
+    it('should remove material class for non-Material preset', async () => {
       document.body.classList.add('material');
-      component.onPresetChange('Aura' as any);
+      await component.onPresetChange('Aura' as any);
       expect(document.body.classList.contains('material')).toBe(false);
     });
 
-    it('should set ripple to false for non-Material preset', () => {
+    it('should set ripple to false for non-Material preset', async () => {
       component.config.ripple.set(true);
-      component.onPresetChange('Aura' as any);
+      await component.onPresetChange('Aura' as any);
       expect(component.config.ripple()).toBe(false);
     });
 
-    it('should call saveUserPreferences after preset change', () => {
+    it('should call saveUserPreferences after preset change', async () => {
       const saveSpy = vi.spyOn(component, 'saveUserPreferences');
 
-      component.onPresetChange('Lara' as any);
+      await component.onPresetChange('Lara' as any);
       expect(saveSpy).toHaveBeenCalled();
     });
   });
@@ -632,7 +631,7 @@ describe('AppConfiguratorComponent', () => {
     it('should have palette data with 500 key for each surface', () => {
       component.surfaces.forEach((surface) => {
         expect(surface.palette).toBeDefined();
-        expect(surface.palette!['500']).toBeDefined();
+        expect(surface.palette['500']).toBeDefined();
       });
     });
   });
