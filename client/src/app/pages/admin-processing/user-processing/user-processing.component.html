@@ -9,98 +9,47 @@
 -->
 
 @if (showUserSelect) {
-  <div>
-    <div class="scrollable-users overflow-hidden">
-      <p-treeTable
-        #usersTable
-        [value]="treeData"
-        [columns]="cols"
-        [filterDelay]="0"
-        [paginator]="true"
-        [rows]="100"
-        [rowsPerPageOptions]="[25, 50, 100]"
-        [scrollable]="true"
-        scrollHeight="calc(100vh - 35rem)"
-        selectionMode="single"
-        [globalFilterFields]="['User', 'Status', 'First Name', 'Last Name', 'Username', 'Email', 'Collection', 'Access Level']"
-      >
-        <ng-template pTemplate="caption">
-          <div class="flex justify-between align-items-center">
-            <p-iconField iconPosition="left">
-              <p-inputIcon>
-                <i class="pi pi-search"></i>
-              </p-inputIcon>
-              <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Users" id="searchUsers" class="search-input" />
-            </p-iconField>
-            <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (click)="exportCSV()" pTooltip="Export table to CSV" tooltipPosition="left" />
-          </div>
-        </ng-template>
-        <ng-template pTemplate="header" let-columns>
-          <tr>
-            @for (col of columns; track col) {
-              <th scope="col" [ttSortableColumn]="col.field">
-                {{ col.header }}
-              </th>
-            }
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
-          <tr [ngClass]="{ 'pending-status': rowData['Status'] === 'PENDING' }" (click)="setUserFromTable(rowData)">
-            @for (col of columns; track col; let i = $index) {
-              <td class="break-all">
-                @if (i === 0) {
-                  <p-treeTableToggler [rowNode]="rowNode" />
-                }
-                {{ rowData[col.field] }}
-              </td>
-            }
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="expansion" let-rowNode let-rowData="rowData">
-          <tr>
-            <td colspan="7">
-              <div class="p-ml-4">
-                <p-table [value]="rowNode.children" [columns]="['Collection', 'Access Level']">
-                  <ng-template pTemplate="header" let-columns>
-                    <tr>
-                      @for (col of columns; track col) {
-                        <th scope="col">{{ col }}</th>
-                      }
-                    </tr>
-                  </ng-template>
-                  <ng-template pTemplate="body" let-rowData let-columns="columns">
-                    <tr>
-                      @for (col of columns; track col) {
-                        <td>{{ rowData.data[col] }}</td>
-                      }
-                    </tr>
-                  </ng-template>
-                </p-table>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-treeTable>
-    </div>
-    @if (data && data.length > 0 && showUserSelect) {
-      <div>
-        <p-select
-          class="mt-[2rem] w-full"
-          [options]="data"
-          name="selectedUser"
-          [(ngModel)]="selectedUser"
-          (onChange)="setUser(selectedUser)"
-          placeholder="Select User to Modify..."
-          [filter]="true"
-          filterBy="fullName"
-          optionLabel="fullName"
-          autoWidth="false"
-          appendTo="body"
-        >
-          <ng-template let-user pTemplate="item"> {{ user.firstName }} {{ user.lastName }} - {{ user.officeOrg }} - {{ user.accountStatus }} </ng-template>
-        </p-select>
-      </div>
-    }
+  <div class="scrollable-users overflow-hidden">
+    <p-table
+      #usersTable
+      class="p-datatable-lg"
+      [value]="data"
+      [columns]="cols"
+      [filterDelay]="0"
+      [rows]="100"
+      [rowsPerPageOptions]="[25, 50, 100]"
+      [paginator]="true"
+      [scrollable]="true"
+      scrollHeight="calc(100vh - 25.25rem)"
+      selectionMode="single"
+      [globalFilterFields]="['accountStatus', 'firstName', 'lastName', 'displayUsername', 'email', 'lastAccessDate']"
+    >
+      <ng-template pTemplate="caption">
+        <div class="flex items-center justify-between">
+          <p-iconField iconPosition="left">
+            <p-inputIcon>
+              <i class="pi pi-search"></i>
+            </p-inputIcon>
+            <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Users" name="searchUsers" class="search-input" />
+          </p-iconField>
+          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (click)="exportCSV()" (keydown.enter)="exportCSV()" pTooltip="Export table to CSV" tooltipPosition="left" />
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          @for (col of columns; track col.field) {
+            <th scope="col" [pSortableColumn]="col.field">{{ col.header }}</th>
+          }
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr [ngClass]="{ 'pending-status': rowData.accountStatus === 'PENDING' }" tabindex="0" class="cursor-pointer" (click)="setUser(rowData)" (keydown.enter)="setUser(rowData)">
+          @for (col of columns; track col.field) {
+            <td class="break-all">{{ rowData[col.field] }}</td>
+          }
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
 }
 
@@ -109,11 +58,3 @@
     <cpat-user [user]="user" [users]="users" [payload]="payload" (userChange)="resetData()" />
   </div>
 }
-<ng-template #dialog let-data let-ref="dialogRef">
-  <p-header>Delete Row</p-header>
-  <div class="p-card-body">Are you sure you want to delete this item?</div>
-  <p-footer>
-    <p-button label="Cancel" severity="secondary" (onClick)="ref.close()" />
-    <p-button label="Delete" severity="danger" />
-  </p-footer>
-</ng-template>
