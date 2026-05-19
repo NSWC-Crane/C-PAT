@@ -13,9 +13,6 @@ import { Component, OnInit, PLATFORM_ID, computed, inject } from '@angular/core'
 import { FormsModule } from '@angular/forms';
 import { $t, updatePreset, updateSurfacePalette } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
-import Lara from '@primeuix/themes/lara';
-import Material from '@primeuix/themes/material';
-import Nora from '@primeuix/themes/nora';
 import { ButtonModule } from 'primeng/button';
 import { PrimeNG } from 'primeng/config';
 import { RadioButtonModule } from 'primeng/radiobutton';
@@ -26,16 +23,7 @@ import { UsersService } from '../../pages/admin-processing/user-processing/users
 import { AppConfigService } from '../services/appconfigservice';
 import { PayloadService } from '../../common/services/setPayload.service';
 
-const presets = {
-  Aura,
-  Material,
-  Lara,
-  Nora
-} as const;
-
-declare type KeyOfType<T> = keyof T extends infer U ? U : never;
-
-type PresetType = KeyOfType<typeof presets>;
+type PresetType = 'Aura' | 'Lara' | 'Material' | 'Nora';
 
 declare type SurfacesType = {
   name?: string;
@@ -138,7 +126,9 @@ export class AppConfiguratorComponent implements OnInit {
 
   platformId = inject(PLATFORM_ID);
 
-  presets = Object.keys(presets);
+  presets = ['Aura', 'Material', 'Lara', 'Nora'];
+
+  private readonly presetCache = new Map<string, any>([['Aura', Aura]]);
 
   displayedSurfaces = computed(() => this.surfaces.filter((s) => s.display));
 
@@ -476,15 +466,15 @@ export class AppConfiguratorComponent implements OnInit {
   selectedPreset = computed<PresetType>(() => this.configService.appState().preset as PresetType);
 
   primaryColors = computed<SurfacesType[]>(() => {
-    const preset = this.configService.appState().preset as keyof typeof presets;
-    const presetPalette = presets[preset]?.primitive || {};
+    const preset = this.configService.appState().preset;
+    const presetPalette = (this.presetCache.get(preset) ?? Aura)?.primitive || {};
     const colors = ['slate', 'emerald', 'green', 'lime', 'orange', 'amber', 'yellow', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'];
     const palettes: SurfacesType[] = [{ name: 'noir', palette: {} }];
 
     colors.forEach((color) => {
       palettes.push({
         name: color,
-        palette: presetPalette?.[color as KeyOfType<typeof presetPalette>] as SurfacesType['palette']
+        palette: presetPalette?.[color as keyof typeof presetPalette] as SurfacesType['palette']
       });
     });
 
@@ -786,13 +776,13 @@ export class AppConfiguratorComponent implements OnInit {
     }
   }
 
-  onPresetChange(event: PresetType) {
-    if (!event || !Object.keys(presets).includes(event)) {
+  async onPresetChange(event: PresetType) {
+    if (!event || !this.presets.includes(event)) {
       return;
     }
 
     this.configService.appState.update((state) => ({ ...state, preset: event }));
-    const preset = presets[event];
+    const preset = await this.loadPreset(event);
     const surfacePalette = this.surfaces.find((s) => s.name === this.selectedSurfaceColor())?.palette;
 
     if (event === 'Material') {
@@ -810,5 +800,28 @@ export class AppConfiguratorComponent implements OnInit {
       .use({ useDefaultOptions: true });
 
     this.saveUserPreferences();
+  }
+
+  private async loadPreset(name: string): Promise<any> {
+    if (this.presetCache.has(name)) return this.presetCache.get(name);
+    let preset: any;
+
+    switch (name) {
+      case 'Lara':
+        preset = (await import('@primeuix/themes/lara')).default;
+        break;
+      case 'Material':
+        preset = (await import('@primeuix/themes/material')).default;
+        break;
+      case 'Nora':
+        preset = (await import('@primeuix/themes/nora')).default;
+        break;
+      default:
+        preset = Aura;
+    }
+
+    this.presetCache.set(name, preset);
+
+    return preset;
   }
 }
