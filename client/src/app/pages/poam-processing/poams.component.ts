@@ -45,7 +45,7 @@ export class PoamsComponent implements OnInit, OnDestroy {
     this.setPayload();
   }
 
-  async setPayload() {
+  setPayload() {
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe((user) => {
         this.user = user;

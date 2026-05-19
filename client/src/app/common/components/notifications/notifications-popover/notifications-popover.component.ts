@@ -42,11 +42,11 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   poam: any;
   private readonly payloadSubscription: Subscription[] = [];
 
-  async ngOnInit() {
+  ngOnInit() {
     this.setPayload();
   }
 
-  async setPayload() {
+  setPayload() {
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe((user) => {
         this.user = user;

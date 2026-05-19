@@ -309,7 +309,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     bg?.remove();
   }
 
-  private async loadCollections(user: any) {
+  private loadCollections(user: any) {
     forkJoin({
       collections: this.collectionsService.getCollections(),
       collectionData: this.collectionsService.getCollectionBasicList()

@@ -92,7 +92,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     '.txt'
   ];
 
-  async ngOnInit() {
+  ngOnInit() {
     this.accessLevelSubscription = this.setPayloadService.accessLevel$.subscribe((level) => {
       this.accessLevel = level;
 

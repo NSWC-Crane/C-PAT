@@ -55,12 +55,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   ];
   sortKey: string = '!timestamp';
 
-  async ngOnInit() {
-    await this.setPayload();
+  ngOnInit() {
+    this.setPayload();
     this.fetchNotifications();
   }
 
-  async setPayload() {
+  setPayload() {
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe((user) => {
         this.user = user;
