@@ -10,7 +10,7 @@
 
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
-import * as echarts from 'echarts';
+import type { EChartsType } from 'echarts/core';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -70,7 +70,8 @@ export class UptimeMonitorComponent implements OnInit, OnDestroy {
 
   chartContainer = viewChild<ElementRef<HTMLDivElement>>('chart');
 
-  private chart: echarts.ECharts | null = null;
+  private chart: EChartsType | null = null;
+  private chartInitializing = false;
   private readonly subscriptions = new Subscription();
 
   constructor() {
@@ -87,12 +88,12 @@ export class UptimeMonitorComponent implements OnInit, OnDestroy {
         return;
       }
 
-      if (!this.chart) {
-        this.renderChart(ref.nativeElement, data);
-      } else {
+      if (this.chart) {
         this.chart.setOption({
           series: [{ data: data.points }]
         });
+      } else if (!this.chartInitializing) {
+        this.renderChart(ref.nativeElement, data);
       }
     });
   }
@@ -182,8 +183,23 @@ export class UptimeMonitorComponent implements OnInit, OnDestroy {
     this.responseChartData.set({ points });
   }
 
-  private renderChart(element: HTMLDivElement, data: ResponseChartData) {
-    this.chart = echarts.init(element, null, { renderer: 'canvas' });
+  private async renderChart(element: HTMLDivElement, data: ResponseChartData) {
+    this.chartInitializing = true;
+
+    const [{ init, use }, { LineChart }, { GridComponent, TooltipComponent }, { CanvasRenderer }] = await Promise.all([
+      import('echarts/core'),
+      import('echarts/charts'),
+      import('echarts/components'),
+      import('echarts/renderers')
+    ]);
+
+    use([LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
+    this.chartInitializing = false;
+
+    if (!this.chart) {
+      this.chart = init(element, null, { renderer: 'canvas' });
+    }
+
     this.chart.setOption({
       grid: { top: 12, right: 12, bottom: 24, left: 44, containLabel: false },
       tooltip: {
