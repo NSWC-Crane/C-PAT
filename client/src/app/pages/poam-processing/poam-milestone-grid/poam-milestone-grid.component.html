@@ -278,11 +278,11 @@
             </a>
           }
           @case ('poamStatus') {
-            <p-tag [value]="row.poamStatus" [severity]="getPoamStatusSeverity(row.poamStatus)" [rounded]="true" />
+            <p-tag [value]="row.poamStatus" [severity]="row.poamStatusSeverity" [rounded]="true" />
           }
           @case ('milestoneStatus') {
             @if (row.milestoneStatus) {
-              <p-tag [value]="row.milestoneStatus" [severity]="getMilestoneStatusSeverity(row.milestoneStatus)" [rounded]="true" />
+              <p-tag [value]="row.milestoneStatus" [severity]="row.milestoneStatusSeverity" [rounded]="true" />
             }
           }
           @case ('assignedTeams') {

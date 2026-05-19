@@ -30,11 +30,13 @@ export interface MilestoneGridRow {
   poamId: number;
   vulnerabilityId: string | null;
   poamStatus: string;
+  poamStatusSeverity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
   poamOwnerId: number | null;
   poamSubmitterId: number;
   milestoneId: number | null;
   milestoneDate: string | null;
   milestoneStatus: string | null;
+  milestoneStatusSeverity: 'success' | 'warn' | 'secondary';
   milestoneComments: string | null;
   milestoneChangeDate: string | null;
   milestoneChangeComments: string | null;
@@ -130,8 +132,7 @@ export class PoamMilestoneGridComponent {
     const rows: MilestoneGridRow[] = [];
 
     for (const poam of poams) {
-      if (EXCLUDED_POAM_STATUSES.has(poam.status)) continue;
-      if (!poam.milestones?.length) continue;
+      if (EXCLUDED_POAM_STATUSES.has(poam.status) || !poam.milestones?.length) continue;
 
       for (const m of poam.milestones) {
         if (m.milestoneId == null) continue;
@@ -142,11 +143,13 @@ export class PoamMilestoneGridComponent {
           poamId: poam.poamId,
           vulnerabilityId: poam.vulnerabilityId,
           poamStatus: poam.status,
+          poamStatusSeverity: this.getPoamStatusSeverity(poam.status),
           poamOwnerId: poam.ownerId,
           poamSubmitterId: poam.submitterId,
           milestoneId: m.milestoneId,
           milestoneDate: m.milestoneDate ? format(parseISO(m.milestoneDate.split('T')[0]), 'yyyy-MM-dd') : null,
           milestoneStatus: m.milestoneStatus,
+          milestoneStatusSeverity: this.getMilestoneStatusSeverity(m.milestoneStatus),
           milestoneComments: m.milestoneComments,
           milestoneChangeDate: m.milestoneChangeDate ? format(parseISO(m.milestoneChangeDate.split('T')[0]), 'yyyy-MM-dd') : null,
           milestoneChangeComments: m.milestoneChangeComments,
