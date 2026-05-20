@@ -52,6 +52,10 @@ let config = {
         url: process.env.TENABLE_URL || '',
         accessKey: process.env.TENABLE_ACCESS_KEY,
         secretKey: process.env.TENABLE_SECRET_KEY,
+        tls: {
+            cert_file: process.env.TENABLE_CERT_FILE,
+            key_file: process.env.TENABLE_KEY_FILE,
+        },
     },
     docs: {
         disabled: process.env.CPAT_DOCS_DISABLED ? process.env.CPAT_DOCS_DISABLED === 'true' : false,
