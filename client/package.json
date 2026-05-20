@@ -3,7 +3,7 @@
   "version": "1.3.0",
   "scripts": {
     "ng": "ng",
-    "analyze": "ng build --configuration=production --stats-json && webpack-bundle-analyzer dist/stats.json",
+    "analyze": "ng build --configuration=production --stats-json && node scripts/analyze.mjs",
     "start": "ng serve",
     "build": "ng build --configuration=production",
     "test": "vitest",
