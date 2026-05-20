@@ -105,6 +105,10 @@
 | The access key provided by Tenable for API access. ","API"
 "TENABLE_SECRET_KEY","| **No default**
 | The secret key provided by Tenable for API access. ","API"
+"TENABLE_CERT_FILE","| **No default**
+| A file/path relative to the API /tls directory that contains the PEM encoded Client certificate used when connecting to Tenable. Additionally requires setting a value for ``TENABLE_KEY_FILE``. ","API"
+"TENABLE_KEY_FILE","| **No default**
+| A file/path relative to the API /tls directory that contains the PEM encoded Client private key used when connecting to Tenable. Additionally requires setting a value for ``TENABLE_CERT_FILE``. ","API"
 "CPAT_MARKETPLACE_DISABLED","| **Default** ``false``
 | Disabled C-PAT theme marketplace feature. ","Client"
 "CPAT_AI_ENABLED","| **Default** ``false``

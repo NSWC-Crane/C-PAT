@@ -57,6 +57,12 @@ Tenable
    * - ``TENABLE_SECRET_KEY``
      - **No default**
      - See the `tenable documentation <https://docs.tenable.com/security-center/Content/GenerateAPIKey.htm>`_ for instructions on how to generate API keys.
+   * - ``TENABLE_CERT_FILE``
+     - **No default**
+     - A file/path relative to the API /tls directory that contains the PEM encoded Client certificate used when connecting to Tenable. Additionally requires setting a value for ``TENABLE_KEY_FILE``.
+   * - ``TENABLE_KEY_FILE``
+     - **No default**
+     - A file/path relative to the API /tls directory that contains the PEM encoded Client private key used when connecting to Tenable. Additionally requires setting a value for ``TENABLE_CERT_FILE``.
 
 AI
 --------

@@ -9,6 +9,7 @@
 */
 
 const path = require('node:path');
+const fs = require('node:fs');
 const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
@@ -130,6 +131,13 @@ function configureTenableProxy(app) {
 
                     proxyReqOpts.headers = cleanHeaders;
                     proxyReqOpts.rejectUnauthorized = false;
+
+                    if (config.tenable.tls.cert_file) {
+                        proxyReqOpts.cert = fs.readFileSync(path.join(__dirname, '..', 'tls', config.tenable.tls.cert_file));
+                    }
+                    if (config.tenable.tls.key_file) {
+                        proxyReqOpts.key = fs.readFileSync(path.join(__dirname, '..', 'tls', config.tenable.tls.key_file));
+                    }
 
                     return proxyReqOpts;
                 },
