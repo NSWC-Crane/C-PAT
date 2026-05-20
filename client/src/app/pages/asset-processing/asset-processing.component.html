@@ -15,7 +15,7 @@
 }
 @if (collectionType === 'Tenable' && originCollectionId) {
   <div class="card !mb-[6rem]">
-    <p-tabs value="0" scrollable>
+    <p-tabs value="0" scrollable lazy>
       <p-tablist>
         <p-tab value="0">All Assets</p-tab>
         <p-tab value="1">High-Risk Assets</p-tab>
@@ -37,7 +37,7 @@
     <div class="row col-span-12">
       <div class="col">
         <div class="card !mb-[6rem]">
-          <p-tabs value="0" scrollable>
+          <p-tabs value="0" scrollable lazy>
             <p-tablist>
               <p-tab value="0">Asset Management</p-tab>
               <p-tab value="1">Asset Chart</p-tab>
