@@ -123,6 +123,19 @@ export default tseslint.config(
   },
 
   {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        URL: 'readonly'
+      }
+    }
+  },
+
+  {
     files: ['karma.conf.js', '**/*.cjs'],
     languageOptions: {
       ecmaVersion: 'latest',
