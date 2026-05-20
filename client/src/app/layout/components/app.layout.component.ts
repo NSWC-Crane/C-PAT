@@ -233,11 +233,10 @@ import { CardModule } from 'primeng/card';
           animation: pulse 2s ease-in-out infinite;
         }
         .user-menu {
-          margin-top: 0.5rem;
+          max-height: 8rem;
           min-width: 12rem;
+          margin-left: 1rem;
           border-radius: 0.5rem;
-          left: 3.25rem;
-          bottom: 2.25rem;
         }
         .collections-menu {
           left: 3.25rem;
