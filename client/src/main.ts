@@ -15,7 +15,6 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { enableProdMode, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideAuth, withAppInitializerAuthCheck } from 'angular-auth-oidc-client';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -83,7 +82,7 @@ bootstrapApplication(AppComponent, {
     provideZoneChangeDetection(),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
     providePrimeNG({ theme: Noir, ripple: false, inputStyle: 'outlined' }),
-    importProvidersFrom(BrowserModule, BrowserAnimationsModule, FormsModule),
+    importProvidersFrom(BrowserModule, FormsModule),
     provideAuth(
       {
         config: [
