@@ -222,60 +222,60 @@ describe('PoamManageComponent', () => {
   });
 
   describe('ngOnInit', () => {
-    it('should subscribe to selectedCollection and call setPayload', async () => {
+    it('should subscribe to selectedCollection and call setPayload', () => {
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of([{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionType: 'STIG Manager' }]));
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       expect(component.selectedCollectionId()).toBe(1);
     });
 
-    it('should update selectedCollectionId when collection changes', async () => {
+    it('should update selectedCollectionId when collection changes', () => {
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of([]));
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       selectedCollectionSubject.next(5);
       expect(component.selectedCollectionId()).toBe(5);
     });
 
-    it('should set user, payload, and accessLevel from PayloadService', async () => {
+    it('should set user, payload, and accessLevel from PayloadService', () => {
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of([]));
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       expect(component.user()).toEqual(expect.objectContaining({ userId: 200 }));
       expect(component.payload()).toEqual(expect.objectContaining({ lastCollectionAccessedId: 1 }));
       expect(component.accessLevel()).toBe(2);
     });
 
-    it('should fetch POAM data for the last accessed collection', async () => {
+    it('should fetch POAM data for the last accessed collection', () => {
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of([]));
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       expect(mockCollectionsService.getPoamsByCollection).toHaveBeenCalledWith(1);
       expect(mockCollectionsService.getCollectionBasicList).toHaveBeenCalled();
     });
 
-    it('should set poams and selectedCollection on successful data load', async () => {
+    it('should set poams and selectedCollection on successful data load', () => {
       const mockPoams = [createMockPoam()];
       const mockCollections = [{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionType: 'STIG Manager' }];
 
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of(mockPoams));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       expect(component.poams()).toEqual(mockPoams);
       expect(component.selectedCollection()).toEqual(mockCollections[0]);
     });
 
-    it('should fetch STIG Manager findings when collection type is STIG Manager', async () => {
+    it('should fetch STIG Manager findings when collection type is STIG Manager', () => {
       const mockPoams = [createMockPoam()];
       const mockCollections = [{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionType: 'STIG Manager' }];
 
@@ -283,27 +283,27 @@ describe('PoamManageComponent', () => {
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
       mockSharedService.getFindingsMetricsFromSTIGMAN.mockReturnValue(of([]));
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       expect(mockSharedService.getFindingsMetricsFromSTIGMAN).toHaveBeenCalledWith(100);
     });
 
-    it('should fetch Tenable findings when collection type is Tenable', async () => {
+    it('should fetch Tenable findings when collection type is Tenable', () => {
       const mockPoams = [createMockPoam()];
       const mockCollections = [{ collectionId: 1, collectionName: 'Test', originCollectionId: 100, collectionType: 'Tenable' }];
 
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of(mockPoams));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(mockCollections));
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       expect(mockImportService.postTenableAnalysis).toHaveBeenCalledTimes(2);
     });
 
-    it('should display error message when POAM data load fails', async () => {
+    it('should display error message when POAM data load fails', () => {
       mockCollectionsService.getPoamsByCollection.mockReturnValue(throwError(() => new Error('Network error')));
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       expect(mockMessageService.add).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -313,11 +313,11 @@ describe('PoamManageComponent', () => {
       );
     });
 
-    it('should not fetch findings when selectedCollection is null', async () => {
+    it('should not fetch findings when selectedCollection is null', () => {
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of([]));
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       expect(mockSharedService.getFindingsMetricsFromSTIGMAN).not.toHaveBeenCalled();
       expect(mockImportService.postTenableAnalysis).not.toHaveBeenCalled();
