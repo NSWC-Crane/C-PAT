@@ -113,7 +113,10 @@ export class PoamManageComponent implements OnInit, OnDestroy {
       .subscribe({
         next: ([poams, basicListData]: any) => {
           this.poams.set(poams);
-          this.selectedCollection.set(basicListData.find((collection: any) => collection.collectionId === this.selectedCollectionId()));
+
+          const effectiveCollectionId = this.selectedCollectionId() ?? this.payload()?.lastCollectionAccessedId;
+
+          this.selectedCollection.set(basicListData.find((collection: any) => collection.collectionId === effectiveCollectionId));
           this.updateGridData();
 
           if (this.selectedCollection()) {
@@ -331,7 +334,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
 
       stats[category].total++;
 
-      const matchingPoams = this.poams().filter((poam) => poam.status !== 'Draft' && (poam.vulnerabilityId === finding.groupId || (poam.associatedVulnerabilities && poam.associatedVulnerabilities.includes(finding.groupId))));
+      const matchingPoams = this.poams().filter((poam) => poam.status !== 'Draft' && (poam.vulnerabilityId === finding.groupId || poam.associatedVulnerabilities?.includes(finding.groupId)));
 
       if (matchingPoams.length > 0) {
         stats[category].withPoam++;

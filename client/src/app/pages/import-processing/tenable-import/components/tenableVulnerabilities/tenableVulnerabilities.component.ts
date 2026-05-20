@@ -109,7 +109,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   familyOptions: IdAndName[] = [];
   auditFileOptions: IdAndName[] = [];
   scanPolicyPluginOptions: IdAndName[] = [];
-  userOptions: IdAndName[] = [];
+  userOptions: any[] = [];
   selectedVulnerability: any;
   displayDialog: boolean = false;
   parsedVprContext: any[] = [];
@@ -1727,14 +1727,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   private mapSingleFilter(filter: any): void {
-    if (!filter) {
-      console.warn('Invalid filter object:', filter);
-
-      return;
-    }
-
-    if (!filter.filterName) {
-      console.warn('Filter missing filterName:', filter);
+    if (!filter?.filterName) {
+      console.warn('Invalid filter:', filter);
 
       return;
     }
@@ -2894,7 +2888,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
           return this.existingPoamPluginIDs;
         } else {
-          throw new Error('Unexpected POAM data format');
+          throw new TypeError('Unexpected POAM data format');
         }
       }),
       catchError((error) => {

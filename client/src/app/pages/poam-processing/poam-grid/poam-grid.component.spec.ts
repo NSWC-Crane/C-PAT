@@ -349,8 +349,8 @@ describe('PoamGridComponent', () => {
       const prepared = component['preparedData']();
 
       expect(prepared[0].assignedTeams).toEqual([
-        { name: 'Team Alpha', complete: 'true' },
-        { name: 'Team Beta', complete: 'false' }
+        { name: 'Team Alpha', complete: 'true', severity: 'success', tooltip: 'Team has fulfilled all POAM requirements' },
+        { name: 'Team Beta', complete: 'false', severity: 'danger', tooltip: 'Team has not fulfilled any POAM requirements' }
       ]);
       expect(prepared[0].assignedTeamNames).toBe('Team Alpha, Team Beta');
     });
