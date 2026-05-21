@@ -39,7 +39,7 @@
     </ng-template>
     <ng-template pTemplate="header" let-columns>
       <tr>
-        @for (col of columns; track col) {
+        @for (col of columns; track col.field) {
           <th scope="col" [ttSortableColumn]="col.field">{{ col.header }}</th>
         }
         <th scope="col">Actions</th>
@@ -47,7 +47,7 @@
     </ng-template>
     <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
       <tr (click)="showModifyCollectionDialog(rowData)" class="cursor-pointer hover:surface-200">
-        @for (col of columns; track col; let i = $index) {
+        @for (col of columns; track col.field; let i = $index) {
           <td class="break-all" [style]="col.field === 'collectionName' ? { 'max-width': '200px' } : {}">
             @if (i === 0) {
               <p-treeTableToggler [rowNode]="rowNode" />

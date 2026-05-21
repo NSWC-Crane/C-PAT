@@ -49,7 +49,7 @@
       >
         <ng-template pTemplate="header" let-columns>
           <tr>
-            @for (col of columns; track col) {
+            @for (col of columns; track col.field) {
               <th scope="col" [pSortableColumn]="col.field" pResizableColumn>
                 {{ col.header }}
                 <ng-container>
@@ -61,7 +61,7 @@
         </ng-template>
         <ng-template pTemplate="body" let-host let-columns="columns">
           <tr>
-            @for (col of columns; track col) {
+            @for (col of columns; track col.field) {
               <td>
                 @switch (col.field) {
                   @case ('name') {

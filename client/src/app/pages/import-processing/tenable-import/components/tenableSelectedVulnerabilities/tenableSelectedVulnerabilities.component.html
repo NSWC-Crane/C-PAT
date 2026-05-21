@@ -75,7 +75,7 @@
         >
           <ng-template pTemplate="header" let-columns>
             <tr>
-              @for (col of columns; track col) {
+              @for (col of columns; track col.field) {
                 <th scope="col" [pSortableColumn]="col.field" pResizableColumn>
                   {{ col.header }}
                   @if (col.field === 'poam') {
@@ -110,7 +110,7 @@
           </ng-template>
           <ng-template pTemplate="body" let-vulnerability let-columns="columns">
             <tr (click)="onRowClick(vulnerability, $event)" (keyup)="onRowClick(vulnerability, $event)" style="cursor: pointer">
-              @for (col of columns; track col) {
+              @for (col of columns; track col.field) {
                 <td>
                   @switch (col.field) {
                     @case ('poam') {
