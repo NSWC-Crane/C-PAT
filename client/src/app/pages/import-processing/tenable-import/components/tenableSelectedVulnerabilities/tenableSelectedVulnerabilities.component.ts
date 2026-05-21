@@ -419,23 +419,23 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
 
           this.applicableVulnerabilities = vulnData.response.results.map((vuln: any) => {
             const defaultVuln = {
-              pluginID: '',
+              pluginID: null,
               pluginName: '',
               family: '',
               severity: '',
-              vprScore: '',
+              vprScore: null,
               ips: [],
-              acrScore: '',
-              assetExposureScore: '',
+              acrScore: null,
+              assetExposureScore: null,
               netbiosName: '',
               dnsName: '',
               macAddress: '',
-              port: '',
+              port: null,
               protocol: '',
               uuid: '',
               hostUUID: '',
-              total: '',
-              hostTotal: ''
+              total: null,
+              hostTotal: null
             };
 
             const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
@@ -456,13 +456,13 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
               pluginName: vuln.name || '',
               family: vuln.family?.name || '',
               severity: vuln.severity?.name || '',
-              pluginID: vuln.pluginID ? Number.parseInt(vuln.pluginID) : '',
-              vprScore: vuln.vprScore ? Number.parseFloat(vuln.vprScore) : '',
-              total: vuln.total ? Number.parseInt(vuln.total) : '',
-              hostTotal: vuln.hostTotal ? Number.parseInt(vuln.hostTotal) : '',
-              acrScore: vuln.acrScore ? Number.parseFloat(vuln.acrScore) : '',
-              assetExposureScore: vuln.assetExposureScore ? Number.parseInt(vuln.assetExposureScore) : '',
-              port: vuln.port ? Number.parseInt(vuln.port) : '',
+              pluginID: vuln.pluginID !== '' && vuln.pluginID != null ? Number(vuln.pluginID) : null,
+              vprScore: vuln.vprScore !== '' && vuln.vprScore != null ? Number(vuln.vprScore) : null,
+              total: vuln.total !== '' && vuln.total != null ? Number(vuln.total) : null,
+              hostTotal: vuln.hostTotal !== '' && vuln.hostTotal != null ? Number(vuln.hostTotal) : null,
+              acrScore: vuln.acrScore !== '' && vuln.acrScore != null ? Number(vuln.acrScore) : null,
+              assetExposureScore: vuln.assetExposureScore !== '' && vuln.assetExposureScore != null ? Number(vuln.assetExposureScore) : null,
+              port: vuln.port !== '' && vuln.port != null ? Number(vuln.port) : null,
               ...(this.currentPreset === 'taskOrder' && { taskOrderNumber: this.taskOrderMap[vuln.pluginID] || '' })
             };
           });
