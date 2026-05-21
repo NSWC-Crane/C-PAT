@@ -13,14 +13,14 @@
     <p-tablist>
       <p-tab value="0">
         @if (viewMode === 'summary') {
-          <span>STIG Manager Benchmarks ({{ benchmarksCount }})</span>
+          <span>STIG Manager Benchmarks ({{ benchmarksCount() }})</span>
         }
         @if (viewMode === 'findings') {
-          <span>STIG Manager Findings ({{ findingsCount }})</span>
+          <span>STIG Manager Findings ({{ findingsCount() }})</span>
         }
       </p-tab>
-      <p-tab value="1">STIG Manager Reviews ({{ reviewsCount }})</p-tab>
-      <p-tab value="2">STIG Manager Controls ({{ controlsCount }})</p-tab>
+      <p-tab value="1">STIG Manager Reviews ({{ reviewsCount() }})</p-tab>
+      <p-tab value="2">STIG Manager Controls ({{ controlsCount() }})</p-tab>
     </p-tablist>
     <p-tabpanels>
       <p-tabpanel value="0">

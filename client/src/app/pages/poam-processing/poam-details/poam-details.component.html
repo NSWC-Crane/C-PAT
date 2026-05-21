@@ -574,9 +574,7 @@
                         <p-tabs [(value)]="activeTabIndex" (onChange)="onTabChange($event)" scrollable lazy>
                           <p-tablist>
                             @if (poam.isGlobalFinding) {
-                              <p-tab [value]="0">
-                                <span>Global Finding</span>
-                              </p-tab>
+                              <p-tab [value]="0">Global Finding</p-tab>
                             }
 
                             @if (!poam.isGlobalFinding) {
@@ -663,9 +661,7 @@
                         <p-tabs [(value)]="activeResourceTabIndex" (onChange)="onResourceTabChange($event)" scrollable lazy>
                           <p-tablist>
                             @if (poam.isGlobalFinding) {
-                              <p-tab [value]="0">
-                                <span>Global Finding</span>
-                              </p-tab>
+                              <p-tab [value]="0">Global Finding</p-tab>
                             }
 
                             @if (!poam.isGlobalFinding) {
