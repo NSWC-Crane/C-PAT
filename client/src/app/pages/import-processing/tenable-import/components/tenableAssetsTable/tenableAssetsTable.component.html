@@ -75,7 +75,7 @@
                 >
                   <ng-template pTemplate="header" let-columns>
                     <tr>
-                      @for (col of columns; track col) {
+                      @for (col of columns; track col.field) {
                         <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
                           {{ col.header }}
                           @if (!this.assetProcessing) {
@@ -87,7 +87,7 @@
                   </ng-template>
                   <ng-template pTemplate="body" let-vulnerability let-columns="columns">
                     <tr (click)="showDetails(vulnerability)" (keyup)="showDetails(vulnerability)" style="cursor: pointer">
-                      @for (col of columns; track col) {
+                      @for (col of columns; track col.field) {
                         <td>
                           @switch (col.field) {
                             @case ('sourcePluginIDs') {

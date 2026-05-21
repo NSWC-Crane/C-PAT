@@ -60,7 +60,7 @@
     </ng-template>
     <ng-template pTemplate="header">
       <tr>
-        @for (col of cols; track col) {
+        @for (col of cols; track col.field) {
           <th scope="col" [style.min-width]="col.minWidth" [pSortableColumn]="col.field">
             <div class="flex items-center">
               {{ col.header }}
@@ -86,7 +86,7 @@
     </ng-template>
     <ng-template pTemplate="body" let-rowData>
       <tr>
-        @for (col of cols; track col) {
+        @for (col of cols; track col.field) {
           <td>
             @switch (col.field) {
               @case ('pluginID') {
