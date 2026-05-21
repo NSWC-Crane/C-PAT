@@ -140,10 +140,10 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   selectedBenchmark: any = null;
   viewMode: 'summary' | 'findings' = 'summary';
   private readonly subscriptions = new Subscription();
-  benchmarksCount: number = 0;
-  findingsCount: number = 0;
-  reviewsCount: number = 0;
-  controlsCount: number = 0;
+  benchmarksCount = signal(0);
+  findingsCount = signal(0);
+  reviewsCount = signal(0);
+  controlsCount = signal(0);
   private processBenchmarkData(benchmarks: any[]): any[] {
     return benchmarks.map((benchmark) => {
       const totalAssessments = benchmark.metrics?.assessments || 0;
@@ -271,7 +271,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         }
 
         this.benchmarkSummaries = this.processBenchmarkData(data);
-        this.benchmarksCount = this.benchmarkSummaries.length;
+        this.benchmarksCount.set(this.benchmarkSummaries.length);
       },
       error: (error) => {
         this.messageService.add({
@@ -302,8 +302,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.selectedBenchmark = null;
     this.dataSource = [];
     this.displayDataSource = [];
-    this.findingsCount = 0;
-    this.benchmarksCount = this.benchmarkSummaries.length;
+    this.findingsCount.set(0);
+    this.benchmarksCount.set(this.benchmarkSummaries.length);
   }
 
   getSTIGMANFindings(stigmanCollectionId: number, benchmarkId?: string) {
@@ -331,7 +331,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         }));
 
         this.displayDataSource = [...this.dataSource];
-        this.findingsCount = this.displayDataSource.length;
+        this.findingsCount.set(this.displayDataSource.length);
         this.filterFindings();
       },
       error: (error) => {
@@ -398,7 +398,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     });
 
     this.displayDataSource = [...this.dataSource];
-    this.findingsCount = this.displayDataSource.length;
+    this.findingsCount.set(this.displayDataSource.length);
   }
 
   getPoamStatusColor(status: string, parentStatus?: string): string {
@@ -532,9 +532,9 @@ ${ruleData.detail.vulnDiscussion}`;
 
     if (findingsTable) {
       if (findingsTable.filteredValue) {
-        this.findingsCount = findingsTable.filteredValue.length;
+        this.findingsCount.set(findingsTable.filteredValue.length);
       } else {
-        this.findingsCount = this.displayDataSource.length;
+        this.findingsCount.set(this.displayDataSource.length);
       }
     }
   }
@@ -544,9 +544,9 @@ ${ruleData.detail.vulnDiscussion}`;
 
     if (benchmarksTable) {
       if (benchmarksTable.filteredValue) {
-        this.benchmarksCount = benchmarksTable.filteredValue.length;
+        this.benchmarksCount.set(benchmarksTable.filteredValue.length);
       } else {
-        this.benchmarksCount = this.benchmarkSummaries.length;
+        this.benchmarksCount.set(this.benchmarkSummaries.length);
       }
     }
   }
@@ -562,11 +562,11 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   onReviewsCountChange(count: number) {
-    this.reviewsCount = count;
+    this.reviewsCount.set(count);
   }
 
   onControlsCountChange(count: number) {
-    this.controlsCount = count;
+    this.controlsCount.set(count);
   }
 
   clearBenchmarkFilter() {

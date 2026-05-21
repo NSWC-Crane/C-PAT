@@ -225,19 +225,19 @@ describe('STIGManagerImportComponent', () => {
     });
 
     it('should default benchmarksCount to 0', () => {
-      expect(component.benchmarksCount).toBe(0);
+      expect(component.benchmarksCount()).toBe(0);
     });
 
     it('should default findingsCount to 0', () => {
-      expect(component.findingsCount).toBe(0);
+      expect(component.findingsCount()).toBe(0);
     });
 
     it('should default reviewsCount to 0', () => {
-      expect(component.reviewsCount).toBe(0);
+      expect(component.reviewsCount()).toBe(0);
     });
 
     it('should default controlsCount to 0', () => {
-      expect(component.controlsCount).toBe(0);
+      expect(component.controlsCount()).toBe(0);
     });
 
     it('should define allColumns with 6 columns', () => {
@@ -365,7 +365,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should set benchmarksCount', () => {
       (component as any).loadBenchmarkSummaries(100);
-      expect(component.benchmarksCount).toBe(2);
+      expect(component.benchmarksCount()).toBe(2);
     });
 
     it('should set loadingTableInfo to false on complete', () => {
@@ -451,7 +451,7 @@ describe('STIGManagerImportComponent', () => {
       component.viewMode = 'findings';
       component.selectedBenchmark = { benchmarkId: 'RHEL_8_STIG' };
       component.benchmarkSummaries = [...mockBenchmarkData];
-      component.findingsCount = 5;
+      component.findingsCount.set(5);
     });
 
     it('should set viewMode to "summary"', () => {
@@ -472,12 +472,12 @@ describe('STIGManagerImportComponent', () => {
 
     it('should reset findingsCount to 0', () => {
       component.backToBenchmarkSummary();
-      expect(component.findingsCount).toBe(0);
+      expect(component.findingsCount()).toBe(0);
     });
 
     it('should restore benchmarksCount from benchmarkSummaries.length', () => {
       component.backToBenchmarkSummary();
-      expect(component.benchmarksCount).toBe(2);
+      expect(component.benchmarksCount()).toBe(2);
     });
   });
 
@@ -514,7 +514,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should set findingsCount to number of results', () => {
       component.getSTIGMANFindings(100);
-      expect(component.findingsCount).toBe(2);
+      expect(component.findingsCount()).toBe(2);
     });
 
     it('should set loadingTableInfo to false on complete', () => {
@@ -630,7 +630,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should update findingsCount', () => {
       (component as any).updateExistingPoams();
-      expect(component.findingsCount).toBe(3);
+      expect(component.findingsCount()).toBe(3);
     });
   });
 
@@ -816,14 +816,14 @@ describe('STIGManagerImportComponent', () => {
     it('should set findingsCount from filteredValue when filter is active', () => {
       mockFindingsTable.filteredValue = [{ groupId: 'V-001' }];
       component.onFilter({});
-      expect(component.findingsCount).toBe(1);
+      expect(component.findingsCount()).toBe(1);
     });
 
     it('should set findingsCount from displayDataSource when no active filter', () => {
       mockFindingsTable.filteredValue = null;
       component.displayDataSource = [{ groupId: 'V-001' } as any, { groupId: 'V-002' } as any];
       component.onFilter({});
-      expect(component.findingsCount).toBe(2);
+      expect(component.findingsCount()).toBe(2);
     });
   });
 
@@ -831,28 +831,28 @@ describe('STIGManagerImportComponent', () => {
     it('should set benchmarksCount from filteredValue when filter is active', () => {
       mockBenchmarksTable.filteredValue = [{ benchmarkId: 'RHEL_8_STIG' }];
       component.onBenchmarkFilter({});
-      expect(component.benchmarksCount).toBe(1);
+      expect(component.benchmarksCount()).toBe(1);
     });
 
     it('should set benchmarksCount from benchmarkSummaries when no active filter', () => {
       mockBenchmarksTable.filteredValue = null;
       component.benchmarkSummaries = [...mockBenchmarkData];
       component.onBenchmarkFilter({});
-      expect(component.benchmarksCount).toBe(2);
+      expect(component.benchmarksCount()).toBe(2);
     });
   });
 
   describe('onReviewsCountChange', () => {
     it('should set reviewsCount', () => {
       component.onReviewsCountChange(42);
-      expect(component.reviewsCount).toBe(42);
+      expect(component.reviewsCount()).toBe(42);
     });
   });
 
   describe('onControlsCountChange', () => {
     it('should set controlsCount', () => {
       component.onControlsCountChange(17);
-      expect(component.controlsCount).toBe(17);
+      expect(component.controlsCount()).toBe(17);
     });
   });
 

@@ -53,35 +53,35 @@ describe('TenableComponent', () => {
     });
 
     it('should default mainTotal to 0', () => {
-      expect(component.mainTotal).toBe(0);
+      expect(component.mainTotal()).toBe(0);
     });
 
     it('should default thirtyPlusTotal to 0', () => {
-      expect(component.thirtyPlusTotal).toBe(0);
+      expect(component.thirtyPlusTotal()).toBe(0);
     });
 
     it('should default exploitableTotal to 0', () => {
-      expect(component.exploitableTotal).toBe(0);
+      expect(component.exploitableTotal()).toBe(0);
     });
 
     it('should default iavVulnerabilitiesCount to 0', () => {
-      expect(component.iavVulnerabilitiesCount).toBe(0);
+      expect(component.iavVulnerabilitiesCount()).toBe(0);
     });
 
     it('should default taskOrderCount to 0', () => {
-      expect(component.taskOrderCount).toBe(0);
+      expect(component.taskOrderCount()).toBe(0);
     });
 
     it('should default failedCredentialCount to 0', () => {
-      expect(component.failedCredentialCount).toBe(0);
+      expect(component.failedCredentialCount()).toBe(0);
     });
 
     it('should default seolCount to 0', () => {
-      expect(component.seolCount).toBe(0);
+      expect(component.seolCount()).toBe(0);
     });
 
     it('should default activeTabIndex to "0"', () => {
-      expect(component.activeTabIndex).toBe('0');
+      expect(component.activeTabIndex()).toBe('0');
     });
 
     it('should default loadedTabs to Set containing "0"', () => {
@@ -90,14 +90,14 @@ describe('TenableComponent', () => {
     });
 
     it('should default sidebarVisible to false', () => {
-      expect(component.sidebarVisible).toBe(false);
+      expect(component.sidebarVisible()).toBe(false);
     });
   });
 
   describe('ngOnInit — no saved state', () => {
     it('should set activeTabIndex to "0" when no session state', () => {
       component.ngOnInit();
-      expect(component.activeTabIndex).toBe('0');
+      expect(component.activeTabIndex()).toBe('0');
     });
 
     it('should add "0" to loadedTabs when no session state', () => {
@@ -111,7 +111,7 @@ describe('TenableComponent', () => {
     it('should restore activeTabIndex from session storage', () => {
       sessionStorage.setItem('tenableFilterState', JSON.stringify({ parentTabIndex: 2 }));
       component.ngOnInit();
-      expect(component.activeTabIndex).toBe('2');
+      expect(component.activeTabIndex()).toBe('2');
     });
 
     it('should add restored tab index to loadedTabs', () => {
@@ -123,26 +123,26 @@ describe('TenableComponent', () => {
     it('should keep activeTabIndex as "0" when saved state has no parentTabIndex', () => {
       sessionStorage.setItem('tenableFilterState', JSON.stringify({ someOtherKey: 'value' }));
       component.ngOnInit();
-      expect(component.activeTabIndex).toBe('0');
+      expect(component.activeTabIndex()).toBe('0');
     });
 
     it('should convert parentTabIndex number to string', () => {
       sessionStorage.setItem('tenableFilterState', JSON.stringify({ parentTabIndex: 0 }));
       component.ngOnInit();
-      expect(typeof component.activeTabIndex).toBe('string');
+      expect(typeof component.activeTabIndex()).toBe('string');
     });
   });
 
   describe('onTabChange', () => {
     it('should update activeTabIndex to string of given index', () => {
       component.onTabChange(2);
-      expect(component.activeTabIndex).toBe('2');
+      expect(component.activeTabIndex()).toBe('2');
     });
 
     it('should convert number index to string', () => {
       component.onTabChange(3);
-      expect(typeof component.activeTabIndex).toBe('string');
-      expect(component.activeTabIndex).toBe('3');
+      expect(typeof component.activeTabIndex()).toBe('string');
+      expect(component.activeTabIndex()).toBe('3');
     });
 
     it('should add new tab index to loadedTabs', () => {
@@ -157,14 +157,14 @@ describe('TenableComponent', () => {
     });
 
     it('should set sidebarVisible to false', () => {
-      component.sidebarVisible = true;
+      component.sidebarVisible.set(true);
       component.onTabChange(1);
-      expect(component.sidebarVisible).toBe(false);
+      expect(component.sidebarVisible()).toBe(false);
     });
 
     it('should handle string index', () => {
       component.onTabChange('1');
-      expect(component.activeTabIndex).toBe('1');
+      expect(component.activeTabIndex()).toBe('1');
     });
 
     it('should retain previously loaded tabs when switching', () => {
@@ -178,15 +178,15 @@ describe('TenableComponent', () => {
 
   describe('onSidebarToggle', () => {
     it('should set sidebarVisible to true', () => {
-      component.sidebarVisible = false;
+      component.sidebarVisible.set(false);
       component.onSidebarToggle(true);
-      expect(component.sidebarVisible).toBe(true);
+      expect(component.sidebarVisible()).toBe(true);
     });
 
     it('should set sidebarVisible to false', () => {
-      component.sidebarVisible = true;
+      component.sidebarVisible.set(true);
       component.onSidebarToggle(false);
-      expect(component.sidebarVisible).toBe(false);
+      expect(component.sidebarVisible()).toBe(false);
     });
   });
 
