@@ -1462,14 +1462,14 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         next: ({ vulnData, iavInfoMap }) => {
           this.allVulnerabilities = vulnData.results.map((vuln: any) => {
             const defaultVuln = {
-              pluginID: '',
+              pluginID: null,
               pluginName: '',
               family: '',
               severity: '',
-              vprScore: '',
+              vprScore: null,
               ips: [],
-              acrScore: '',
-              assetExposureScore: '',
+              acrScore: null,
+              assetExposureScore: null,
               netbiosName: '',
               dnsName: '',
               macAddress: '',
@@ -1477,8 +1477,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               protocol: '',
               uuid: '',
               hostUUID: '',
-              total: '',
-              hostTotal: ''
+              total: null,
+              hostTotal: null
             };
 
             const poamAssociation = this.existingPoamPluginIDs[vuln.pluginID];
@@ -1497,7 +1497,13 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
               navyComplyDate: iavInfo?.navyComplyDate ? parseISO(iavInfo.navyComplyDate) : null,
               pluginName: vuln.name || '',
               family: vuln.family?.name || '',
-              severity: vuln.severity?.name || ''
+              severity: vuln.severity?.name || '',
+              pluginID: vuln.pluginID !== '' && vuln.pluginID != null ? Number(vuln.pluginID) : null,
+              vprScore: vuln.vprScore !== '' && vuln.vprScore != null ? Number(vuln.vprScore) : null,
+              acrScore: vuln.acrScore !== '' && vuln.acrScore != null ? Number(vuln.acrScore) : null,
+              assetExposureScore: vuln.assetExposureScore !== '' && vuln.assetExposureScore != null ? Number(vuln.assetExposureScore) : null,
+              total: vuln.total !== '' && vuln.total != null ? Number(vuln.total) : null,
+              hostTotal: vuln.hostTotal !== '' && vuln.hostTotal != null ? Number(vuln.hostTotal) : null
             };
           });
 
