@@ -95,7 +95,7 @@ exports.backfillDowntime = async function backfillDowntime() {
             const earliest = new Date(now.getTime() - MAX_LOOKBACK_MS);
             let t = new Date(lastCheck.getTime() + INTERVAL_MS);
 
-            if (t < earliest) t = new Date(earliest.getTime());
+            if (t < earliest) t = earliest;
 
             const limit = new Date(now.getTime() - INTERVAL_MS);
 
@@ -175,6 +175,16 @@ exports.getUptimeStatus = async function getUptimeStatus() {
         const latest = latestRows[0] || null;
         const latestIsBackfill = latest?.response_ms == null && latest?.status === 0;
 
+        let cpatCurrentStatus = 'unknown';
+        if (latest) {
+            cpatCurrentStatus = latest.status === 1 ? 'operational' : 'outage';
+        }
+
+        let oidcCurrentStatus = 'unknown';
+        if (!latestIsBackfill && latest) {
+            oidcCurrentStatus = latest.oidc_status === 1 ? 'operational' : 'outage';
+        }
+
         const computeUptime = rows => {
             let totalKnownMinutes = 0;
             let totalDowntimeMinutes = 0;
@@ -191,7 +201,7 @@ exports.getUptimeStatus = async function getUptimeStatus() {
 
         const result = {
             cpat: {
-                currentStatus: latest ? (latest.status === 1 ? 'operational' : 'outage') : 'unknown',
+                currentStatus: cpatCurrentStatus,
                 uptimePercent: computeUptime(cpatRows),
                 checks: cpatRows.map(r => ({
                     date: r.date,
@@ -200,7 +210,7 @@ exports.getUptimeStatus = async function getUptimeStatus() {
                 })),
             },
             oidc: {
-                currentStatus: latestIsBackfill ? 'unknown' : latest ? (latest.oidc_status === 1 ? 'operational' : 'outage') : 'unknown',
+                currentStatus: oidcCurrentStatus,
                 uptimePercent: computeUptime(oidcRows),
                 checks: oidcRows.map(r => ({
                     date: r.date,
@@ -231,9 +241,13 @@ exports.getUptimeStatus = async function getUptimeStatus() {
             `);
 
             const latestStigman = latest?.stigman_status;
+            let stigmanCurrentStatus = 'unknown';
+            if (!latestIsBackfill && latestStigman != null) {
+                stigmanCurrentStatus = latestStigman === 1 ? 'operational' : 'outage';
+            }
             result.stigman = {
                 available: true,
-                currentStatus: latestIsBackfill ? 'unknown' : latestStigman == null ? 'unknown' : latestStigman === 1 ? 'operational' : 'outage',
+                currentStatus: stigmanCurrentStatus,
                 uptimePercent: computeUptime(stigmanRows),
                 checks: stigmanRows.map(r => ({
                     date: r.date,
@@ -260,9 +274,13 @@ exports.getUptimeStatus = async function getUptimeStatus() {
             `);
 
             const latestTenable = latest?.tenable_status;
+            let tenableCurrentStatus = 'unknown';
+            if (!latestIsBackfill && latestTenable != null) {
+                tenableCurrentStatus = latestTenable === 1 ? 'operational' : 'outage';
+            }
             result.tenable = {
                 available: true,
-                currentStatus: latestIsBackfill ? 'unknown' : latestTenable == null ? 'unknown' : latestTenable === 1 ? 'operational' : 'outage',
+                currentStatus: tenableCurrentStatus,
                 uptimePercent: computeUptime(tenableRows),
                 checks: tenableRows.map(r => ({
                     date: r.date,
