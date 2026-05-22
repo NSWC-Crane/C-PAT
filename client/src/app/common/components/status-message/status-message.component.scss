@@ -8,8 +8,9 @@
 !##########################################################################
 */
 
-.container a {
-  text-decoration: none;
+.status_message_card {
+  margin-bottom: 1rem;
+  padding: 1rem;
 }
 
 .wrapper {
@@ -19,43 +20,50 @@
   display: block;
   margin: 0 auto;
   position: relative;
-  margin-top: 8vh;
-}
 
-.container h1 {
-  text-align: center;
-  color: var(--p-text-color);
-  opacity: 0.8;
-  font-family: 'Dosis', sans-serif;
-  font-size: 100px;
-  margin-bottom: 0px;
-  font-weight: 800;
-}
+  a {
+    text-decoration: none;
+  }
 
-.container h3 {
-  text-align: center;
-  color: var(--p-text-color);
-  font-size: 19px;
-  line-height: 23px;
-  max-width: 330px;
-  margin: 0px auto 30px auto;
-  font-family: 'Dosis', sans-serif;
-  font-weight: 400;
-}
+  h1 {
+    text-align: center;
+    color: var(--p-text-color);
+    opacity: 0.8;
+    font-family: 'Dosis', sans-serif;
+    font-size: 100px;
+    margin-bottom: 0px;
+    font-weight: 800;
+  }
 
-.container h3 span {
-  position: relative;
-  width: 65px;
-  display: inline-block;
-}
+  h3 {
+    text-align: center;
+    color: var(--p-text-color);
+    font-size: 19px;
+    line-height: 23px;
+    max-width: 330px;
+    margin: 0px auto 30px auto;
+    font-family: 'Dosis', sans-serif;
+    font-weight: 400;
 
-.container h3 span:after {
-  content: '';
-  border-bottom: 3px solid #ffbb39;
-  position: absolute;
-  left: 0;
-  top: 43%;
-  width: 100%;
+    span {
+      position: relative;
+      width: 65px;
+      display: inline-block;
+
+      &:after {
+        content: '';
+        border-bottom: 3px solid #ffbb39;
+        position: absolute;
+        left: 0;
+        top: 43%;
+        width: 100%;
+      }
+    }
+  }
+
+  .stars {
+    animation: sparkle 1.6s infinite ease-in-out alternate;
+  }
 }
 
 .tryRefresh {
@@ -64,10 +72,6 @@
   margin-bottom: 40px;
   margin-top: 25px;
   width: fit-content;
-}
-
-.container .stars {
-  animation: sparkle 1.6s infinite ease-in-out alternate;
 }
 
 @keyframes sparkle {
@@ -99,19 +103,21 @@
 }
 
 @media (max-width: 600px) {
-  .container h1 {
-    font-size: 75px;
-  }
+  .wrapper {
+    h1 {
+      font-size: 75px;
+    }
 
-  .container h3 {
-    font-size: 16px;
-    width: 200px;
-    margin: 0 auto;
-    line-height: 23px;
-  }
+    h3 {
+      font-size: 16px;
+      width: 200px;
+      margin: 0 auto;
+      line-height: 23px;
 
-  .container h3 span {
-    width: 60px;
+      span {
+        width: 60px;
+      }
+    }
   }
 
   #astronaut {
@@ -135,4 +141,88 @@
   100% {
     transform: translateY(-3px);
   }
+}
+
+.st0 {
+  fill: none;
+}
+
+.st1 {
+  fill: #504e55;
+}
+
+.st2 {
+  fill: #f39e72;
+}
+
+.st3 {
+  fill: #ffffff;
+}
+
+.st4 {
+  opacity: 0.24;
+}
+
+.st5 {
+  fill: #77574e;
+}
+
+.st6 {
+  fill: #fbd68d;
+}
+
+.st7 {
+  fill: #ececec;
+}
+
+.st8 {
+  fill: #f4a89c;
+}
+
+.st9 {
+  fill: #cfc9e5;
+}
+
+.st10 {
+  opacity: 0.28;
+}
+
+.st11 {
+  opacity: 0.25;
+}
+
+.st12 {
+  fill: #6f635c;
+}
+
+.st13 {
+  fill: #dae7be;
+}
+
+.st14 {
+  fill: #ffe0a6;
+}
+
+.st15 {
+  fill: #5f5e60;
+}
+
+.st16 {
+  fill: #cfe1af;
+}
+
+.st17 {
+  fill: #ebe9f5;
+}
+
+.st18 {
+  fill: #53515a;
+}
+
+.st19 {
+  opacity: 0.42;
+}
+
+.st20 {
+  fill: #53515b;
 }
