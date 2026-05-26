@@ -23,6 +23,10 @@ interface ResponseChartData {
 }
 
 const RESPONSE_LINE_COLOR = 'rgba(16, 185, 129, 0.6)';
+const SEGMENT_UP_COLOR = 'rgba(16, 185, 129, 0.6)';
+const SEGMENT_DOWN_COLOR = 'rgba(248, 113, 113, 0.6)';
+const SEGMENT_UNKNOWN_COLOR = 'rgba(255, 255, 255, 0.15)';
+const MINUTES_PER_DAY = 1440;
 
 function formatTooltipTime(d: Date): string {
   const h = d.getHours();
@@ -145,6 +149,44 @@ export class UptimeMonitorComponent implements OnInit, OnDestroy {
     this.activeCheck.set(check);
   }
 
+  getSegmentBackground(check: DailyCheck): string {
+    const bands: { start: number; end: number; color: string }[] = [];
+
+    for (const o of check.outages ?? []) bands.push({ start: o.startMinute, end: o.endMinute, color: SEGMENT_DOWN_COLOR });
+
+    for (const u of check.unknowns ?? []) bands.push({ start: u.startMinute, end: u.endMinute, color: SEGMENT_UNKNOWN_COLOR });
+
+    if (!bands.length) {
+      if (check.status == null) return SEGMENT_UNKNOWN_COLOR;
+
+      return SEGMENT_UP_COLOR;
+    }
+
+    bands.sort((a, b) => a.start - b.start);
+    const pct = (m: number) => ((Math.max(0, Math.min(MINUTES_PER_DAY, m)) / MINUTES_PER_DAY) * 100).toFixed(2);
+    const stops: string[] = [];
+    let cursor = 0;
+
+    for (const band of bands) {
+      const start = Math.max(band.start, cursor);
+
+      if (start >= band.end) continue;
+
+      if (start > cursor) {
+        stops.push(`${SEGMENT_UP_COLOR} ${pct(cursor)}%`, `${SEGMENT_UP_COLOR} ${pct(start)}%`);
+      }
+
+      stops.push(`${band.color} ${pct(start)}%`, `${band.color} ${pct(band.end)}%`);
+      cursor = band.end;
+    }
+
+    if (cursor < MINUTES_PER_DAY) {
+      stops.push(`${SEGMENT_UP_COLOR} ${pct(cursor)}%`, `${SEGMENT_UP_COLOR} 100%`);
+    }
+
+    return `linear-gradient(to right, ${stops.join(', ')})`;
+  }
+
   getSegmentStatusLabel(check: DailyCheck): string {
     if (check.status == null) {
       const unknown = check.unknownMinutes ?? 0;
@@ -186,12 +228,7 @@ export class UptimeMonitorComponent implements OnInit, OnDestroy {
   private async renderChart(element: HTMLDivElement, data: ResponseChartData) {
     this.chartInitializing = true;
 
-    const [{ init, use }, { LineChart }, { GridComponent, TooltipComponent }, { CanvasRenderer }] = await Promise.all([
-      import('echarts/core'),
-      import('echarts/charts'),
-      import('echarts/components'),
-      import('echarts/renderers')
-    ]);
+    const [{ init, use }, { LineChart }, { GridComponent, TooltipComponent }, { CanvasRenderer }] = await Promise.all([import('echarts/core'), import('echarts/charts'), import('echarts/components'), import('echarts/renderers')]);
 
     use([LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
     this.chartInitializing = false;
