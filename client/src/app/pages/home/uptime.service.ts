@@ -12,11 +12,18 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+export interface DowntimeInterval {
+  startMinute: number;
+  endMinute: number;
+}
+
 export interface DailyCheck {
   date: string;
   status: number | null;
   downtimeMinutes: number;
   unknownMinutes?: number;
+  outages?: DowntimeInterval[];
+  unknowns?: DowntimeInterval[];
 }
 
 export interface ResponseSample {

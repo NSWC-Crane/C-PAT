@@ -9,7 +9,6 @@
 */
 
 const path = require('node:path');
-const fs = require('node:fs');
 const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
@@ -23,6 +22,7 @@ const state = require('../utils/state');
 const logger = require('../utils/logger');
 const proxy = require('express-http-proxy');
 const RateLimit = require('express-rate-limit');
+const tenableTls = require('../utils/tenableTls');
 
 function configureMiddleware(app) {
     const middlewareConfigFunctions = [
@@ -132,11 +132,11 @@ function configureTenableProxy(app) {
                     proxyReqOpts.headers = cleanHeaders;
                     proxyReqOpts.rejectUnauthorized = false;
 
-                    if (config.tenable.tls.cert_file) {
-                        proxyReqOpts.cert = fs.readFileSync(path.join(__dirname, '..', 'tls', config.tenable.tls.cert_file));
+                    if (tenableTls.clientCert) {
+                        proxyReqOpts.cert = tenableTls.clientCert;
                     }
-                    if (config.tenable.tls.key_file) {
-                        proxyReqOpts.key = fs.readFileSync(path.join(__dirname, '..', 'tls', config.tenable.tls.key_file));
+                    if (tenableTls.clientKey) {
+                        proxyReqOpts.key = tenableTls.clientKey;
                     }
 
                     return proxyReqOpts;
