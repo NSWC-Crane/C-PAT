@@ -73,9 +73,6 @@
 
       > .advanced-pie.chart {
         flex: 0 0 55% !important;
-        width: 55% !important;
-        max-width: 55% !important;
-        min-width: 55% !important;
         height: 100% !important;
         display: flex !important;
         justify-content: center !important;
@@ -105,9 +102,6 @@
 
       > .advanced-pie-legend-wrapper {
         flex: 0 0 45% !important;
-        width: 45% !important;
-        max-width: 45% !important;
-        min-width: 45% !important;
 
         ngx-charts-advanced-legend {
           width: 100% !important;
@@ -294,52 +288,40 @@
   transition: all 0.3s ease-in-out;
 }
 
-@media screen and (max-width: 992px) {
-  .poam-category-advanced-pie {
-    ::ng-deep {
-      svg.ngx-charts g.pie.chart {
-        transform: translate(50%, 50%) scale(1.8) !important;
-      }
-    }
+.poam-category-advanced-pie {
+  --pie-scale: 3;
+
+  ::ng-deep svg.ngx-charts g.pie.chart {
+    transform: translate(50%, 50%) scale(var(--pie-scale)) !important;
   }
 }
 
-@media screen and (min-width: 1920px) {
+@media (max-width: 992px) {
   .poam-category-advanced-pie {
-    ::ng-deep {
-      svg.ngx-charts g.pie.chart {
-        transform: translate(50%, 50%) scale(2.5) !important;
-      }
-    }
+    --pie-scale: 1.8;
   }
 }
 
-@media screen and (min-width: 2560px) {
+@media (min-width: 1920px) {
   .poam-category-advanced-pie {
-    ::ng-deep {
-      svg.ngx-charts g.pie.chart {
-        transform: translate(50%, 50%) scale(1.7) !important;
-      }
-    }
+    --pie-scale: 2.5;
   }
 }
 
-@media screen and (min-width: 3440px) {
+@media (min-width: 2560px) {
   .poam-category-advanced-pie {
-    ::ng-deep {
-      svg.ngx-charts g.pie.chart {
-        transform: translate(50%, 50%) scale(1.5) !important;
-      }
-    }
+    --pie-scale: 1.7;
   }
 }
 
-@media screen and (min-width: 3840px) {
+@media (min-width: 3440px) {
   .poam-category-advanced-pie {
-    ::ng-deep {
-      svg.ngx-charts g.pie.chart {
-        transform: translate(50%, 50%) scale(1.4) !important;
-      }
-    }
+    --pie-scale: 1.5;
+  }
+}
+
+@media (min-width: 3840px) {
+  .poam-category-advanced-pie {
+    --pie-scale: 1.4;
   }
 }
