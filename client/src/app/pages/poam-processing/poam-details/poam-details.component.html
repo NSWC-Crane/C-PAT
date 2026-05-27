@@ -52,11 +52,13 @@
         </div>
 
         <div class="action-toolbar">
-          @for (action of menuItems(); track action.label) {
-            @if (action.visible !== false) {
-              <p-button [icon]="action.icon" [severity]="action.severity" [rounded]="true" [text]="true" [raised]="true" [pTooltip]="action.label" tooltipPosition="bottom" (onClick)="action.command()" />
+          <p-buttongroup class="poam-buttongroup">
+            @for (action of menuItems(); track action.label) {
+              @if (action.visible !== false) {
+                <p-button [icon]="action.icon" [severity]="action.severity" size="large" [outlined]="true" [text]="true" [pTooltip]="action.label" tooltipPosition="bottom" (onClick)="action.command()" />
+              }
             }
-          }
+          </p-buttongroup>
         </div>
       </div>
 

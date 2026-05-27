@@ -17,6 +17,7 @@ import { AccordionModule } from 'primeng/accordion';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ButtonModule } from 'primeng/button';
+import { ButtonGroupModule } from 'primeng/buttongroup';
 import { CardModule } from 'primeng/card';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePicker } from 'primeng/datepicker';
@@ -82,6 +83,7 @@ interface PoamAction {
     FormsModule,
     AutoCompleteModule,
     ButtonModule,
+    ButtonGroupModule,
     DatePicker,
     CardModule,
     ConfirmDialogModule,
