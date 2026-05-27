@@ -22,7 +22,7 @@
           "builder": "@angular/build:application",
           "options": {
             "preserveSymlinks": true,
-            "allowedCommonJsDependencies": ["base64-js", "exceljs"],
+            "allowedCommonJsDependencies": ["base64-js", "exceljs", "pace-js"],
             "outputPath": "dist",
             "browser": "src/main.ts",
             "polyfills": ["src/polyfills.ts"],
