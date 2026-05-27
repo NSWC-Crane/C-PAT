@@ -521,38 +521,41 @@ export class AppConfiguratorComponent implements OnInit {
       )
       .subscribe({
         next: (user) => {
+          const defaults = {
+            preset: 'Aura',
+            primary: 'noir',
+            surface: 'soho',
+            darkTheme: true,
+            rtl: false
+          };
+
+          let prefs: any = { ...defaults };
+
           if (user?.defaultTheme) {
-            const defaults = {
-              preset: 'Aura',
-              primary: 'noir',
-              surface: 'soho',
-              darkTheme: true,
-              rtl: false
-            };
-
             try {
-              const prefs = JSON.parse(user.defaultTheme);
-              const preset = this.presets.includes(prefs.preset) ? prefs.preset : defaults.preset;
-
-              this.configService.appState.update((state) => ({ ...state, preset }));
-              const primary = this.primaryColors().some((c) => c.name === prefs.primary) ? prefs.primary : defaults.primary;
-              const surface = this.surfaces.some((s) => s.name === prefs.surface) ? prefs.surface : defaults.surface;
-              const darkTheme = typeof prefs.darkTheme === 'boolean' ? prefs.darkTheme : defaults.darkTheme;
-              const rtl = typeof prefs.rtl === 'boolean' ? prefs.rtl : defaults.rtl;
-
-              this.configService.appState.update((state) => ({
-                ...state,
-                preset,
-                primary,
-                surface,
-                darkTheme,
-                RTL: rtl
-              }));
-              this.onPresetChange(preset as PresetType);
+              prefs = JSON.parse(user.defaultTheme);
             } catch (error) {
               console.error('Error parsing user preferences:', error);
+
+              return;
             }
           }
+
+          const preset = this.presets.includes(prefs.preset) ? prefs.preset : defaults.preset;
+          const primary = this.primaryColors().some((c) => c.name === prefs.primary) ? prefs.primary : defaults.primary;
+          const surface = this.surfaces.some((s) => s.name === prefs.surface) ? prefs.surface : defaults.surface;
+          const darkTheme = typeof prefs.darkTheme === 'boolean' ? prefs.darkTheme : defaults.darkTheme;
+          const rtl = typeof prefs.rtl === 'boolean' ? prefs.rtl : defaults.rtl;
+
+          this.configService.appState.update((state) => ({
+            ...state,
+            preset,
+            primary,
+            surface,
+            darkTheme,
+            RTL: rtl
+          }));
+          this.onPresetChange(preset as PresetType);
         },
         error: (error) => console.error('Error loading user preferences:', error)
       });

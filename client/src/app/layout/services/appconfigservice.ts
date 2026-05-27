@@ -32,7 +32,13 @@ export class AppConfigService {
   private initialized = false;
 
   constructor() {
-    this.appState.set(this.loadAppState());
+    const initialState = this.loadAppState();
+
+    this.appState.set(initialState);
+
+    if (isPlatformBrowser(this.platformId)) {
+      this.toggleDarkMode(initialState);
+    }
 
     effect(() => {
       const state = this.appState();

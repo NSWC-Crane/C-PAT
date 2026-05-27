@@ -239,11 +239,17 @@ describe('AppConfiguratorComponent', () => {
   });
 
   describe('loadUserPreferences', () => {
-    it('should not update state when user has no defaultTheme', () => {
+    it('should apply default theme when user has no defaultTheme', () => {
+      const presetSpy = vi.spyOn(component, 'onPresetChange');
+
+      appStateSignal.set(createAppState({ preset: 'Lara', surface: 'zinc', darkTheme: false }));
       userSubject.next({ userId: 1, userName: 'testuser', defaultTheme: null });
       fixture.detectChanges();
 
       expect(appStateSignal().preset).toBe('Aura');
+      expect(appStateSignal().surface).toBe('soho');
+      expect(appStateSignal().darkTheme).toBe(true);
+      expect(presetSpy).toHaveBeenCalledWith('Aura');
     });
 
     it('should apply valid user preferences from defaultTheme', () => {
