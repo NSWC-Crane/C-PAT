@@ -5616,6 +5616,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+    post:
+      tags:
+        - User
+      security:
+        - oauth:
+            - 'c-pat:op'
+      summary: Pre-register (onboard) a User before their first login
+      operationId: createUser
+      parameters:
+        - $ref: '#/components/parameters/ElevateQuery'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user_Create'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '422':
+          description: A user with this username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
 
   /user/updateTheme:
     put:
@@ -7395,6 +7436,34 @@ components:
                 type: integer
               accessLevel:
                 type: integer
+
+    user_Create:
+      type: object
+      required:
+        - userName
+      additionalProperties: true
+      properties:
+        userName:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          maxLength: 100
+        phoneNumber:
+          type: string
+          maxLength: 20
+        firstName:
+          type: string
+          maxLength: 50
+        lastName:
+          type: string
+          maxLength: 50
+        officeOrg:
+          type: [string, 'null']
+          maxLength: 100
+        accountStatus:
+          type: string
+          maxLength: 25
 
     user_Update:
       type: object

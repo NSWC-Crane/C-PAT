@@ -15,6 +15,24 @@ The User Management section allows administrators to view, manage, and modify us
 
    To approve a user account, an administrator must navigate to the User Management section, select the user account from the dropdown at the bottom of the User Table, and change the Account Status to ``ACTIVE``. Once approved, the user will be able to access the application and navigate to any collections for which they have been assigned permissions.
 
+Pre-Onboarding a User
+^^^^^^^^^^^^^^^^^^^^^^
+
+Administrators can pre-register (onboard) a user account before that user has ever logged in. This allows team assignments, collection permissions, and account status to be configured in advance so that the user is fully provisioned the moment they first authenticate, eliminating the usual back-and-forth of waiting for a first login before account setup can begin.
+
+To pre-onboard a user:
+
+1. In the User Management section, click the **Onboard User** button in the toolbar above the User Table.
+2. Enter the user's **Username**. This is the only required field.
+3. Optionally enter the First Name, Last Name, and Email, and select the desired **Account Status** (defaults to ``PENDING``).
+4. Click **Onboard**. The new account opens immediately for editing, where the administrator can assign teams and collection permissions just as they would for any existing user.
+
+.. warning::
+   The **Username** must exactly match the username claim that the OIDC provider will include in the token (the claim configured as the C-PAT username claim, e.g. ``preferred_username``). The value is case-sensitive and limited to 100 characters. If the entered username does not match the token claim, the user's first login will create a separate, unconfigured account rather than recognizing the pre-onboarded one.
+
+.. note::
+   When a pre-onboarded user logs in for the first time, any identity fields left blank during onboarding (first name, last name, email) are automatically populated from the token. Values entered by the administrator during onboarding are preserved and take precedence over the token.
+
 Assuming a correct C-PAT and OIDC configuration, user data *should* be automatically populated from the OIDC provider. If the user data is not automatically populated, the user data can be manually entered by an administrator. Accurate and complete user data is important to the flow of the C-PAT application, particularly when it comes to exporting into the eMASS excel format. User first name, last name, email, phone number, and office/organization are all pre-populated into a C-PAT export when available.
 
 C-PAT Collection Privileges

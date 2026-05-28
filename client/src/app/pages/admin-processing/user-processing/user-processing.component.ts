@@ -10,16 +10,22 @@
 
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Subscription } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 import { UserComponent } from './user/user.component';
 import { UsersService } from './users.service';
 
@@ -28,13 +34,15 @@ import { UsersService } from './users.service';
   templateUrl: './user-processing.component.html',
   styleUrls: ['./user-processing.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, InputIconModule, InputTextModule, IconFieldModule, TableModule, TooltipModule, UserComponent]
+  imports: [ButtonModule, CommonModule, DialogModule, FormsModule, InputIconModule, InputTextModule, IconFieldModule, SelectModule, TableModule, ToastModule, TooltipModule, UserComponent],
+  providers: [MessageService]
 })
 export class UserProcessingComponent implements OnInit, OnDestroy {
   private readonly userService = inject(UsersService);
   private readonly router = inject(Router);
   private readonly setPayloadService = inject(PayloadService);
   private readonly csvExportService = inject(CsvExportService);
+  private readonly messageService = inject(MessageService);
 
   readonly usersTable = viewChild.required<Table>('usersTable');
 
@@ -45,6 +53,14 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   protected accessLevel: any;
   user: any = {};
   payload: any;
+  showOnboardDialog = false;
+  onboarding = false;
+  newUser: { userName: string; firstName: string; lastName: string; email: string; accountStatus: string } = this.emptyOnboardUser();
+  usernameClaimLabel = '';
+  accountStatusOptions = [
+    { label: 'Active', value: 'ACTIVE' },
+    { label: 'Pending', value: 'PENDING' }
+  ];
   private readonly payloadSubscription: Subscription[] = [];
 
   ngOnInit() {
@@ -56,7 +72,45 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
       { field: 'email', header: 'Email' },
       { field: 'lastAccessDate', header: 'Last Access' }
     ];
+    this.usernameClaimLabel = CPAT.Env.oauth.claims.username ?? 'preferred_username';
     this.setPayload();
+  }
+
+  private emptyOnboardUser() {
+    return { userName: '', firstName: '', lastName: '', email: '', accountStatus: 'PENDING' };
+  }
+
+  openOnboardDialog() {
+    this.newUser = this.emptyOnboardUser();
+    this.showOnboardDialog = true;
+  }
+
+  onboardUser() {
+    const userName = this.newUser.userName?.trim();
+
+    if (!userName) {
+      this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Username is required.' });
+
+      return;
+    }
+
+    this.onboarding = true;
+    this.userService.createUser({ ...this.newUser, userName }).subscribe({
+      next: (createdUser: any) => {
+        this.onboarding = false;
+        this.showOnboardDialog = false;
+        this.messageService.add({ severity: 'success', summary: 'Success', detail: `User '${createdUser.userName}' onboarded. Assign teams and collections below.` });
+        this.getUserData();
+        this.setUser(createdUser);
+      },
+      error: (error) => {
+        this.onboarding = false;
+
+        const detail = error?.status === 422 ? 'A user with this username already exists.' : `Failed to onboard user: ${getErrorMessage(error)}`;
+
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
+      }
+    });
   }
 
   setPayload() {

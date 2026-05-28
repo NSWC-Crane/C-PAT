@@ -56,6 +56,10 @@ export class UsersService {
     return this.http.put<any>(`${this.cpatApiBase}/permission?elevate=true`, userPermission).pipe(catchError(this.handleError));
   }
 
+  createUser(userData: any): Observable<Users> {
+    return this.http.post<Users>(`${this.cpatApiBase}/user?elevate=true`, userData);
+  }
+
   updateUser(userData: any): Observable<Users> {
     return this.http.put<Users>(`${this.cpatApiBase}/user?elevate=true`, userData).pipe(catchError(this.handleError));
   }

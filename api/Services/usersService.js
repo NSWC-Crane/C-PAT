@@ -378,6 +378,80 @@ exports.updateUserLastCollectionAccessed = async function updateUserLastCollecti
     }
 };
 
+exports.createUser = async function createUser(elevate, req) {
+    try {
+        if (!elevate || req.userObject.isAdmin !== true) {
+            throw new SmError.PrivilegeError('Elevate parameter is required');
+        }
+
+        const userName = (req.body.userName || '').trim();
+        if (!userName) {
+            throw new SmError.ClientError('userName is required');
+        }
+        if (userName.length > 100) {
+            throw new SmError.ClientError('userName must be 100 characters or fewer');
+        }
+
+        const firstName = req.body.firstName || '';
+        const lastName = req.body.lastName || '';
+        const fullName = `${firstName} ${lastName}`.trim() || null;
+        const accountStatus = req.body.accountStatus || 'ACTIVE';
+
+        return await withConnection(async connection => {
+            let insertSql = `INSERT INTO ${config.database.schema}.user (userName, firstName, lastName, fullName, email, phoneNumber, officeOrg, accountStatus) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+            let result;
+            try {
+                [result] = await connection.query(insertSql, [
+                    userName,
+                    firstName,
+                    lastName,
+                    fullName,
+                    req.body.email || 'None Provided',
+                    req.body.phoneNumber || '',
+                    req.body.officeOrg || 'UNKNOWN',
+                    accountStatus,
+                ]);
+            } catch (error) {
+                if (error.code === 'ER_DUP_ENTRY') {
+                    throw new SmError.UnprocessableError('A user with this username already exists');
+                }
+                throw error;
+            }
+
+            let sql = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
+            const [userRows] = await connection.query(sql, [result.insertId]);
+            const user = userRows[0];
+
+            return {
+                userId: user.userId,
+                userName: user.userName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                created: user.created,
+                lastAccess: user.lastAccess,
+                lastCollectionAccessedId: user.lastCollectionAccessedId,
+                accountStatus: user.accountStatus,
+                fullName: user.fullName,
+                officeOrg: user.officeOrg,
+                defaultTheme: user.defaultTheme,
+                points: user.points,
+                isAdmin: false,
+                lastClaims: user.lastClaims,
+                permissions: [],
+                assignedTeams: [],
+            };
+        });
+    } catch (error) {
+        if (error instanceof SmError.SmError) {
+            throw error;
+        }
+        throw new Error(`Failed to create user: ${error.message}`);
+    }
+};
+
 exports.setUserData = async function setUserData(userObject, fields, newUser) {
     try {
         return await withConnection(async connection => {
@@ -385,24 +459,27 @@ exports.setUserData = async function setUserData(userObject, fields, newUser) {
             let updateColumns = ['userId = LAST_INSERT_ID(userId)'];
             let binds = [userObject.userName];
 
-            if (newUser && userObject.firstName) {
+            const identityUpdate = (column, newUserExpr) =>
+                newUser ? newUserExpr : `${column} = IF(${column} = '' OR ${column} IS NULL, VALUES(${column}), ${column})`;
+
+            if (userObject.firstName) {
                 insertColumns.push('firstName');
-                updateColumns.push('firstName = VALUES(firstName)');
+                updateColumns.push(identityUpdate('firstName', 'firstName = VALUES(firstName)'));
                 binds.push(userObject.firstName);
             }
-            if (newUser && userObject.lastName) {
+            if (userObject.lastName) {
                 insertColumns.push('lastName');
-                updateColumns.push('lastName = VALUES(lastName)');
+                updateColumns.push(identityUpdate('lastName', 'lastName = VALUES(lastName)'));
                 binds.push(userObject.lastName);
             }
-            if (newUser && userObject.fullName) {
+            if (userObject.fullName) {
                 insertColumns.push('fullName');
-                updateColumns.push('fullName = VALUES(fullName)');
+                updateColumns.push(identityUpdate('fullName', 'fullName = VALUES(fullName)'));
                 binds.push(userObject.fullName);
             }
-            if (newUser && userObject.email) {
+            if (userObject.email) {
                 insertColumns.push('email');
-                updateColumns.push('email = VALUES(email)');
+                updateColumns.push(identityUpdate('email', 'email = VALUES(email)'));
                 binds.push(userObject.email);
             }
             if (fields.lastAccess) {
