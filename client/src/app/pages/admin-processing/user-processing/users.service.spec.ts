@@ -71,6 +71,37 @@ describe('UsersService', () => {
     });
   });
 
+  describe('User Creation Methods', () => {
+    it('should create (onboard) a user', () => {
+      const newUser = { userName: 'jdoe', firstName: 'John', lastName: 'Doe', email: 'jdoe@example.com', accountStatus: 'ACTIVE' };
+      const createdUser = { ...mockUser, ...newUser, userId: 99 };
+
+      service.createUser(newUser).subscribe((data) => {
+        expect(data).toEqual(createdUser);
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/user?elevate=true`);
+
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(newUser);
+      req.flush(createdUser);
+    });
+
+    it('should surface the original error on duplicate username', () => {
+      const newUser = { userName: 'jdoe', accountStatus: 'ACTIVE' };
+
+      service.createUser(newUser).subscribe({
+        error: (error) => {
+          expect(error.status).toBe(422);
+        }
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/user?elevate=true`);
+
+      req.flush({ error: 'A user with this username already exists' }, { status: 422, statusText: 'Unprocessable Entity' });
+    });
+  });
+
   describe('User Update Methods', () => {
     it('should update a user', () => {
       const updatedUser = { ...mockUser, firstName: 'Updated' };

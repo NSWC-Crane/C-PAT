@@ -13,7 +13,7 @@
   min-height: 200px;
 }
 
-::ng-deep {
+:host ::ng-deep {
   .assetDeltas {
     padding: 0rem;
 

@@ -48,6 +48,24 @@ module.exports.getUserByUserID = async function getUserByUserID(req, res, next) 
     }
 };
 
+module.exports.createUser = async function createUser(req, res, next) {
+    try {
+        const elevate = req.query.elevate;
+        const createdUser = await userService.createUser(elevate, req);
+        res.status(201).json(createdUser);
+    } catch (error) {
+        if (error instanceof SmError.PrivilegeError) {
+            res.status(403).json({ error: error.message, detail: error.detail });
+        } else if (error instanceof SmError.ClientError) {
+            res.status(400).json({ error: error.message, detail: error.detail });
+        } else if (error instanceof SmError.UnprocessableError) {
+            res.status(422).json({ error: error.message, detail: error.detail });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        }
+    }
+};
+
 module.exports.updateUser = async function updateUser(req, res, next) {
     try {
         const userId = req.userObject.userId;

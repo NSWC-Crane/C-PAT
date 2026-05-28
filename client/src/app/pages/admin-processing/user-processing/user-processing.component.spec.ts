@@ -17,9 +17,12 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
+import { ToastModule } from 'primeng/toast';
 import { CommonModule } from '@angular/common';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 import { UserProcessingComponent } from './user-processing.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { UsersService } from './users.service';
@@ -101,7 +104,8 @@ describe('UserProcessingComponent', () => {
     accessLevelSubject = new BehaviorSubject<any>(4);
 
     mockUsersService = {
-      getUsers: vi.fn().mockReturnValue(of(mockUsers))
+      getUsers: vi.fn().mockReturnValue(of(mockUsers)),
+      createUser: vi.fn()
     };
 
     mockPayloadService = {
@@ -129,7 +133,7 @@ describe('UserProcessingComponent', () => {
     })
       .overrideComponent(UserProcessingComponent, {
         set: {
-          imports: [ButtonModule, CommonModule, FormsModule, TableModule, MockUserComponent]
+          imports: [ButtonModule, CommonModule, DialogModule, FormsModule, SelectModule, TableModule, ToastModule, MockUserComponent]
         }
       })
       .compileComponents();
@@ -339,16 +343,63 @@ describe('UserProcessingComponent', () => {
     it('should pass filename and timestamp flag', () => {
       component.exportCSV();
 
-      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(
-        expect.any(Array),
-        expect.objectContaining({ filename: 'users_export', includeTimestamp: true })
-      );
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ filename: 'users_export', includeTimestamp: true }));
     });
 
     it('should pass cols to exportToCsv options', () => {
       component.exportCSV();
 
       expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(expect.any(Array), expect.objectContaining({ columns: component.cols }));
+    });
+  });
+
+  describe('onboard user', () => {
+    it('openOnboardDialog should show the dialog and reset the form', () => {
+      component.newUser = { userName: 'stale', firstName: 'x', lastName: 'y', email: 'z', accountStatus: 'PENDING' };
+      component.showOnboardDialog = false;
+
+      component.openOnboardDialog();
+
+      expect(component.showOnboardDialog).toBe(true);
+      expect(component.newUser).toEqual({ userName: '', firstName: '', lastName: '', email: '', accountStatus: 'PENDING' });
+    });
+
+    it('onboardUser should warn and not call createUser when username is blank', () => {
+      const addSpy = vi.spyOn((component as any).messageService, 'add');
+
+      component.newUser = { userName: '  ', firstName: '', lastName: '', email: '', accountStatus: 'PENDING' };
+      component.onboardUser();
+
+      expect(mockUsersService.createUser).not.toHaveBeenCalled();
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn' }));
+    });
+
+    it('onboardUser should create the user, close the dialog, and select the new user on success', () => {
+      const created = { userId: 99, userName: 'jdoe', accountStatus: 'ACTIVE', permissions: [], assignedTeams: [] };
+
+      mockUsersService.createUser.mockReturnValue(of(created));
+      const setUserSpy = vi.spyOn(component, 'setUser');
+      const getDataSpy = vi.spyOn(component, 'getUserData');
+
+      component.newUser = { userName: '  jdoe  ', firstName: 'John', lastName: 'Doe', email: 'jdoe@example.com', accountStatus: 'ACTIVE' };
+      component.onboardUser();
+
+      expect(mockUsersService.createUser).toHaveBeenCalledWith(expect.objectContaining({ userName: 'jdoe' }));
+      expect(component.showOnboardDialog).toBe(false);
+      expect(component.onboarding).toBe(false);
+      expect(getDataSpy).toHaveBeenCalled();
+      expect(setUserSpy).toHaveBeenCalledWith(created);
+    });
+
+    it('onboardUser should show a duplicate-username message on 422', () => {
+      mockUsersService.createUser.mockReturnValue(throwError(() => ({ status: 422 })));
+      const addSpy = vi.spyOn((component as any).messageService, 'add');
+
+      component.newUser = { userName: 'jdoe', firstName: '', lastName: '', email: '', accountStatus: 'ACTIVE' };
+      component.onboardUser();
+
+      expect(component.onboarding).toBe(false);
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: 'A user with this username already exists.' }));
     });
   });
 
