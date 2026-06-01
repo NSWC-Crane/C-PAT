@@ -304,7 +304,7 @@ describe('PoamExportService', () => {
     });
 
     it('should require selected columns', () => {
-      const selectedColumns = ['C', 'E', 'G', 'H'];
+      const selectedColumns = ['C', 'G', 'K', 'V'];
 
       expect(selectedColumns).toContain('C');
       expect(selectedColumns).toHaveLength(4);
@@ -319,10 +319,10 @@ describe('PoamExportService', () => {
     });
 
     it('should handle column selection for scheduled completion date', () => {
-      const columns = ['H'];
+      const columns = ['G'];
       const poam = { scheduledCompletionDate: '2024-12-31T00:00:00Z' };
 
-      expect(columns.includes('H')).toBe(true);
+      expect(columns.includes('G')).toBe(true);
       expect(poam.scheduledCompletionDate).toBeTruthy();
     });
   });
@@ -331,24 +331,28 @@ describe('PoamExportService', () => {
     const expectedMappings: { [key: string]: string } = {
       C: 'description',
       D: 'controlAPs',
-      E: 'officeOrg',
-      F: 'vulnerabilityId',
-      G: 'requiredResources',
-      H: 'scheduledCompletionDate',
-      I: 'milestones',
-      J: 'milestones',
-      K: 'milestones',
-      L: 'vulnerabilitySource',
-      M: 'status',
-      N: 'cci',
-      O: 'rawSeverity',
-      P: 'devicesAffected',
-      Q: 'mitigations',
-      R: 'predisposingConditions',
-      V: 'likelihood',
-      X: 'impactDescription',
-      Y: 'residualRisk',
-      AA: 'adjSeverity'
+      E: 'vulnerabilityId',
+      F: 'status',
+      G: 'scheduledCompletionDate',
+      I: 'closedDate',
+      J: 'milestone',
+      K: 'milestone',
+      L: 'milestone',
+      N: 'milestone',
+      O: 'milestone',
+      P: 'vulnerabilitySource',
+      R: 'officeOrg',
+      S: 'requiredResources',
+      T: 'cci',
+      U: 'rawSeverity',
+      V: 'devicesAffected',
+      W: 'mitigations',
+      X: 'predisposingConditions',
+      Y: 'rawSeverity',
+      AB: 'likelihood',
+      AD: 'impactDescription',
+      AE: 'residualRisk',
+      AG: 'adjSeverity'
     };
 
     Object.entries(expectedMappings).forEach(([column, field]) => {
@@ -360,20 +364,26 @@ describe('PoamExportService', () => {
   });
 
   describe('status mapping', () => {
-    it('should map Closed status to Completed', () => {
-      const status = 'Closed';
-      const mapped = status === 'Closed' ? 'Completed' : 'Ongoing';
+    const mapStatus = (status: string): string => {
+      if (status === 'Closed') return 'Completed';
+      if (status === 'False-Positive') return 'Not Applicable';
 
-      expect(mapped).toBe('Completed');
+      return 'Ongoing';
+    };
+
+    it('should map Closed status to Completed', () => {
+      expect(mapStatus('Closed')).toBe('Completed');
     });
 
-    it('should map non-Closed status to Ongoing', () => {
-      const statuses = ['Draft', 'Submitted', 'Approved', 'Rejected'];
+    it('should map False-Positive status to Not Applicable', () => {
+      expect(mapStatus('False-Positive')).toBe('Not Applicable');
+    });
+
+    it('should map all other statuses to Ongoing', () => {
+      const statuses = ['Expired', 'Submitted', 'Pending CAT-I Approval', 'Extension Requested', 'Approved', 'Rejected', 'Draft'];
 
       statuses.forEach((status) => {
-        const mapped = status === 'Closed' ? 'Completed' : 'Ongoing';
-
-        expect(mapped).toBe('Ongoing');
+        expect(mapStatus(status)).toBe('Ongoing');
       });
     });
   });

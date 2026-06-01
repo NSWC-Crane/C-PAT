@@ -6,27 +6,14 @@
       "name": "app",
       "installMode": "prefetch",
       "resources": {
-        "files": [
-          "/favicon.ico",
-          "/index.html",
-          "/silent-renew.html",
-          "/*.css",
-          "/*.js",
-          "/3rdpartylicenses.txt",
-          "/pattern.*.png",
-          "/primeicons.*.{svg,ttf,woff,eot,woff2}"
-        ]
+        "files": ["/favicon.ico", "/index.html", "/silent-renew.html", "/*.css", "/*.js", "/3rdpartylicenses.txt", "/pattern.*.png", "/primeicons.*.{svg,ttf,woff,eot,woff2}"]
       }
     },
     {
       "name": "assets-immediate",
       "installMode": "prefetch",
       "resources": {
-        "files": [
-          "/assets/styles/**",
-          "/assets/icons/*.{svg,png}",
-          "/assets/*.png"
-        ]
+        "files": ["/assets/styles/**", "/assets/icons/*.{svg,png}", "/assets/*.png"]
       }
     },
     {
@@ -34,18 +21,14 @@
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
-        "files": [
-          "/assets/eMASS_Template.xlsx",
-          "/assets/theme-previews/*",
-          "/assets/vram/*"
-        ]
+        "files": ["/assets/NAVY_eMASS_TEMPLATE.xlsx", "/assets/theme-previews/*", "/assets/vram/*"]
       }
     }
   ],
   "dataGroups": [
     {
       "name": "api-fresh",
-      "urls": [ "/api/**" ],
+      "urls": ["/api/**"],
       "cacheConfig": {
         "strategy": "freshness",
         "maxSize": 100,
@@ -54,12 +37,5 @@
       }
     }
   ],
-  "navigationUrls": [
-    "/**",
-    "!/**/*.*",
-    "!/**/*__*",
-    "!/**/*__*/**",
-    "!/**/[*",
-    "!/silent-renew.html"
-  ]
+  "navigationUrls": ["/**", "!/**/*.*", "!/**/*__*", "!/**/*__*/**", "!/**/[*", "!/silent-renew.html"]
 }
