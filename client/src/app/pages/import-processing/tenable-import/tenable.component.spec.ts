@@ -11,6 +11,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, afterEach } from 'vitest';
 import { TenableComponent } from './tenable.component';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 describe('TenableComponent', () => {
   let component: TenableComponent;
@@ -30,7 +31,8 @@ describe('TenableComponent', () => {
     sessionStorage.clear();
 
     await TestBed.configureTestingModule({
-      imports: [TenableComponent]
+      imports: [TenableComponent],
+      providers: [provideUiTour()]
     })
       .overrideComponent(TenableComponent, {
         set: { imports: [], template: '<div></div>' }

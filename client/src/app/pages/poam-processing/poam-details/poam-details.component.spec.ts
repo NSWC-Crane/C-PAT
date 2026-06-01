@@ -31,6 +31,7 @@ import { PoamMitigationService } from './services/poam-mitigation.service';
 import { PoamResourceService } from './services/poam-resource.service';
 import { PoamValidationService } from './services/poam-validation.service';
 import { PoamVariableMappingService } from './services/poam-variable-mapping.service';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 describe('PoamDetailsComponent', () => {
   let component: PoamDetailsComponent;
@@ -201,7 +202,8 @@ describe('PoamDetailsComponent', () => {
           useValue: {
             params: paramsSubject.asObservable()
           }
-        }
+        },
+        provideUiTour()
       ]
     })
       .overrideComponent(PoamDetailsComponent, {

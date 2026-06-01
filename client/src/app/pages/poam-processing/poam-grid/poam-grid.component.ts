@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { NgTemplateOutlet } from '@angular/common';
 import { AfterViewInit, Component, Input, OnDestroy, OnInit, computed, effect, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -37,13 +38,14 @@ import { CollectionsService } from '../../admin-processing/collection-processing
 import { ImportService } from '../../import-processing/import.service';
 import { PoamService } from '../poams.service';
 import { PoamExportStatusSelectionComponent } from '../../../common/utils/poam-export-status-selection.component';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 
 @Component({
   selector: 'cpat-poam-grid',
   templateUrl: './poam-grid.component.html',
   styleUrls: ['./poam-grid.component.scss'],
   standalone: true,
-  imports: [FormsModule, ButtonModule, CardModule, SelectModule, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, TableModule, TooltipModule, ToastModule, TagModule]
+  imports: [FormsModule, ButtonModule, CardModule, SelectModule, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, NgTemplateOutlet, TableModule, TooltipModule, ToastModule, TagModule, TourPrimeNg]
 })
 export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly dialogService = inject(DialogService);
@@ -61,6 +63,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input() userId?: number;
   @Input() variant?: string;
+  @Input() showTourAnchor = false;
 
   globalFilterSignal = signal<string>('');
 

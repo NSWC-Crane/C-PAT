@@ -111,7 +111,7 @@
   <div [class]="'h-[calc(100vh-11rem)] overflow-hidden ' + (isGridExpanded() ? 'col-span-10' : 'col-span-8 rounded-3xl md:col-span-4')">
     <p-card class="assigned-grid" styleClass="assigned-grid flex h-full flex-col">
       <p-tabs value="0" class="mt-2 flex flex-1 flex-col" scrollable lazy>
-        <p-tablist>
+        <p-tablist tourAnchor="assigned-grid">
           <p-tab value="0">All POAMs</p-tab>
           <p-tab value="1">Needs Attention</p-tab>
           @if (accessLevel() >= 2) {
@@ -131,7 +131,7 @@
         <p-tabpanels>
           <p-tabpanel value="0" styleClass="flex flex-1 flex-col">
             <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
-              <cpat-poam-grid [poamsData]="allPoams()" variant="all" [affectedAssetCounts]="affectedAssetCounts()" />
+              <cpat-poam-grid [poamsData]="allPoams()" variant="all" [affectedAssetCounts]="affectedAssetCounts()" [showTourAnchor]="true" />
             </div>
           </p-tabpanel>
 

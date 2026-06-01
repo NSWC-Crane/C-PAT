@@ -10,7 +10,7 @@
 
 <p-card class="stigman-import-card">
   <p-tabs value="0" scrollable lazy>
-    <p-tablist>
+    <p-tablist tourAnchor="stigmanager-tabset">
       <p-tab value="0">
         @if (viewMode === 'summary') {
           <span>STIG Manager Benchmarks ({{ benchmarksCount() }})</span>
@@ -70,8 +70,8 @@
                   <th scope="col" pSortableColumn="cat3Count">CAT III</th>
                 </tr>
               </ng-template>
-              <ng-template pTemplate="body" let-benchmark>
-                <tr (click)="selectBenchmark(benchmark)" [style.cursor]="'pointer'">
+              <ng-template pTemplate="body" let-benchmark let-rowIndex="rowIndex">
+                <tr [tourAnchor]="rowIndex === 0 ? 'stigmanager-summary' : ''" (click)="selectBenchmark(benchmark)" [style.cursor]="'pointer'">
                   <td>{{ benchmark.benchmarkId }}</td>
                   <td>{{ benchmark.revisionStr }}</td>
                   <td>{{ benchmark.assets }}</td>
@@ -208,7 +208,7 @@
                     }
                   </tr>
                 </ng-template>
-                <ng-template pTemplate="body" let-rowData>
+                <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
                   <tr>
                     @for (col of allColumns; track col) {
                       <td>
@@ -218,12 +218,14 @@
                           @switch (col.field) {
                             @case ('poam') {
                               <i
+                                [tourAnchor]="rowIndex === 0 ? 'stigmanager-poam-creation' : ''"
                                 [ngClass]="rowData.hasExistingPoam ? getPoamStatusIcon(rowData.poamStatus, rowData.isAssociated) : 'pi pi-plus-circle'"
                                 [ngStyle]="{
                                   color: !rowData.hasExistingPoam ? 'maroon' : getPoamStatusColor(rowData.poamStatus, rowData.parentStatus),
                                   'font-size': '1.5rem',
                                   cursor: 'pointer',
-                                  'justify-content': 'center'
+                                  'justify-content': 'center',
+                                  padding: '0.25rem'
                                 }"
                                 (click)="addPoam(rowData)"
                                 (keyup.enter)="addPoam(rowData)"

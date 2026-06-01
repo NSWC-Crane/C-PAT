@@ -22,6 +22,7 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ChartModule } from 'primeng/chart';
 import { DividerModule } from 'primeng/divider';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 import { MetricData } from '../../../common/models/metrics.model';
 
 interface STIGManagerMetrics {
@@ -53,7 +54,7 @@ interface STIGManagerMetrics {
   styleUrls: ['./stigman-metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ButtonModule, CardModule, ProgressBarModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule]
+  imports: [CommonModule, ButtonModule, CardModule, ProgressBarModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule, TourPrimeNg]
 })
 export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   private readonly sharedService = inject(SharedService);

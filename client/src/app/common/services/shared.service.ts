@@ -10,7 +10,7 @@
 
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
@@ -21,6 +21,8 @@ export class SharedService {
   private readonly STIGMANAGER_URL = CPAT.Env.stigman.apiUrl;
   private readonly _selectedCollection = new BehaviorSubject<any>(null);
   public readonly selectedCollection = this._selectedCollection.asObservable();
+  private readonly _startTour = new Subject<void>();
+  public readonly startTour$ = this._startTour.asObservable();
 
   private handleError(error: any) {
     let errorMessage = 'An unknown error occurred!';
@@ -38,6 +40,10 @@ export class SharedService {
 
   public setSelectedCollection(collection: number): void {
     this._selectedCollection.next(collection);
+  }
+
+  public startTour(): void {
+    this._startTour.next();
   }
 
   getApiConfig(): Observable<any> {

@@ -17,6 +17,7 @@ import { STIGManagerMetricsComponent } from './stigman-metrics.component';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 beforeAll(() => {
   (globalThis as any).CPAT = { Env: { apiBase: '/api' } };
@@ -81,11 +82,7 @@ describe('STIGManagerMetricsComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [STIGManagerMetricsComponent],
-      providers: [
-        { provide: SharedService, useValue: mockSharedService },
-        { provide: CollectionsService, useValue: mockCollectionsService },
-        { provide: MessageService, useValue: mockMessageService }
-      ],
+      providers: [{ provide: SharedService, useValue: mockSharedService }, { provide: CollectionsService, useValue: mockCollectionsService }, { provide: MessageService, useValue: mockMessageService }, provideUiTour()],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 

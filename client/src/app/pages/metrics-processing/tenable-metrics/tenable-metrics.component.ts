@@ -18,6 +18,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TooltipModule } from 'primeng/tooltip';
 import { ChartModule } from 'primeng/chart';
 import { DividerModule } from 'primeng/divider';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 import { EMPTY, Observable, catchError, combineLatest, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
@@ -90,7 +91,7 @@ interface CachedVulnerabilityData {
   styleUrls: ['./tenable-metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ButtonModule, ButtonGroupModule, CardModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule, TenableHighRiskAssetsTableComponent]
+  imports: [CommonModule, ButtonModule, ButtonGroupModule, CardModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule, TenableHighRiskAssetsTableComponent, TourPrimeNg]
 })
 export class TenableMetricsComponent implements OnInit, OnChanges {
   private readonly importService = inject(ImportService);

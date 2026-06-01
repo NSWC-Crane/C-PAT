@@ -91,6 +91,14 @@ svg[data-p-icon='filter-fill'] path {
   }
 }
 
+.filter-guide-visible {
+  left: 25rem !important;
+}
+
+.ngx-ui-tour_backdrop {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
 .ngx-charts-outer {
   -webkit-animation: chartFadeIn linear 0 !important;
   animation: chartFadeIn linear 0 !important;

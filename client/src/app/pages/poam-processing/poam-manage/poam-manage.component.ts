@@ -27,13 +27,14 @@ import { ImportService } from '../../import-processing/import.service';
 import { PoamAdvancedPieComponent } from '../poam-advanced-pie/poam-advanced-pie.component';
 import { PoamGridComponent } from '../poam-grid/poam-grid.component';
 import { PoamMilestoneGridComponent } from '../poam-milestone-grid/poam-milestone-grid.component';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 
 @Component({
   selector: 'cpat-poam-manage',
   templateUrl: './poam-manage.component.html',
   styleUrls: ['./poam-manage.component.scss'],
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamGridComponent, PoamMilestoneGridComponent]
+  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamGridComponent, PoamMilestoneGridComponent, TourPrimeNg]
 })
 export class PoamManageComponent implements OnInit, OnDestroy {
   private readonly collectionsService = inject(CollectionsService);

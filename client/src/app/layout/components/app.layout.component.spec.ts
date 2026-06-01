@@ -9,6 +9,7 @@ import { UsersService } from '../../pages/admin-processing/user-processing/users
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { SharedService } from '../../common/services/shared.service';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 describe('AppLayoutComponent', () => {
   let component: AppLayoutComponent;
@@ -87,7 +88,9 @@ describe('AppLayoutComponent', () => {
     };
 
     mockSharedService = {
-      setSelectedCollection: vi.fn()
+      setSelectedCollection: vi.fn(),
+      startTour: vi.fn(),
+      startTour$: new Subject()
     };
 
     mockRouter = {
@@ -107,7 +110,8 @@ describe('AppLayoutComponent', () => {
         { provide: CollectionsService, useValue: mockCollectionsService },
         { provide: SharedService, useValue: mockSharedService },
         { provide: Router, useValue: mockRouter },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn() } } } }
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn() } } } },
+        provideUiTour()
       ]
     }).compileComponents();
 

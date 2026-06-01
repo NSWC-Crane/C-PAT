@@ -11,6 +11,7 @@ import { NotificationService } from '../../common/components/notifications/notif
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { SharedService } from '../../common/services/shared.service';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 describe('AppNavigationComponent', () => {
   let component: AppNavigationComponent;
@@ -94,7 +95,9 @@ describe('AppNavigationComponent', () => {
 
     mockSharedService = {
       setSelectedCollection: vi.fn(),
-      getApiConfig: vi.fn().mockReturnValue(of({ classification: 'U' }))
+      getApiConfig: vi.fn().mockReturnValue(of({ classification: 'U' })),
+      startTour: vi.fn(),
+      startTour$: new Subject()
     };
 
     mockRouter = {
@@ -118,7 +121,8 @@ describe('AppNavigationComponent', () => {
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn() } } } },
         { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ElementRef, useValue: { nativeElement: { children: [{ classList: { add: vi.fn(), remove: vi.fn() } }] } } },
-        { provide: Renderer2, useValue: { listen: vi.fn().mockReturnValue(vi.fn()) } }
+        { provide: Renderer2, useValue: { listen: vi.fn().mockReturnValue(vi.fn()) } },
+        provideUiTour()
       ]
     }).compileComponents();
 

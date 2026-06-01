@@ -9,7 +9,8 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
+import { Component, OnDestroy, OnInit, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -71,7 +72,8 @@ interface STIGManagerFinding {
     InputIconModule,
     IconFieldModule,
     ProgressBarModule,
-    TagModule
+    TagModule,
+    TourPrimeNg
   ]
 })
 export class STIGManagerImportComponent implements OnInit, OnDestroy {
