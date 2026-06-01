@@ -26,74 +26,96 @@ Field Mappings
      - Controls / APs
      - Controls / APs (Handeled behind the scenes)
    * - E
-     - Office/Org
-     - Exporting user's Office/Org, Full Name, Email.
-   * - F
      - Security Checks
      - Source Identifying Control Vulnerability - ID #
+   * - F
+     - POA&M Status
+     - Special formatting rules (See below for Special formatting rules)
    * - G
+     - POA&M Scheduled Completion Date
+     - Scheduled Completion Date
+   * - H
+     - POA&M Requested Risk Accepted Expiration Date
+     - Left blank
+   * - I
+     - POA&M Completion Date
+     - Closed Date
+   * - J
+     - Milestone ID
+     - Milestone number (Handeled behind the scenes)
+   * - K
+     - Milestone Description
+     - Milestone Comments
+   * - L
+     - Milestone Status
+     - Milestone Status
+   * - M
+     - Milestone Status Comments
+     - Left blank
+   * - N
+     - Milestone Scheduled Completion Date
+     - Milestone Date
+   * - O
+     - Milestone Completion Date
+     - Milestone Date when the milestone status is "Completed", otherwise blank
+   * - P
+     - Identification Source
+     - Source Identifying Vulnerability (See below for Special formatting rules)
+   * - Q
+     - Identification Source Details
+     - Left blank
+   * - R
+     - Office/Org
+     - Exporting user's Office/Org, Full Name, Email.
+   * - S
      - Resources Required
      - Required Resources
-   * - H
-     - Scheduled Completion Date
-     - Scheduled Completion Date
-   * - I
-     - Milestone ID
-     - "1" (Handeled behind the scenes)
-   * - J
-     - Milestone with Completion Dates
-     - Formatted milestone data (See below for milestone formatting details)
-   * - K
-     - Milestone Changes
-     - Formatted milestone change data (See below for milestone formatting details)
-   * - L
-     - Source Identifying Vulnerability 
-     - Special formatting rules (See below for Special formatting rules)
-   * - M
-     - Status
-     - Special formatting rules (See below for Special formatting rules)
-   * - N
+   * - T
      - Comments
      - Special formatting rules (See below for Special formatting rules)
-   * - O
+   * - U
      - Raw Severity
      - Raw Severity (See below for mapping)
-   * - P
+   * - V
      - Devices Affected
      - Affected assets list
-   * - Q
+   * - W
      - Mitigations (in-house and in conjunction with the Navy CSSP)
      - Mitigations
-   * - R
+   * - X
      - Predisposing Conditions
      - Predisposing Conditions
-   * - S
+   * - Y
      - Severity
      - Raw Severity (See below for mapping)
-   * - T
+   * - Z
      - Relevance of Threat
      - Default value, see below.
-   * - U
+   * - AA
      - Threat Description
      - Default value, see below.
-   * - V
+   * - AB
      - Likelihood
      - Likelihood
-   * - W
+   * - AC
      - Impact
      - Default value, see below.
-   * - X
+   * - AD
      - Impact Description
      - Impact Description
-   * - Y
+   * - AE
      - Residual Risk Level
      - Residual Risk
-   * - Z
+   * - AF
      - Recommendations
      - Default value, see below.
-   * - AA
+   * - AG
      - Resulting Residual Risk after Proposed Mitigations
      - Adjusted Severity (See below for mapping)
+
+.. note::
+   When a POAM has multiple milestones, a separate row is exported for each
+   milestone, with the POAM-level columns repeated on every row.
 
 Default Values
 ^^^^^^^^^^^^^^^
@@ -102,17 +124,17 @@ The following default values are always applied:
 
 .. code-block:: none
 
-   Column T (Relevance of Threat): "High"
-   Column U (Threat Description): "ADVERSARIAL - HIGH: Per table D-2 Taxonomy of Threat Sources lists ADVERSARIAL as individual (outsider, insider, trusted insider, privileged insider), therefore the Relevance of Threat defaults to HIGH."
-   Column W (Impact): "High"
-   Column Z (Recommendations): "After reviewing documentation, and interviewing system stakeholders, it has been determined that this vulnerability should be mitigated. The ISSO will continue to monitor this vulnerability, and update the POAM as necessary. See mitigations field for detailed mitigation information."
+   Column Z (Relevance of Threat): "High"
+   Column AA (Threat Description): "ADVERSARIAL - HIGH: Per table D-2 Taxonomy of Threat Sources lists ADVERSARIAL as individual (outsider, insider, trusted insider, privileged insider), therefore the Relevance of Threat defaults to HIGH."
+   Column AC (Impact): "High"
+   Column AF (Recommendations): "After reviewing documentation, and interviewing system stakeholders, it has been determined that this vulnerability should be mitigated. The ISSO will continue to monitor this vulnerability, and update the POAM as necessary. See mitigations field for detailed mitigation information."
 
 When no CCI is provided, the following defaults are applied:
 
 .. code-block:: none
 
    Column D (Controls / APs): "CM-6.5"
-   Column N (Comments): "CCI-000366 Control mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default."
+   Column T (Comments): "CCI-000366 Control mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default."
 
 .. note::
    The default CCI logic for exports is seperate from the CCI logic used throughout C-PAT. i.e. In STIG Manager, a query is made to ``/collections/{collectionId}/findings?aggregator=groupId&acceptedOnly=false&benchmarkId={benchmarkId}&projection=assets&projection=ccis`` and the CCI and AP Acronyms are pulled from the CCI projection. For Tenable, a query is made to ``plugin/{pluginId}``; if the plugin has a Patch Publication Date, the CCI is mapped to SI-2.9 / CCI-002605. If the plugin does not have a Patch Publication Date, the CCI is mapped to CM-6.5 / CCI-000366.
@@ -140,46 +162,55 @@ Severity Mapping
 
 Milestone Formatting
 ^^^^^^^^^^^^^^^^^^^^
-Milestones are formatted in two distinct sections:
+Each milestone is exported on its own row, with milestone data spread across
+the dedicated milestone columns:
 
-Comments (Column J)
-~~~~~~~~~~~~~~~~~~~~
+.. list-table:: Milestone Columns
+   :header-rows: 1
+   :widths: 10 30 60
 
-.. code-block:: none
-
-   Milestone {Milestone #}
-   {Milestone Comments}
-   Milestone Status: {Milestone Status}
-   Milestone Date: {Milestone Due Date (MM/dd/yyyy)}
-
-Changes (Column K)
-~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: none
-
-   Milestone {Milestone #} Changes:
-   {Milestone Change Comments}
-   Milestone Status: {Milestone Status}
-   Milestone Date Change: {Milestone Due Date (MM/dd/yyyy)}
+   * - Column
+     - eMASS Column Title
+     - C-PAT Mapped Field
+   * - J
+     - Milestone ID
+     - Milestone number (1, 2, 3, ...)
+   * - K
+     - Milestone Description
+     - Milestone Comments
+   * - L
+     - Milestone Status
+     - Milestone Status
+   * - M
+     - Milestone Status Comments
+     - Left blank
+   * - N
+     - Milestone Scheduled Completion Date
+     - Milestone Date (MM/dd/yyyy)
+   * - O
+     - Milestone Completion Date
+     - Milestone Date (MM/dd/yyyy) when the milestone status is "Completed", otherwise blank
 
 .. note::
 
-   Column I contains "1" if comments exist, otherwise the column remains empty.
+   A POAM with no milestones is exported as a single row with the milestone
+   columns left blank.
 
 Special Handling
 ^^^^^^^^^^^^^^^^
 
-Vulnerability Source (Column L)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Identification Source (Column P)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 * **STIG**: Formatted as {STIG TITLE} :: {Revision} Benchmark Date: {Last Revision Date}
 * **ACAS**: Plugin Name
 
-Status Mapping (Column M)
+Status Mapping (Column F)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 * **Closed**: Mapped to "Completed"
-* **Others**: Mapped to "Ongoing"
+* **False-Positive**: Mapped to "Not Applicable"
+* **Others** (Expired, Submitted, Pending CAT-I Approval, Extension Requested, Approved, Rejected): Mapped to "Ongoing"
 
-Comments Mapping (Column N)
+Comments Mapping (Column T)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 By default, comments are mapped to contain the following format:
 

@@ -49,21 +49,25 @@ export class EMASSOverwriteSelectionComponent {
 
   allFields: EMassField[] = [
     { column: 'C', description: 'Description', selected: true },
-    { column: 'E', description: 'Office/Org', selected: false },
-    { column: 'G', description: 'Resources Required', selected: true },
-    { column: 'H', description: 'Scheduled Completion Date', selected: true },
-    { column: 'J', description: 'Milestone with Completion Dates', selected: true },
-    { column: 'K', description: 'Milestone Changes', selected: true },
-    { column: 'L', description: 'Source Identifying Vulnerability', selected: false },
-    { column: 'M', description: 'Status', selected: false },
-    { column: 'O', description: 'Raw Severity', selected: false },
-    { column: 'P', description: 'Devices Affected', selected: true },
-    { column: 'Q', description: 'Mitigations', selected: true },
-    { column: 'R', description: 'Predisposing Conditions', selected: true },
-    { column: 'V', description: 'Likelihood', selected: false },
-    { column: 'X', description: 'Impact Description', selected: false },
-    { column: 'Y', description: 'Residual Risk Level', selected: false },
-    { column: 'AA', description: 'Resulting Residual Risk', selected: false }
+    { column: 'E', description: 'Security Checks', selected: false },
+    { column: 'F', description: 'POA&M Status', selected: false },
+    { column: 'G', description: 'POA&M Scheduled Completion Date', selected: true },
+    { column: 'I', description: 'POA&M Completion Date', selected: false },
+    { column: 'K', description: 'Milestone Description', selected: true },
+    { column: 'L', description: 'Milestone Status', selected: true },
+    { column: 'N', description: 'Milestone Scheduled Completion Date', selected: true },
+    { column: 'O', description: 'Milestone Completion Date', selected: false },
+    { column: 'P', description: 'Identification Source', selected: false },
+    { column: 'R', description: 'Office/Org', selected: false },
+    { column: 'S', description: 'Resources Required', selected: true },
+    { column: 'U', description: 'Raw Severity', selected: false },
+    { column: 'V', description: 'Devices Affected', selected: true },
+    { column: 'W', description: 'Mitigations', selected: true },
+    { column: 'X', description: 'Predisposing Conditions', selected: true },
+    { column: 'AB', description: 'Likelihood', selected: false },
+    { column: 'AD', description: 'Impact Description', selected: false },
+    { column: 'AE', description: 'Residual Risk Level', selected: false },
+    { column: 'AG', description: 'Resulting Residual Risk', selected: false }
   ];
 
   selectedFields: EMassField[] = [];

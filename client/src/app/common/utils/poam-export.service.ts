@@ -93,30 +93,63 @@ export class PoamExportService {
         return 'ff007a33';
     }
   }
-  private static formatMilestones(poam: Poam): {
-    comments: string;
-    changes: string;
+  private static mapStatus(status: string): string {
+    if (status === 'Closed') return 'Completed';
+    if (status === 'False-Positive') return 'Not Applicable';
+
+    return 'Ongoing';
+  }
+
+  private static formatDate(value: any): string {
+    return value ? format(new Date(value), 'MM/dd/yyyy') : '';
+  }
+
+  private static getMilestoneCellValue(columnKey: string, milestone: Poam['milestones'][number] | null, milestoneIndex: number): string {
+    if (!milestone) return '';
+
+    switch (columnKey) {
+      case 'J':
+        return String(milestoneIndex + 1);
+      case 'K':
+        return milestone.milestoneComments || '';
+      case 'L':
+        return milestone.milestoneStatus || '';
+      case 'M':
+        return '';
+      case 'N':
+        return PoamExportService.formatDate(milestone.milestoneDate);
+      case 'O':
+        return milestone.milestoneStatus === 'Completed' ? PoamExportService.formatDate(milestone.milestoneDate) : '';
+      default:
+        return '';
+    }
+  }
+
+  private static formatMilestonesForColumns(poam: Poam): {
+    descriptions: string;
+    statuses: string;
+    schedDates: string;
+    completionDates: string;
   } {
-    let comments = '';
-    let changes = '';
+    const descriptions: string[] = [];
+    const statuses: string[] = [];
+    const schedDates: string[] = [];
+    const completionDates: string[] = [];
 
     if (poam?.milestones?.length > 0) {
       poam.milestones.forEach((milestone, index) => {
-        const milestoneNumber = index + 1;
-
-        if (milestone.milestoneComments) {
-          comments += `Milestone ${milestoneNumber}:\n${milestone.milestoneComments || ''} \nMilestone Status: ${milestone.milestoneStatus}\nMilestone Date: ${milestone.milestoneDate ? format(new Date(milestone.milestoneDate), 'MM/dd/yyyy') : ''}\n\n\n`;
-        }
-
-        if (milestone.milestoneChangeComments) {
-          changes += `Milestone ${milestoneNumber} Changes:\n${milestone.milestoneChangeComments || ''} \nMilestone Status: ${milestone.milestoneStatus}\nMilestone Date Change: ${milestone.milestoneChangeDate ? format(new Date(milestone.milestoneChangeDate), 'MM/dd/yyyy') : ''}\n\n\n`;
-        }
+        descriptions.push(PoamExportService.getMilestoneCellValue('K', milestone, index));
+        statuses.push(PoamExportService.getMilestoneCellValue('L', milestone, index));
+        schedDates.push(PoamExportService.getMilestoneCellValue('N', milestone, index));
+        completionDates.push(PoamExportService.getMilestoneCellValue('O', milestone, index));
       });
     }
 
     return {
-      comments: comments.trim() || '',
-      changes: changes.trim() || ''
+      descriptions: descriptions.join('\n').trim(),
+      statuses: statuses.join('\n').trim(),
+      schedDates: schedDates.join('\n').trim(),
+      completionDates: completionDates.join('\n').trim()
     };
   }
 
@@ -143,7 +176,7 @@ export class PoamExportService {
   static async convertToExcel(poams: Poam[], exportingUser: any, exportCollection: any): Promise<Blob> {
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.default.Workbook();
-    const response = await fetch(`${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/assets/eMASS_Template.xlsx`);
+    const response = await fetch(`${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/assets/NAVY_eMASS_TEMPLATE.xlsx`);
     const arrayBuffer = await response.arrayBuffer();
 
     await workbook.xlsx.load(arrayBuffer, {
@@ -156,29 +189,35 @@ export class PoamExportService {
       B: '',
       C: 'description',
       D: 'controlAPs',
-      E: 'officeOrg',
-      F: 'vulnerabilityId',
-      G: 'requiredResources',
-      H: 'scheduledCompletionDate',
-      I: 'milestones',
-      J: 'milestones',
-      K: 'milestones',
-      L: 'vulnerabilitySource',
-      M: 'status',
-      N: 'cci',
-      O: 'rawSeverity',
-      P: 'devicesAffected',
-      Q: 'mitigations',
-      R: 'predisposingConditions',
-      S: 'rawSeverity',
-      T: '',
-      U: '',
-      V: 'likelihood',
-      W: '',
-      X: 'impactDescription',
-      Y: 'residualRisk',
+      E: 'vulnerabilityId',
+      F: 'status',
+      G: 'scheduledCompletionDate',
+      H: '',
+      I: 'closedDate',
+      J: 'milestone',
+      K: 'milestone',
+      L: 'milestone',
+      M: 'milestone',
+      N: 'milestone',
+      O: 'milestone',
+      P: 'vulnerabilitySource',
+      Q: '',
+      R: 'officeOrg',
+      S: 'requiredResources',
+      T: 'cci',
+      U: 'rawSeverity',
+      V: 'devicesAffected',
+      W: 'mitigations',
+      X: 'predisposingConditions',
+      Y: 'rawSeverity',
       Z: '',
-      AA: 'adjSeverity'
+      AA: '',
+      AB: 'likelihood',
+      AC: '',
+      AD: 'impactDescription',
+      AE: 'residualRisk',
+      AF: '',
+      AG: 'adjSeverity'
     };
 
     const currentDate = format(new Date(), 'MM/dd/yyyy');
@@ -188,10 +227,10 @@ export class PoamExportService {
     worksheet!.getCell('D4').value = exportCollection.ccsafa ?? '';
     worksheet!.getCell('D5').value = exportCollection.systemName ?? '';
     worksheet!.getCell('D6').value = 'N/A';
-    worksheet!.getCell('L2').value = exportCollection.systemType ?? '';
-    worksheet!.getCell('L4').value = exportingUser.fullName.toUpperCase() ?? '';
-    worksheet!.getCell('L5').value = exportingUser.phoneNumber.toUpperCase() ?? '';
-    worksheet!.getCell('L6').value = exportingUser.email.toUpperCase() ?? '';
+    worksheet!.getCell('M2').value = exportCollection.systemType ?? '';
+    worksheet!.getCell('M4').value = exportingUser.fullName.toUpperCase() ?? '';
+    worksheet!.getCell('M5').value = exportingUser.phoneNumber.toUpperCase() ?? '';
+    worksheet!.getCell('M6').value = exportingUser.email.toUpperCase() ?? '';
     const cellA1 = worksheet!.getCell('A1');
 
     cellA1.value = PoamExportService.getClassificationText(CPAT.Env.classification);
@@ -223,32 +262,28 @@ export class PoamExportService {
           return poam.vulnerabilitySource;
         }
       },
-      status: (value: any, _poam: Poam, _columnKey: string): string => (value === 'Closed' ? 'Completed' : 'Ongoing'),
-      scheduledCompletionDate: (value: any, _poam: Poam, _columnKey: string): string => (value ? format(new Date(value), 'MM/dd/yyyy') : ''),
+      status: (value: any, _poam: Poam, _columnKey: string): string => PoamExportService.mapStatus(value),
+      scheduledCompletionDate: (value: any, _poam: Poam, _columnKey: string): string => PoamExportService.formatDate(value),
+      closedDate: (value: any, _poam: Poam, _columnKey: string): string => PoamExportService.formatDate(value),
       cci: (value: any, _poam: Poam, _columnKey: string): string => `CCI-${value}`,
-      milestones: (_value: any, poam: Poam, columnKey: string): string => {
-        const formattedMilestones = PoamExportService.formatMilestones(poam);
-
-        if (columnKey === 'I') return formattedMilestones.comments ? '1' : '';
-        if (columnKey === 'J') return formattedMilestones.comments;
-        if (columnKey === 'K') return formattedMilestones.changes;
-
-        return '';
-      },
       mitigations: (_value: any, poam: Poam, _columnKey: string): string => PoamExportService.formatMitigations(poam)
     };
 
     const optionalDefaultValues: { [key: string]: string } = {
       D: 'CM-6.5',
-      N: `CCI-000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.`,
-      T: 'High',
-      W: 'High',
-      U: 'ADVERSARIAL - HIGH: Per table D-2 Taxonomy of Threat Sources lists ADVERSARIAL as individual (outsider, insider, trusted insider, privileged insider), therefore the Relevance of Threat defaults to HIGH.',
-      Z: 'After reviewing documentation, and interviewing system stakeholders, it has been determined that this vulnerability should be mitigated. The ISSO will continue to monitor this vulnerability, and update the POAM as necessary. See mitigations field for detailed mitigation information.'
+      T: `CCI-000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.`,
+      Z: 'High',
+      AC: 'High',
+      AA: 'ADVERSARIAL - HIGH: Per table D-2 Taxonomy of Threat Sources lists ADVERSARIAL as individual (outsider, insider, trusted insider, privileged insider), therefore the Relevance of Threat defaults to HIGH.',
+      AF: 'After reviewing documentation, and interviewing system stakeholders, it has been determined that this vulnerability should be mitigated. The ISSO will continue to monitor this vulnerability, and update the POAM as necessary. See mitigations field for detailed mitigation information.'
     };
 
-    const getCellValue = (poam: Poam, dbKey: string, columnKey: string): any => {
-      if (columnKey === 'N') {
+    const getCellValue = (poam: Poam, dbKey: string, columnKey: string, milestone: Poam['milestones'][number] | null, milestoneIndex: number): any => {
+      if (dbKey === 'milestone') {
+        return PoamExportService.getMilestoneCellValue(columnKey, milestone, milestoneIndex);
+      }
+
+      if (columnKey === 'T') {
         const cciValue = poam[dbKey] !== undefined && poam[dbKey] !== '' ? (cellValueMappers[dbKey] ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey) : poam[dbKey]) : optionalDefaultValues[columnKey] || '';
         const impactDescription = poam['impactDescription'] || '';
 
@@ -269,14 +304,18 @@ export class PoamExportService {
     };
 
     poams.forEach((poam: Poam) => {
-      const row = worksheet!.getRow(rowIndex);
+      const milestoneRows = poam?.milestones?.length > 0 ? poam.milestones : [null];
 
-      Object.entries(excelColumnToDbColumnMapping).forEach(([columnKey, dbKey]) => {
-        row.getCell(columnKey).value = getCellValue(poam, dbKey, columnKey);
+      milestoneRows.forEach((milestone, milestoneIndex) => {
+        const row = worksheet!.getRow(rowIndex);
+
+        Object.entries(excelColumnToDbColumnMapping).forEach(([columnKey, dbKey]) => {
+          row.getCell(columnKey).value = getCellValue(poam, dbKey, columnKey, milestone, milestoneIndex);
+        });
+
+        row.commit();
+        rowIndex++;
       });
-
-      row.commit();
-      rowIndex++;
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
@@ -437,8 +476,8 @@ export class PoamExportService {
 
     let rowIndex = 8;
 
-    while (worksheet.getCell(`F${rowIndex}`).value) {
-      const vulnerabilityId = worksheet.getCell(`F${rowIndex}`).value?.toString();
+    while (worksheet.getCell(`E${rowIndex}`).value) {
+      const vulnerabilityId = worksheet.getCell(`E${rowIndex}`).value?.toString();
       const matchingPoam = processedPoams.find((p) => p.vulnerabilityId === vulnerabilityId);
 
       if (matchingPoam) {
@@ -446,70 +485,82 @@ export class PoamExportService {
           worksheet.getCell(`C${rowIndex}`).value = matchingPoam.description;
         }
 
-        if (selectedColumns.includes('E') && matchingPoam.officeOrg) {
-          worksheet.getCell(`E${rowIndex}`).value = matchingPoam.officeOrg;
+        if (selectedColumns.includes('E') && matchingPoam.vulnerabilityId) {
+          worksheet.getCell(`E${rowIndex}`).value = matchingPoam.vulnerabilityId;
         }
 
-        if (selectedColumns.includes('F') && matchingPoam.vulnerabilityId) {
-          worksheet.getCell(`F${rowIndex}`).value = matchingPoam.vulnerabilityId;
+        if (selectedColumns.includes('F') && matchingPoam.status) {
+          worksheet.getCell(`F${rowIndex}`).value = PoamExportService.mapStatus(matchingPoam.status);
         }
 
-        if (selectedColumns.includes('G') && matchingPoam.requiredResources) {
-          worksheet.getCell(`G${rowIndex}`).value = matchingPoam.requiredResources;
+        if (selectedColumns.includes('G') && matchingPoam.scheduledCompletionDate) {
+          worksheet.getCell(`G${rowIndex}`).value = PoamExportService.formatDate(matchingPoam.scheduledCompletionDate);
         }
 
-        if (selectedColumns.includes('H') && matchingPoam.scheduledCompletionDate) {
-          worksheet.getCell(`H${rowIndex}`).value = format(new Date(matchingPoam.scheduledCompletionDate), 'MM/dd/yyyy');
+        if (selectedColumns.includes('I') && matchingPoam.closedDate) {
+          worksheet.getCell(`I${rowIndex}`).value = PoamExportService.formatDate(matchingPoam.closedDate);
         }
 
-        const formattedMilestones = PoamExportService.formatMilestones(matchingPoam);
+        const formattedMilestones = PoamExportService.formatMilestonesForColumns(matchingPoam);
 
-        if (selectedColumns.includes('J') && formattedMilestones.comments) {
-          worksheet.getCell(`J${rowIndex}`).value = formattedMilestones.comments;
+        if (selectedColumns.includes('K') && formattedMilestones.descriptions) {
+          worksheet.getCell(`K${rowIndex}`).value = formattedMilestones.descriptions;
         }
 
-        if (selectedColumns.includes('K') && formattedMilestones.changes) {
-          worksheet.getCell(`K${rowIndex}`).value = formattedMilestones.changes;
+        if (selectedColumns.includes('L') && formattedMilestones.statuses) {
+          worksheet.getCell(`L${rowIndex}`).value = formattedMilestones.statuses;
         }
 
-        if (selectedColumns.includes('L') && matchingPoam.vulnerabilitySource) {
-          worksheet.getCell(`L${rowIndex}`).value = matchingPoam.vulnerabilitySource;
+        if (selectedColumns.includes('N') && formattedMilestones.schedDates) {
+          worksheet.getCell(`N${rowIndex}`).value = formattedMilestones.schedDates;
         }
 
-        if (selectedColumns.includes('M') && matchingPoam.status) {
-          worksheet.getCell(`M${rowIndex}`).value = matchingPoam.status === 'Closed' ? 'Completed' : 'Ongoing';
+        if (selectedColumns.includes('O') && formattedMilestones.completionDates) {
+          worksheet.getCell(`O${rowIndex}`).value = formattedMilestones.completionDates;
         }
 
-        if (selectedColumns.includes('O') && matchingPoam.rawSeverity) {
-          worksheet.getCell(`O${rowIndex}`).value = PoamExportService.mapRawSeverity(matchingPoam.rawSeverity);
+        if (selectedColumns.includes('P') && matchingPoam.vulnerabilitySource) {
+          worksheet.getCell(`P${rowIndex}`).value = matchingPoam.vulnerabilitySource;
         }
 
-        if (selectedColumns.includes('P') && matchingPoam.devicesAffected) {
-          worksheet.getCell(`P${rowIndex}`).value = matchingPoam.devicesAffected;
+        if (selectedColumns.includes('R') && matchingPoam.officeOrg) {
+          worksheet.getCell(`R${rowIndex}`).value = matchingPoam.officeOrg;
         }
 
-        if (selectedColumns.includes('Q') && (matchingPoam.mitigations || (matchingPoam.teamMitigations && matchingPoam.teamMitigations.length > 0))) {
-          worksheet.getCell(`Q${rowIndex}`).value = PoamExportService.formatMitigations(matchingPoam);
+        if (selectedColumns.includes('S') && matchingPoam.requiredResources) {
+          worksheet.getCell(`S${rowIndex}`).value = matchingPoam.requiredResources;
         }
 
-        if (selectedColumns.includes('R') && matchingPoam.predisposingConditions) {
-          worksheet.getCell(`R${rowIndex}`).value = matchingPoam.predisposingConditions;
+        if (selectedColumns.includes('U') && matchingPoam.rawSeverity) {
+          worksheet.getCell(`U${rowIndex}`).value = PoamExportService.mapRawSeverity(matchingPoam.rawSeverity);
         }
 
-        if (selectedColumns.includes('V') && matchingPoam.likelihood) {
-          worksheet.getCell(`V${rowIndex}`).value = matchingPoam.likelihood;
+        if (selectedColumns.includes('V') && matchingPoam.devicesAffected) {
+          worksheet.getCell(`V${rowIndex}`).value = matchingPoam.devicesAffected;
         }
 
-        if (selectedColumns.includes('X') && matchingPoam.impactDescription) {
-          worksheet.getCell(`X${rowIndex}`).value = matchingPoam.impactDescription;
+        if (selectedColumns.includes('W') && (matchingPoam.mitigations || (matchingPoam.teamMitigations && matchingPoam.teamMitigations.length > 0))) {
+          worksheet.getCell(`W${rowIndex}`).value = PoamExportService.formatMitigations(matchingPoam);
         }
 
-        if (selectedColumns.includes('Y') && matchingPoam.residualRisk) {
-          worksheet.getCell(`Y${rowIndex}`).value = matchingPoam.residualRisk;
+        if (selectedColumns.includes('X') && matchingPoam.predisposingConditions) {
+          worksheet.getCell(`X${rowIndex}`).value = matchingPoam.predisposingConditions;
         }
 
-        if (selectedColumns.includes('AA') && matchingPoam.adjSeverity) {
-          worksheet.getCell(`AA${rowIndex}`).value = PoamExportService.mapRawSeverity(matchingPoam.adjSeverity);
+        if (selectedColumns.includes('AB') && matchingPoam.likelihood) {
+          worksheet.getCell(`AB${rowIndex}`).value = matchingPoam.likelihood;
+        }
+
+        if (selectedColumns.includes('AD') && matchingPoam.impactDescription) {
+          worksheet.getCell(`AD${rowIndex}`).value = matchingPoam.impactDescription;
+        }
+
+        if (selectedColumns.includes('AE') && matchingPoam.residualRisk) {
+          worksheet.getCell(`AE${rowIndex}`).value = matchingPoam.residualRisk;
+        }
+
+        if (selectedColumns.includes('AG') && matchingPoam.adjSeverity) {
+          worksheet.getCell(`AG${rowIndex}`).value = PoamExportService.mapRawSeverity(matchingPoam.adjSeverity);
         }
       }
 

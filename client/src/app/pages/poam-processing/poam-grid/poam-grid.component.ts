@@ -798,7 +798,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
     this.dialogRef = this.dialogService.open(EMASSOverwriteSelectionComponent, {
       header: '',
       width: '50vw',
-      height: '50vh',
+      height: 'auto',
       modal: true,
       dismissableMask: true
     });
