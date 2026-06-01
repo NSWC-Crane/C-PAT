@@ -91,7 +91,7 @@ describe('PoamValidationService', () => {
 
     const validTeamResources = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, resourceText: 'Test resource' }];
 
-    const validMilestones = [{ assignedTeamIds: [1], milestoneComments: 'Test milestone', milestoneStatus: 'Pending' }];
+    const validMilestones = [{ assignedTeamIds: [1], milestoneComments: 'Test milestone', milestoneStatus: 'In Progress' }];
 
     it('should return invalid if description is missing', () => {
       const poam = { ...validPoam, description: '' };
@@ -254,17 +254,17 @@ describe('PoamValidationService', () => {
       });
 
       it('should return invalid if no pending milestones exist', () => {
-        const milestones = [{ assignedTeamIds: [1], milestoneComments: 'Test', milestoneStatus: 'Complete' }];
+        const milestones = [{ assignedTeamIds: [1], milestoneComments: 'Test', milestoneStatus: 'Completed' }];
         const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, validTeamResources, milestones, validDates);
 
         expect(result.valid).toBe(false);
-        expect(result.message).toBe('A minimum of one POAM milestone in a Pending status is required before the POAM can be submitted for review.');
+        expect(result.message).toBe('A minimum of one active (not Completed or Archived) POAM milestone is required before the POAM can be submitted for review.');
       });
 
       it('should return valid when at least one pending milestone exists', () => {
         const milestones = [
-          { assignedTeamIds: [1], milestoneComments: 'Test 1', milestoneStatus: 'Complete' },
-          { assignedTeamIds: [1], milestoneComments: 'Test 2', milestoneStatus: 'Pending' }
+          { assignedTeamIds: [1], milestoneComments: 'Test 1', milestoneStatus: 'Completed' },
+          { assignedTeamIds: [1], milestoneComments: 'Test 2', milestoneStatus: 'In Progress' }
         ];
         const result = service.validateSubmissionRequirements(validPoam, validTeamMitigations, validTeamResources, milestones, validDates);
 
@@ -281,8 +281,8 @@ describe('PoamValidationService', () => {
           { assignedTeamId: 2, resourceText: 'Test resource', isActive: true }
         ];
         const milestones = [
-          { assignedTeamIds: [1], milestoneComments: 'Test 1', milestoneStatus: 'Complete' },
-          { assignedTeamIds: [2], milestoneComments: 'Test 2', milestoneStatus: 'Pending' }
+          { assignedTeamIds: [1], milestoneComments: 'Test 1', milestoneStatus: 'Completed' },
+          { assignedTeamIds: [2], milestoneComments: 'Test 2', milestoneStatus: 'In Progress' }
         ];
         const result = service.validateSubmissionRequirements(validPoam, teams, teamResources, milestones, validDates);
 
@@ -314,21 +314,21 @@ describe('PoamValidationService', () => {
         const result = service.validateSubmissionRequirements(poam, [], [], [], validDates);
 
         expect(result.valid).toBe(false);
-        expect(result.message).toBe('A minimum of one POAM milestone in a Pending status is required before a Global POAM can be submitted for review.');
+        expect(result.message).toBe('A minimum of one active (not Completed or Archived) POAM milestone is required before a Global POAM can be submitted for review.');
       });
 
       it('should return invalid for global finding with only completed milestones', () => {
         const poam = { ...globalPoam, mitigations: 'Test mitigations' };
-        const milestones = [{ milestoneId: 1, milestoneComments: 'Test', milestoneStatus: 'Complete' }];
+        const milestones = [{ milestoneId: 1, milestoneComments: 'Test', milestoneStatus: 'Completed' }];
         const result = service.validateSubmissionRequirements(poam, [], [], milestones, validDates);
 
         expect(result.valid).toBe(false);
-        expect(result.message).toBe('A minimum of one POAM milestone in a Pending status is required before a Global POAM can be submitted for review.');
+        expect(result.message).toBe('A minimum of one active (not Completed or Archived) POAM milestone is required before a Global POAM can be submitted for review.');
       });
 
       it('should return valid for global finding with mitigations, requiredResources, and pending milestones', () => {
         const poam = { ...globalPoam, mitigations: 'Test mitigations' };
-        const milestones = [{ milestoneId: 1, milestoneComments: 'Test', milestoneStatus: 'Pending' }];
+        const milestones = [{ milestoneId: 1, milestoneComments: 'Test', milestoneStatus: 'In Progress' }];
         const result = service.validateSubmissionRequirements(poam, [], [], milestones, validDates);
 
         expect(result.valid).toBe(true);
@@ -449,7 +449,7 @@ describe('PoamValidationService', () => {
           milestoneId: 1,
           milestoneComments: '',
           milestoneDate: new Date(),
-          milestoneStatus: 'Pending',
+          milestoneStatus: 'In Progress',
           assignedTeamIds: [1]
         }
       ];
@@ -465,7 +465,7 @@ describe('PoamValidationService', () => {
           milestoneId: 1,
           milestoneComments: 'Test',
           milestoneDate: null,
-          milestoneStatus: 'Pending',
+          milestoneStatus: 'In Progress',
           assignedTeamIds: [1]
         }
       ];
@@ -497,7 +497,7 @@ describe('PoamValidationService', () => {
           milestoneId: 1,
           milestoneComments: 'Test',
           milestoneDate: new Date(),
-          milestoneStatus: 'Pending',
+          milestoneStatus: 'In Progress',
           assignedTeamIds: []
         }
       ];
@@ -517,14 +517,14 @@ describe('PoamValidationService', () => {
           milestoneId: 123,
           milestoneComments: 'Test',
           milestoneDate: pastDate,
-          milestoneStatus: 'Pending',
+          milestoneStatus: 'In Progress',
           assignedTeamIds: [1]
         }
       ];
       const result = service.validateMilestoneCompleteness(milestones);
 
       expect(result.valid).toBe(false);
-      expect(result.message).toContain('has a status of "Pending" but its due date');
+      expect(result.message).toContain('has an active status');
       expect(result.message).toContain('is in the past');
     });
 
@@ -538,7 +538,7 @@ describe('PoamValidationService', () => {
           milestoneId: 1,
           milestoneComments: 'Test',
           milestoneDate: pastDate,
-          milestoneStatus: 'Complete',
+          milestoneStatus: 'Completed',
           assignedTeamIds: [1]
         }
       ];
@@ -557,7 +557,7 @@ describe('PoamValidationService', () => {
           milestoneId: 1,
           milestoneComments: 'Test milestone',
           milestoneDate: futureDate,
-          milestoneStatus: 'Pending',
+          milestoneStatus: 'In Progress',
           assignedTeamIds: [1]
         }
       ];
@@ -576,14 +576,14 @@ describe('PoamValidationService', () => {
           milestoneId: 1,
           milestoneComments: 'Test 1',
           milestoneDate: futureDate,
-          milestoneStatus: 'Pending',
+          milestoneStatus: 'In Progress',
           assignedTeamIds: [1]
         },
         {
           milestoneId: 2,
           milestoneComments: 'Test 2',
           milestoneDate: futureDate,
-          milestoneStatus: 'Complete',
+          milestoneStatus: 'Completed',
           assignedTeamIds: [2]
         }
       ];

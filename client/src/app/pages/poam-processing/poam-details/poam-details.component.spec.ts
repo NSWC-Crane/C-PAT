@@ -1924,7 +1924,7 @@ describe('PoamDetailsComponent', () => {
             milestoneComments: 'Milestone 1',
             milestoneChangeComments: null,
             milestoneChangeDate: null,
-            milestoneStatus: 'Pending',
+            milestoneStatus: 'In Progress',
             assignedTeamIds: [1]
           }
         ];
@@ -1938,7 +1938,7 @@ describe('PoamDetailsComponent', () => {
                 milestoneComments: 'Milestone 1',
                 milestoneChangeComments: null,
                 milestoneChangeDate: null,
-                milestoneStatus: 'Pending',
+                milestoneStatus: 'In Progress',
                 assignedTeamIds: [1]
               }
             ]

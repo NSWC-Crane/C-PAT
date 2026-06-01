@@ -62,8 +62,11 @@ export class PoamMilestonesComponent implements OnInit {
   defaultMilestoneDateOffset = 30;
 
   milestoneStatusOptions = [
-    { label: 'Pending', value: 'Pending' },
-    { label: 'Complete', value: 'Complete' }
+    { label: 'Open', value: 'Open' },
+    { label: 'In Progress', value: 'In Progress' },
+    { label: 'Delayed', value: 'Delayed' },
+    { label: 'Completed', value: 'Completed' },
+    { label: 'Archived', value: 'Archived' }
   ];
 
   ngOnInit() {
@@ -94,7 +97,7 @@ export class PoamMilestonesComponent implements OnInit {
       milestoneDate: defaultDate,
       milestoneChangeComments: null,
       milestoneChangeDate: null,
-      milestoneStatus: 'Pending',
+      milestoneStatus: 'In Progress',
       assignedTeamIds: [],
       isNew: true,
       editing: true,

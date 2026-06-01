@@ -52,7 +52,7 @@ function createMockMilestone(overrides: any = {}) {
     milestoneId: 100,
     milestoneDate: '2025-06-01T00:00:00.000Z',
     milestoneComments: 'Initial milestone comments',
-    milestoneStatus: 'Pending',
+    milestoneStatus: 'In Progress',
     milestoneChangeComments: null,
     milestoneChangeDate: null,
     assignedTeams: [
@@ -143,8 +143,11 @@ describe('PoamMilestoneGridComponent', () => {
       const options = (component as any).milestoneStatusOptions;
 
       expect(options).toEqual([
-        { label: 'Complete', value: 'Complete' },
-        { label: 'Pending', value: 'Pending' }
+        { label: 'Open', value: 'Open' },
+        { label: 'In Progress', value: 'In Progress' },
+        { label: 'Delayed', value: 'Delayed' },
+        { label: 'Completed', value: 'Completed' },
+        { label: 'Archived', value: 'Archived' }
       ]);
     });
 
@@ -275,7 +278,7 @@ describe('PoamMilestoneGridComponent', () => {
       expect(row.poamOwnerId).toBe(11);
       expect(row.poamSubmitterId).toBe(22);
       expect(row.milestoneId).toBe(100);
-      expect(row.milestoneStatus).toBe('Pending');
+      expect(row.milestoneStatus).toBe('In Progress');
       expect(row.milestoneComments).toBe('Initial milestone comments');
     });
 
@@ -370,7 +373,7 @@ describe('PoamMilestoneGridComponent', () => {
     it('should set poamStatusSeverity and milestoneStatusSeverity on each row', () => {
       const poam = createMockPoam({
         status: 'Approved',
-        milestones: [createMockMilestone({ milestoneStatus: 'Complete' })]
+        milestones: [createMockMilestone({ milestoneStatus: 'Completed' })]
       });
 
       component.poams = [poam];
@@ -384,7 +387,7 @@ describe('PoamMilestoneGridComponent', () => {
   describe('needsAttentionRows computed', () => {
     it('should include Pending milestones with no date', () => {
       const poam = createMockPoam({
-        milestones: [createMockMilestone({ milestoneStatus: 'Pending', milestoneDate: null })]
+        milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: null })]
       });
 
       component.poams = [poam];
@@ -395,7 +398,7 @@ describe('PoamMilestoneGridComponent', () => {
       const today = new Date();
       const dateAtThreshold = format(addDays(today, 30), 'yyyy-MM-dd');
       const poam = createMockPoam({
-        milestones: [createMockMilestone({ milestoneStatus: 'Pending', milestoneDate: `${dateAtThreshold}T00:00:00.000Z` })]
+        milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: `${dateAtThreshold}T00:00:00.000Z` })]
       });
 
       component.poams = [poam];
@@ -406,7 +409,7 @@ describe('PoamMilestoneGridComponent', () => {
       const today = new Date();
       const dateBeforeThreshold = format(addDays(today, 10), 'yyyy-MM-dd');
       const poam = createMockPoam({
-        milestones: [createMockMilestone({ milestoneStatus: 'Pending', milestoneDate: `${dateBeforeThreshold}T00:00:00.000Z` })]
+        milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: `${dateBeforeThreshold}T00:00:00.000Z` })]
       });
 
       component.poams = [poam];
@@ -417,7 +420,7 @@ describe('PoamMilestoneGridComponent', () => {
       const today = new Date();
       const pastDate = format(addDays(today, -10), 'yyyy-MM-dd');
       const poam = createMockPoam({
-        milestones: [createMockMilestone({ milestoneStatus: 'Pending', milestoneDate: `${pastDate}T00:00:00.000Z` })]
+        milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: `${pastDate}T00:00:00.000Z` })]
       });
 
       component.poams = [poam];
@@ -428,7 +431,7 @@ describe('PoamMilestoneGridComponent', () => {
       const today = new Date();
       const farFuture = format(addDays(today, 60), 'yyyy-MM-dd');
       const poam = createMockPoam({
-        milestones: [createMockMilestone({ milestoneStatus: 'Pending', milestoneDate: `${farFuture}T00:00:00.000Z` })]
+        milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: `${farFuture}T00:00:00.000Z` })]
       });
 
       component.poams = [poam];
@@ -437,7 +440,7 @@ describe('PoamMilestoneGridComponent', () => {
 
     it('should exclude Complete milestones regardless of date', () => {
       const poam = createMockPoam({
-        milestones: [createMockMilestone({ milestoneStatus: 'Complete', milestoneDate: null })]
+        milestones: [createMockMilestone({ milestoneStatus: 'Completed', milestoneDate: null })]
       });
 
       component.poams = [poam];
@@ -504,12 +507,24 @@ describe('PoamMilestoneGridComponent', () => {
   });
 
   describe('getMilestoneStatusSeverity', () => {
-    it('should return success for Complete', () => {
-      expect(component.getMilestoneStatusSeverity('Complete')).toBe('success');
+    it('should return success for Completed', () => {
+      expect(component.getMilestoneStatusSeverity('Completed')).toBe('success');
     });
 
-    it('should return warn for Pending', () => {
-      expect(component.getMilestoneStatusSeverity('Pending')).toBe('warn');
+    it('should return info for In Progress', () => {
+      expect(component.getMilestoneStatusSeverity('In Progress')).toBe('info');
+    });
+
+    it('should return danger for Delayed', () => {
+      expect(component.getMilestoneStatusSeverity('Delayed')).toBe('danger');
+    });
+
+    it('should return contrast for Archived', () => {
+      expect(component.getMilestoneStatusSeverity('Archived')).toBe('contrast');
+    });
+
+    it('should return secondary for Open', () => {
+      expect(component.getMilestoneStatusSeverity('Open')).toBe('secondary');
     });
 
     it('should return secondary for null', () => {
@@ -661,7 +676,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [
           createMockMilestone({
             milestoneDate: '2025-06-01T00:00:00.000Z',
-            milestoneStatus: 'Pending',
+            milestoneStatus: 'In Progress',
             milestoneComments: 'comments',
             milestoneChangeDate: '2025-06-15T00:00:00.000Z',
             milestoneChangeComments: 'change comments'
@@ -680,7 +695,7 @@ describe('PoamMilestoneGridComponent', () => {
         vulnerabilityId: 'V-7',
         poamStatus: 'Approved',
         milestoneDate: '2025-06-01',
-        milestoneStatus: 'Pending',
+        milestoneStatus: 'In Progress',
         milestoneComments: 'comments',
         assignedTeams: 'Team Alpha; Team Beta',
         milestoneChangeDate: '2025-06-15',

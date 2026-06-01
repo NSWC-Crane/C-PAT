@@ -495,7 +495,7 @@ describe('PoamService', () => {
     });
 
     it('should update a POAM milestone', () => {
-      const updatedMilestone = { ...mockMilestone, milestoneStatus: 'Complete' };
+      const updatedMilestone = { ...mockMilestone, milestoneStatus: 'Completed' };
 
       service.updatePoamMilestone(1, 1, updatedMilestone).subscribe((data) => {
         expect(data).toBeTruthy();

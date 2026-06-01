@@ -150,12 +150,12 @@ export class PoamValidationService {
         };
       }
 
-      const pendingMilestones = poamMilestones?.filter((milestone) => milestone.milestoneStatus === 'Pending') ?? [];
+      const activeMilestones = poamMilestones?.filter((milestone) => milestone.milestoneStatus !== 'Completed' && milestone.milestoneStatus !== 'Archived') ?? [];
 
-      if (pendingMilestones.length < 1) {
+      if (activeMilestones.length < 1) {
         return {
           valid: false,
-          message: 'A minimum of one POAM milestone in a Pending status is required before a Global POAM can be submitted for review.'
+          message: 'A minimum of one active (not Completed or Archived) POAM milestone is required before a Global POAM can be submitted for review.'
         };
       }
     } else {
@@ -226,12 +226,12 @@ export class PoamValidationService {
         }
       }
 
-      const pendingMilestones = poamMilestones?.filter((milestone) => milestone.milestoneStatus === 'Pending') ?? [];
+      const activeMilestones = poamMilestones?.filter((milestone) => milestone.milestoneStatus !== 'Completed' && milestone.milestoneStatus !== 'Archived') ?? [];
 
-      if (pendingMilestones.length < 1) {
+      if (activeMilestones.length < 1) {
         return {
           valid: false,
-          message: 'A minimum of one POAM milestone in a Pending status is required before the POAM can be submitted for review.'
+          message: 'A minimum of one active (not Completed or Archived) POAM milestone is required before the POAM can be submitted for review.'
         };
       }
     }
@@ -309,11 +309,11 @@ export class PoamValidationService {
         };
       }
 
-      if (milestone.milestoneStatus === 'Pending' && milestone.milestoneDate) {
+      if (milestone.milestoneStatus !== 'Completed' && milestone.milestoneStatus !== 'Archived' && milestone.milestoneDate) {
         if (isBefore(milestone.milestoneDate, currentDate)) {
           return {
             valid: false,
-            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has a status of "Pending" but its due date (${format(milestone.milestoneDate, 'yyyy-MM-dd')}) is in the past. Please update either the status or the due date.`
+            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has an active status ("${milestone.milestoneStatus}") but its due date (${format(milestone.milestoneDate, 'yyyy-MM-dd')}) is in the past. Please update either the status or the due date.`
           };
         }
       }

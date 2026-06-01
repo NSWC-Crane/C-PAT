@@ -76,7 +76,7 @@ describe('PoamExtendComponent', () => {
       milestoneDate: '2025-06-01T00:00:00',
       milestoneChangeDate: '2025-06-10T00:00:00',
       milestoneChangeComments: 'Updated',
-      milestoneStatus: 'Pending',
+      milestoneStatus: 'In Progress',
       assignedTeams: [{ assignedTeamId: 10, assignedTeamName: 'Team Alpha' }]
     }
   ];
@@ -221,8 +221,8 @@ describe('PoamExtendComponent', () => {
     });
 
     it('should have milestone status options defined', () => {
-      expect(component.milestoneStatusOptions).toHaveLength(2);
-      expect(component.milestoneStatusOptions.map((o: any) => o.value)).toEqual(['Pending', 'Complete']);
+      expect(component.milestoneStatusOptions).toHaveLength(5);
+      expect(component.milestoneStatusOptions.map((o: any) => o.value)).toEqual(['Open', 'In Progress', 'Delayed', 'Completed', 'Archived']);
     });
 
     it('should have selectable rating options defined', () => {
@@ -433,7 +433,7 @@ describe('PoamExtendComponent', () => {
 
         expect(newMilestone.milestoneComments).toBeNull();
         expect(newMilestone.milestoneDate).toBeNull();
-        expect(newMilestone.milestoneStatus).toBe('Pending');
+        expect(newMilestone.milestoneStatus).toBe('In Progress');
         expect(newMilestone.assignedTeamIds).toEqual([]);
         expect(newMilestone.editing).toBe(true);
       });
@@ -504,7 +504,7 @@ describe('PoamExtendComponent', () => {
 
     describe('validateMilestoneFields', () => {
       it('should fail if milestoneChangeDate exists but no milestoneChangeComments', () => {
-        const milestone = { milestoneChangeDate: new Date(), milestoneChangeComments: null, milestoneStatus: 'Pending', assignedTeamIds: [10] };
+        const milestone = { milestoneChangeDate: new Date(), milestoneChangeComments: null, milestoneStatus: 'In Progress', assignedTeamIds: [10] };
         const result = (component as any).validateMilestoneFields(milestone);
 
         expect(result).toBe(false);
@@ -512,7 +512,7 @@ describe('PoamExtendComponent', () => {
       });
 
       it('should fail if milestoneChangeComments is missing', () => {
-        const milestone = { milestoneChangeComments: null, milestoneChangeDate: new Date(), milestoneStatus: 'Pending', assignedTeamIds: [10] };
+        const milestone = { milestoneChangeComments: null, milestoneChangeDate: new Date(), milestoneStatus: 'In Progress', assignedTeamIds: [10] };
         const result = (component as any).validateMilestoneFields(milestone);
 
         expect(result).toBe(false);
@@ -526,14 +526,14 @@ describe('PoamExtendComponent', () => {
       });
 
       it('should fail if assignedTeamIds is empty', () => {
-        const milestone = { milestoneChangeComments: 'test', milestoneChangeDate: new Date(), milestoneStatus: 'Pending', assignedTeamIds: [] };
+        const milestone = { milestoneChangeComments: 'test', milestoneChangeDate: new Date(), milestoneStatus: 'In Progress', assignedTeamIds: [] };
         const result = (component as any).validateMilestoneFields(milestone);
 
         expect(result).toBe(false);
       });
 
       it('should pass with all required fields', () => {
-        const milestone = { milestoneChangeComments: 'test', milestoneChangeDate: new Date(), milestoneStatus: 'Pending', assignedTeamIds: [10] };
+        const milestone = { milestoneChangeComments: 'test', milestoneChangeDate: new Date(), milestoneStatus: 'In Progress', assignedTeamIds: [10] };
         const result = (component as any).validateMilestoneFields(milestone);
 
         expect(result).toBe(true);
@@ -587,7 +587,7 @@ describe('PoamExtendComponent', () => {
           isNew: true,
           milestoneChangeComments: 'New',
           milestoneChangeDate: new Date(2025, 5, 15),
-          milestoneStatus: 'Pending',
+          milestoneStatus: 'In Progress',
           assignedTeamIds: [10],
           milestoneId: 'temp_123'
         };
@@ -606,7 +606,7 @@ describe('PoamExtendComponent', () => {
           milestoneId: 1,
           milestoneChangeComments: 'Updated',
           milestoneChangeDate: new Date(2025, 5, 15),
-          milestoneStatus: 'Pending',
+          milestoneStatus: 'In Progress',
           assignedTeamIds: [10],
           milestoneDate: '2025-06-01',
           milestoneComments: 'test'
@@ -890,7 +890,7 @@ describe('PoamExtendComponent', () => {
           milestoneDate: '2025-06-01',
           milestoneChangeDate: '2025-06-15',
           milestoneChangeComments: 'Updated milestone',
-          milestoneStatus: 'Pending',
+          milestoneStatus: 'In Progress',
           assignedTeamIds: [10],
           editing: false,
           isNew: false

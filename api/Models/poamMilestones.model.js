@@ -32,9 +32,9 @@ module.exports = function poamMilestonesModel(sequelize, DataTypes) {
                 defaultValue: null,
             },
             milestoneStatus: {
-                type: DataTypes.STRING(10),
+                type: DataTypes.STRING(15),
                 allowNull: true,
-                defaultValue: 'Pending',
+                defaultValue: 'In Progress',
             },
             milestoneChangeComments: {
                 type: DataTypes.STRING(2000),
