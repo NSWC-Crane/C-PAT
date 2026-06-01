@@ -25,6 +25,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { Poam } from '../../../common/models/poam.model';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 
 export interface MilestoneGridRow {
   poamId: number;
@@ -51,7 +52,7 @@ const EXCLUDED_POAM_STATUSES = new Set(['Closed', 'Draft']);
   templateUrl: './poam-milestone-grid.component.html',
   styleUrl: './poam-milestone-grid.component.scss',
   standalone: true,
-  imports: [NgTemplateOutlet, ButtonModule, CardModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, TableModule, TabsModule, TagModule, TooltipModule]
+  imports: [NgTemplateOutlet, ButtonModule, CardModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, TableModule, TabsModule, TagModule, TooltipModule, TourPrimeNg]
 })
 export class PoamMilestoneGridComponent {
   private readonly router = inject(Router);

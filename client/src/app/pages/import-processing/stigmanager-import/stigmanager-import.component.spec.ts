@@ -37,6 +37,7 @@ import { SharedService } from '../../../common/services/shared.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { createMockMessageService, createMockRouter } from '../../../../testing/mocks/service-mocks';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 @Component({ selector: 'cpat-stigmanager-reviews-table', standalone: true, template: '' })
 class MockSTIGManagerReviewsTableComponent {}
@@ -164,7 +165,8 @@ describe('STIGManagerImportComponent', () => {
         { provide: SharedService, useValue: mockSharedService },
         { provide: PayloadService, useValue: mockPayloadService },
         { provide: PoamService, useValue: mockPoamService },
-        { provide: MessageService, useValue: mockMessageService }
+        { provide: MessageService, useValue: mockMessageService },
+        provideUiTour()
       ]
     })
       .overrideComponent(STIGManagerImportComponent, {

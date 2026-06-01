@@ -17,6 +17,7 @@ import { TenableMetricsComponent } from './tenable-metrics.component';
 import { ImportService } from '../../import-processing/import.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 beforeAll(() => {
   (globalThis as any).CPAT = { Env: { apiBase: '/api' } };
@@ -77,11 +78,7 @@ describe('TenableMetricsComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [TenableMetricsComponent],
-      providers: [
-        { provide: ImportService, useValue: mockImportService },
-        { provide: CollectionsService, useValue: mockCollectionsService },
-        { provide: MessageService, useValue: mockMessageService }
-      ],
+      providers: [{ provide: ImportService, useValue: mockImportService }, { provide: CollectionsService, useValue: mockCollectionsService }, { provide: MessageService, useValue: mockMessageService }, provideUiTour()],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 

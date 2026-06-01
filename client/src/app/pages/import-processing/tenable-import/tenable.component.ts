@@ -15,11 +15,12 @@ import { TabsModule } from 'primeng/tabs';
 import { TenableSolutionsComponent } from './components/solutions/tenableSolutions.component';
 import { TenableSelectedVulnerabilitiesComponent } from './components/tenableSelectedVulnerabilities/tenableSelectedVulnerabilities.component';
 import { TenableVulnerabilitiesComponent } from './components/tenableVulnerabilities/tenableVulnerabilities.component';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 
 @Component({
   selector: 'cpat-tenable',
   standalone: true,
-  imports: [CommonModule, TabsModule, CardModule, TenableVulnerabilitiesComponent, TenableSelectedVulnerabilitiesComponent, TenableSolutionsComponent],
+  imports: [CommonModule, TabsModule, CardModule, TenableVulnerabilitiesComponent, TenableSelectedVulnerabilitiesComponent, TenableSolutionsComponent, TourPrimeNg],
   templateUrl: './tenable.component.html',
   styleUrls: ['./tenable.component.scss']
 })

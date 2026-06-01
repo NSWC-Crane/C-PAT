@@ -24,6 +24,7 @@ import { Tag } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Subject, combineLatest, distinctUntilChanged, filter, forkJoin, switchMap, take, takeUntil } from 'rxjs';
+import { IStepOption, TourPrimeNg, TourService } from 'ngx-ui-tour-primeng';
 import { StatusMessageComponent } from '../../common/components/status-message/status-message.component';
 import { SharedService } from '../../common/services/shared.service';
 import { AuthService } from '../../core/auth/services/auth.service';
@@ -53,12 +54,13 @@ import { CardModule } from 'primeng/card';
     RippleModule,
     StatusMessageComponent,
     MenuModule,
-    Tag
+    Tag,
+    TourPrimeNg
   ],
   providers: [ConfirmationService, MessageService],
   template: `
     @if (collectionType && collectionName) {
-      <div class="current-collection mt-5 ml-[10.5rem] mb-[-2.5rem] flex items-center">
+      <div class="current-collection mt-5 ml-[10.5rem] mb-[-2.5rem] flex items-center" tourAnchor="current-collection">
         <p-tag [value]="collectionType" [severity]="getTagColor(collectionType)" class="text-xs px-1 py-0.5 cursor-pointer" (click)="collectionMenu.toggle($event)" />
         <span
           class="ml-2 mr-2 text-[color:var(--p-breadcrumb-item-color)] hover:text-[color:var(--p-text-hover-color)] cursor-pointer mr-1"
@@ -104,6 +106,8 @@ import { CardModule } from 'primeng/card';
             <div class="w-12 flex flex-col items-center">
               <div class="mt-10 flex flex-col gap-2">
                 <p-button
+                  id="collection-selection"
+                  tourAnchor="collection-selection"
                   icon="pi pi-cog"
                   size="large"
                   [text]="true"
@@ -112,6 +116,7 @@ import { CardModule } from 'primeng/card';
                   (click)="collectionMenu.toggle($event)"
                   [ngClass]="{ 'pulse-animation': user?.lastCollectionAccessedId === 0 }"
                 />
+                <p-button id="guided-tour" icon="pi pi-question-circle" size="large" [text]="true" severity="secondary" pTooltip="C-PAT Guided Tour" (click)="initTour()" />
               </div>
               <p-menu #collectionMenu [popup]="true" [model]="collections" appendTo="body" styleClass="collections-menu">
                 <ng-template let-collection pTemplate="item">
@@ -174,6 +179,7 @@ import { CardModule } from 'primeng/card';
       </ng-template>
     </p-dialog>
     <p-toast />
+    <tour-step-template />
   `,
   styles: [
     `
@@ -251,6 +257,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   private readonly collectionsService = inject(CollectionsService);
   protected readonly router = inject(Router);
   private readonly sharedService = inject(SharedService);
+  private readonly tourService = inject(TourService);
   private readonly userService = inject(UsersService);
 
   items: MenuItem[] = [];
@@ -301,6 +308,8 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         },
         error: (error) => console.error('Error in initialization:', error)
       });
+    this.sharedService.startTour$.pipe(takeUntil(this.destroy$)).subscribe(() => this.initTour());
+
     const fg = document.getElementById('particles-foreground');
     const bg = document.getElementById('particles-background');
 
@@ -531,6 +540,262 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         console.error('Logout failed:', error);
       }
     });
+  }
+
+  initTour() {
+    const steps: IStepOption[] = [
+      {
+        anchorId: 'collection-selection',
+        title: 'Select Your Collection',
+        content: 'Use this button to switch between collections. If no collections are visible, please contact a C-PAT administrator to be assigned collection permissions.',
+        closeOnOutsideClick: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'assigned-grid',
+        title: 'Your POAMs',
+        content: 'This grid displays all POAMs within the collection. Use the tabs to view POAMs requiring attention, or POAMs assigned to you or your team.',
+        popoverClass: '!mt-2',
+        route: '/poam-processing/poam-manage',
+        closeOnOutsideClick: true,
+        isAsync: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-export',
+        title: 'POAM Exporting',
+        content: 'POAMs can also be exported to the eMASS excel format or to a CSV file.',
+        popoverClass: '!mt-2',
+        route: '/poam-processing/poam-manage',
+        closeOnOutsideClick: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'milestone-grid',
+        title: 'Milestone Tracking',
+        content: 'This grid displays active milestones for POAMs within the collection that are not in a Draft or Closed status. Use the tabs to view milestones requiring attention or milestones that your team is responsible for.',
+        route: '/poam-processing/poam-manage',
+        closeOnOutsideClick: true,
+        enableBackdrop: true
+      },
+      ...this.buildImportSteps(),
+      {
+        anchorId: 'poam-global-toggle',
+        title: 'Global vs. Team POAM',
+        content:
+          'By default, POAMs are assumed to be a team effort and thus require any team assigned to the POAM to contribute a mitigation statement, required resources, and a POAM milestone prior to submission. To submit a POAM that only requires a global mitigation statement, global required resources, and a single milestone - enable the Global Finding toggle.',
+        isAsync: true,
+        closeOnOutsideClick: true,
+        allowUserInitiatedNavigation: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-owned-by',
+        title: 'POAM Ownership',
+        content: `POAM creation in C-PAT does not necessarily constitute POAM Ownership. POAMs can be created on behalf of another user and reassigned by selecting the proper owner via the "Owned By" dropdown. Once a user has been assigned as the POAM owner, the POAM will be displayed under the "My POAMs" tabsets in C-PAT for both the POAM Creator and the POAM Owner.`,
+        isAsync: true,
+        closeOnOutsideClick: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-aapackage',
+        title: 'A&A Package',
+        content: `In addition to defining A&A Package options in the Admin Portal, A&A Packages can be pre-filled by selecting the A&A Package for the respective collection in the "Collection Management" section of the Admin Portal.`,
+        closeOnOutsideClick: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-scd',
+        title: 'Scheduled Completion Date',
+        content: `By default, the Scheduled Completion Date will default to 30 days for CAT-I findings, 180 days for CAT-II findings, and 365 days for CAT-III findings. This default can also be customized in the "App Configuration" tab of the Admin Portal.`,
+        closeOnOutsideClick: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-personnel',
+        title: 'Personnel',
+        content: `Any user who has the "Approver" or "CAT-I Approver" permission is automatically assigned as an approver to any newly created POAM within the collection. Additionally, teams can also be assigned automatically after further configuration in the "Asset Deltas" and "Assigned Teams" sections of the Admin Portal.`,
+        closeOnOutsideClick: true,
+        isAsync: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-assets',
+        title: 'Assets',
+        content: `When navigating to the Assets step, an API call is sent to STIG Manager or Tenable to ensure you're always viewing the most up to date reporting of affected assets.`,
+        closeOnOutsideClick: true,
+        isAsync: true,
+        delayBeforeStepShow: 350,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-mitigations',
+        title: 'Mitigations',
+        content: `Mitigating risk is a team effort. As such, each team is responsible for contributing a mitigation and providing required resources before a POAM can be sumitted. Teams must be assigned to the POAM in the personnel step of the POAM before team tabs will be displayed. Alternatively, the "Global Finding" toggle can be enabled to display a single Mitigation and Required Resources field.`,
+        closeOnOutsideClick: true,
+        isAsync: true,
+        delayBeforeStepShow: 350,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-milestones',
+        title: 'Milestones',
+        content: `Milestones in C-PAT break the POAM down into discrete tasks with an associated due date. Each milestone has it's own status and can have one or more teams assigned to the task. Milestone statuses and teams are modifiable throughout the lifecycle of the POAM. Users are also encouraged to document changes to the scope of the milestone or to the milestone due date throughout the POAM lifecycle.`,
+        closeOnOutsideClick: true,
+        isAsync: true,
+        delayBeforeStepShow: 350,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-associated-vulnerabilities',
+        title: 'Associated Vulnerabilities',
+        content: `Instead of duplicating POAMs for comperable findings, C-PAT allows CAT-I Approvers to add vulnerabilities as an associated finding to existing POAMs. Adding a finding as an associated vulnerability will update the POAM status icon of open findings to display as being associated with a parent POAM across the various vulnerability tables in C-PAT.`,
+        closeOnOutsideClick: true,
+        isAsync: true,
+        delayBeforeStepShow: 350,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-history',
+        title: 'POAM History',
+        content: `C-PAT maintains an audit trail for every POAM. The POAM History displays modifications made throughout the POAM lifecycle, to include status changes, field updates, and approvals or rejections. Along with modifications made, the POAM History also captures the user responsible for changes and a timestamp for each entry.`,
+        closeOnOutsideClick: true,
+        isAsync: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-chat',
+        title: 'POAM Chat',
+        content: `The POAM Chat provides a dedicated space for collaboration within the scope of an individual POAM. Team members, owners, and approvers can exchange messages to discuss mitigations, ask questions, and coordinate next steps.`,
+        isOptional: true,
+        closeOnOutsideClick: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'poam-extensions',
+        title: 'POAM Extensions',
+        content: `When a POAM cannot be remediated by its Scheduled Completion Date, an extension can be requested here. Select the additional time needed and C-PAT will calculate the new deadline, then provide a justification for the extension and update the associated milestones. Extension requests are routed to approvers for review before the deadline is revised.`,
+        isOptional: true,
+        closeOnOutsideClick: true,
+        enableBackdrop: true
+      },
+      {
+        anchorId: 'metrics-risk-score',
+        title: 'Metrics',
+        content: `The Metrics dashboard aggregates findings across the collection. Depending on the collection type, it pulls live data from STIG Manager or Tenable to chart open findings, severity breakdowns, and Mean Time to Remediate (MTTR) - giving you insight into the collection's overall compliance posture. STIG Manager collections surface a CORA Risk Score, while Tenable collections surface a Vulnerability Per Host (VPH) Score.`,
+        route: '/metrics',
+        closeOnOutsideClick: true,
+        isAsync: true,
+        duplicateAnchorHandling: 'registerLast',
+        enableBackdrop: true
+      }
+    ];
+
+    this.tourService.initialize(steps);
+    this.tourService.start();
+  }
+
+  private buildImportSteps(): IStepOption[] {
+    if (this.collectionType === 'STIG Manager') {
+      return [
+        {
+          anchorId: 'stigmanager-tabset',
+          title: 'STIG Manager',
+          content:
+            'The STIG Manager integration is separated into core functionalities by tabs. STIG Manager Benchmarks for identifying open findings, STIG Manager Reviews for evaluating unique assets, and STIG Manager Controls for viewing findings grouped by control.',
+          route: '/import-processing/stigmanager-import',
+          closeOnOutsideClick: true,
+          isAsync: true,
+          enableBackdrop: true
+        },
+        {
+          anchorId: 'stigmanager-summary',
+          title: 'Summary View',
+          content: 'This table provides row entries at the benchmark level. Selecting a benchmark will directly query the STIG Manager API to return any open findings. Select a benchmark to continue.',
+          route: '/import-processing/stigmanager-import',
+          closeOnOutsideClick: true,
+          isAsync: true,
+          nextOnAnchorClick: true,
+          enableBackdrop: true
+        },
+        {
+          anchorId: 'stigmanager-poam-creation',
+          title: 'Creating a POAM',
+          content: 'The icons contained within the POAM column directly reflect the status of any coresponding POAMs. If a POAM does not yet exist, a red plus icon will be displayed. Click the POAM status icon to continue.',
+          popoverClass: '!mt-7 !ml-3',
+          route: '/import-processing/stigmanager-import',
+          closeOnOutsideClick: true,
+          isAsync: true,
+          nextOnAnchorClick: true,
+          allowUserInitiatedNavigation: true,
+          enableBackdrop: true
+        }
+      ];
+    }
+
+    if (this.collectionType === 'Tenable') {
+      return [
+        {
+          anchorId: 'tenable-vulnerabilities',
+          title: 'Tenable Vulnerabilities',
+          content: 'This table lists existing findings contained in the current Tenable repository.',
+          route: '/import-processing/tenable-import',
+          closeOnOutsideClick: true,
+          isAsync: true,
+          enableBackdrop: true
+        },
+        {
+          anchorId: 'tenable-sumid',
+          title: 'Summary View',
+          content: `By default, the table lists findings from the Tenable 'Vulnerability Summary' view. This button can toggle between the vulnerability list and the vulnerability summary view.`,
+          route: '/import-processing/tenable-import',
+          closeOnOutsideClick: true,
+          enableBackdrop: true
+        },
+        {
+          anchorId: 'tenable-filters',
+          title: 'Tenable Filters',
+          content: 'This button will expand a comprehensive filter panel to compile filters and directly query the Tenable API. Click the filter button to continue.',
+          route: '/import-processing/tenable-import',
+          closeOnOutsideClick: true,
+          isAsync: true,
+          nextOnAnchorClick: true,
+          enableBackdrop: true
+        },
+        {
+          anchorId: 'tenable-premade-filters',
+          title: 'Premade Filters',
+          content:
+            'Some pre-made filters are already available to help you quickly filter for the items that you would like to view. Filters can also be saved within the current collection and viewed by other C-PAT users by clicking the highlighted button.',
+          popoverClass: 'filter-guide-visible',
+          route: '/import-processing/tenable-import',
+          closeOnOutsideClick: true,
+          isAsync: true,
+          enableBackdrop: true
+        },
+        {
+          anchorId: 'tenable-poam-creation',
+          title: 'Creating a POAM',
+          content: 'The icons contained within vulnerability columns directly reflect the status of any coresponding POAMs. If a POAM does not yet exist, a red plus icon will be displayed. Click the POAM status icon to continue.',
+          route: '/import-processing/tenable-import',
+          closeOnOutsideClick: true,
+          isAsync: true,
+          nextOnAnchorClick: true,
+          allowUserInitiatedNavigation: true,
+          enableBackdrop: true
+        }
+      ];
+    }
+
+    return [
+      {
+        anchorId: 'current-collection',
+        title: 'Switch to an Import-Enabled Collection',
+        content: 'You are currently using a C-PAT collection. To automate POAM creation, switch to a STIG Manager or Tenable collection using this collection selector. Alternatively, click Next to continue the tour with a manually drafted POAM.',
+        enableBackdrop: true,
+        closeOnOutsideClick: true
+      }
+    ];
   }
 
   ngOnDestroy() {

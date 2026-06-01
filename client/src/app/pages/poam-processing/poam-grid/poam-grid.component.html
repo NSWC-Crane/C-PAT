@@ -20,7 +20,16 @@
         </p-iconField>
         <p-button styleClass="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Reset default filters" />
       </div>
-      <div class="right-buttons">
+      @if (showTourAnchor) {
+        <div class="right-buttons" tourAnchor="poam-export">
+          <ng-container [ngTemplateOutlet]="exportButtons" />
+        </div>
+      } @else {
+        <div class="right-buttons">
+          <ng-container [ngTemplateOutlet]="exportButtons" />
+        </div>
+      }
+      <ng-template #exportButtons>
         <p-fileUpload
           #fileUpload
           fileLimit="1"
@@ -38,7 +47,7 @@
         </p-fileUpload>
         <p-button icon="pi pi-download" severity="primary" [rounded]="true" [text]="true" pTooltip="Export to eMASS excel template" tooltipPosition="top" (onClick)="exportCollection()" />
         <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export to CSV" tooltipPosition="top" (onClick)="exportToCSV()" />
-      </div>
+      </ng-template>
     </div>
     <div class="table-container">
       <p-table

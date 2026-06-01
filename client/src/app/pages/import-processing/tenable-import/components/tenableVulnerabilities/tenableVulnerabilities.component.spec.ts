@@ -22,6 +22,7 @@ import { PayloadService } from '../../../../../common/services/setPayload.servic
 import { SharedService } from '../../../../../common/services/shared.service';
 import { Router } from '@angular/router';
 import { createMockMessageService, createMockRouter } from '../../../../../../testing/mocks/service-mocks';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 describe('TenableVulnerabilitiesComponent', () => {
   let component: TenableVulnerabilitiesComponent;
@@ -100,7 +101,8 @@ describe('TenableVulnerabilitiesComponent', () => {
         { provide: PayloadService, useValue: mockPayloadService },
         { provide: SharedService, useValue: mockSharedService },
         { provide: MessageService, useValue: mockMessageService },
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        provideUiTour()
       ]
     })
       .overrideComponent(TenableVulnerabilitiesComponent, {

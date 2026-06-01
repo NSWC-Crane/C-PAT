@@ -22,7 +22,7 @@
         <p-tab value="7">Solutions</p-tab>
       </p-tablist>
       <p-tabpanels>
-        <p-tabpanel value="0">
+        <p-tabpanel value="0" tourAnchor="tenable-vulnerabilities">
           <cpat-tenable-vulnerabilities (totalRecordsChange)="mainTotal.set($event)" (sidebarToggle)="onSidebarToggle($event)" [parentSidebarVisible]="sidebarVisible()" currentPreset="main" />
         </p-tabpanel>
         <p-tabpanel value="1">

@@ -22,6 +22,7 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 function createMockPoam(overrides: any = {}) {
   return {
@@ -127,7 +128,8 @@ describe('PoamManageComponent', () => {
         { provide: SharedService, useValue: mockSharedService },
         { provide: CollectionsService, useValue: mockCollectionsService },
         { provide: ImportService, useValue: mockImportService },
-        { provide: DialogService, useValue: createMockDialogService() }
+        { provide: DialogService, useValue: createMockDialogService() },
+        provideUiTour()
       ]
     }).compileComponents();
 

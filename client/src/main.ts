@@ -26,6 +26,7 @@ import { authErrorInterceptor } from './app/core/auth/interceptor/auth-error.int
 import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
 import { environment } from './environments/environment';
 import { DialogService } from 'primeng/dynamicdialog';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 if (environment.production) {
   enableProdMode();
@@ -142,6 +143,7 @@ bootstrapApplication(AppComponent, {
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, authErrorInterceptor])),
     MessageService,
     ConfirmationService,
-    DialogService
+    DialogService,
+    provideUiTour()
   ]
 }).catch((err) => console.error(err));

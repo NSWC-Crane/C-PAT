@@ -59,6 +59,7 @@ import { CollectionsService } from '../../../../admin-processing/collection-proc
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { ImportService } from '../../../import.service';
 import { TenableFiltersComponent } from '../../components/tenableFilters/tenableFilters.component';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 
 @Component({
   selector: 'cpat-tenable-vulnerabilities',
@@ -83,7 +84,8 @@ import { TenableFiltersComponent } from '../../components/tenableFilters/tenable
     ToastModule,
     TooltipModule,
     TenableFiltersComponent,
-    TagModule
+    TagModule,
+    TourPrimeNg
   ]
 })
 export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {

@@ -8,10 +8,11 @@
 !##########################################################################
 */
 
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { ImageModule } from 'primeng/image';
+import { SharedService } from '../../common/services/shared.service';
 import { UptimeMonitorComponent } from './uptime-monitor/uptime-monitor.component';
 
 @Component({
@@ -22,6 +23,12 @@ import { UptimeMonitorComponent } from './uptime-monitor/uptime-monitor.componen
   imports: [CardModule, DividerModule, ImageModule, UptimeMonitorComponent]
 })
 export class HomeComponent {
+  private readonly sharedService = inject(SharedService);
+
   protected version = CPAT.Env.version ?? '';
   protected basePath = CPAT.Env.basePath ?? '';
+
+  startTour(): void {
+    this.sharedService.startTour();
+  }
 }

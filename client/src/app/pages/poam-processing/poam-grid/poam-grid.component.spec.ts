@@ -26,6 +26,7 @@ import { ImportService } from '../../import-processing/import.service';
 import { PoamService } from '../poams.service';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
+import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 function createMockPoam(overrides: any = {}) {
   return {
@@ -141,7 +142,8 @@ describe('PoamGridComponent', () => {
         { provide: CollectionsService, useValue: mockCollectionsService },
         { provide: ImportService, useValue: mockImportService },
         { provide: PoamService, useValue: mockPoamService },
-        { provide: CsvExportService, useValue: mockCsvExportService }
+        { provide: CsvExportService, useValue: mockCsvExportService },
+        provideUiTour()
       ]
     }).compileComponents();
 

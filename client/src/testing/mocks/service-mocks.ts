@@ -26,6 +26,8 @@ export function createMockPayloadService() {
 export function createMockSharedService() {
   return {
     selectedCollection: new Subject(),
+    startTour$: new Subject(),
+    startTour: vi.fn(),
     getSTIGMANAffectedAssetsByPoam: vi.fn().mockReturnValue(of([])),
     getCollectionApprovers: vi.fn().mockReturnValue(of([]))
   };

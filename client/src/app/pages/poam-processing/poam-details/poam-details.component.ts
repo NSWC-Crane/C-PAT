@@ -63,9 +63,11 @@ import { PoamMitigationService } from './services/poam-mitigation.service';
 import { PoamResourceService } from './services/poam-resource.service';
 import { PoamValidationService } from './services/poam-validation.service';
 import { PoamVariableMappingService } from './services/poam-variable-mapping.service';
+import { Direction, TourPrimeNg, TourService } from 'ngx-ui-tour-primeng';
 
 interface PoamAction {
   label: string;
+  tourAnchor: string;
   icon: string;
   severity?: 'secondary' | 'success' | 'info' | 'warn' | 'danger';
   command: () => void;
@@ -108,7 +110,8 @@ interface PoamAction {
     PoamMilestonesComponent,
     PoamLabelsComponent,
     PoamTeamsComponent,
-    ProgressBarModule
+    ProgressBarModule,
+    TourPrimeNg
   ],
   providers: [DatePipe, ConfirmationService, MessageService]
 })
@@ -131,7 +134,17 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   private readonly setPayloadService = inject(PayloadService);
   private readonly mappingService = inject(PoamVariableMappingService);
   private readonly location = inject(Location);
+  private readonly tourService = inject(TourService);
   private readonly subs = new SubSink();
+
+  protected activeStep = 1;
+  private readonly tourAnchorToStep: Record<string, number> = {
+    'poam-personnel': 1,
+    'poam-assets': 2,
+    'poam-mitigations': 4,
+    'poam-milestones': 7,
+    'poam-associated-vulnerabilities': 9
+  };
 
   appConfigSettings: AppConfiguration[] = [];
   accessLevel = signal<number>(0);
@@ -216,6 +229,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     const items: PoamAction[] = [
       {
         label: 'POAM History',
+        tourAnchor: 'poam-history',
         icon: 'pi pi-history',
         severity: 'secondary',
         command: () => {
@@ -224,6 +238,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       },
       {
         label: 'POAM Chat',
+        tourAnchor: 'poam-chat',
         icon: 'pi pi-comment',
         severity: 'info',
         command: () => {
@@ -233,6 +248,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
       },
       {
         label: 'POAM Extension',
+        tourAnchor: 'poam-extensions',
         icon: 'pi pi-hourglass',
         severity: 'warn',
         command: () => {
@@ -244,6 +260,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     if (this.accessLevel() >= 2) {
       items.push({
         label: 'Submit for Review',
+        tourAnchor: 'poam-submission',
         icon: 'pi pi-file-plus',
         severity: 'success',
         command: () => {
@@ -255,6 +272,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     if (this.accessLevel() >= 3) {
       items.push({
         label: 'POAM Approval',
+        tourAnchor: 'poam-approval',
         icon: 'pi pi-verified',
         severity: 'info',
         command: () => {
@@ -270,6 +288,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     if (this.accessLevel() >= 3 || (this.poam?.submitterId === this.user?.userId && this.poam?.status === 'Draft')) {
       items.push({
         label: 'Delete POAM',
+        tourAnchor: 'poam-deletion',
         icon: 'pi pi-trash',
         severity: 'danger',
         command: () => {
@@ -291,6 +310,28 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
         this.selectedCollection = collectionId;
+      })
+    );
+    this.subs.add(
+      this.tourService.stepHide$.subscribe(({ step, direction }) => {
+        const steps = this.tourService.steps;
+        const currentIdx = steps.findIndex((s) => s === step);
+        const nextIdx = direction === Direction.Forwards ? currentIdx + 1 : currentIdx - 1;
+        const nextStep = steps[nextIdx];
+        const target = nextStep?.anchorId ? this.tourAnchorToStep[nextStep.anchorId] : undefined;
+
+        if (target !== undefined && this.activeStep !== target) {
+          this.activeStep = target;
+        }
+      })
+    );
+    this.subs.add(
+      this.tourService.stepShow$.subscribe(({ step }) => {
+        const target = this.tourAnchorToStep[step.anchorId];
+
+        if (target !== undefined && this.activeStep !== target) {
+          this.activeStep = target;
+        }
       })
     );
     this.setPayload();

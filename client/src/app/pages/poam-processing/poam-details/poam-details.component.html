@@ -55,7 +55,7 @@
           <p-buttongroup class="poam-buttongroup">
             @for (action of menuItems(); track action.label) {
               @if (action.visible !== false) {
-                <p-button [icon]="action.icon" [severity]="action.severity" size="large" [outlined]="true" [text]="true" [pTooltip]="action.label" tooltipPosition="bottom" (onClick)="action.command()" />
+                <p-button [tourAnchor]="action.tourAnchor" [icon]="action.icon" [severity]="action.severity" size="large" [outlined]="true" [text]="true" [pTooltip]="action.label" tooltipPosition="bottom" (onClick)="action.command()" />
               }
             }
           </p-buttongroup>
@@ -64,7 +64,7 @@
 
       <div class="card-body">
         <div class="form-container">
-          <div class="form-group">
+          <div class="form-group" tourAnchor="poam-global-toggle">
             <div class="switch-container">
               <p-toggleSwitch
                 id="globalFinding"
@@ -114,7 +114,7 @@
           }
 
           <!-- Owned By -->
-          <div class="form-group">
+          <div class="form-group" tourAnchor="poam-owned-by">
             <label for="ownerId">Owned By: </label>
             <p-select
               [options]="collectionUsers"
@@ -161,7 +161,7 @@
           </div>
 
           <!-- AA Package -->
-          <div class="form-group">
+          <div class="form-group" tourAnchor="poam-aapackage">
             <label for="aaPackage">A&A Package: </label>
             <p-select
               [(ngModel)]="poam.aaPackage"
@@ -382,7 +382,7 @@
           }
 
           <!-- Scheduled Completion Date -->
-          <div class="form-group">
+          <div class="form-group" tourAnchor="poam-scd">
             <label for="scheduledCompletionDate">
               <i
                 class="pi pi-info-circle mr-2"
@@ -417,7 +417,7 @@
       </div>
 
       <p-footer>
-        <p-stepper [value]="1" class="responsive-stepper">
+        <p-stepper [(value)]="activeStep" class="responsive-stepper">
           <p-step-list>
             <p-step [value]="1">Personnel</p-step>
             <p-step [value]="2">Assets</p-step>
@@ -437,7 +437,7 @@
             <p-step-panel [value]="1">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
-                  <div class="stepper-content">
+                  <div class="stepper-content" tourAnchor="poam-personnel">
                     <p-accordion [value]="['0', '1']" [multiple]="true">
                       <p-accordion-panel value="0">
                         <p-accordion-header>Teams Assigned</p-accordion-header>
@@ -478,7 +478,7 @@
             <!-- Assets -->
             <p-step-panel [value]="2">
               <ng-template #content let-activateCallback="activateCallback">
-                <div class="stepper-content-wrapper">
+                <div class="stepper-content-wrapper" tourAnchor="poam-assets">
                   <cpat-poam-assets
                     [poam]="poam"
                     [accessLevel]="accessLevel()"
@@ -534,7 +534,7 @@
             <p-step-panel [value]="4">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
-                  <div class="stepper-content !pt-0">
+                  <div class="stepper-content !pt-0" tourAnchor="poam-mitigations">
                     <div class="info-container mb-3">
                       <div class="align-items-center justify-content-between mb-2 flex">
                         <div class="align-items-center flex">
@@ -782,7 +782,7 @@
             <p-step-panel [value]="7">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
-                  <div class="stepper-content">
+                  <div class="stepper-content" tourAnchor="poam-milestones">
                     <cpat-poam-milestones [poam]="poam" [accessLevel]="accessLevel()" [poamMilestones]="poamMilestones" [assignedTeamOptions]="milestoneTeamOptions" (milestonesChanged)="handleMilestonesChanged($event)" />
                   </div>
                   <div class="stepper-buttons">
@@ -812,7 +812,7 @@
             <p-step-panel [value]="9">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
-                  <div class="stepper-content">
+                  <div class="stepper-content" tourAnchor="poam-associated-vulnerabilities">
                     <cpat-poam-associated-vulnerabilities
                       [poamId]="poam.poamId"
                       [accessLevel]="accessLevel()"
