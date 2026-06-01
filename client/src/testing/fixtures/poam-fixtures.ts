@@ -59,7 +59,7 @@ export const mockMilestone = {
   poamId: 1,
   milestoneDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
   milestoneComments: 'Test milestone comments',
-  milestoneStatus: 'Pending',
+  milestoneStatus: 'In Progress',
   assignedTeams: []
 };
 

@@ -60,7 +60,7 @@ describe('PoamExportService', () => {
         milestones: [
           {
             milestoneComments: 'Test comment',
-            milestoneStatus: 'Pending',
+            milestoneStatus: 'In Progress',
             milestoneDate: '2024-12-31T00:00:00Z'
           }
         ]
@@ -76,7 +76,7 @@ describe('PoamExportService', () => {
         milestones: [
           {
             milestoneComments: 'Test comment',
-            milestoneStatus: 'Pending',
+            milestoneStatus: 'In Progress',
             milestoneDate: '2024-12-31T00:00:00Z',
             milestoneChangeComments: 'Change comment',
             milestoneChangeDate: '2024-11-15T00:00:00Z'

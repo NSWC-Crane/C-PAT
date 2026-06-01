@@ -27,17 +27,19 @@ import { Poam } from '../../../common/models/poam.model';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 
+export type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
+
 export interface MilestoneGridRow {
   poamId: number;
   vulnerabilityId: string | null;
   poamStatus: string;
-  poamStatusSeverity: 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
+  poamStatusSeverity: TagSeverity;
   poamOwnerId: number | null;
   poamSubmitterId: number;
   milestoneId: number | null;
   milestoneDate: string | null;
   milestoneStatus: string | null;
-  milestoneStatusSeverity: 'success' | 'warn' | 'secondary';
+  milestoneStatusSeverity: TagSeverity;
   milestoneComments: string | null;
   milestoneChangeDate: string | null;
   milestoneChangeComments: string | null;
@@ -91,8 +93,11 @@ export class PoamMilestoneGridComponent {
   ];
 
   protected readonly milestoneStatusOptions = [
-    { label: 'Complete', value: 'Complete' },
-    { label: 'Pending', value: 'Pending' }
+    { label: 'Open', value: 'Open' },
+    { label: 'In Progress', value: 'In Progress' },
+    { label: 'Delayed', value: 'Delayed' },
+    { label: 'Completed', value: 'Completed' },
+    { label: 'Archived', value: 'Archived' }
   ];
 
   protected readonly columns = [
@@ -115,7 +120,7 @@ export class PoamMilestoneGridComponent {
     const threshold = addDays(startOfDay(new Date()), 30);
 
     return this.allMilestoneRows().filter((row) => {
-      if (row.milestoneStatus !== 'Pending') return false;
+      if (!row.milestoneStatus || row.milestoneStatus === 'Completed' || row.milestoneStatus === 'Archived') return false;
       if (!row.milestoneDate) return true;
       const date = parseISO(row.milestoneDate.split('T')[0]);
 
@@ -167,18 +172,23 @@ export class PoamMilestoneGridComponent {
     this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
   }
 
-  getMilestoneStatusSeverity(status: string | null): 'success' | 'warn' | 'secondary' {
+  getMilestoneStatusSeverity(status: string | null): TagSeverity {
     switch (status) {
-      case 'Complete':
+      case 'Completed':
         return 'success';
-      case 'Pending':
-        return 'warn';
+      case 'In Progress':
+        return 'info';
+      case 'Delayed':
+        return 'danger';
+      case 'Archived':
+        return 'contrast';
+      case 'Open':
       default:
         return 'secondary';
     }
   }
 
-  getPoamStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+  getPoamStatusSeverity(status: string): TagSeverity {
     switch (status) {
       case 'Approved':
         return 'success';

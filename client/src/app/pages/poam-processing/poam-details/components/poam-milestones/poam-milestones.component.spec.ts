@@ -37,7 +37,7 @@ describe('PoamMilestonesComponent', () => {
       milestoneDate: new Date('2026-06-01'),
       milestoneChangeComments: null,
       milestoneChangeDate: null,
-      milestoneStatus: 'Pending',
+      milestoneStatus: 'In Progress',
       assignedTeamIds: [1],
       isNew: false,
       editing: false,
@@ -84,8 +84,11 @@ describe('PoamMilestonesComponent', () => {
       expect(component.clonedMilestones).toEqual({});
       expect(component.defaultMilestoneDateOffset).toBe(30);
       expect(component.milestoneStatusOptions).toEqual([
-        { label: 'Pending', value: 'Pending' },
-        { label: 'Complete', value: 'Complete' }
+        { label: 'Open', value: 'Open' },
+        { label: 'In Progress', value: 'In Progress' },
+        { label: 'Delayed', value: 'Delayed' },
+        { label: 'Completed', value: 'Completed' },
+        { label: 'Archived', value: 'Archived' }
       ]);
     });
 
@@ -142,7 +145,7 @@ describe('PoamMilestonesComponent', () => {
       expect(newMilestone.milestoneComments).toBeNull();
       expect(newMilestone.milestoneChangeComments).toBeNull();
       expect(newMilestone.milestoneChangeDate).toBeNull();
-      expect(newMilestone.milestoneStatus).toBe('Pending');
+      expect(newMilestone.milestoneStatus).toBe('In Progress');
       expect(newMilestone.assignedTeamIds).toEqual([]);
       expect(newMilestone.isNew).toBe(true);
       expect(newMilestone.editing).toBe(true);
@@ -164,7 +167,7 @@ describe('PoamMilestonesComponent', () => {
       const newId = component.poamMilestones[0].milestoneId;
 
       expect(component.clonedMilestones[newId]).toBeDefined();
-      expect(component.clonedMilestones[newId].milestoneStatus).toBe('Pending');
+      expect(component.clonedMilestones[newId].milestoneStatus).toBe('In Progress');
     });
 
     it('should emit milestonesChanged', () => {

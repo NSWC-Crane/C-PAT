@@ -824,7 +824,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
             milestoneComments: milestone.milestoneComments || null,
             milestoneChangeComments: milestone.milestoneChangeComments || null,
             milestoneChangeDate: milestone.milestoneChangeDate ? (typeof milestone.milestoneChangeDate === 'string' ? milestone.milestoneChangeDate : format(milestone.milestoneChangeDate, 'yyyy-MM-dd')) : null,
-            milestoneStatus: milestone.milestoneStatus || 'Pending',
+            milestoneStatus: milestone.milestoneStatus || 'In Progress',
             assignedTeamIds: milestone.assignedTeamIds || []
           }));
       } else {

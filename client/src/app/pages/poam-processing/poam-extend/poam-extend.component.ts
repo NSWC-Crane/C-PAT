@@ -110,8 +110,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   poamMilestones: any[] = [];
   clonedMilestones: { [s: string]: any } = {};
   milestoneStatusOptions = [
-    { label: 'Pending', value: 'Pending' },
-    { label: 'Complete', value: 'Complete' }
+    { label: 'Open', value: 'Open' },
+    { label: 'In Progress', value: 'In Progress' },
+    { label: 'Delayed', value: 'Delayed' },
+    { label: 'Completed', value: 'Completed' },
+    { label: 'Archived', value: 'Archived' }
   ];
   extensionHistory: any[] = [];
   extensionJustification: string = '';
@@ -288,7 +291,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       milestoneDate: null,
       milestoneChangeComments: null,
       milestoneChangeDate: new Date(),
-      milestoneStatus: 'Pending',
+      milestoneStatus: 'In Progress',
       assignedTeamIds: [],
       isNew: true,
       editing: true
@@ -431,7 +434,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         milestoneComments: null,
         milestoneChangeComments: milestone.milestoneChangeComments || null,
         milestoneChangeDate: format(milestone.milestoneChangeDate, 'yyyy-MM-dd'),
-        milestoneStatus: milestone.milestoneStatus || 'Pending',
+        milestoneStatus: milestone.milestoneStatus || 'In Progress',
         assignedTeamIds: milestone.assignedTeamIds || []
       };
 
