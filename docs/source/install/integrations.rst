@@ -53,10 +53,10 @@ Tenable
      - The URL to your instance of Tenable.sc, no trailing slashes or additional paths are necessary. Example: ``https://myACASinstance.something.com``
    * - ``TENABLE_ACCESS_KEY``
      - **No default**
-     - See the `tenable documentation <https://docs.tenable.com/security-center/Content/GenerateAPIKey.htm>`_ for instructions on how to generate API keys.
+     - See the `tenable documentation <https://docs.tenable.com/security-center/Content/GenerateAPIKey.htm>`_ for instructions on how to generate API keys. NOTE: The account that an API key is generated for must have permissions to access vulnerability data. e.g. ``Security Analyst`` or ``Vulnerability Analyst``
    * - ``TENABLE_SECRET_KEY``
      - **No default**
-     - See the `tenable documentation <https://docs.tenable.com/security-center/Content/GenerateAPIKey.htm>`_ for instructions on how to generate API keys.
+     - See the `tenable documentation <https://docs.tenable.com/security-center/Content/GenerateAPIKey.htm>`_ for instructions on how to generate API keys. NOTE: The account that an API key is generated for must have permissions to access vulnerability data. e.g. ``Security Analyst`` or ``Vulnerability Analyst``
    * - ``TENABLE_CERT_FILE``
      - **No default**
      - A file/path relative to the API /tls directory that contains the PEM encoded Client certificate used when connecting to Tenable. Additionally requires setting a value for ``TENABLE_KEY_FILE``.
