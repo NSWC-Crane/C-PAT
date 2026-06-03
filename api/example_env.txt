@@ -12,6 +12,8 @@
 
 #settings config
 CPAT_CLASSIFICATION="U"
+CPAT_DOD_DEPLOYMENT="true"
+CPAT_DOD_BRANCH="Navy"
 
 #client config
 CPAT_API_BASE="api"

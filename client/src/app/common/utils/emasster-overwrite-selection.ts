@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { PickListModule } from 'primeng/picklist';
+import { getEMassBranchConfig } from './emass-branch-config';
 
 export interface EMassField {
   column: string;
@@ -47,28 +48,7 @@ export interface EMassField {
 export class EMASSOverwriteSelectionComponent {
   ref = inject(DynamicDialogRef);
 
-  allFields: EMassField[] = [
-    { column: 'C', description: 'Description', selected: true },
-    { column: 'E', description: 'Security Checks', selected: false },
-    { column: 'F', description: 'POA&M Status', selected: false },
-    { column: 'G', description: 'POA&M Scheduled Completion Date', selected: true },
-    { column: 'I', description: 'POA&M Completion Date', selected: false },
-    { column: 'K', description: 'Milestone Description', selected: true },
-    { column: 'L', description: 'Milestone Status', selected: true },
-    { column: 'N', description: 'Milestone Scheduled Completion Date', selected: true },
-    { column: 'O', description: 'Milestone Completion Date', selected: false },
-    { column: 'P', description: 'Identification Source', selected: false },
-    { column: 'R', description: 'Office/Org', selected: false },
-    { column: 'S', description: 'Resources Required', selected: true },
-    { column: 'U', description: 'Raw Severity', selected: false },
-    { column: 'V', description: 'Devices Affected', selected: true },
-    { column: 'W', description: 'Mitigations', selected: true },
-    { column: 'X', description: 'Predisposing Conditions', selected: true },
-    { column: 'AB', description: 'Likelihood', selected: false },
-    { column: 'AD', description: 'Impact Description', selected: false },
-    { column: 'AE', description: 'Residual Risk Level', selected: false },
-    { column: 'AG', description: 'Resulting Residual Risk', selected: false }
-  ];
+  allFields: EMassField[] = getEMassBranchConfig().overwriteFields;
 
   selectedFields: EMassField[] = [];
   unselectedFields: EMassField[] = [];

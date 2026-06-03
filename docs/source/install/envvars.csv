@@ -15,6 +15,8 @@
 | Sets the classification banner, if any. Available values: ``NONE`` ``U`` ``FOUO`` ``CUI`` ``C`` ``S`` ``TS`` ``SCI`` ","API, Client"
 "CPAT_DOD_DEPLOYMENT","| **Default** ``true``
 | Configure whether application deployment is subject to DoD and Application Security and Development STIG rules. i.e. DoD consent banner.","API, Client"
+"CPAT_DOD_BRANCH","| **Default** ``Navy``
+| Branch of service for the deployment, which selects the eMASS export template. Case-insensitive. Available values: ``Navy`` ``Army`` ``Marine Corps`` ","API, Client"
 "CPAT_ADMIN_INACTIVITY_TIMEOUT","| **Default** ``10``
 | Time in minutes that a admin can be inactive before being automatically logged out.","Client"
 "CPAT_INACTIVITY_TIMEOUT","| **Default** ``15``
