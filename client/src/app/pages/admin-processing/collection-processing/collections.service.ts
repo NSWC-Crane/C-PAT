@@ -85,15 +85,24 @@ export class CollectionsService {
   }
 
   addCollection(collection: any): Observable<Collections> {
-    return this.http.post<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(tap(() => this.invalidateCollectionCache()), catchError(this.handleError));
+    return this.http.post<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(
+      tap(() => this.invalidateCollectionCache()),
+      catchError(this.handleError)
+    );
   }
 
   updateCollection(collection: any): Observable<Collections> {
-    return this.http.put<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(tap(() => this.invalidateCollectionCache()), catchError(this.handleError));
+    return this.http.put<Collections>(`${this.cpatApiBase}/collection`, collection).pipe(
+      tap(() => this.invalidateCollectionCache()),
+      catchError(this.handleError)
+    );
   }
 
   deleteCollection(collectionId: number): Observable<Collections> {
-    return this.http.delete<Collections>(`${this.cpatApiBase}/collection/${collectionId}?elevate=true`).pipe(tap(() => this.invalidateCollectionCache()), catchError(this.handleError));
+    return this.http.delete<Collections>(`${this.cpatApiBase}/collection/${collectionId}?elevate=true`).pipe(
+      tap(() => this.invalidateCollectionCache()),
+      catchError(this.handleError)
+    );
   }
 
   getCollectionPermissions(collectionId: number): Observable<any> {
