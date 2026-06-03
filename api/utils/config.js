@@ -21,6 +21,7 @@ let config = {
         lastAccessResolution: 60,
         responseValidation: process.env.CPAT_DEV_RESPONSE_VALIDATION || 'none',
         dodDeployment: process.env.CPAT_DOD_DEPLOYMENT !== 'false',
+        dodBranch: normalizeDODBranch(process.env.CPAT_DOD_BRANCH),
         adminInactivityTimeout: process.env.CPAT_ADMIN_INACTIVITY_TIMEOUT
             ? Number.parseInt(process.env.CPAT_ADMIN_INACTIVITY_TIMEOUT) * 60 * 1000
             : 10 * 60 * 1000,
@@ -131,6 +132,15 @@ let config = {
         mode: process.env.CPAT_LOG_MODE || 'combined',
     },
 };
+
+function normalizeDODBranch(value) {
+    const branches = {
+        navy: 'Navy',
+        army: 'Army',
+        'marine corps': 'Marine Corps',
+    };
+    return branches[(value || '').trim().toLowerCase()] || 'Navy';
+}
 
 function formatJsChain(path) {
     const components = path?.split('.');

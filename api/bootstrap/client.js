@@ -37,6 +37,7 @@ const CPAT = {
   Env: {
     basePath: "${basePath}",
     classification: "${config.settings.dodDeployment ? config.settings.setClassification : 'NONE'}",
+    dodBranch: "${config.settings.dodBranch}",
     dodDeployment: ${config.settings.dodDeployment},
     version: "${config.version}",
     apiBase: "${config.client.apiBase}",
@@ -154,9 +155,7 @@ function setupAngularRoutes(app) {
                 baseHref = basePath.endsWith('/') ? basePath : basePath + '/';
             }
 
-            const modifiedHtml = data
-                .replace(/<base\s+href="[^"]*">/i, `<base href="${baseHref}">`)
-                .replace('</head>', `<script>${envJS}</script>\n  </head>`);
+            const modifiedHtml = data.replace(/<base\s+href="[^"]*">/i, `<base href="${baseHref}">`).replace('</head>', `<script>${envJS}</script>\n  </head>`);
 
             res.setHeader('Content-Type', 'text/html');
             res.send(modifiedHtml);

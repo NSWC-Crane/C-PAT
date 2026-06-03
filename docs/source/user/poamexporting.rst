@@ -9,6 +9,18 @@ C-PAT contains the ability to export into the standard eMASS excel format. Liste
 .. note::
    Draft POAMs are not exported.
 
+Deployment Branch
+^^^^^^^^^^^^^^^^^
+
+The eMASS template used for exporting (and for the eMASSter overwrite functionality) is determined by the deployment's branch of service, configured with the ``CPAT_DOD_BRANCH`` environment variable.
+
+Accepted values are ``Navy`` (default), ``Army``, and ``Marine Corps`` (case-insensitive). If the variable is unset or unrecognized, C-PAT defaults to ``Navy``.
+
+* **Navy** / **Marine Corps** - These templates share the same column layout. The Marine Corps template does not include the *Resulting Residual Risk after Proposed Mitigations* column.
+* **Army** - The Army template omits *Predisposing Conditions*, *Threat Description*, and *Resulting Residual Risk* columns; those C-PAT values are not exported. The risk-analysis columns are shifted accordingly, and the Army-specific CFO-audit and personnel/non-personnel resource columns are exported blank.
+
+The field mappings below describe the Navy layout.
+
 Field Mappings
 ^^^^^^^^^^^^^^^
 

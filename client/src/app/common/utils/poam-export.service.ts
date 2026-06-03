@@ -14,6 +14,7 @@ import { ImportService } from '../../pages/import-processing/import.service';
 import { PoamService } from '../../pages/poam-processing/poams.service';
 import { Poam } from '../models/poam.model';
 import { SharedService } from '../services/shared.service';
+import { getEMassBranchConfig } from './emass-branch-config';
 
 type CellValueMapper = (value: any, poam: Poam, columnKey: string) => any;
 
@@ -153,6 +154,42 @@ export class PoamExportService {
     };
   }
 
+  private static getOverwriteCellValue(columnKey: string, dbKey: string, poam: Poam, formattedMilestones: { descriptions: string; statuses: string; schedDates: string; completionDates: string }): any {
+    if (dbKey === 'milestone') {
+      switch (columnKey) {
+        case 'K':
+          return formattedMilestones.descriptions || null;
+        case 'L':
+          return formattedMilestones.statuses || null;
+        case 'N':
+          return formattedMilestones.schedDates || null;
+        case 'O':
+          return formattedMilestones.completionDates || null;
+        default:
+          return null;
+      }
+    }
+
+    if (!dbKey) return null;
+
+    const value = poam[dbKey];
+
+    switch (dbKey) {
+      case 'status':
+        return value ? PoamExportService.mapStatus(value) : null;
+      case 'scheduledCompletionDate':
+      case 'closedDate':
+        return value ? PoamExportService.formatDate(value) : null;
+      case 'rawSeverity':
+      case 'adjSeverity':
+        return value ? PoamExportService.mapRawSeverity(value) : null;
+      case 'mitigations':
+        return poam.mitigations || (poam.teamMitigations && poam.teamMitigations.length > 0) ? PoamExportService.formatMitigations(poam) : null;
+      default:
+        return value || null;
+    }
+  }
+
   private static formatMitigations(poam: Poam): string {
     let formattedMitigations = '';
 
@@ -174,64 +211,31 @@ export class PoamExportService {
   }
 
   static async convertToExcel(poams: Poam[], exportingUser: any, exportCollection: any): Promise<Blob> {
+    const branchConfig = getEMassBranchConfig();
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.default.Workbook();
-    const response = await fetch(`${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/assets/NAVY_eMASS_TEMPLATE.xlsx`);
+    const response = await fetch(`${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/assets/${branchConfig.templateFile}`);
     const arrayBuffer = await response.arrayBuffer();
 
     await workbook.xlsx.load(arrayBuffer, {
       ignoreNodes: ['dataValidations']
     });
+
     const worksheet = workbook.getWorksheet('POA&M');
-
-    const excelColumnToDbColumnMapping: { [key: string]: string } = {
-      A: '',
-      B: '',
-      C: 'description',
-      D: 'controlAPs',
-      E: 'vulnerabilityId',
-      F: 'status',
-      G: 'scheduledCompletionDate',
-      H: '',
-      I: 'closedDate',
-      J: 'milestone',
-      K: 'milestone',
-      L: 'milestone',
-      M: 'milestone',
-      N: 'milestone',
-      O: 'milestone',
-      P: 'vulnerabilitySource',
-      Q: '',
-      R: 'officeOrg',
-      S: 'requiredResources',
-      T: 'cci',
-      U: 'rawSeverity',
-      V: 'devicesAffected',
-      W: 'mitigations',
-      X: 'predisposingConditions',
-      Y: 'rawSeverity',
-      Z: '',
-      AA: '',
-      AB: 'likelihood',
-      AC: '',
-      AD: 'impactDescription',
-      AE: 'residualRisk',
-      AF: '',
-      AG: 'adjSeverity'
-    };
-
+    const excelColumnToDbColumnMapping = branchConfig.excelColumnToDbColumnMapping;
     const currentDate = format(new Date(), 'MM/dd/yyyy');
 
-    worksheet!.getCell('D2').value = currentDate;
-    worksheet!.getCell('D3').value = exportingUser.fullName.toUpperCase() ?? '';
-    worksheet!.getCell('D4').value = exportCollection.ccsafa ?? '';
-    worksheet!.getCell('D5').value = exportCollection.systemName ?? '';
-    worksheet!.getCell('D6').value = 'N/A';
-    worksheet!.getCell('M2').value = exportCollection.systemType ?? '';
-    worksheet!.getCell('M4').value = exportingUser.fullName.toUpperCase() ?? '';
-    worksheet!.getCell('M5').value = exportingUser.phoneNumber.toUpperCase() ?? '';
-    worksheet!.getCell('M6').value = exportingUser.email.toUpperCase() ?? '';
-    const cellA1 = worksheet!.getCell('A1');
+    worksheet.getCell('D2').value = currentDate;
+    worksheet.getCell('D3').value = exportingUser.fullName.toUpperCase() ?? '';
+    worksheet.getCell('D4').value = exportCollection.ccsafa ?? '';
+    worksheet.getCell('D5').value = exportCollection.systemName ?? '';
+    worksheet.getCell('D6').value = 'N/A';
+    worksheet.getCell('M2').value = exportCollection.systemType ?? '';
+    worksheet.getCell('M4').value = exportingUser.fullName.toUpperCase() ?? '';
+    worksheet.getCell('M5').value = exportingUser.phoneNumber.toUpperCase() ?? '';
+    worksheet.getCell('M6').value = exportingUser.email.toUpperCase() ?? '';
+
+    const cellA1 = worksheet.getCell('A1');
 
     cellA1.value = PoamExportService.getClassificationText(CPAT.Env.classification);
     cellA1.fill = {
@@ -269,14 +273,7 @@ export class PoamExportService {
       mitigations: (_value: any, poam: Poam, _columnKey: string): string => PoamExportService.formatMitigations(poam)
     };
 
-    const optionalDefaultValues: { [key: string]: string } = {
-      D: 'CM-6.5',
-      T: `CCI-000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.`,
-      Z: 'High',
-      AC: 'High',
-      AA: 'ADVERSARIAL - HIGH: Per table D-2 Taxonomy of Threat Sources lists ADVERSARIAL as individual (outsider, insider, trusted insider, privileged insider), therefore the Relevance of Threat defaults to HIGH.',
-      AF: 'After reviewing documentation, and interviewing system stakeholders, it has been determined that this vulnerability should be mitigated. The ISSO will continue to monitor this vulnerability, and update the POAM as necessary. See mitigations field for detailed mitigation information.'
-    };
+    const optionalDefaultValues = branchConfig.optionalDefaultValues;
 
     const getCellValue = (poam: Poam, dbKey: string, columnKey: string, milestone: Poam['milestones'][number] | null, milestoneIndex: number): any => {
       if (dbKey === 'milestone') {
@@ -307,7 +304,7 @@ export class PoamExportService {
       const milestoneRows = poam?.milestones?.length > 0 ? poam.milestones : [null];
 
       milestoneRows.forEach((milestone, milestoneIndex) => {
-        const row = worksheet!.getRow(rowIndex);
+        const row = worksheet.getRow(rowIndex);
 
         Object.entries(excelColumnToDbColumnMapping).forEach(([columnKey, dbKey]) => {
           row.getCell(columnKey).value = getCellValue(poam, dbKey, columnKey, milestone, milestoneIndex);
@@ -459,9 +456,8 @@ export class PoamExportService {
     sharedService: SharedService
   ): Promise<Blob> {
     const expandedPoams = this.addAssociatedVulnerabilitiesToExport(poams);
-
     const processedPoams = await this.processPoamsWithAssets(expandedPoams, collectionId, collectionsService, importService, poamService, sharedService);
-
+    const columnMapping = getEMassBranchConfig().excelColumnToDbColumnMapping;
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.default.Workbook();
     const arrayBuffer = await emassterFile.arrayBuffer();
@@ -481,87 +477,19 @@ export class PoamExportService {
       const matchingPoam = processedPoams.find((p) => p.vulnerabilityId === vulnerabilityId);
 
       if (matchingPoam) {
-        if (selectedColumns.includes('C') && matchingPoam.description) {
-          worksheet.getCell(`C${rowIndex}`).value = matchingPoam.description;
-        }
-
-        if (selectedColumns.includes('E') && matchingPoam.vulnerabilityId) {
-          worksheet.getCell(`E${rowIndex}`).value = matchingPoam.vulnerabilityId;
-        }
-
-        if (selectedColumns.includes('F') && matchingPoam.status) {
-          worksheet.getCell(`F${rowIndex}`).value = PoamExportService.mapStatus(matchingPoam.status);
-        }
-
-        if (selectedColumns.includes('G') && matchingPoam.scheduledCompletionDate) {
-          worksheet.getCell(`G${rowIndex}`).value = PoamExportService.formatDate(matchingPoam.scheduledCompletionDate);
-        }
-
-        if (selectedColumns.includes('I') && matchingPoam.closedDate) {
-          worksheet.getCell(`I${rowIndex}`).value = PoamExportService.formatDate(matchingPoam.closedDate);
-        }
-
         const formattedMilestones = PoamExportService.formatMilestonesForColumns(matchingPoam);
 
-        if (selectedColumns.includes('K') && formattedMilestones.descriptions) {
-          worksheet.getCell(`K${rowIndex}`).value = formattedMilestones.descriptions;
-        }
+        selectedColumns.forEach((columnKey) => {
+          const dbKey = columnMapping[columnKey];
 
-        if (selectedColumns.includes('L') && formattedMilestones.statuses) {
-          worksheet.getCell(`L${rowIndex}`).value = formattedMilestones.statuses;
-        }
+          if (dbKey === undefined) return;
 
-        if (selectedColumns.includes('N') && formattedMilestones.schedDates) {
-          worksheet.getCell(`N${rowIndex}`).value = formattedMilestones.schedDates;
-        }
+          const cellValue = PoamExportService.getOverwriteCellValue(columnKey, dbKey, matchingPoam, formattedMilestones);
 
-        if (selectedColumns.includes('O') && formattedMilestones.completionDates) {
-          worksheet.getCell(`O${rowIndex}`).value = formattedMilestones.completionDates;
-        }
-
-        if (selectedColumns.includes('P') && matchingPoam.vulnerabilitySource) {
-          worksheet.getCell(`P${rowIndex}`).value = matchingPoam.vulnerabilitySource;
-        }
-
-        if (selectedColumns.includes('R') && matchingPoam.officeOrg) {
-          worksheet.getCell(`R${rowIndex}`).value = matchingPoam.officeOrg;
-        }
-
-        if (selectedColumns.includes('S') && matchingPoam.requiredResources) {
-          worksheet.getCell(`S${rowIndex}`).value = matchingPoam.requiredResources;
-        }
-
-        if (selectedColumns.includes('U') && matchingPoam.rawSeverity) {
-          worksheet.getCell(`U${rowIndex}`).value = PoamExportService.mapRawSeverity(matchingPoam.rawSeverity);
-        }
-
-        if (selectedColumns.includes('V') && matchingPoam.devicesAffected) {
-          worksheet.getCell(`V${rowIndex}`).value = matchingPoam.devicesAffected;
-        }
-
-        if (selectedColumns.includes('W') && (matchingPoam.mitigations || (matchingPoam.teamMitigations && matchingPoam.teamMitigations.length > 0))) {
-          worksheet.getCell(`W${rowIndex}`).value = PoamExportService.formatMitigations(matchingPoam);
-        }
-
-        if (selectedColumns.includes('X') && matchingPoam.predisposingConditions) {
-          worksheet.getCell(`X${rowIndex}`).value = matchingPoam.predisposingConditions;
-        }
-
-        if (selectedColumns.includes('AB') && matchingPoam.likelihood) {
-          worksheet.getCell(`AB${rowIndex}`).value = matchingPoam.likelihood;
-        }
-
-        if (selectedColumns.includes('AD') && matchingPoam.impactDescription) {
-          worksheet.getCell(`AD${rowIndex}`).value = matchingPoam.impactDescription;
-        }
-
-        if (selectedColumns.includes('AE') && matchingPoam.residualRisk) {
-          worksheet.getCell(`AE${rowIndex}`).value = matchingPoam.residualRisk;
-        }
-
-        if (selectedColumns.includes('AG') && matchingPoam.adjSeverity) {
-          worksheet.getCell(`AG${rowIndex}`).value = PoamExportService.mapRawSeverity(matchingPoam.adjSeverity);
-        }
+          if (cellValue !== null && cellValue !== undefined) {
+            worksheet.getCell(`${columnKey}${rowIndex}`).value = cellValue;
+          }
+        });
       }
 
       rowIndex++;

@@ -21,7 +21,7 @@
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
-        "files": ["/assets/NAVY_eMASS_TEMPLATE.xlsx", "/assets/theme-previews/*", "/assets/vram/*"]
+        "files": ["/assets/ARMY_eMASS_TEMPLATE.xlsx", "/assets/MARINE_CORPS_eMASS_TEMPLATE.xlsx", "/assets/NAVY_eMASS_TEMPLATE.xlsx", "/assets/theme-previews/*", "/assets/vram/*"]
       }
     }
   ],
