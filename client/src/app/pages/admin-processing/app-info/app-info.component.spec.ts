@@ -221,7 +221,7 @@ describe('AppInfoComponent', () => {
     it('should set appInfo after init', async () => {
       await component.ngOnInit();
       expect(component.appInfo()).not.toBeNull();
-      expect(component.appInfo()!.version).toBe('1.2.3');
+      expect(component.appInfo().version).toBe('1.2.3');
     });
 
     it('should populate operationRows after init', async () => {

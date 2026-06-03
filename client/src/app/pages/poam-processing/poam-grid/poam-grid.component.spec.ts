@@ -189,13 +189,13 @@ describe('PoamGridComponent', () => {
     it('should call setPayload on ngOnInit', async () => {
       const setPayloadSpy = vi.spyOn(component, 'setPayload');
 
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(setPayloadSpy).toHaveBeenCalled();
     });
 
     it('should set up table status filter on ngOnInit', async () => {
       vi.useFakeTimers();
-      await component.ngOnInit();
+      component.ngOnInit();
       vi.runAllTimers();
       vi.useRealTimers();
     });
@@ -203,25 +203,25 @@ describe('PoamGridComponent', () => {
 
   describe('setPayload', () => {
     it('should subscribe to selectedCollection', async () => {
-      await component.setPayload();
+      component.setPayload();
       expect(component.selectedCollectionId()).toBe(1);
     });
 
     it('should update selectedCollectionId when collection changes', async () => {
-      await component.setPayload();
+      component.setPayload();
       selectedCollectionSubject.next(2);
       expect(component.selectedCollectionId()).toBe(2);
     });
 
     it('should subscribe to user$', async () => {
-      await component.setPayload();
+      component.setPayload();
       expect(component.user()).toEqual({ userId: 1, userName: 'testuser' });
     });
   });
 
   describe('loadCollectionData', () => {
     it('should fetch and set collection data when collectionId changes', async () => {
-      await component.setPayload();
+      component.setPayload();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockCollectionsService.getCollectionBasicList).toHaveBeenCalled();
@@ -234,7 +234,7 @@ describe('PoamGridComponent', () => {
     });
 
     it('should set collectionTypeSignal from loaded collection', async () => {
-      await component.setPayload();
+      component.setPayload();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(component['collectionTypeSignal']()).toBe('C-PAT');
@@ -242,7 +242,7 @@ describe('PoamGridComponent', () => {
 
     it('should show error message when loading fails', async () => {
       mockCollectionsService.getCollectionBasicList.mockReturnValue(throwError(() => new Error('Network error')));
-      await component.setPayload();
+      component.setPayload();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockMessageService.add).toHaveBeenCalledWith(
@@ -578,7 +578,7 @@ describe('PoamGridComponent', () => {
   describe('clear', () => {
     it('should reset globalFilterSignal', async () => {
       vi.useFakeTimers();
-      await component.ngOnInit();
+      component.ngOnInit();
       vi.runAllTimers();
       vi.useRealTimers();
 
@@ -1047,7 +1047,7 @@ describe('PoamGridComponent', () => {
 
     it('should return early when no columns selected', async () => {
       vi.useFakeTimers();
-      await component.ngOnInit();
+      component.ngOnInit();
       vi.runAllTimers();
       vi.useRealTimers();
 
@@ -1059,7 +1059,7 @@ describe('PoamGridComponent', () => {
 
     it('should return early when empty columns array selected', async () => {
       vi.useFakeTimers();
-      await component.ngOnInit();
+      component.ngOnInit();
       vi.runAllTimers();
       vi.useRealTimers();
 
@@ -1071,7 +1071,7 @@ describe('PoamGridComponent', () => {
 
     it('should show processing message when columns are selected', async () => {
       vi.useFakeTimers();
-      await component.ngOnInit();
+      component.ngOnInit();
       vi.runAllTimers();
       vi.useRealTimers();
 
@@ -1092,7 +1092,7 @@ describe('PoamGridComponent', () => {
 
     it('should show error when eMASSter processing fails', async () => {
       vi.useFakeTimers();
-      await component.ngOnInit();
+      component.ngOnInit();
       vi.runAllTimers();
       vi.useRealTimers();
 
@@ -1364,7 +1364,7 @@ describe('PoamGridComponent', () => {
 
   describe('ngOnDestroy', () => {
     it('should unsubscribe from subscriptions', async () => {
-      await component.setPayload();
+      component.setPayload();
 
       const unsubscribeSpy = vi.spyOn(component['subscriptions'], 'unsubscribe');
 
@@ -1387,7 +1387,7 @@ describe('PoamGridComponent', () => {
     });
 
     it('should unsubscribe from payloadSubscriptions', async () => {
-      await component.setPayload();
+      component.setPayload();
       const subscriptions = component['payloadSubscription'];
       const spies = subscriptions.map((sub) => vi.spyOn(sub, 'unsubscribe'));
 

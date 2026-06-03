@@ -87,24 +87,24 @@ describe('PoamsComponent', () => {
 
   describe('setPayload', () => {
     it('should subscribe to user$', async () => {
-      await component.setPayload();
+      component.setPayload();
       expect(component.user).toEqual({ userId: 1, userName: 'testuser', lastCollectionAccessedId: 1 });
     });
 
     it('should subscribe to payload$', async () => {
-      await component.setPayload();
+      component.setPayload();
       expect(component.payload).toEqual({ token: 'test-token' });
     });
 
     it('should subscribe to accessLevel$', async () => {
-      await component.setPayload();
+      component.setPayload();
       expect(component['accessLevel']).toBe(0);
     });
 
     it('should not call getPoamData when accessLevel is 0', async () => {
       const getPoamDataSpy = vi.spyOn(component, 'getPoamData');
 
-      await component.setPayload();
+      component.setPayload();
       expect(getPoamDataSpy).not.toHaveBeenCalled();
     });
 
@@ -112,24 +112,24 @@ describe('PoamsComponent', () => {
       const getPoamDataSpy = vi.spyOn(component, 'getPoamData');
 
       accessLevelSubject.next(1);
-      await component.setPayload();
+      component.setPayload();
       expect(getPoamDataSpy).toHaveBeenCalled();
     });
 
     it('should set selectedCollection from user.lastCollectionAccessedId', async () => {
       accessLevelSubject.next(1);
-      await component.setPayload();
+      component.setPayload();
       expect(component.selectedCollection).toBe(1);
     });
 
     it('should update user when user$ emits new value', async () => {
-      await component.setPayload();
+      component.setPayload();
       userSubject.next({ userId: 2, userName: 'newuser', lastCollectionAccessedId: 5 });
       expect(component.user).toEqual({ userId: 2, userName: 'newuser', lastCollectionAccessedId: 5 });
     });
 
     it('should update payload when payload$ emits new value', async () => {
-      await component.setPayload();
+      component.setPayload();
       payloadSubject.next({ token: 'new-token' });
       expect(component.payload).toEqual({ token: 'new-token' });
     });
@@ -137,7 +137,7 @@ describe('PoamsComponent', () => {
     it('should call getPoamData again when accessLevel changes to a new positive value', async () => {
       const getPoamDataSpy = vi.spyOn(component, 'getPoamData');
 
-      await component.setPayload();
+      component.setPayload();
 
       accessLevelSubject.next(1);
       expect(getPoamDataSpy).toHaveBeenCalledTimes(1);
@@ -221,7 +221,7 @@ describe('PoamsComponent', () => {
     });
 
     it('should unsubscribe from payloadSubscriptions', async () => {
-      await component.setPayload();
+      component.setPayload();
       const subscriptions = component['payloadSubscription'];
       const spies = subscriptions.map((sub) => vi.spyOn(sub, 'unsubscribe'));
 

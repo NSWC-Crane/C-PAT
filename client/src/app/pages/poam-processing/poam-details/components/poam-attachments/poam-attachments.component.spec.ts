@@ -10,9 +10,8 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, HttpResponse } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { HttpResponse } from '@angular/common/http';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
@@ -104,18 +103,18 @@ describe('PoamAttachmentsComponent', () => {
 
   describe('ngOnInit', () => {
     it('should subscribe to accessLevel$ and set accessLevel', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(component['accessLevel']).toBe(2);
     });
 
     it('should load attached files when accessLevel > 0', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(mockAttachmentService.getAttachmentsByPoamId).toHaveBeenCalledWith(100);
     });
 
     it('should not load attached files when accessLevel is 0', async () => {
       mockPayloadService.accessLevel$ = new BehaviorSubject(0);
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(mockAttachmentService.getAttachmentsByPoamId).not.toHaveBeenCalled();
     });
 
@@ -124,7 +123,7 @@ describe('PoamAttachmentsComponent', () => {
 
       mockPayloadService.accessLevel$ = accessLevel$;
 
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(mockAttachmentService.getAttachmentsByPoamId).not.toHaveBeenCalled();
 
       accessLevel$.next(2);
@@ -659,7 +658,7 @@ describe('PoamAttachmentsComponent', () => {
 
   describe('ngOnDestroy', () => {
     it('should unsubscribe from accessLevelSubscription', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
 
       const subscription = component['accessLevelSubscription'];
 

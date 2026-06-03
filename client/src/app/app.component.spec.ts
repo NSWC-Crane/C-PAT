@@ -69,12 +69,12 @@ describe('AppComponent', () => {
 
   describe('ngOnInit', () => {
     it('should subscribe to authState$', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(component['authSubscription']).toBeDefined();
     });
 
     it('should call getApiConfig once fully authenticated', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next({ isAuthenticatedStigman: true, isAuthenticatedCpat: true });
       await Promise.resolve();
       expect(mockSharedService.getApiConfig).toHaveBeenCalled();
@@ -83,21 +83,21 @@ describe('AppComponent', () => {
 
   describe('handleAuthState — not fully authenticated', () => {
     it('should call inactivityService.stopMonitoring when not authenticated', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next({ isAuthenticatedStigman: false, isAuthenticatedCpat: false });
       await Promise.resolve();
       expect(mockInactivityService.stopMonitoring).toHaveBeenCalled();
     });
 
     it('should call authService.handleAuthFlow when stigman not authenticated', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next({ isAuthenticatedStigman: false, isAuthenticatedCpat: true });
       await Promise.resolve();
       expect(mockAuthService.handleAuthFlow).toHaveBeenCalled();
     });
 
     it('should call authService.handleAuthFlow when cpat not authenticated', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next({ isAuthenticatedStigman: true, isAuthenticatedCpat: false });
       await Promise.resolve();
       expect(mockAuthService.handleAuthFlow).toHaveBeenCalled();
@@ -109,7 +109,7 @@ describe('AppComponent', () => {
 
     it('should call inactivityService.startMonitoring when shouldMonitor returns true', async () => {
       mockInactivityService.shouldMonitor.mockReturnValue(true);
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next(fullyAuthenticated);
       await Promise.resolve();
       expect(mockInactivityService.startMonitoring).toHaveBeenCalled();
@@ -117,14 +117,14 @@ describe('AppComponent', () => {
 
     it('should not call inactivityService.startMonitoring when shouldMonitor returns false', async () => {
       mockInactivityService.shouldMonitor.mockReturnValue(false);
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next(fullyAuthenticated);
       await Promise.resolve();
       expect(mockInactivityService.startMonitoring).not.toHaveBeenCalled();
     });
 
     it('should call sharedService.getApiConfig', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next(fullyAuthenticated);
       await Promise.resolve();
       expect(mockSharedService.getApiConfig).toHaveBeenCalled();
@@ -132,7 +132,7 @@ describe('AppComponent', () => {
 
     it('should set classification from valid api config', async () => {
       mockSharedService.getApiConfig.mockReturnValue(of({ classification: 'S' }));
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next(fullyAuthenticated);
       await Promise.resolve();
       expect(component.classification).toBeDefined();
@@ -141,7 +141,7 @@ describe('AppComponent', () => {
 
     it('should set classification to UNCLASSIFIED for U', async () => {
       mockSharedService.getApiConfig.mockReturnValue(of({ classification: 'U' }));
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next(fullyAuthenticated);
       await Promise.resolve();
       expect(component.classification?.classificationText).toBe('UNCLASSIFIED');
@@ -149,7 +149,7 @@ describe('AppComponent', () => {
 
     it('should not set classification when api config lacks classification key', async () => {
       mockSharedService.getApiConfig.mockReturnValue(of({ someOtherKey: 'value' }));
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next(fullyAuthenticated);
       await Promise.resolve();
       expect(component.classification).toBeUndefined();
@@ -157,7 +157,7 @@ describe('AppComponent', () => {
 
     it('should not set classification when api config is null', async () => {
       mockSharedService.getApiConfig.mockReturnValue(of(null));
-      await component.ngOnInit();
+      component.ngOnInit();
       authStateSubject.next(fullyAuthenticated);
       await Promise.resolve();
       expect(component.classification).toBeUndefined();
@@ -166,15 +166,15 @@ describe('AppComponent', () => {
 
   describe('ngOnDestroy', () => {
     it('should unsubscribe from authSubscription', async () => {
-      await component.ngOnInit();
-      const spy = vi.spyOn(component['authSubscription']!, 'unsubscribe');
+      component.ngOnInit();
+      const spy = vi.spyOn(component['authSubscription'], 'unsubscribe');
 
       component.ngOnDestroy();
       expect(spy).toHaveBeenCalled();
     });
 
     it('should call inactivityService.stopMonitoring', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       component.ngOnDestroy();
       expect(mockInactivityService.stopMonitoring).toHaveBeenCalled();
     });
