@@ -84,11 +84,17 @@ export class NotificationService {
   }
 
   dismissNotification(notificationId: number): Observable<any> {
-    return this.http.put<any>(`${this.cpatApiBase}/notifications/dismiss/${notificationId}`, null).pipe(tap(() => this.invalidateNotificationCache()), catchError(this.handleError));
+    return this.http.put<any>(`${this.cpatApiBase}/notifications/dismiss/${notificationId}`, null).pipe(
+      tap(() => this.invalidateNotificationCache()),
+      catchError(this.handleError)
+    );
   }
 
   dismissAllNotifications(): Observable<any> {
-    return this.http.put<any>(`${this.cpatApiBase}/notifications/all/dismiss`, null).pipe(tap(() => this.invalidateNotificationCache()), catchError(this.handleError));
+    return this.http.put<any>(`${this.cpatApiBase}/notifications/all/dismiss`, null).pipe(
+      tap(() => this.invalidateNotificationCache()),
+      catchError(this.handleError)
+    );
   }
 
   deleteNotification(notificationId: number): Observable<any> {
