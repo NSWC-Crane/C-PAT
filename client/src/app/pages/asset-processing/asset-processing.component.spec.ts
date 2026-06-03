@@ -156,42 +156,42 @@ describe('AssetProcessingComponent', () => {
 
   describe('ngOnInit', () => {
     it('should subscribe to selectedCollection', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(component.selectedCollection).toBe(1);
     });
 
     it('should update selectedCollection when it changes', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       selectedCollectionSubject.next(2);
       expect(component.selectedCollection).toBe(2);
     });
 
     it('should call getCollectionBasicList', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(mockCollectionsService.getCollectionBasicList).toHaveBeenCalled();
     });
 
     it('should set collectionType from matched collection', async () => {
       component.selectedCollection = 1;
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(component.collectionType).toBe('Tenable');
     });
 
     it('should set originCollectionId from matched collection', async () => {
       component.selectedCollection = 1;
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(component.originCollectionId).toBe(42);
     });
 
     it('should call messageService.add and set collectionType empty on getCollectionBasicList error', async () => {
       mockCollectionsService.getCollectionBasicList.mockReturnValue(throwError(() => new Error('Network error')));
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
       expect(component.collectionType).toBe('');
     });
 
     it('should call initializeColumns on init', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       expect(component.cols).toBeDefined();
       expect(component.cols.length).toBe(5);
     });
@@ -238,25 +238,25 @@ describe('AssetProcessingComponent', () => {
 
   describe('setPayload', () => {
     it('should subscribe to user$ and set user', async () => {
-      await component.setPayload();
+      component.setPayload();
       expect(component.user).toEqual({ lastCollectionAccessedId: 1 });
     });
 
     it('should subscribe to payload$ and set payload', async () => {
-      await component.setPayload();
+      component.setPayload();
       expect(component.payload).toEqual({ lastCollectionAccessedId: 1 });
     });
 
     it('should call getAssetData when accessLevel > 0', async () => {
       component.user = { lastCollectionAccessedId: 1 };
       component.payload = { lastCollectionAccessedId: 1 };
-      await component.setPayload();
+      component.setPayload();
       accessLevelSubject.next(2);
       expect(mockAssetService.getAssetsByCollection).toHaveBeenCalled();
     });
 
     it('should not call getAssetData when accessLevel is 0', async () => {
-      await component.setPayload();
+      component.setPayload();
       accessLevelSubject.next(0);
       expect(mockAssetService.getAssetsByCollection).not.toHaveBeenCalled();
     });
@@ -481,7 +481,7 @@ describe('AssetProcessingComponent', () => {
 
   describe('ngOnDestroy', () => {
     it('should unsubscribe from subs', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       const spy = vi.spyOn((component as any).subs, 'unsubscribe');
 
       component.ngOnDestroy();
@@ -489,7 +489,7 @@ describe('AssetProcessingComponent', () => {
     });
 
     it('should unsubscribe from subscriptions', async () => {
-      await component.ngOnInit();
+      component.ngOnInit();
       const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
 
       component.ngOnDestroy();

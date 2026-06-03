@@ -226,7 +226,7 @@ describe('CollectionProcessingComponent', () => {
       const initSpy = vi.spyOn(component, 'initColumnsAndFilters');
       const setPayloadSpy = vi.spyOn(component, 'setPayload');
 
-      await component.ngOnInit();
+      component.ngOnInit();
 
       expect(initSpy).toHaveBeenCalled();
       expect(setPayloadSpy).toHaveBeenCalled();
@@ -991,7 +991,7 @@ describe('CollectionProcessingComponent', () => {
   describe('processPoamsWithTenableData (via processPoamsData)', () => {
     it('should use netbiosName last segment for device name', () => {
       const poams = [{ poamId: 1, vulnerabilityId: '12345' }];
-      const tenableResults = [{ pluginID: '12345', netbiosName: 'DOMAIN\\WORKSTATION', dnsName: '' }];
+      const tenableResults = [{ pluginID: '12345', netbiosName: String.raw`DOMAIN\WORKSTATION`, dnsName: '' }];
 
       mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: tenableResults } }));
 
@@ -1585,7 +1585,7 @@ describe('CollectionProcessingComponent', () => {
     it('should only include STIG Manager source when tenableEnabled is false', async () => {
       (globalThis as any).CPAT.Env.features.tenableEnabled = false;
 
-      await TestBed.resetTestingModule();
+      TestBed.resetTestingModule();
       await TestBed.configureTestingModule({
         imports: [CollectionProcessingComponent],
         providers: [
