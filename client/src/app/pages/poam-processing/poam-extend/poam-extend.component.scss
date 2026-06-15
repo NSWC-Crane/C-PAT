@@ -10,18 +10,8 @@
 
 ::ng-deep .p-dialog {
   .p-dialog-header {
-    padding: 2rem 2rem 0 2rem;
-    border: none;
-    display: flex;
-    justify-content: center;
-
-    .p-dialog-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      text-align: center;
-    }
+    display: none;
   }
-
   .p-dialog-content {
     padding: 2rem;
     flex-direction: column;

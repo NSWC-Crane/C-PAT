@@ -12,6 +12,37 @@
   @if (poam) {
     <div class="extensionContainer">
       <div class="p-grid">
+        @if (poam.ownerName) {
+          <!-- Owned By -->
+          <div class="p-col-12">
+            <div class="p-field">
+              <label for="poamOwner">POAM Owned By:</label>
+              <input type="text" pInputText [value]="poam.ownerName" name="poamOwner" disabled class="w-full" />
+            </div>
+          </div>
+        } @else {
+          <!-- Created By -->
+          <div class="p-col-12">
+            <div class="p-field">
+              <label for="submitterName">POAM Created By:</label>
+              <input type="text" pInputText [value]="poam.submitterName" name="submitterName" disabled class="w-full" />
+            </div>
+          </div>
+        }
+        <!-- Raw Severity -->
+        <div class="p-col-12">
+          <div class="p-field">
+            <label for="rawSeverity">Raw Severity:</label>
+            <input type="text" pInputText [value]="poam.rawSeverity" name="rawSeverity" disabled class="w-full" />
+          </div>
+        </div>
+        <!-- Adjusted Severity -->
+        <div class="p-col-12">
+          <div class="p-field">
+            <label for="adjSeverity">Adjusted Severity:</label>
+            <input type="text" pInputText [value]="poam.adjSeverity" name="adjSeverity" disabled class="w-full" />
+          </div>
+        </div>
         <!-- Extension Time Allowed -->
         <div class="p-col-12">
           <div class="p-field">
