@@ -12,6 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { addDays, format } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
@@ -322,8 +323,8 @@ describe('PoamExtendComponent', () => {
         expect(component.poamAssignedTeams).toEqual(mockPoamAssignedTeams);
       });
 
-      it('should compute completionDateWithExtension from extensionDeadline', () => {
-        expect(component.completionDateWithExtension).toContain('2025');
+      it('should compute completionDateWithExtension as extensionDays from the current day, not the stored deadline', () => {
+        expect(component.completionDateWithExtension).toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
       });
 
       it('should call loadTeamMitigations', () => {
