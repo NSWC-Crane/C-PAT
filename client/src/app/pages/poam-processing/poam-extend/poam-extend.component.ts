@@ -245,13 +245,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
             this.extensionJustification = this.poam.extensionJustification;
 
             if (this.poam.scheduledCompletionDate) {
-              if (this.poam.extensionDeadline) {
-                this.completionDateWithExtension = format(parseISO(this.poam.extensionDeadline), 'EEE MMM dd yyyy');
-              } else {
-                const extendedDate = addDays(new Date(), this.poam.extensionDays);
-
-                this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
-              }
+              this.computeDeadlineWithExtension();
             } else {
               this.completionDateWithExtension = '';
             }
@@ -624,7 +618,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   }
 
   saveTeamMitigation(teamMitigation: any) {
-    if (!this.poam || !teamMitigation || !teamMitigation.assignedTeamId) {
+    if (!this.poam || !teamMitigation?.assignedTeamId) {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Cannot save, missing data.' });
 
       return;
@@ -685,7 +679,15 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
 
   computeDeadlineWithExtension() {
     if (this.poam.extensionDays === 0 || this.poam.extensionDays == null) {
-      this.completionDateWithExtension = format(this.poam.scheduledCompletionDate, 'EEE MMM dd yyyy');
+      if (!this.poam.scheduledCompletionDate) {
+        this.completionDateWithExtension = '';
+
+        return;
+      }
+
+      const scheduledDate = typeof this.poam.scheduledCompletionDate === 'string' ? parseISO(this.poam.scheduledCompletionDate) : this.poam.scheduledCompletionDate;
+
+      this.completionDateWithExtension = format(scheduledDate, 'EEE MMM dd yyyy');
     } else {
       const extendedDate = addDays(new Date(), this.poam.extensionDays);
 
