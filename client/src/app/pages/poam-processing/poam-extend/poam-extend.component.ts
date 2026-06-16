@@ -777,39 +777,29 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.poam.isGlobalFinding) {
-      if (!this.poam.mitigations) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Validation Error',
-          detail: 'Mitigations are required.'
-        });
-
-        return;
-      }
-    } else if (this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
+    if (!this.poam.isGlobalFinding && this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
       const activeTeamMitigations = this.teamMitigations.filter((m) => m.isActive);
-      const hasTeamMitigationText = activeTeamMitigations.some((m) => m.mitigationText?.trim());
+      const teamsMissingMitigation = activeTeamMitigations.filter((m) => !m.mitigationText?.trim());
 
-      if (!hasTeamMitigationText) {
+      if (activeTeamMitigations.length === 0 || teamsMissingMitigation.length > 0) {
+        const missingTeamNames = teamsMissingMitigation.map((m) => m.assignedTeamName).filter((name) => name);
+
         this.messageService.add({
           severity: 'error',
           summary: 'Validation Error',
-          detail: 'At least one team mitigation is required.'
+          detail: missingTeamNames.length > 0 ? `A mitigation is required for the following team(s): ${missingTeamNames.join(', ')}.` : 'A mitigation is required for each assigned team.'
         });
 
         return;
       }
-    } else {
-      if (!this.poam.mitigations) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Validation Error',
-          detail: 'Mitigations are required.'
-        });
+    } else if (!this.poam.mitigations) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Mitigations are required.'
+      });
 
-        return;
-      }
+      return;
     }
 
     if (this.poam.extensionDays > 0) {
@@ -854,6 +844,26 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
         });
 
         return;
+      }
+
+      if (!this.poam.isGlobalFinding && this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
+        const teamsWithoutOpenMilestone = this.poamAssignedTeams.filter((team) => {
+          const teamMilestones = this.poamMilestones.filter((milestone) => milestone.assignedTeamIds?.includes(team.assignedTeamId));
+
+          return !teamMilestones.some((milestone) => milestone.milestoneStatus !== 'Completed');
+        });
+
+        if (teamsWithoutOpenMilestone.length > 0) {
+          const missingTeamNames = teamsWithoutOpenMilestone.map((team) => team.assignedTeamName).filter((name) => name);
+
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Validation Error',
+            detail: `Each assigned team must have at least one milestone that is not in a Completed status. Missing for: ${missingTeamNames.join(', ')}.`
+          });
+
+          return;
+        }
       }
 
       this.putPoamExtension('Extension Requested');

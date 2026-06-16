@@ -927,10 +927,45 @@ describe('PoamExtendComponent', () => {
 
     it('should fail for non-global finding with teams but no team mitigation text', async () => {
       component.poam.isGlobalFinding = false;
-      component.poamAssignedTeams = [{ assignedTeamId: 10 }];
-      component.teamMitigations = [{ assignedTeamId: 10, isActive: true, mitigationText: '' }];
+      component.poamAssignedTeams = [{ assignedTeamId: 10, assignedTeamName: 'Alpha' }];
+      component.teamMitigations = [{ assignedTeamId: 10, assignedTeamName: 'Alpha', isActive: true, mitigationText: '' }];
       await component.submitPoamExtension();
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: 'At least one team mitigation is required.' }));
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: 'A mitigation is required for the following team(s): Alpha.' }));
+    });
+
+    it('should fail when only some teams have mitigation text', async () => {
+      component.poam.isGlobalFinding = false;
+      component.poamAssignedTeams = [
+        { assignedTeamId: 10, assignedTeamName: 'Alpha' },
+        { assignedTeamId: 20, assignedTeamName: 'Bravo' }
+      ];
+      component.teamMitigations = [
+        { assignedTeamId: 10, assignedTeamName: 'Alpha', isActive: true, mitigationText: 'done' },
+        { assignedTeamId: 20, assignedTeamName: 'Bravo', isActive: true, mitigationText: '' }
+      ];
+      await component.submitPoamExtension();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: 'A mitigation is required for the following team(s): Bravo.' }));
+      expect(mockPoamExtensionService.putPoamExtension).not.toHaveBeenCalled();
+    });
+
+    it('should fail when a team has no non-completed milestone', async () => {
+      component.poam.isGlobalFinding = false;
+      component.poamAssignedTeams = [{ assignedTeamId: 10, assignedTeamName: 'Alpha' }];
+      component.teamMitigations = [{ assignedTeamId: 10, assignedTeamName: 'Alpha', isActive: true, mitigationText: 'done' }];
+      component.poamMilestones = [
+        {
+          milestoneId: 1,
+          milestoneChangeDate: '2025-06-15',
+          milestoneChangeComments: 'Updated milestone',
+          milestoneStatus: 'Completed',
+          assignedTeamIds: [10],
+          editing: false,
+          isNew: false
+        }
+      ];
+      await component.submitPoamExtension();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('not in a Completed status. Missing for: Alpha') }));
+      expect(mockPoamExtensionService.putPoamExtension).not.toHaveBeenCalled();
     });
 
     it('should fail for non-global finding without teams and no mitigations', async () => {
