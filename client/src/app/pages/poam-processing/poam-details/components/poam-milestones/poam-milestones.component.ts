@@ -76,7 +76,7 @@ export class PoamMilestonesComponent implements OnInit {
   }
 
   private generateTempId(): string {
-    return 'temp_' + new Date().getTime();
+    return 'temp_' + Date.now();
   }
 
   private isChangeFieldsEditable(): boolean {

@@ -96,7 +96,7 @@ export class CsvExportService {
     const cleanName = baseName.replace(/[^a-z0-9_-]/gi, '_');
 
     if (includeTimestamp) {
-      const timestamp = new Date().getTime();
+      const timestamp = Date.now();
 
       return `${cleanName}_${timestamp}.csv`;
     }

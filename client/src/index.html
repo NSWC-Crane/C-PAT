@@ -302,7 +302,7 @@
             ((globalThis.requestAnimationFrame = globalThis[b[c] + 'RequestAnimationFrame']), (globalThis.cancelAnimationFrame = globalThis[b[c] + 'CancelAnimationFrame'] || globalThis[b[c] + 'CancelRequestAnimationFrame']));
           (globalThis.requestAnimationFrame ||
             (globalThis.requestAnimationFrame = function (b) {
-              var c = new Date().getTime(),
+              var c = Date.now(),
                 d = Math.max(0, 16 - (c - a)),
                 e = globalThis.setTimeout(function () {
                   b(c + d);
