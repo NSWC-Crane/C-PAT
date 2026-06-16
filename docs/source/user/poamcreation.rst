@@ -118,3 +118,91 @@ POAM Labels
 
 .. note::
    Any POAM containing a ``CORA STIG KIOR`` ``CORA STIG KIORS`` ``CORA KIOR`` ``CORA KIORS`` ``STIG KIOR`` or ``STIG KIORS`` [case insensitive] label will be included in the STIG Manager Metrics Component KIOR Count under 'Open Findings by STIG (Raw)'.
+
+
+POAM Submission Requirements
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Before a POAM can be submitted for review, C-PAT validates that the POAM is complete. If any requirement is not met, submission is blocked and the specific reason is displayed. All milestone edits must be saved before submission is allowed.
+
+General requirements (all POAMs)
+
+The following fields are required for every submission:
+
+   * Description
+   * POAM Status
+   * A&A Package
+   * Vulnerability Source
+   * Plugin ID / Vulnerability ID
+   * Raw Severity
+   * POAM Submitter
+   * Scheduled Completion Date
+   * Predisposing Conditions
+   * Mitigations
+   * Local Impact
+
+The following conditional requirements also apply:
+
+   * **IAV Comply By Date** is required when an IAVM Number is provided.
+   * **Impact Description** becomes required when Local Impact is ``Moderate``, ``High``, or ``Very High``.
+
+.. note::
+   Mitigations are always required for submission. They are provided per team for team-based POAMs (every active team must have mitigations) or as Global Mitigations for Global Findings - see the type-specific requirements below.
+
+Global Finding mode
+
+When a POAM is flagged as a Global Finding, the following are required:
+
+   * Global Mitigations
+   * Global Required Resources
+   * A minimum of one active milestone (a milestone whose status is not ``Completed`` or ``Archived``).
+
+Team-based (non-Global) POAMs
+
+When a POAM has one or more teams assigned, the following are required:
+
+   * Every active team must have mitigations.
+   * Every active team must have required resources.
+   * Every active team must have at least one milestone (where status is not ``Completed`` or ``Archived``) that includes milestone comments.
+
+Milestone requirements
+
+Every milestone on the POAM must be fully completed before submission:
+
+   * Milestone Comments
+   * Milestone Due Date
+   * Milestone Status
+   * At least one assigned Milestone Team
+
+.. note::
+   A milestone with an active status (not ``Completed`` or ``Archived``) cannot have a due date in the past. Either update the milestone status or move the due date to a future date.
+
+.. note::
+   A milestone due date may not exceed the POAM Scheduled Completion Date. If the POAM has an approved extension, the milestone due date may not exceed the extended deadline.
+
+
+POAM Extension Requirements
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+An extension request documents why additional time is needed and updates the mitigation and milestone information accordingly. As with submission, all milestone edits must be saved before an extension request can be submitted, and any unmet requirement blocks the request with a specific message.
+
+Required for every extension request
+
+   * **Extension Time Requested** - the number of additional days requested.
+   * **Justification for Extension** - select a provided justification, modify one, or enter a custom justification.
+
+Mitigation requirements
+
+   * **Global Finding mode:** Mitigations are required.
+   * **Team-based POAMs:** every active team must have mitigation text. The request is blocked until each assigned team's mitigation is provided, and the message identifies any team(s) still missing one.
+   * **POAMs with no assigned teams:** Mitigations are required.
+
+Milestone requirements
+
+When extension days are requested, the following milestone rules are enforced:
+
+   * Any milestone that has a milestone change date must also have milestone change comments.
+   * All past-due milestones must have a milestone change date and change comments.
+   * At least one milestone must have both change comments and a change date.
+   * Each assigned team must have at least one milestone that is **not** in a ``Completed`` status. The request is blocked until each team has an open milestone justifying the extension, and the message identifies any team(s) that do not.
+
+.. note::
+   Initial milestones and their completion dates may not be altered. Document any changes to a milestone using the Milestone Change Date and Milestone Change Comments fields within the POAM extension panel.
