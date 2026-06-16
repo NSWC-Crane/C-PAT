@@ -556,7 +556,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
       link.setAttribute('download', `${exportName}_CPAT_Export.xlsx`);
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
       URL.revokeObjectURL(excelURL);
     } catch (error) {
       this.messageService.add({
@@ -832,7 +832,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
         link.download = `Updated_${file.name}`;
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        link.remove();
         URL.revokeObjectURL(downloadUrl);
 
         this.messageService.add({

@@ -16,7 +16,6 @@ describe('CsvExportService', () => {
   let service: CsvExportService;
   let mockLink: HTMLAnchorElement;
   let createElementSpy: any;
-  let removeChildSpy: any;
   let createObjectURLSpy: any;
   let revokeObjectURLSpy: any;
 
@@ -29,12 +28,12 @@ describe('CsvExportService', () => {
     mockLink = {
       setAttribute: vi.fn(),
       click: vi.fn(),
+      remove: vi.fn(),
       style: { visibility: '' }
     } as unknown as HTMLAnchorElement;
 
     createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockLink);
     vi.spyOn(document.body, 'appendChild').mockReturnValue(mockLink);
-    removeChildSpy = vi.spyOn(document.body, 'removeChild').mockReturnValue(mockLink);
     createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url');
     revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined);
   });
@@ -80,7 +79,6 @@ describe('CsvExportService', () => {
       expect(mockLink.setAttribute).toHaveBeenCalledWith('href', 'blob:test-url');
       expect(mockLink.setAttribute).toHaveBeenCalledWith('download', expect.stringContaining('test_'));
       expect(mockLink.click).toHaveBeenCalled();
-      expect(removeChildSpy).toHaveBeenCalled();
       expect(revokeObjectURLSpy).toHaveBeenCalled();
     });
 

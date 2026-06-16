@@ -450,7 +450,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     link.download = `${exportName}_CPAT_Export.xlsx`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     URL.revokeObjectURL(excelURL);
   }
 

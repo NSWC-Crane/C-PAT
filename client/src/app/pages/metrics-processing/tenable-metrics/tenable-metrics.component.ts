@@ -1132,7 +1132,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   }
 
   refreshMetrics() {

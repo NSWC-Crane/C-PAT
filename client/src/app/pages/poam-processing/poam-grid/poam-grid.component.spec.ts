@@ -1123,12 +1123,12 @@ describe('PoamGridComponent', () => {
         id: '',
         setAttribute: vi.fn(),
         click: vi.fn(),
+        remove: vi.fn(),
         href: '',
         download: ''
       } as any);
 
       vi.spyOn(document.body, 'appendChild').mockImplementation(vi.fn());
-      vi.spyOn(document.body, 'removeChild').mockImplementation(vi.fn());
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test');
       vi.spyOn(URL, 'revokeObjectURL').mockImplementation(vi.fn());
 

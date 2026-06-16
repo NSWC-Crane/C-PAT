@@ -827,7 +827,7 @@ export class PoamMainchartComponent implements OnChanges, OnDestroy {
       link.href = dataURL;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
 
       setTimeout(() => {
         chart.options.plugins.subtitle = {};
