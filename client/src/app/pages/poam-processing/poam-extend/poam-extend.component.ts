@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, DoCheck, OnDestroy, OnInit, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addDays, format, isAfter, parseISO, startOfDay } from 'date-fns';
@@ -72,7 +72,7 @@ import { PoamService } from '../poams.service';
   ],
   providers: [ConfirmationService, MessageService]
 })
-export class PoamExtendComponent implements OnInit, OnDestroy {
+export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
   @ViewChild('dt') table!: Table;
   private readonly assignedTeamService = inject(AssignedTeamService);
   private readonly router = inject(Router);
@@ -99,6 +99,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   assignedTeamOptions: any;
   poamAssignedTeams: any[] = [];
   teamMitigations: any[] = [];
+  invalidExtensionFields = new Set<string>();
   activeTabIndex: number = 0;
   mitigationSaving: boolean = false;
   aiEnabled: boolean = CPAT.Env.features.aiEnabled;
@@ -157,6 +158,48 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
     { label: 'High', value: 'High' },
     { label: 'Very High', value: 'Very High' }
   ];
+
+  ngDoCheck(): void {
+    this.invalidExtensionFields = this.computeInvalidExtensionFields();
+  }
+
+  isExtensionInvalid(field: string): boolean {
+    return this.invalidExtensionFields.has(field);
+  }
+
+  private computeInvalidExtensionFields(): Set<string> {
+    const invalid = new Set<string>();
+
+    if (!this.poam) {
+      return invalid;
+    }
+
+    if (!this.poam.extensionDays) {
+      invalid.add('extensionDays');
+    }
+
+    if (!this.extensionJustification) {
+      invalid.add('extensionJustification');
+    }
+
+    if (this.poam.isGlobalFinding) {
+      if (!this.poam.mitigations) {
+        invalid.add('mitigations');
+      }
+    } else if (this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
+      this.teamMitigations
+        .filter((m) => m.isActive)
+        .forEach((m) => {
+          if (!m.mitigationText?.trim()) {
+            invalid.add(`teamMitigation:${m.assignedTeamId}`);
+          }
+        });
+    } else if (!this.poam.mitigations) {
+      invalid.add('mitigations');
+    }
+
+    return invalid;
+  }
 
   ngOnInit() {
     this.openModal();
@@ -304,7 +347,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy {
   }
 
   generateTempId(): string {
-    return 'temp_' + new Date().getTime();
+    return 'temp_' + Date.now();
   }
 
   onRowEditInit(milestone: any) {
