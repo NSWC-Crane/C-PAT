@@ -165,7 +165,7 @@
             return b ? void (g[a] = b) : g[a];
           }
           function p() {
-            (console.log('destroy'), r.parentNode.removeChild(r), q('onDestroy'), f && f(d).removeData('plugin_' + e));
+            (console.log('destroy'), r.remove(), q('onDestroy'), f && f(d).removeData('plugin_' + e));
           }
           function q(a) {
             void 0 !== g[a] && g[a].call(d);
