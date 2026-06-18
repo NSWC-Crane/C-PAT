@@ -239,6 +239,118 @@ export class PoamValidationService {
     return { valid: true };
   }
 
+  getInvalidSubmissionFields(poam: any, teamMitigations: any[], teamResources: any[], poamMilestones: any[], dates: any): Set<string> {
+    const invalid = new Set<string>();
+
+    if (!poam) {
+      return invalid;
+    }
+
+    if (!poam.description) {
+      invalid.add('description');
+    }
+
+    if (!poam.status) {
+      invalid.add('status');
+    }
+
+    if (!poam.aaPackage) {
+      invalid.add('aaPackage');
+    }
+
+    if (!poam.vulnerabilitySource) {
+      invalid.add('vulnerabilitySource');
+    }
+
+    if (!poam.rawSeverity) {
+      invalid.add('rawSeverity');
+    }
+
+    if (!poam.submitterId) {
+      invalid.add('submitterId');
+    }
+
+    if (!dates?.scheduledCompletionDate) {
+      invalid.add('scheduledCompletionDate');
+    }
+
+    if (!poam.predisposingConditions || poam.predisposingConditions.trim() === '') {
+      invalid.add('predisposingConditions');
+    }
+
+    if (!poam.localImpact) {
+      invalid.add('localImpact');
+    }
+
+    this.addConditionalSubmissionFindings(poam, dates, invalid);
+
+    if (poam.isGlobalFinding) {
+      this.addGlobalSubmissionFindings(poam, invalid);
+    } else {
+      this.addTeamSubmissionFindings(teamMitigations, teamResources, poamMilestones, invalid);
+    }
+
+    const activeMilestones = (poamMilestones ?? []).filter((milestone) => milestone.milestoneStatus !== 'Completed' && milestone.milestoneStatus !== 'Archived');
+
+    if (activeMilestones.length < 1) {
+      invalid.add('activeMilestone');
+    }
+
+    return invalid;
+  }
+
+  private addConditionalSubmissionFindings(poam: any, dates: any, invalid: Set<string>): void {
+    if (this.mappingService.isIavmNumberValid(poam.iavmNumber) && !dates?.iavComplyByDate) {
+      invalid.add('iavComplyByDate');
+    }
+
+    if (poam.adjSeverity && poam.adjSeverity != poam.rawSeverity && !poam.mitigations) {
+      invalid.add('mitigations');
+    }
+
+    const impactRequiresDescription = poam.localImpact === 'Moderate' || poam.localImpact === 'High' || poam.localImpact === 'Very High';
+
+    if (impactRequiresDescription && (!poam.impactDescription || poam.impactDescription?.length < 1)) {
+      invalid.add('impactDescription');
+    }
+  }
+
+  private addGlobalSubmissionFindings(poam: any, invalid: Set<string>): void {
+    if (!poam.mitigations || poam.mitigations.trim() === '') {
+      invalid.add('mitigations');
+    }
+
+    if (!poam.requiredResources || poam.requiredResources.trim() === '') {
+      invalid.add('requiredResources');
+    }
+  }
+
+  private addTeamSubmissionFindings(teamMitigations: any[], teamResources: any[], poamMilestones: any[], invalid: Set<string>): void {
+    const activeTeams = (teamMitigations ?? []).filter((tm) => tm.isActive);
+
+    if (activeTeams.length === 0) {
+      invalid.add('activeTeam');
+    }
+
+    activeTeams.forEach((tm) => {
+      if (!tm.mitigationText || tm.mitigationText.trim() === '') {
+        invalid.add(`teamMitigation:${tm.assignedTeamId}`);
+      }
+
+      const teamResource = (teamResources ?? []).find((r) => r.assignedTeamId === tm.assignedTeamId);
+
+      if (!teamResource?.resourceText || teamResource.resourceText.trim() === '') {
+        invalid.add(`teamResource:${tm.assignedTeamId}`);
+      }
+
+      const hasMilestone = (poamMilestones ?? []).some((milestone) => milestone.assignedTeamIds?.includes(tm.assignedTeamId) && milestone.milestoneComments && milestone.milestoneComments.trim() !== '');
+
+      if (!hasMilestone) {
+        invalid.add(`teamMilestone:${tm.assignedTeamId}`);
+      }
+    });
+  }
+
   validateMilestoneDates(poam: any, milestones: any[]): { valid: boolean; message?: string } {
     if (!milestones || milestones.length === 0) {
       return { valid: true };

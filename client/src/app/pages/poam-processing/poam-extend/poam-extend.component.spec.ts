@@ -1228,4 +1228,51 @@ describe('PoamExtendComponent', () => {
       expect(() => component.ngOnDestroy()).not.toThrow();
     });
   });
+
+  describe('isExtensionInvalid', () => {
+    it('should return empty set fields when no poam', () => {
+      component.poam = null;
+      component.ngDoCheck();
+      expect(component.isExtensionInvalid('extensionDays')).toBe(false);
+    });
+
+    it('should flag extensionDays and justification when empty', () => {
+      component.poam = { isGlobalFinding: false, extensionDays: 0, mitigations: 'x' };
+      component.poamAssignedTeams = [];
+      component.extensionJustification = '';
+      component.ngDoCheck();
+      expect(component.isExtensionInvalid('extensionDays')).toBe(true);
+      expect(component.isExtensionInvalid('extensionJustification')).toBe(true);
+    });
+
+    it('should flag global mitigations when empty for a global finding', () => {
+      component.poam = { isGlobalFinding: true, extensionDays: 30, mitigations: '' };
+      component.extensionJustification = 'Resource Constraints';
+      component.ngDoCheck();
+      expect(component.isExtensionInvalid('mitigations')).toBe(true);
+    });
+
+    it('should flag only the active team missing mitigation text', () => {
+      component.poam = { isGlobalFinding: false, extensionDays: 30 };
+      component.extensionJustification = 'Resource Constraints';
+      component.poamAssignedTeams = [{ assignedTeamId: 10 }, { assignedTeamId: 20 }];
+      component.teamMitigations = [
+        { assignedTeamId: 10, isActive: true, mitigationText: '' },
+        { assignedTeamId: 20, isActive: true, mitigationText: 'done' }
+      ];
+      component.ngDoCheck();
+      expect(component.isExtensionInvalid('teamMitigation:10')).toBe(true);
+      expect(component.isExtensionInvalid('teamMitigation:20')).toBe(false);
+      expect(component.isExtensionInvalid('mitigations')).toBe(false);
+    });
+
+    it('should return no invalid fields when extension is fully populated', () => {
+      component.poam = { isGlobalFinding: false, extensionDays: 30 };
+      component.extensionJustification = 'Resource Constraints';
+      component.poamAssignedTeams = [{ assignedTeamId: 10 }];
+      component.teamMitigations = [{ assignedTeamId: 10, isActive: true, mitigationText: 'done' }];
+      component.ngDoCheck();
+      expect(component.invalidExtensionFields.size).toBe(0);
+    });
+  });
 });

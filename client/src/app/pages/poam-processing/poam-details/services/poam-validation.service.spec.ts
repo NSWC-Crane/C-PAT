@@ -342,6 +342,88 @@ describe('PoamValidationService', () => {
     });
   });
 
+  describe('getInvalidSubmissionFields', () => {
+    const validPoam = {
+      status: 'Submitted',
+      description: 'Test description',
+      aaPackage: 'Test Package',
+      vulnerabilitySource: 'STIG',
+      rawSeverity: 'High',
+      submitterId: 1,
+      predisposingConditions: 'Test conditions',
+      localImpact: 'Low',
+      isGlobalFinding: false
+    };
+
+    const validDates = { scheduledCompletionDate: new Date() };
+    const validTeamMitigations = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: 'Test mitigation' }];
+    const validTeamResources = [{ assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, resourceText: 'Test resource' }];
+    const validMilestones = [{ assignedTeamIds: [1], milestoneComments: 'Test milestone', milestoneStatus: 'In Progress' }];
+
+    it('should return an empty set when no poam is provided', () => {
+      const result = service.getInvalidSubmissionFields(null, [], [], [], {});
+
+      expect(result.size).toBe(0);
+    });
+
+    it('should return an empty set when all requirements are met', () => {
+      const result = service.getInvalidSubmissionFields(validPoam, validTeamMitigations, validTeamResources, validMilestones, validDates);
+
+      expect(result.size).toBe(0);
+    });
+
+    it('should collect all missing scalar fields without short-circuiting', () => {
+      const poam = { ...validPoam, description: '', aaPackage: '', predisposingConditions: '', localImpact: '' };
+      const result = service.getInvalidSubmissionFields(poam, validTeamMitigations, validTeamResources, validMilestones, { scheduledCompletionDate: null });
+
+      expect(result.has('description')).toBe(true);
+      expect(result.has('aaPackage')).toBe(true);
+      expect(result.has('predisposingConditions')).toBe(true);
+      expect(result.has('localImpact')).toBe(true);
+      expect(result.has('scheduledCompletionDate')).toBe(true);
+    });
+
+    it('should flag conditional fields (iavComplyByDate, mitigations, impactDescription)', () => {
+      mockMappingService.isIavmNumberValid.mockReturnValue(true);
+      const poam = { ...validPoam, iavmNumber: '2024-A-0001', rawSeverity: 'High', adjSeverity: 'Low', mitigations: '', localImpact: 'High', impactDescription: '' };
+      const result = service.getInvalidSubmissionFields(poam, validTeamMitigations, validTeamResources, validMilestones, { scheduledCompletionDate: new Date(), iavComplyByDate: null });
+
+      expect(result.has('iavComplyByDate')).toBe(true);
+      expect(result.has('mitigations')).toBe(true);
+      expect(result.has('impactDescription')).toBe(true);
+    });
+
+    it('should flag per-team mitigation, resource, and milestone keys for non-global findings', () => {
+      const teams = [
+        { assignedTeamId: 1, assignedTeamName: 'Team A', isActive: true, mitigationText: '' },
+        { assignedTeamId: 2, assignedTeamName: 'Team B', isActive: true, mitigationText: 'has text' }
+      ];
+      const resources = [{ assignedTeamId: 2, assignedTeamName: 'Team B', isActive: true, resourceText: 'res' }];
+      const milestones = [{ assignedTeamIds: [2], milestoneComments: 'done', milestoneStatus: 'In Progress' }];
+      const result = service.getInvalidSubmissionFields(validPoam, teams, resources, milestones, validDates);
+
+      expect(result.has('teamMitigation:1')).toBe(true);
+      expect(result.has('teamMitigation:2')).toBe(false);
+      expect(result.has('teamResource:1')).toBe(true);
+      expect(result.has('teamMilestone:1')).toBe(true);
+    });
+
+    it('should flag global mitigations and required resources for global findings', () => {
+      const poam = { ...validPoam, isGlobalFinding: true, mitigations: '', requiredResources: '' };
+      const result = service.getInvalidSubmissionFields(poam, [], [], validMilestones, validDates);
+
+      expect(result.has('mitigations')).toBe(true);
+      expect(result.has('requiredResources')).toBe(true);
+    });
+
+    it('should flag activeMilestone when no active milestone exists', () => {
+      const milestones = [{ assignedTeamIds: [1], milestoneComments: 'done', milestoneStatus: 'Completed' }];
+      const result = service.getInvalidSubmissionFields(validPoam, validTeamMitigations, validTeamResources, milestones, validDates);
+
+      expect(result.has('activeMilestone')).toBe(true);
+    });
+  });
+
   describe('validateMilestoneDates', () => {
     it('should return valid if no milestones', () => {
       const poam = { scheduledCompletionDate: '2025-12-31T00:00:00Z' };

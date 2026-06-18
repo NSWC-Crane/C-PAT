@@ -103,3 +103,13 @@ svg[data-p-icon='filter-fill'] path {
   -webkit-animation: chartFadeIn linear 0 !important;
   animation: chartFadeIn linear 0 !important;
 }
+
+.p-invalid::placeholder,
+.ng-invalid.ng-dirty::placeholder {
+  color: var(--p-form-field-placeholder-color) !important;
+}
+
+.p-invalid .p-placeholder,
+.ng-invalid.ng-dirty .p-placeholder {
+  color: var(--p-form-field-placeholder-color) !important;
+}
