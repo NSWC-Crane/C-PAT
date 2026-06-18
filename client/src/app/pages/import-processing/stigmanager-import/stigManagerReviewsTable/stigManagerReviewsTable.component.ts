@@ -50,6 +50,7 @@ interface FilterState {
   filters: { [key: string]: any };
   dateFilterMode: { [key: string]: string };
   dateFilterValues: { [key: string]: Date };
+  dateRangeMode: { [key: string]: string };
   versionFilterMode: { [key: string]: string };
   versionFilterValues: { [key: string]: string };
   result: string;
@@ -109,6 +110,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     filters: {},
     dateFilterMode: { evaluatedDate: 'equals' },
     dateFilterValues: {},
+    dateRangeMode: { evaluatedDate: 'le30' },
     versionFilterMode: { 'resultEngine.version': 'equals' },
     versionFilterValues: {},
     result: 'fail'
@@ -152,6 +154,16 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     { label: 'Date is not', value: 'notEquals' },
     { label: 'Date before', value: 'before' },
     { label: 'Date after', value: 'after' }
+  ];
+
+  readonly dateRangeFilterOptions: FilterOption[] = [
+    { label: '≤ 30 Days', value: 'le30' },
+    { label: '30-60 Days', value: '30to60' },
+    { label: '61-90 Days', value: '61to90' },
+    { label: '90-180 Days', value: '90to180' },
+    { label: '180-365 Days', value: '180to365' },
+    { label: '≥ 365 Days', value: 'ge365' },
+    { label: 'Other', value: 'other' }
   ];
 
   readonly severityFilterOptions: FilterOption[] = [
@@ -291,6 +303,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       filters: { ...this.filterState.filters },
       dateFilterMode: { ...this.filterState.dateFilterMode },
       dateFilterValues: { ...this.filterState.dateFilterValues },
+      dateRangeMode: { ...this.filterState.dateRangeMode },
       versionFilterMode: { ...this.filterState.versionFilterMode },
       versionFilterValues: { ...this.filterState.versionFilterValues },
       result: this.filterState.result
@@ -400,11 +413,8 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
     const field = this.currentFilterColumn.field;
 
-    if (field.includes('Date') && this.filterState.dateFilterValues[field]) {
-      this.filterState.filters[field] = {
-        value: this.filterState.dateFilterValues[field],
-        mode: this.filterState.dateFilterMode[field] || 'equals'
-      };
+    if (field.includes('Date')) {
+      this.applyDateRangeFilter(field);
     } else if (field.includes('version') && this.filterState.versionFilterValues[field]) {
       this.filterState.filters[field] = {
         value: this.filterState.versionFilterValues[field],
@@ -413,6 +423,59 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     }
 
     this.applyFilters();
+  }
+
+  private applyDateRangeFilter(field: string) {
+    const range = this.filterState.dateRangeMode[field];
+
+    if (!range || range === 'other') {
+      if (this.filterState.dateFilterValues[field]) {
+        this.filterState.filters[field] = {
+          value: this.filterState.dateFilterValues[field],
+          mode: this.filterState.dateFilterMode[field] || 'equals'
+        };
+      } else {
+        delete this.filterState.filters[field];
+      }
+
+      return;
+    }
+
+    const { startDate, endDate } = this.getDateRangeBounds(range);
+
+    this.filterState.filters[field] = { startDate, endDate, mode: 'range' };
+  }
+
+  private getDateRangeBounds(range: string): { startDate: Date | null; endDate: Date | null } {
+    const endOfToday = new Date();
+
+    endOfToday.setHours(23, 59, 59, 999);
+
+    const daysAgo = (days: number): Date => {
+      const date = new Date();
+
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - days);
+
+      return date;
+    };
+
+    switch (range) {
+      case 'le30':
+        return { startDate: daysAgo(30), endDate: endOfToday };
+      case '30to60':
+        return { startDate: daysAgo(60), endDate: daysAgo(30) };
+      case '61to90':
+        return { startDate: daysAgo(90), endDate: daysAgo(61) };
+      case '90to180':
+        return { startDate: daysAgo(180), endDate: daysAgo(90) };
+      case '180to365':
+        return { startDate: daysAgo(365), endDate: daysAgo(180) };
+      case 'ge365':
+        return { startDate: null, endDate: daysAgo(365) };
+      default:
+        return { startDate: null, endDate: null };
+    }
   }
 
   applyDateFilter(field: string, event: any) {
@@ -477,6 +540,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     if (field.includes('Date')) {
       delete this.filterState.dateFilterMode[field];
       delete this.filterState.dateFilterValues[field];
+      this.filterState.dateRangeMode[field] = 'le30';
     }
 
     if (field.includes('version')) {
@@ -494,6 +558,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       filters: {},
       dateFilterMode: { evaluatedDate: 'equals' },
       dateFilterValues: {},
+      dateRangeMode: { evaluatedDate: 'le30' },
       versionFilterMode: { 'resultEngine.version': 'equals' },
       versionFilterValues: {},
       result: 'fail'
@@ -569,25 +634,12 @@ export class STIGManagerReviewsTableComponent implements OnInit {
           .some((term: string) => nodeLabels.some((label: string) => label.includes(term)));
       }
 
+      if (field.includes('Date') && typeof filterValue === 'object' && filterValue.mode === 'range') {
+        return this.matchesDateRangeFilter(fieldValue, filterValue);
+      }
+
       if (field.includes('Date') && typeof filterValue === 'object' && filterValue.value instanceof Date) {
-        const nodeDate = new Date(fieldValue);
-        const filterDate = new Date(filterValue.value);
-
-        nodeDate.setHours(0, 0, 0, 0);
-        filterDate.setHours(0, 0, 0, 0);
-
-        switch (filterValue.mode) {
-          case 'equals':
-            return nodeDate.getTime() === filterDate.getTime();
-          case 'notEquals':
-            return nodeDate.getTime() !== filterDate.getTime();
-          case 'before':
-            return nodeDate.getTime() <= filterDate.getTime();
-          case 'after':
-            return nodeDate.getTime() >= filterDate.getTime();
-          default:
-            return nodeDate.getTime() === filterDate.getTime();
-        }
+        return this.matchesDateComparisonFilter(fieldValue, filterValue);
       }
 
       if (filterValue instanceof Date) {
@@ -597,41 +649,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       }
 
       if (field.includes('version') && typeof filterValue === 'object' && filterValue.value) {
-        const nodeVersion = fieldValue || '';
-        const filterVersionStr = filterValue.value;
-
-        const compareVersions = (v1: string, v2: string): number => {
-          const parts1 = v1.split('.').map((p) => Number.parseInt(p, 10) || 0);
-          const parts2 = v2.split('.').map((p) => Number.parseInt(p, 10) || 0);
-
-          for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-            const p1 = parts1[i] || 0;
-            const p2 = parts2[i] || 0;
-
-            if (p1 !== p2) return p1 - p2;
-          }
-
-          return 0;
-        };
-
-        const comparison = compareVersions(nodeVersion, filterVersionStr);
-
-        switch (filterValue.mode) {
-          case 'equals':
-            return comparison === 0;
-          case 'notEquals':
-            return comparison !== 0;
-          case 'lt':
-            return comparison < 0;
-          case 'lte':
-            return comparison <= 0;
-          case 'gt':
-            return comparison > 0;
-          case 'gte':
-            return comparison >= 0;
-          default:
-            return comparison === 0;
-        }
+        return this.matchesVersionFilter(fieldValue, filterValue);
       }
 
       if (Array.isArray(filterValue)) {
@@ -648,6 +666,91 @@ export class STIGManagerReviewsTableComponent implements OnInit {
         return String(fieldValue).toLowerCase() === String(filterValue).toLowerCase();
       }
     });
+  }
+
+  private matchesDateRangeFilter(fieldValue: any, filterValue: any): boolean {
+    if (!fieldValue) return false;
+
+    const nodeDate = new Date(fieldValue);
+
+    if (Number.isNaN(nodeDate.getTime())) return false;
+
+    nodeDate.setHours(0, 0, 0, 0);
+
+    const nodeTime = nodeDate.getTime();
+
+    if (filterValue.startDate) {
+      const start = new Date(filterValue.startDate);
+
+      start.setHours(0, 0, 0, 0);
+
+      if (nodeTime < start.getTime()) return false;
+    }
+
+    if (filterValue.endDate) {
+      const end = new Date(filterValue.endDate);
+
+      end.setHours(0, 0, 0, 0);
+
+      if (nodeTime > end.getTime()) return false;
+    }
+
+    return true;
+  }
+
+  private matchesDateComparisonFilter(fieldValue: any, filterValue: any): boolean {
+    const nodeDate = new Date(fieldValue);
+    const filterDate = new Date(filterValue.value);
+
+    nodeDate.setHours(0, 0, 0, 0);
+    filterDate.setHours(0, 0, 0, 0);
+
+    switch (filterValue.mode) {
+      case 'notEquals':
+        return nodeDate.getTime() !== filterDate.getTime();
+      case 'before':
+        return nodeDate.getTime() <= filterDate.getTime();
+      case 'after':
+        return nodeDate.getTime() >= filterDate.getTime();
+      default:
+        return nodeDate.getTime() === filterDate.getTime();
+    }
+  }
+
+  private matchesVersionFilter(fieldValue: any, filterValue: any): boolean {
+    const nodeVersion = fieldValue || '';
+    const filterVersionStr = filterValue.value;
+
+    const compareVersions = (v1: string, v2: string): number => {
+      const parts1 = v1.split('.').map((p) => Number.parseInt(p, 10) || 0);
+      const parts2 = v2.split('.').map((p) => Number.parseInt(p, 10) || 0);
+
+      for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+        const p1 = parts1[i] || 0;
+        const p2 = parts2[i] || 0;
+
+        if (p1 !== p2) return p1 - p2;
+      }
+
+      return 0;
+    };
+
+    const comparison = compareVersions(nodeVersion, filterVersionStr);
+
+    switch (filterValue.mode) {
+      case 'notEquals':
+        return comparison !== 0;
+      case 'lt':
+        return comparison < 0;
+      case 'lte':
+        return comparison <= 0;
+      case 'gt':
+        return comparison > 0;
+      case 'gte':
+        return comparison >= 0;
+      default:
+        return comparison === 0;
+    }
   }
 
   getFieldValue(data: any, field: string): any {

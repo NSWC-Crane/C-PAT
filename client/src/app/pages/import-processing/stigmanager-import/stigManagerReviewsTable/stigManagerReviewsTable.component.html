@@ -177,9 +177,14 @@
 
           @case ('evaluatedDate') {
             <div class="mb-2">
-              <p-select class="w-full" [options]="dateFilterOptions" [(ngModel)]="filterState.dateFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()" placeholder="Select comparison" appendTo="body" />
+              <p-select class="w-full" [options]="dateRangeFilterOptions" [(ngModel)]="filterState.dateRangeMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()" placeholder="Select range" appendTo="body" />
             </div>
-            <p-datepicker class="w-full" [showIcon]="true" [(ngModel)]="filterState.dateFilterValues[currentFilterColumn.field]" placeholder="Filter date" (onClick)="$event.stopPropagation()" dateFormat="mm/dd/yy" />
+            @if (filterState.dateRangeMode[currentFilterColumn.field] === 'other') {
+              <div class="mb-2">
+                <p-select class="w-full" [options]="dateFilterOptions" [(ngModel)]="filterState.dateFilterMode[currentFilterColumn.field]" (onClick)="$event.stopPropagation()" placeholder="Select comparison" appendTo="body" />
+              </div>
+              <p-datepicker class="w-full" [showIcon]="true" [(ngModel)]="filterState.dateFilterValues[currentFilterColumn.field]" placeholder="Filter date" (onClick)="$event.stopPropagation()" dateFormat="mm/dd/yy" />
+            }
           }
 
           @case ('resultEngine.version') {
