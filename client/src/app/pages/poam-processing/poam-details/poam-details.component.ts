@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe, Location } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
+import { Component, DoCheck, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parse, parseISO } from 'date-fns';
@@ -115,7 +115,7 @@ interface PoamAction {
   ],
   providers: [DatePipe, ConfirmationService, MessageService]
 })
-export class PoamDetailsComponent implements OnInit, OnDestroy {
+export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
   private readonly appConfigurationService = inject(AppConfigurationService);
   private readonly assignedTeamService = inject(AssignedTeamService);
   private readonly confirmationService = inject(ConfirmationService);
@@ -185,6 +185,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
   payload: any;
   teamMitigations: any[] = [];
   teamResources: any[] = [];
+  invalidFields = new Set<string>();
   milestoneTeamOptions: any[] = [];
   activeTabIndex: number = 0;
   activeResourceTabIndex: number = 0;
@@ -299,6 +300,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy {
 
     return items;
   });
+
+  ngDoCheck(): void {
+    this.invalidFields = this.poamValidationService.getInvalidSubmissionFields(this.poam, this.teamMitigations, this.teamResources, this.poamMilestones, this.dates);
+  }
+
+  isInvalid(field: string): boolean {
+    return this.invalidFields.has(field);
+  }
 
   ngOnInit() {
     this.subs.add(

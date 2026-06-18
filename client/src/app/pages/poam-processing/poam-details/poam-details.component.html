@@ -152,6 +152,7 @@
               class="w-full"
               rows="8"
               [(ngModel)]="poam.description"
+              [invalid]="isInvalid('description')"
               id="description"
               name="description"
               maxlength="10000"
@@ -165,6 +166,7 @@
             <label for="aaPackage">A&A Package: </label>
             <p-select
               [(ngModel)]="poam.aaPackage"
+              [invalid]="isInvalid('aaPackage')"
               [options]="aaPackages"
               [filter]="true"
               filterBy="aaPackage"
@@ -190,6 +192,7 @@
             </label>
             <p-select
               [(ngModel)]="poam.vulnerabilitySource"
+              [invalid]="isInvalid('vulnerabilitySource')"
               [options]="vulnerabilitySources"
               placeholder="Select Vulnerability Source"
               id="vulnerabilitySource"
@@ -319,6 +322,7 @@
               <label for="iavComplyByDate">IAV Comply By Date: </label>
               <p-datepicker
                 [(ngModel)]="dates.iavComplyByDate"
+                [invalid]="isInvalid('iavComplyByDate')"
                 dateFormat="yy-mm-dd"
                 id="iavComplyByDate"
                 name="iavComplyByDate"
@@ -338,6 +342,7 @@
             <p-select
               [options]="severityOptions"
               [(ngModel)]="poam.rawSeverity"
+              [invalid]="isInvalid('rawSeverity')"
               id="rawSeverity"
               name="rawSeverity"
               placeholder="Raw Severity..."
@@ -393,6 +398,7 @@
             </label>
             <p-datepicker
               [(ngModel)]="dates.scheduledCompletionDate"
+              [invalid]="isInvalid('scheduledCompletionDate')"
               dateFormat="yy-mm-dd"
               id="scheduledCompletionDate"
               name="scheduledCompletionDate"
@@ -514,6 +520,7 @@
                       pTextarea
                       class="w-full"
                       [(ngModel)]="poam.predisposingConditions"
+                      [invalid]="isInvalid('predisposingConditions')"
                       id="predisposingConditions"
                       name="predisposingConditions"
                       rows="16"
@@ -583,6 +590,9 @@
                               @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
                                 <p-tab [value]="i" [class]="teamMitigation.isActive ? '' : 'inactive-tab'">
                                   <span [ngClass]="{ 'inactive-tab': !teamMitigation.isActive }">{{ teamMitigation.assignedTeamName }}</span>
+                                  @if (teamMitigation.isActive && isInvalid('teamMitigation:' + teamMitigation.assignedTeamId)) {
+                                    <i class="pi pi-exclamation-circle ml-2 text-red-500" pTooltip="Mitigation required"></i>
+                                  }
                                 </p-tab>
                               }
                             }
@@ -591,7 +601,18 @@
                           <p-tabpanels>
                             @if (poam.isGlobalFinding) {
                               <p-tabpanel [value]="0">
-                                <textarea pTextarea class="w-full" [(ngModel)]="poam.mitigations" id="mitigations" name="mitigations" rows="16" maxlength="10000" placeholder="Global POAM Mitigations..." [disabled]="accessLevel() < 2"></textarea>
+                                <textarea
+                                  pTextarea
+                                  class="w-full"
+                                  [(ngModel)]="poam.mitigations"
+                                  [invalid]="isInvalid('mitigations')"
+                                  id="mitigations"
+                                  name="mitigations"
+                                  rows="16"
+                                  maxlength="10000"
+                                  placeholder="Global POAM Mitigations..."
+                                  [disabled]="accessLevel() < 2"
+                                ></textarea>
                               </p-tabpanel>
                             }
 
@@ -609,6 +630,7 @@
                                       pTextarea
                                       class="w-full"
                                       [(ngModel)]="teamMitigation.mitigationText"
+                                      [invalid]="teamMitigation.isActive && isInvalid('teamMitigation:' + teamMitigation.assignedTeamId)"
                                       rows="16"
                                       maxlength="10000"
                                       placeholder="Team-specific mitigations..."
@@ -670,6 +692,9 @@
                               @for (teamResource of teamResources; track teamResource.assignedTeamId; let i = $index) {
                                 <p-tab [value]="i" [class]="teamResource.isActive ? '' : 'inactive-tab'">
                                   <span [ngClass]="{ 'inactive-tab': !teamResource.isActive }">{{ teamResource.assignedTeamName }}</span>
+                                  @if (teamResource.isActive && isInvalid('teamResource:' + teamResource.assignedTeamId)) {
+                                    <i class="pi pi-exclamation-circle ml-2 text-red-500" pTooltip="Required resources needed"></i>
+                                  }
                                 </p-tab>
                               }
                             }
@@ -682,6 +707,7 @@
                                   pTextarea
                                   class="w-full"
                                   [(ngModel)]="poam.requiredResources"
+                                  [invalid]="isInvalid('requiredResources')"
                                   id="requiredResources"
                                   name="requiredResources"
                                   rows="16"
@@ -706,6 +732,7 @@
                                       pTextarea
                                       class="w-full"
                                       [(ngModel)]="teamResource.resourceText"
+                                      [invalid]="teamResource.isActive && isInvalid('teamResource:' + teamResource.assignedTeamId)"
                                       rows="16"
                                       maxlength="10000"
                                       placeholder="Team-specific required resources..."
@@ -735,7 +762,7 @@
                   <div class="stepper-content">
                     <div class="form-group">
                       <label for="localImpact">Local Impact:</label>
-                      <p-select [options]="ratingOptions" [(ngModel)]="poam.localImpact" id="localImpact" name="localImpact" placeholder="Local Impact..." optionLabel="label" optionValue="value" class="w-full" />
+                      <p-select [options]="ratingOptions" [(ngModel)]="poam.localImpact" [invalid]="isInvalid('localImpact')" id="localImpact" name="localImpact" placeholder="Local Impact..." optionLabel="label" optionValue="value" class="w-full" />
                     </div>
 
                     <div class="form-group">
@@ -743,7 +770,18 @@
                         <i class="pi pi-info-circle mr-4" style="color: var(--p-text-color)" pTooltip="Impact Description: Describe the identified impact. This field will export to the eMASS Comments Section prefaced with 'Local Impact'."></i>Impact
                         Description:
                       </label>
-                      <textarea pTextarea class="w-full" [(ngModel)]="poam.impactDescription" id="impactDescription" name="impactDescription" rows="16" maxlength="2000" placeholder="Impact Description..." [disabled]="accessLevel() < 2"></textarea>
+                      <textarea
+                        pTextarea
+                        class="w-full"
+                        [(ngModel)]="poam.impactDescription"
+                        [invalid]="isInvalid('impactDescription')"
+                        id="impactDescription"
+                        name="impactDescription"
+                        rows="16"
+                        maxlength="2000"
+                        placeholder="Impact Description..."
+                        [disabled]="accessLevel() < 2"
+                      ></textarea>
                     </div>
 
                     <div class="form-group">

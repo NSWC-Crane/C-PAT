@@ -40,6 +40,7 @@
                 class="w-full"
                 rows="4"
                 [(ngModel)]="milestone.milestoneComments"
+                [invalid]="!milestone.milestoneComments?.trim()"
                 [disabled]="accessLevel < 2 || (!milestone.isNew && poam.status !== 'Draft' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel < 3)"
               ></textarea>
             </ng-template>
@@ -54,6 +55,7 @@
               <p-datepicker
                 [(ngModel)]="milestone.milestoneDate"
                 (ngModelChange)="onDateChange(milestone)"
+                [invalid]="!milestone.milestoneDate"
                 dateFormat="yy-mm-dd"
                 class="w-full"
                 [showIcon]="true"
@@ -101,7 +103,7 @@
         <td>
           <p-cellEditor>
             <ng-template pTemplate="input">
-              <p-select [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" class="w-full" appendTo="body" [disabled]="accessLevel < 2" />
+              <p-select [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" [invalid]="!milestone.milestoneStatus" class="w-full" appendTo="body" [disabled]="accessLevel < 2" />
             </ng-template>
             <ng-template pTemplate="output">
               {{ milestone.milestoneStatus }}
@@ -115,6 +117,7 @@
                 [options]="assignedTeamOptions"
                 placeholder="Select Teams..."
                 [(ngModel)]="milestone.assignedTeamIds"
+                [invalid]="!milestone.assignedTeamIds?.length"
                 [filter]="true"
                 filterBy="assignedTeamName"
                 optionLabel="assignedTeamName"

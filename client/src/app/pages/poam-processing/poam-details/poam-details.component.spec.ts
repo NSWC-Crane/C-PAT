@@ -145,7 +145,8 @@ describe('PoamDetailsComponent', () => {
       validateData: vi.fn().mockReturnValue({ valid: true }),
       validateSubmissionRequirements: vi.fn().mockReturnValue({ valid: true }),
       validateMilestoneDates: vi.fn().mockReturnValue({ valid: true }),
-      validateMilestoneCompleteness: vi.fn().mockReturnValue({ valid: true })
+      validateMilestoneCompleteness: vi.fn().mockReturnValue({ valid: true }),
+      getInvalidSubmissionFields: vi.fn().mockReturnValue(new Set<string>())
     };
 
     mockAppConfigurationService = {
