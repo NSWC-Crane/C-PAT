@@ -71,7 +71,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
   isGridExpanded = signal<boolean>(false);
   private readonly subs = new SubSink();
 
-  private readonly CLOSED_STATUSES = new Set(['Closed', 'Draft', 'False-Positive']);
+  private readonly NEEDS_ATTENTION_STATUSES = new Set(['Draft', 'False-Positive']);
   private readonly PENDING_STATUSES = new Set(['Submitted', 'Extension Requested', 'Pending CAT-I Approval']);
   private readonly userTeamIds = computed(() => new Set(this.user()?.assignedTeams?.map((team: any) => team.assignedTeamId)));
 
@@ -384,7 +384,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
 
       thresholdDate.setDate(thresholdDate.getDate() + 30);
 
-      return !Number.isNaN(completionDate.getTime()) && completionDate <= thresholdDate && !this.CLOSED_STATUSES.has(poam.status);
+      return !Number.isNaN(completionDate.getTime()) && completionDate <= thresholdDate && !this.NEEDS_ATTENTION_STATUSES.has(poam.status);
     });
 
     this.poamsNeedingAttention.set(needingAttention);

@@ -100,7 +100,7 @@ Displays every POAM in the collection with no additional filtering applied (beyo
 
 Needs Attention
 """"""""""""""""
-Displays POAMs whose Scheduled Completion Date falls within the next 30 days and whose status is not Draft, Closed, or False-Positive. 
+Displays POAMs whose Scheduled Completion Date falls within the next 30 days and whose status is not Draft or False-Positive. 
 
 My POAMs
 """""""""
