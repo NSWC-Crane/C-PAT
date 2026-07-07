@@ -52,11 +52,14 @@ describe('PoamLabelsComponent', () => {
 
     fixture = TestBed.createComponent(PoamLabelsComponent);
     component = fixture.componentInstance;
-    component.poamId = 100;
-    component.accessLevel = 2;
-    component.poamLabels = [];
-    component.labelList = [...mockLabelList.map((l) => ({ ...l }))];
-    component.poamService = mockPoamService;
+    fixture.componentRef.setInput('poamId', 100);
+    fixture.componentRef.setInput('accessLevel', 2);
+    fixture.componentRef.setInput(
+      'labelList',
+      mockLabelList.map((l) => ({ ...l }))
+    );
+    fixture.componentRef.setInput('poamService', mockPoamService);
+    component.poamLabels.set([]);
   });
 
   afterEach(() => {
@@ -70,28 +73,28 @@ describe('PoamLabelsComponent', () => {
     });
 
     it('should have default property values', () => {
-      expect(component.accessLevel).toBe(2);
-      expect(component.poamLabels).toEqual([]);
+      expect(component.accessLevel()).toBe(2);
+      expect(component.poamLabels()).toEqual([]);
     });
 
     it('should initialize poamLabels to empty array if null', () => {
-      component.poamLabels = null as any;
+      component.poamLabels.set(null as any);
       component.ngOnInit();
-      expect(component.poamLabels).toEqual([]);
+      expect(component.poamLabels()).toEqual([]);
     });
 
     it('should initialize poamLabels to empty array if undefined', () => {
-      component.poamLabels = undefined as any;
+      component.poamLabels.set(undefined as any);
       component.ngOnInit();
-      expect(component.poamLabels).toEqual([]);
+      expect(component.poamLabels()).toEqual([]);
     });
 
     it('should leave poamLabels unchanged if already an array', () => {
       const labels = [createLabel()];
 
-      component.poamLabels = labels;
+      component.poamLabels.set(labels);
       component.ngOnInit();
-      expect(component.poamLabels).toBe(labels);
+      expect(component.poamLabels()).toBe(labels);
     });
   });
 
@@ -105,20 +108,20 @@ describe('PoamLabelsComponent', () => {
     it('should add a new label to the beginning of the array', async () => {
       const existing = createLabel({ labelId: 2 });
 
-      component.poamLabels = [existing];
+      component.poamLabels.set([existing]);
 
       await component.addLabel();
 
-      expect(component.poamLabels.length).toBe(2);
-      expect(component.poamLabels[0].isNew).toBe(true);
-      expect(component.poamLabels[0].labelId).toBeNull();
-      expect(component.poamLabels[1].labelId).toBe(2);
+      expect(component.poamLabels().length).toBe(2);
+      expect(component.poamLabels()[0].isNew).toBe(true);
+      expect(component.poamLabels()[0].labelId).toBeNull();
+      expect(component.poamLabels()[1].labelId).toBe(2);
     });
 
     it('should set correct default values on the new label', async () => {
       await component.addLabel();
 
-      const newLabel = component.poamLabels[0];
+      const newLabel = component.poamLabels()[0];
 
       expect(newLabel.labelId).toBeNull();
       expect(newLabel.isNew).toBe(true);
@@ -126,21 +129,21 @@ describe('PoamLabelsComponent', () => {
 
     it('should emit labelsChanged', async () => {
       await component.addLabel();
-      expect(emitSpy).toHaveBeenCalledWith(component.poamLabels);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamLabels());
     });
 
     it('should add to an empty array', async () => {
-      component.poamLabels = [];
+      component.poamLabels.set([]);
       await component.addLabel();
-      expect(component.poamLabels.length).toBe(1);
+      expect(component.poamLabels().length).toBe(1);
     });
 
     it('should support multiple consecutive adds', async () => {
       await component.addLabel();
       await component.addLabel();
-      expect(component.poamLabels.length).toBe(2);
-      expect(component.poamLabels[0].isNew).toBe(true);
-      expect(component.poamLabels[1].isNew).toBe(true);
+      expect(component.poamLabels().length).toBe(2);
+      expect(component.poamLabels()[0].isNew).toBe(true);
+      expect(component.poamLabels()[1].isNew).toBe(true);
     });
   });
 
@@ -154,32 +157,32 @@ describe('PoamLabelsComponent', () => {
     it('should update an existing label in-place when found by labelId', async () => {
       const label = createLabel({ labelId: 1, isNew: true });
 
-      component.poamLabels = [label];
+      component.poamLabels.set([label]);
 
       await component.onLabelChange({ labelId: 1 });
 
-      expect(component.poamLabels[0].labelName).toBe('Critical');
-      expect(component.poamLabels[0].isNew).toBe(false);
+      expect(component.poamLabels()[0].labelName).toBe('Critical');
+      expect(component.poamLabels()[0].isNew).toBe(false);
     });
 
     it('should prepend label when not found in current poamLabels', async () => {
-      component.poamLabels = [createLabel({ labelId: 2 })];
+      component.poamLabels.set([createLabel({ labelId: 2 })]);
 
       await component.onLabelChange({ labelId: 1 });
 
-      expect(component.poamLabels.length).toBe(2);
-      expect(component.poamLabels[0].labelId).toBe(1);
-      expect(component.poamLabels[0].labelName).toBe('Critical');
+      expect(component.poamLabels().length).toBe(2);
+      expect(component.poamLabels()[0].labelId).toBe(1);
+      expect(component.poamLabels()[0].labelName).toBe('Critical');
     });
 
     it('should emit labelsChanged after update', async () => {
-      component.poamLabels = [createLabel({ labelId: 1 })];
+      component.poamLabels.set([createLabel({ labelId: 1 })]);
       await component.onLabelChange({ labelId: 1 });
-      expect(emitSpy).toHaveBeenCalledWith(component.poamLabels);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamLabels());
     });
 
     it('should do nothing if label is not in labelList', async () => {
-      component.poamLabels = [createLabel()];
+      component.poamLabels.set([createLabel()]);
       await component.onLabelChange({ labelId: 999 });
       expect(emitSpy).not.toHaveBeenCalled();
     });
@@ -187,16 +190,16 @@ describe('PoamLabelsComponent', () => {
     it('should set isNew to false on the selected label from labelList', async () => {
       await component.onLabelChange({ labelId: 2 });
 
-      const matchingLabel = component.labelList.find((l) => l.labelId === 2);
+      const matchingLabel = component.labelList().find((l) => l.labelId === 2);
 
       expect(matchingLabel.isNew).toBe(false);
     });
 
     it('should emit when adding a label to an empty array', async () => {
-      component.poamLabels = [];
+      component.poamLabels.set([]);
       await component.onLabelChange({ labelId: 1 });
 
-      expect(component.poamLabels.length).toBe(1);
+      expect(component.poamLabels().length).toBe(1);
       expect(emitSpy).toHaveBeenCalled();
     });
   });
@@ -209,63 +212,63 @@ describe('PoamLabelsComponent', () => {
     });
 
     it('should remove the label at the given index', async () => {
-      component.poamLabels = [createLabel({ labelId: 1 }), createLabel({ labelId: 2 }), createLabel({ labelId: 3 })];
+      component.poamLabels.set([createLabel({ labelId: 1 }), createLabel({ labelId: 2 }), createLabel({ labelId: 3 })]);
 
       await component.deleteLabel(1);
 
-      expect(component.poamLabels.length).toBe(2);
-      expect(component.poamLabels[0].labelId).toBe(1);
-      expect(component.poamLabels[1].labelId).toBe(3);
+      expect(component.poamLabels().length).toBe(2);
+      expect(component.poamLabels()[0].labelId).toBe(1);
+      expect(component.poamLabels()[1].labelId).toBe(3);
     });
 
     it('should remove the first label', async () => {
-      component.poamLabels = [createLabel({ labelId: 1 }), createLabel({ labelId: 2 })];
+      component.poamLabels.set([createLabel({ labelId: 1 }), createLabel({ labelId: 2 })]);
       await component.deleteLabel(0);
 
-      expect(component.poamLabels.length).toBe(1);
-      expect(component.poamLabels[0].labelId).toBe(2);
+      expect(component.poamLabels().length).toBe(1);
+      expect(component.poamLabels()[0].labelId).toBe(2);
     });
 
     it('should remove the last label leaving empty array', async () => {
-      component.poamLabels = [createLabel({ labelId: 1 })];
+      component.poamLabels.set([createLabel({ labelId: 1 })]);
       await component.deleteLabel(0);
-      expect(component.poamLabels.length).toBe(0);
+      expect(component.poamLabels().length).toBe(0);
     });
 
     it('should emit labelsChanged after deletion', async () => {
-      component.poamLabels = [createLabel()];
+      component.poamLabels.set([createLabel()]);
       await component.deleteLabel(0);
-      expect(emitSpy).toHaveBeenCalledWith(component.poamLabels);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamLabels());
     });
   });
 
   describe('getPoamLabels', () => {
     it('should not call service if poamId is falsy', () => {
-      component.poamId = null;
+      (component as any).poamId = () => null;
       component.getPoamLabels();
       expect(mockPoamService.getPoamLabelsByPoam).not.toHaveBeenCalled();
     });
 
     it('should not call service if poamId is ADDPOAM', () => {
-      component.poamId = 'ADDPOAM';
+      (component as any).poamId = () => 'ADDPOAM';
       component.getPoamLabels();
       expect(mockPoamService.getPoamLabelsByPoam).not.toHaveBeenCalled();
     });
 
     it('should not call service if poamId is undefined', () => {
-      component.poamId = undefined;
+      (component as any).poamId = () => undefined;
       component.getPoamLabels();
       expect(mockPoamService.getPoamLabelsByPoam).not.toHaveBeenCalled();
     });
 
     it('should not call service if poamId is 0', () => {
-      component.poamId = 0;
+      (component as any).poamId = () => 0;
       component.getPoamLabels();
       expect(mockPoamService.getPoamLabelsByPoam).not.toHaveBeenCalled();
     });
 
     it('should not call service if poamId is empty string', () => {
-      component.poamId = '';
+      (component as any).poamId = () => '';
       component.getPoamLabels();
       expect(mockPoamService.getPoamLabelsByPoam).not.toHaveBeenCalled();
     });
@@ -279,19 +282,19 @@ describe('PoamLabelsComponent', () => {
       component.getPoamLabels();
 
       expect(mockPoamService.getPoamLabelsByPoam).toHaveBeenCalledWith(100);
-      expect(component.poamLabels).toBe(returnedLabels);
+      expect(component.poamLabels()).toBe(returnedLabels);
       expect(emitSpy).toHaveBeenCalledWith(returnedLabels);
     });
 
     it('should replace existing labels on success', () => {
-      component.poamLabels = [createLabel({ labelId: 99 })];
+      component.poamLabels.set([createLabel({ labelId: 99 })]);
       const newLabels = [createLabel({ labelId: 1 })];
 
       mockPoamService.getPoamLabelsByPoam.mockReturnValue(of(newLabels));
 
       component.getPoamLabels();
 
-      expect(component.poamLabels).toBe(newLabels);
+      expect(component.poamLabels()).toBe(newLabels);
     });
 
     it('should show error message on failure with error.error.detail', () => {
@@ -339,7 +342,7 @@ describe('PoamLabelsComponent', () => {
     });
 
     it('should call service with correct poamId', () => {
-      component.poamId = 42;
+      (component as any).poamId = () => 42;
       mockPoamService.getPoamLabelsByPoam.mockReturnValue(of([]));
 
       component.getPoamLabels();

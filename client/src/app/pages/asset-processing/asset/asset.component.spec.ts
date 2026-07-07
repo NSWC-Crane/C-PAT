@@ -92,9 +92,9 @@ describe('AssetComponent', () => {
 
     fixture = TestBed.createComponent(AssetComponent);
     component = fixture.componentInstance;
-    component.asset = { ...mockAsset };
-    component.assets = [mockAsset];
-    component.payload = mockPayload;
+    component.asset.set({ ...mockAsset });
+    fixture.componentRef.setInput('assets', [mockAsset]);
+    fixture.componentRef.setInput('payload', mockPayload);
   });
 
   it('should create', () => {
@@ -121,7 +121,7 @@ describe('AssetComponent', () => {
 
   describe('ngOnInit', () => {
     it('should return early when payload is falsy', () => {
-      component.payload = null;
+      fixture.componentRef.setInput('payload', null);
       component.ngOnInit();
       expect(mockAssetService.getLabels).not.toHaveBeenCalled();
     });
@@ -145,7 +145,7 @@ describe('AssetComponent', () => {
       };
 
       component.ngOnChanges(changes);
-      expect(component.asset.assetName).toBe('Updated Asset');
+      expect(component.asset().assetName).toBe('Updated Asset');
     });
 
     it('should clone the asset (not reference)', () => {
@@ -155,24 +155,24 @@ describe('AssetComponent', () => {
       };
 
       component.ngOnChanges(changes);
-      expect(component.asset).not.toBe(newAsset);
+      expect(component.asset()).not.toBe(newAsset);
     });
 
     it('should not update asset when asset change has no currentValue', () => {
-      const originalName = component.asset.assetName;
+      const originalName = component.asset().assetName;
       const changes: SimpleChanges = {
         asset: new SimpleChange(mockAsset, null, false)
       };
 
       component.ngOnChanges(changes);
-      expect(component.asset.assetName).toBe(originalName);
+      expect(component.asset().assetName).toBe(originalName);
     });
 
     it('should not modify asset when asset key is absent from changes', () => {
-      const originalName = component.asset.assetName;
+      const originalName = component.asset().assetName;
 
       component.ngOnChanges({});
-      expect(component.asset.assetName).toBe(originalName);
+      expect(component.asset().assetName).toBe(originalName);
     });
   });
 
@@ -195,19 +195,19 @@ describe('AssetComponent', () => {
     });
 
     it('should call getAssetLabels when asset is not ADDASSET', () => {
-      component.asset = { ...mockAsset, assetId: 5 };
+      component.asset.set({ ...mockAsset, assetId: 5 });
       component.getData();
       expect(mockAssetService.getAssetLabels).toHaveBeenCalledWith(5);
     });
 
     it('should not call getAssetLabels when asset.assetId is ADDASSET', () => {
-      component.asset = { ...mockAsset, assetId: 'ADDASSET' };
+      component.asset.set({ ...mockAsset, assetId: 'ADDASSET' });
       component.getData();
       expect(mockAssetService.getAssetLabels).not.toHaveBeenCalled();
     });
 
     it('should not call getAssetLabels when asset is null', () => {
-      component.asset = null;
+      component.asset.set(null);
       component.getData();
       expect(mockAssetService.getAssetLabels).not.toHaveBeenCalled();
     });
@@ -234,13 +234,13 @@ describe('AssetComponent', () => {
 
   describe('getAssetLabels', () => {
     it('should show error when asset has no assetId', () => {
-      component.asset = { ...mockAsset, assetId: null };
+      component.asset.set({ ...mockAsset, assetId: null });
       component.getAssetLabels();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
     });
 
     it('should not call service when asset has no assetId', () => {
-      component.asset = { ...mockAsset, assetId: null };
+      component.asset.set({ ...mockAsset, assetId: null });
       component.getAssetLabels();
       expect(mockAssetService.getAssetLabels).not.toHaveBeenCalled();
     });
@@ -343,7 +343,7 @@ describe('AssetComponent', () => {
     });
 
     it('should splice and show success message for ADDASSET', () => {
-      component.asset = { ...mockAsset, assetId: 'ADDASSET' };
+      component.asset.set({ ...mockAsset, assetId: 'ADDASSET' });
       component.deleteAssetLabel(mockAssetLabels[0], 0);
       expect(component.assetLabels.length).toBe(1);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
@@ -395,7 +395,7 @@ describe('AssetComponent', () => {
     });
 
     it('should show success for ADDASSET with valid labelId', () => {
-      component.asset = { ...mockAsset, assetId: 'ADDASSET' };
+      component.asset.set({ ...mockAsset, assetId: 'ADDASSET' });
       const newLabel = { labelId: 10 };
 
       component.confirmLabelCreate(newLabel);
@@ -403,7 +403,7 @@ describe('AssetComponent', () => {
     });
 
     it('should not call postAssetLabel for ADDASSET', () => {
-      component.asset = { ...mockAsset, assetId: 'ADDASSET' };
+      component.asset.set({ ...mockAsset, assetId: 'ADDASSET' });
       const newLabel = { labelId: 10 };
 
       component.confirmLabelCreate(newLabel);
@@ -434,14 +434,14 @@ describe('AssetComponent', () => {
 
   describe('validData', () => {
     beforeEach(() => {
-      component.asset = {
+      component.asset.set({
         assetId: 5,
         assetName: 'Test Asset',
         fullyQualifiedDomainName: 'test.example.com',
         ipAddress: '192.168.1.1',
         macAddress: ''
-      };
-      component.assets = [];
+      });
+      fixture.componentRef.setInput('assets', []);
     });
 
     it('should return true when all required fields are present', () => {
@@ -449,51 +449,49 @@ describe('AssetComponent', () => {
     });
 
     it('should return false and show error when assetName is missing', () => {
-      component.asset.assetName = '';
+      component.asset.update((a) => ({ ...a, assetName: '' }));
       expect(component.validData()).toBe(false);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
 
     it('should return false when FQDN is missing', () => {
-      component.asset.fullyQualifiedDomainName = '';
+      component.asset.update((a) => ({ ...a, fullyQualifiedDomainName: '' }));
       expect(component.validData()).toBe(false);
     });
 
     it('should return false when ipAddress is missing', () => {
-      component.asset.ipAddress = '';
+      component.asset.update((a) => ({ ...a, ipAddress: '' }));
       expect(component.validData()).toBe(false);
     });
 
     it('should return false when ADDASSET and asset name already exists', () => {
-      component.asset.assetId = 'ADDASSET';
-      component.asset.assetName = 'Existing Asset';
-      component.assets = [{ assetName: 'Existing Asset' }];
+      component.asset.update((a) => ({ ...a, assetId: 'ADDASSET', assetName: 'Existing Asset' }));
+      fixture.componentRef.setInput('assets', [{ assetName: 'Existing Asset' }]);
       expect(component.validData()).toBe(false);
     });
 
     it('should return true for ADDASSET when name does not already exist', () => {
-      component.asset.assetId = 'ADDASSET';
-      component.asset.assetName = 'Brand New Asset';
-      component.assets = [{ assetName: 'Other Asset' }];
+      component.asset.update((a) => ({ ...a, assetId: 'ADDASSET', assetName: 'Brand New Asset' }));
+      fixture.componentRef.setInput('assets', [{ assetName: 'Other Asset' }]);
       expect(component.validData()).toBe(true);
     });
   });
 
   describe('onSubmit', () => {
     beforeEach(() => {
-      component.asset = {
+      component.asset.set({
         assetId: 'ADDASSET',
         assetName: 'New Asset',
         fullyQualifiedDomainName: 'new.example.com',
         ipAddress: '10.0.0.1',
         macAddress: ''
-      };
-      component.assets = [];
+      });
+      fixture.componentRef.setInput('assets', []);
       component.selectedCollection = 1;
     });
 
     it('should return early when validData returns false', () => {
-      component.asset.assetName = '';
+      component.asset.update((a) => ({ ...a, assetName: '' }));
       component.onSubmit();
       expect(mockAssetService.postAsset).not.toHaveBeenCalled();
     });
@@ -517,7 +515,7 @@ describe('AssetComponent', () => {
     });
 
     it('should call updateAsset when assetId is numeric', () => {
-      component.asset = { ...mockAsset };
+      component.asset.set({ ...mockAsset });
       component.onSubmit();
       expect(mockAssetService.updateAsset).toHaveBeenCalled();
     });
@@ -525,7 +523,7 @@ describe('AssetComponent', () => {
     it('should emit assetchange on successful update', () => {
       const emitSpy = vi.spyOn(component.assetchange, 'emit');
 
-      component.asset = { ...mockAsset };
+      component.asset.set({ ...mockAsset });
       component.onSubmit();
       expect(emitSpy).toHaveBeenCalled();
     });
@@ -534,9 +532,9 @@ describe('AssetComponent', () => {
   describe('resetData', () => {
     it('should reset asset to empty fields', () => {
       component.resetData();
-      expect(component.asset.assetId).toBe('');
-      expect(component.asset.assetName).toBe('');
-      expect(component.asset.ipAddress).toBe('');
+      expect(component.asset().assetId).toBe('');
+      expect(component.asset().assetName).toBe('');
+      expect(component.asset().ipAddress).toBe('');
     });
 
     it('should emit assetchange', () => {

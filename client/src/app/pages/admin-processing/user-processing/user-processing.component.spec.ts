@@ -30,7 +30,7 @@ import { CsvExportService } from '../../../common/utils/csv-export.service';
 
 @Component({ selector: 'cpat-user', template: '', standalone: true })
 class MockUserComponent {
-  @Input() user: any;
+  @Input() userInput: any;
   @Input() users: any;
   @Input() payload: any;
   @Output() userChange = new EventEmitter<any>();
@@ -151,8 +151,8 @@ describe('UserProcessingComponent', () => {
       expect(component).toBeTruthy();
     });
 
-    it('should initialize cols as empty array', () => {
-      expect(component.cols).toEqual([]);
+    it('should initialize cols with 6 columns', () => {
+      expect(component.cols).toHaveLength(6);
     });
 
     it('should initialize users as empty array', () => {
@@ -160,45 +160,39 @@ describe('UserProcessingComponent', () => {
     });
 
     it('should initialize data as empty array', () => {
-      expect(component.data).toEqual([]);
+      expect(component.data()).toEqual([]);
     });
 
     it('should initialize showUserSelect as true', () => {
-      expect(component.showUserSelect).toBe(true);
+      expect(component.showUserSelect()).toBe(true);
     });
 
     it('should initialize user as empty object', () => {
-      expect(component.user).toEqual({});
+      expect(component.user()).toEqual({});
     });
   });
 
   describe('ngOnInit', () => {
-    it('should set 6 columns', () => {
-      component.ngOnInit();
-
-      expect(component.cols).toHaveLength(6);
-    });
-
     it('should set first column to accountStatus/Status', () => {
-      component.ngOnInit();
-
       expect(component.cols[0]).toEqual({ field: 'accountStatus', header: 'Status' });
     });
 
     it('should include displayUsername column', () => {
-      component.ngOnInit();
-
       const col = component.cols.find((c: any) => c.field === 'displayUsername');
 
       expect(col).toBeDefined();
     });
 
     it('should include lastAccessDate column', () => {
-      component.ngOnInit();
-
       const col = component.cols.find((c: any) => c.field === 'lastAccessDate');
 
       expect(col).toBeDefined();
+    });
+
+    it('should set usernameClaimLabel from CPAT.Env', () => {
+      component.ngOnInit();
+
+      expect(component.usernameClaimLabel()).toBe('preferred_username');
     });
 
     it('should call setPayload', () => {
@@ -214,13 +208,13 @@ describe('UserProcessingComponent', () => {
     it('should set user from user$ subscription', () => {
       component.setPayload();
 
-      expect(component.user).toEqual({ userId: 1, isAdmin: true });
+      expect(component.user()).toEqual({ userId: 1, isAdmin: true });
     });
 
     it('should set payload from payload$ subscription', () => {
       component.setPayload();
 
-      expect(component.payload).toEqual({ collectionId: 1 });
+      expect(component.payload()).toEqual({ collectionId: 1 });
     });
 
     it('should call getUserData when user is admin', () => {
@@ -243,7 +237,7 @@ describe('UserProcessingComponent', () => {
 
   describe('getUserData', () => {
     beforeEach(() => {
-      component.user = { userId: 1, isAdmin: true };
+      component.user.set({ userId: 1, isAdmin: true });
     });
 
     it('should call getUsers', () => {
@@ -255,25 +249,25 @@ describe('UserProcessingComponent', () => {
     it('should sort PENDING users first', () => {
       component.getUserData();
 
-      expect(component.data[0].accountStatus).toBe('PENDING');
+      expect(component.data()[0].accountStatus).toBe('PENDING');
     });
 
     it('should sort ACTIVE users second', () => {
       component.getUserData();
 
-      expect(component.data[1].accountStatus).toBe('ACTIVE');
+      expect(component.data()[1].accountStatus).toBe('ACTIVE');
     });
 
     it('should sort DISABLED users last', () => {
       component.getUserData();
 
-      expect(component.data[2].accountStatus).toBe('DISABLED');
+      expect(component.data()[2].accountStatus).toBe('DISABLED');
     });
 
     it('should map displayUsername from userName when available', () => {
       component.getUserData();
 
-      const alice = component.data.find((u: any) => u.userId === 1);
+      const alice = component.data().find((u: any) => u.userId === 1);
 
       expect(alice.displayUsername).toBe('asmith');
     });
@@ -281,7 +275,7 @@ describe('UserProcessingComponent', () => {
     it('should fall back to lastClaims username when userName is empty', () => {
       component.getUserData();
 
-      const bob = component.data.find((u: any) => u.userId === 2);
+      const bob = component.data().find((u: any) => u.userId === 2);
 
       expect(bob.displayUsername).toBe('bjones');
     });
@@ -289,7 +283,7 @@ describe('UserProcessingComponent', () => {
     it('should use empty string when both userName and lastClaims are null', () => {
       component.getUserData();
 
-      const carol = component.data.find((u: any) => u.userId === 3);
+      const carol = component.data().find((u: any) => u.userId === 3);
 
       expect(carol.displayUsername).toBe('');
     });
@@ -297,7 +291,7 @@ describe('UserProcessingComponent', () => {
     it('should format lastAccessDate to date part only', () => {
       component.getUserData();
 
-      const alice = component.data.find((u: any) => u.userId === 1);
+      const alice = component.data().find((u: any) => u.userId === 1);
 
       expect(alice.lastAccessDate).toBe('2026-03-01');
     });
@@ -305,7 +299,7 @@ describe('UserProcessingComponent', () => {
     it('should set empty string for null lastAccess', () => {
       component.getUserData();
 
-      const bob = component.data.find((u: any) => u.userId === 2);
+      const bob = component.data().find((u: any) => u.userId === 2);
 
       expect(bob.lastAccessDate).toBe('');
     });
@@ -317,27 +311,27 @@ describe('UserProcessingComponent', () => {
 
       component.setUser(selected);
 
-      expect(component.user).toEqual(selected);
+      expect(component.user()).toEqual(selected);
     });
 
     it('should set showUserSelect to false', () => {
-      component.showUserSelect = true;
+      component.showUserSelect.set(true);
       component.setUser({ userId: 5 });
 
-      expect(component.showUserSelect).toBe(false);
+      expect(component.showUserSelect()).toBe(false);
     });
   });
 
   describe('exportCSV', () => {
     beforeEach(() => {
-      component.data = [{ userId: 1, accountStatus: 'ACTIVE' }];
+      component.data.set([{ userId: 1, accountStatus: 'ACTIVE' }]);
       component.cols = [{ field: 'accountStatus', header: 'Status' }];
     });
 
     it('should call exportToCsv with data', () => {
       component.exportCSV();
 
-      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(component.data, expect.any(Object));
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledWith(component.data(), expect.any(Object));
     });
 
     it('should pass filename and timestamp flag', () => {
@@ -355,19 +349,19 @@ describe('UserProcessingComponent', () => {
 
   describe('onboard user', () => {
     it('openOnboardDialog should show the dialog and reset the form', () => {
-      component.newUser = { userName: 'stale', firstName: 'x', lastName: 'y', email: 'z', accountStatus: 'PENDING' };
-      component.showOnboardDialog = false;
+      component.newUser.set({ userName: 'stale', firstName: 'x', lastName: 'y', email: 'z', accountStatus: 'PENDING' });
+      component.showOnboardDialog.set(false);
 
       component.openOnboardDialog();
 
-      expect(component.showOnboardDialog).toBe(true);
-      expect(component.newUser).toEqual({ userName: '', firstName: '', lastName: '', email: '', accountStatus: 'PENDING' });
+      expect(component.showOnboardDialog()).toBe(true);
+      expect(component.newUser()).toEqual({ userName: '', firstName: '', lastName: '', email: '', accountStatus: 'PENDING' });
     });
 
     it('onboardUser should warn and not call createUser when username is blank', () => {
       const addSpy = vi.spyOn((component as any).messageService, 'add');
 
-      component.newUser = { userName: '  ', firstName: '', lastName: '', email: '', accountStatus: 'PENDING' };
+      component.newUser.set({ userName: '  ', firstName: '', lastName: '', email: '', accountStatus: 'PENDING' });
       component.onboardUser();
 
       expect(mockUsersService.createUser).not.toHaveBeenCalled();
@@ -381,12 +375,12 @@ describe('UserProcessingComponent', () => {
       const setUserSpy = vi.spyOn(component, 'setUser');
       const getDataSpy = vi.spyOn(component, 'getUserData');
 
-      component.newUser = { userName: '  jdoe  ', firstName: 'John', lastName: 'Doe', email: 'jdoe@example.com', accountStatus: 'ACTIVE' };
+      component.newUser.set({ userName: '  jdoe  ', firstName: 'John', lastName: 'Doe', email: 'jdoe@example.com', accountStatus: 'ACTIVE' });
       component.onboardUser();
 
       expect(mockUsersService.createUser).toHaveBeenCalledWith(expect.objectContaining({ userName: 'jdoe' }));
-      expect(component.showOnboardDialog).toBe(false);
-      expect(component.onboarding).toBe(false);
+      expect(component.showOnboardDialog()).toBe(false);
+      expect(component.onboarding()).toBe(false);
       expect(getDataSpy).toHaveBeenCalled();
       expect(setUserSpy).toHaveBeenCalledWith(created);
     });
@@ -395,27 +389,27 @@ describe('UserProcessingComponent', () => {
       mockUsersService.createUser.mockReturnValue(throwError(() => ({ status: 422 })));
       const addSpy = vi.spyOn((component as any).messageService, 'add');
 
-      component.newUser = { userName: 'jdoe', firstName: '', lastName: '', email: '', accountStatus: 'ACTIVE' };
+      component.newUser.set({ userName: 'jdoe', firstName: '', lastName: '', email: '', accountStatus: 'ACTIVE' });
       component.onboardUser();
 
-      expect(component.onboarding).toBe(false);
+      expect(component.onboarding()).toBe(false);
       expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: 'A user with this username already exists.' }));
     });
   });
 
   describe('resetData', () => {
     it('should reset user to empty object', () => {
-      component.user = { userId: 1 };
+      component.user.set({ userId: 1 });
       component.resetData();
 
-      expect(component.user).toEqual({});
+      expect(component.user()).toEqual({});
     });
 
     it('should set showUserSelect to true', () => {
-      component.showUserSelect = false;
+      component.showUserSelect.set(false);
       component.resetData();
 
-      expect(component.showUserSelect).toBe(true);
+      expect(component.showUserSelect()).toBe(true);
     });
 
     it('should call getUserData', () => {

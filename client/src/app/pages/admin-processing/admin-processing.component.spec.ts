@@ -194,7 +194,7 @@ describe('AdminProcessingComponent', () => {
       vi.useFakeTimers();
       const mockNessusComponent = { updatePluginIds: vi.fn() };
 
-      component.nessusPluginMappingComponent = mockNessusComponent as any;
+      (component as any).nessusPluginMappingComponent = () => mockNessusComponent;
 
       component.switchToPluginMapping();
       vi.advanceTimersByTime(0);
@@ -205,7 +205,7 @@ describe('AdminProcessingComponent', () => {
 
     it('should not throw when nessusPluginMappingComponent is undefined', async () => {
       vi.useFakeTimers();
-      component.nessusPluginMappingComponent = undefined as any;
+      (component as any).nessusPluginMappingComponent = () => undefined;
 
       expect(() => {
         component.switchToPluginMapping();
@@ -216,7 +216,7 @@ describe('AdminProcessingComponent', () => {
 
     it('should not throw when nessusPluginMappingComponent is null', async () => {
       vi.useFakeTimers();
-      component.nessusPluginMappingComponent = null as any;
+      (component as any).nessusPluginMappingComponent = () => null;
 
       expect(() => {
         component.switchToPluginMapping();

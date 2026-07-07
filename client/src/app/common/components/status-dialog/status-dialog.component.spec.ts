@@ -39,88 +39,92 @@ describe('StatusDialogComponent', () => {
     });
 
     it('should have default progress of 0', () => {
-      expect(component.progress).toBe(0);
+      expect(component.progress()).toBe(0);
     });
 
     it('should have default empty message', () => {
-      expect(component.message).toBe('');
+      expect(component.message()).toBe('');
     });
 
     it('should have default display of false', () => {
-      expect(component.display).toBe(false);
+      expect(component.display()).toBe(false);
     });
 
     it('should have default countdown of 3', () => {
-      expect(component.countdown).toBe(3);
+      expect(component.countdown()).toBe(3);
     });
 
     it('should have default empty countdownMessage', () => {
-      expect(component.countdownMessage).toBe('');
+      expect(component.countdownMessage()).toBe('');
     });
   });
 
   describe('input bindings', () => {
     it('should accept progress input', () => {
-      component.progress = 50;
+      fixture.componentRef.setInput('progress', 50);
       fixture.detectChanges();
-      expect(component.progress).toBe(50);
+      expect(component.progress()).toBe(50);
     });
 
     it('should accept message input', () => {
-      component.message = 'Uploading file...';
+      fixture.componentRef.setInput('message', 'Uploading file...');
       fixture.detectChanges();
-      expect(component.message).toBe('Uploading file...');
+      expect(component.message()).toBe('Uploading file...');
     });
 
     it('should accept display input', () => {
-      component.display = true;
+      fixture.componentRef.setInput('display', true);
       fixture.detectChanges();
-      expect(component.display).toBe(true);
+      expect(component.display()).toBe(true);
     });
 
     it('should handle progress at 0%', () => {
-      component.progress = 0;
+      fixture.componentRef.setInput('progress', 0);
       fixture.detectChanges();
-      expect(component.progress).toBe(0);
+      expect(component.progress()).toBe(0);
     });
 
     it('should handle progress at 100%', () => {
-      component.progress = 100;
+      fixture.componentRef.setInput('progress', 100);
       fixture.detectChanges();
-      expect(component.progress).toBe(100);
+      expect(component.progress()).toBe(100);
     });
 
     it('should handle progress at intermediate values', () => {
-      component.progress = 75;
+      fixture.componentRef.setInput('progress', 75);
       fixture.detectChanges();
-      expect(component.progress).toBe(75);
+      expect(component.progress()).toBe(75);
     });
   });
 
-  describe('uploadComplete setter', () => {
+  describe('uploadComplete input', () => {
     it('should set message to "Upload complete!" when uploadComplete is true', () => {
-      component.uploadComplete = true;
-      expect(component.message).toBe('Upload complete!');
+      fixture.componentRef.setInput('uploadComplete', true);
+      fixture.detectChanges();
+      expect(component.message()).toBe('Upload complete!');
     });
 
     it('should start countdown when uploadComplete is true', () => {
       const startCountdownSpy = vi.spyOn(component, 'startCountdown');
 
-      component.uploadComplete = true;
+      fixture.componentRef.setInput('uploadComplete', true);
+      fixture.detectChanges();
       expect(startCountdownSpy).toHaveBeenCalled();
     });
 
     it('should not start countdown when uploadComplete is false', () => {
       const startCountdownSpy = vi.spyOn(component, 'startCountdown');
 
-      component.uploadComplete = false;
+      fixture.componentRef.setInput('uploadComplete', false);
+      fixture.detectChanges();
       expect(startCountdownSpy).not.toHaveBeenCalled();
     });
 
     it('should not change message when uploadComplete is false', () => {
-      component.message = 'Original message';
-      component.uploadComplete = false;
-      expect(component.message).toBe('Original message');
+      fixture.componentRef.setInput('message', 'Original message');
+      fixture.componentRef.setInput('uploadComplete', false);
+      fixture.detectChanges();
+      expect(component.message()).toBe('Original message');
     });
   });
 
@@ -128,7 +132,7 @@ describe('StatusDialogComponent', () => {
     it('should start countdown if message is set', () => {
       const startCountdownSpy = vi.spyOn(component, 'startCountdown');
 
-      component.message = 'Some message';
+      fixture.componentRef.setInput('message', 'Some message');
       component.ngOnInit();
       expect(startCountdownSpy).toHaveBeenCalled();
     });
@@ -136,7 +140,7 @@ describe('StatusDialogComponent', () => {
     it('should not start countdown if message is empty', () => {
       const startCountdownSpy = vi.spyOn(component, 'startCountdown');
 
-      component.message = '';
+      fixture.componentRef.setInput('message', '');
       component.ngOnInit();
       expect(startCountdownSpy).not.toHaveBeenCalled();
     });
@@ -152,46 +156,46 @@ describe('StatusDialogComponent', () => {
     });
 
     it('should set initial countdown message', () => {
-      component.countdown = 3;
+      component.countdown.set(3);
       component.startCountdown();
-      expect(component.countdownMessage).toBe('The page will refresh in 3 seconds.');
+      expect(component.countdownMessage()).toBe('The page will refresh in 3 seconds.');
     });
 
     it('should decrement countdown after 1 second', () => {
-      component.countdown = 3;
+      component.countdown.set(3);
       component.startCountdown();
 
       vi.advanceTimersByTime(1000);
 
-      expect(component.countdown).toBe(2);
-      expect(component.countdownMessage).toBe('The page will refresh in 2 seconds.');
+      expect(component.countdown()).toBe(2);
+      expect(component.countdownMessage()).toBe('The page will refresh in 2 seconds.');
     });
 
     it('should decrement countdown to 1 after 2 seconds', () => {
-      component.countdown = 3;
+      component.countdown.set(3);
       component.startCountdown();
 
       vi.advanceTimersByTime(2000);
 
-      expect(component.countdown).toBe(1);
-      expect(component.countdownMessage).toBe('The page will refresh in 1 seconds.');
+      expect(component.countdown()).toBe(1);
+      expect(component.countdownMessage()).toBe('The page will refresh in 1 seconds.');
     });
 
     it('should set display to false when countdown reaches 0', () => {
-      component.countdown = 3;
-      component.display = true;
+      component.countdown.set(3);
+      fixture.componentRef.setInput('display', true);
       component.startCountdown();
 
       vi.advanceTimersByTime(3000);
 
-      expect(component.countdown).toBe(0);
-      expect(component.display).toBe(false);
+      expect(component.countdown()).toBe(0);
+      expect(component.display()).toBe(false);
     });
 
     it('should clear interval when countdown reaches 0', () => {
       const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
 
-      component.countdown = 3;
+      component.countdown.set(3);
       component.startCountdown();
 
       vi.advanceTimersByTime(3000);
@@ -200,15 +204,15 @@ describe('StatusDialogComponent', () => {
     });
 
     it('should handle countdown starting from custom value', () => {
-      component.countdown = 5;
+      component.countdown.set(5);
       component.startCountdown();
 
-      expect(component.countdownMessage).toBe('The page will refresh in 5 seconds.');
+      expect(component.countdownMessage()).toBe('The page will refresh in 5 seconds.');
 
       vi.advanceTimersByTime(2000);
 
-      expect(component.countdown).toBe(3);
-      expect(component.countdownMessage).toBe('The page will refresh in 3 seconds.');
+      expect(component.countdown()).toBe(3);
+      expect(component.countdownMessage()).toBe('The page will refresh in 3 seconds.');
     });
   });
 
@@ -238,10 +242,10 @@ describe('StatusDialogComponent', () => {
 
   describe('template rendering', () => {
     beforeEach(() => {
-      component.display = true;
-      component.progress = 50;
-      component.message = 'Uploading...';
-      component.countdownMessage = 'The page will refresh in 3 seconds.';
+      fixture.componentRef.setInput('display', true);
+      fixture.componentRef.setInput('progress', 50);
+      fixture.componentRef.setInput('message', 'Uploading...');
+      component.countdownMessage.set('The page will refresh in 3 seconds.');
       fixture.detectChanges();
     });
 
@@ -283,7 +287,7 @@ describe('StatusDialogComponent', () => {
 
   describe('dialog configuration', () => {
     beforeEach(() => {
-      component.display = true;
+      fixture.componentRef.setInput('display', true);
       fixture.detectChanges();
     });
 
@@ -298,15 +302,15 @@ describe('StatusDialogComponent', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.modal).toBe(true);
-      expect(dialogComponent.closable).toBe(false);
+      expect(dialogComponent.modal()).toBe(true);
+      expect(dialogComponent.closable()).toBe(false);
     });
   });
 
   describe('progress bar behavior', () => {
     it('should show progress value', () => {
-      component.display = true;
-      component.progress = 75;
+      fixture.componentRef.setInput('display', true);
+      fixture.componentRef.setInput('progress', 75);
       fixture.detectChanges();
 
       const progressBar = fixture.debugElement.query(By.css('p-progressBar'));
@@ -315,14 +319,14 @@ describe('StatusDialogComponent', () => {
     });
 
     it('should update progress bar when progress changes', () => {
-      component.display = true;
-      component.progress = 25;
+      fixture.componentRef.setInput('display', true);
+      fixture.componentRef.setInput('progress', 25);
       fixture.detectChanges();
 
       fixture.componentRef.setInput('progress', 75);
       fixture.detectChanges();
 
-      expect(component.progress).toBe(75);
+      expect(component.progress()).toBe(75);
     });
   });
 
@@ -336,31 +340,31 @@ describe('StatusDialogComponent', () => {
     });
 
     it('should complete full upload workflow', () => {
-      component.display = true;
-      component.progress = 0;
+      fixture.componentRef.setInput('display', true);
+      fixture.componentRef.setInput('progress', 0);
       fixture.detectChanges();
 
       fixture.componentRef.setInput('progress', 50);
       fixture.detectChanges();
-      expect(component.progress).toBe(50);
+      expect(component.progress()).toBe(50);
 
       fixture.componentRef.setInput('progress', 100);
-      component.uploadComplete = true;
+      fixture.componentRef.setInput('uploadComplete', true);
       fixture.detectChanges();
 
-      expect(component.message).toBe('Upload complete!');
-      expect(component.countdownMessage).toContain('The page will refresh in');
+      expect(component.message()).toBe('Upload complete!');
+      expect(component.countdownMessage()).toContain('The page will refresh in');
 
       vi.advanceTimersByTime(3000);
 
-      expect(component.display).toBe(false);
+      expect(component.display()).toBe(false);
     });
   });
 
   describe('edge cases', () => {
     it('should handle rapid progress updates', () => {
-      component.display = true;
-      component.progress = 0;
+      fixture.componentRef.setInput('display', true);
+      fixture.componentRef.setInput('progress', 0);
       fixture.detectChanges();
 
       for (let i = 10; i <= 100; i += 10) {
@@ -368,31 +372,34 @@ describe('StatusDialogComponent', () => {
         fixture.detectChanges();
       }
 
-      expect(component.progress).toBe(100);
+      expect(component.progress()).toBe(100);
     });
 
-    it('should handle multiple uploadComplete calls', () => {
+    it('should start countdown only once for repeated uploadComplete=true values', () => {
       const startCountdownSpy = vi.spyOn(component, 'startCountdown');
 
-      component.uploadComplete = true;
-      component.uploadComplete = true;
-      component.uploadComplete = true;
+      fixture.componentRef.setInput('uploadComplete', true);
+      fixture.detectChanges();
+      fixture.componentRef.setInput('uploadComplete', true);
+      fixture.detectChanges();
+      fixture.componentRef.setInput('uploadComplete', true);
+      fixture.detectChanges();
 
-      expect(startCountdownSpy).toHaveBeenCalledTimes(3);
+      expect(startCountdownSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should handle display toggle', () => {
-      component.display = true;
+      fixture.componentRef.setInput('display', true);
       fixture.detectChanges();
-      expect(component.display).toBe(true);
+      expect(component.display()).toBe(true);
 
       fixture.componentRef.setInput('display', false);
       fixture.detectChanges();
-      expect(component.display).toBe(false);
+      expect(component.display()).toBe(false);
 
       fixture.componentRef.setInput('display', true);
       fixture.detectChanges();
-      expect(component.display).toBe(true);
+      expect(component.display()).toBe(true);
     });
   });
 });

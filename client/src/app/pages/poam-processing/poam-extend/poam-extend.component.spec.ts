@@ -189,6 +189,13 @@ describe('PoamExtendComponent', () => {
 
     fixture = TestBed.createComponent(PoamExtendComponent);
     component = fixture.componentInstance;
+
+    const mockTableRef = { cancelRowEdit: vi.fn() };
+
+    Object.defineProperty(component, 'table', {
+      value: () => mockTableRef,
+      writable: true
+    });
   });
 
   afterEach(() => {

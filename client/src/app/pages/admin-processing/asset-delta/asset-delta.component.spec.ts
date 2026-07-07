@@ -21,7 +21,7 @@ import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ChartModule } from 'primeng/chart';
+import { CpatChartComponent } from '../../../common/components/chart/chart.component';
 import { DialogModule } from 'primeng/dialog';
 import { FileUploadModule } from 'primeng/fileupload';
 import { FloatLabel } from 'primeng/floatlabel';
@@ -128,7 +128,7 @@ describe('AssetDeltaComponent', () => {
             BadgeModule,
             ButtonModule,
             CardModule,
-            ChartModule,
+            CpatChartComponent,
             CommonModule,
             DialogModule,
             FileUploadModule,

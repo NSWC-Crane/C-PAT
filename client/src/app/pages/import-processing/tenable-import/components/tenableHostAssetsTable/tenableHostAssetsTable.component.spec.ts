@@ -75,7 +75,7 @@ describe('TenableHostAssetsTableComponent', () => {
 
   beforeEach(async () => {
     mockTable = { clear: vi.fn(), filterGlobal: vi.fn(), exportCSV: vi.fn() };
-    mockMultiSelect = { overlayVisible: false, hide: vi.fn(), show: vi.fn() };
+    mockMultiSelect = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
 
     mockImportService = {
       postTenableHostSearch: vi.fn().mockReturnValue(of({ ...mockHostResponse }))
@@ -95,7 +95,7 @@ describe('TenableHostAssetsTableComponent', () => {
     fixture = TestBed.createComponent(TenableHostAssetsTableComponent);
     component = fixture.componentInstance;
     (component as any).hostAssetTable = () => mockTable;
-    (component as any).multiSelect = () => mockMultiSelect;
+    (component as any).columnSelect = () => mockMultiSelect;
   });
 
   describe('Creation and Defaults', () => {
@@ -171,13 +171,13 @@ describe('TenableHostAssetsTableComponent', () => {
 
   describe('getAffectedAssets', () => {
     it('should return early when tenableRepoId is not set', () => {
-      component.tenableRepoId = undefined as any;
+      (component as any).tenableRepoId = () => undefined;
       component.getAffectedAssets();
       expect(mockImportService.postTenableHostSearch).not.toHaveBeenCalled();
     });
 
     it('should call postTenableHostSearch with tenableRepoId filter', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       const callArgs = mockImportService.postTenableHostSearch.mock.calls[0][0];
       const repoFilter = callArgs.filters.and.find((f: any) => f.property === 'repositoryHost');
@@ -186,73 +186,73 @@ describe('TenableHostAssetsTableComponent', () => {
     });
 
     it('should map host assets from response', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets.length).toBe(2);
     });
 
     it('should extract source type from source array', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets[0].source).toBe('nessus');
     });
 
     it('should default source to empty string when source is null', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets[1].source).toBe('');
     });
 
     it('should extract acr score', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets[0].acr).toBe('8');
     });
 
     it('should default acr to empty string when null', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets[1].acr).toBe('');
     });
 
     it('should extract aes score', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets[0].aes).toBe('450');
     });
 
     it('should format systemType with capitalization and spaces', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets[0].systemType).toBe('General-Purpose, Router');
     });
 
     it('should default systemType to empty string when null', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets[1].systemType).toBe('');
     });
 
     it('should format lastSeen timestamp', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets[0].lastSeen).toMatch(/\d{2}\/\d{2}\/\d{4}/);
     });
 
     it('should set lastSeen to undefined for "-1"', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.affectedAssets[1].lastSeen).toBeUndefined();
     });
 
     it('should set isLoading to false on success', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
       expect(component.isLoading).toBe(false);
     });
 
     it('should show error and set isLoading=false on failure', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       mockImportService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('fail')));
       component.getAffectedAssets();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
@@ -365,19 +365,19 @@ describe('TenableHostAssetsTableComponent', () => {
 
   describe('toggleAddColumnOverlay', () => {
     it('should call hide() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.hide).toHaveBeenCalled();
     });
 
     it('should call show() when overlayVisible is false', () => {
-      mockMultiSelect.overlayVisible = false;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(false);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).toHaveBeenCalled();
     });
 
     it('should not call show() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).not.toHaveBeenCalled();
     });

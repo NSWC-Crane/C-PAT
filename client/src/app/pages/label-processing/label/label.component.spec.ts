@@ -86,8 +86,8 @@ describe('LabelComponent', () => {
 
     fixture = TestBed.createComponent(LabelComponent);
     component = fixture.componentInstance;
-    component.label = { labelId: '', labelName: '', description: '' };
-    component.labels = [];
+    component.label.set({ labelId: '', labelName: '', description: '' });
+    fixture.componentRef.setInput('labels', []);
   });
 
   it('should create', () => {
@@ -174,8 +174,8 @@ describe('LabelComponent', () => {
       const changes: SimpleChanges = { label: new SimpleChange(null, newLabel, true) };
 
       component.ngOnChanges(changes);
-      expect(component.label).toEqual(newLabel);
-      expect(component.label).not.toBe(newLabel);
+      expect(component.label()).toEqual(newLabel);
+      expect(component.label()).not.toBe(newLabel);
     });
 
     it('should call loadPoamsByLabel when labelId is set and not ADDLABEL', () => {
@@ -267,11 +267,11 @@ describe('LabelComponent', () => {
 
   describe('loadPoamsByLabel', () => {
     beforeEach(() => {
-      component.label = { labelId: 5, labelName: 'Test', description: '' };
+      component.label.set({ labelId: 5, labelName: 'Test', description: '' });
     });
 
     it('should clear displayPoams and return when labelId is ADDLABEL', () => {
-      component.label = { labelId: 'ADDLABEL', labelName: 'New' };
+      component.label.set({ labelId: 'ADDLABEL', labelName: 'New' });
       component.displayPoams = [{ poamId: 1 }];
       component.loadPoamsByLabel();
       expect(component.displayPoams).toEqual([]);
@@ -279,7 +279,7 @@ describe('LabelComponent', () => {
     });
 
     it('should clear displayPoams and return when labelId is falsy', () => {
-      component.label = { labelId: null };
+      component.label.set({ labelId: null });
       component.displayPoams = [{ poamId: 1 }];
       component.loadPoamsByLabel();
       expect(component.displayPoams).toEqual([]);
@@ -512,7 +512,7 @@ describe('LabelComponent', () => {
     });
 
     it('should warn on duplicate poam', async () => {
-      component.label = { labelId: 1, labelName: 'Test' };
+      component.label.set({ labelId: 1, labelName: 'Test' });
       component.displayPoams = [{ poamId: 1, isNew: false }];
       const rowData = { selectedPoams: [{ poamId: 1 }] };
 
@@ -521,7 +521,7 @@ describe('LabelComponent', () => {
     });
 
     it('should call poamService.postPoamLabel for non-duplicate', async () => {
-      component.label = { labelId: 1, labelName: 'Test' };
+      component.label.set({ labelId: 1, labelName: 'Test' });
       component.displayPoams = [{ poamId: 99, isNew: false }];
       const rowData = { selectedPoams: [{ poamId: 5 }] };
 
@@ -530,7 +530,7 @@ describe('LabelComponent', () => {
     });
 
     it('should show success message after adding poam', async () => {
-      component.label = { labelId: 1, labelName: 'Test' };
+      component.label.set({ labelId: 1, labelName: 'Test' });
       component.displayPoams = [];
       const rowData = { selectedPoams: [{ poamId: 5 }] };
 
@@ -540,7 +540,7 @@ describe('LabelComponent', () => {
 
     it('should show error message when postPoamLabel fails', async () => {
       mockPoamService.postPoamLabel.mockReturnValue(throwError(() => new Error('fail')));
-      component.label = { labelId: 1, labelName: 'Test' };
+      component.label.set({ labelId: 1, labelName: 'Test' });
       component.displayPoams = [];
       const rowData = { selectedPoams: [{ poamId: 5 }] };
 
@@ -549,7 +549,7 @@ describe('LabelComponent', () => {
     });
 
     it('should splice new row from displayPoams by index', async () => {
-      component.label = { labelId: 1, labelName: 'Test' };
+      component.label.set({ labelId: 1, labelName: 'Test' });
       component.displayPoams = [
         { isNew: true, selectedPoams: [{ poamId: 5 }] },
         { poamId: 2, isNew: false }
@@ -568,14 +568,14 @@ describe('LabelComponent', () => {
     });
 
     it('should call poamService.deletePoamLabel for existing poam', async () => {
-      component.label = { labelId: 2, labelName: 'Test' };
+      component.label.set({ labelId: 2, labelName: 'Test' });
       component.displayPoams = [{ poamId: 5, isNew: false }];
       await component.deletePoamFromLabel({ poamId: 5, isNew: false }, 0);
       expect(mockPoamService.deletePoamLabel).toHaveBeenCalledWith(5, 2);
     });
 
     it('should splice row from displayPoams on success', async () => {
-      component.label = { labelId: 2, labelName: 'Test' };
+      component.label.set({ labelId: 2, labelName: 'Test' });
       component.displayPoams = [
         { poamId: 5, isNew: false },
         { poamId: 6, isNew: false }
@@ -585,7 +585,7 @@ describe('LabelComponent', () => {
     });
 
     it('should show success message on delete', async () => {
-      component.label = { labelId: 2, labelName: 'Test' };
+      component.label.set({ labelId: 2, labelName: 'Test' });
       component.displayPoams = [{ poamId: 5, isNew: false }];
       await component.deletePoamFromLabel({ poamId: 5, isNew: false }, 0);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', summary: 'Success' }));
@@ -593,7 +593,7 @@ describe('LabelComponent', () => {
 
     it('should show error message on service failure', async () => {
       mockPoamService.deletePoamLabel.mockReturnValue(throwError(() => new Error('fail')));
-      component.label = { labelId: 2, labelName: 'Test' };
+      component.label.set({ labelId: 2, labelName: 'Test' });
       component.displayPoams = [{ poamId: 5, isNew: false }];
       await component.deletePoamFromLabel({ poamId: 5, isNew: false }, 0);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
@@ -652,22 +652,22 @@ describe('LabelComponent', () => {
     });
 
     it('should not proceed when validData returns false (no labelName)', () => {
-      component.label = { labelId: 'ADDLABEL', labelName: '', description: '' };
+      component.label.set({ labelId: 'ADDLABEL', labelName: '', description: '' });
       mockDialogService.open.mockReturnValue({ onClose: of(false) });
       component.onSubmit();
       expect(mockLabelService.addLabel).not.toHaveBeenCalled();
     });
 
     it('should call addLabel when labelId is ADDLABEL', () => {
-      component.label = { labelId: 'ADDLABEL', labelName: 'New Label', description: '' };
-      component.labels = [];
+      component.label.set({ labelId: 'ADDLABEL', labelName: 'New Label', description: '' });
+      fixture.componentRef.setInput('labels', []);
       component.onSubmit();
       expect(mockLabelService.addLabel).toHaveBeenCalled();
     });
 
     it('should call addLabel with labelId=0 when ADDLABEL', () => {
-      component.label = { labelId: 'ADDLABEL', labelName: 'New Label', description: '' };
-      component.labels = [];
+      component.label.set({ labelId: 'ADDLABEL', labelName: 'New Label', description: '' });
+      fixture.componentRef.setInput('labels', []);
       component.onSubmit();
       const call = mockLabelService.addLabel.mock.calls[0];
 
@@ -677,22 +677,22 @@ describe('LabelComponent', () => {
     it('should emit labelchange with labelId after addLabel success', () => {
       const spy = vi.spyOn(component.labelchange, 'emit');
 
-      component.label = { labelId: 'ADDLABEL', labelName: 'New Label', description: '' };
-      component.labels = [];
+      component.label.set({ labelId: 'ADDLABEL', labelName: 'New Label', description: '' });
+      fixture.componentRef.setInput('labels', []);
       component.onSubmit();
       expect(spy).toHaveBeenCalledWith(10);
     });
 
     it('should show error message when addLabel fails', () => {
       mockLabelService.addLabel.mockReturnValue(throwError(() => new Error('fail')));
-      component.label = { labelId: 'ADDLABEL', labelName: 'New Label', description: '' };
-      component.labels = [];
+      component.label.set({ labelId: 'ADDLABEL', labelName: 'New Label', description: '' });
+      fixture.componentRef.setInput('labels', []);
       component.onSubmit();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
     });
 
     it('should call updateLabel when labelId is a number', () => {
-      component.label = { labelId: 5, labelName: 'Existing', description: '' };
+      component.label.set({ labelId: 5, labelName: 'Existing', description: '' });
       component.onSubmit();
       expect(mockLabelService.updateLabel).toHaveBeenCalledWith(1, 5, expect.any(Object));
     });
@@ -700,13 +700,13 @@ describe('LabelComponent', () => {
     it('should emit labelchange after updateLabel', () => {
       const spy = vi.spyOn(component.labelchange, 'emit');
 
-      component.label = { labelId: 5, labelName: 'Existing', description: '' };
+      component.label.set({ labelId: 5, labelName: 'Existing', description: '' });
       component.onSubmit();
       expect(spy).toHaveBeenCalled();
     });
 
     it('should pass collectionId from selectedCollection', () => {
-      component.label = { labelId: 5, labelName: 'Existing', description: '' };
+      component.label.set({ labelId: 5, labelName: 'Existing', description: '' });
       component.onSubmit();
       const call = mockLabelService.updateLabel.mock.calls[0];
 
@@ -716,9 +716,9 @@ describe('LabelComponent', () => {
 
   describe('resetData', () => {
     it('should reset label to empty fields', () => {
-      component.label = { labelId: 5, labelName: 'Test', description: 'D' };
+      component.label.set({ labelId: 5, labelName: 'Test', description: 'D' });
       component.resetData();
-      expect(component.label).toEqual({ labelId: '', labelName: '', description: '' });
+      expect(component.label()).toEqual({ labelId: '', labelName: '', description: '' });
     });
 
     it('should clear displayPoams', () => {
@@ -738,32 +738,32 @@ describe('LabelComponent', () => {
   describe('validData', () => {
     it('should return false when labelName is empty', () => {
       mockDialogService.open.mockReturnValue({ onClose: of(false) });
-      component.label = { labelId: 5, labelName: '', description: '' };
+      component.label.set({ labelId: 5, labelName: '', description: '' });
       expect(component.validData()).toBe(false);
     });
 
     it('should return false when labelName is undefined', () => {
       mockDialogService.open.mockReturnValue({ onClose: of(false) });
-      component.label = { labelId: 5, labelName: undefined, description: '' };
+      component.label.set({ labelId: 5, labelName: undefined, description: '' });
       expect(component.validData()).toBe(false);
     });
 
     it('should return false for ADDLABEL when name already exists', () => {
       mockDialogService.open.mockReturnValue({ onClose: of(false) });
-      component.label = { labelId: 'ADDLABEL', labelName: 'Existing', description: '' };
-      component.labels = [{ labelId: 1, labelName: 'Existing' }];
+      component.label.set({ labelId: 'ADDLABEL', labelName: 'Existing', description: '' });
+      fixture.componentRef.setInput('labels', [{ labelId: 1, labelName: 'Existing' }]);
       expect(component.validData()).toBe(false);
     });
 
     it('should return true for ADDLABEL when name does not exist', () => {
-      component.label = { labelId: 'ADDLABEL', labelName: 'Brand New', description: '' };
-      component.labels = [{ labelId: 1, labelName: 'Existing' }];
+      component.label.set({ labelId: 'ADDLABEL', labelName: 'Brand New', description: '' });
+      fixture.componentRef.setInput('labels', [{ labelId: 1, labelName: 'Existing' }]);
       expect(component.validData()).toBe(true);
     });
 
     it('should return true for existing label with valid name', () => {
-      component.label = { labelId: 5, labelName: 'Valid Name', description: '' };
-      component.labels = [];
+      component.label.set({ labelId: 5, labelName: 'Valid Name', description: '' });
+      fixture.componentRef.setInput('labels', []);
       expect(component.validData()).toBe(true);
     });
   });

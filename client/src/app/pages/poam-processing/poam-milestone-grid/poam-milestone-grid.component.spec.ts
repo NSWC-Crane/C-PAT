@@ -117,7 +117,7 @@ describe('PoamMilestoneGridComponent', () => {
     });
 
     it('should have default accessLevel of 0', () => {
-      expect(component.accessLevelSignal()).toBe(0);
+      expect(component.accessLevel()).toBe(0);
     });
 
     it('should have empty allMilestoneRows by default', () => {
@@ -160,90 +160,90 @@ describe('PoamMilestoneGridComponent', () => {
   });
 
   describe('Input: poams', () => {
-    it('should set poamsSignal when poams input is set', () => {
+    it('should set poams when poams input is set', () => {
       const poams = [createMockPoam({ milestones: [createMockMilestone()] })];
 
-      component.poams = poams;
+      fixture.componentRef.setInput('poams', poams);
       expect(component.allMilestoneRows()).toHaveLength(1);
     });
 
     it('should default to empty array when null is provided', () => {
-      component.poams = null as any;
+      fixture.componentRef.setInput('poams', null as any);
       expect(component.allMilestoneRows()).toEqual([]);
     });
 
     it('should default to empty array when undefined is provided', () => {
-      component.poams = undefined as any;
+      fixture.componentRef.setInput('poams', undefined as any);
       expect(component.allMilestoneRows()).toEqual([]);
     });
   });
 
   describe('Input: user', () => {
-    it('should set userSignal when user input is set', () => {
+    it('should set user when user input is set', () => {
       const user = { userId: 1, userName: 'testuser', assignedTeams: [{ assignedTeamId: 1 }] };
 
-      component.user = user;
+      fixture.componentRef.setInput('user', user);
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.teamMilestoneRows()).toHaveLength(1);
     });
 
     it('should handle null user safely', () => {
-      component.user = null;
+      fixture.componentRef.setInput('user', null);
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.teamMilestoneRows()).toEqual([]);
     });
 
     it('should handle user with no assignedTeams', () => {
-      component.user = { userId: 1 };
+      fixture.componentRef.setInput('user', { userId: 1 });
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.teamMilestoneRows()).toEqual([]);
     });
   });
 
   describe('Input: accessLevel', () => {
-    it('should set accessLevelSignal when accessLevel input is set', () => {
-      component.accessLevel = 3;
-      expect(component.accessLevelSignal()).toBe(3);
+    it('should set accessLevel when accessLevel input is set', () => {
+      fixture.componentRef.setInput('accessLevel', 3);
+      expect(component.accessLevel()).toBe(3);
     });
   });
 
   describe('allMilestoneRows computed', () => {
     it('should return empty array when no poams', () => {
-      component.poams = [];
+      fixture.componentRef.setInput('poams', []);
       expect(component.allMilestoneRows()).toEqual([]);
     });
 
     it('should exclude poams with Closed status', () => {
       const poam = createMockPoam({ status: 'Closed', milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()).toEqual([]);
     });
 
     it('should exclude poams with Draft status', () => {
       const poam = createMockPoam({ status: 'Draft', milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()).toEqual([]);
     });
 
     it('should exclude poams with no milestones', () => {
       const poam = createMockPoam({ milestones: [] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()).toEqual([]);
     });
 
     it('should exclude poams when milestones is undefined', () => {
       const poam = createMockPoam({ milestones: undefined });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()).toEqual([]);
     });
 
@@ -252,7 +252,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneId: null }), createMockMilestone({ milestoneId: 200 })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       const rows = component.allMilestoneRows();
 
       expect(rows).toHaveLength(1);
@@ -269,7 +269,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone()]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       const row = component.allMilestoneRows()[0];
 
       expect(row.poamId).toBe(42);
@@ -287,7 +287,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneDate: '2025-06-01T12:34:56.000Z' })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()[0].milestoneDate).toBe('2025-06-01');
     });
 
@@ -296,7 +296,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneDate: null })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()[0].milestoneDate).toBeNull();
     });
 
@@ -305,7 +305,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneChangeDate: '2025-07-15T08:00:00.000Z' })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()[0].milestoneChangeDate).toBe('2025-07-15');
     });
 
@@ -314,14 +314,14 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneChangeDate: null })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()[0].milestoneChangeDate).toBeNull();
     });
 
     it('should map assignedTeams to teamId/teamName tuples', () => {
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       const row = component.allMilestoneRows()[0];
 
       expect(row.assignedTeams).toEqual([
@@ -333,7 +333,7 @@ describe('PoamMilestoneGridComponent', () => {
     it('should build assignedTeamNames as comma-separated string', () => {
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()[0].assignedTeamNames).toBe('Team Alpha, Team Beta');
     });
 
@@ -342,7 +342,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ assignedTeams: null })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       const row = component.allMilestoneRows()[0];
 
       expect(row.assignedTeams).toEqual([]);
@@ -354,7 +354,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneId: 100 }), createMockMilestone({ milestoneId: 101 }), createMockMilestone({ milestoneId: 102 })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.allMilestoneRows()).toHaveLength(3);
     });
 
@@ -362,7 +362,7 @@ describe('PoamMilestoneGridComponent', () => {
       const poam1 = createMockPoam({ poamId: 1, milestones: [createMockMilestone({ milestoneId: 100 })] });
       const poam2 = createMockPoam({ poamId: 2, milestones: [createMockMilestone({ milestoneId: 200 })] });
 
-      component.poams = [poam1, poam2];
+      fixture.componentRef.setInput('poams', [poam1, poam2]);
       const rows = component.allMilestoneRows();
 
       expect(rows).toHaveLength(2);
@@ -376,7 +376,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneStatus: 'Completed' })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       const row = component.allMilestoneRows()[0];
 
       expect(row.poamStatusSeverity).toBe('success');
@@ -390,7 +390,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: null })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.needsAttentionRows()).toHaveLength(1);
     });
 
@@ -401,7 +401,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: `${dateAtThreshold}T00:00:00.000Z` })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.needsAttentionRows()).toHaveLength(1);
     });
 
@@ -412,7 +412,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: `${dateBeforeThreshold}T00:00:00.000Z` })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.needsAttentionRows()).toHaveLength(1);
     });
 
@@ -423,7 +423,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: `${pastDate}T00:00:00.000Z` })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.needsAttentionRows()).toHaveLength(1);
     });
 
@@ -434,7 +434,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneStatus: 'In Progress', milestoneDate: `${farFuture}T00:00:00.000Z` })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.needsAttentionRows()).toEqual([]);
     });
 
@@ -443,7 +443,7 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneStatus: 'Completed', milestoneDate: null })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.needsAttentionRows()).toEqual([]);
     });
 
@@ -452,49 +452,49 @@ describe('PoamMilestoneGridComponent', () => {
         milestones: [createMockMilestone({ milestoneStatus: null, milestoneDate: null })]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.needsAttentionRows()).toEqual([]);
     });
   });
 
   describe('teamMilestoneRows computed', () => {
     it('should return empty array when user has no assignedTeams', () => {
-      component.user = { userId: 1, assignedTeams: [] };
+      fixture.componentRef.setInput('user', { userId: 1, assignedTeams: [] });
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.teamMilestoneRows()).toEqual([]);
     });
 
     it('should include rows where one assignedTeam matches user team', () => {
-      component.user = { userId: 1, assignedTeams: [{ assignedTeamId: 1 }] };
+      fixture.componentRef.setInput('user', { userId: 1, assignedTeams: [{ assignedTeamId: 1 }] });
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.teamMilestoneRows()).toHaveLength(1);
     });
 
     it('should match against any team in the user assignedTeams list', () => {
-      component.user = { userId: 1, assignedTeams: [{ assignedTeamId: 99 }, { assignedTeamId: 2 }] };
+      fixture.componentRef.setInput('user', { userId: 1, assignedTeams: [{ assignedTeamId: 99 }, { assignedTeamId: 2 }] });
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.teamMilestoneRows()).toHaveLength(1);
     });
 
     it('should exclude rows when no assignedTeam matches user teams', () => {
-      component.user = { userId: 1, assignedTeams: [{ assignedTeamId: 999 }] };
+      fixture.componentRef.setInput('user', { userId: 1, assignedTeams: [{ assignedTeamId: 999 }] });
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.teamMilestoneRows()).toEqual([]);
     });
 
     it('should exclude rows when milestone has no assignedTeams', () => {
-      component.user = { userId: 1, assignedTeams: [{ assignedTeamId: 1 }] };
+      fixture.componentRef.setInput('user', { userId: 1, assignedTeams: [{ assignedTeamId: 1 }] });
       const poam = createMockPoam({ milestones: [createMockMilestone({ assignedTeams: [] })] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
       expect(component.teamMilestoneRows()).toEqual([]);
     });
   });
@@ -583,7 +583,7 @@ describe('PoamMilestoneGridComponent', () => {
     it('should call csvExportService.exportToCsv with prepared data', () => {
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
 
       component.exportToCSV(component.allMilestoneRows(), 'all');
 
@@ -609,7 +609,7 @@ describe('PoamMilestoneGridComponent', () => {
     it('should use variant in filename prefix', () => {
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
 
       component.exportToCSV(component.allMilestoneRows(), 'needs-attention');
 
@@ -619,7 +619,7 @@ describe('PoamMilestoneGridComponent', () => {
     it('should include current date in filename', () => {
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
 
       component.exportToCSV(component.allMilestoneRows(), 'team');
 
@@ -631,7 +631,7 @@ describe('PoamMilestoneGridComponent', () => {
     it('should serialize assignedTeams as semicolon-separated team names', () => {
       const poam = createMockPoam({ milestones: [createMockMilestone()] });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
 
       component.exportToCSV(component.allMilestoneRows(), 'all');
 
@@ -654,7 +654,7 @@ describe('PoamMilestoneGridComponent', () => {
         ]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
 
       component.exportToCSV(component.allMilestoneRows(), 'all');
 
@@ -684,7 +684,7 @@ describe('PoamMilestoneGridComponent', () => {
         ]
       });
 
-      component.poams = [poam];
+      fixture.componentRef.setInput('poams', [poam]);
 
       component.exportToCSV(component.allMilestoneRows(), 'all');
 

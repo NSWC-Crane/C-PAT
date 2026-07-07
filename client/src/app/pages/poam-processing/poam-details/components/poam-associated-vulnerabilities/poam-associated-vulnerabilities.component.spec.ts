@@ -88,10 +88,10 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
     fixture = TestBed.createComponent(PoamAssociatedVulnerabilitiesComponent);
     component = fixture.componentInstance;
-    component.poamId = 100;
-    component.accessLevel = 4;
-    component.currentCollection = { collectionId: 1, collectionType: 'STIG Manager', originCollectionId: 'col-1' };
-    component.poamAssociatedVulnerabilities = [];
+    fixture.componentRef.setInput('poamId', 100);
+    fixture.componentRef.setInput('accessLevel', 4);
+    fixture.componentRef.setInput('currentCollection', { collectionId: 1, collectionType: 'STIG Manager', originCollectionId: 'col-1' });
+    fixture.componentRef.setInput('poamAssociatedVulnerabilities', []);
   });
 
   afterEach(() => {
@@ -112,8 +112,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should have default inputs', () => {
-      expect(component.poamId).toBe(100);
-      expect(component.accessLevel).toBe(4);
+      expect(component.poamId()).toBe(100);
+      expect(component.accessLevel()).toBe(4);
     });
   });
 
@@ -129,7 +129,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('ngOnChanges', () => {
     it('should initialize display vulnerabilities when poamAssociatedVulnerabilities changes', () => {
-      component.poamAssociatedVulnerabilities = ['V-12345', 'V-12346'];
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12345', 'V-12346'];
 
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345', 'V-12346'], false)
@@ -149,7 +149,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should handle null poamAssociatedVulnerabilities gracefully', () => {
-      component.poamAssociatedVulnerabilities = null as any;
+      (component as any).poamAssociatedVulnerabilities = () => null;
 
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], null, false)
@@ -159,20 +159,20 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should filter out falsy entries', () => {
-      component.poamAssociatedVulnerabilities = ['V-12345', null, '', undefined] as any;
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12345', null, '', undefined];
 
       component.ngOnChanges({
-        poamAssociatedVulnerabilities: new SimpleChange([], component.poamAssociatedVulnerabilities, false)
+        poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345', null, '', undefined], false)
       });
 
       expect(component.displayVulnerabilities).toHaveLength(1);
     });
 
     it('should handle object-style vulnerabilities', () => {
-      component.poamAssociatedVulnerabilities = [{ associatedVulnerability: 'V-12345' }] as any;
+      (component as any).poamAssociatedVulnerabilities = () => [{ associatedVulnerability: 'V-12345' }];
 
       component.ngOnChanges({
-        poamAssociatedVulnerabilities: new SimpleChange([], component.poamAssociatedVulnerabilities, false)
+        poamAssociatedVulnerabilities: new SimpleChange([], [{ associatedVulnerability: 'V-12345' }], false)
       });
 
       expect(component.displayVulnerabilities).toHaveLength(1);
@@ -180,17 +180,17 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should filter out objects with no vulnId', () => {
-      component.poamAssociatedVulnerabilities = [{ associatedVulnerability: '' }, { associatedVulnerability: 'V-12345' }] as any;
+      (component as any).poamAssociatedVulnerabilities = () => [{ associatedVulnerability: '' }, { associatedVulnerability: 'V-12345' }];
 
       component.ngOnChanges({
-        poamAssociatedVulnerabilities: new SimpleChange([], component.poamAssociatedVulnerabilities, false)
+        poamAssociatedVulnerabilities: new SimpleChange([], [{ associatedVulnerability: '' }, { associatedVulnerability: 'V-12345' }], false)
       });
 
       expect(component.displayVulnerabilities).toHaveLength(1);
     });
 
     it('should mark existing vulnerabilities as not new', () => {
-      component.poamAssociatedVulnerabilities = ['V-12345'];
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12345'];
 
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345'], false)
@@ -202,7 +202,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('getVulnTitles', () => {
     it('should load STIG Manager data for STIG Manager collections', () => {
-      component.currentCollection = { collectionType: 'STIG Manager', originCollectionId: 'col-1' };
+      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
 
       component.getVulnTitles();
 
@@ -210,7 +210,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should load Tenable data for Tenable collections', () => {
-      component.currentCollection = { collectionType: 'Tenable', originCollectionId: 'repo-5' };
+      (component as any).currentCollection = () => ({ collectionType: 'Tenable', originCollectionId: 'repo-5' });
 
       component.getVulnTitles();
 
@@ -225,7 +225,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should not load data when collectionType is neither STIG Manager nor Tenable', () => {
-      component.currentCollection = { collectionType: 'C-PAT', originCollectionId: 'col-1' };
+      (component as any).currentCollection = () => ({ collectionType: 'C-PAT', originCollectionId: 'col-1' });
 
       component.getVulnTitles();
 
@@ -234,7 +234,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should not load data when originCollectionId is falsy', () => {
-      component.currentCollection = { collectionType: 'STIG Manager', originCollectionId: null };
+      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: null });
 
       component.getVulnTitles();
 
@@ -242,7 +242,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should not load data when currentCollection is null', () => {
-      component.currentCollection = null;
+      (component as any).currentCollection = () => null;
 
       expect(() => component.getVulnTitles()).not.toThrow();
     });
@@ -250,11 +250,11 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('loadSTIGManagerData (via getVulnTitles)', () => {
     beforeEach(() => {
-      component.currentCollection = { collectionType: 'STIG Manager', originCollectionId: 'col-1' };
+      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
     });
 
     it('should populate vulnTitleMap from STIG response', () => {
-      component.poamAssociatedVulnerabilities = ['V-12345'];
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12345'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345'], false)
       });
@@ -265,7 +265,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should handle groups with no rules', () => {
-      component.poamAssociatedVulnerabilities = ['V-12347'];
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12347'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12347'], false)
       });
@@ -276,7 +276,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should set severity from STIG response', () => {
-      component.poamAssociatedVulnerabilities = ['V-12345'];
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12345'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345'], false)
       });
@@ -304,11 +304,11 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('loadTenableData (via getVulnTitles)', () => {
     beforeEach(() => {
-      component.currentCollection = { collectionType: 'Tenable', originCollectionId: 'repo-5' };
+      (component as any).currentCollection = () => ({ collectionType: 'Tenable', originCollectionId: 'repo-5' });
     });
 
     it('should populate vulnerability data from Tenable response', () => {
-      component.poamAssociatedVulnerabilities = ['10001'];
+      (component as any).poamAssociatedVulnerabilities = () => ['10001'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['10001'], false)
       });
@@ -344,7 +344,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     it('should handle empty Tenable results', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
 
-      component.poamAssociatedVulnerabilities = ['10001'];
+      (component as any).poamAssociatedVulnerabilities = () => ['10001'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['10001'], false)
       });
@@ -363,7 +363,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         })
       );
 
-      component.poamAssociatedVulnerabilities = ['10001'];
+      (component as any).poamAssociatedVulnerabilities = () => ['10001'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['10001'], false)
       });
@@ -389,8 +389,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('computeTagSeverity', () => {
     it('should return danger for critical', () => {
-      component.poamAssociatedVulnerabilities = ['10001'];
-      component.currentCollection = { collectionType: 'Tenable', originCollectionId: 'repo-5' };
+      (component as any).poamAssociatedVulnerabilities = () => ['10001'];
+      (component as any).currentCollection = () => ({ collectionType: 'Tenable', originCollectionId: 'repo-5' });
 
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['10001'], false)
@@ -401,8 +401,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should return danger for high', () => {
-      component.poamAssociatedVulnerabilities = ['V-12345'];
-      component.currentCollection = { collectionType: 'STIG Manager', originCollectionId: 'col-1' };
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12345'];
+      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
 
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345'], false)
@@ -413,8 +413,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should return warn for medium', () => {
-      component.poamAssociatedVulnerabilities = ['V-12346'];
-      component.currentCollection = { collectionType: 'STIG Manager', originCollectionId: 'col-1' };
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12346'];
+      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
 
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12346'], false)
@@ -425,8 +425,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should return info for low', () => {
-      component.poamAssociatedVulnerabilities = ['V-12347'];
-      component.currentCollection = { collectionType: 'STIG Manager', originCollectionId: 'col-1' };
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12347'];
+      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
 
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12347'], false)
@@ -437,8 +437,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should return info for informational', () => {
-      component.poamAssociatedVulnerabilities = ['10002'];
-      component.currentCollection = { collectionType: 'Tenable', originCollectionId: 'repo-5' };
+      (component as any).poamAssociatedVulnerabilities = () => ['10002'];
+      (component as any).currentCollection = () => ({ collectionType: 'Tenable', originCollectionId: 'repo-5' });
 
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['10002'], false)
@@ -449,8 +449,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should return secondary for unknown severity', () => {
-      component.poamAssociatedVulnerabilities = ['UNKNOWN-1'];
-      component.currentCollection = { collectionType: 'STIG Manager', originCollectionId: 'col-1' };
+      (component as any).poamAssociatedVulnerabilities = () => ['UNKNOWN-1'];
+      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
 
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['UNKNOWN-1'], false)
@@ -462,7 +462,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('search', () => {
     beforeEach(() => {
-      component.currentCollection = { collectionType: 'STIG Manager', originCollectionId: 'col-1' };
+      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
       component.getVulnTitles();
     });
 
@@ -883,12 +883,12 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       expect(emitSpy).toHaveBeenCalledWith([]);
     });
 
-    it('should update poamAssociatedVulnerabilities after deletion', () => {
+    it('should update displayVulnerabilities after deletion', () => {
       component.displayVulnerabilities = [{ associatedVulnerability: 'V-111', isNew: false } as any, { associatedVulnerability: 'V-222', isNew: false } as any];
 
       component.deleteAssociatedVulnerability(component.displayVulnerabilities[0], 0);
 
-      expect(component.poamAssociatedVulnerabilities).toEqual(['V-222']);
+      expect(component.displayVulnerabilities.map((v) => v.associatedVulnerability)).toEqual(['V-222']);
     });
   });
 
@@ -925,12 +925,12 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('severityToCategoryMap', () => {
     beforeEach(() => {
-      component.currentCollection = { collectionType: 'STIG Manager', originCollectionId: 'col-1' };
+      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
     });
 
     it('should map critical to CAT I - Critical', () => {
       mockSharedService.getFindingsMetricsAndRulesFromSTIGMAN.mockReturnValue(of([{ groupId: 'V-1', severity: 'critical', rules: [{ title: 'Test' }] }]));
-      component.poamAssociatedVulnerabilities = ['V-1'];
+      (component as any).poamAssociatedVulnerabilities = () => ['V-1'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-1'], false)
       });
@@ -941,7 +941,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should map medium to CAT II - Medium', () => {
-      component.poamAssociatedVulnerabilities = ['V-12346'];
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12346'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12346'], false)
       });
@@ -952,7 +952,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should map low to CAT III - Low', () => {
-      component.poamAssociatedVulnerabilities = ['V-12347'];
+      (component as any).poamAssociatedVulnerabilities = () => ['V-12347'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12347'], false)
       });
@@ -964,7 +964,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
     it('should return Unknown for unrecognized severity', () => {
       mockSharedService.getFindingsMetricsAndRulesFromSTIGMAN.mockReturnValue(of([{ groupId: 'V-1', severity: 'exotic', rules: [{ title: 'Test' }] }]));
-      component.poamAssociatedVulnerabilities = ['V-1'];
+      (component as any).poamAssociatedVulnerabilities = () => ['V-1'];
       component.ngOnChanges({
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-1'], false)
       });

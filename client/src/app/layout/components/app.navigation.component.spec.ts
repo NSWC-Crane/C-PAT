@@ -164,11 +164,11 @@ describe('AppNavigationComponent', () => {
     });
 
     it('should have showConfigurator default to true', () => {
-      expect(component.showConfigurator).toBe(true);
+      expect(component.showConfigurator()).toBe(true);
     });
 
     it('should have showMenuButton default to true', () => {
-      expect(component.showMenuButton).toBe(true);
+      expect(component.showMenuButton()).toBe(true);
     });
   });
 

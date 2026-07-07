@@ -289,26 +289,30 @@ describe('AppSearchComponent', () => {
 
     it('should have correct placeholder', () => {
       const autocomplete = fixture.debugElement.query(By.css('p-autoComplete'));
+      const placeholder = autocomplete.componentInstance.placeholder;
 
-      expect(autocomplete.componentInstance.placeholder).toBe('Search...');
+      expect(typeof placeholder === 'function' ? placeholder() : placeholder).toBe('Search...');
     });
 
     it('should have minLength set to 1', () => {
       const autocomplete = fixture.debugElement.query(By.css('p-autoComplete'));
+      const minQueryLength = autocomplete.componentInstance.minQueryLength;
 
-      expect(autocomplete.componentInstance.minLength).toBe(1);
+      expect(typeof minQueryLength === 'function' ? minQueryLength() : minQueryLength).toBe(1);
     });
 
     it('should have scrollHeight set to 500px', () => {
       const autocomplete = fixture.debugElement.query(By.css('p-autoComplete'));
+      const scrollHeight = autocomplete.componentInstance.scrollHeight;
 
-      expect(autocomplete.componentInstance.scrollHeight).toBe('500px');
+      expect(typeof scrollHeight === 'function' ? scrollHeight() : scrollHeight).toBe('500px');
     });
 
     it('should have optionLabel set to title', () => {
       const autocomplete = fixture.debugElement.query(By.css('p-autoComplete'));
+      const optionLabel = autocomplete.componentInstance.optionLabel;
 
-      expect(autocomplete.componentInstance.optionLabel).toBe('title');
+      expect(typeof optionLabel === 'function' ? optionLabel() : optionLabel).toBe('title');
     });
 
     it('should have w-full class', () => {
@@ -329,8 +333,9 @@ describe('AppSearchComponent', () => {
       component.search({ query: 'home' });
       fixture.detectChanges();
       const autocomplete = fixture.debugElement.query(By.css('p-autoComplete'));
+      const suggestions = autocomplete.componentInstance.suggestions;
 
-      expect(autocomplete.componentInstance.suggestions).toEqual(component.filteredItems);
+      expect(typeof suggestions === 'function' ? suggestions() : suggestions).toEqual(component.filteredItems);
     });
   });
 

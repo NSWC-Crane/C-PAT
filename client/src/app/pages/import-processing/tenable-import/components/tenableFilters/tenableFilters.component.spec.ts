@@ -79,15 +79,15 @@ describe('TenableFiltersComponent', () => {
     });
 
     it('should default collectionId to 0', () => {
-      expect(component.collectionId).toBe(0);
+      expect(component.collectionId()).toBe(0);
     });
 
     it('should default activeFilters to empty array', () => {
-      expect(component.activeFilters).toEqual([]);
+      expect(component.activeFilters()).toEqual([]);
     });
 
     it('should default tenableTool to empty string', () => {
-      expect(component.tenableTool).toBe('');
+      expect(component.tenableTool()).toBe('');
     });
 
     it('should default saveFilterDialog to false', () => {
@@ -142,9 +142,9 @@ describe('TenableFiltersComponent', () => {
   describe('showSaveFilterDialog', () => {
     beforeEach(() => {
       component.ngOnInit();
-      component.collectionId = 1;
-      component.tenableTool = 'sumid';
-      component.activeFilters = [{ id: 'severity', value: 'High' }];
+      fixture.componentRef.setInput('collectionId', 1);
+      fixture.componentRef.setInput('tenableTool', 'sumid');
+      fixture.componentRef.setInput('activeFilters', [{ id: 'severity', value: 'High' }]);
     });
 
     it('should set saveFilterDialog to true', () => {
@@ -198,19 +198,19 @@ describe('TenableFiltersComponent', () => {
     });
 
     it('should not call getTenableFilters when collectionId is 0', () => {
-      component.collectionId = 0;
+      (component as any).collectionId = () => 0;
       component.loadExistingFilters();
       expect(mockImportService.getTenableFilters).not.toHaveBeenCalled();
     });
 
     it('should call getTenableFilters with collectionId', () => {
-      component.collectionId = 1;
+      (component as any).collectionId = () => 1;
       component.loadExistingFilters();
       expect(mockImportService.getTenableFilters).toHaveBeenCalledWith(1);
     });
 
     it('should map filters to FilterOption objects', () => {
-      component.collectionId = 1;
+      (component as any).collectionId = () => 1;
       component.loadExistingFilters();
       expect(component.existingFilters.length).toBe(2);
       expect(component.existingFilters[0].label).toBe('My Filter');
@@ -218,27 +218,27 @@ describe('TenableFiltersComponent', () => {
     });
 
     it('should set disabled=false for filter created by current user', () => {
-      component.collectionId = 1;
+      (component as any).collectionId = () => 1;
       component.loadExistingFilters();
       expect(component.existingFilters[0].disabled).toBe(false);
     });
 
     it('should set disabled=true for filter not created by current user with access level < 4', () => {
-      component.collectionId = 1;
+      (component as any).collectionId = () => 1;
       component.loadExistingFilters();
       expect(component.existingFilters[1].disabled).toBe(true);
     });
 
     it('should set disabled=false for all filters when accessLevel is 4', () => {
       accessLevelSubject.next(4);
-      component.collectionId = 1;
+      (component as any).collectionId = () => 1;
       component.loadExistingFilters();
       expect(component.existingFilters.every((f: any) => !f.disabled)).toBe(true);
     });
 
     it('should set existingFilters to empty array on error', () => {
       mockImportService.getTenableFilters.mockReturnValue(throwError(() => new Error('fail')));
-      component.collectionId = 1;
+      (component as any).collectionId = () => 1;
       component.loadExistingFilters();
       expect(component.existingFilters).toEqual([]);
     });
@@ -338,7 +338,7 @@ describe('TenableFiltersComponent', () => {
   describe('saveCustomFilter', () => {
     beforeEach(() => {
       component.ngOnInit();
-      component.collectionId = 1;
+      fixture.componentRef.setInput('collectionId', 1);
       component.existingFilters = [];
     });
 

@@ -72,8 +72,8 @@ describe('STIGManagerReviewsTableComponent', () => {
   });
 
   beforeEach(async () => {
-    mockMultiSelect = { overlayVisible: false, hide: vi.fn(), show: vi.fn() };
-    mockBenchmarkMultiSelect = { overlayVisible: false, hide: vi.fn(), show: vi.fn() };
+    mockMultiSelect = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
+    mockBenchmarkMultiSelect = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
     mockFilterPopover = { show: vi.fn(), hide: vi.fn() };
 
     mockSharedService = {
@@ -95,9 +95,9 @@ describe('STIGManagerReviewsTableComponent', () => {
 
     fixture = TestBed.createComponent(STIGManagerReviewsTableComponent);
     component = fixture.componentInstance;
-    component.stigmanCollectionId = 42;
-    (component as any).multiSelect = () => mockMultiSelect;
-    (component as any).benchmarkMultiSelect = () => mockBenchmarkMultiSelect;
+    fixture.componentRef.setInput('stigmanCollectionId', 42);
+    (component as any).columnSelect = () => mockMultiSelect;
+    (component as any).benchmarkSelect = () => mockBenchmarkMultiSelect;
     (component as any).treeTable = () => ({});
     (component as any).filterPopover = () => mockFilterPopover;
   });
@@ -175,13 +175,13 @@ describe('STIGManagerReviewsTableComponent', () => {
     });
 
     it('should show error when stigmanCollectionId is 0', () => {
-      component.stigmanCollectionId = 0;
+      (component as any).stigmanCollectionId = () => 0;
       component.ngOnInit();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
 
     it('should not call loadBenchmarkIds when stigmanCollectionId is 0', () => {
-      component.stigmanCollectionId = 0;
+      (component as any).stigmanCollectionId = () => 0;
       const spy = vi.spyOn(component, 'loadBenchmarkIds');
 
       component.ngOnInit();
@@ -973,13 +973,13 @@ describe('STIGManagerReviewsTableComponent', () => {
 
   describe('toggleAddColumnOverlay', () => {
     it('should call multiSelect().hide() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.hide).toHaveBeenCalled();
     });
 
     it('should call multiSelect().show() when overlayVisible is false', () => {
-      mockMultiSelect.overlayVisible = false;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(false);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).toHaveBeenCalled();
     });

@@ -97,7 +97,7 @@ describe('NotificationsPanelComponent', () => {
 
     fixture = TestBed.createComponent(NotificationsPanelComponent);
     component = fixture.componentInstance;
-    component.overlayPanel = mockOverlayPanel as unknown as Popover;
+    fixture.componentRef.setInput('overlayPanel', mockOverlayPanel as unknown as Popover);
   });
 
   describe('initialization', () => {
@@ -140,7 +140,7 @@ describe('NotificationsPanelComponent', () => {
     });
 
     it('should not throw if overlayPanel is not set', () => {
-      component.overlayPanel = undefined as any;
+      (component as any).overlayPanel = () => undefined;
       expect(() => component.closeOverlay()).not.toThrow();
     });
   });
@@ -428,10 +428,10 @@ describe('NotificationsPanelComponent', () => {
       });
 
       it('should render see all notifications button', () => {
-        const button = fixture.debugElement.query(By.css('p-button'));
+        const button = fixture.debugElement.query(By.css('button[pButton]'));
 
         expect(button).toBeTruthy();
-        expect(button.attributes['label']).toBe('See all notifications');
+        expect(button.nativeElement.textContent).toContain('See all notifications');
       });
     });
 
@@ -480,9 +480,9 @@ describe('NotificationsPanelComponent', () => {
 
   describe('overlayPanel handling', () => {
     it('should handle overlayPanel input being set after init', () => {
-      component.overlayPanel = undefined as any;
+      (component as any).overlayPanel = () => undefined;
 
-      component.overlayPanel = mockOverlayPanel as unknown as Popover;
+      (component as any).overlayPanel = () => mockOverlayPanel as unknown as Popover;
       component.closeOverlay();
 
       expect(mockOverlayPanel.hide).toHaveBeenCalled();

@@ -255,57 +255,59 @@ describe('PoamGridComponent', () => {
   });
 
   describe('Input: poamsData', () => {
-    it('should set poamsDataSignal when poamsData input is set', () => {
+    it('should set poamsData when poamsData input is set', () => {
       const poams = [createMockPoam()];
 
-      component.poamsData = poams;
-      expect(component['poamsDataSignal']()).toEqual(poams);
+      fixture.componentRef.setInput('poamsData', poams);
+      expect(component.poamsData()).toEqual(poams);
     });
 
     it('should default to empty array when null is provided', () => {
-      component.poamsData = null as any;
-      expect(component['poamsDataSignal']()).toEqual([]);
+      fixture.componentRef.setInput('poamsData', null as any);
+      expect(component.poamsData()).toEqual([]);
     });
   });
 
   describe('Input: affectedAssetCounts', () => {
-    it('should set affectedAssetCountsSignal when input is set', () => {
+    it('should set affectedAssetCounts when input is set', () => {
       const counts = [{ vulnerabilityId: 'V-12345', assetCount: 5 }];
 
-      component.affectedAssetCounts = counts;
-      expect(component.affectedAssetCounts).toEqual(counts);
+      fixture.componentRef.setInput('affectedAssetCounts', counts);
+      expect(component.affectedAssetCounts()).toEqual(counts);
     });
 
     it('should default to empty array when null is provided', () => {
-      component.affectedAssetCounts = null as any;
-      expect(component.affectedAssetCounts).toEqual([]);
+      fixture.componentRef.setInput('affectedAssetCounts', null as any);
+      expect(component.affectedAssetCounts()).toEqual([]);
     });
 
     it('should set _assetCountsLoaded when value has items', () => {
       const counts = [{ vulnerabilityId: 'V-12345', assetCount: 5 }];
 
-      component.affectedAssetCounts = counts;
+      fixture.componentRef.setInput('affectedAssetCounts', counts);
       expect(component['_assetCountsLoaded']()).toBe(true);
     });
 
-    it('should set _assetCountsLoaded when receiving empty array after having received data', () => {
-      component.affectedAssetCounts = [{ vulnerabilityId: 'V-12345', assetCount: 5 }];
-      component.affectedAssetCounts = [];
+    it('should keep _assetCountsLoaded when receiving empty array after having received data', () => {
+      fixture.componentRef.setInput('affectedAssetCounts', [{ vulnerabilityId: 'V-12345', assetCount: 5 }]);
+      expect(component['_assetCountsLoaded']()).toBe(true);
+
+      fixture.componentRef.setInput('affectedAssetCounts', []);
       expect(component['_assetCountsLoaded']()).toBe(true);
     });
   });
 
   describe('preparedData computed', () => {
     it('should return empty array when no poams', () => {
-      component.poamsData = [];
+      fixture.componentRef.setInput('poamsData', []);
       expect(component['preparedData']()).toEqual([]);
     });
 
     it('should map poam fields correctly', () => {
       const poam = createMockPoam();
 
-      component.poamsData = [poam];
-      component.affectedAssetCounts = [{ vulnerabilityId: 'V-12345', assetCount: 3 }];
+      fixture.componentRef.setInput('poamsData', [poam]);
+      fixture.componentRef.setInput('affectedAssetCounts', [{ vulnerabilityId: 'V-12345', assetCount: 3 }]);
 
       const prepared = component['preparedData']();
 
@@ -326,7 +328,7 @@ describe('PoamGridComponent', () => {
     it('should use extensionDeadline for scheduledCompletionDate when available', () => {
       const poam = createMockPoam({ extensionDeadline: '2025-07-01T00:00:00.000Z' });
 
-      component.poamsData = [poam];
+      fixture.componentRef.setInput('poamsData', [poam]);
 
       const prepared = component['preparedData']();
 
@@ -336,7 +338,7 @@ describe('PoamGridComponent', () => {
     it('should fall back to submitterName when ownerName is null', () => {
       const poam = createMockPoam({ ownerName: null });
 
-      component.poamsData = [poam];
+      fixture.componentRef.setInput('poamsData', [poam]);
 
       const prepared = component['preparedData']();
 
@@ -346,7 +348,7 @@ describe('PoamGridComponent', () => {
     it('should map assigned teams correctly', () => {
       const poam = createMockPoam();
 
-      component.poamsData = [poam];
+      fixture.componentRef.setInput('poamsData', [poam]);
 
       const prepared = component['preparedData']();
 
@@ -360,7 +362,7 @@ describe('PoamGridComponent', () => {
     it('should map labels correctly', () => {
       const poam = createMockPoam();
 
-      component.poamsData = [poam];
+      fixture.componentRef.setInput('poamsData', [poam]);
 
       const prepared = component['preparedData']();
 
@@ -370,7 +372,7 @@ describe('PoamGridComponent', () => {
     it('should show isAffectedAssetsLoading when asset counts not yet loaded', () => {
       const poam = createMockPoam();
 
-      component.poamsData = [poam];
+      fixture.componentRef.setInput('poamsData', [poam]);
 
       const prepared = component['preparedData']();
 
@@ -381,8 +383,8 @@ describe('PoamGridComponent', () => {
     it('should set shouldReviewForClosure when asset counts loaded and no affected assets', () => {
       const poam = createMockPoam();
 
-      component.poamsData = [poam];
-      component.affectedAssetCounts = [{ vulnerabilityId: 'V-12345', assetCount: 0 }];
+      fixture.componentRef.setInput('poamsData', [poam]);
+      fixture.componentRef.setInput('affectedAssetCounts', [{ vulnerabilityId: 'V-12345', assetCount: 0 }]);
 
       const prepared = component['preparedData']();
 
@@ -392,8 +394,8 @@ describe('PoamGridComponent', () => {
     it('should not set shouldReviewForClosure when there are affected assets', () => {
       const poam = createMockPoam();
 
-      component.poamsData = [poam];
-      component.affectedAssetCounts = [{ vulnerabilityId: 'V-12345', assetCount: 5 }];
+      fixture.componentRef.setInput('poamsData', [poam]);
+      fixture.componentRef.setInput('affectedAssetCounts', [{ vulnerabilityId: 'V-12345', assetCount: 5 }]);
 
       const prepared = component['preparedData']();
 
@@ -403,11 +405,11 @@ describe('PoamGridComponent', () => {
     it('should handle associated vulnerabilities tooltip', () => {
       const poam = createMockPoam({ associatedVulnerabilities: ['V-99999', 'V-88888'] });
 
-      component.poamsData = [poam];
-      component.affectedAssetCounts = [
+      fixture.componentRef.setInput('poamsData', [poam]);
+      fixture.componentRef.setInput('affectedAssetCounts', [
         { vulnerabilityId: 'V-12345', assetCount: 3 },
         { vulnerabilityId: 'V-99999', assetCount: 2 }
-      ];
+      ]);
 
       const prepared = component['preparedData']();
 
@@ -419,11 +421,11 @@ describe('PoamGridComponent', () => {
     it('should set shouldReviewForClosure when all associated vulnerability counts are also zero', () => {
       const poam = createMockPoam({ associatedVulnerabilities: ['V-99999'] });
 
-      component.poamsData = [poam];
-      component.affectedAssetCounts = [
+      fixture.componentRef.setInput('poamsData', [poam]);
+      fixture.componentRef.setInput('affectedAssetCounts', [
         { vulnerabilityId: 'V-12345', assetCount: 0 },
         { vulnerabilityId: 'V-99999', assetCount: 0 }
-      ];
+      ]);
 
       const prepared = component['preparedData']();
 
@@ -433,11 +435,11 @@ describe('PoamGridComponent', () => {
     it('should not set shouldReviewForClosure when associated vulnerability has assets', () => {
       const poam = createMockPoam({ associatedVulnerabilities: ['V-99999'] });
 
-      component.poamsData = [poam];
-      component.affectedAssetCounts = [
+      fixture.componentRef.setInput('poamsData', [poam]);
+      fixture.componentRef.setInput('affectedAssetCounts', [
         { vulnerabilityId: 'V-12345', assetCount: 0 },
         { vulnerabilityId: 'V-99999', assetCount: 3 }
-      ];
+      ]);
 
       const prepared = component['preparedData']();
 
@@ -447,7 +449,7 @@ describe('PoamGridComponent', () => {
     it('should handle empty assignedTeams', () => {
       const poam = createMockPoam({ assignedTeams: null });
 
-      component.poamsData = [poam];
+      fixture.componentRef.setInput('poamsData', [poam]);
 
       const prepared = component['preparedData']();
 
@@ -458,7 +460,7 @@ describe('PoamGridComponent', () => {
     it('should handle empty labels', () => {
       const poam = createMockPoam({ labels: null });
 
-      component.poamsData = [poam];
+      fixture.componentRef.setInput('poamsData', [poam]);
 
       const prepared = component['preparedData']();
 
@@ -468,7 +470,7 @@ describe('PoamGridComponent', () => {
     it('should handle null lastUpdated', () => {
       const poam = createMockPoam({ lastUpdated: null });
 
-      component.poamsData = [poam];
+      fixture.componentRef.setInput('poamsData', [poam]);
 
       const prepared = component['preparedData']();
 
@@ -478,15 +480,15 @@ describe('PoamGridComponent', () => {
 
   describe('displayedData computed', () => {
     it('should return all preparedData when no filter', () => {
-      component.poamsData = [createMockPoam(), createMockPoam({ poamId: 2, vulnerabilityId: 'V-23456' })];
-      component.affectedAssetCounts = [];
+      fixture.componentRef.setInput('poamsData', [createMockPoam(), createMockPoam({ poamId: 2, vulnerabilityId: 'V-23456' })]);
+      fixture.componentRef.setInput('affectedAssetCounts', []);
 
       expect(component['displayedData']()).toHaveLength(2);
     });
 
     it('should filter data based on globalFilter', () => {
-      component.poamsData = [createMockPoam({ poamId: 1, vulnerabilityTitle: 'SSH Vulnerability' }), createMockPoam({ poamId: 2, vulnerabilityTitle: 'DNS Configuration' })];
-      component.affectedAssetCounts = [];
+      fixture.componentRef.setInput('poamsData', [createMockPoam({ poamId: 1, vulnerabilityTitle: 'SSH Vulnerability' }), createMockPoam({ poamId: 2, vulnerabilityTitle: 'DNS Configuration' })]);
+      fixture.componentRef.setInput('affectedAssetCounts', []);
 
       component.globalFilterSignal.set('SSH');
       const filtered = component['displayedData']();
@@ -496,24 +498,24 @@ describe('PoamGridComponent', () => {
     });
 
     it('should be case insensitive', () => {
-      component.poamsData = [createMockPoam({ vulnerabilityTitle: 'SSH Vulnerability' })];
-      component.affectedAssetCounts = [];
+      fixture.componentRef.setInput('poamsData', [createMockPoam({ vulnerabilityTitle: 'SSH Vulnerability' })]);
+      fixture.componentRef.setInput('affectedAssetCounts', []);
 
       component.globalFilterSignal.set('ssh');
       expect(component['displayedData']()).toHaveLength(1);
     });
 
     it('should filter across multiple fields', () => {
-      component.poamsData = [createMockPoam({ poamId: 1, vulnerabilityTitle: 'Test', status: 'Draft' }), createMockPoam({ poamId: 2, vulnerabilityTitle: 'Other', status: 'Approved' })];
-      component.affectedAssetCounts = [];
+      fixture.componentRef.setInput('poamsData', [createMockPoam({ poamId: 1, vulnerabilityTitle: 'Test', status: 'Draft' }), createMockPoam({ poamId: 2, vulnerabilityTitle: 'Other', status: 'Approved' })]);
+      fixture.componentRef.setInput('affectedAssetCounts', []);
 
       component.globalFilterSignal.set('Draft');
       expect(component['displayedData']()).toHaveLength(1);
     });
 
     it('should return empty when filter matches nothing', () => {
-      component.poamsData = [createMockPoam()];
-      component.affectedAssetCounts = [];
+      fixture.componentRef.setInput('poamsData', [createMockPoam()]);
+      fixture.componentRef.setInput('affectedAssetCounts', []);
 
       component.globalFilterSignal.set('ZZZZZZZZZ');
       expect(component['displayedData']()).toHaveLength(0);
@@ -541,14 +543,14 @@ describe('PoamGridComponent', () => {
     const cpatPoam = createMockPoam({ poamId: 3, vulnerabilitySource: 'C-PAT' });
 
     it('should return all poams when no collection type filter', () => {
-      component.poamsData = [stigPoam, tenablePoam, cpatPoam];
+      fixture.componentRef.setInput('poamsData', [stigPoam, tenablePoam, cpatPoam]);
       component['collectionTypeSignal'].set('');
 
       expect(component.filteredByCollectionType()).toHaveLength(3);
     });
 
     it('should filter STIG poams when collection type is STIG Manager', () => {
-      component.poamsData = [stigPoam, tenablePoam, cpatPoam];
+      fixture.componentRef.setInput('poamsData', [stigPoam, tenablePoam, cpatPoam]);
       component['collectionTypeSignal'].set('STIG Manager');
 
       const filtered = component.filteredByCollectionType();
@@ -558,7 +560,7 @@ describe('PoamGridComponent', () => {
     });
 
     it('should filter Tenable poams when collection type is Tenable', () => {
-      component.poamsData = [stigPoam, tenablePoam, cpatPoam];
+      fixture.componentRef.setInput('poamsData', [stigPoam, tenablePoam, cpatPoam]);
       component['collectionTypeSignal'].set('Tenable');
 
       const filtered = component.filteredByCollectionType();
@@ -626,7 +628,7 @@ describe('PoamGridComponent', () => {
     });
 
     it('should show export started message when statuses are selected', () => {
-      component.poamsData = [createMockPoam({ status: 'draft' })];
+      fixture.componentRef.setInput('poamsData', [createMockPoam({ status: 'draft' })]);
       component.selectedCollectionId.set(1);
       component.selectedCollection.set({ collectionId: 1, collectionName: 'Test', collectionType: 'C-PAT' });
 
@@ -642,7 +644,7 @@ describe('PoamGridComponent', () => {
     });
 
     it('should show error when no POAMs match selected statuses', () => {
-      component.poamsData = [createMockPoam({ status: 'approved' })];
+      fixture.componentRef.setInput('poamsData', [createMockPoam({ status: 'approved' })]);
       component.selectedCollectionId.set(1);
       component.selectedCollection.set({ collectionId: 1, collectionName: 'Test', collectionType: 'C-PAT' });
 
@@ -660,7 +662,7 @@ describe('PoamGridComponent', () => {
     it('should call processDefaultPoams for C-PAT type collections', () => {
       const processDefaultSpy = vi.spyOn(component as any, 'processDefaultPoams');
 
-      component.poamsData = [createMockPoam({ status: 'draft' })];
+      fixture.componentRef.setInput('poamsData', [createMockPoam({ status: 'draft' })]);
       component.selectedCollectionId.set(1);
       component.selectedCollection.set({ collectionId: 1, collectionName: 'Test', collectionType: 'C-PAT' });
 
@@ -675,7 +677,7 @@ describe('PoamGridComponent', () => {
 
       vi.spyOn(component as any, 'generateExcelFile').mockResolvedValue(undefined);
 
-      component.poamsData = [createMockPoam({ status: 'draft' })];
+      fixture.componentRef.setInput('poamsData', [createMockPoam({ status: 'draft' })]);
       component.selectedCollectionId.set(2);
       component.selectedCollection.set({ collectionId: 2, collectionName: 'STIG Test', collectionType: 'STIG Manager', originCollectionId: 200 });
 
@@ -690,7 +692,7 @@ describe('PoamGridComponent', () => {
 
       vi.spyOn(component as any, 'generateExcelFile').mockResolvedValue(undefined);
 
-      component.poamsData = [createMockPoam({ status: 'draft' })];
+      fixture.componentRef.setInput('poamsData', [createMockPoam({ status: 'draft' })]);
       component.selectedCollectionId.set(3);
       component.selectedCollection.set({ collectionId: 3, collectionName: 'Tenable Test', collectionType: 'Tenable', originCollectionId: 300 });
 
@@ -1160,15 +1162,15 @@ describe('PoamGridComponent', () => {
 
   describe('Input: variant', () => {
     it('should accept variant input', () => {
-      component.variant = 'team';
-      expect(component.variant).toBe('team');
+      fixture.componentRef.setInput('variant', 'team');
+      expect(component.variant()).toBe('team');
     });
   });
 
   describe('Input: userId', () => {
     it('should accept userId input', () => {
-      component.userId = 42;
-      expect(component.userId).toBe(42);
+      fixture.componentRef.setInput('userId', 42);
+      expect(component.userId()).toBe(42);
     });
   });
 
@@ -1214,8 +1216,8 @@ describe('PoamGridComponent', () => {
 
   describe('status sort cycling', () => {
     beforeEach(() => {
-      component.poamsData = [createMockPoam({ poamId: 1, status: 'Draft' }), createMockPoam({ poamId: 2, status: 'Expired' }), createMockPoam({ poamId: 3, status: 'Approved' })];
-      component.affectedAssetCounts = [];
+      fixture.componentRef.setInput('poamsData', [createMockPoam({ poamId: 1, status: 'Draft' }), createMockPoam({ poamId: 2, status: 'Expired' }), createMockPoam({ poamId: 3, status: 'Approved' })]);
+      fixture.componentRef.setInput('affectedAssetCounts', []);
     });
 
     it('should start with cycle 0 (no sort icon)', () => {
@@ -1298,8 +1300,8 @@ describe('PoamGridComponent', () => {
 
   describe('exportToCSV', () => {
     it('should call csvExportService.exportToCsv with all columns', () => {
-      component.poamsData = [createMockPoam()];
-      component.affectedAssetCounts = [{ vulnerabilityId: 'V-12345', assetCount: 3 }];
+      fixture.componentRef.setInput('poamsData', [createMockPoam()]);
+      fixture.componentRef.setInput('affectedAssetCounts', [{ vulnerabilityId: 'V-12345', assetCount: 3 }]);
 
       component.exportToCSV();
 
@@ -1319,9 +1321,9 @@ describe('PoamGridComponent', () => {
     });
 
     it('should use variant as filename prefix', () => {
-      component.poamsData = [createMockPoam()];
-      component.affectedAssetCounts = [];
-      component.variant = 'team';
+      fixture.componentRef.setInput('poamsData', [createMockPoam()]);
+      fixture.componentRef.setInput('affectedAssetCounts', []);
+      fixture.componentRef.setInput('variant', 'team');
 
       component.exportToCSV();
 
@@ -1329,8 +1331,8 @@ describe('PoamGridComponent', () => {
     });
 
     it('should use "poams" as filename prefix when no variant', () => {
-      component.poamsData = [createMockPoam()];
-      component.affectedAssetCounts = [];
+      fixture.componentRef.setInput('poamsData', [createMockPoam()]);
+      fixture.componentRef.setInput('affectedAssetCounts', []);
 
       component.exportToCSV();
 
@@ -1340,8 +1342,8 @@ describe('PoamGridComponent', () => {
     it('should warn and not call exportToCsv when no data', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(vi.fn());
 
-      component.poamsData = [];
-      component.affectedAssetCounts = [];
+      fixture.componentRef.setInput('poamsData', []);
+      fixture.componentRef.setInput('affectedAssetCounts', []);
 
       component.exportToCSV();
 
@@ -1350,8 +1352,8 @@ describe('PoamGridComponent', () => {
     });
 
     it('should serialize assignedTeams and labels as semicolon-separated strings', () => {
-      component.poamsData = [createMockPoam()];
-      component.affectedAssetCounts = [{ vulnerabilityId: 'V-12345', assetCount: 1 }];
+      fixture.componentRef.setInput('poamsData', [createMockPoam()]);
+      fixture.componentRef.setInput('affectedAssetCounts', [{ vulnerabilityId: 'V-12345', assetCount: 1 }]);
 
       component.exportToCSV();
 

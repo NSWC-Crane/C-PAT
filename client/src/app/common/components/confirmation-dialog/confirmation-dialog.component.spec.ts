@@ -50,22 +50,26 @@ describe('ConfirmationDialogComponent', () => {
 
   describe('cancel', () => {
     it('should close dialog with false', () => {
+      fixture.componentRef.setInput('options', new ConfirmationDialogOptions({}));
       component.cancel();
       expect(mockDialogRef.close).toHaveBeenCalledWith(false);
     });
 
     it('should close dialog with false when cancel button is clicked', () => {
-      component.options = new ConfirmationDialogOptions({
-        header: 'Test',
-        body: 'Test body',
-        cancelbutton: 'true'
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          header: 'Test',
+          body: 'Test body',
+          cancelbutton: 'true'
+        })
+      );
       fixture.detectChanges();
 
-      const cancelButton = fixture.debugElement.queryAll(By.css('p-button')).find((btn) => btn.attributes['label'] === 'Cancel');
+      const cancelButton = fixture.debugElement.queryAll(By.css('button[pButton]')).find((btn) => btn.nativeElement.textContent.includes('Cancel'));
 
       if (cancelButton) {
-        cancelButton.triggerEventHandler('onClick', null);
+        cancelButton.triggerEventHandler('click', null);
         expect(mockDialogRef.close).toHaveBeenCalledWith(false);
       }
     });
@@ -73,22 +77,26 @@ describe('ConfirmationDialogComponent', () => {
 
   describe('confirm', () => {
     it('should close dialog with true', () => {
+      fixture.componentRef.setInput('options', new ConfirmationDialogOptions({}));
       component.confirm();
       expect(mockDialogRef.close).toHaveBeenCalledWith(true);
     });
 
     it('should close dialog with true when confirm button is clicked', () => {
-      component.options = new ConfirmationDialogOptions({
-        header: 'Test',
-        body: 'Test body',
-        button: { text: 'Confirm', status: 'primary' }
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          header: 'Test',
+          body: 'Test body',
+          button: { text: 'Confirm', status: 'primary' }
+        })
+      );
       fixture.detectChanges();
 
-      const confirmButton = fixture.debugElement.queryAll(By.css('p-button')).find((btn) => btn.attributes['label'] === 'Confirm');
+      const confirmButton = fixture.debugElement.queryAll(By.css('button[pButton]')).find((btn) => btn.nativeElement.textContent.includes('Confirm'));
 
       if (confirmButton) {
-        confirmButton.triggerEventHandler('onClick', null);
+        confirmButton.triggerEventHandler('click', null);
         expect(mockDialogRef.close).toHaveBeenCalledWith(true);
       }
     });
@@ -96,22 +104,26 @@ describe('ConfirmationDialogComponent', () => {
 
   describe('convert', () => {
     it('should close dialog with convert object', () => {
+      fixture.componentRef.setInput('options', new ConfirmationDialogOptions({}));
       component.convert();
       expect(mockDialogRef.close).toHaveBeenCalledWith({ convert: true });
     });
 
     it('should close dialog with convert object when convert button is clicked', () => {
-      component.options = new ConfirmationDialogOptions({
-        header: 'Test',
-        body: 'Test body',
-        convertButton: { text: 'Convert' }
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          header: 'Test',
+          body: 'Test body',
+          convertButton: { text: 'Convert' }
+        })
+      );
       fixture.detectChanges();
 
-      const convertButton = fixture.debugElement.queryAll(By.css('p-button')).find((btn) => btn.attributes['label'] === 'Convert');
+      const convertButton = fixture.debugElement.queryAll(By.css('button[pButton]')).find((btn) => btn.nativeElement.textContent.includes('Convert'));
 
       if (convertButton) {
-        convertButton.triggerEventHandler('onClick', null);
+        convertButton.triggerEventHandler('click', null);
         expect(mockDialogRef.close).toHaveBeenCalledWith({ convert: true });
       }
     });
@@ -119,12 +131,15 @@ describe('ConfirmationDialogComponent', () => {
 
   describe('template rendering', () => {
     beforeEach(() => {
-      component.options = new ConfirmationDialogOptions({
-        header: 'Test Header',
-        body: 'Test Body Message',
-        button: { text: 'OK', status: 'success' },
-        cancelbutton: 'true'
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          header: 'Test Header',
+          body: 'Test Body Message',
+          button: { text: 'OK', status: 'success' },
+          cancelbutton: 'true'
+        })
+      );
       fixture.detectChanges();
     });
 
@@ -149,46 +164,55 @@ describe('ConfirmationDialogComponent', () => {
     });
 
     it('should have confirm button configured with correct label', () => {
-      expect(component.options.button.text).toBe('OK');
+      expect(component.options().button.text).toBe('OK');
     });
 
     it('should have cancelbutton option set to true', () => {
-      expect(component.options.cancelbutton).toBe('true');
+      expect(component.options().cancelbutton).toBe('true');
     });
 
     it('should have cancelbutton option set to false when configured', () => {
-      component.options = new ConfirmationDialogOptions({
-        header: 'Test',
-        body: 'Test',
-        cancelbutton: 'false'
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          header: 'Test',
+          body: 'Test',
+          cancelbutton: 'false'
+        })
+      );
 
-      expect(component.options.cancelbutton).toBe('false');
+      expect(component.options().cancelbutton).toBe('false');
     });
 
     it('should have convertButton configured when provided', () => {
-      component.options = new ConfirmationDialogOptions({
-        header: 'Test',
-        body: 'Test',
-        convertButton: { text: 'Convert to Draft' }
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          header: 'Test',
+          body: 'Test',
+          convertButton: { text: 'Convert to Draft' }
+        })
+      );
 
-      expect(component.options.convertButton).toEqual({ text: 'Convert to Draft' });
+      expect(component.options().convertButton).toEqual({ text: 'Convert to Draft' });
     });
 
     it('should not have convertButton when not provided', () => {
-      component.options = new ConfirmationDialogOptions({
-        header: 'Test',
-        body: 'Test'
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          header: 'Test',
+          body: 'Test'
+        })
+      );
 
-      expect(component.options.convertButton).toBeUndefined();
+      expect(component.options().convertButton).toBeUndefined();
     });
   });
 
   describe('dialog configuration', () => {
     beforeEach(() => {
-      component.options = new ConfirmationDialogOptions({});
+      fixture.componentRef.setInput('options', new ConfirmationDialogOptions({}));
       fixture.detectChanges();
     });
 
@@ -196,52 +220,64 @@ describe('ConfirmationDialogComponent', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.modal).toBe(true);
+      expect(dialogComponent.modal()).toBe(true);
     });
 
     it('should have closable set to false', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.closable).toBe(false);
+      expect(dialogComponent.closable()).toBe(false);
     });
   });
 
   describe('button severities via options', () => {
     it('should configure primary severity for confirm button', () => {
-      component.options = new ConfirmationDialogOptions({
-        button: { text: 'Confirm', status: 'primary' }
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          button: { text: 'Confirm', status: 'primary' }
+        })
+      );
       fixture.detectChanges();
 
-      expect(component.options.button.status).toBe('primary');
+      expect(component.options().button.status).toBe('primary');
     });
 
     it('should configure success severity for confirm button', () => {
-      component.options = new ConfirmationDialogOptions({
-        button: { text: 'Confirm', status: 'success' }
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          button: { text: 'Confirm', status: 'success' }
+        })
+      );
       fixture.detectChanges();
 
-      expect(component.options.button.status).toBe('success');
+      expect(component.options().button.status).toBe('success');
     });
 
     it('should configure danger severity for confirm button', () => {
-      component.options = new ConfirmationDialogOptions({
-        button: { text: 'Delete', status: 'danger' }
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          button: { text: 'Delete', status: 'danger' }
+        })
+      );
       fixture.detectChanges();
 
-      expect(component.options.button.status).toBe('danger');
+      expect(component.options().button.status).toBe('danger');
     });
 
     it('should have cancelbutton option for warn severity button', () => {
-      component.options = new ConfirmationDialogOptions({
-        cancelbutton: 'true'
-      });
+      fixture.componentRef.setInput(
+        'options',
+        new ConfirmationDialogOptions({
+          cancelbutton: 'true'
+        })
+      );
       fixture.detectChanges();
 
-      expect(component.options.cancelbutton).toBe('true');
+      expect(component.options().cancelbutton).toBe('true');
     });
   });
 });

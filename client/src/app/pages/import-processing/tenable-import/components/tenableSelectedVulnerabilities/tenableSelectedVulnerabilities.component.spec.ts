@@ -94,8 +94,8 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       _filter: vi.fn()
     };
 
-    mockSelect = { overlayVisible: false, hide: vi.fn(), show: vi.fn() };
-    mockMultiSelect = { overlayVisible: false, hide: vi.fn(), show: vi.fn() };
+    mockSelect = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
+    mockMultiSelect = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
 
     mockImportService = {
       getIAVPluginIds: vi.fn().mockReturnValue(of('12345,67890')),
@@ -143,7 +143,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     component = fixture.componentInstance;
     (component as any).table = () => mockTable;
     (component as any).select = () => mockSelect;
-    (component as any).multiSelect = () => mockMultiSelect;
+    (component as any).columnSelect = () => mockMultiSelect;
     component.existingPoamPluginIDs = {};
   });
 
@@ -153,7 +153,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should default currentPreset to iav', () => {
-      expect(component.currentPreset).toBe('iav');
+      expect(component.currentPreset()).toBe('iav');
     });
 
     it('should default isLoading to false', () => {
@@ -229,7 +229,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should call getIAVPluginIDs when preset is iav', () => {
-      component.currentPreset = 'iav';
+      (component as any).currentPreset = () => 'iav';
       const spy = vi.spyOn(component, 'getIAVPluginIDs');
 
       component.ngOnInit();
@@ -237,7 +237,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should call getTaskOrderVulnerabilityIds when preset is taskOrder', () => {
-      component.currentPreset = 'taskOrder';
+      (component as any).currentPreset = () => 'taskOrder';
       const spy = vi.spyOn(component, 'getTaskOrderVulnerabilityIds');
 
       component.ngOnInit();
@@ -273,7 +273,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       };
 
       sessionStorage.setItem('tenableSelectedVulnState', JSON.stringify(savedState));
-      component.currentPreset = 'iav';
+      (component as any).currentPreset = () => 'iav';
       component.ngOnInit();
       expect(component.filterValue).toBe('test');
       expect(component.tenableTool).toBe('listvuln');
@@ -289,7 +289,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       };
 
       sessionStorage.setItem('tenableSelectedVulnState', JSON.stringify(savedState));
-      component.currentPreset = 'iav';
+      (component as any).currentPreset = () => 'iav';
       component.ngOnInit();
       expect(component.filterValue).toBe('');
     });
@@ -303,7 +303,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('initColumnsAndFilters', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
     });
 
@@ -340,13 +340,13 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should set 22 columns for taskOrder preset', () => {
-      component.currentPreset = 'taskOrder';
+      (component as any).currentPreset = () => 'taskOrder';
       component.initColumnsAndFilters();
       expect(component.cols.length).toBe(22);
     });
 
     it('should include taskOrderNumber column for taskOrder preset', () => {
-      component.currentPreset = 'taskOrder';
+      (component as any).currentPreset = () => 'taskOrder';
       component.initColumnsAndFilters();
       expect(component.cols.map((c: any) => c.field)).toContain('taskOrderNumber');
     });
@@ -381,7 +381,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('getIAVPluginIDs', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
     });
 
@@ -411,7 +411,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('getTaskOrderVulnerabilityIds', () => {
     beforeEach(() => {
-      component.currentPreset = 'taskOrder';
+      fixture.componentRef.setInput('currentPreset', 'taskOrder');
       component.selectedCollection = 1;
       component.initColumnsAndFilters();
     });
@@ -467,7 +467,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('getApplicableFindings', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.tenableRepoId = '42';
       component.initColumnsAndFilters();
     });
@@ -573,7 +573,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should add taskOrderNumber to vulnerability when preset is taskOrder', () => {
-      component.currentPreset = 'taskOrder';
+      (component as any).currentPreset = () => 'taskOrder';
       component.taskOrderMap = { '12345': 'TO-001' };
       component.getApplicableFindings('12345');
       expect(component.applicableVulnerabilities[0].taskOrderNumber).toBe('TO-001');
@@ -638,7 +638,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('onRowClick', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
       component.applicablePluginIDs = '12345';
     });
@@ -680,7 +680,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('loadVulnList', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
       component.applicablePluginIDs = '12345';
     });
@@ -707,7 +707,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('loadVulnSummary', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
       component.applicablePluginIDs = '12345';
     });
@@ -784,7 +784,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('onPoamIconClick', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
     });
 
@@ -885,7 +885,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('onNavyComplyDateFilterChange', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
     });
 
@@ -1025,7 +1025,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('clear', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
       component.applicablePluginIDs = '12345';
     });
@@ -1077,7 +1077,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('resetColumnSelections', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
     });
 
@@ -1100,7 +1100,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should include taskOrderNumber for taskOrder preset', () => {
-      component.currentPreset = 'taskOrder';
+      (component as any).currentPreset = () => 'taskOrder';
       component.initColumnsAndFilters();
       component.resetColumnSelections();
       const fields = component.selectedColumns.map((c: any) => c.field);
@@ -1116,7 +1116,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('expandColumnSelections', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
     });
 
@@ -1152,7 +1152,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('onFilter', () => {
     beforeEach(() => {
-      component.currentPreset = 'iav';
+      fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
       component.applicableVulnerabilities = [{ pluginID: 1 }, { pluginID: 2 }];
     });
@@ -1197,19 +1197,19 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('toggleNavyComplyFilter', () => {
     it('should call select().hide() when overlayVisible is true', () => {
-      mockSelect.overlayVisible = true;
+      mockSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleNavyComplyFilter();
       expect(mockSelect.hide).toHaveBeenCalled();
     });
 
     it('should call select().show() when overlayVisible is false', () => {
-      mockSelect.overlayVisible = false;
+      mockSelect.overlayVisible = vi.fn().mockReturnValue(false);
       component.toggleNavyComplyFilter();
       expect(mockSelect.show).toHaveBeenCalled();
     });
 
     it('should not call show() when overlayVisible is true', () => {
-      mockSelect.overlayVisible = true;
+      mockSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleNavyComplyFilter();
       expect(mockSelect.show).not.toHaveBeenCalled();
     });
@@ -1217,19 +1217,19 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
   describe('toggleAddColumnOverlay', () => {
     it('should call multiSelect().hide() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.hide).toHaveBeenCalled();
     });
 
     it('should call multiSelect().show() when overlayVisible is false', () => {
-      mockMultiSelect.overlayVisible = false;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(false);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).toHaveBeenCalled();
     });
 
     it('should not call show() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).not.toHaveBeenCalled();
     });

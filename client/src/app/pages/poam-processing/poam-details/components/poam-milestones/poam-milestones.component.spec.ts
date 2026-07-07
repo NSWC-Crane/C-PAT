@@ -63,10 +63,10 @@ describe('PoamMilestonesComponent', () => {
 
     fixture = TestBed.createComponent(PoamMilestonesComponent);
     component = fixture.componentInstance;
-    component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
-    component.accessLevel = 2;
-    component.assignedTeamOptions = mockTeamOptions;
-    component.poamMilestones = [];
+    fixture.componentRef.setInput('poam', { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
+    fixture.componentRef.setInput('accessLevel', 2);
+    fixture.componentRef.setInput('assignedTeamOptions', mockTeamOptions);
+    component.poamMilestones.set([]);
   });
 
   afterEach(() => {
@@ -93,23 +93,23 @@ describe('PoamMilestonesComponent', () => {
     });
 
     it('should initialize poamMilestones to empty array if not an array', () => {
-      component.poamMilestones = null as any;
+      component.poamMilestones.set(null as any);
       component.ngOnInit();
-      expect(component.poamMilestones).toEqual([]);
+      expect(component.poamMilestones()).toEqual([]);
     });
 
     it('should leave poamMilestones unchanged if already an array', () => {
       const milestones = [createMilestone()];
 
-      component.poamMilestones = milestones;
+      component.poamMilestones.set(milestones);
       component.ngOnInit();
-      expect(component.poamMilestones).toBe(milestones);
+      expect(component.poamMilestones()).toBe(milestones);
     });
 
     it('should initialize poamMilestones to empty array if undefined', () => {
-      component.poamMilestones = undefined as any;
+      component.poamMilestones.set(undefined as any);
       component.ngOnInit();
-      expect(component.poamMilestones).toEqual([]);
+      expect(component.poamMilestones()).toEqual([]);
     });
   });
 
@@ -128,19 +128,19 @@ describe('PoamMilestonesComponent', () => {
     it('should add a new milestone to the beginning of the array', () => {
       const existing = createMilestone({ milestoneId: 'existing-1' });
 
-      component.poamMilestones = [existing];
+      component.poamMilestones.set([existing]);
 
       component.onAddNewMilestone();
 
-      expect(component.poamMilestones.length).toBe(2);
-      expect(component.poamMilestones[0].isNew).toBe(true);
-      expect(component.poamMilestones[1].milestoneId).toBe('existing-1');
+      expect(component.poamMilestones().length).toBe(2);
+      expect(component.poamMilestones()[0].isNew).toBe(true);
+      expect(component.poamMilestones()[1].milestoneId).toBe('existing-1');
     });
 
     it('should set new milestone with correct default values', () => {
       component.onAddNewMilestone();
 
-      const newMilestone = component.poamMilestones[0];
+      const newMilestone = component.poamMilestones()[0];
 
       expect(newMilestone.milestoneComments).toBeNull();
       expect(newMilestone.milestoneChangeComments).toBeNull();
@@ -154,17 +154,17 @@ describe('PoamMilestonesComponent', () => {
 
     it('should generate a temp ID starting with "temp_"', () => {
       component.onAddNewMilestone();
-      expect(component.poamMilestones[0].milestoneId).toMatch(/^temp_\d+$/);
+      expect(component.poamMilestones()[0].milestoneId).toMatch(/^temp_\d+$/);
     });
 
     it('should set editingMilestoneId to the new milestone temp ID', () => {
       component.onAddNewMilestone();
-      expect(component.editingMilestoneId()).toBe(component.poamMilestones[0].milestoneId);
+      expect(component.editingMilestoneId()).toBe(component.poamMilestones()[0].milestoneId);
     });
 
     it('should clone the new milestone', () => {
       component.onAddNewMilestone();
-      const newId = component.poamMilestones[0].milestoneId;
+      const newId = component.poamMilestones()[0].milestoneId;
 
       expect(component.clonedMilestones[newId]).toBeDefined();
       expect(component.clonedMilestones[newId].milestoneStatus).toBe('In Progress');
@@ -172,14 +172,14 @@ describe('PoamMilestonesComponent', () => {
 
     it('should emit milestonesChanged', () => {
       component.onAddNewMilestone();
-      expect(emitSpy).toHaveBeenCalledWith(component.poamMilestones);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamMilestones());
     });
 
     it('should initialize poamMilestones if not an array', () => {
-      component.poamMilestones = null as any;
+      component.poamMilestones.set(null as any);
       component.onAddNewMilestone();
-      expect(Array.isArray(component.poamMilestones)).toBe(true);
-      expect(component.poamMilestones.length).toBe(1);
+      expect(Array.isArray(component.poamMilestones())).toBe(true);
+      expect(component.poamMilestones().length).toBe(1);
     });
 
     it('should call table.initRowEdit on setTimeout', () => {
@@ -190,7 +190,7 @@ describe('PoamMilestonesComponent', () => {
       component.onAddNewMilestone();
       vi.runAllTimers();
 
-      expect(mockTable.initRowEdit).toHaveBeenCalledWith(component.poamMilestones[0]);
+      expect(mockTable.initRowEdit).toHaveBeenCalledWith(component.poamMilestones()[0]);
     });
 
     it('should handle missing table gracefully on setTimeout', () => {
@@ -211,73 +211,73 @@ describe('PoamMilestonesComponent', () => {
     });
 
     it('should default to 30 days from now when no scheduled completion date', () => {
-      component.poam = { status: 'Draft', scheduledCompletionDate: null, extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: null, extensionDays: 0 });
       component.onAddNewMilestone();
 
-      const milestoneDate = new Date(component.poamMilestones[0].milestoneDate);
+      const milestoneDate = new Date(component.poamMilestones()[0].milestoneDate);
       const expected = addDays(new Date('2026-03-01'), 30);
 
       expect(milestoneDate.toDateString()).toBe(expected.toDateString());
     });
 
     it('should use default date if before scheduled completion date', () => {
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
       component.onAddNewMilestone();
 
-      const milestoneDate = new Date(component.poamMilestones[0].milestoneDate);
+      const milestoneDate = new Date(component.poamMilestones()[0].milestoneDate);
       const expected = addDays(new Date('2026-03-01'), 30);
 
       expect(milestoneDate.toDateString()).toBe(expected.toDateString());
     });
 
     it('should cap at scheduled completion date if default exceeds it', () => {
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-03-15', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-03-15', extensionDays: 0 });
       component.onAddNewMilestone();
 
-      const milestoneDate = new Date(component.poamMilestones[0].milestoneDate);
+      const milestoneDate = new Date(component.poamMilestones()[0].milestoneDate);
 
       expect(milestoneDate.toDateString()).toBe(new Date('2026-03-15').toDateString());
     });
 
     it('should use extension deadline when extension days > 0 and extensionDeadline is set', () => {
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Draft',
         scheduledCompletionDate: '2026-03-10',
         extensionDays: 30,
         extensionDeadline: '2026-04-10'
-      };
+      });
       component.onAddNewMilestone();
 
-      const milestoneDate = new Date(component.poamMilestones[0].milestoneDate);
+      const milestoneDate = new Date(component.poamMilestones()[0].milestoneDate);
       const expected = addDays(new Date('2026-03-01'), 30);
 
       expect(milestoneDate.toDateString()).toBe(expected.toDateString());
     });
 
     it('should cap at extension deadline when default exceeds it', () => {
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Draft',
         scheduledCompletionDate: '2026-03-10',
         extensionDays: 10,
         extensionDeadline: '2026-03-20'
-      };
+      });
       component.onAddNewMilestone();
 
-      const milestoneDate = new Date(component.poamMilestones[0].milestoneDate);
+      const milestoneDate = new Date(component.poamMilestones()[0].milestoneDate);
 
       expect(milestoneDate.toDateString()).toBe(new Date('2026-03-20').toDateString());
     });
 
     it('should fall back to scheduled completion date if extensionDeadline is invalid', () => {
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Draft',
         scheduledCompletionDate: '2026-03-15',
         extensionDays: 10,
         extensionDeadline: 'invalid-date'
-      };
+      });
       component.onAddNewMilestone();
 
-      const milestoneDate = new Date(component.poamMilestones[0].milestoneDate);
+      const milestoneDate = new Date(component.poamMilestones()[0].milestoneDate);
 
       expect(milestoneDate.toDateString()).toBe(new Date('2026-03-15').toDateString());
     });
@@ -385,7 +385,7 @@ describe('PoamMilestonesComponent', () => {
     });
 
     it('should fail if milestone date exceeds scheduled completion date (no extension)', () => {
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-06-01', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-06-01', extensionDays: 0 });
       const milestone = createMilestone({ milestoneDate: new Date('2026-07-01') });
 
       component.onRowEditSave(milestone);
@@ -399,12 +399,12 @@ describe('PoamMilestonesComponent', () => {
     });
 
     it('should fail if milestone date exceeds extension deadline', () => {
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Draft',
         scheduledCompletionDate: '2026-06-01',
         extensionDays: 30,
         extensionDeadline: '2026-07-01'
-      };
+      });
       const milestone = createMilestone({ milestoneDate: new Date('2026-08-01') });
 
       component.onRowEditSave(milestone);
@@ -418,7 +418,7 @@ describe('PoamMilestonesComponent', () => {
     });
 
     it('should pass date validation when no scheduled completion date', () => {
-      component.poam = { status: 'Draft', scheduledCompletionDate: null, extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: null, extensionDays: 0 });
       const milestone = createMilestone({ milestoneDate: new Date('2099-01-01') });
 
       component.onRowEditSave(milestone);
@@ -429,7 +429,7 @@ describe('PoamMilestonesComponent', () => {
     it('should show confirmation dialog for new milestone with unmodified date', () => {
       const milestone = createMilestone({ isNew: true, dateModified: false });
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
       component.onRowEditSave(milestone);
 
       expect(mockConfirmationService.confirm).toHaveBeenCalledWith(
@@ -443,8 +443,8 @@ describe('PoamMilestonesComponent', () => {
     it('should finalize edit when confirmation dialog is accepted', () => {
       const milestone = createMilestone({ isNew: true, dateModified: false, editing: true });
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
-      component.poamMilestones = [milestone];
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
+      component.poamMilestones.set([milestone]);
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       mockConfirmationService.confirm.mockImplementation((config: any) => config.accept());
@@ -457,7 +457,7 @@ describe('PoamMilestonesComponent', () => {
     it('should not finalize when confirmation dialog is rejected', () => {
       const milestone = createMilestone({ isNew: true, dateModified: false, editing: true });
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
 
       mockConfirmationService.confirm.mockImplementation((config: any) => config.reject());
       component.onRowEditSave(milestone);
@@ -469,8 +469,8 @@ describe('PoamMilestonesComponent', () => {
     it('should skip confirmation dialog for new milestone with modified date', () => {
       const milestone = createMilestone({ isNew: true, dateModified: true });
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
-      component.poamMilestones = [milestone];
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
+      component.poamMilestones.set([milestone]);
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -482,7 +482,7 @@ describe('PoamMilestonesComponent', () => {
     it('should skip confirmation dialog for existing milestone', () => {
       const milestone = createMilestone({ isNew: false });
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -501,13 +501,13 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: null
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Extension Requested',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 30,
         extensionDeadline: '2027-01-30'
-      };
-      component.poamMilestones = [milestone];
+      });
+      component.poamMilestones.set([milestone]);
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -521,11 +521,11 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: null
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Draft',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -539,11 +539,11 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: null
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Extension Requested',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -564,11 +564,11 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: 'Updated comments'
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Approved',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -591,11 +591,11 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: 'Updated'
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Approved',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -618,12 +618,12 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: 'Updated'
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Approved',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 30,
         extensionDeadline: '2027-01-30'
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -646,11 +646,11 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: 'Updated comments'
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Approved',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -668,11 +668,11 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: 'Updated'
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Approved',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -688,11 +688,11 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: null
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Approved',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -711,7 +711,7 @@ describe('PoamMilestonesComponent', () => {
     it('should set editing to false', () => {
       const milestone = createMilestone({ editing: true });
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -723,7 +723,7 @@ describe('PoamMilestonesComponent', () => {
       const milestone = createMilestone();
 
       component.editingMilestoneId.set('ms-1');
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -734,7 +734,7 @@ describe('PoamMilestonesComponent', () => {
     it('should remove cloned milestone', () => {
       const milestone = createMilestone();
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -745,7 +745,7 @@ describe('PoamMilestonesComponent', () => {
     it('should clear isNew and dateModified for new milestones', () => {
       const milestone = createMilestone({ isNew: true, dateModified: true });
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       mockConfirmationService.confirm.mockImplementation((config: any) => config.accept());
@@ -758,7 +758,7 @@ describe('PoamMilestonesComponent', () => {
     it('should show success message', () => {
       const milestone = createMilestone();
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -774,13 +774,13 @@ describe('PoamMilestonesComponent', () => {
     it('should emit milestonesChanged', () => {
       const milestone = createMilestone();
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
-      component.poamMilestones = [milestone];
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
+      component.poamMilestones.set([milestone]);
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
 
-      expect(emitSpy).toHaveBeenCalledWith(component.poamMilestones);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamMilestones());
     });
 
     it('should call table.cancelRowEdit if table is available', () => {
@@ -790,7 +790,7 @@ describe('PoamMilestonesComponent', () => {
 
       const milestone = createMilestone();
 
-      component.poam = { status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 };
+      (component as any).poam = () => ({ status: 'Draft', scheduledCompletionDate: '2026-12-31', extensionDays: 0 });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -809,18 +809,18 @@ describe('PoamMilestonesComponent', () => {
     it('should remove new milestone from array', () => {
       const newMilestone = createMilestone({ isNew: true, milestoneId: 'temp_1' });
 
-      component.poamMilestones = [newMilestone, createMilestone({ milestoneId: 'ms-2' })];
+      component.poamMilestones.set([newMilestone, createMilestone({ milestoneId: 'ms-2' })]);
 
       component.onRowEditCancel(newMilestone, 0);
 
-      expect(component.poamMilestones.length).toBe(1);
-      expect(component.poamMilestones[0].milestoneId).toBe('ms-2');
+      expect(component.poamMilestones().length).toBe(1);
+      expect(component.poamMilestones()[0].milestoneId).toBe('ms-2');
     });
 
     it('should restore cloned milestone for existing milestone', () => {
       const milestone = createMilestone({ milestoneId: 'ms-1', milestoneComments: 'Modified' });
 
-      component.poamMilestones = [milestone];
+      component.poamMilestones.set([milestone]);
       component.clonedMilestones['ms-1'] = createMilestone({
         milestoneId: 'ms-1',
         milestoneComments: 'Original'
@@ -828,14 +828,14 @@ describe('PoamMilestonesComponent', () => {
 
       component.onRowEditCancel(milestone, 0);
 
-      expect(component.poamMilestones[0].milestoneComments).toBe('Original');
-      expect(component.poamMilestones[0].editing).toBe(false);
+      expect(component.poamMilestones()[0].milestoneComments).toBe('Original');
+      expect(component.poamMilestones()[0].editing).toBe(false);
     });
 
     it('should delete cloned milestone after restore', () => {
       const milestone = createMilestone({ milestoneId: 'ms-1' });
 
-      component.poamMilestones = [milestone];
+      component.poamMilestones.set([milestone]);
       component.clonedMilestones['ms-1'] = { ...milestone };
 
       component.onRowEditCancel(milestone, 0);
@@ -846,7 +846,7 @@ describe('PoamMilestonesComponent', () => {
     it('should just set editing to false if no clone exists', () => {
       const milestone = createMilestone({ milestoneId: 'ms-1', editing: true, isNew: false });
 
-      component.poamMilestones = [milestone];
+      component.poamMilestones.set([milestone]);
 
       component.onRowEditCancel(milestone, 0);
 
@@ -856,7 +856,7 @@ describe('PoamMilestonesComponent', () => {
     it('should clear editingMilestoneId', () => {
       const milestone = createMilestone({ isNew: true });
 
-      component.poamMilestones = [milestone];
+      component.poamMilestones.set([milestone]);
       component.editingMilestoneId.set(milestone.milestoneId);
 
       component.onRowEditCancel(milestone, 0);
@@ -867,11 +867,11 @@ describe('PoamMilestonesComponent', () => {
     it('should emit milestonesChanged', () => {
       const milestone = createMilestone({ isNew: true });
 
-      component.poamMilestones = [milestone];
+      component.poamMilestones.set([milestone]);
 
       component.onRowEditCancel(milestone, 0);
 
-      expect(emitSpy).toHaveBeenCalledWith(component.poamMilestones);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamMilestones());
     });
   });
 
@@ -885,7 +885,7 @@ describe('PoamMilestonesComponent', () => {
     it('should show confirmation dialog', () => {
       const milestone = createMilestone();
 
-      component.poamMilestones = [milestone];
+      component.poamMilestones.set([milestone]);
 
       component.deleteMilestone(milestone, 0);
 
@@ -901,30 +901,30 @@ describe('PoamMilestonesComponent', () => {
       const milestone1 = createMilestone({ milestoneId: 'ms-1' });
       const milestone2 = createMilestone({ milestoneId: 'ms-2' });
 
-      component.poamMilestones = [milestone1, milestone2];
+      component.poamMilestones.set([milestone1, milestone2]);
 
       mockConfirmationService.confirm.mockImplementation((config: any) => config.accept());
       component.deleteMilestone(milestone1, 0);
 
-      expect(component.poamMilestones.length).toBe(1);
-      expect(component.poamMilestones[0].milestoneId).toBe('ms-2');
+      expect(component.poamMilestones().length).toBe(1);
+      expect(component.poamMilestones()[0].milestoneId).toBe('ms-2');
     });
 
     it('should emit milestonesChanged on accept', () => {
       const milestone = createMilestone();
 
-      component.poamMilestones = [milestone];
+      component.poamMilestones.set([milestone]);
 
       mockConfirmationService.confirm.mockImplementation((config: any) => config.accept());
       component.deleteMilestone(milestone, 0);
 
-      expect(emitSpy).toHaveBeenCalledWith(component.poamMilestones);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamMilestones());
     });
 
     it('should show success message on accept', () => {
       const milestone = createMilestone();
 
-      component.poamMilestones = [milestone];
+      component.poamMilestones.set([milestone]);
 
       mockConfirmationService.confirm.mockImplementation((config: any) => config.accept());
       component.deleteMilestone(milestone, 0);
@@ -940,21 +940,21 @@ describe('PoamMilestonesComponent', () => {
     it('should not remove milestone if confirmation is not accepted', () => {
       const milestone = createMilestone();
 
-      component.poamMilestones = [milestone];
+      component.poamMilestones.set([milestone]);
 
       component.deleteMilestone(milestone, 0);
 
-      expect(component.poamMilestones.length).toBe(1);
+      expect(component.poamMilestones().length).toBe(1);
     });
   });
 
   describe('isChangeFieldsEditable (via validation)', () => {
     it('should be editable when extensionDays > 0', () => {
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Draft',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 10
-      };
+      });
       const milestone = createMilestone({
         milestoneChangeDate: new Date('2026-06-01'),
         milestoneChangeComments: null
@@ -973,11 +973,11 @@ describe('PoamMilestonesComponent', () => {
     });
 
     it('should be editable when status is Extension Requested', () => {
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Extension Requested',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       const milestone = createMilestone({
         milestoneChangeDate: new Date('2026-06-01'),
         milestoneChangeComments: null
@@ -996,11 +996,11 @@ describe('PoamMilestonesComponent', () => {
     });
 
     it('should be editable when status is Approved', () => {
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Approved',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       const milestone = createMilestone({
         milestoneChangeDate: new Date('2026-06-01'),
         milestoneChangeComments: null
@@ -1019,11 +1019,11 @@ describe('PoamMilestonesComponent', () => {
     });
 
     it('should not validate change fields when status is Draft with no extensions', () => {
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Draft',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       const milestone = createMilestone({
         milestoneChangeDate: new Date('2026-06-01'),
         milestoneChangeComments: null
@@ -1046,12 +1046,12 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: 'Updated'
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Approved',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 30,
         extensionDeadline: '2027-01-30'
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);
@@ -1074,11 +1074,11 @@ describe('PoamMilestonesComponent', () => {
         milestoneChangeComments: 'Updated'
       });
 
-      component.poam = {
+      (component as any).poam = () => ({
         status: 'Approved',
         scheduledCompletionDate: '2026-12-31',
         extensionDays: 0
-      };
+      });
       component.clonedMilestones[milestone.milestoneId] = { ...milestone };
 
       component.onRowEditSave(milestone);

@@ -270,7 +270,7 @@ describe('InactivityWarningComponent', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.modal).toBe(true);
+      expect(dialogComponent.modal()).toBe(true);
     });
 
     it('should have closable set to false', () => {
@@ -278,7 +278,7 @@ describe('InactivityWarningComponent', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.closable).toBe(false);
+      expect(dialogComponent.closable()).toBe(false);
     });
 
     it('should have draggable set to false', () => {
@@ -286,7 +286,7 @@ describe('InactivityWarningComponent', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.draggable).toBe(false);
+      expect(dialogComponent.draggable()).toBe(false);
     });
 
     it('should have resizable set to false', () => {
@@ -294,7 +294,7 @@ describe('InactivityWarningComponent', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.resizable).toBe(false);
+      expect(dialogComponent.resizable()).toBe(false);
     });
 
     it('should render warning icon when dialog is visible', () => {
@@ -334,8 +334,8 @@ describe('InactivityWarningComponent', () => {
       component.countdown = 60;
       fixture.detectChanges();
 
-      const buttons = fixture.debugElement.queryAll(By.css('p-button'));
-      const keepWorkingButton = buttons.find((btn) => btn.attributes['label'] === 'Keep Working');
+      const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
+      const keepWorkingButton = buttons.find((btn) => btn.nativeElement.textContent.includes('Keep Working'));
 
       expect(keepWorkingButton).toBeTruthy();
     });
@@ -345,8 +345,8 @@ describe('InactivityWarningComponent', () => {
       component.countdown = 60;
       fixture.detectChanges();
 
-      const buttons = fixture.debugElement.queryAll(By.css('p-button'));
-      const logOutButton = buttons.find((btn) => btn.attributes['label'] === 'Log Out');
+      const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
+      const logOutButton = buttons.find((btn) => btn.nativeElement.textContent.includes('Log Out'));
 
       expect(logOutButton).toBeTruthy();
     });
@@ -356,10 +356,10 @@ describe('InactivityWarningComponent', () => {
       component.countdown = 60;
       fixture.detectChanges();
 
-      const buttons = fixture.debugElement.queryAll(By.css('p-button'));
-      const logOutButton = buttons.find((btn) => btn.attributes['label'] === 'Log Out');
+      const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
+      const logOutButton = buttons.find((btn) => btn.nativeElement.textContent.includes('Log Out'));
 
-      expect(logOutButton?.attributes['icon']).toBe('pi pi-sign-out');
+      expect(logOutButton?.nativeElement.querySelector('.pi-sign-out')).toBeTruthy();
     });
   });
 
@@ -373,10 +373,10 @@ describe('InactivityWarningComponent', () => {
     it('should call keepWorking when Keep Working button is clicked', () => {
       const keepWorkingSpy = vi.spyOn(component, 'keepWorking');
 
-      const buttons = fixture.debugElement.queryAll(By.css('p-button'));
-      const keepWorkingButton = buttons.find((btn) => btn.attributes['label'] === 'Keep Working');
+      const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
+      const keepWorkingButton = buttons.find((btn) => btn.nativeElement.textContent.includes('Keep Working'));
 
-      keepWorkingButton?.triggerEventHandler('onClick', {});
+      keepWorkingButton?.triggerEventHandler('click', {});
 
       expect(keepWorkingSpy).toHaveBeenCalled();
     });
@@ -384,10 +384,10 @@ describe('InactivityWarningComponent', () => {
     it('should call logoutNow when Log Out button is clicked', () => {
       const logoutNowSpy = vi.spyOn(component, 'logoutNow');
 
-      const buttons = fixture.debugElement.queryAll(By.css('p-button'));
-      const logOutButton = buttons.find((btn) => btn.attributes['label'] === 'Log Out');
+      const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
+      const logOutButton = buttons.find((btn) => btn.nativeElement.textContent.includes('Log Out'));
 
-      logOutButton?.triggerEventHandler('onClick', {});
+      logOutButton?.triggerEventHandler('click', {});
 
       expect(logoutNowSpy).toHaveBeenCalled();
     });
