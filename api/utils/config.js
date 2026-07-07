@@ -127,6 +127,9 @@ let config = {
         apiKey: process.env.CPAT_AI_API_KEY,
         aiBaseURL: process.env.CPAT_AI_BASE_URL,
     },
+    primeng: {
+        license: process.env.CPAT_PRIMENG_LICENSE ?? '',
+    },
     log: {
         level: Number.parseInt(process.env.CPAT_LOG_LEVEL) || 3,
         mode: process.env.CPAT_LOG_MODE || 'combined',
