@@ -55,7 +55,9 @@
           <p-buttongroup class="poam-buttongroup">
             @for (action of menuItems(); track action.label) {
               @if (action.visible !== false) {
-                <p-button [tourAnchor]="action.tourAnchor" [icon]="action.icon" [severity]="action.severity" size="large" [outlined]="true" [text]="true" [pTooltip]="action.label" tooltipPosition="bottom" (onClick)="action.command()" />
+                <button pButton (click)="action.command()" [tourAnchor]="action.tourAnchor" [severity]="action.severity" size="large" [outlined]="true" [text]="true" [pTooltip]="action.label" tooltipPosition="bottom">
+                  <i [class]="action.icon" pButtonIcon></i>
+                </button>
               }
             }
           </p-buttongroup>
@@ -66,7 +68,7 @@
         <div class="form-container">
           <div class="form-group" tourAnchor="poam-global-toggle">
             <div class="switch-container">
-              <p-toggleSwitch
+              <p-toggleswitch
                 id="globalFinding"
                 name="globalFinding"
                 [(ngModel)]="poam.isGlobalFinding"
@@ -229,7 +231,7 @@
                 ></i
                 >STIG Title:
               </label>
-              <p-autoComplete
+              <p-autocomplete
                 [(ngModel)]="poam.vulnerabilityTitle"
                 [suggestions]="filteredStigmanSTIGs"
                 (completeMethod)="searchStigTitles($event)"
@@ -310,7 +312,7 @@
                   [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
                 />
                 <p-inputgroup-addon>
-                  <p-button icon="pi pi-external-link" variant="text" (onClick)="openIavLink(poam.iavmNumber)" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber" />
+                  <button pButton (click)="openIavLink(poam.iavmNumber)" variant="text" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber"><i class="pi pi-external-link" pButtonIcon></i></button>
                 </p-inputgroup-addon>
               </p-inputgroup>
             </div>
@@ -422,7 +424,7 @@
         </div>
       </div>
 
-      <p-footer>
+      <ng-template #footer>
         <p-stepper [(value)]="activeStep" class="responsive-stepper">
           <p-step-list>
             <p-step [value]="1">Personnel</p-step>
@@ -475,7 +477,7 @@
                     </p-accordion>
                   </div>
                   <div class="stepper-buttons">
-                    <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" class="ml-auto" (onClick)="activateCallback(2)" />
+                    <button pButton class="ml-auto" (click)="activateCallback(2)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                   </div>
                 </div>
               </ng-template>
@@ -499,8 +501,8 @@
                   />
 
                   <div class="stepper-buttons">
-                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(1)" />
-                    <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(3)" />
+                    <button pButton (click)="activateCallback(1)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                    <button pButton (click)="activateCallback(3)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                   </div>
                 </div>
               </ng-template>
@@ -530,8 +532,8 @@
                     ></textarea>
                   </div>
                   <div class="stepper-buttons">
-                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(2)" />
-                    <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(4)" />
+                    <button pButton (click)="activateCallback(2)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                    <button pButton (click)="activateCallback(4)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                   </div>
                 </div>
               </ng-template>
@@ -566,7 +568,7 @@
 
                     <div class="team-mitigations-container">
                       @if (mitigationSaving) {
-                        <p-progressBar mode="indeterminate" [style]="{ height: '4px' }" />
+                        <p-progressbar mode="indeterminate" [style]="{ height: '4px' }" />
                       }
 
                       @if (!poam.isGlobalFinding && (!poamAssignedTeams || poamAssignedTeams.length === 0)) {
@@ -580,7 +582,7 @@
                       }
 
                       @if (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0)) {
-                        <p-tabs [(value)]="activeTabIndex" (onChange)="onTabChange($event)" scrollable lazy>
+                        <p-tabs [(value)]="activeTabIndex" (onChange)="onTabChange($event)" lazy>
                           <p-tablist>
                             @if (poam.isGlobalFinding) {
                               <p-tab [value]="0">Global Finding</p-tab>
@@ -589,7 +591,7 @@
                             @if (!poam.isGlobalFinding) {
                               @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
                                 <p-tab [value]="i" [class]="teamMitigation.isActive ? '' : 'inactive-tab'">
-                                  <span [ngClass]="{ 'inactive-tab': !teamMitigation.isActive }">{{ teamMitigation.assignedTeamName }}</span>
+                                  <span [class]="{ 'inactive-tab': !teamMitigation.isActive }">{{ teamMitigation.assignedTeamName }}</span>
                                   @if (teamMitigation.isActive && isInvalid('teamMitigation:' + teamMitigation.assignedTeamId)) {
                                     <i class="pi pi-exclamation-circle ml-2 text-red-500" pTooltip="Mitigation required"></i>
                                   }
@@ -619,7 +621,7 @@
                             @if (!poam.isGlobalFinding) {
                               @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
                                 <p-tabpanel [value]="i">
-                                  <div [ngClass]="{ 'opacity-70': !teamMitigation.isActive }">
+                                  <div [class]="{ 'opacity-70': !teamMitigation.isActive }">
                                     @if (!teamMitigation.isActive) {
                                       <div class="mb-2 rounded-md bg-yellow-600 p-2">
                                         <i class="pi pi-info-circle mr-2"></i>
@@ -646,8 +648,8 @@
                     </div>
                   </div>
                   <div class="stepper-buttons">
-                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(3)" />
-                    <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(5)" />
+                    <button pButton (click)="activateCallback(3)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                    <button pButton (click)="activateCallback(5)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                   </div>
                 </div>
               </ng-template>
@@ -668,7 +670,7 @@
 
                     <div class="team-resources-container">
                       @if (resourceSaving) {
-                        <p-progressBar mode="indeterminate" [style]="{ height: '4px' }" />
+                        <p-progressbar mode="indeterminate" [style]="{ height: '4px' }" />
                       }
 
                       @if (!poam.isGlobalFinding && (!poamAssignedTeams || poamAssignedTeams.length === 0)) {
@@ -682,7 +684,7 @@
                       }
 
                       @if (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0)) {
-                        <p-tabs [(value)]="activeResourceTabIndex" (onChange)="onResourceTabChange($event)" scrollable lazy>
+                        <p-tabs [(value)]="activeResourceTabIndex" (onChange)="onResourceTabChange($event)" lazy>
                           <p-tablist>
                             @if (poam.isGlobalFinding) {
                               <p-tab [value]="0">Global Finding</p-tab>
@@ -691,7 +693,7 @@
                             @if (!poam.isGlobalFinding) {
                               @for (teamResource of teamResources; track teamResource.assignedTeamId; let i = $index) {
                                 <p-tab [value]="i" [class]="teamResource.isActive ? '' : 'inactive-tab'">
-                                  <span [ngClass]="{ 'inactive-tab': !teamResource.isActive }">{{ teamResource.assignedTeamName }}</span>
+                                  <span [class]="{ 'inactive-tab': !teamResource.isActive }">{{ teamResource.assignedTeamName }}</span>
                                   @if (teamResource.isActive && isInvalid('teamResource:' + teamResource.assignedTeamId)) {
                                     <i class="pi pi-exclamation-circle ml-2 text-red-500" pTooltip="Required resources needed"></i>
                                   }
@@ -721,7 +723,7 @@
                             @if (!poam.isGlobalFinding) {
                               @for (teamResource of teamResources; track teamResource.assignedTeamId; let i = $index) {
                                 <p-tabpanel [value]="i">
-                                  <div [ngClass]="{ 'opacity-70': !teamResource.isActive }">
+                                  <div [class]="{ 'opacity-70': !teamResource.isActive }">
                                     @if (!teamResource.isActive) {
                                       <div class="mb-2 rounded-md bg-yellow-600 p-2">
                                         <i class="pi pi-info-circle mr-2"></i>
@@ -748,8 +750,8 @@
                     </div>
                   </div>
                   <div class="stepper-buttons">
-                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(4)" />
-                    <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(6)" />
+                    <button pButton (click)="activateCallback(4)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                    <button pButton (click)="activateCallback(6)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                   </div>
                 </div>
               </ng-template>
@@ -809,8 +811,8 @@
                     </div>
                   </div>
                   <div class="stepper-buttons">
-                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(5)" />
-                    <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(7)" />
+                    <button pButton (click)="activateCallback(5)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                    <button pButton (click)="activateCallback(7)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                   </div>
                 </div>
               </ng-template>
@@ -824,8 +826,8 @@
                     <cpat-poam-milestones [poam]="poam" [accessLevel]="accessLevel()" [poamMilestones]="poamMilestones" [assignedTeamOptions]="milestoneTeamOptions" (milestonesChanged)="handleMilestonesChanged($event)" />
                   </div>
                   <div class="stepper-buttons">
-                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(6)" />
-                    <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(8)" />
+                    <button pButton (click)="activateCallback(6)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                    <button pButton (click)="activateCallback(8)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                   </div>
                 </div>
               </ng-template>
@@ -839,8 +841,8 @@
                     <cpat-poam-labels [poamId]="poam.poamId" [accessLevel]="accessLevel()" [poamLabels]="poamLabels" [labelList]="labelList" [poamService]="poamService" (labelsChanged)="handleLabelsChanged($event)" />
                   </div>
                   <div class="stepper-buttons">
-                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(7)" />
-                    <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(9)" />
+                    <button pButton (click)="activateCallback(7)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                    <button pButton (click)="activateCallback(9)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                   </div>
                 </div>
               </ng-template>
@@ -860,8 +862,8 @@
                     />
                   </div>
                   <div class="stepper-buttons">
-                    <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(8)" />
-                    <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(10)" />
+                    <button pButton (click)="activateCallback(8)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                    <button pButton (click)="activateCallback(10)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                   </div>
                 </div>
               </ng-template>
@@ -876,7 +878,7 @@
                       <cpat-poam-attachments [poamId]="poam.poamId" />
                     </div>
                     <div class="stepper-buttons">
-                      <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(9)" />
+                      <button pButton (click)="activateCallback(9)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
                     </div>
                   </div>
                 </ng-template>
@@ -884,20 +886,18 @@
             }
           </p-step-panels>
         </p-stepper>
-      </p-footer>
 
-      <!-- Buttons -->
-      <p-footer>
-        <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="cancelPoam()" styleClass="ml-4" />
+        <!-- Buttons -->
+        <button pButton class="ml-4" (click)="cancelPoam()" variant="outlined" severity="secondary"><span pButtonLabel>Cancel</span></button>
 
-        <p-button label="Save" variant="outlined" [disabled]="accessLevel() < 2" (onClick)="savePoam()" styleClass="ml-4 mt-4" />
+        <button pButton class="ml-4 mt-4" (click)="savePoam()" variant="outlined" [disabled]="accessLevel() < 2"><span pButtonLabel>Save</span></button>
 
         @if (poam.status === 'Expired' || poam.status === 'Approved') {
-          <p-button label="Extend" variant="outlined" severity="warn" (onClick)="extendPoam()" styleClass="ml-4" />
+          <button pButton class="ml-4" (click)="extendPoam()" variant="outlined" severity="warn"><span pButtonLabel>Extend</span></button>
         } @else {
-          <p-button label="Submit" variant="outlined" severity="success" (onClick)="verifySubmitPoam()" styleClass="ml-4" />
+          <button pButton class="ml-4" (click)="verifySubmitPoam()" variant="outlined" severity="success"><span pButtonLabel>Submit</span></button>
         }
-      </p-footer>
+      </ng-template>
     </p-card>
   </div>
 }
@@ -909,19 +909,19 @@
     <h3>Confirm Submission</h3>
     <p>Submitting a POAM will alter the POAM status to Submitted and notify approvers that a POAM is ready for review. Would you like to proceed?</p>
   </div>
-  <ng-template pTemplate="footer" let-dialog>
+  <ng-template #footer let-dialog>
     <div style="display: flex; justify-content: space-between; width: 100%">
-      <p-button [text]="true" [raised]="true" (click)="cancelSubmit()" label="Cancel" severity="danger" />
-      <p-button [text]="true" [raised]="true" (click)="confirmSubmit()" label="Submit" />
+      <button pButton (click)="cancelSubmit()" [text]="true" [raised]="true" severity="danger"><span pButtonLabel>Cancel</span></button>
+      <button pButton (click)="confirmSubmit()" [text]="true" [raised]="true"><span pButtonLabel>Submit</span></button>
     </div>
   </ng-template>
 </p-dialog>
 
-<p-dialog class="poam-chat" [(visible)]="showPoamNotes" [modal]="true" [closable]="true" styleClass="w-[80vw] h-[80vh] max-h-[80vh] overflow-hidden">
+<p-dialog styleClass="poam-chat w-[80vw] h-[80vh] max-h-[80vh] overflow-hidden" [(visible)]="showPoamNotes" [modal]="true" [closable]="true">
   @if (poam?.poamId && poam.poamId !== 'ADDPOAM') {
     <cpat-poam-chat class="w-full" [poamId]="poam.poamId" [userId]="user?.userId" />
   }
 </p-dialog>
 
 <p-toast />
-<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" [closable]="false" />
+<p-confirmdialog header="Confirmation" icon="pi pi-exclamation-triangle" [closable]="false" />

@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnInit, inject, viewChild, output } from '@angular/core';
+import { NgClass, DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, inject, viewChild, output, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { parseISO } from 'date-fns';
 import { MessageService, TreeNode } from 'primeng/api';
@@ -19,9 +19,8 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Select, SelectModule } from 'primeng/select';
 import { Popover, PopoverModule } from 'primeng/popover';
-import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
@@ -65,7 +64,6 @@ interface FilterState {
   imports: [
     ButtonModule,
     CardModule,
-    CommonModule,
     DatePickerModule,
     FormsModule,
     InputTextModule,
@@ -73,12 +71,14 @@ interface FilterState {
     IconFieldModule,
     TextareaModule,
     SelectModule,
-    MultiSelectModule,
+    SelectModule,
     TreeTableModule,
     ToastModule,
     TagModule,
     TooltipModule,
-    PopoverModule
+    PopoverModule,
+    DatePipe,
+    NgClass
   ]
 })
 export class STIGManagerReviewsTableComponent implements OnInit {
@@ -87,9 +87,9 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   private readonly csvExportService = inject(CsvExportService);
 
   readonly reviewsCountChange = output<number>();
-  @Input() stigmanCollectionId!: number;
-  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
-  private readonly benchmarkMultiSelect = viewChild.required<MultiSelect>('benchmarkMs');
+  readonly stigmanCollectionId = input.required<number>();
+  private readonly columnSelect = viewChild.required<Select>('ms');
+  private readonly benchmarkSelect = viewChild.required<Select>('benchmarkMs');
   readonly treeTable = viewChild.required<TreeTable>('tt');
   private readonly filterPopover = viewChild.required<Popover>('filterPopover');
   currentFilterColumn: any = null;
@@ -190,7 +190,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     }));
     this.treeNodes = [];
 
-    if (this.stigmanCollectionId) {
+    if (this.stigmanCollectionId()) {
       this.loadBenchmarkIds();
     } else {
       this.messageService.add({
@@ -213,7 +213,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   applyBenchmarkSelection() {
     if (this.selectedBenchmarkIds.length === 0) {
       this.clearBenchmarkSelection();
-      this.benchmarkMultiSelect().hide();
+      this.benchmarkSelect().hide();
 
       return;
     }
@@ -225,7 +225,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       this.loadReviews();
     }
 
-    this.benchmarkMultiSelect().hide();
+    this.benchmarkSelect().hide();
   }
 
   clearBenchmarkSelection() {
@@ -257,7 +257,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     this.showBenchmarkSelector = false;
 
     const savedFilterState = this.cloneFilterState();
-    const reviewRequests = this.appliedBenchmarkIds.map((benchmarkId) => this.sharedService.getReviewsFromSTIGMAN(this.stigmanCollectionId, this.filterState.result, benchmarkId));
+    const reviewRequests = this.appliedBenchmarkIds.map((benchmarkId) => this.sharedService.getReviewsFromSTIGMAN(this.stigmanCollectionId(), this.filterState.result, benchmarkId));
 
     forkJoin(reviewRequests)
       .pipe(map((reviewArrays: any[][]) => reviewArrays.flat()))
@@ -317,7 +317,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
   loadBenchmarkIds() {
     this.isLoading = true;
-    this.sharedService.getCollectionSTIGSummaryFromSTIGMAN(this.stigmanCollectionId).subscribe({
+    this.sharedService.getCollectionSTIGSummaryFromSTIGMAN(this.stigmanCollectionId()).subscribe({
       next: (data: any[]) => {
         this.benchmarkOptions = [...new Set(data.map((stig) => stig.benchmarkId))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map((id) => ({ label: id, value: id }));
         this.isLoading = false;
@@ -874,12 +874,12 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   }
 
   toggleAddColumnOverlay() {
-    const multiSelect = this.multiSelect();
+    const columnSelect = this.columnSelect();
 
-    if (multiSelect.overlayVisible) {
-      multiSelect.hide();
+    if (columnSelect.overlayVisible()) {
+      columnSelect.hide();
     } else {
-      multiSelect.show();
+      columnSelect.show();
     }
   }
 }

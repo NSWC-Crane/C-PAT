@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -12,18 +12,18 @@
   <div class="col-span-12">
     <div class="scrollable-teams overflow-hidden">
       <p-table #dt [value]="assignedTeams" [globalFilterFields]="['assignedTeamId', 'assignedTeamName', 'adTeam']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="assignedTeamId">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <div class="flex items-center justify-between">
-            <p-iconField iconPosition="left">
-              <p-inputIcon>
+            <p-iconfield iconPosition="left">
+              <p-inputicon>
                 <i class="pi pi-search"></i>
-              </p-inputIcon>
+              </p-inputicon>
               <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Teams" id="assignedTeamSearch" class="search-input" />
-            </p-iconField>
-            <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add a Team" (onClick)="openNew()" />
+            </p-iconfield>
+            <button pButton (click)="openNew()" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add a Team"><i class="pi pi-plus" pButtonIcon></i></button>
           </div>
         </ng-template>
-        <ng-template pTemplate="header">
+        <ng-template #header>
           <tr>
             <th scope="col" pSortableColumn="assignedTeamId">Assigned Team ID</th>
             <th scope="col" pSortableColumn="assignedTeamName">Assigned Team Name</th>
@@ -31,7 +31,7 @@
             <th scope="col">Actions</th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-assignedTeam>
+        <ng-template #body let-assignedTeam>
           <tr (click)="editTeam(assignedTeam)" class="cursor-pointer hover:surface-200">
             <td>{{ assignedTeam.assignedTeamId }}</td>
             <td>{{ assignedTeam.assignedTeamName }}</td>
@@ -44,8 +44,8 @@
             </td>
             <td>
               <div class="flex items-center justify-center gap-2">
-                <p-button icon="pi pi-pencil" [rounded]="true" variant="text" (onClick)="$event.stopPropagation(); editTeam(assignedTeam)" />
-                <p-button icon="pi pi-trash" [rounded]="true" variant="text" severity="danger" (onClick)="$event.stopPropagation(); onRowDelete(assignedTeam)" />
+                <button pButton (click)="$event.stopPropagation(); editTeam(assignedTeam)" [rounded]="true" variant="text"><i class="pi pi-pencil" pButtonIcon></i></button>
+                <button pButton (click)="$event.stopPropagation(); onRowDelete(assignedTeam)" [rounded]="true" variant="text" severity="danger"><i class="pi pi-trash" pButtonIcon></i></button>
               </div>
             </td>
           </tr>
@@ -56,7 +56,7 @@
 </div>
 
 <p-dialog [(visible)]="teamDialog" (onHide)="onDialogHide()" styleClass="w-[50vw] overflow-hidden p-fluid" [modal]="true">
-  <ng-template pTemplate="content">
+  <ng-template #content>
     @if (editingAssignedTeam) {
       <div class="mb-6">
         <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
@@ -66,28 +66,29 @@
           id="name"
           [(ngModel)]="editingAssignedTeam.assignedTeamName"
           required
-          [ngClass]="{ 'ng-invalid ng-dirty': !editingAssignedTeam.assignedTeamName }"
+          [class]="{ 'ng-invalid ng-dirty': !editingAssignedTeam.assignedTeamName }"
           maxlength="99"
           class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
         <label for="adTeam" class="mb-2 mt-4 block text-base font-medium">AD Team(s):</label>
-        <p-multiSelect
+        <p-select
+          [multiple]="true"
+          [checkmark]="true"
+          [showClear]="true"
           id="adTeam"
           [(ngModel)]="selectedAdTeams"
           [options]="filteredTeams"
           [filter]="true"
           (onFilter)="filterTeams($event)"
           placeholder="Select AD Team(s)"
-          [showToggleAll]="false"
-          [showHeader]="true"
           [panelStyle]="{ width: '100%' }"
           class="w-full"
         />
       </div>
       <div class="space-y-2">
         <label class="mb-2 block text-base font-medium">Team Permissions:</label>
-        <p-pickList
+        <p-picklist
           [source]="availableCollections"
           [target]="assignedCollections"
           sourceHeader="Available Collections"
@@ -104,17 +105,17 @@
           (onMoveAllToSource)="onMoveToSource($event)"
           class="w-full"
         >
-          <ng-template let-collection pTemplate="item"> {{ collection.collectionName }} </ng-template>
-        </p-pickList>
+          <ng-template let-collection #item> {{ collection.collectionName }} </ng-template>
+        </p-picklist>
       </div>
     }
   </ng-template>
 
-  <ng-template pTemplate="footer">
+  <ng-template #footer>
     @if (editingAssignedTeam) {
       <div class="flex w-full justify-between">
-        <p-button variant="outlined" label="Cancel" (onClick)="hideDialog()" />
-        <p-button variant="outlined" label="Save" (onClick)="saveTeam()" [disabled]="!editingAssignedTeam.assignedTeamName" />
+        <button pButton (click)="hideDialog()" variant="outlined"><span pButtonLabel>Cancel</span></button>
+        <button pButton (click)="saveTeam()" variant="outlined" [disabled]="!editingAssignedTeam.assignedTeamName"><span pButtonLabel>Save</span></button>
       </div>
     }
   </ng-template>

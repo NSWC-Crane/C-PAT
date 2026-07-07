@@ -15,7 +15,7 @@
 }
 @if (collectionType === 'Tenable' && originCollectionId) {
   <div class="card !mb-[6rem]">
-    <p-tabs value="0" scrollable lazy>
+    <p-tabs value="0" lazy>
       <p-tablist>
         <p-tab value="0">All Assets</p-tab>
         <p-tab value="1">High-Risk Assets</p-tab>
@@ -37,7 +37,7 @@
     <div class="row col-span-12">
       <div class="col">
         <div class="card !mb-[6rem]">
-          <p-tabs value="0" scrollable lazy>
+          <p-tabs value="0" lazy>
             <p-tablist>
               <p-tab value="0">Asset Management</p-tab>
               <p-tab value="1">Asset Chart</p-tab>
@@ -47,17 +47,17 @@
                 <div class="p-fluid">
                   <div class="toolbar mb-4">
                     <div class="flex items-center justify-between">
-                      <p-iconField iconPosition="left">
-                        <p-inputIcon>
+                      <p-iconfield iconPosition="left">
+                        <p-inputicon>
                           <i class="pi pi-search"></i>
-                        </p-inputIcon>
+                        </p-inputicon>
                         <input pInputText id="search" [(ngModel)]="filterValue" (input)="applyFilter($event)" placeholder="Search Assets" style="width: 300px" />
-                      </p-iconField>
-                      <p-button class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" />
+                      </p-iconfield>
+                      <button pButton class="ml-2" (click)="clear()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
                     </div>
                     <div class="right-buttons">
-                      <p-button pTooltip="Add Asset" icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" (onClick)="addAsset()" [disabled]="accessLevel < 2" />
-                      <p-button class="ml-2" icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="assetTable.exportCSV()" />
+                      <button pButton (click)="addAsset()" pTooltip="Add Asset" [rounded]="true" [text]="true" [raised]="true" [disabled]="accessLevel < 2"><i class="pi pi-plus" pButtonIcon></i></button>
+                      <button pButton class="ml-2" (click)="assetTable.exportCSV()" severity="secondary" [rounded]="true" [text]="true"><i class="pi pi-external-link" pButtonIcon></i></button>
                     </div>
                   </div>
                   <div class="scrollable-assets">
@@ -72,41 +72,41 @@
                       dataKey="assetId"
                       [globalFilterFields]="['assetId', 'assetName', 'description', 'ipAddress', 'macAddress']"
                     >
-                      <ng-template pTemplate="header">
+                      <ng-template #header>
                         <tr>
                           <th scope="col" pResizableColumn>
                             <div class="flex items-center">
                               Asset ID
-                              <p-columnFilter type="text" field="assetId" [showOperator]="false" display="menu" />
+                              <p-columnfilter type="text" field="assetId" [showOperator]="false" display="menu" />
                             </div>
                           </th>
                           <th scope="col" pResizableColumn>
                             <div class="flex items-center">
                               Asset Name
-                              <p-columnFilter type="text" field="assetName" [showOperator]="false" display="menu" />
+                              <p-columnfilter type="text" field="assetName" [showOperator]="false" display="menu" />
                             </div>
                           </th>
                           <th scope="col" pResizableColumn>
                             <div class="flex items-center">
                               Description
-                              <p-columnFilter type="text" field="description" [showOperator]="false" display="menu" />
+                              <p-columnfilter type="text" field="description" [showOperator]="false" display="menu" />
                             </div>
                           </th>
                           <th scope="col" pResizableColumn>
                             <div class="flex items-center">
                               IP Address
-                              <p-columnFilter type="text" field="ipAddress" [showOperator]="false" display="menu" />
+                              <p-columnfilter type="text" field="ipAddress" [showOperator]="false" display="menu" />
                             </div>
                           </th>
                           <th scope="col" pResizableColumn>
                             <div class="flex items-center">
                               MAC Address
-                              <p-columnFilter type="text" field="macAddress" [showOperator]="false" display="menu" />
+                              <p-columnfilter type="text" field="macAddress" [showOperator]="false" display="menu" />
                             </div>
                           </th>
                         </tr>
                       </ng-template>
-                      <ng-template pTemplate="body" let-asset let-rowIndex="rowIndex">
+                      <ng-template #body let-asset let-rowIndex="rowIndex">
                         <tr [pSelectableRow]="asset" [pSelectableRowIndex]="rowIndex" (click)="accessLevel >= 2 ? setAsset(asset.assetId) : null" (keyup.enter)="accessLevel >= 2 ? setAsset(asset.assetId) : null">
                           <td>{{ asset.assetId }}</td>
                           <td>{{ asset.assetName }}</td>
@@ -115,7 +115,7 @@
                           <td>{{ asset.macAddress }}</td>
                         </tr>
                       </ng-template>
-                      <ng-template pTemplate="emptymessage">
+                      <ng-template #emptymessage>
                         <tr>
                           <td colspan="5" style="text-align: center">No Data to Display</td>
                         </tr>
@@ -126,8 +126,8 @@
               </p-tabpanel>
               <p-tabpanel value="1">
                 <div class="canvas" id="canvas" style="margin-top: 20px">
-                  <p-button icon="pi pi-external-link" [rounded]="true" variant="text" class="export-button" severity="secondary" pTooltip="Export to CSV" (onClick)="exportChart()" />
-                  <p-chart type="bar" [data]="chartData" [options]="chartOptions" class="h-50 w-full" />
+                  <button pButton class="export-button" (click)="exportChart()" [rounded]="true" variant="text" severity="secondary" pTooltip="Export to CSV"><i class="pi pi-external-link" pButtonIcon></i></button>
+                  <cpat-chart type="bar" [data]="chartData" [options]="chartOptions" class="h-50 w-full" />
                 </div>
               </p-tabpanel>
             </p-tabpanels>
@@ -152,7 +152,7 @@
     </div>
     @if (accessLevel >= 2) {
       <p-dialog [(visible)]="assetDialogVisible" [modal]="true" styleClass="assetDialog w-[50vw] overflow-hidden">
-        <ng-template pTemplate="content">
+        <ng-template #content>
           <cpat-asset [asset]="asset" [assets]="assets" [payload]="payload" (assetchange)="resetData(); closeAssetDialog()" />
         </ng-template>
       </p-dialog>

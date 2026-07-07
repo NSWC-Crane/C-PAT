@@ -31,15 +31,15 @@ import { PoamService } from '../../../poams.service';
   imports: [FormsModule, TableModule, ButtonModule, SelectModule, TooltipModule, ToastModule, STIGManagerPoamAssetsTableComponent, TenableAssetsTableComponent]
 })
 export class PoamAssetsComponent implements OnChanges {
-  @Input() poam: any;
-  @Input() accessLevel: number;
-  @Input() collectionType: string;
-  @Input() poamAssets: any[] = [];
-  @Input() assetList: any[] = [];
-  @Input() originCollectionId: any;
-  @Input() poamService: PoamService;
-  @Input() poamAssignedTeams: any[] = [];
-  @Input() poamAssociatedVulnerabilities: any[] = [];
+  readonly poam = input<any>(undefined);
+  readonly accessLevel = input<number>(undefined);
+  readonly collectionType = input<string>(undefined);
+  readonly poamAssets = input<any[]>([]);
+  readonly assetList = input<any[]>([]);
+  readonly originCollectionId = input<any>(undefined);
+  readonly poamService = input<PoamService>(undefined);
+  readonly poamAssignedTeams = input<any[]>([]);
+  readonly poamAssociatedVulnerabilities = input<any[]>([]);
   readonly assetsChanged = output<any[]>();
   private readonly poamAssetsSignal = signal<any[]>([]);
   private readonly assetListSignal = signal<any[]>([]);
@@ -68,17 +68,19 @@ export class PoamAssetsComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['poamAssets']) {
-      this.poamAssetsSignal.set(this.poamAssets || []);
+      this.poamAssetsSignal.set(this.poamAssets() || []);
     }
 
     if (changes['assetList'] || changes['poamAssets']) {
-      this.assetListSignal.set(this.assetList || []);
+      this.assetListSignal.set(this.assetList() || []);
     }
 
-    if (changes['poamAssignedTeams'] && this.poamAssignedTeams) {
-      const currentTeamCount = this.poamAssignedTeams.length;
+    const poamAssignedTeams = this.poamAssignedTeams();
 
-      const currentTeamIds = new Set(this.poamAssignedTeams.map((team) => team.assignedTeamId));
+    if (changes['poamAssignedTeams'] && poamAssignedTeams) {
+      const currentTeamCount = poamAssignedTeams.length;
+
+      const currentTeamIds = new Set(poamAssignedTeams.map((team) => team.assignedTeamId));
       const teamsRemoved = this.previousTeams.some((team) => !currentTeamIds.has(team.assignedTeamId));
 
       if (teamsRemoved || currentTeamCount < this.previousTeamCount) {
@@ -86,13 +88,13 @@ export class PoamAssetsComponent implements OnChanges {
       }
 
       this.previousTeamCount = currentTeamCount;
-      this.previousTeams = [...this.poamAssignedTeams];
+      this.previousTeams = [...poamAssignedTeams];
     }
   }
 
   async addAsset() {
-    this.poamAssets = [{ poamId: this.poam.poamId, assetId: null, isNew: true }, ...this.poamAssets];
-    this.assetsChanged.emit(this.poamAssets);
+    this.poamAssetsSignal.set([{ poamId: this.poam().poamId, assetId: null, isNew: true }, ...this.poamAssetsSignal()]);
+    this.assetsChanged.emit(this.poamAssetsSignal());
   }
 
   async onAssetChange(asset: any, rowIndex: number) {
@@ -100,23 +102,23 @@ export class PoamAssetsComponent implements OnChanges {
       await this.confirmCreateAsset(asset);
       asset.isNew = false;
     } else {
-      this.poamAssets.splice(rowIndex, 1);
+      this.poamAssetsSignal().splice(rowIndex, 1);
     }
 
-    this.assetsChanged.emit(this.poamAssets);
+    this.assetsChanged.emit(this.poamAssetsSignal());
   }
 
   async deleteAsset(asset: any, rowIndex: number) {
     if (asset.assetId) {
       await this.confirmDeleteAsset(asset);
     } else {
-      this.poamAssets.splice(rowIndex, 1);
-      this.assetsChanged.emit(this.poamAssets);
+      this.poamAssetsSignal().splice(rowIndex, 1);
+      this.assetsChanged.emit(this.poamAssetsSignal());
     }
   }
 
   getAssetName(assetId: number): string {
-    const asset = this.assetList.find((asset: any) => asset.assetId === assetId);
+    const asset = this.assetList().find((asset: any) => asset.assetId === assetId);
 
     return asset ? asset.assetName : `Asset ID: ${assetId}`;
   }
@@ -124,30 +126,32 @@ export class PoamAssetsComponent implements OnChanges {
   async confirmCreateAsset(asset: any) {
     if (asset.assetId) {
       const poamAsset = {
-        poamId: +this.poam.poamId,
+        poamId: +this.poam().poamId,
         assetId: +asset.assetId
       };
 
       try {
         await firstValueFrom(
-          this.poamService.postPoamAsset(poamAsset).pipe(
-            tap(() => {
-              this.messageService.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'Asset added successfully.'
-              });
-              this.fetchAssets();
-            }),
-            catchError((error) => {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Failed to add asset: ${getErrorMessage(error)}`
-              });
-              throw error;
-            })
-          )
+          this.poamService()
+            .postPoamAsset(poamAsset)
+            .pipe(
+              tap(() => {
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Success',
+                  detail: 'Asset added successfully.'
+                });
+                this.fetchAssets();
+              }),
+              catchError((error) => {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Failed to add asset: ${getErrorMessage(error)}`
+                });
+                throw error;
+              })
+            )
         );
       } catch (error) {
         this.messageService.add({
@@ -160,33 +164,39 @@ export class PoamAssetsComponent implements OnChanges {
   }
 
   async confirmDeleteAsset(asset: any) {
-    this.poamAssets = this.poamAssets.filter((a) => a.assetId !== asset.assetId);
-    this.assetsChanged.emit(this.poamAssets);
+    this.poamAssetsSignal.set(this.poamAssetsSignal().filter((a) => a.assetId !== asset.assetId));
+    this.assetsChanged.emit(this.poamAssetsSignal());
   }
 
   fetchAssets() {
-    if (!this.poam.poamId || this.poam.poamId === 'ADDPOAM') return;
+    const poam = this.poam();
 
-    this.poamService.getPoamAssets(this.poam.poamId).subscribe({
-      next: (poamAssets: any) => {
-        this.poamAssets = poamAssets;
-        this.assetsChanged.emit(this.poamAssets);
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to fetch assets: ${getErrorMessage(error)}`
-        });
-      }
-    });
+    if (!poam.poamId || poam.poamId === 'ADDPOAM') return;
+
+    this.poamService()
+      .getPoamAssets(poam.poamId)
+      .subscribe({
+        next: (poamAssets: any) => {
+          this.poamAssetsSignal.set(poamAssets);
+          this.assetsChanged.emit(this.poamAssetsSignal());
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch assets: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   refreshAssets() {
-    if (this.collectionType === 'C-PAT') {
+    const collectionType = this.collectionType();
+
+    if (collectionType === 'C-PAT') {
       this.fetchAssets();
-    } else if (this.collectionType === 'STIG Manager' || this.collectionType === 'Tenable') {
-      this.assetsChanged.emit([...this.poamAssets]);
+    } else if (collectionType === 'STIG Manager' || collectionType === 'Tenable') {
+      this.assetsChanged.emit([...this.poamAssetsSignal()]);
     }
   }
 }

@@ -9,7 +9,7 @@
 */
 
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, computed, signal, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { addDays, format, isAfter, parseISO, startOfDay } from 'date-fns';
@@ -68,20 +68,9 @@ export class PoamMilestoneGridComponent {
   globalFilterNeedsAttention = signal<string>('');
   globalFilterTeam = signal<string>('');
 
-  private readonly poamsSignal = signal<Poam[]>([]);
-  @Input() set poams(value: Poam[]) {
-    this.poamsSignal.set(value || []);
-  }
-
-  private readonly userSignal = signal<any>(null);
-  @Input() set user(value: any) {
-    this.userSignal.set(value);
-  }
-
-  accessLevelSignal = signal<number>(0);
-  @Input() set accessLevel(value: number) {
-    this.accessLevelSignal.set(value);
-  }
+  readonly poams = input<Poam[], Poam[] | null | undefined>([], { transform: (value) => value ?? [] });
+  readonly user = input<any>(null);
+  readonly accessLevel = input<number>(0);
 
   protected readonly poamStatusOptions = [
     { label: 'Approved', value: 'Approved' },
@@ -113,9 +102,9 @@ export class PoamMilestoneGridComponent {
     { field: 'assignedTeams', header: 'Assigned Teams', sortable: false }
   ];
 
-  private readonly userTeamIds = computed(() => new Set((this.userSignal()?.assignedTeams ?? []).map((t: any) => t.assignedTeamId)));
+  private readonly userTeamIds = computed(() => new Set((this.user()?.assignedTeams ?? []).map((t: any) => t.assignedTeamId)));
 
-  allMilestoneRows = computed<MilestoneGridRow[]>(() => this.flattenMilestones(this.poamsSignal()));
+  allMilestoneRows = computed<MilestoneGridRow[]>(() => this.flattenMilestones(this.poams()));
 
   needsAttentionRows = computed<MilestoneGridRow[]>(() => {
     const threshold = addDays(startOfDay(new Date()), 30);

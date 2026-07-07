@@ -11,14 +11,14 @@
 <p-dialog [(visible)]="displayModal" styleClass="w-[60vw] h-auto max-h-[80vh] overflow-hidden" [modal]="true" [closable]="true" (onHide)="closeModal()">
   <div class="container">
     <p-table [value]="dataSource" [scrollable]="true" scrollHeight="flex" class="max-h-[60vh]">
-      <ng-template pTemplate="header">
+      <ng-template #header>
         <tr>
-          <th scope="col" pSortableColumn="Timestamp" style="width: 20%">Timestamp <p-sortIcon field="Timestamp" /></th>
+          <th scope="col" pSortableColumn="Timestamp" style="width: 20%">Timestamp <p-sorticon field="Timestamp" /></th>
           <th scope="col" pSortableColumn="User" style="width: 20%">User</th>
           <th scope="col" pSortableColumn="Action" style="width: 60%">Action</th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-row>
+      <ng-template #body let-row>
         <tr>
           <td style="width: 20%">{{ row.Timestamp }}</td>
           <td style="width: 20%">{{ row.User }}</td>

@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, inject, signal, viewChild } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, SimpleChanges, inject, signal, viewChild, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
@@ -19,7 +19,7 @@ import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
@@ -37,7 +37,7 @@ import { ImportService } from '../../../import.service';
   styleUrls: ['./tenableHostDialog.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, DialogModule, ToastModule, TooltipModule, TagModule]
+  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, SelectModule, DialogModule, ToastModule, TooltipModule, TagModule, NgClass]
 })
 export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   private readonly importService = inject(ImportService);
@@ -46,13 +46,14 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   private readonly sharedService = inject(SharedService);
   private readonly router = inject(Router);
 
-  @Input() host: any;
-  @Input() tenableRepoId: number;
-  @Input() visible: boolean = false;
-  @Output() visibleChange = new EventEmitter<boolean>();
+  readonly host = input<any>(undefined);
+  readonly tenableRepoId = input<number>(undefined);
+  readonly visible = input<boolean>(false);
+  readonly visibleChange = output<boolean>();
 
   private readonly hostFindingsTable = viewChild.required<Table>('hostFindingsTable');
 
+  visibleState: boolean = false;
   hostDialogCols: any[];
   hostData: any[] = [];
   isLoading = signal<boolean>(false);
@@ -74,15 +75,21 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   private dataLoaded: boolean = false;
 
   get hostDns(): string {
-    return this.host?.dnsName || this.host?.dns || '';
+    const host = this.host();
+
+    return host?.dnsName || host?.dns || '';
   }
 
   get hostIp(): string {
-    return this.host?.ipAddress || this.host?.ip || '';
+    const host = this.host();
+
+    return host?.ipAddress || host?.ip || '';
   }
 
   get hostName(): string {
-    return this.host?.name || this.host?.netbiosName?.split('\\').pop() || '';
+    const host = this.host();
+
+    return host?.name || host?.netbiosName?.split('\\').pop() || '';
   }
 
   constructor() {
@@ -90,11 +97,17 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['visible'] && this.visible && !this.dataLoaded) {
+    const visible = this.visible();
+
+    if (changes['visible']) {
+      this.visibleState = visible;
+    }
+
+    if (changes['visible'] && visible && !this.dataLoaded) {
       this.loadData();
     }
 
-    if (changes['visible'] && !this.visible) {
+    if (changes['visible'] && !visible) {
       this.dataLoaded = false;
     }
   }
@@ -169,7 +182,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
           {
             filterName: 'repository',
             operator: '=',
-            value: [{ id: this.tenableRepoId.toString() }]
+            value: [{ id: this.tenableRepoId().toString() }]
           },
           {
             filterName: 'dnsName',
@@ -332,7 +345,7 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
         isPredefined: true,
         operator: '=',
         type: 'vuln',
-        value: [{ id: this.tenableRepoId.toString() }]
+        value: [{ id: this.tenableRepoId().toString() }]
       }
     ];
 

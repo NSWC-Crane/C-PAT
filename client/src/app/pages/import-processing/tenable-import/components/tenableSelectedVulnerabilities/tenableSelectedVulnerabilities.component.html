@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -13,21 +13,21 @@
     <div class="p-fluid">
       <div class="toolbar mb-4">
         <div class="flex items-center justify-between">
-          <p-button icon="pi pi-filter" class="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleNavyComplyFilter()" />
-          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Reset default filters" />
+          <button pButton class="ml-2" (click)="toggleNavyComplyFilter()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-filter" pButtonIcon></i></button>
+          <button pButton class="ml-2" (click)="clear()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset default filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
           <p-select #dd [options]="navyComplyDateFilters" [(ngModel)]="selectedNavyComplyDateFilter" (onChange)="onNavyComplyDateFilterChange($event)" [filter]="true" filterBy="label" appendTo="body" class="custom-dropdown" />
           @if (this.tenableTool === 'sumid') {
-            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-plus" (click)="loadVulnList()" pTooltip="Load Vulnerability List" />
+            <button pButton (click)="loadVulnList()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Load Vulnerability List"><i class="pi pi-search-plus" pButtonIcon></i></button>
           }
           @if (this.tenableTool === 'listvuln') {
-            <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-minus" (click)="loadVulnSummary()" pTooltip="Load Vulnerability Summary" />
+            <button pButton (click)="loadVulnSummary()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Load Vulnerability Summary"><i class="pi pi-search-minus" pButtonIcon></i></button>
           }
         </div>
         <div class="right-buttons">
-          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
-          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()" />
-          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="dt.exportCSV()" />
-          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
+          <button pButton class="mr-2" (click)="resetColumnSelections()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset column selections"><i class="pi pi-refresh" pButtonIcon></i></button>
+          <button pButton (click)="toggleAddColumnOverlay()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-plus" pButtonIcon></i></button>
+          <button pButton (click)="dt.exportCSV()" severity="secondary" [rounded]="true" [text]="true"><i class="pi pi-external-link" pButtonIcon></i></button>
+          <p-select [multiple]="true" [checkmark]="true" [showClear]="true" #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceholder="Add columns..." />
         </div>
       </div>
       <div class="scrollable-vulnerabilities">
@@ -73,42 +73,43 @@
           class="p-datatable-sm"
           (onFilter)="onFilter($event)"
         >
-          <ng-template pTemplate="header" let-columns>
+          <ng-template #header let-columns>
             <tr>
               @for (col of columns; track col.field) {
                 <th scope="col" [pSortableColumn]="col.field" pResizableColumn>
                   {{ col.header }}
                   @if (col.field === 'poam') {
-                    <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
-                      <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                        <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full swap-button-order" />
+                    <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                      <ng-template #filter let-value let-filter="filterCallback">
+                        <p-select [multiple]="true" [checkmark]="true" [showClear]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" class="w-full swap-button-order" />
                       </ng-template>
-                    </p-columnFilter>
+                    </p-columnfilter>
                   }
                   @if (col.field === 'severity') {
-                    <p-columnFilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
-                      <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                        <p-multiSelect
+                    <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                      <ng-template #filter let-value let-filter="filterCallback">
+                        <p-select
+                          [multiple]="true"
+                          [checkmark]="true"
+                          [showClear]="true"
                           [ngModel]="selectedSeverities"
                           [options]="col.filterOptions"
                           (onChange)="filter($event.value); selectedSeverities = $event.value"
                           (onClear)="filter([]); selectedSeverities = []"
                           placeholder="Select Severity"
-                          [showClear]="true"
                           class="w-full swap-button-order"
-                        >
-                        </p-multiSelect>
+                        />
                       </ng-template>
-                    </p-columnFilter>
+                    </p-columnfilter>
                   }
                   @if (col.field !== 'poam' && col.field !== 'severity') {
-                    <p-columnFilter [type]="col.filterType" [field]="col.field" [showMatchModes]="true" [showOperator]="false" [showAddButton]="false" [showApplyButton]="true" [showClearButton]="true" [display]="'menu'" [showMenu]="true" />
+                    <p-columnfilter [type]="col.filterType" [field]="col.field" [showMatchModes]="true" [showOperator]="false" [showAddButton]="false" [showApplyButton]="true" [showClearButton]="true" [display]="'menu'" [showMenu]="true" />
                   }
                 </th>
               }
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-vulnerability let-columns="columns">
+          <ng-template #body let-vulnerability let-columns="columns">
             <tr (click)="onRowClick(vulnerability, $event)" (keyup)="onRowClick(vulnerability, $event)" style="cursor: pointer">
               @for (col of columns; track col.field) {
                 <td>
@@ -117,7 +118,7 @@
                       <i
                         class="pi"
                         [ngClass]="vulnerability.poam ? getPoamStatusIcon(vulnerability.poamStatus, vulnerability.isAssociated) : 'pi pi-plus-circle'"
-                        [ngStyle]="{
+                        [style]="{
                           color: vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus, vulnerability.parentStatus) : 'maroon',
                           'font-size': '1.5rem',
                           cursor: 'pointer'
@@ -148,7 +149,7 @@
               }
             </tr>
           </ng-template>
-          <ng-template pTemplate="loadingbody" let-columns="columns">
+          <ng-template #loadingbody let-columns="columns">
             @for (_ of [].constructor(10); track $index) {
               <tr>
                 @for (_ of [].constructor(selectedColumns?.length); track $index) {
@@ -159,7 +160,7 @@
               </tr>
             }
           </ng-template>
-          <ng-template pTemplate="emptymessage">
+          <ng-template #emptymessage>
             <tr>
               <td colspan="17" style="text-align: center">No vulnerabilities to display</td>
             </tr>
@@ -170,8 +171,8 @@
   </div>
 </div>
 
-<p-dialog class="pluginDialog" [(visible)]="displayDialog" [modal]="true" styleClass="w-[50vw] overflow-hidden">
-  <ng-template pTemplate="content">
+<p-dialog styleClass="pluginDialog w-[50vw] overflow-hidden" [(visible)]="displayDialog" [modal]="true">
+  <ng-template #content>
     <div class="p-grid">
       <div class="p-col-12"><b>Plugin ID:</b> {{ selectedVulnerability.pluginID }}</div>
       <div class="p-col-12"><b>Name:</b> {{ selectedVulnerability.name }}</div>
@@ -182,13 +183,13 @@
       <br />
       <div class="p-col-12">
         <p-table [value]="parsedVprContext" class="p-datatable-sm">
-          <ng-template pTemplate="header">
+          <ng-template #header>
             <tr>
               <th scope="col">Vulnerability Priority Rating (VPR) Key Drivers</th>
               <th scope="col"></th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-item>
+          <ng-template #body let-item>
             <tr>
               <td>{{ item.name }}:</td>
               <td>

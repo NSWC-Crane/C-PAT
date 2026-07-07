@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, Input, OnInit, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, output, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -25,18 +25,18 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
   imports: [FormsModule, TableModule, ButtonModule, SelectModule, ToastModule]
 })
 export class PoamLabelsComponent implements OnInit {
-  @Input() poamId: any;
-  @Input() accessLevel: number = 0;
-  @Input() poamLabels: any[] = [];
-  @Input() labelList: any[] = [];
-  @Input() poamService: any;
+  readonly poamId = input<any>(undefined);
+  readonly accessLevel = input<number>(0);
+  readonly poamLabels = model<any[]>([]);
+  readonly labelList = input<any[]>([]);
+  readonly poamService = input<any>(undefined);
   readonly labelsChanged = output<any[]>();
 
   private readonly messageService = inject(MessageService);
 
   ngOnInit() {
-    if (!Array.isArray(this.poamLabels)) {
-      this.poamLabels = [];
+    if (!Array.isArray(this.poamLabels())) {
+      this.poamLabels.set([]);
     }
   }
 
@@ -46,50 +46,56 @@ export class PoamLabelsComponent implements OnInit {
       isNew: true
     };
 
-    this.poamLabels = [newLabel, ...this.poamLabels];
-    this.labelsChanged.emit(this.poamLabels);
+    this.poamLabels.set([newLabel, ...this.poamLabels()]);
+    this.labelsChanged.emit(this.poamLabels());
   }
 
   async onLabelChange(label: any) {
-    const selectedLabel = this.labelList.find((item) => item.labelId === label.labelId);
+    const selectedLabel = this.labelList().find((item) => item.labelId === label.labelId);
 
     if (selectedLabel) {
       selectedLabel.isNew = false;
 
-      const index = this.poamLabels.findIndex((existingLabel) => existingLabel.labelId === label.labelId);
+      const index = this.poamLabels().findIndex((existingLabel) => existingLabel.labelId === label.labelId);
+
+      const poamLabels = this.poamLabels();
 
       if (index !== -1) {
-        this.poamLabels[index] = selectedLabel;
+        poamLabels[index] = selectedLabel;
       } else {
-        this.poamLabels = [selectedLabel, ...this.poamLabels];
+        this.poamLabels.set([selectedLabel, ...poamLabels]);
       }
 
-      this.labelsChanged.emit(this.poamLabels);
+      this.labelsChanged.emit(poamLabels);
     }
   }
 
   async deleteLabel(rowIndex: number) {
-    this.poamLabels.splice(rowIndex, 1);
-    this.labelsChanged.emit(this.poamLabels);
+    this.poamLabels().splice(rowIndex, 1);
+    this.labelsChanged.emit(this.poamLabels());
   }
 
   getPoamLabels() {
-    if (!this.poamId || this.poamId === 'ADDPOAM') {
+    const poamId = this.poamId();
+
+    if (!poamId || poamId === 'ADDPOAM') {
       return;
     }
 
-    this.poamService.getPoamLabelsByPoam(this.poamId).subscribe({
-      next: (poamLabels: any) => {
-        this.poamLabels = poamLabels;
-        this.labelsChanged.emit(this.poamLabels);
-      },
-      error: (error: any) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load labels: ${getErrorMessage(error)}`
-        });
-      }
-    });
+    this.poamService()
+      .getPoamLabelsByPoam(poamId)
+      .subscribe({
+        next: (poamLabels: any) => {
+          this.poamLabels.set(poamLabels);
+          this.labelsChanged.emit(this.poamLabels());
+        },
+        error: (error: any) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load labels: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 }

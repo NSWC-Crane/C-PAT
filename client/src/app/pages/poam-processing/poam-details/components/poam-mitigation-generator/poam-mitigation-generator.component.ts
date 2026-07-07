@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, signal, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnChanges, SimpleChanges, signal, inject, output, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -23,18 +23,18 @@ import { PoamService } from '../../../poams.service';
 
 @Component({
   selector: 'cpat-poam-mitigation-generator',
+  templateUrl: './poam-mitigation-generator.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FormsModule, ButtonModule, TextareaModule, ProgressBarModule, TooltipModule, DialogModule, SplitButtonModule, ToastModule],
-  templateUrl: './poam-mitigation-generator.component.html'
+  imports: [FormsModule, ButtonModule, TextareaModule, ProgressBarModule, TooltipModule, DialogModule, SplitButtonModule, ToastModule]
 })
 export class PoamMitigationGeneratorComponent implements OnChanges {
   private readonly poamService = inject(PoamService);
   private readonly messageService = inject(MessageService);
 
-  @Input() poam: any;
-  @Input() team: any = null;
-  @Input() teams: any[] = [];
+  readonly poam = input<any>(undefined);
+  readonly team = input<any>(null);
+  readonly teams = input<any[]>([]);
   readonly mitigationGenerated = output<{
     mitigation: string;
     teamId?: number;
@@ -69,7 +69,7 @@ export class PoamMitigationGeneratorComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['teams'] && !changes['teams'].firstChange) {
-      if (this.team && !this.teams.some((t) => t.assignedTeamId === this.team.assignedTeamId)) {
+      if (this.team() && !this.teams().some((t) => t.assignedTeamId === this.team().assignedTeamId)) {
         this.reset();
       }
     }
@@ -80,17 +80,21 @@ export class PoamMitigationGeneratorComponent implements OnChanges {
   }
 
   isTeamActive(): boolean {
-    if (!this.team) return true;
+    const team = this.team();
 
-    return this.team.isActive !== false;
+    if (!team) return true;
+
+    return team.isActive !== false;
   }
 
   initiateGeneration() {
-    if (this.team && !this.isTeamActive()) {
+    const team = this.team();
+
+    if (team && !this.isTeamActive()) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Warning',
-        detail: `Cannot generate mitigations for inactive team ${this.team.assignedTeamName}`
+        detail: `Cannot generate mitigations for inactive team ${team.assignedTeamName}`
       });
 
       return;
@@ -108,10 +112,12 @@ export class PoamMitigationGeneratorComponent implements OnChanges {
       next: (response) => {
         if (response?.mitigation) {
           this.generatedMitigation = response.mitigation.replace(/\*/g, '');
+          const team = this.team();
+
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
-            detail: `Mitigation content generated successfully${this.team ? ' for ' + this.team.assignedTeamName : ''}`
+            detail: `Mitigation content generated successfully${team ? ' for ' + team.assignedTeamName : ''}`
           });
         } else {
           this.messageService.add({
@@ -135,20 +141,22 @@ export class PoamMitigationGeneratorComponent implements OnChanges {
   }
 
   private buildMitigationPrompt() {
+    const poam = this.poam();
+
     this.mitigationPrompt = `Instructions:
 You are an expert cyber security architect tasked with creating a comprehensive mitigation strategy for a vulnerability that has been detected within your organization. Your organization CANNOT implement the recommended security control, so you must develop alternative compensating controls. Focus only on specific technical measures that WILL be implemented to achieve the same security objectives as the original control.
 
 Context for Mitigation:
-Vulnerability Title: ${this.poam.vulnerabilityTitle}
-Vulnerability ID: ${this.poam.vulnerabilityId}
+Vulnerability Title: ${this.poam().vulnerabilityTitle}
+Vulnerability ID: ${this.poam().vulnerabilityId}
 
 Technical Details:
 ${
-  this.poam.vulnerabilitySource === 'STIG'
+  poam.vulnerabilitySource === 'STIG'
     ? `STIG Control Details:
-   ${this.poam.stigCheckData}`
+   ${poam.stigCheckData}`
     : `Nessus Plugin Details:
-   ${this.poam.tenablePluginData}`
+   ${poam.tenablePluginData}`
 }
 
 Required Output:
@@ -179,7 +187,7 @@ Remember:
   confirmApplyMitigation() {
     this.mitigationGenerated.emit({
       mitigation: this.generatedMitigation,
-      teamId: this.team?.assignedTeamId
+      teamId: this.team()?.assignedTeamId
     });
     this.consentDialogVisible = false;
     this.reset();

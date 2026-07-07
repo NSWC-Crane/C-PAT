@@ -129,19 +129,19 @@ describe('DoDConsentComponent', () => {
     });
 
     it('should render OK button', () => {
-      const button = fixture.debugElement.query(By.css('p-button'));
+      const button = fixture.debugElement.query(By.css('button[pButton]'));
 
       expect(button).toBeTruthy();
     });
 
     it('should have OK button with correct label', () => {
-      const button = fixture.debugElement.query(By.css('p-button'));
+      const button = fixture.debugElement.query(By.css('button[pButton]'));
 
-      expect(button.attributes['label']).toBe('Agree');
+      expect(button.nativeElement.textContent.trim()).toContain('Agree');
     });
 
     it('should have OK button with outlined variant', () => {
-      const button = fixture.debugElement.query(By.css('p-button'));
+      const button = fixture.debugElement.query(By.css('button[pButton]'));
 
       expect(button.attributes['variant']).toBe('outlined');
     });
@@ -157,28 +157,28 @@ describe('DoDConsentComponent', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.modal).toBe(true);
+      expect(dialogComponent.modal()).toBe(true);
     });
 
     it('should have closable set to false', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.closable).toBe(false);
+      expect(dialogComponent.closable()).toBe(false);
     });
 
     it('should have draggable set to false', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.draggable).toBe(false);
+      expect(dialogComponent.draggable()).toBe(false);
     });
 
     it('should have resizable set to false', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.resizable).toBe(false);
+      expect(dialogComponent.resizable()).toBe(false);
     });
 
     it('should bind visible property to dialog', () => {
@@ -186,7 +186,7 @@ describe('DoDConsentComponent', () => {
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
-      expect(dialogComponent.visible).toBe(true);
+      expect(dialogComponent.visible()).toBe(true);
     });
   });
 

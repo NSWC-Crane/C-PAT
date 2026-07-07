@@ -11,7 +11,7 @@
 @if (aiEnabled) {
   <div>
     @if (!generatedMitigation && !isGenerating() && !showPromptEditor()) {
-      <p-button variant="text" [rounded]="true" styleClass="ml-2" icon="pi pi-microchip-ai" pTooltip="Generate a mitigation statement using AI" (onClick)="initiateGeneration()" />
+      <button pButton class="ml-2" (click)="initiateGeneration()" variant="text" [rounded]="true" pTooltip="Generate a mitigation statement using AI"><i class="pi pi-microchip-ai" pButtonIcon></i></button>
     }
     <div class="mitigation-generator">
       @if (showPromptEditor()) {
@@ -22,7 +22,7 @@
               <p class="mb-2 text-sm">Customize the prompt to generate the most relevant mitigation for your specific vulnerability context.</p>
             </div>
             <div>
-              <p-splitButton raised severity="secondary" label="Generate Mitigation" (onClick)="generateMitigation()" [model]="items" />
+              <p-splitbutton raised severity="secondary" label="Generate Mitigation" (onClick)="generateMitigation()" [model]="items" />
             </div>
           </div>
           <textarea pTextarea class="mb-3 w-full" [(ngModel)]="mitigationPrompt" rows="15" placeholder="Edit the AI prompt here"></textarea>
@@ -30,7 +30,7 @@
       }
       @if (isGenerating()) {
         <div class="generation-progress m-4">
-          <p-progressBar mode="indeterminate" [style]="{ height: '6px' }" />
+          <p-progressbar mode="indeterminate" [style]="{ height: '6px' }" />
           <small class="mt-1 block text-center">Generating mitigation...</small>
         </div>
       }
@@ -42,7 +42,7 @@
               <p class="mb-2 text-sm">Review and edit the generated mitigation before applying it to your POAM.</p>
             </div>
             <div>
-              <p-splitButton outlined severity="success" label="Document Mitigation" (onClick)="applyMitigation()" [model]="mitigationActionItems" />
+              <p-splitbutton outlined severity="success" label="Document Mitigation" (onClick)="applyMitigation()" [model]="mitigationActionItems" />
             </div>
           </div>
           <textarea pTextarea class="w-full" [(ngModel)]="generatedMitigation" rows="10" placeholder="Generated mitigation will appear here" [autoResize]="true"></textarea>
@@ -67,13 +67,13 @@
           <p class="!mt-1" style="text-align: center">Incorrect or unimplemented mitigations may result in continued risk.</p>
         </div>
       </div>
-      <ng-template pTemplate="footer">
+      <ng-template #footer>
         <div style="display: flex; justify-content: space-between; width: 100%">
           <div>
-            <p-button label="Cancel" variant="outlined" severity="secondary" (onClick)="cancelApplyMitigation()" />
+            <button pButton (click)="cancelApplyMitigation()" variant="outlined" severity="secondary"><span pButtonLabel>Cancel</span></button>
           </div>
           <div>
-            <p-button label="Apply" variant="outlined" (onClick)="confirmApplyMitigation()" />
+            <button pButton (click)="confirmApplyMitigation()" variant="outlined"><span pButtonLabel>Apply</span></button>
           </div>
         </div>
       </ng-template>

@@ -8,9 +8,9 @@
 !##########################################################################
 */
 
-import { CommonModule, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChild, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -31,7 +31,7 @@ import { PoamAttachmentService } from '../../services/poam-attachments.service';
   styleUrls: ['./poam-attachments.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, ToastModule, TooltipModule, DatePipe]
+  imports: [FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, ToastModule, TooltipModule, DatePipe]
 })
 export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);
@@ -39,7 +39,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   private readonly setPayloadService = inject(PayloadService);
 
   private readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
-  @Input() poamId: number | string;
+  readonly poamId = input<number | string>(undefined);
   private accessLevelSubscription: Subscription;
   protected accessLevel: any;
   totalSize: string = '0';
@@ -104,11 +104,13 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   }
 
   loadAttachedFiles() {
-    if (this.poamId === 'ADDPOAM') {
+    const poamId = this.poamId();
+
+    if (poamId === 'ADDPOAM') {
       return;
     }
 
-    this.poamAttachmentService.getAttachmentsByPoamId(+this.poamId).subscribe({
+    this.poamAttachmentService.getAttachmentsByPoamId(+poamId).subscribe({
       next: (attachments: any) => {
         this.attachedFiles = attachments;
       },
@@ -123,7 +125,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   }
 
   downloadFile(attachment: any) {
-    this.poamAttachmentService.downloadAttachment(+this.poamId, attachment.attachmentId).subscribe({
+    this.poamAttachmentService.downloadAttachment(+this.poamId(), attachment.attachmentId).subscribe({
       next: (blob: any) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -144,7 +146,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
   }
 
   deleteAttachment(attachment: any) {
-    this.poamAttachmentService.deleteAttachment(+this.poamId, attachment.attachmentId).subscribe({
+    this.poamAttachmentService.deleteAttachment(+this.poamId(), attachment.attachmentId).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
@@ -201,7 +203,9 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     return true;
   }
   customUploadHandler(event: any) {
-    if (this.poamId === 'ADDPOAM') {
+    const poamId = this.poamId();
+
+    if (poamId === 'ADDPOAM') {
       return;
     }
 
@@ -219,7 +223,7 @@ export class PoamAttachmentsComponent implements OnInit, OnDestroy {
     }
 
     if (this.validateFile(file)) {
-      this.poamAttachmentService.uploadAttachment(file, +this.poamId).subscribe({
+      this.poamAttachmentService.uploadAttachment(file, +poamId).subscribe({
         next: (event: any) => {
           if (event instanceof HttpResponse) {
             this.messageService.add({

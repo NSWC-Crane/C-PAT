@@ -32,10 +32,10 @@ import { InactivityService } from '../../../core/auth/services/inactivity.servic
         </p>
         <p class="!mb-0">Would you like to keep working?</p>
       </div>
-      <ng-template pTemplate="footer">
+      <ng-template #footer>
         <div class="flex justify-between items-center w-full m-2">
-          <p-button label="Keep Working" (onClick)="keepWorking()" variant="outlined"> </p-button>
-          <p-button label="Log Out" icon="pi pi-sign-out" (onClick)="logoutNow()" variant="outlined" severity="secondary"> </p-button>
+          <button pButton variant="outlined" (click)="keepWorking()"><span pButtonLabel>Keep Working</span></button>
+          <button pButton variant="outlined" severity="secondary" (click)="logoutNow()"><i class="pi pi-sign-out" pButtonIcon></i><span pButtonLabel>Log Out</span></button>
         </div>
       </ng-template>
     </p-dialog>

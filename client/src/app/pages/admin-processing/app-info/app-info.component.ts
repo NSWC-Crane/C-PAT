@@ -8,13 +8,13 @@
 !##########################################################################
 */
 
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ChartModule } from 'primeng/chart';
+import { CpatChartComponent } from '../../../common/components/chart/chart.component';
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
@@ -211,7 +211,7 @@ interface OperationError {
   templateUrl: './app-info.component.html',
   styleUrls: ['./app-info.component.scss'],
   standalone: true,
-  imports: [ButtonModule, ChartModule, CommonModule, TabsModule, ToastModule, CardModule, TableModule, FormsModule, PanelModule],
+  imports: [ButtonModule, CpatChartComponent, TabsModule, ToastModule, CardModule, TableModule, FormsModule, PanelModule, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppInfoComponent implements OnInit {

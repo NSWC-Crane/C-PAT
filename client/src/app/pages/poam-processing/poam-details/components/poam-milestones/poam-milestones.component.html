@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -16,8 +16,8 @@
     pTooltip="Milestone with Completion Dates: A milestone identifies specific requirements for correcting an identified vulnerability. The initial milestones and completion dates may not be altered once the POAM is approved. Any changes to the milestones should be noted in the Milestone Changes fields."
   ></i>
 
-  <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
-    <ng-template pTemplate="header">
+  <p-table [value]="poamMilestones()" dataKey="milestoneId" editMode="row" #dt>
+    <ng-template #header>
       <tr>
         <th scope="col">Milestone Comments</th>
         <th scope="col" pSortableColumn="milestoneDate">Milestone Due Date</th>
@@ -26,32 +26,32 @@
         <th scope="col" pSortableColumn="milestoneStatus">Status</th>
         <th scope="col">Teams</th>
         <th scope="col" style="width: 8rem; text-align: center">
-          <p-button icon="pi pi-plus" [rounded]="true" variant="text" (onClick)="onAddNewMilestone()" [disabled]="accessLevel < 2" />
+          <button pButton (click)="onAddNewMilestone()" [rounded]="true" variant="text" [disabled]="accessLevel() < 2"><i class="pi pi-plus" pButtonIcon></i></button>
         </th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-milestone let-editing="editing" let-ri="rowIndex">
+    <ng-template #body let-milestone let-editing="editing" let-ri="rowIndex">
       <tr [pEditableRow]="milestone" [class.p-highlight]="milestone.editing || editingMilestoneId() === milestone.milestoneId">
         <td>
-          <p-cellEditor>
-            <ng-template pTemplate="input">
+          <p-celleditor>
+            <ng-template #input>
               <textarea
                 pTextarea
                 class="w-full"
                 rows="4"
                 [(ngModel)]="milestone.milestoneComments"
                 [invalid]="!milestone.milestoneComments?.trim()"
-                [disabled]="accessLevel < 2 || (!milestone.isNew && poam.status !== 'Draft' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel < 3)"
+                [disabled]="accessLevel() < 2 || (!milestone.isNew && poam().status !== 'Draft' && poam().status !== 'Rejected' && poam().status !== 'Submitted' && accessLevel() < 3)"
               ></textarea>
             </ng-template>
-            <ng-template pTemplate="output">
+            <ng-template #output>
               {{ milestone.milestoneComments }}
             </ng-template>
-          </p-cellEditor>
+          </p-celleditor>
         </td>
         <td>
-          <p-cellEditor>
-            <ng-template pTemplate="input">
+          <p-celleditor>
+            <ng-template #input>
               <p-datepicker
                 [(ngModel)]="milestone.milestoneDate"
                 (ngModelChange)="onDateChange(milestone)"
@@ -60,61 +60,64 @@
                 class="w-full"
                 [showIcon]="true"
                 appendTo="body"
-                [disabled]="accessLevel < 2 || (!milestone.isNew && poam.status !== 'Draft' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel < 3)"
+                [disabled]="accessLevel() < 2 || (!milestone.isNew && poam().status !== 'Draft' && poam().status !== 'Rejected' && poam().status !== 'Submitted' && accessLevel() < 3)"
               />
             </ng-template>
-            <ng-template pTemplate="output">
+            <ng-template #output>
               {{ milestone.milestoneDate | date: 'yyyy-MM-dd' }}
             </ng-template>
-          </p-cellEditor>
+          </p-celleditor>
         </td>
         <td>
-          <p-cellEditor>
-            <ng-template pTemplate="input">
+          <p-celleditor>
+            <ng-template #input>
               <textarea
                 pTextarea
                 class="w-full"
                 rows="4"
                 [(ngModel)]="milestone.milestoneChangeComments"
-                [disabled]="milestone.isNew || accessLevel < 2 || (!poam.extensionDays && poam.status !== 'Extension Requested' && poam.status !== 'Approved')"
+                [disabled]="milestone.isNew || accessLevel() < 2 || (!poam().extensionDays && poam().status !== 'Extension Requested' && poam().status !== 'Approved')"
               ></textarea>
             </ng-template>
-            <ng-template pTemplate="output">
+            <ng-template #output>
               {{ milestone.milestoneChangeComments }}
             </ng-template>
-          </p-cellEditor>
+          </p-celleditor>
         </td>
         <td>
-          <p-cellEditor>
-            <ng-template pTemplate="input">
+          <p-celleditor>
+            <ng-template #input>
               <p-datepicker
                 [(ngModel)]="milestone.milestoneChangeDate"
                 dateFormat="yy-mm-dd"
                 [showIcon]="true"
                 appendTo="body"
-                [disabled]="milestone.isNew || accessLevel < 2 || (!poam.extensionDays && poam.status !== 'Extension Requested' && poam.status !== 'Approved')"
+                [disabled]="milestone.isNew || accessLevel() < 2 || (!poam().extensionDays && poam().status !== 'Extension Requested' && poam().status !== 'Approved')"
               />
             </ng-template>
-            <ng-template pTemplate="output">
+            <ng-template #output>
               {{ milestone.milestoneChangeDate | date: 'yyyy-MM-dd' }}
             </ng-template>
-          </p-cellEditor>
+          </p-celleditor>
         </td>
         <td>
-          <p-cellEditor>
-            <ng-template pTemplate="input">
-              <p-select [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" [invalid]="!milestone.milestoneStatus" class="w-full" appendTo="body" [disabled]="accessLevel < 2" />
+          <p-celleditor>
+            <ng-template #input>
+              <p-select [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" [invalid]="!milestone.milestoneStatus" class="w-full" appendTo="body" [disabled]="accessLevel() < 2" />
             </ng-template>
-            <ng-template pTemplate="output">
+            <ng-template #output>
               {{ milestone.milestoneStatus }}
             </ng-template>
-          </p-cellEditor>
+          </p-celleditor>
         </td>
         <td>
-          <p-cellEditor>
-            <ng-template pTemplate="input">
-              <p-multiselect
-                [options]="assignedTeamOptions"
+          <p-celleditor>
+            <ng-template #input>
+              <p-select
+                [multiple]="true"
+                [checkmark]="true"
+                [showClear]="true"
+                [options]="assignedTeamOptions()"
                 placeholder="Select Teams..."
                 [(ngModel)]="milestone.assignedTeamIds"
                 [invalid]="!milestone.assignedTeamIds?.length"
@@ -124,53 +127,46 @@
                 optionValue="assignedTeamId"
                 class="w-full"
                 appendTo="body"
-                [maxSelectedLabels]="1"
-                [disabled]="accessLevel < 2"
+                [disabled]="accessLevel() < 2"
               />
             </ng-template>
-            <ng-template pTemplate="output">
+            <ng-template #output>
               <div class="flex flex-wrap gap-1">
                 @for (name of getTeamNameList(milestone.assignedTeamIds); track name) {
                   <p-tag [value]="name" [rounded]="true" />
                 }
               </div>
             </ng-template>
-          </p-cellEditor>
+          </p-celleditor>
         </td>
         <td style="text-align: center">
           <div class="p-d-flex p-jc-center">
             @if (!milestone.editing && editingMilestoneId() === null) {
-              <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(milestone)" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
+              <button pButton (click)="$event.stopPropagation(); onRowEditInit(milestone)" pInitEditableRow [rounded]="true" variant="text" [disabled]="accessLevel() < 2"><i class="pi pi-pencil" pButtonIcon></i></button>
             }
 
             @if (milestone.editing || editingMilestoneId() === milestone.milestoneId) {
-              <p-button icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(milestone)" [rounded]="true" variant="text" severity="success" styleClass="mr-2" [disabled]="accessLevel < 2" />
+              <button pButton class="mr-2" (click)="$event.stopPropagation(); onRowEditSave(milestone)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel() < 2"><i class="pi pi-check" pButtonIcon></i></button>
             }
 
             @if (milestone.editing || editingMilestoneId() === milestone.milestoneId) {
-              <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
+              <button pButton (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" pCancelEditableRow [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-times" pButtonIcon></i></button>
             }
 
-            @if (!milestone.editing && editingMilestoneId() === null && (poam?.status === 'Draft' || !poam.status || accessLevel >= 3)) {
-              <p-button icon="pi pi-trash" (click)="$event.stopPropagation(); deleteMilestone(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
+            @if (!milestone.editing && editingMilestoneId() === null && (poam()?.status === 'Draft' || !poam().status || accessLevel() >= 3)) {
+              <button pButton (click)="$event.stopPropagation(); deleteMilestone(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-trash" pButtonIcon></i></button>
             }
 
-            @if (poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && !milestone.editing && editingMilestoneId() === null && accessLevel <= 2) {
-              <p-button
-                icon="pi pi-trash"
-                [rounded]="true"
-                variant="text"
-                severity="secondary"
-                pTooltip="Milestones can only be deleted when the POAM status is Draft, Extension Requested, Rejected, or Submitted."
-                tooltipPosition="left"
-                [disabled]="true"
-              />
+            @if (poam().status !== 'Draft' && poam().status !== 'Extension Requested' && poam().status !== 'Rejected' && poam().status !== 'Submitted' && !milestone.editing && editingMilestoneId() === null && accessLevel() <= 2) {
+              <button pButton [rounded]="true" variant="text" severity="secondary" pTooltip="Milestones can only be deleted when the POAM status is Draft, Extension Requested, Rejected, or Submitted." tooltipPosition="left" [disabled]="true">
+                <i class="pi pi-trash" pButtonIcon></i>
+              </button>
             }
           </div>
         </td>
       </tr>
     </ng-template>
-    <ng-template pTemplate="emptymessage">
+    <ng-template #emptymessage>
       <tr>
         <td colspan="7" style="text-align: center">No Milestones to Display</td>
       </tr>
@@ -178,4 +174,4 @@
   </p-table>
 </div>
 
-<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" />
+<p-confirmdialog header="Confirmation" icon="pi pi-exclamation-triangle" />

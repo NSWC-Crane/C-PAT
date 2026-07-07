@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -8,11 +8,11 @@
 !##########################################################################
 -->
 
-<p-dialog class="hostDialog" [(visible)]="visible" [modal]="true" [closable]="true" [style]="{ width: '80vw', 'background-color': 'var(--ground-background)' }" (onHide)="onDialogHide()">
-  <ng-template pTemplate="content">
-    @if (host) {
+<p-dialog styleClass="hostDialog" [(visible)]="visibleState" [modal]="true" [closable]="true" [style]="{ width: '80vw', 'background-color': 'var(--ground-background)' }" (onHide)="onDialogHide()">
+  <ng-template #content>
+    @if (host()) {
       <div class="card mb-4">
-        @if (this.hostName || this.hostDns || host.systemType || host.os || host.ipAddress || host.macAddress || host.uuid) {
+        @if (this.hostName || this.hostDns || host().systemType || host().os || host().ipAddress || host().macAddress || host().uuid) {
           <div class="p-col-12 mb-4">
             <h3>Host Information</h3>
           </div>
@@ -31,64 +31,64 @@
             </div>
           }
 
-          @if (host.systemType) {
+          @if (host().systemType) {
             <div class="p-col-12 mb-2" style="display: flex">
               <div style="width: 250px; color: var(--text-secondary-color)">SYSTEM TYPE</div>
-              <div>{{ host.systemType }}</div>
+              <div>{{ host().systemType }}</div>
             </div>
           }
 
-          @if (host.os) {
+          @if (host().os) {
             <div class="p-col-12 mb-2" style="display: flex">
               <div style="width: 250px; color: var(--text-secondary-color)">OPERATING SYSTEM</div>
-              <div>{{ host.os }}</div>
+              <div>{{ host().os }}</div>
             </div>
           }
 
-          @if (host.ipAddress) {
+          @if (host().ipAddress) {
             <div class="p-col-12 mb-2" style="display: flex">
               <div style="width: 250px; color: var(--text-secondary-color)">IP ADDRESSES</div>
-              <div>{{ host.ipAddress }}</div>
+              <div>{{ host().ipAddress }}</div>
             </div>
           }
 
-          @if (host.macAddress) {
+          @if (host().macAddress) {
             <div class="p-col-12 mb-2" style="display: flex">
               <div style="width: 250px; color: var(--text-secondary-color)">MAC ADDRESSES</div>
-              <div>{{ host.macAddress }}</div>
+              <div>{{ host().macAddress }}</div>
             </div>
           }
 
-          @if (host.uuid) {
+          @if (host().uuid) {
             <div class="p-col-12 mb-8" style="display: flex">
               <div style="width: 250px; color: var(--text-secondary-color)">HOST ID</div>
-              <div>{{ host.uuid }}</div>
+              <div>{{ host().uuid }}</div>
             </div>
           }
         }
-        @if (host.firstSeen || host.lastSeen || host.source) {
+        @if (host().firstSeen || host().lastSeen || host().source) {
           <div class="p-col-12 mb-4">
             <h3>Scan Information</h3>
           </div>
 
-          @if (host.firstSeen) {
+          @if (host().firstSeen) {
             <div class="p-col-12 mb-2" style="display: flex">
               <div style="width: 250px; color: var(--text-secondary-color)">FIRST SEEN</div>
-              <div>{{ host.firstSeen }}</div>
+              <div>{{ host().firstSeen }}</div>
             </div>
           }
 
-          @if (host.lastSeen) {
+          @if (host().lastSeen) {
             <div class="p-col-12 mb-2" style="display: flex">
               <div style="width: 250px; color: var(--text-secondary-color)">LAST SEEN</div>
-              <div>{{ host.lastSeen }}</div>
+              <div>{{ host().lastSeen }}</div>
             </div>
           }
 
-          @if (host.source) {
+          @if (host().source) {
             <div class="p-col-12" style="display: flex">
               <div style="width: 250px; color: var(--text-secondary-color)">SOURCE</div>
-              <div>{{ host.source }}</div>
+              <div>{{ host().source }}</div>
             </div>
           }
         }
@@ -97,26 +97,29 @@
     <div class="card">
       <div class="toolbar mb-4">
         <div class="flex items-center justify-between">
-          <p-iconField iconPosition="left">
-            <p-inputIcon>
+          <p-iconfield iconPosition="left">
+            <p-inputicon>
               <i class="pi pi-search"></i>
-            </p-inputIcon>
+            </p-inputicon>
             <input pInputText type="text" [(ngModel)]="dialogFilterValue" (input)="onHostFindingsTableFilter($event)" placeholder="Search..." />
-          </p-iconField>
-          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-2" icon="pi pi-filter-slash" (click)="clearHostFindingsTable()" pTooltip="Clear all filters" />
+          </p-iconfield>
+          <button pButton class="ml-2" (click)="clearHostFindingsTable()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
         </div>
         <div class="right-buttons">
-          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportHostFindingsTableCSV()" />
+          <button pButton (click)="exportHostFindingsTableCSV()" severity="secondary" [rounded]="true" [text]="true"><i class="pi pi-external-link" pButtonIcon></i></button>
         </div>
       </div>
       <p-table
         #hostFindingsTable
         [value]="hostData"
         [columns]="hostDialogCols"
-        [paginator]="true"
         [rows]="100"
-        [showCurrentPageReport]="true"
         [rowsPerPageOptions]="[25, 50, 100]"
+        [paginator]="true"
+        [scrollable]="true"
+        scrollHeight="calc(100vh - 28rem)"
+        selectionMode="single"
+        [showCurrentPageReport]="true"
         [rowHover]="true"
         [globalFilterFields]="['poamStatus', 'pluginID', 'pluginName', 'severity', 'port', 'protocol', 'vprScore', 'epssScore', 'lastSeen']"
         [filterDelay]="300"
@@ -125,49 +128,53 @@
         [resizableColumns]="true"
         class="p-datatable-sm"
       >
-        <ng-template pTemplate="header">
+        <ng-template #header>
           <tr>
             @for (col of hostDialogCols; track col) {
               <th scope="col" [pSortableColumn]="col.field" pResizableColumn>
                 {{ col.header }}
                 @if (col.field === 'poam') {
-                  <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
-                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                      <p-multiSelect
+                  <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                    <ng-template #filter let-value let-filter="filterCallback">
+                      <p-select
+                        [multiple]="true"
+                        [checkmark]="true"
+                        [showClear]="true"
                         [ngModel]="selectedPoamStatuses"
                         [options]="col.filterOptions"
                         (onChange)="filter($event.value); selectedPoamStatuses = $event.value"
                         (onClear)="filter([]); selectedPoamStatuses = []"
                         placeholder="Select Status"
-                        [showClear]="true"
                         class="w-full swap-button-order"
                       />
                     </ng-template>
-                  </p-columnFilter>
+                  </p-columnfilter>
                 }
                 @if (col.field === 'severity') {
-                  <p-columnFilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
-                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                      <p-multiSelect
+                  <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                    <ng-template #filter let-value let-filter="filterCallback">
+                      <p-select
+                        [multiple]="true"
+                        [checkmark]="true"
+                        [showClear]="true"
                         [ngModel]="selectedSeverities"
                         [options]="col.filterOptions"
                         (onChange)="filter($event.value); selectedSeverities = $event.value"
                         (onClear)="filter([]); selectedSeverities = []"
                         placeholder="Select Severity"
-                        [showClear]="true"
                         class="w-full swap-button-order"
                       />
                     </ng-template>
-                  </p-columnFilter>
+                  </p-columnfilter>
                 }
                 @if (col.field !== 'poam' && col.field !== 'severity') {
-                  <p-columnFilter [type]="col.filterType" [field]="col.field" [showMatchModes]="true" [showOperator]="false" [showAddButton]="false" [showApplyButton]="true" [showClearButton]="true" [display]="'menu'" [showMenu]="true" />
+                  <p-columnfilter [type]="col.filterType" [field]="col.field" [showMatchModes]="true" [showOperator]="false" [showAddButton]="false" [showApplyButton]="true" [showClearButton]="true" [display]="'menu'" [showMenu]="true" />
                 }
               </th>
             }
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-item>
+        <ng-template #body let-item>
           <tr>
             @for (col of hostDialogCols; track col) {
               <td>
@@ -176,7 +183,7 @@
                     <i
                       class="pi"
                       [ngClass]="item.poam ? getPoamStatusIcon(item.poamStatus, item.isAssociated) : 'pi pi-plus-circle'"
-                      [ngStyle]="{
+                      [style]="{
                         color: item.poam ? getPoamStatusColor(item.poamStatus, item.parentStatus) : 'maroon',
                         'font-size': '1.5rem',
                         cursor: 'pointer'
@@ -204,7 +211,7 @@
             }
           </tr>
         </ng-template>
-        <ng-template pTemplate="emptymessage">
+        <ng-template #emptymessage>
           <tr>
             <td [attr.colspan]="hostDialogCols.length" style="text-align: center">No findings to display for this host</td>
           </tr>
@@ -214,13 +221,13 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog class="pluginDialog" [(visible)]="displayPluginDialog" [modal]="true" [closable]="true" [style]="{ width: '80vw', 'background-color': 'var(--ground-background)' }">
-  <ng-template pTemplate="header">
+<p-dialog styleClass="pluginDialog" [(visible)]="displayPluginDialog" [modal]="true" [closable]="true" [style]="{ width: '80vw', 'background-color': 'var(--ground-background)' }">
+  <ng-template #header>
     <div class="flex items-center">
-      <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true" severity="secondary" (click)="goBackToHostDialog()" pTooltip="Back to Host Findings" tooltipPosition="bottom" class="mr-3" />
+      <button pButton class="mr-3" (click)="goBackToHostDialog()" [rounded]="true" [text]="true" severity="secondary" pTooltip="Back to Host Findings" tooltipPosition="bottom"><i class="pi pi-arrow-left" pButtonIcon></i></button>
     </div>
   </ng-template>
-  <ng-template pTemplate="content">
+  <ng-template #content>
     @if (isLoadingPluginDetails()) {
       <div class="justify-content-center flex">
         <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>

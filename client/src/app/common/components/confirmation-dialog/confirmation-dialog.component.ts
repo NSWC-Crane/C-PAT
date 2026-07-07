@@ -19,23 +19,27 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
   styleUrls: ['./confirmation-dialog.component.scss'],
   template: `
     <p-dialog [(visible)]="visible" [modal]="true" [closable]="false" styleClass="w-auto h-auto max-h-[20vh] overflow-hidden">
-      <p-header>
-        <h3>{{ options.header }}</h3>
-      </p-header>
+      <ng-template #header>
+        <h3>{{ options().header }}</h3>
+      </ng-template>
       <div style="text-align: center;">
-        <p>{{ options.body }}</p>
+        <p>{{ options().body }}</p>
       </div>
-      <p-footer>
+      <ng-template #footer>
         <div style="text-align:center; margin: 0 0.75rem;">
-          @if (options.cancelbutton === 'true') {
-            <p-button label="Cancel" icon="pi pi-times" variant="outlined" severity="warn" styleClass="ml-[10%]" (onClick)="cancel()" />
+          @if (options().cancelbutton === 'true') {
+            <button pButton variant="outlined" severity="warn" class="ml-[10%]" (click)="cancel()"><i class="pi pi-times" pButtonIcon></i><span pButtonLabel>Cancel</span></button>
           }
-          <p-button [label]="options.button.text" icon="pi pi-check" variant="outlined" [severity]="options.button.status" styleClass="ml-[5%]" (onClick)="confirm()" />
-          @if (options.convertButton) {
-            <p-button [label]="options.convertButton.text" icon="pi pi-refresh" variant="outlined" severity="warn" styleClass="ml-[5%]" (onClick)="convert()" />
+          <button pButton variant="outlined" [severity]="options().button.status" class="ml-[5%]" (click)="confirm()">
+            <i class="pi pi-check" pButtonIcon></i><span pButtonLabel>{{ options().button.text }}</span>
+          </button>
+          @if (options().convertButton) {
+            <button pButton variant="outlined" severity="warn" class="ml-[5%]" (click)="convert()">
+              <i class="pi pi-refresh" pButtonIcon></i><span pButtonLabel>{{ options().convertButton.text }}</span>
+            </button>
           }
         </div>
-      </p-footer>
+      </ng-template>
     </p-dialog>
   `,
   standalone: true,

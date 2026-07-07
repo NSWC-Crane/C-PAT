@@ -8,25 +8,25 @@
 !##########################################################################
 -->
 
-@if (loading) {
+@if (loading()) {
   <div class="justify-content-center align-items-center p-4">
-    <p-progressBar mode="indeterminate" class="mb-4" [style]="{ height: '6px' }" />
+    <p-progressbar mode="indeterminate" class="mb-4" [style]="{ height: '6px' }" />
     <span>Analyzing assets and assigning teams...</span>
   </div>
 }
 
-@if (!loading) {
+@if (!loading()) {
   <div class="table-container">
-    <p-table [value]="poamAssignedTeams" class="full-width-table" [scrollable]="true" scrollHeight="flex">
-      <ng-template pTemplate="header">
+    <p-table [value]="poamAssignedTeams()" class="full-width-table" [scrollable]="true" scrollHeight="flex">
+      <ng-template #header>
         <tr>
           <th scope="col" pSortableColumn="assignedTeamName" style="width: 90%">Teams Assigned</th>
           <th scope="col" style="width: 10%; text-align: center">
-            <p-button icon="pi pi-plus" (onClick)="addAssignedTeam()" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
+            <button pButton (click)="addAssignedTeam()" [rounded]="true" variant="text" [disabled]="accessLevel() < 2"><i class="pi pi-plus" pButtonIcon></i></button>
           </th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-assignedTeam let-rowIndex="rowIndex">
+      <ng-template #body let-assignedTeam let-rowIndex="rowIndex">
         <tr>
           <td style="width: 90%">
             @if (!assignedTeam.isNew) {
@@ -43,16 +43,16 @@
                 class="w-full"
                 (onChange)="onAssignedTeamChange(assignedTeam, rowIndex)"
                 appendTo="body"
-                [disabled]="accessLevel < 2"
+                [disabled]="accessLevel() < 2"
               />
             }
           </td>
           <td style="width: 10%; text-align: center">
-            <p-button icon="pi pi-trash" (onClick)="deleteAssignedTeam(assignedTeam, rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
+            <button pButton (click)="deleteAssignedTeam(assignedTeam, rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-trash" pButtonIcon></i></button>
           </td>
         </tr>
       </ng-template>
-      <ng-template pTemplate="emptymessage">
+      <ng-template #emptymessage>
         <tr>
           <td colspan="2" style="text-align: center">No Data to Display</td>
         </tr>

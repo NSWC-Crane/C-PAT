@@ -56,7 +56,7 @@ declare type SurfacesType = {
               type="button"
               [title]="primaryColor.name"
               (click)="updateColors($event, 'primary', primaryColor)"
-              [ngClass]="{ 'active-color': primaryColor.name === selectedPrimaryColor() }"
+              [class]="{ 'active-color': primaryColor.name === selectedPrimaryColor() }"
               [style]="{
                 'background-color': primaryColor.name === 'noir' ? 'var(--text-color)' : primaryColor?.palette['500']
               }"
@@ -73,7 +73,7 @@ declare type SurfacesType = {
               type="button"
               [title]="surface.name"
               (click)="updateColors($event, 'surface', surface)"
-              [ngClass]="{
+              [class]="{
                 'active-color': selectedSurfaceColor() ? selectedSurfaceColor() === surface.name : configService.appState().darkTheme ? surface.name === 'zinc' : surface.name === 'slate'
               }"
               [style]="{

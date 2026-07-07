@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -12,7 +12,7 @@
   <div class="p-card-body">
     @if (notifications.length > 0) {
       <p-listbox [options]="notifications" optionLabel="title" scrollHeight="40vh">
-        <ng-template let-notification pTemplate="item">
+        <ng-template let-notification #item>
           <div class="notification-content" (click)="onNotificationClick($event)">
             <div class="notification-header">
               <div class="notification-icon">
@@ -36,6 +36,6 @@
     }
   </div>
   <div class="p-card-footer">
-    <p-button label="See all notifications" variant="outlined" severity="contrast" size="small" styleClass="w-full" (onClick)="viewAllNotifications(); closeOverlay()" />
+    <button pButton class="w-full" (click)="viewAllNotifications(); closeOverlay()" variant="outlined" severity="contrast" size="small"><span pButtonLabel>See all notifications</span></button>
   </div>
 </div>

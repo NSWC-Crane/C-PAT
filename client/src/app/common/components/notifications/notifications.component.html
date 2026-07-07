@@ -26,11 +26,11 @@
 
   <div class="notifications-container">
     <p-table [value]="filteredNotifications" [sortField]="sortField" [sortOrder]="sortOrder" [paginator]="true" [rows]="10" class="notification-table p-0">
-      <ng-template pTemplate="body" let-notification>
+      <ng-template #body let-notification>
         <tr>
           <td>
             <div class="mb-3">
-              <div class="notification-item flex w-full flex-col items-start rounded-lg p-4 md:flex-row" [ngClass]="{ 'surface-hover': notification.read, 'surface-100': !notification.read }" (click)="onNotificationClick($event)">
+              <div class="notification-item flex w-full flex-col items-start rounded-lg p-4 md:flex-row" [class]="{ 'surface-hover': notification.read, 'surface-100': !notification.read }" (click)="onNotificationClick($event)">
                 <div class="flex-1">
                   <h4 class="mb-2">{{ notification.title }}</h4>
                   <p class="mb-2 mt-0 leading-normal" [innerHTML]="notification.formattedMessage"></p>
@@ -40,14 +40,14 @@
                   </span>
                 </div>
                 <div class="mt-4 flex md:ml-4 md:mt-0">
-                  <p-button icon="pi pi-trash" [text]="true" severity="danger" (onClick)="deleteNotification(notification); $event.stopPropagation()" />
+                  <button pButton (click)="deleteNotification(notification); $event.stopPropagation()" [text]="true" severity="danger"><i class="pi pi-trash" pButtonIcon></i></button>
                 </div>
               </div>
             </div>
           </td>
         </tr>
       </ng-template>
-      <ng-template pTemplate="emptymessage">
+      <ng-template #emptymessage>
         <tr>
           <td class="p-6 text-center">
             <i class="pi pi-inbox mb-4 text-5xl" style="color: var(--p-text-color)"></i>
@@ -59,8 +59,8 @@
   </div>
 
   <div class="mt-4 flex justify-end">
-    <p-button label="Mark all as read" icon="pi pi-check" [outlined]="true" class="mr-2" (onClick)="dismissAllNotifications()" />
-    <p-button label="Delete all" icon="pi pi-trash" [outlined]="true" severity="danger" (onClick)="deleteAllNotifications()" />
+    <button pButton class="mr-2" (click)="dismissAllNotifications()" [outlined]="true"><i class="pi pi-check" pButtonIcon></i><span pButtonLabel>Mark all as read</span></button>
+    <button pButton (click)="deleteAllNotifications()" [outlined]="true" severity="danger"><i class="pi pi-trash" pButtonIcon></i><span pButtonLabel>Delete all</span></button>
   </div>
 </p-card>
 <p-toast />

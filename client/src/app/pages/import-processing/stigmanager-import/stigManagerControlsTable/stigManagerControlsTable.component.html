@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -12,16 +12,16 @@
   <div class="controls-summary">
     <div class="toolbar mb-4 mt-4">
       <div class="flex items-center">
-        <p-iconField iconPosition="left">
-          <p-inputIcon>
+        <p-iconfield iconPosition="left">
+          <p-inputicon>
             <i class="pi pi-search"></i>
-          </p-inputIcon>
+          </p-inputicon>
           <input pInputText type="text" class="min-w-[300px]" (input)="filterControlsGlobal($event)" placeholder="Search Controls..." />
-        </p-iconField>
-        <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clearControlsFilter()" pTooltip="Clear all filters" />
+        </p-iconfield>
+        <button pButton class="ml-4" (click)="clearControlsFilter()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
       </div>
       <div class="right-buttons">
-        <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportControlsCSV()" pTooltip="Export to CSV" />
+        <button pButton (click)="exportControlsCSV()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export to CSV"><i class="pi pi-external-link" pButtonIcon></i></button>
       </div>
     </div>
 
@@ -39,10 +39,10 @@
       dataKey="control"
       selectionMode="single"
     >
-      <ng-template pTemplate="header">
+      <ng-template #header>
         <tr>
           @for (col of controlColumns; track col.field) {
-            <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
+            <th scope="col" [pSortableColumn]="col.field" [style.width]="col.width">
               {{ col.header }}
               @if (col.field === 'poamPercentage') {
                 <i
@@ -53,13 +53,13 @@
                   style="font-size: 0.875rem; color: var(--text-color-secondary)"
                 ></i>
               }
-              <p-columnFilter [type]="col.filterType" [field]="col.field" [showOperator]="false" display="menu" />
+              <p-columnfilter [type]="col.filterType" [field]="col.field" [showOperator]="false" display="menu" />
             </th>
           }
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-control>
+      <ng-template #body let-control>
         <tr (click)="selectControl(control)" [style.cursor]="'pointer'">
           @if (loadingControls) {
             @for (col of controlColumns; track col.field) {
@@ -70,11 +70,11 @@
               <span class="font-semibold">{{ control.control || '-' }}</span>
             </td>
             <td>
-              <p-progressBar
+              <p-progressbar
                 [value]="control.poamPercentage"
                 [showValue]="true"
                 [style]="{ height: '1.5rem' }"
-                [ngClass]="{
+                [class]="{
                   'high-coverage': control.poamPercentage > 75,
                   'medium-coverage': control.poamPercentage >= 25 && control.poamPercentage <= 75,
                   'low-coverage': control.poamPercentage < 25,
@@ -110,7 +110,7 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="emptymessage">
+      <ng-template #emptymessage>
         <tr>
           <td [attr.colspan]="controlColumns.length" class="text-center">No controls found.</td>
         </tr>
@@ -123,14 +123,14 @@
   <div class="control-findings">
     <div class="toolbar mb-4 mt-4">
       <div class="flex items-center">
-        <p-iconField iconPosition="left">
-          <p-inputIcon>
+        <p-iconfield iconPosition="left">
+          <p-inputicon>
             <i class="pi pi-search"></i>
-          </p-inputIcon>
+          </p-inputicon>
           <input pInputText type="text" class="min-w-[300px]" (input)="filterFindingsGlobal($event)" placeholder="Search Findings..." />
-        </p-iconField>
-        <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clearFindingsFilter()" pTooltip="Clear all filters" />
-        <p-button [rounded]="true" [text]="true" [raised]="true" class="ml-4" icon="pi pi-arrow-left" pTooltip="Back to Controls" (click)="backToControlSummary()" />
+        </p-iconfield>
+        <button pButton class="ml-4" (click)="clearFindingsFilter()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
+        <button pButton class="ml-4" (click)="backToControlSummary()" [rounded]="true" [text]="true" [raised]="true" pTooltip="Back to Controls"><i class="pi pi-arrow-left" pButtonIcon></i></button>
       </div>
       <div class="flex items-center">
         @if (selectedControl) {
@@ -140,7 +140,7 @@
             <span class="ml-2 text-gray-500">({{ findingsCount }} findings)</span>
           </span>
         }
-        <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportFindingsCSV()" pTooltip="Export to CSV" />
+        <button pButton (click)="exportFindingsCSV()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export to CSV"><i class="pi pi-external-link" pButtonIcon></i></button>
       </div>
     </div>
 
@@ -158,34 +158,34 @@
       dataKey="groupId"
       selectionMode="single"
     >
-      <ng-template pTemplate="header">
+      <ng-template #header>
         <tr>
           @for (col of findingColumns; track col.field) {
-            <th scope="col" [pSortableColumn]="col.field" [ngStyle]="{ width: col.width }">
+            <th scope="col" [pSortableColumn]="col.field" [style.width]="col.width">
               {{ col.header }}
               @if (col.field === 'poam') {
-                <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
-                  <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                    <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full swap-button-order" />
+                <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                  <ng-template #filter let-value let-filter="filterCallback">
+                    <p-select [multiple]="true" [checkmark]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full swap-button-order" />
                   </ng-template>
-                </p-columnFilter>
+                </p-columnfilter>
               }
               @if (col.field === 'severity') {
-                <p-columnFilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
-                  <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                    <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Severity" [showClear]="true" class="w-full swap-button-order" />
+                <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                  <ng-template #filter let-value let-filter="filterCallback">
+                    <p-select [multiple]="true" [checkmark]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Severity" [showClear]="true" class="w-full swap-button-order" />
                   </ng-template>
-                </p-columnFilter>
+                </p-columnfilter>
               }
               @if (col.field !== 'poam' && col.field !== 'severity') {
-                <p-columnFilter [type]="col.filterType" [field]="col.field" [showOperator]="false" display="menu" />
+                <p-columnfilter [type]="col.filterType" [field]="col.field" [showOperator]="false" display="menu" />
               }
             </th>
           }
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-rowData>
+      <ng-template #body let-rowData>
         <tr>
           @for (col of findingColumns; track col.field) {
             <td>
@@ -196,7 +196,7 @@
                   @case ('poam') {
                     <i
                       [ngClass]="rowData.hasExistingPoam ? getPoamStatusIcon(rowData.poamStatus, rowData.isAssociated) : 'pi pi-plus-circle'"
-                      [ngStyle]="{
+                      [style]="{
                         color: !rowData.hasExistingPoam ? 'maroon' : getPoamStatusColor(rowData.poamStatus, rowData.parentStatus),
                         'font-size': '1.5rem',
                         cursor: 'pointer'
@@ -221,7 +221,7 @@
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="emptymessage">
+      <ng-template #emptymessage>
         <tr>
           <td [attr.colspan]="findingColumns.length" class="text-center">No findings found for this control.</td>
         </tr>

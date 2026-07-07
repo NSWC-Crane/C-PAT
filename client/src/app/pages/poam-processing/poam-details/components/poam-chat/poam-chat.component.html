@@ -21,7 +21,7 @@
       </div>
       @for (message of messageGroup.messages; track message) {
         <div>
-          @if (message.ownerId !== userId) {
+          @if (message.ownerId !== userId()) {
             <div class="grid gap-4 grid-nogutter mb-2">
               <div class="col mt-2">
                 @if (shouldShowSender(message, messageGroup.messages)) {
@@ -38,7 +38,7 @@
               </div>
             </div>
           }
-          @if (message.ownerId === userId) {
+          @if (message.ownerId === userId()) {
             <div class="grid gap-4 grid-nogutter mb-2">
               <div class="col text-right">
                 <span class="inline-block text-left font-medium bg-blue-500 pl-3 pb-4 pt-2 whitespace-normal rounded-2xl relative message-bubble">
@@ -62,20 +62,22 @@
     <p-inputgroup>
       <input id="message" type="text" pInputText placeholder="Type a message" class="w-full" [(ngModel)]="textContent" (keydown.enter)="sendMessage()" />
       <p-inputgroup-addon>
-        <p-button icon="pi pi-face-smile" severity="secondary" variant="text" (onClick)="op.toggle($event)" />
+        <button pButton (click)="op.toggle($event)" severity="secondary" variant="text"><i class="pi pi-face-smile" pButtonIcon></i></button>
       </p-inputgroup-addon>
     </p-inputgroup>
     <div class="flex w-full sm:w-auto gap-4">
-      <p-button variant="text" size="large" icon="pi pi-send" styleClass="!text-blue-500" (onClick)="sendMessage()" />
+      <button pButton class="!text-blue-500" (click)="sendMessage()" variant="text" size="large"><i class="pi pi-send" pButtonIcon></i></button>
     </div>
   </div>
 </div>
 
 <p-popover #op styleClass="emoji-popover">
-  <ng-template pTemplate="content">
+  <ng-template #content>
     <div class="emoji-container">
       @for (emoji of emojis; track emoji) {
-        <p-button (onClick)="op.hide(); onEmojiSelect(emoji)" [label]="emoji" styleClass="p-1 text-2xl min-w-10 m-0.5" variant="text" />
+        <button pButton class="p-1 text-2xl min-w-10 m-0.5" (click)="op.hide(); onEmojiSelect(emoji)" variant="text">
+          <span pButtonLabel>{{ emoji }}</span>
+        </button>
       }
     </div>
   </ng-template>

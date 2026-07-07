@@ -10,16 +10,16 @@
 
 <div class="labels-table-container">
   <p-toast />
-  <p-table [value]="poamLabels" dataKey="labelId">
-    <ng-template pTemplate="header">
+  <p-table [value]="poamLabels()" dataKey="labelId">
+    <ng-template #header>
       <tr>
         <th scope="col" pSortableColumn="labelName">Label</th>
         <th scope="col" style="width: 8rem">
-          <p-button icon="pi pi-plus" [rounded]="true" variant="text" (onClick)="addLabel()" [disabled]="accessLevel < 2" />
+          <button pButton (click)="addLabel()" [rounded]="true" variant="text" [disabled]="accessLevel() < 2"><i class="pi pi-plus" pButtonIcon></i></button>
         </th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-label let-rowIndex="rowIndex">
+    <ng-template #body let-label let-rowIndex="rowIndex">
       <tr>
         <td>
           @if (!label.isNew) {
@@ -27,7 +27,7 @@
           }
           @if (label.isNew) {
             <p-select
-              [options]="labelList"
+              [options]="labelList()"
               [(ngModel)]="label.labelId"
               [filter]="true"
               filterBy="labelName"
@@ -36,16 +36,16 @@
               class="w-full"
               (onChange)="onLabelChange(label)"
               appendTo="body"
-              [disabled]="accessLevel < 2"
+              [disabled]="accessLevel() < 2"
             />
           }
         </td>
         <td>
-          <p-button icon="pi pi-trash" (onClick)="deleteLabel(rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
+          <button pButton (click)="deleteLabel(rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-trash" pButtonIcon></i></button>
         </td>
       </tr>
     </ng-template>
-    <ng-template pTemplate="emptymessage">
+    <ng-template #emptymessage>
       <tr>
         <td colspan="2" style="text-align: center">No Labels to Display</td>
       </tr>

@@ -78,7 +78,7 @@
         } @else {
           <div class="col-span-12 md:col-span-4">
             <p-card class="category-chart-card">
-              <ng-template pTemplate="header">
+              <ng-template #header>
                 <div class="chart-title">CAT I - Critical / High ({{ catITotal() }})</div>
               </ng-template>
               <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIPieChartData()" [collectionName]="'CAT I'" />
@@ -86,7 +86,7 @@
           </div>
           <div class="col-span-12 md:col-span-4">
             <p-card class="category-chart-card">
-              <ng-template pTemplate="header">
+              <ng-template #header>
                 <div class="chart-title">CAT II - Medium ({{ catIITotal() }})</div>
               </ng-template>
               <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIPieChartData()" [collectionName]="'CAT II'" />
@@ -94,7 +94,7 @@
           </div>
           <div class="col-span-12 md:col-span-4">
             <p-card class="category-chart-card">
-              <ng-template pTemplate="header">
+              <ng-template #header>
                 <div class="chart-title">CAT III - Low ({{ catIIITotal() }})</div>
               </ng-template>
               <cpat-poam-advanced-pie class="poam-category-advanced-pie" [pieChartData]="catIIIPieChartData()" [collectionName]="'CAT III'" />
@@ -109,8 +109,8 @@
     </div>
   }
   <div [class]="'h-[calc(100vh-11rem)] overflow-hidden ' + (isGridExpanded() ? 'col-span-10' : 'col-span-8 rounded-3xl md:col-span-4')">
-    <p-card class="assigned-grid" styleClass="assigned-grid flex h-full flex-col">
-      <p-tabs value="0" class="mt-2 flex flex-1 flex-col" scrollable lazy>
+    <p-card class="assigned-grid flex h-full flex-col">
+      <p-tabs value="0" class="mt-2 flex flex-1 flex-col" lazy>
         <p-tablist tourAnchor="assigned-grid">
           <p-tab value="0">All POAMs</p-tab>
           <p-tab value="1">Needs Attention</p-tab>
@@ -124,42 +124,42 @@
             <p-tab value="4">Pending Approval</p-tab>
           }
           <div class="!w-full h-full flex justify-end">
-            <p-button class="expand-toggle-btn" [icon]="isGridExpanded() ? 'pi pi-window-minimize' : 'pi pi-window-maximize'" [rounded]="true" [text]="true" severity="secondary" (click)="toggleGridExpanded()" />
+            <button pButton class="expand-toggle-btn" (click)="toggleGridExpanded()" [rounded]="true" [text]="true" severity="secondary"><i [class]="isGridExpanded() ? 'pi pi-window-minimize' : 'pi pi-window-maximize'" pButtonIcon></i></button>
           </div>
         </p-tablist>
 
         <p-tabpanels>
-          <p-tabpanel value="0" styleClass="flex flex-1 flex-col">
-            <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
+          <p-tabpanel value="0" class="flex flex-1 flex-col">
+            <div class="flex-1 overflow-hidden" [class]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
               <cpat-poam-grid [poamsData]="allPoams()" variant="all" [affectedAssetCounts]="affectedAssetCounts()" [showTourAnchor]="true" />
             </div>
           </p-tabpanel>
 
-          <p-tabpanel value="1" styleClass="flex flex-1 flex-col">
-            <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
+          <p-tabpanel value="1" class="flex flex-1 flex-col">
+            <div class="flex-1 overflow-hidden" [class]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
               <cpat-poam-grid [poamsData]="poamsNeedingAttention()" variant="needs-attention" [affectedAssetCounts]="affectedAssetCounts()" />
             </div>
           </p-tabpanel>
 
           @if (accessLevel() >= 2) {
-            <p-tabpanel value="2" styleClass="flex flex-1 flex-col">
-              <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
+            <p-tabpanel value="2" class="flex flex-1 flex-col">
+              <div class="flex-1 overflow-hidden" [class]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
                 <cpat-poam-grid [poamsData]="submittedPoams()" variant="my" [affectedAssetCounts]="affectedAssetCounts()" />
               </div>
             </p-tabpanel>
           }
 
           @if (accessLevel() >= 1) {
-            <p-tabpanel value="3" styleClass="flex flex-1 flex-col">
-              <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
+            <p-tabpanel value="3" class="flex flex-1 flex-col">
+              <div class="flex-1 overflow-hidden" [class]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
                 <cpat-poam-grid [poamsData]="teamPoams()" variant="team" [affectedAssetCounts]="affectedAssetCounts()" />
               </div>
             </p-tabpanel>
           }
 
           @if (accessLevel() >= 3) {
-            <p-tabpanel value="4" styleClass="flex flex-1 flex-col">
-              <div class="flex-1 overflow-hidden" [ngClass]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
+            <p-tabpanel value="4" class="flex flex-1 flex-col">
+              <div class="flex-1 overflow-hidden" [class]="{ 'tenable-collection': this.selectedCollection()?.collectionType === 'Tenable' }">
                 <cpat-poam-grid [poamsData]="poamsPendingApproval()" variant="pending-approval" [affectedAssetCounts]="affectedAssetCounts()" />
               </div>
             </p-tabpanel>

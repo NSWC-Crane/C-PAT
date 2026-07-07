@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnInit, inject, viewChild, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -32,8 +32,8 @@ export class PoamChatComponent implements OnInit {
   private readonly poamChatService = inject(PoamChatService);
   private readonly messageService = inject(MessageService);
 
-  @Input() poamId!: number;
-  @Input() userId!: number;
+  readonly poamId = input.required<number>();
+  readonly userId = input.required<number>();
 
   private readonly chatWindow = viewChild.required<ElementRef>('chatWindow');
 
@@ -115,13 +115,13 @@ export class PoamChatComponent implements OnInit {
   ];
 
   ngOnInit() {
-    if (this.poamId) {
+    if (this.poamId()) {
       this.loadMessages();
     }
   }
 
   loadMessages() {
-    this.poamChatService.getMessagesByPoamId(this.poamId).subscribe({
+    this.poamChatService.getMessagesByPoamId(this.poamId()).subscribe({
       next: (data) => {
         this.messages = this.formatMessages(data);
         this.groupMessages();
@@ -243,7 +243,7 @@ export class PoamChatComponent implements OnInit {
       return;
     }
 
-    this.poamChatService.createMessage(this.poamId, this.textContent.trim()).subscribe({
+    this.poamChatService.createMessage(this.poamId(), this.textContent.trim()).subscribe({
       next: (response) => {
         const newMessage = {
           messageId: response.messageId,

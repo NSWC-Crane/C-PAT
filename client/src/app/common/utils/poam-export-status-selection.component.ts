@@ -27,7 +27,7 @@ interface StatusOption {
       <div class="text-xl font-semibold mb-6 text-center">Select POAM Statuses to Export</div>
 
       <p-listbox [options]="allStatusOptions" [(ngModel)]="selectedStatuses" optionLabel="label" optionValue="value" [checkbox]="true" [multiple]="true" showToggleAll="false" [listStyle]="{ 'max-height': '400px' }" class="w-full">
-        <ng-template let-item pTemplate="item">
+        <ng-template let-item #item>
           <div class="flex align-items-center">
             <span>{{ item.label }}</span>
           </div>
@@ -35,8 +35,8 @@ interface StatusOption {
       </p-listbox>
 
       <div class="flex justify-between mt-4">
-        <p-button label="Cancel" severity="secondary" [outlined]="true" [rounded]="true" (onClick)="cancel()" />
-        <p-button label="Confirm" severity="primary" [rounded]="true" (onClick)="confirm()" [disabled]="selectedStatuses.length === 0" />
+        <button pButton severity="secondary" [outlined]="true" [rounded]="true" (click)="cancel()"><span pButtonLabel>Cancel</span></button>
+        <button pButton severity="primary" [rounded]="true" (click)="confirm()" [disabled]="selectedStatuses.length === 0"><span pButtonLabel>Confirm</span></button>
       </div>
     </div>
   `,
