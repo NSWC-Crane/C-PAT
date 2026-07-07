@@ -8,12 +8,12 @@
 !##########################################################################
 -->
 
-@if (showUserSelect) {
+@if (showUserSelect()) {
   <div class="scrollable-users overflow-hidden">
     <p-table
       #usersTable
       class="p-datatable-lg"
-      [value]="data"
+      [value]="data()"
       [columns]="cols"
       [filterDelay]="0"
       [rows]="100"
@@ -24,39 +24,33 @@
       selectionMode="single"
       [globalFilterFields]="['accountStatus', 'firstName', 'lastName', 'displayUsername', 'email', 'lastAccessDate']"
     >
-      <ng-template pTemplate="caption">
+      <ng-template #caption>
         <div class="flex items-center justify-between">
-          <p-iconField iconPosition="left">
-            <p-inputIcon>
+          <p-iconfield iconPosition="left">
+            <p-inputicon>
               <i class="pi pi-search"></i>
-            </p-inputIcon>
-            <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Users" name="searchUsers" class="search-input" />
-          </p-iconField>
+            </p-inputicon>
+            <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Users" id="searchUsers" name="searchUsers" class="search-input" />
+          </p-iconfield>
           <div class="flex items-center gap-2">
-            <p-button
-              icon="pi pi-user-plus"
-              severity="success"
-              [rounded]="true"
-              [text]="true"
-              [raised]="true"
-              (click)="openOnboardDialog()"
-              (keydown.enter)="openOnboardDialog()"
-              pTooltip="Pre-register a user before their first login"
-              tooltipPosition="left"
-            />
-            <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" [raised]="true" (click)="exportCSV()" (keydown.enter)="exportCSV()" pTooltip="Export table to CSV" tooltipPosition="left" />
+            <button pButton (click)="openOnboardDialog()" severity="success" [rounded]="true" [text]="true" [raised]="true" (keydown.enter)="openOnboardDialog()" pTooltip="Pre-register a user before their first login" tooltipPosition="left">
+              <i class="pi pi-user-plus" pButtonIcon></i>
+            </button>
+            <button pButton (click)="exportCSV()" severity="secondary" [rounded]="true" [text]="true" [raised]="true" (keydown.enter)="exportCSV()" pTooltip="Export table to CSV" tooltipPosition="left">
+              <i class="pi pi-external-link" pButtonIcon></i>
+            </button>
           </div>
         </div>
       </ng-template>
-      <ng-template pTemplate="header" let-columns>
+      <ng-template #header let-columns>
         <tr>
           @for (col of columns; track col.field) {
             <th scope="col" [pSortableColumn]="col.field">{{ col.header }}</th>
           }
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-rowData let-columns="columns">
-        <tr [ngClass]="{ 'pending-status': rowData.accountStatus === 'PENDING' }" tabindex="0" class="cursor-pointer" (click)="setUser(rowData)" (keydown.enter)="setUser(rowData)">
+      <ng-template #body let-rowData let-columns="columns">
+        <tr [class]="{ 'pending-status': rowData.accountStatus === 'PENDING' }" tabindex="0" class="cursor-pointer" (click)="setUser(rowData)" (keydown.enter)="setUser(rowData)">
           @for (col of columns; track col.field) {
             <td class="break-all">{{ rowData[col.field] }}</td>
           }
@@ -66,44 +60,44 @@
   </div>
 }
 
-@if (!showUserSelect) {
+@if (!showUserSelect()) {
   <div class="col-span-12">
-    <cpat-user [user]="user" [users]="users" [payload]="payload" (userChange)="resetData()" />
+    <cpat-user [userInput]="user()" [users]="users" [payload]="payload()" (userChange)="resetData()" />
   </div>
 }
 
-<p-dialog class="onboarding-dialog" header="Onboard User" [(visible)]="showOnboardDialog" [modal]="true" styleClass="w-[40vw] overflow-hidden" [draggable]="false" [resizable]="false">
+<p-dialog styleClass="onboarding-dialog w-[40vw] overflow-hidden" header="Onboard User" [(visible)]="showOnboardDialog" [modal]="true" [draggable]="false" [resizable]="false">
   <div class="flex flex-col gap-4">
     <div class="flex flex-col gap-2">
       <label for="onboardStatus">Account Status</label>
-      <p-select id="onboardStatus" [options]="accountStatusOptions" [(ngModel)]="newUser.accountStatus" optionLabel="label" optionValue="value" appendTo="body" />
+      <p-select id="onboardStatus" [options]="accountStatusOptions" [(ngModel)]="newUser().accountStatus" optionLabel="label" optionValue="value" appendTo="body" />
     </div>
     <div class="flex flex-col gap-2">
       <label for="onboardUserName">Username <span class="text-red-500">*</span></label>
-      <input pInputText id="onboardUserName" [(ngModel)]="newUser.userName" maxlength="100" placeholder="Exact IdP username" autocomplete="off" />
+      <input pInputText id="onboardUserName" [(ngModel)]="newUser().userName" maxlength="100" placeholder="Exact IdP username" autocomplete="off" />
       <small class="text-muted-color mx-1"
-        >Must match the user's JWT <strong>{{ usernameClaimLabel }}</strong> claim (case-sensitive, max 100 characters). Mismatches will cause the creation of a duplicate account on first login.</small
+        >Must match the user's JWT <strong>{{ usernameClaimLabel() }}</strong> claim (case-sensitive, max 100 characters). Mismatches will cause the creation of a duplicate account on first login.</small
       >
     </div>
     <div class="flex gap-4">
       <div class="flex flex-1 flex-col gap-2">
         <label for="onboardFirstName">First Name</label>
-        <input pInputText id="onboardFirstName" [(ngModel)]="newUser.firstName" maxlength="50" autocomplete="off" />
+        <input pInputText id="onboardFirstName" [(ngModel)]="newUser().firstName" maxlength="50" autocomplete="off" />
       </div>
       <div class="flex flex-1 flex-col gap-2">
         <label for="onboardLastName">Last Name</label>
-        <input pInputText id="onboardLastName" [(ngModel)]="newUser.lastName" maxlength="50" autocomplete="off" />
+        <input pInputText id="onboardLastName" [(ngModel)]="newUser().lastName" maxlength="50" autocomplete="off" />
       </div>
     </div>
     <div class="flex flex-col gap-2">
       <label for="onboardEmail">Email</label>
-      <input pInputText id="onboardEmail" [(ngModel)]="newUser.email" maxlength="100" autocomplete="off" />
+      <input pInputText id="onboardEmail" [(ngModel)]="newUser().email" maxlength="100" autocomplete="off" />
     </div>
   </div>
-  <ng-template pTemplate="footer">
+  <ng-template #footer>
     <div class="flex w-full justify-between">
-      <p-button label="Cancel" severity="secondary" variant="outlined" (click)="showOnboardDialog = false" (keydown.enter)="showOnboardDialog = false" [disabled]="onboarding" />
-      <p-button label="Save" variant="outlined" (click)="onboardUser()" (keydown.enter)="onboardUser()" [loading]="onboarding" />
+      <button pButton (click)="showOnboardDialog.set(false)" severity="secondary" variant="outlined" (keydown.enter)="showOnboardDialog.set(false)" [disabled]="onboarding()"><span pButtonLabel>Cancel</span></button>
+      <button pButton (click)="onboardUser()" variant="outlined" (keydown.enter)="onboardUser()" [loading]="onboarding()"><span pButtonLabel>Save</span></button>
     </div>
   </ng-template>
 </p-dialog>
