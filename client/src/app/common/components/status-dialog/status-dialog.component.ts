@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, effect, input, model, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -18,9 +18,9 @@ import { ProgressBarModule } from 'primeng/progressbar';
   selector: 'cpat-status-dialog',
   template: `
     <p-dialog header="File Upload Status" [(visible)]="display" [modal]="true" [closable]="false" styleClass="w-[50vw] overflow-hidden">
-      <p-progressBar [value]="progress" [showValue]="true" [style]="{ height: '20px' }" />
-      @if (message) {
-        <p>{{ message + ' ' + countdownMessage }}</p>
+      <p-progressbar [value]="progress()" [showValue]="true" [style]="{ height: '20px' }" />
+      @if (message()) {
+        <p>{{ message() + ' ' + countdownMessage() }}</p>
       }
     </p-dialog>
   `,
@@ -29,35 +29,45 @@ import { ProgressBarModule } from 'primeng/progressbar';
   imports: [ButtonModule, DialogModule, FormsModule, ProgressBarModule]
 })
 export class StatusDialogComponent implements OnInit, OnDestroy {
-  @Input() progress: number = 0;
-  @Input() message: string = '';
-  @Input() display: boolean = false;
-  @Input() set uploadComplete(isComplete: boolean) {
-    if (isComplete) {
-      this.message = 'Upload complete!';
-      this.startCountdown();
-    }
-  }
+  readonly progress = input<number>(0);
+  readonly message = model<string>('');
+  readonly display = model<boolean>(false);
+  readonly uploadComplete = input<boolean>(false);
 
-  countdown: number = 3;
-  countdownMessage: string = '';
+  readonly countdown = signal(3);
+  readonly countdownMessage = signal('');
   private intervalId: any;
 
+  constructor() {
+    effect(() => {
+      if (this.uploadComplete()) {
+        untracked(() => {
+          this.message.set('Upload complete!');
+          this.startCountdown();
+        });
+      }
+    });
+  }
+
   ngOnInit() {
-    if (this.message) {
+    if (this.message()) {
       this.startCountdown();
     }
   }
 
   startCountdown() {
-    this.countdownMessage = `The page will refresh in ${this.countdown} seconds.`;
-    this.intervalId = setInterval(() => {
-      this.countdown -= 1;
-      this.countdownMessage = `The page will refresh in ${this.countdown} seconds.`;
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
 
-      if (this.countdown <= 0) {
+    this.countdownMessage.set(`The page will refresh in ${this.countdown()} seconds.`);
+    this.intervalId = setInterval(() => {
+      this.countdown.update((value) => value - 1);
+      this.countdownMessage.set(`The page will refresh in ${this.countdown()} seconds.`);
+
+      if (this.countdown() <= 0) {
         clearInterval(this.intervalId);
-        this.display = false;
+        this.display.set(false);
       }
     }, 1000);
   }
