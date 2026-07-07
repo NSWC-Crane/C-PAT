@@ -102,9 +102,18 @@
 
       > .advanced-pie-legend-wrapper {
         flex: 0 0 45% !important;
+        min-width: 0 !important;
+        /* override the inline px height ngx-charts writes so the wrapper always matches the 18rem host */
+        height: 100% !important;
+        display: flex !important;
+        align-items: center;
+        overflow: hidden;
 
         ngx-charts-advanced-legend {
+          display: block;
           width: 100% !important;
+          min-width: 0;
+          max-height: 100%;
         }
       }
     }
@@ -116,11 +125,18 @@
   }
 
   .advanced-pie-legend {
+    /* ngx-charts centers via float + top: 50% + translateY(-50%), which breaks when the
+       containing block changes; neutralize it and center with the wrapper's flexbox instead */
+    float: none !important;
+    position: static !important;
+    top: auto !important;
+    transform: none !important;
     width: 100% !important;
+    box-sizing: border-box;
     display: flex !important;
     flex-direction: column !important;
     justify-content: center !important;
-    margin-left: 0.5rem;
+    padding-left: 0.5rem;
 
     .legend-items-container {
       width: 100% !important;
@@ -157,11 +173,21 @@
           }
         }
 
+        &:has(.legend-item:nth-child(9)) {
+          gap: 0.125rem !important;
+
+          .item-color {
+            height: 1.25rem;
+          }
+        }
+
         .legend-item {
-          width: 90% !important;
+          width: 100% !important;
+          min-width: 0;
+          box-sizing: border-box;
           display: flex !important;
           align-items: center !important;
-          margin-bottom: 0.25rem;
+          /* must be >= the 8px hover translateX so shifted text stays inside the clipped container */
           padding-right: 0.5rem;
 
           &:hover {
@@ -185,9 +211,10 @@
             text-overflow: ellipsis;
             font-size: 0.8rem;
             font-weight: 500;
-            margin-left: 0.25rem;
-            margin-right: 0rem;
-            flex: 1;
+            margin-left: 0.3em;
+            margin-right: 0;
+            flex: 1 1 auto;
+            min-width: 0;
           }
 
           .item-value {
@@ -195,19 +222,22 @@
             opacity: 0.7;
             font-size: 0.8rem;
             font-weight: 500;
-            margin-left: 0.25rem;
-            margin-right: 0.25rem;
-            margin-bottom: 0rem;
-            min-width: 0.5rem;
+            margin-left: 0.3em;
+            margin-right: 0.3em;
+            margin-bottom: 0;
+            min-width: 0.5em;
+            flex-shrink: 0;
           }
 
           .item-percent {
             color: var(--text-color);
             opacity: 0.7;
             font-size: 0.8rem;
-            margin-left: 0.5rem;
+            margin-left: 0.5em;
             margin-bottom: 0.375rem;
-            width: 2rem;
+            width: auto;
+            min-width: 2em;
+            white-space: nowrap;
             text-align: left;
             flex-shrink: 0;
           }
