@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -34,7 +33,8 @@ import { TourPrimeNg } from 'ngx-ui-tour-primeng';
   templateUrl: './poam-manage.component.html',
   styleUrls: ['./poam-manage.component.scss'],
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamGridComponent, PoamMilestoneGridComponent, TourPrimeNg]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamGridComponent, PoamMilestoneGridComponent, TourPrimeNg]
 })
 export class PoamManageComponent implements OnInit, OnDestroy {
   private readonly collectionsService = inject(CollectionsService);

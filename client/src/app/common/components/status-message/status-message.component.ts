@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -21,6 +21,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
   templateUrl: './status-message.component.html',
   styleUrls: ['./status-message.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, CardModule, DialogModule, FormsModule, ProgressBarModule]
 })
 export class StatusMessageComponent implements OnInit {

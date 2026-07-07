@@ -10,7 +10,7 @@
 
 import { CommonModule, DatePipe } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
-import { Component, Input, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -30,6 +30,7 @@ import { PoamAttachmentService } from '../../services/poam-attachments.service';
   templateUrl: './poam-attachments.component.html',
   styleUrls: ['./poam-attachments.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, ToastModule, TooltipModule, DatePipe]
 })
 export class PoamAttachmentsComponent implements OnInit, OnDestroy {

@@ -9,7 +9,7 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, TemplateRef, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, TemplateRef, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parseISO } from 'date-fns';
@@ -43,6 +43,7 @@ export interface PoamApproval {
   templateUrl: './poam-approve.component.html',
   styleUrls: ['./poam-approve.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, ButtonModule, DatePicker, CheckboxModule, DialogModule, SelectModule, TextareaModule, ToastModule, ToggleSwitch],
   providers: [DatePipe]
 })

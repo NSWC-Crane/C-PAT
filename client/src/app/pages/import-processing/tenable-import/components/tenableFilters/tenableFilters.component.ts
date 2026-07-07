@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnInit, inject, output, signal, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, inject, output, signal, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -38,6 +38,7 @@ interface FilterOption {
   templateUrl: './tenableFilters.component.html',
   styleUrls: ['./tenableFilters.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, AutoCompleteModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, ToastModule, TooltipModule]
 })
 export class TenableFiltersComponent implements OnInit, OnDestroy {

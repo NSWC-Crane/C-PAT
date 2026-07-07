@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -24,7 +24,6 @@ export interface EMassField {
 @Component({
   selector: 'cpat-emasster-field-selection-dialog',
   standalone: true,
-  imports: [FormsModule, PickListModule, ButtonModule],
   template: `
     <div class="flex flex-col min-w-[800px]">
       <div class="text-xl font-semibold mb-6 text-center">eMASSter POAM Fields to Overwrite</div>
@@ -43,7 +42,9 @@ export interface EMassField {
         <p-button label="Confirm" severity="primary" [rounded]="true" (onClick)="confirm()" />
       </div>
     </div>
-  `
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, PickListModule, ButtonModule]
 })
 export class EMASSOverwriteSelectionComponent {
   ref = inject(DynamicDialogRef);

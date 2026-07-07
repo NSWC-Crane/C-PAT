@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { take } from 'rxjs';
 import { Classification } from '../../common/models/classification.model';
@@ -26,6 +26,7 @@ import { SharedService } from '../../common/services/shared.service';
       </div>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule]
 })
 export class AppClassificationComponent implements OnInit {

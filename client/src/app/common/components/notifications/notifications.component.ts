@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MessageService } from 'primeng/api';
@@ -28,7 +28,8 @@ import { NotificationService } from './notifications.service';
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CardModule, CommonModule, TableModule, ToastModule, SelectModule, FormsModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ButtonModule, CardModule, TableModule, ToastModule, SelectModule, FormsModule, DatePipe]
 })
 export class NotificationsComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnInit, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -21,6 +21,7 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
   selector: 'cpat-poam-labels',
   templateUrl: './poam-labels.component.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, TableModule, ButtonModule, SelectModule, ToastModule]
 })
 export class PoamLabelsComponent implements OnInit {

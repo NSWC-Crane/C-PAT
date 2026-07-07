@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -25,7 +25,8 @@ import { NotificationService } from '../notifications.service';
   templateUrl: './notifications-popover.component.html',
   styleUrls: ['./notifications-popover.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, FormsModule, ListboxModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ButtonModule, FormsModule, ListboxModule, DatePipe]
 })
 export class NotificationsPanelComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
@@ -33,7 +34,7 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
 
-  @Input() overlayPanel: Popover;
+  readonly overlayPanel = input<Popover>(undefined);
   notifications: any[] = [];
   public isLoggedIn = false;
   protected accessLevel: any;
@@ -65,8 +66,10 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   }
 
   closeOverlay() {
-    if (this.overlayPanel) {
-      this.overlayPanel.hide();
+    const overlayPanel = this.overlayPanel();
+
+    if (overlayPanel) {
+      overlayPanel.hide();
     }
   }
 

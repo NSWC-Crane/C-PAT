@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, DOCUMENT, ElementRef, Input, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, ElementRef, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject, viewChild, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MenuItem } from 'primeng/api';
@@ -31,8 +31,6 @@ import { AppTopBarComponent } from './app.topbar.component';
 
 @Component({
   selector: 'cpat-navigation',
-  standalone: true,
-  imports: [AppClassificationComponent, AppTopBarComponent, AppLayoutComponent, BadgeModule, ButtonModule, AppFooterComponent, MenuModule, TagModule, FormsModule],
   template: `
     <div class="landing">
       <cpat-classification />
@@ -40,7 +38,10 @@ import { AppTopBarComponent } from './app.topbar.component';
       <cpat-layout />
       <cpat-footer />
     </div>
-  `
+  `,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [AppClassificationComponent, AppTopBarComponent, AppLayoutComponent, BadgeModule, ButtonModule, AppFooterComponent, MenuModule, TagModule, FormsModule]
 })
 export class AppNavigationComponent implements OnInit, OnDestroy {
   private readonly document = inject<Document>(DOCUMENT);
@@ -54,9 +55,9 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   el = inject(ElementRef);
 
-  @Input({ transform: booleanAttribute }) showConfigurator = true;
+  readonly showConfigurator = input(true, { transform: booleanAttribute });
 
-  @Input({ transform: booleanAttribute }) showMenuButton = true;
+  readonly showMenuButton = input(true, { transform: booleanAttribute });
 
   scrollListener: VoidFunction | null;
 

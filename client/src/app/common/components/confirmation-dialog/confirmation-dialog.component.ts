@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule, ButtonSeverity } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -39,12 +39,13 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
     </p-dialog>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, DialogModule, FormsModule]
 })
 export class ConfirmationDialogComponent {
   protected dialogRef = inject(DynamicDialogRef);
 
-  @Input() options!: ConfirmationDialogOptions;
+  readonly options = input.required<ConfirmationDialogOptions>();
   visible: boolean = true;
 
   cancel() {

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, computed, input } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, input, NgZone } from '@angular/core';
 import { NgxChartsModule, ScaleType } from '@swimlane/ngx-charts';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
@@ -59,14 +59,44 @@ const STATUS_SORT_ORDER: { [key: string]: number } = {
         width: 100%;
         min-height: 18rem;
       }
+
+      :host ::ng-deep .legend-item {
+        .item-value,
+        .item-percent {
+          max-width: 8rem;
+          transition:
+            max-width 0.3s ease,
+            opacity 0.3s ease,
+            margin 0.3s ease;
+        }
+
+        &.label-truncated:hover,
+        &.label-truncated:focus-visible {
+          .item-value,
+          .item-percent {
+            max-width: 0 !important;
+            min-width: 0 !important;
+            margin: 0 !important;
+            opacity: 0 !important;
+            overflow: hidden;
+          }
+        }
+      }
     `
   ],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgxChartsModule, ProgressSpinnerModule]
 })
 export class PoamAdvancedPieComponent {
   pieChartData = input.required<any[]>();
   collectionName = input.required<string>();
+
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly zone = inject(NgZone);
+  private resizeObserver?: ResizeObserver;
+  private mutationObserver?: MutationObserver;
+  private truncationCheckRafId?: number;
 
   sortedPieChartData = computed(() => {
     const data = this.pieChartData();
@@ -82,4 +112,52 @@ export class PoamAdvancedPieComponent {
     group: ScaleType.Ordinal,
     domain: this.sortedPieChartData().map((item) => STATUS_COLOR_MAP[item.name] || 'rgba(128, 128, 128, .7)')
   }));
+
+  constructor() {
+    afterNextRender(() => this.zone.runOutsideAngular(() => this.observeLegendTruncation()));
+
+    inject(DestroyRef).onDestroy(() => {
+      this.resizeObserver?.disconnect();
+      this.mutationObserver?.disconnect();
+
+      if (this.truncationCheckRafId !== undefined) {
+        cancelAnimationFrame(this.truncationCheckRafId);
+      }
+    });
+  }
+
+  private observeLegendTruncation(): void {
+    const hostEl = this.host.nativeElement;
+
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.scheduleTruncationCheck());
+      this.resizeObserver.observe(hostEl);
+    }
+
+    if (typeof MutationObserver !== 'undefined') {
+      this.mutationObserver = new MutationObserver(() => this.scheduleTruncationCheck());
+      this.mutationObserver.observe(hostEl, { childList: true, subtree: true });
+    }
+
+    this.scheduleTruncationCheck();
+  }
+
+  private scheduleTruncationCheck(): void {
+    if (this.truncationCheckRafId !== undefined) return;
+
+    this.truncationCheckRafId = requestAnimationFrame(() => {
+      this.truncationCheckRafId = undefined;
+      this.updateTruncationFlags();
+    });
+  }
+
+  private updateTruncationFlags(): void {
+    this.host.nativeElement.querySelectorAll<HTMLElement>('.legend-item').forEach((item) => {
+      if (item.matches(':hover')) return;
+
+      const label = item.querySelector<HTMLElement>('.item-label');
+
+      item.classList.toggle('label-truncated', !!label && label.scrollWidth > label.clientWidth + 1);
+    });
+  }
 }

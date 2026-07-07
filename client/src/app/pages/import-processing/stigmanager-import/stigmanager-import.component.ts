@@ -1,4 +1,4 @@
-/*
+﻿/*
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -10,7 +10,7 @@
 
 import { CommonModule } from '@angular/common';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
-import { Component, OnDestroy, OnInit, signal, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -55,6 +55,7 @@ interface STIGManagerFinding {
   templateUrl: './stigmanager-import.component.html',
   styleUrls: ['./stigmanager-import.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ButtonModule,
     CardModule,

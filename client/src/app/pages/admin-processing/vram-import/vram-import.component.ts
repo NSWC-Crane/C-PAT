@@ -8,9 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
-import { Component, OnInit, OnDestroy, inject, viewChild, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -30,7 +29,8 @@ import { VRAMImportService } from './vram-import.service';
   templateUrl: './vram-import.component.html',
   styleUrls: ['./vram-import.component.scss'],
   standalone: true,
-  imports: [BadgeModule, ButtonModule, CardModule, CommonModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, TooltipModule, VramPopupComponent]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [BadgeModule, ButtonModule, CardModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, TooltipModule, VramPopupComponent]
 })
 export class VRAMImportComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);

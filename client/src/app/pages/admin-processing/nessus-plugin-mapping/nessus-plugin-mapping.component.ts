@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, inject, viewChild } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -32,7 +32,8 @@ import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
   templateUrl: './nessus-plugin-mapping.component.html',
   styleUrls: ['./nessus-plugin-mapping.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CommonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule, TooltipModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ButtonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule, TooltipModule, DatePipe]
 })
 export class NessusPluginMappingComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);

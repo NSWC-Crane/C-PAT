@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { $t, updatePreset, updateSurfacePalette } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
@@ -46,7 +46,6 @@ declare type SurfacesType = {
 
 @Component({
   selector: 'cpat-configurator',
-  standalone: true,
   template: `
     <div class="config-panel-content">
       <div class="config-panel-colors">
@@ -102,6 +101,8 @@ declare type SurfacesType = {
   host: {
     class: 'config-panel hidden'
   },
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, ButtonModule, RadioButtonModule, SelectButton, ToggleSwitchModule]
 })
 export class AppConfiguratorComponent implements OnInit {

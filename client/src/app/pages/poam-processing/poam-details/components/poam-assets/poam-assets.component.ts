@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnChanges, SimpleChanges, computed, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnChanges, SimpleChanges, computed, inject, output, signal, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -27,6 +27,7 @@ import { PoamService } from '../../../poams.service';
   selector: 'cpat-poam-assets',
   templateUrl: './poam-assets.component.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, TableModule, ButtonModule, SelectModule, TooltipModule, ToastModule, STIGManagerPoamAssetsTableComponent, TenableAssetsTableComponent]
 })
 export class PoamAssetsComponent implements OnChanges {

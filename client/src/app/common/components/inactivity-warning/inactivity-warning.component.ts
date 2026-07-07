@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -19,7 +18,7 @@ import { InactivityService } from '../../../core/auth/services/inactivity.servic
 @Component({
   selector: 'cpat-inactivity-warning',
   standalone: true,
-  imports: [CommonModule, FormsModule, DialogModule, ButtonModule],
+  imports: [FormsModule, DialogModule, ButtonModule],
   template: `
     <p-dialog [(visible)]="visible" [modal]="true" [closable]="false" [draggable]="false" [resizable]="false">
       <div class="custom-confirm-popup">
@@ -49,7 +48,8 @@ import { InactivityService } from '../../../core/auth/services/inactivity.servic
         }
       }
     `
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.Eager
 })
 export class InactivityWarningComponent implements OnInit, OnDestroy {
   private readonly inactivityService = inject(InactivityService);
