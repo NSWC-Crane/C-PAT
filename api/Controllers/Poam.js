@@ -31,6 +31,8 @@ module.exports.getPoam = async function getPoam(req, res, next) {
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else if (error.status) {
+            res.status(error.status).json({ error: error.message, detail: error.detail });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
@@ -44,6 +46,8 @@ module.exports.getPoamsByCollectionId = async function getPoamsByCollectionId(re
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else if (error.status) {
+            res.status(error.status).json({ error: error.message, detail: error.detail });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
@@ -57,6 +61,8 @@ module.exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res
     } catch (error) {
         if (error.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        } else if (error.status) {
+            res.status(error.status).json({ error: error.message, detail: error.detail });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }

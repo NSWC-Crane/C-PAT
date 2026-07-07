@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 const poamApproverService = require('./poamApproverService');
 const poamAssetService = require('./poamAssetService');
 const poamAssignedTeamService = require('./poamAssignedTeamService');
@@ -155,6 +156,20 @@ exports.getPoam = async function getPoam(req, res, next) {
                 isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
             }))[0];
 
+            if (!poam) {
+                return null;
+            }
+
+            if (!req.userObject.isAdmin) {
+                const [permissionRows] = await connection.query(
+                    `SELECT accessLevel FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`,
+                    [req.userObject.userId, poam.collectionId]
+                );
+                if (permissionRows.length === 0) {
+                    throw new SmError.PrivilegeError('User does not have permission to view this POAM.');
+                }
+            }
+
             if (req.query.approvers) {
                 poam.approvers = await poamApproverService.getPoamApprovers(req, res, next);
             }
@@ -180,7 +195,7 @@ exports.getPoam = async function getPoam(req, res, next) {
             return poam || null;
         });
     } catch (error) {
-        return { error: error.message };
+        throw error;
     }
 };
 
@@ -196,6 +211,16 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
 
     try {
         return await withConnection(async connection => {
+            if (!req.userObject.isAdmin) {
+                const [permissionRows] = await connection.query(
+                    `SELECT accessLevel FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`,
+                    [req.userObject.userId, req.params.collectionId]
+                );
+                if (permissionRows.length === 0) {
+                    throw new SmError.PrivilegeError('User does not have permission to view POAMs for this collection.');
+                }
+            }
+
             let sql = `
             SELECT T1.*,
                    T2.fullName AS submitterName,
@@ -251,7 +276,7 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
             return poams || null;
         });
     } catch (error) {
-        return { error: error.message };
+        throw error;
     }
 };
 
@@ -263,6 +288,10 @@ exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next)
                 userId: 'is required',
             },
         });
+    }
+
+    if (!req.userObject.isAdmin && String(req.params.userId) !== String(req.userObject.userId)) {
+        throw new SmError.PrivilegeError("User does not have permission to view another user's POAMs.");
     }
 
     try {
@@ -321,7 +350,7 @@ exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next)
             return poams || null;
         });
     } catch (error) {
-        return { error: error.message };
+        throw error;
     }
 };
 
