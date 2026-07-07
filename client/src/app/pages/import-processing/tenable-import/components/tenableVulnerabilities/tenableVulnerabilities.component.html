@@ -9,7 +9,7 @@
 -->
 
 <div class="vulnerabilities-wrapper">
-  <div class="filter-panel-wrapper" [ngClass]="{ 'filter-visible': sidebarVisible, 'filter-hidden': !sidebarVisible }">
+  <div class="filter-panel-wrapper" [class]="{ 'filter-visible': sidebarVisible, 'filter-hidden': !sidebarVisible }">
     <div class="filter-panel">
       <div class="filter-header">
         <div class="flex items-center" tourAnchor="tenable-premade-filters">
@@ -26,20 +26,20 @@
             appendTo="body"
             [style]="{ width: 'calc(100% - 3rem)' }"
           >
-            <ng-template let-group pTemplate="group">
+            <ng-template let-group #group>
               <div class="flex items-center">
                 <i [class]="group.value === 'premade' ? 'pi pi-bookmark mr-2' : 'pi pi-save mr-2'"></i>
                 <span>{{ group.label }}</span>
               </div>
             </ng-template>
-            <ng-template let-item pTemplate="item">
+            <ng-template let-item #item>
               <div class="flex w-full flex-col justify-between">
                 <div class="flex w-full flex-row justify-between">
                   <span>{{ item.label }}</span>
                   @if (item.value.startsWith('saved_') && (this.user.userName === item.createdBy || this.accessLevel() >= 3)) {
                     <i
                       class="pi pi-trash rounded-circle cursor-pointer p-1 text-red-500 transition-all duration-200"
-                      [ngClass]="{ 'opacity-50 hover:opacity-100': true }"
+                      [class]="{ 'opacity-50 hover:opacity-100': true }"
                       (click)="deleteFilter($event, item.value)"
                       (keyup.enter)="deleteFilter($event, item.value)"
                       pTooltip="Delete filter"
@@ -64,16 +64,18 @@
           @for (item of filteredAccordionItems; track item) {
             <p-accordion-panel [value]="item.value" [disabled]="item.disabled ?? false">
               <p-accordion-header>
-                <ng-template #toggleicon> </ng-template>
+                <ng-template #toggleicon />
                 <div class="flex w-full items-center justify-between">
                   <span>{{ item.header }}</span>
-                  <p-button
-                    icon="pi pi-trash"
-                    styleClass="clearFilterButton"
+                  <button
+                    pButton
+                    class="clearFilterButton"
+                    [class]="isFilterActive(item.identifier) ? 'p-button-text p-button-rounded p-button-danger' : 'p-button-text p-button-rounded p-button-plain'"
                     (click)="clearIndividualFilter(item.identifier, $event)"
-                    [styleClass]="isFilterActive(item.identifier) ? 'p-button-text p-button-rounded p-button-danger' : 'p-button-text p-button-rounded p-button-plain'"
                     [disabled]="!isFilterActive(item.identifier)"
-                  />
+                  >
+                    <i class="pi pi-trash" pButtonIcon></i>
+                  </button>
                 </div>
               </p-accordion-header>
               <p-accordion-content>
@@ -97,7 +99,7 @@
                         [(ngModel)]="tempFilters[item.identifier].value"
                         (input)="onFilterChange($event, item.identifier, true)"
                         [placeholder]="item.placeholder ?? ''"
-                        [ngClass]="{ 'ng-invalid': tempFilters[item.identifier]?.isDirty && !tempFilters[item.identifier]?.isValid, 'ng-dirty': tempFilters[item.identifier]?.isDirty }"
+                        [class]="{ 'ng-invalid': tempFilters[item.identifier]?.isDirty && !tempFilters[item.identifier]?.isValid, 'ng-dirty': tempFilters[item.identifier]?.isDirty }"
                         class="w-full"
                       />
                     </div>
@@ -109,7 +111,7 @@
                         [(ngModel)]="tempFilters[item.identifier].value"
                         (input)="onFilterChange($event, item.identifier, true)"
                         [placeholder]="item.placeholder ?? ''"
-                        [ngClass]="{ 'ng-invalid': tempFilters[item.identifier]?.isDirty && !tempFilters[item.identifier]?.isValid, 'ng-dirty': tempFilters[item.identifier]?.isDirty }"
+                        [class]="{ 'ng-invalid': tempFilters[item.identifier]?.isDirty && !tempFilters[item.identifier]?.isValid, 'ng-dirty': tempFilters[item.identifier]?.isDirty }"
                         class="w-full"
                       />
                     </div>
@@ -125,24 +127,28 @@
                           class="mb-2 w-full"
                           appendTo="body"
                         />
-                        <p-multiSelect
+                        <p-select
+                          [multiple]="true"
+                          [checkmark]="true"
+                          [showClear]="true"
                           [options]="item.options"
                           [(ngModel)]="tempFilters[item.identifier].value"
                           (onChange)="onFilterChange($event, item.identifier)"
                           [placeholder]="'Select ' + item.header"
-                          [showToggleAll]="false"
                           class="w-full"
                           appendTo="body"
                         />
                       </div>
                     } @else {
                       <div class="p-0">
-                        <p-multiSelect
+                        <p-select
+                          [multiple]="true"
+                          [checkmark]="true"
+                          [showClear]="true"
                           [options]="item.options"
                           [(ngModel)]="tempFilters[item.identifier]"
                           (onChange)="onFilterChange($event, item.identifier)"
                           [placeholder]="'Select ' + item.header"
-                          [showToggleAll]="false"
                           class="w-full"
                           appendTo="body"
                         />
@@ -155,25 +161,23 @@
                       @if (tempFilters[item.identifier].value === 'customRange') {
                         <div class="range-input">
                           <span>Between</span>
-                          <p-inputNumber
+                          <p-inputnumber
                             [(ngModel)]="tempFilters[item.identifier].min"
                             [min]="getMinValue(item.identifier)"
                             [max]="getMaxValue(item.identifier)"
                             [showButtons]="false"
                             (onInput)="onRangeValueChange(item.identifier)"
                             [useGrouping]="false"
-                          >
-                          </p-inputNumber>
+                          />
                           <span>and</span>
-                          <p-inputNumber
+                          <p-inputnumber
                             [(ngModel)]="tempFilters[item.identifier].max"
                             [min]="getMinValue(item.identifier)"
                             [max]="getMaxValue(item.identifier)"
                             [showButtons]="false"
                             (onInput)="onRangeValueChange(item.identifier)"
                             [useGrouping]="false"
-                          >
-                          </p-inputNumber>
+                          />
                         </div>
                       }
                     </div>
@@ -189,8 +193,8 @@
       </div>
       <div class="filter-footer">
         <div class="flex justify-between p-4">
-          <p-button label="Apply" [rounded]="true" icon="pi pi-filter" (click)="applyFilters()" size="small" />
-          <p-button label="Clear" [rounded]="true" icon="pi pi-filter-slash" (click)="clearFilters()" [outlined]="true" size="small" />
+          <button pButton (click)="applyFilters()" [rounded]="true" size="small"><i class="pi pi-filter" pButtonIcon></i><span pButtonLabel>Apply</span></button>
+          <button pButton (click)="clearFilters()" [rounded]="true" [outlined]="true" size="small"><i class="pi pi-filter-slash" pButtonIcon></i><span pButtonLabel>Clear</span></button>
         </div>
       </div>
     </div>
@@ -202,21 +206,35 @@
         <div class="p-fluid">
           <div class="toolbar mb-4">
             <div class="left-buttons">
-              <p-button tourAnchor="tenable-filters" [rounded]="true" [text]="true" [raised]="true" severity="primary" icon="pi pi-filter" (click)="toggleSidebar()" />
-              <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-circle-left" (click)="revertFilters()" [disabled]="currentFilterHistoryIndex <= 0" pTooltip="Revert to previous filters" />
-              <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clearFilters()" pTooltip="Reset default filters" />
+              <button pButton (click)="toggleSidebar()" tourAnchor="tenable-filters" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-filter" pButtonIcon></i></button>
+              <button pButton (click)="revertFilters()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" [disabled]="currentFilterHistoryIndex <= 0" pTooltip="Revert to previous filters">
+                <i class="pi pi-arrow-circle-left" pButtonIcon></i>
+              </button>
+              <button pButton (click)="clearFilters()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset default filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
               @if (this.tenableTool === 'sumid') {
-                <p-button tourAnchor="tenable-sumid" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-plus" (click)="loadVulnList()" pTooltip="Load Vulnerability List" />
+                <button pButton (click)="loadVulnList()" tourAnchor="tenable-sumid" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Load Vulnerability List"><i class="pi pi-search-plus" pButtonIcon></i></button>
               }
               @if (this.tenableTool === 'listvuln') {
-                <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-search-minus" (click)="loadVulnSummary()" pTooltip="Load Vulnerability Summary" />
+                <button pButton (click)="loadVulnSummary()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Load Vulnerability Summary"><i class="pi pi-search-minus" pButtonIcon></i></button>
               }
             </div>
             <div class="right-buttons">
-              <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" />
-              <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()" />
-              <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
-              <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (click)="exportAllData()" />
+              <button pButton class="mr-2" (click)="resetColumnSelections()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset column selections"><i class="pi pi-refresh" pButtonIcon></i></button>
+              <button pButton (click)="toggleAddColumnOverlay()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-plus" pButtonIcon></i></button>
+              <p-select
+                [multiple]="true"
+                [checkmark]="true"
+                [showClear]="true"
+                #ms
+                [options]="cols"
+                [(ngModel)]="selectedColumns"
+                optionLabel="header"
+                class="custom-multiselect"
+                appendTo="body"
+                name="columnSearch"
+                filterPlaceholder="Add columns..."
+              />
+              <button pButton (click)="exportAllData()" severity="secondary" [rounded]="true" [text]="true"><i class="pi pi-external-link" pButtonIcon></i></button>
             </div>
           </div>
           <div class="scrollable-vulnerabilities">
@@ -240,24 +258,34 @@
               scrollHeight="calc(100vh - 25rem)"
               class="p-datatable-sm"
             >
-              <ng-template pTemplate="header" let-columns>
+              <ng-template #header let-columns>
                 <tr>
                   @for (col of columns; track col.field) {
                     <th scope="col" pResizableColumn [pSortableColumn]="tenableTool === 'sumid' ? col.field : null">
                       {{ col.header }}
                       @if (col.field === 'poam' && tenableTool === 'sumid') {
-                        <p-columnFilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
-                          <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                            <p-multiSelect [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" (onClear)="filter([])" placeholder="Select Status" [showClear]="true" class="w-full swap-button-order" />
+                        <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                          <ng-template #filter let-value let-filter="filterCallback">
+                            <p-select
+                              [multiple]="true"
+                              [checkmark]="true"
+                              [showClear]="true"
+                              [ngModel]="value"
+                              [options]="col.filterOptions"
+                              (onChange)="filter($event.value)"
+                              (onClear)="filter([])"
+                              placeholder="Select Status"
+                              class="w-full swap-button-order"
+                            />
                           </ng-template>
-                        </p-columnFilter>
+                        </p-columnfilter>
                       }
                       @if ((col.field === 'navyComplyDate' || col.field === 'iav' || col.field === 'total' || col.field === 'hostTotal') && tenableTool === 'sumid') {
-                        <p-columnFilter [field]="col.field" [type]="col.filterType" [showOperator]="false" [showMatchModes]="true" [showAddButton]="true" display="menu" />
+                        <p-columnfilter [field]="col.field" [type]="col.filterType" [showOperator]="false" [showMatchModes]="true" [showAddButton]="true" display="menu" />
                       }
                       @if (!(col.field === 'poam' || col.field === 'iav' || col.field === 'navyComplyDate' || col.field === 'total' || col.field === 'hostTotal') && col.filterable) {
-                        <p-columnFilter [field]="col.field" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="false" [showApplyButton]="false" [showClearButton]="false" display="menu">
-                          <ng-template pTemplate="filter" let-field="field">
+                        <p-columnfilter [field]="col.field" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="false" [showApplyButton]="false" [showClearButton]="false" display="menu">
+                          <ng-template #filter let-field="field">
                             @switch (field) {
                               @case ('pluginID') {
                                 <p-select [options]="pluginIDOptions" [(ngModel)]="tempFilters[field].operator" (onChange)="onFilterChange($event, field, false, true)" placeholder="Select Operator..." class="mb-2 w-full" />
@@ -268,35 +296,53 @@
                                 <textarea pTextarea [(ngModel)]="tempFilters[field].value" (input)="onFilterChange($event, field, true)" placeholder="Enter plugin name..." rows="3" class="mb-2 w-full"> </textarea>
                               }
                               @case ('family') {
-                                <p-multiSelect [options]="familyOptions" [(ngModel)]="tempFilters[field]" (onChange)="onFilterChange($event, field)" placeholder="Select Plugin Family..." [showToggleAll]="false" class="w-full" />
+                                <p-select
+                                  [multiple]="true"
+                                  [checkmark]="true"
+                                  [showClear]="true"
+                                  [options]="familyOptions"
+                                  [(ngModel)]="tempFilters[field]"
+                                  (onChange)="onFilterChange($event, field)"
+                                  placeholder="Select Plugin Family..."
+                                  class="w-full"
+                                />
                               }
                               @case ('severity') {
-                                <p-multiSelect [options]="severityOptions" [(ngModel)]="tempFilters[field]" (onChange)="onFilterChange($event, field)" placeholder="Select Severity..." [showToggleAll]="false" class="w-full" />
+                                <p-select
+                                  [multiple]="true"
+                                  [checkmark]="true"
+                                  [showClear]="true"
+                                  [options]="severityOptions"
+                                  [(ngModel)]="tempFilters[field]"
+                                  (onChange)="onFilterChange($event, field)"
+                                  placeholder="Select Severity..."
+                                  class="w-full"
+                                />
                               }
                               @case ('vprScore') {
                                 <p-select [options]="vprScoreOptions" [(ngModel)]="tempFilters[field].value" (onChange)="onRangeChange($event, field)" placeholder="Select filter option..." class="mb-2 w-full" class="mb-2 w-full" />
                                 @if (tempFilters[field].value === 'customRange') {
                                   <div class="range-input mt-2 flex items-center">
                                     <span class="mr-2">Between</span>
-                                    <p-inputNumber [(ngModel)]="tempFilters[field].min" [min]="getMinValue(field)" [max]="getMaxValue(field)" [showButtons]="false" (onInput)="onRangeValueChange(field)" [useGrouping]="false" />
+                                    <p-inputnumber [(ngModel)]="tempFilters[field].min" [min]="getMinValue(field)" [max]="getMaxValue(field)" [showButtons]="false" (onInput)="onRangeValueChange(field)" [useGrouping]="false" />
                                     <span class="mx-2">and</span>
-                                    <p-inputNumber [(ngModel)]="tempFilters[field].max" [min]="getMinValue(field)" [max]="getMaxValue(field)" [showButtons]="false" (onInput)="onRangeValueChange(field)" [useGrouping]="false" />
+                                    <p-inputnumber [(ngModel)]="tempFilters[field].max" [min]="getMinValue(field)" [max]="getMaxValue(field)" [showButtons]="false" (onInput)="onRangeValueChange(field)" [useGrouping]="false" />
                                   </div>
                                 }
                               }
                             }
                             <div class="mt-4 flex items-center justify-between">
-                              <p-button label="Clear" (click)="clearIndividualFilter(field, $event)" [outlined]="true" size="small" [disabled]="!isFilterActive(field)" />
-                              <p-button label="Apply" (click)="applyFilters()" size="small" />
+                              <button pButton (click)="clearIndividualFilter(field, $event)" [outlined]="true" size="small" [disabled]="!isFilterActive(field)"><span pButtonLabel>Clear</span></button>
+                              <button pButton (click)="applyFilters()" size="small"><span pButtonLabel>Apply</span></button>
                             </div>
                           </ng-template>
-                        </p-columnFilter>
+                        </p-columnfilter>
                       }
                     </th>
                   }
                 </tr>
               </ng-template>
-              <ng-template pTemplate="body" let-vulnerability let-columns="columns" let-rowIndex="rowIndex">
+              <ng-template #body let-vulnerability let-columns="columns" let-rowIndex="rowIndex">
                 <tr (click)="onRowClick(vulnerability, $event)" (keyup)="onRowClick(vulnerability, $event)" style="cursor: pointer">
                   @for (col of columns; track col.field) {
                     <td>
@@ -306,7 +352,7 @@
                             [tourAnchor]="rowIndex === 0 ? 'tenable-poam-creation' : ''"
                             class="pi"
                             [ngClass]="vulnerability.poam ? getPoamStatusIcon(vulnerability.poamStatus, vulnerability.isAssociated) : 'pi pi-plus-circle'"
-                            [ngStyle]="{
+                            [style]="{
                               color: vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus, vulnerability.parentStatus) : 'maroon',
                               'font-size': '1.5rem',
                               cursor: 'pointer',
@@ -343,12 +389,12 @@
                   }
                 </tr>
               </ng-template>
-              <ng-template pTemplate="emptymessage">
+              <ng-template #emptymessage>
                 <tr>
                   <td colspan="17" style="text-align: center">No vulnerabilities to display</td>
                 </tr>
               </ng-template>
-              <ng-template pTemplate="loadingbody" let-columns="columns">
+              <ng-template #loadingbody let-columns="columns">
                 @for (_ of [].constructor(10); track $index) {
                   <tr>
                     @for (_ of [].constructor(selectedColumns?.length); track $index) {
@@ -366,8 +412,8 @@
     </div>
   </div>
 
-  <p-dialog class="pluginDialog" [(visible)]="displayDialog" [modal]="true" styleClass="w-[50vw] overflow-hidden">
-    <ng-template pTemplate="content">
+  <p-dialog styleClass="pluginDialog w-[50vw] overflow-hidden" [(visible)]="displayDialog" [modal]="true">
+    <ng-template #content>
       <div class="p-grid">
         <div class="p-col-12"><b>Plugin ID:</b> {{ selectedVulnerability.pluginID }}</div>
         <div class="p-col-12"><b>Name:</b> {{ selectedVulnerability.name }}</div>
@@ -379,13 +425,13 @@
         <div class="p-col-12">
           @if (parsedVprContext.length > 0) {
             <p-table [value]="parsedVprContext" class="p-datatable-sm">
-              <ng-template pTemplate="header">
+              <ng-template #header>
                 <tr>
                   <th scope="col">Vulnerability Priority Rating (VPR) Key Drivers</th>
                   <th scope="col"></th>
                 </tr>
               </ng-template>
-              <ng-template pTemplate="body" let-item>
+              <ng-template #body let-item>
                 <tr>
                   <td>{{ item.name }}:</td>
                   <td>
@@ -476,7 +522,7 @@
   <p-toast />
   <p-toast position="center" key="error" />
   <p-toast position="center" key="deleteConfirmation">
-    <ng-template let-message pTemplate="message">
+    <ng-template let-message #message>
       <div class="p-3">
         <div class="text-center">
           <i class="pi pi-exclamation-triangle" style="font-size: 3rem"></i>
@@ -484,8 +530,8 @@
           <p>{{ message.detail }}</p>
         </div>
         <div class="mt-3 flex w-full justify-between">
-          <p-button (click)="messageService.clear('deleteConfirmation')" label="Cancel" severity="secondary" />
-          <p-button (click)="confirmDeleteFilter(message.data)" label="Yes" severity="danger" />
+          <button pButton (click)="messageService.clear('deleteConfirmation')" severity="secondary"><span pButtonLabel>Cancel</span></button>
+          <button pButton (click)="confirmDeleteFilter(message.data)" severity="danger"><span pButtonLabel>Yes</span></button>
         </div>
       </div>
     </ng-template>

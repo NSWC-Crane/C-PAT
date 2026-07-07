@@ -9,9 +9,10 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
@@ -23,14 +24,13 @@ import { RippleModule } from 'primeng/ripple';
 import { Tag } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subject, combineLatest, distinctUntilChanged, filter, forkJoin, switchMap, take, takeUntil } from 'rxjs';
+import { Subject, combineLatest, distinctUntilChanged, filter, forkJoin, map, switchMap, take, takeUntil } from 'rxjs';
 import { IStepOption, TourPrimeNg, TourService } from 'ngx-ui-tour-primeng';
 import { StatusMessageComponent } from '../../common/components/status-message/status-message.component';
 import { SharedService } from '../../common/services/shared.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
-import { AppConfigService } from '../services/appconfigservice';
 import { AppBreadcrumbComponent } from './app.breadcrumb.component';
 import { CardModule } from 'primeng/card';
 
@@ -60,9 +60,9 @@ import { CardModule } from 'primeng/card';
   ],
   providers: [ConfirmationService, MessageService],
   template: `
-    @if (collectionType && collectionName) {
+    @if (collectionType() && collectionName()) {
       <div class="current-collection mt-5 ml-[10.5rem] mb-[-2.5rem] flex items-center" tourAnchor="current-collection">
-        <p-tag [value]="collectionType" [severity]="getTagColor(collectionType)" class="text-xs px-1 py-0.5 cursor-pointer" (click)="collectionMenu.toggle($event)" />
+        <p-tag [value]="collectionType()" [severity]="getTagColor(collectionType())" class="text-xs px-1 py-0.5 cursor-pointer" (click)="collectionMenu.toggle($event)" />
         <span
           class="ml-2 mr-2 text-[color:var(--p-breadcrumb-item-color)] hover:text-[color:var(--p-text-hover-color)] cursor-pointer mr-1"
           [style]="{
@@ -70,7 +70,7 @@ import { CardModule } from 'primeng/card';
           }"
           (click)="collectionMenu.toggle($event)"
         >
-          {{ collectionName }}
+          {{ collectionName() }}
         </span>
         <div class="mr-[-0.5rem]" style="color: var(--p-breadcrumb-separator-color); width: var(--p-icon-size); height: var(--p-icon-size);">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" class="p-icon" aria-hidden="true">
@@ -89,7 +89,7 @@ import { CardModule } from 'primeng/card';
           <div class="w-auto rounded-2xl p-5 bg-surface-100 dark:bg-surface-900 fixed h-[calc(100vh-11rem)] flex flex-col justify-between">
             <div class="w-12 flex flex-col items-center">
               <div class="flex flex-col gap-2">
-                @for (item of items; track item) {
+                @for (item of items(); track item) {
                   <div
                     [pTooltip]="item.label"
                     (click)="handleMenuClick(item, $event, metricsMenu)"
@@ -107,24 +107,26 @@ import { CardModule } from 'primeng/card';
             </div>
             <div class="w-12 flex flex-col items-center">
               <div class="mt-10 flex flex-col gap-2">
-                <p-button
+                <button
+                  pButton
                   id="collection-selection"
                   tourAnchor="collection-selection"
-                  icon="pi pi-cog"
                   size="large"
                   [text]="true"
                   severity="secondary"
-                  [pTooltip]="'Current Collection: ' + (selectedCollection?.collectionName || 'No Collection Selected')"
+                  [pTooltip]="'Current Collection: ' + (selectedCollection()?.collectionName || 'No Collection Selected')"
                   (click)="collectionMenu.toggle($event)"
-                  [ngClass]="{ 'pulse-animation': user?.lastCollectionAccessedId === 0 }"
-                />
-                <p-button id="guided-tour" icon="pi pi-question-circle" size="large" [text]="true" severity="secondary" pTooltip="C-PAT Guided Tour" (click)="initTour()" />
+                  [class]="{ 'pulse-animation': user()?.lastCollectionAccessedId === 0 }"
+                >
+                  <i class="pi pi-cog" pButtonIcon></i>
+                </button>
+                <button pButton id="guided-tour" size="large" [text]="true" severity="secondary" pTooltip="C-PAT Guided Tour" (click)="initTour()"><i class="pi pi-question-circle" pButtonIcon></i></button>
               </div>
-              <p-menu #collectionMenu [popup]="true" [model]="collections" appendTo="body" styleClass="collections-menu">
-                <ng-template let-collection pTemplate="item">
-                  <div class="flex items-center gap-2 p-2 cursor-pointer" (click)="onCollectionClick(collection)">
-                    <p-tag [value]="collection.collectionType" [severity]="getTagColor(collection.collectionType)" class="text-xs px-1 py-0.5 shrink-0" />
-                    <span class="break-words overflow-hidden">{{ collection.collectionName }}</span>
+              <p-menu #collectionMenu [popup]="true" [model]="collections()" appendTo="body" styleClass="collections-menu">
+                <ng-template #item let-item>
+                  <div class="flex items-center gap-2 p-2 cursor-pointer" (click)="onCollectionClick(item)">
+                    <p-tag [value]="item.collectionType" [severity]="getTagColor(item.collectionType)" class="text-xs px-1 py-0.5 shrink-0" />
+                    <span class="break-words overflow-hidden">{{ item.collectionName }}</span>
                   </div>
                 </ng-template>
               </p-menu>
@@ -136,29 +138,29 @@ import { CardModule } from 'primeng/card';
                     type="button"
                     class="w-12 h-12 flex items-center justify-center rounded-full cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-primary hover:scale-105 focus:ring-2 focus:ring-primary focus:scale-105 active:opacity-80"
                     tooltipPosition="right"
-                    [pTooltip]="tooltipContent"
+                    [pTooltip]="tooltipContent()"
                     (click)="menu.toggle($event)"
                   >
                     <p-avatar image="assets/images/user.png" size="large" shape="circle" class="w-[3rem] h-[3rem]" class="shrink-0" />
                   </button>
-                  <p-menu #menu [popup]="true" [model]="userMenu" appendTo="body" styleClass="user-menu"> </p-menu>
+                  <p-menu #menu [popup]="true" [model]="userMenu()" appendTo="body" styleClass="user-menu" />
                 </div>
               </div>
             </div>
           </div>
           <div class="flex-1 rounded-2xl overflow-auto ml-[7rem]">
-            @if (user$ | async; as user) {
+            @if (user(); as user) {
               @if ((user.accountStatus === 'PENDING' && user.isAdmin !== true) || user.accountStatus === 'DISABLED') {
                 <cpat-status-message [statusCode]="999" />
               }
               @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin !== true) {
                 <cpat-status-message [statusCode]="998" />
               }
-              @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin === true && router.url === '/home') {
+              @if (user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId === 0 && user.isAdmin === true && currentUrl() === '/home') {
                 <cpat-status-message [statusCode]="998" />
               }
               @if ((user.accountStatus === 'ACTIVE' && user.lastCollectionAccessedId !== 0) || user.isAdmin === true) {
-                <router-outlet></router-outlet>
+                <router-outlet />
               }
             }
           </div>
@@ -173,10 +175,10 @@ import { CardModule } from 'primeng/card';
         <h3>Confirm Manual POAM Entry</h3>
         <p>To automate a POAM entry please visit the STIG Manager or Tenable tab. Would you like to proceed with a manual POAM entry?</p>
       </div>
-      <ng-template pTemplate="footer">
+      <ng-template #footer>
         <div class="flex justify-between items-center w-full m-2">
-          <p-button label="Yes" icon="pi pi-check" (click)="onConfirm()"></p-button>
-          <p-button label="No" icon="pi pi-times" (click)="onReject()" severity="secondary"></p-button>
+          <button pButton (click)="onConfirm()"><i class="pi pi-check" pButtonIcon></i><span pButtonLabel>Yes</span></button>
+          <button pButton severity="secondary" (click)="onReject()"><i class="pi pi-times" pButtonIcon></i><span pButtonLabel>No</span></button>
         </div>
       </ng-template>
     </p-dialog>
@@ -255,14 +257,13 @@ import { CardModule } from 'primeng/card';
 })
 export class AppLayoutComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
-  private readonly configService = inject(AppConfigService);
   private readonly collectionsService = inject(CollectionsService);
-  protected readonly router = inject(Router);
+  private readonly router = inject(Router);
   private readonly sharedService = inject(SharedService);
   private readonly tourService = inject(TourService);
   private readonly userService = inject(UsersService);
 
-  items: MenuItem[] = [];
+  readonly items = signal<MenuItem[]>([]);
   metricsMenuItems: MenuItem[] = [
     {
       label: 'Metrics',
@@ -275,39 +276,32 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       command: () => this.router.navigate(['/metrics/global'])
     }
   ];
-  collections: any[] = [];
-  collectionType: string = 'C-PAT';
-  collectionName: string = '';
-  manualCreationAllowed: boolean = true;
-  selectedCollection: any = null;
-  confirmPopupVisible: boolean = false;
-  userMenu: MenuItem[] = [];
-  currentUser: any = null;
-  user: any;
+  readonly collections = signal<any[]>([]);
+  readonly collectionType = signal<string>('C-PAT');
+  readonly collectionName = signal<string>('');
+  readonly manualCreationAllowed = signal<boolean>(true);
+  readonly selectedCollection = signal<any>(null);
+  readonly confirmPopupVisible = signal<boolean>(false);
+  readonly userMenu = signal<MenuItem[]>([]);
   accessLevel: number;
   private readonly destroy$ = new Subject<void>();
 
-  readonly user$ = this.authService.user$;
-  readonly accessLevel$ = this.authService.accessLevel$;
+  private readonly user$ = this.authService.user$;
+  private readonly accessLevel$ = this.authService.accessLevel$;
 
-  get isDarkMode(): boolean {
-    return this.configService.appState().darkTheme ?? true;
-  }
+  readonly user = toSignal(this.authService.user$);
 
-  get tooltipContent(): string {
-    return `${this.currentUser?.name || 'C-PAT User'}\n\n${this.currentUser?.email || ''}`;
-  }
+  protected readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(() => this.router.url)
+    ),
+    { initialValue: this.router.url }
+  );
+
+  readonly tooltipContent = computed(() => `${this.user()?.name || 'C-PAT User'}\n\n${this.user()?.email || ''}`);
 
   ngOnInit() {
-    this.user$
-      .pipe(
-        filter((user) => !!user),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((user) => {
-        this.currentUser = user;
-      });
-
     combineLatest([this.user$.pipe(filter((user) => !!user)), this.accessLevel$.pipe(filter((level) => level != null))])
       .pipe(
         distinctUntilChanged(([prevUser, prevLevel], [nextUser, nextLevel]) => prevUser.userId === nextUser.userId && prevUser.lastCollectionAccessedId === nextUser.lastCollectionAccessedId && prevLevel === nextLevel),
@@ -316,7 +310,6 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       .subscribe({
         next: ([user, accessLevel]) => {
           this.setUserMenuItems();
-          this.user = user;
           this.accessLevel = accessLevel;
           this.loadCollections(user);
         },
@@ -337,22 +330,22 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       collectionData: this.collectionsService.getCollectionBasicList()
     }).subscribe({
       next: ({ collections, collectionData }) => {
-        this.collections = collections;
+        this.collections.set(collections.map((c) => ({ ...c, label: c.collectionName })));
 
         if (user.lastCollectionAccessedId) {
-          this.selectedCollection = collections.find((c) => c.collectionId === user.lastCollectionAccessedId);
+          this.selectedCollection.set(collections.find((c) => c.collectionId === user.lastCollectionAccessedId) ?? null);
           const selectedCollectionData = collectionData.find((c) => c.collectionId === +user.lastCollectionAccessedId);
 
-          this.collectionType = selectedCollectionData?.collectionType || 'C-PAT';
-          this.collectionName = selectedCollectionData?.collectionName || '';
-          this.manualCreationAllowed = selectedCollectionData?.manualCreationAllowed ?? true;
+          this.collectionType.set(selectedCollectionData?.collectionType || 'C-PAT');
+          this.collectionName.set(selectedCollectionData?.collectionName || '');
+          this.manualCreationAllowed.set(selectedCollectionData?.manualCreationAllowed ?? true);
         }
 
         this.setMenuItems();
       },
       error: (error) => {
         console.error('Error loading collections:', error);
-        this.collectionType = 'C-PAT';
+        this.collectionType.set('C-PAT');
       }
     });
   }
@@ -379,10 +372,10 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   resetWorkspace(selectedCollectionId: number) {
     this.sharedService.setSelectedCollection(selectedCollectionId);
 
-    const collection = this.collections.find((x: { collectionId: number }) => x.collectionId === selectedCollectionId);
+    const collection = this.collections().find((x: { collectionId: number }) => x.collectionId === selectedCollectionId);
 
     if (collection) {
-      this.selectedCollection = collection;
+      this.selectedCollection.set(collection);
     }
 
     this.user$
@@ -411,16 +404,16 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     const marketplaceDisabled = CPAT.Env.features.marketplaceDisabled;
 
     if (marketplaceDisabled) {
-      this.userMenu = [
+      this.userMenu.set([
         {
           label: 'Log Out',
           icon: 'pi pi-sign-out',
           command: () => this.logout(),
           styleClass: 'p-3'
         }
-      ];
+      ]);
     } else {
-      this.userMenu = [
+      this.userMenu.set([
         {
           label: 'Marketplace',
           icon: 'pi pi-shopping-cart',
@@ -436,18 +429,8 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
           command: () => this.logout(),
           styleClass: 'p-3'
         }
-      ];
+      ]);
     }
-  }
-
-  setupUserMenuActions() {
-    this.userMenu.forEach((item) => {
-      if (item.label === 'Marketplace') {
-        item.command = () => this.goToMarketplace();
-      } else if (item.label === 'Log Out') {
-        item.command = () => this.logout();
-      }
-    });
   }
 
   goToMarketplace() {
@@ -473,10 +456,10 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
 
   isItemActive(item: MenuItem): boolean {
     if (item.id === 'metrics-menu') {
-      return this.router.url.startsWith('/metrics');
+      return this.currentUrl().startsWith('/metrics');
     }
 
-    return this.router.url === item.routerLink?.[0];
+    return this.currentUrl() === item.routerLink?.[0];
   }
 
   private setMenuItems() {
@@ -491,7 +474,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         label: 'Admin Portal',
         icon: 'pi pi-users',
         routerLink: ['/admin-processing'],
-        visible: this.user.isAdmin
+        visible: this.user()?.isAdmin
       },
       {
         label: 'Metrics',
@@ -509,19 +492,19 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         label: 'STIG Manager',
         icon: 'pi pi-shield',
         routerLink: ['/import-processing/stigmanager-import'],
-        visible: this.accessLevel >= 1 && this.collectionType === 'STIG Manager'
+        visible: this.accessLevel >= 1 && this.collectionType() === 'STIG Manager'
       },
       {
         label: 'Tenable',
         icon: 'tenable-icon',
         routerLink: ['/import-processing/tenable-import'],
-        visible: this.accessLevel >= 1 && this.collectionType === 'Tenable'
+        visible: this.accessLevel >= 1 && this.collectionType() === 'Tenable'
       },
       {
         label: 'Manual POAM Entry',
         icon: 'pi pi-file-plus',
         command: () => this.showConfirmPopup(),
-        visible: this.accessLevel >= 2 && this.manualCreationAllowed
+        visible: this.accessLevel >= 2 && this.manualCreationAllowed()
       },
       {
         label: 'Asset Processing',
@@ -543,20 +526,20 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       }
     ];
 
-    this.items = menuItems.filter((item) => item.visible);
+    this.items.set(menuItems.filter((item) => item.visible));
   }
 
   showConfirmPopup() {
-    this.confirmPopupVisible = true;
+    this.confirmPopupVisible.set(true);
   }
 
   onConfirm() {
     this.router.navigate(['/poam-processing/poam-details/ADDPOAM']);
-    this.confirmPopupVisible = false;
+    this.confirmPopupVisible.set(false);
   }
 
   onReject() {
-    this.confirmPopupVisible = false;
+    this.confirmPopupVisible.set(false);
   }
 
   logout() {
@@ -724,7 +707,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   }
 
   private buildImportSteps(): IStepOption[] {
-    if (this.collectionType === 'STIG Manager') {
+    if (this.collectionType() === 'STIG Manager') {
       return [
         {
           anchorId: 'stigmanager-tabset',
@@ -761,7 +744,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       ];
     }
 
-    if (this.collectionType === 'Tenable') {
+    if (this.collectionType() === 'Tenable') {
       return [
         {
           anchorId: 'tenable-vulnerabilities',

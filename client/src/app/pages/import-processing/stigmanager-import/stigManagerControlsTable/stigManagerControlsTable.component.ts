@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject, viewChild } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, viewChild, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -17,7 +17,7 @@ import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
@@ -96,12 +96,12 @@ interface RawCciFinding {
   styleUrls: ['./stigManagerControlsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, CommonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, ProgressBarModule, SkeletonModule, TableModule, TagModule, TooltipModule]
+  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, ProgressBarModule, SkeletonModule, TableModule, TagModule, TooltipModule, NgClass]
 })
 export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() stigmanCollectionId!: number;
-  @Input() selectedCollection!: number;
-  @Output() controlsCountChange = new EventEmitter<number>();
+  readonly stigmanCollectionId = input.required<number>();
+  readonly selectedCollection = input.required<number>();
+  readonly controlsCountChange = output<number>();
 
   private readonly router = inject(Router);
   private readonly sharedService = inject(SharedService);
@@ -180,7 +180,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   ];
 
   ngOnInit() {
-    if (this.stigmanCollectionId) {
+    if (this.stigmanCollectionId()) {
       this.loadControlsData();
     }
   }
@@ -196,7 +196,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
     this.rawFindings = [];
     this.controlSummaries = [];
 
-    this.sharedService.getFindingsByCCIFromSTIGMAN(this.stigmanCollectionId).subscribe({
+    this.sharedService.getFindingsByCCIFromSTIGMAN(this.stigmanCollectionId()).subscribe({
       next: (data: RawCciFinding[]) => {
         if (!data || data.length === 0) {
           this.showWarn('No control findings found.');
@@ -281,13 +281,15 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   }
 
   private updateControlPoamPercentages() {
-    if (!this.selectedCollection) {
+    const selectedCollection = this.selectedCollection();
+
+    if (!selectedCollection) {
       this.loadingControls = false;
 
       return;
     }
 
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
+    this.poamService.getVulnerabilityIdsWithPoamByCollection(selectedCollection).subscribe({
       next: (response: any) => {
         this.existingPoams = response;
 
@@ -373,11 +375,13 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   }
 
   private updateExistingPoams() {
-    if (!this.selectedCollection) {
+    const selectedCollection = this.selectedCollection();
+
+    if (!selectedCollection) {
       return;
     }
 
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
+    this.poamService.getVulnerabilityIdsWithPoamByCollection(selectedCollection).subscribe({
       next: (response: any) => {
         this.existingPoams = response;
 

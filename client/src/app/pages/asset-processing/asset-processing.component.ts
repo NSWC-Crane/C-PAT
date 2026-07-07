@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ChartModule } from 'primeng/chart';
+import { CpatChartComponent } from '../../common/components/chart/chart.component';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -58,7 +58,7 @@ interface AssetEntry {
     AssetComponent,
     ButtonModule,
     CardModule,
-    ChartModule,
+    CpatChartComponent,
     DialogModule,
     SelectModule,
     FormsModule,

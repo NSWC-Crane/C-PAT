@@ -9,7 +9,7 @@
 -->
 
 <p-dialog [(visible)]="visible" [modal]="true" [closable]="false" [draggable]="false" [resizable]="false" styleClass="w-[40vw] overflow-hidden">
-  <ng-template pTemplate="header">
+  <ng-template #header>
     <h3>U.S. Government (USG) Information System (IS) - Use and Consent</h3>
   </ng-template>
   <div>
@@ -33,7 +33,7 @@
       disposing of any output obtained through the use of this information system in accordance with the highest classification of the system and all data stored or processed by the system.
     </p>
   </div>
-  <ng-template pTemplate="footer">
-    <p-button class="w-full mx-2 mb-2" fluid label="Agree" variant="outlined" (click)="consentOk()" />
+  <ng-template #footer>
+    <button pButton class="w-full mx-2 mb-2" (click)="consentOk()" fluid variant="outlined"><span pButtonLabel>Agree</span></button>
   </ng-template>
 </p-dialog>

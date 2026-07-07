@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
+import { NgClass, DatePipe, DecimalPipe } from '@angular/common';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -19,7 +19,7 @@ import { CardModule } from 'primeng/card';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
@@ -59,10 +59,9 @@ interface STIGManagerFinding {
   imports: [
     ButtonModule,
     CardModule,
-    CommonModule,
     FormsModule,
     InputTextModule,
-    MultiSelectModule,
+    SelectModule,
     SkeletonModule,
     TableModule,
     TabsModule,
@@ -74,7 +73,10 @@ interface STIGManagerFinding {
     IconFieldModule,
     ProgressBarModule,
     TagModule,
-    TourPrimeNg
+    TourPrimeNg,
+    DatePipe,
+    DecimalPipe,
+    NgClass
   ]
 })
 export class STIGManagerImportComponent implements OnInit, OnDestroy {

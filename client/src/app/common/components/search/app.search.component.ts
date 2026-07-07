@@ -11,7 +11,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AutoComplete } from 'primeng/autocomplete';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 
 interface SearchItem {
   title: string;
@@ -21,9 +21,9 @@ interface SearchItem {
 @Component({
   selector: 'cpat-search',
   standalone: true,
-  imports: [FormsModule, AutoComplete],
+  imports: [AutoCompleteModule, FormsModule],
   template: `
-    <p-autoComplete
+    <p-autocomplete
       id="appSearch"
       name="appSearch"
       [(ngModel)]="query"
@@ -32,14 +32,14 @@ interface SearchItem {
       (onSelect)="navigateTo($event)"
       [placeholder]="placeholder"
       [optionLabel]="'title'"
-      [minLength]="1"
+      [minQueryLength]="1"
       [scrollHeight]="'500px'"
       class="w-full"
     >
-      <ng-template let-item pTemplate="item">
+      <ng-template let-item #item>
         <div>{{ item.title }}</div>
       </ng-template>
-    </p-autoComplete>
+    </p-autocomplete>
   `,
   styles: [
     `

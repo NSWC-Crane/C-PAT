@@ -12,44 +12,44 @@
   <div class="col-span-12">
     <div class="scrollable-appConfig overflow-hidden">
       <p-table #dt [value]="appConfiguration" [globalFilterFields]="['settingName', 'settingValue']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="settingName" editMode="row">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <div class="flex items-center justify-between">
-            <p-iconField iconPosition="left">
-              <p-inputIcon>
+            <p-iconfield iconPosition="left">
+              <p-inputicon>
                 <i class="pi pi-search"></i>
-              </p-inputIcon>
+              </p-inputicon>
               <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search..." id="search" class="search-input" />
-            </p-iconField>
+            </p-iconfield>
           </div>
         </ng-template>
-        <ng-template pTemplate="header">
+        <ng-template #header>
           <tr>
             <th scope="col" pSortableColumn="settingName">Name</th>
             <th scope="col" pSortableColumn="settingValue">Value</th>
             <th scope="col">Actions</th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-appConfig let-editing="editing" let-ri="rowIndex">
+        <ng-template #body let-appConfig let-editing="editing" let-ri="rowIndex">
           <tr [pEditableRow]="appConfig">
             <td class="break-all">{{ appConfig.settingName }}</td>
             <td>
-              <p-cellEditor>
-                <ng-template pTemplate="input">
+              <p-celleditor>
+                <ng-template #input>
                   <input pInputText type="text" class="w-full" id="value" [(ngModel)]="appConfig.settingValue" maxlength="50" />
                 </ng-template>
-                <ng-template pTemplate="output"> {{ appConfig.settingValue }} </ng-template>
-              </p-cellEditor>
+                <ng-template #output> {{ appConfig.settingValue }} </ng-template>
+              </p-celleditor>
             </td>
             <td>
               <div class="flex gap-2">
                 @if (!editing) {
-                  <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(appConfig)" [rounded]="true" variant="text" />
+                  <button pButton (click)="$event.stopPropagation(); onRowEditInit(appConfig)" pInitEditableRow [rounded]="true" variant="text"><i class="pi pi-pencil" pButtonIcon></i></button>
                 }
                 @if (editing) {
-                  <p-button pSaveEditableRow icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(appConfig)" [rounded]="true" variant="text" severity="success" class="mr-2" />
+                  <button pButton class="mr-2" (click)="$event.stopPropagation(); onRowEditSave(appConfig)" pSaveEditableRow [rounded]="true" variant="text" severity="success"><i class="pi pi-check" pButtonIcon></i></button>
                 }
                 @if (editing) {
-                  <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(ri)" [rounded]="true" variant="text" severity="danger" />
+                  <button pButton (click)="$event.stopPropagation(); onRowEditCancel(ri)" pCancelEditableRow [rounded]="true" variant="text" severity="danger"><i class="pi pi-times" pButtonIcon></i></button>
                 }
               </div>
             </td>

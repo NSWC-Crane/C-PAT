@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
@@ -37,7 +36,7 @@ import { PoamService } from '../../poam-processing/poams.service';
   styleUrls: ['./label.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, ToastModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
+  imports: [FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, ToastModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   private readonly labelService = inject(LabelService);
@@ -47,9 +46,9 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   private readonly messageService = inject(MessageService);
   private readonly setPayloadService = inject(PayloadService);
 
-  @Input() label: any;
-  @Input() labels: any;
-  @Input() payload: any;
+  label = model<any>(undefined);
+  readonly labels = input<any>(undefined);
+  readonly payload = input<any>(undefined);
   readonly labelchange = output();
   errorMessage: string = '';
   data: any = [];
@@ -82,9 +81,11 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['label']?.currentValue) {
-      this.label = { ...changes['label'].currentValue };
+      this.label.set({ ...changes['label'].currentValue });
 
-      if (this.label.labelId && this.label.labelId !== 'ADDLABEL') {
+      const label = this.label();
+
+      if (label.labelId && label.labelId !== 'ADDLABEL') {
         this.loadPoamsByLabel();
       } else {
         this.displayPoams = [];
@@ -110,14 +111,16 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   loadPoamsByLabel() {
-    if (!this.label?.labelId || this.label?.labelId === 'ADDLABEL') {
+    const label = this.label();
+
+    if (!label?.labelId || label?.labelId === 'ADDLABEL') {
       this.displayPoams = [];
 
       return;
     }
 
     this.loadingPoams = true;
-    this.subs.sink = this.poamService.getPoamsByLabel(this.label.labelId).subscribe({
+    this.subs.sink = this.poamService.getPoamsByLabel(label.labelId).subscribe({
       next: (data: any) => {
         this.displayPoams = (data || []).map((poam) => ({
           ...poam,
@@ -273,15 +276,15 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
 
       const poamLabel = {
         poamId: poam.poamId,
-        labelId: this.label.labelId
+        labelId: this.label().labelId
       };
 
       this.subs.sink = this.poamService.postPoamLabel(poamLabel).subscribe({
         next: () => {
           this.displayPoams.push({
             ...poam,
-            labelId: this.label.labelId,
-            labelName: this.label.labelName,
+            labelId: this.label().labelId,
+            labelName: this.label().labelName,
             isNew: false
           });
 
@@ -311,7 +314,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
 
-    this.subs.sink = this.poamService.deletePoamLabel(poam.poamId, this.label.labelId).subscribe({
+    this.subs.sink = this.poamService.deletePoamLabel(poam.poamId, this.label().labelId).subscribe({
       next: () => {
         this.displayPoams.splice(rowIndex, 1);
         this.messageService.add({
@@ -351,11 +354,12 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   onSubmit() {
     if (!this.validData()) return;
 
+    const labelValue = this.label();
     const label = {
-      labelId: this.label.labelId == 'ADDLABEL' || !this.label.labelId ? 0 : this.label.labelId,
+      labelId: labelValue.labelId == 'ADDLABEL' || !labelValue.labelId ? 0 : labelValue.labelId,
       collectionId: this.selectedCollection,
-      labelName: this.label.labelName,
-      description: this.label.description
+      labelName: this.label().labelName,
+      description: this.label().description
     };
 
     if (label.labelId === 0) {
@@ -373,14 +377,14 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
       );
     } else {
       this.subs.sink = this.labelService.updateLabel(this.selectedCollection, label.labelId, label).subscribe((data) => {
-        this.label = data;
+        this.label.set(data);
         this.labelchange.emit();
       });
     }
   }
 
   resetData() {
-    this.label = { labelId: '', labelName: '', description: '' };
+    this.label.set({ labelId: '', labelName: '', description: '' });
     this.displayPoams = [];
     this.labelchange.emit();
   }
@@ -393,14 +397,16 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     }).onClose;
 
   validData(): boolean {
-    if (!this.label.labelName || this.label.labelName == undefined) {
+    const label = this.label();
+
+    if (!label.labelName || label.labelName == undefined) {
       this.invalidData('Label name required');
 
       return false;
     }
 
-    if (this.label.labelId == 'ADDLABEL') {
-      const exists = this.labels.find((e: { labelName: any }) => e.labelName === this.label.labelName);
+    if (label.labelId == 'ADDLABEL') {
+      const exists = this.labels().find((e: { labelName: any }) => e.labelName === this.label().labelName);
 
       if (exists) {
         this.invalidData('Label Already Exists');

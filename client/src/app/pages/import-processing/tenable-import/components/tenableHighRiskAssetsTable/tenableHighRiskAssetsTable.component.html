@@ -15,13 +15,13 @@
 } @else {
   <div class="flex items-center justify-between mb-2">
     <div class="flex items-center gap-3">
-      <p-iconField iconPosition="left">
-        <p-inputIcon>
+      <p-iconfield iconPosition="left">
+        <p-inputicon>
           <i class="pi pi-search"></i>
-        </p-inputIcon>
+        </p-inputicon>
         <input pInputText type="text" id="search" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search..." />
-      </p-iconField>
-      <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Clear all filters" tooltipPosition="bottom" />
+      </p-iconfield>
+      <button pButton (click)="clear()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters" tooltipPosition="bottom"><i class="pi pi-filter-slash" pButtonIcon></i></button>
       <span class="text-color-secondary flex items-center text-sm ml-2">
         {{ highRiskAssetsTotalRecords() }} Results
         <i class="pi pi-info-circle ml-1" tooltipPosition="bottom" [pTooltip]="highRiskAssetsTooltip" tooltipStyleClass="wide-tooltip" appendTo="body" style="font-size: 0.875rem; color: var(--text-color-secondary)"></i>
@@ -43,7 +43,7 @@
       </span>
     </div>
     <div class="flex gap-2">
-      <p-button icon="pi pi-external-link" (click)="exportCSV()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Export to CSV" tooltipPosition="bottom" />
+      <button pButton (click)="exportCSV()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Export to CSV" tooltipPosition="bottom"><i class="pi pi-external-link" pButtonIcon></i></button>
     </div>
   </div>
   <p-table
@@ -65,15 +65,15 @@
     [sortOrder]="-1"
     dataKey="dnsName"
   >
-    <ng-template pTemplate="header">
+    <ng-template #header>
       <tr>
-        <th style="width: 25%" pSortableColumn="dnsName">DNS <p-columnFilter type="text" field="dnsName" display="menu" /></th>
-        <th style="width: 20%" pSortableColumn="ip">IP Address <p-columnFilter type="text" field="ip" display="menu" /></th>
-        <th style="width: 10%" pSortableColumn="score">Score <p-columnFilter type="numeric" field="score" display="menu" /></th>
+        <th style="width: 25%" pSortableColumn="dnsName">DNS <p-columnfilter type="text" field="dnsName" display="menu" /></th>
+        <th style="width: 20%" pSortableColumn="ip">IP Address <p-columnfilter type="text" field="ip" display="menu" /></th>
+        <th style="width: 10%" pSortableColumn="score">Score <p-columnfilter type="numeric" field="score" display="menu" /></th>
         <th style="width: 45%" pSortableColumn="total">Vulnerabilities</th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-asset>
+    <ng-template #body let-asset>
       <tr>
         <td>
           <span class="asset-link" (click)="onHostNameClick(asset, $event)">
@@ -114,7 +114,7 @@
         </td>
       </tr>
     </ng-template>
-    <ng-template pTemplate="emptymessage">
+    <ng-template #emptymessage>
       <tr>
         <td colspan="4">
           <div class="text-center py-8 text-gray-400">
@@ -128,5 +128,5 @@
 }
 
 @if (selectedHost()) {
-  <cpat-tenable-host-dialog [host]="selectedHost()" [tenableRepoId]="tenableRepoId" [(visible)]="displayDialog" />
+  <cpat-tenable-host-dialog [host]="selectedHost()" [tenableRepoId]="tenableRepoId()" [(visible)]="displayDialog" />
 }

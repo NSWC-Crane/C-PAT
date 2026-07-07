@@ -9,18 +9,18 @@
 -->
 
 <p-card>
-  <ng-template pTemplate="content">
+  <ng-template #content>
     <div class="toolbar mb-4">
       <div class="flex items-center justify-between">
-        <p-iconField iconPosition="left">
-          <p-inputIcon>
+        <p-iconfield iconPosition="left">
+          <p-inputicon>
             <i class="pi pi-search"></i>
-          </p-inputIcon>
+          </p-inputicon>
           <input id="poamGridSearch" name="poamGridSearch" pInputText type="text" [ngModel]="globalFilter" (ngModelChange)="globalFilterSignal.set($event)" placeholder="Search..." />
-        </p-iconField>
-        <p-button styleClass="ml-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-filter-slash" (click)="clear()" pTooltip="Reset default filters" />
+        </p-iconfield>
+        <button pButton class="ml-2" (click)="clear()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset default filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
       </div>
-      @if (showTourAnchor) {
+      @if (showTourAnchor()) {
         <div class="right-buttons" tourAnchor="poam-export">
           <ng-container [ngTemplateOutlet]="exportButtons" />
         </div>
@@ -30,23 +30,22 @@
         </div>
       }
       <ng-template #exportButtons>
-        <p-fileUpload
+        <p-fileupload
           #fileUpload
           fileLimit="1"
           chooseStyleClass="p-button-secondary p-button-text p-button-rounded mt-1"
           mode="basic"
           chooseIcon="pi pi-sync"
-          chooseLabel="Choose"
+          chooseLabel=" "
           pTooltip="Upload an eMASSter excel to overwrite with select C-PAT data"
           tooltipPosition="top"
           [auto]="true"
           accept=".xls, .xlsx, .xlsm"
           [maxFileSize]="10485760"
           (onSelect)="importEMASSter($event)"
-        >
-        </p-fileUpload>
-        <p-button icon="pi pi-download" severity="primary" [rounded]="true" [text]="true" pTooltip="Export to eMASS excel template" tooltipPosition="top" (onClick)="exportCollection()" />
-        <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export to CSV" tooltipPosition="top" (onClick)="exportToCSV()" />
+        />
+        <button pButton (click)="exportCollection()" severity="primary" [rounded]="true" [text]="true" pTooltip="Export to eMASS excel template" tooltipPosition="top"><i class="pi pi-download" pButtonIcon></i></button>
+        <button pButton (click)="exportToCSV()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export to CSV" tooltipPosition="top"><i class="pi pi-external-link" pButtonIcon></i></button>
       </ng-template>
     </div>
     <div class="table-container">
@@ -76,22 +75,22 @@
           'affectedAssets'
         ]"
       >
-        <ng-template pTemplate="header">
+        <ng-template #header>
           <tr>
             <th scope="col" (click)="resetStatusSort()">
               <div class="flex items-center">
                 POAM ID
-                <p-columnFilter type="text" field="poamId" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="poamId" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" (click)="onStatusHeaderClick($event)" [pTooltip]="getCurrentStatusSortName()" tooltipPosition="top" class="cursor-pointer">
               <div class="flex items-center">
                 POAM Status
-                <p-columnFilter type="text" field="status" [type]="'text'" [showOperator]="false" [showMatchModes]="true" [showAddButton]="false" [showButtons]="true" display="menu">
-                  <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <p-columnfilter type="text" field="status" [type]="'text'" [showOperator]="false" [showMatchModes]="true" [showAddButton]="false" [showButtons]="true" display="menu">
+                  <ng-template #filter let-value let-filter="filterCallback">
                     <p-select [ngModel]="value" [options]="poamStatusOptions()" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
                   </ng-template>
-                </p-columnFilter>
+                </p-columnfilter>
                 @if (getCurrentStatusSortIcon()) {
                   <i [class]="'mt-1 ml-1 pi ' + getCurrentStatusSortIcon()" [style.color]="getStatusSortIconColor()" style="opacity: 0.75"></i>
                 }
@@ -100,96 +99,96 @@
             <th scope="col" pSortableColumn="source" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Source
-                <p-columnFilter type="text" field="source" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="source" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="vulnerabilityId" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Vulnerability ID
-                <p-columnFilter type="text" field="vulnerabilityId" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="vulnerabilityId" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="affectedAssets" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Affected Assets
-                <p-columnFilter type="numeric" field="affectedAssets" [showOperator]="false" display="menu" />
+                <p-columnfilter type="numeric" field="affectedAssets" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" style="min-width: 20rem" pSortableColumn="vulnerabilityTitle" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Vulnerability Title
-                <p-columnFilter type="text" field="vulnerabilityTitle" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="vulnerabilityTitle" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="taskOrderNumber" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Task Order #
-                <p-columnFilter type="text" field="taskOrderNumber" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="taskOrderNumber" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="iavmNumber" (click)="resetStatusSort()">
               <div class="flex items-center">
                 IAV
-                <p-columnFilter type="text" field="iavmNumber" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="iavmNumber" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="rawSeverity" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Raw Severity
-                <p-columnFilter type="text" field="rawSeverity" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="rawSeverity" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="adjSeverity" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Adjusted Severity
-                <p-columnFilter type="text" field="adjSeverity" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="adjSeverity" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="owner" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Owner
-                <p-columnFilter type="text" field="owner" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="owner" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="submittedDate" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Submitted Date
-                <p-columnFilter type="date" field="submittedDate" [showOperator]="false" display="menu" />
+                <p-columnfilter type="date" field="submittedDate" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="scheduledCompletionDate" (click)="resetStatusSort()" pTooltip="Date shown includes extension time if applicable" tooltipPosition="top">
               <div class="flex items-center">
                 Scheduled Completion
-                <p-columnFilter type="date" field="scheduledCompletionDate" [showOperator]="false" display="menu" />
+                <p-columnfilter type="date" field="scheduledCompletionDate" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col" pSortableColumn="lastUpdated" (click)="resetStatusSort()">
               <div class="flex items-center">
                 Last Updated
-                <p-columnFilter type="date" field="lastUpdated" [showOperator]="false" display="menu" />
+                <p-columnfilter type="date" field="lastUpdated" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col">
               <div class="flex items-center">
                 Associated Vulnerabilities
-                <p-columnFilter type="text" field="associatedVulnerabilities" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="associatedVulnerabilities" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col">
               <div class="flex items-center">
                 Assigned Teams
-                <p-columnFilter type="text" field="assignedTeamNames" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="assignedTeamNames" [showOperator]="false" display="menu" />
               </div>
             </th>
             <th scope="col">
               <div class="flex items-center">
                 Labels
-                <p-columnFilter type="text" field="labels" [showOperator]="false" display="menu" />
+                <p-columnfilter type="text" field="labels" [showOperator]="false" display="menu" />
               </div>
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-row>
+        <ng-template #body let-row>
           <tr>
             <td>
               <a href="javascript:void(0)" (click)="managePoam(row)" class="text-primary cursor-pointer font-semibold hover:font-bold" pTooltip="Navigate to this POAM" tooltipPosition="top">
@@ -201,7 +200,7 @@
             <td>{{ row.vulnerabilityId }}</td>
             <td>
               @if (row.isAffectedAssetsLoading) {
-                <p-progressSpinner [style]="{ width: '20px', height: '20px' }" strokeWidth="4" pTooltip="Loading affected assets for Vulnerability ID: {{ row.vulnerabilityId }}" tooltipPosition="top" />
+                <p-progressspinner [style]="{ width: '20px', height: '20px' }" strokeWidth="4" pTooltip="Loading affected assets for Vulnerability ID: {{ row.vulnerabilityId }}" tooltipPosition="top" />
               } @else if (row.shouldReviewForClosure) {
                 <div class="align-items-center flex">
                   <i class="pi pi-exclamation-triangle mr-2 text-yellow-500" pTooltip="Review for closure. No affected assets found for Vulnerability ID: {{ row.vulnerabilityId }}" tooltipPosition="top"> </i>
@@ -249,7 +248,7 @@
             </td>
           </tr>
         </ng-template>
-        <ng-template pTemplate="emptymessage">
+        <ng-template #emptymessage>
           <tr>
             <td colspan="16">No POAMs found.</td>
           </tr>

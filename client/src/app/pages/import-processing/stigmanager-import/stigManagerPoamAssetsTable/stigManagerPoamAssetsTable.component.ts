@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Input, Component, OnDestroy, OnInit, inject, viewChildren, viewChild, effect } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChildren, viewChild, effect, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -17,7 +16,7 @@ import { CardModule } from 'primeng/card';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Select, SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
@@ -40,7 +39,7 @@ interface ExportColumn {
   styleUrls: ['./stigManagerPoamAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, CardModule, CommonModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, MultiSelectModule, TabsModule, TableModule, ToastModule, TagModule, TooltipModule]
+  imports: [ButtonModule, CardModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, SelectModule, TabsModule, TableModule, ToastModule, TagModule, TooltipModule]
 })
 export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly assetDeltaService = inject(AssetDeltaService);
@@ -48,12 +47,12 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   private readonly messageService = inject(MessageService);
   private readonly sharedService = inject(SharedService);
 
-  @Input() stigmanCollectionId!: number;
-  @Input() groupId!: string;
-  @Input() associatedVulnerabilities: any[] = [];
+  readonly stigmanCollectionId = input.required<number>();
+  readonly groupId = input.required<string>();
+  readonly associatedVulnerabilities = input<any[]>([]);
 
   private readonly tables = viewChildren(Table);
-  private readonly multiSelect = viewChild<MultiSelect>('ms');
+  private readonly columnSelect = viewChild<Select>('ms');
 
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -92,8 +91,8 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
 
     this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
 
-    if (this.stigmanCollectionId) {
-      if (this.groupId) {
+    if (this.stigmanCollectionId()) {
+      if (this.groupId()) {
         this.loadData();
       } else {
         this.messageService.add({
@@ -136,11 +135,13 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
 
   loadData() {
     this.loading = true;
-    const associatedVulnIds = this.associatedVulnerabilities.map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null)).filter((id) => id !== null);
+    const associatedVulnIds = this.associatedVulnerabilities()
+      .map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null))
+      .filter((id) => id !== null);
 
-    const allVulnIds = [this.groupId, ...associatedVulnIds];
+    const allVulnIds = [this.groupId(), ...associatedVulnIds];
 
-    this.sharedService.getPOAMAssetsFromSTIGMAN(this.stigmanCollectionId).subscribe({
+    this.sharedService.getPOAMAssetsFromSTIGMAN(this.stigmanCollectionId()).subscribe({
       next: (poamAssets) => {
         let allAssets: any[] = [];
 
@@ -184,7 +185,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   }
 
   loadAssetDetails(mappedAssets: any[]) {
-    this.sharedService.getAssetDetailsFromSTIGMAN(this.stigmanCollectionId).subscribe({
+    this.sharedService.getAssetDetailsFromSTIGMAN(this.stigmanCollectionId()).subscribe({
       next: (assetDetails) => {
         if (!assetDetails || assetDetails.length === 0) {
           console.error('No asset details found.');
@@ -403,7 +404,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
     });
 
     this.csvExportService.exportToCsv(processedData, {
-      filename: `CPAT_${this.groupId}-affected-assets-${new Date().toISOString().split('T')[0]}`,
+      filename: `CPAT_${this.groupId()}-affected-assets-${new Date().toISOString().split('T')[0]}`,
       columns: this.selectedColumns,
       includeTimestamp: false
     });
@@ -414,13 +415,13 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   }
 
   toggleAddColumnOverlay() {
-    const multiSelect = this.multiSelect();
+    const columnSelect = this.columnSelect();
 
-    if (multiSelect) {
-      if (multiSelect.overlayVisible) {
-        multiSelect.hide();
+    if (columnSelect) {
+      if (columnSelect.overlayVisible()) {
+        columnSelect.hide();
       } else {
-        multiSelect.show();
+        columnSelect.show();
       }
     }
   }

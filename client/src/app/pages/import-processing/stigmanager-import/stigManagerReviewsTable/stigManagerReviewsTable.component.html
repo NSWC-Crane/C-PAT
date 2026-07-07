@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -13,22 +13,20 @@
     <div class="p-fluid">
       <div class="toolbar mt-4">
         <div class="flex items-center justify-between">
-          <p-multiselect
+          <p-select
+            [multiple]="true"
+            [checkmark]="true"
+            [showClear]="true"
             #benchmarkMs
             [options]="benchmarkOptions"
             [(ngModel)]="selectedBenchmarkIds"
             placeholder="Select Benchmarks..."
             [disabled]="isLoading && !showBenchmarkSelector"
             appendTo="body"
-            [showClear]="false"
             [filter]="true"
-            filterPlaceHolder="Search benchmarks..."
-            [showToggleAll]="true"
+            filterPlaceholder="Search benchmarks..."
             optionLabel="label"
             optionValue="value"
-            [maxSelectedLabels]="1"
-            selectedItemsLabel="{0} benchmarks selected"
-            display="chip"
             [style]="{ 'min-width': '300px' }"
           >
             <ng-template #dropdownicon>
@@ -39,12 +37,12 @@
             </ng-template>
             <ng-template #footer>
               <div class="p-3 flex justify-between align-items-center border-top-1 surface-border">
-                <p-button label="Clear" severity="secondary" outlined="true" size="small" (onClick)="clearBenchmarkSelection()" [disabled]="selectedBenchmarkIds.length === 0" />
-                <p-button label="Apply" size="small" (onClick)="applyBenchmarkSelection()" [disabled]="!hasPendingBenchmarkChanges()" [loading]="isLoading" />
+                <button pButton (click)="clearBenchmarkSelection()" severity="secondary" outlined="true" size="small" [disabled]="selectedBenchmarkIds.length === 0"><span pButtonLabel>Clear</span></button>
+                <button pButton (click)="applyBenchmarkSelection()" size="small" [disabled]="!hasPendingBenchmarkChanges()" [loading]="isLoading"><span pButtonLabel>Apply</span></button>
               </div>
             </ng-template>
-          </p-multiselect>
-          <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" class="ml-4" icon="pi pi-filter-slash" (click)="clearFilters()" pTooltip="Clear all filters" tooltipPosition="top" />
+          </p-select>
+          <button pButton class="ml-4" (click)="clearFilters()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters" tooltipPosition="top"><i class="pi pi-filter-slash" pButtonIcon></i></button>
           @if (assetCount > 0) {
             <div class="text-color-secondary ml-6 mt-1 flex items-center gap-2 text-sm">
               <i class="pi pi-list"></i>
@@ -53,15 +51,15 @@
           }
         </div>
         <div class="right-buttons">
-          <p-button class="mr-2" [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-refresh" (click)="resetColumnSelections()" pTooltip="Reset column selections" tooltipPosition="top" />
-          <p-button icon="pi pi-plus" [rounded]="true" [text]="true" [raised]="true" severity="primary" (click)="toggleAddColumnOverlay()" />
-          <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportCSV()" pTooltip="Export All" tooltipPosition="top" />
-          <p-button icon="pi pi-file-export" severity="secondary" [rounded]="true" [text]="true" (onClick)="exportDeduplicatedCSV()" pTooltip="Export Deduplicated List" tooltipPosition="top" />
-          <p-multiSelect #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceHolder="Add columns..." [showToggleAll]="true" />
+          <button pButton class="mr-2" (click)="resetColumnSelections()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset column selections" tooltipPosition="top"><i class="pi pi-refresh" pButtonIcon></i></button>
+          <button pButton (click)="toggleAddColumnOverlay()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-plus" pButtonIcon></i></button>
+          <button pButton (click)="exportCSV()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export All" tooltipPosition="top"><i class="pi pi-external-link" pButtonIcon></i></button>
+          <button pButton (click)="exportDeduplicatedCSV()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export Deduplicated List" tooltipPosition="top"><i class="pi pi-file-export" pButtonIcon></i></button>
+          <p-select [multiple]="true" [checkmark]="true" [showClear]="true" #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceholder="Add columns..." />
         </div>
       </div>
 
-      <p-treeTable
+      <p-treetable
         #tt
         [value]="treeNodes"
         [columns]="selectedColumns"
@@ -87,7 +85,7 @@
             }
           </colgroup>
         </ng-template>
-        <ng-template pTemplate="header">
+        <ng-template #header>
           <tr>
             @for (col of selectedColumns; track col) {
               <th scope="col" [ttSortableColumn]="col.field" ttResizableColumn>
@@ -95,20 +93,20 @@
                   {{ col.header }}
                 </span>
                 @if (col.filterable) {
-                  <p-button severity="secondary" [rounded]="true" variant="text" icon="pi pi-filter" size="small" (onClick)="showFilterPanel($event, col); $event.stopPropagation()" />
+                  <button pButton (click)="showFilterPanel($event, col); $event.stopPropagation()" severity="secondary" [rounded]="true" variant="text" size="small"><i class="pi pi-filter" pButtonIcon></i></button>
                 }
               </th>
             }
           </tr>
         </ng-template>
 
-        <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-          <tr [ttRow]="rowNode" [ngClass]="{ 'parent-asset-row': rowNode.node.data.isParentRow }">
+        <ng-template #body let-rowNode let-rowData="rowData">
+          <tr [ttRow]="rowNode" [class]="{ 'parent-asset-row': rowNode.node.data.isParentRow }">
             @for (col of selectedColumns; track col; let i = $index) {
               <td>
                 <span class="align-items-center flex">
                   @if (i === 0) {
-                    <p-treeTableToggler [rowNode]="rowNode" />
+                    <p-treetabletoggler [rowNode]="rowNode" />
                   }
                   @switch (col.field) {
                     @case ('displayResult') {
@@ -153,12 +151,12 @@
           </tr>
         </ng-template>
 
-        <ng-template pTemplate="emptymessage">
+        <ng-template #emptymessage>
           <tr>
             <td [attr.colspan]="selectedColumns.length" style="text-align: center">No reviews to display. Select Benchmark ID to load reviews or adjust filters to display available data.</td>
           </tr>
         </ng-template>
-      </p-treeTable>
+      </p-treetable>
     </div>
   </div>
 </div>
@@ -172,7 +170,17 @@
             <p-select class="w-full" [options]="resultOptions" [(ngModel)]="filterState.result" (onChange)="onResultFilterChange($event.value); filterPopover.hide()" placeholder="Filter result" appendTo="body" />
           }
           @case ('rule.severity') {
-            <p-multiSelect class="w-full" [options]="severityFilterOptions" [(ngModel)]="filterState.filters[currentFilterColumn.field]" placeholder="Filter severity" (onClick)="$event.stopPropagation()" [showClear]="true" appendTo="body" />
+            <p-select
+              [multiple]="true"
+              [checkmark]="true"
+              class="w-full"
+              [options]="severityFilterOptions"
+              [(ngModel)]="filterState.filters[currentFilterColumn.field]"
+              placeholder="Filter severity"
+              (onClick)="$event.stopPropagation()"
+              [showClear]="true"
+              appendTo="body"
+            />
           }
 
           @case ('evaluatedDate') {
@@ -212,8 +220,8 @@
         }
       </div>
       <div class="mt-4 w-full" style="display: flex; justify-content: space-between">
-        <p-button variant="outlined" label="Clear" size="small" (onClick)="clearColumnFilter(currentFilterColumn.field); filterPopover.hide()" />
-        <p-button label="Apply" size="small" (onClick)="applyCurrentFilter(); filterPopover.hide()" />
+        <button pButton (click)="clearColumnFilter(currentFilterColumn.field); filterPopover.hide()" variant="outlined" size="small"><span pButtonLabel>Clear</span></button>
+        <button pButton (click)="applyCurrentFilter(); filterPopover.hide()" size="small"><span pButtonLabel>Apply</span></button>
       </div>
     </div>
   }

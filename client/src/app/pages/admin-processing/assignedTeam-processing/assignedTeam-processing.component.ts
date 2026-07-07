@@ -16,7 +16,7 @@ import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -44,7 +44,7 @@ interface AssignedTeam {
   styleUrls: ['./assignedTeam-processing.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule, TooltipModule]
+  imports: [ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, PickListModule, TableModule, TagModule, ToastModule, TooltipModule]
 })
 export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   private readonly assetDeltaService = inject(AssetDeltaService);

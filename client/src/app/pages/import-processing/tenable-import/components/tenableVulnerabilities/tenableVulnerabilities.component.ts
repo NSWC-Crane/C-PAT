@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, signal, inject, viewChild, output } from '@angular/core';
+import { NgClass, DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, signal, inject, viewChild, output, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -22,9 +22,8 @@ import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Select, SelectModule } from 'primeng/select';
 import { Popover } from 'primeng/popover';
-import { SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
@@ -69,7 +68,6 @@ import { TourPrimeNg } from 'ngx-ui-tour-primeng';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AccordionModule,
-    CommonModule,
     FormsModule,
     ButtonModule,
     CardModule,
@@ -78,7 +76,6 @@ import { TourPrimeNg } from 'ngx-ui-tour-primeng';
     InputNumberModule,
     InputTextModule,
     TextareaModule,
-    MultiSelectModule,
     TableModule,
     TabsModule,
     SkeletonModule,
@@ -86,7 +83,9 @@ import { TourPrimeNg } from 'ngx-ui-tour-primeng';
     TooltipModule,
     TenableFiltersComponent,
     TagModule,
-    TourPrimeNg
+    TourPrimeNg,
+    DatePipe,
+    NgClass
   ]
 })
 export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
@@ -144,12 +143,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   user: any;
   payload: any;
   private readonly subscriptions = new Subscription();
-  @Input() parentSidebarVisible: boolean = false;
-  @Input() currentPreset: string = 'main';
+  readonly parentSidebarVisible = input<boolean>(false);
+  readonly currentPreset = input<string>('main');
   readonly sidebarToggle = output<boolean>();
   readonly totalRecordsChange = output<number>();
 
-  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly columnSelect = viewChild.required<Select>('ms');
   private readonly overlayPanel = viewChild.required<Popover>('op');
   private readonly table = viewChild.required<Table>('dt');
 
@@ -353,7 +352,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     },
     {
       header: 'AES Severity',
-      content: 'multiSelect',
+      content: 'Select',
       identifier: 'aesSeverity',
       options: this.aesSeverityOptions,
       value: 2
@@ -390,7 +389,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     },
     {
       header: 'Assets',
-      content: 'multiSelect',
+      content: 'Select',
       identifier: 'asset',
       options: this.assetOptions,
       value: 7
@@ -491,7 +490,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     },
     {
       header: 'Data Format',
-      content: 'multiSelect',
+      content: 'Select',
       identifier: 'dataFormat',
       options: this.dataFormatOptions,
       value: 21
@@ -591,7 +590,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     },
     {
       header: 'Plugin Family',
-      content: 'multiSelect',
+      content: 'Select',
       identifier: 'family',
       options: this.familyOptions,
       value: 35
@@ -640,7 +639,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     },
     {
       header: 'Protocol',
-      content: 'multiSelect',
+      content: 'Select',
       identifier: 'protocol',
       options: this.protocolOptions,
       value: 42
@@ -683,7 +682,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     },
     {
       header: 'Severity',
-      content: 'multiSelect',
+      content: 'Select',
       identifier: 'severity',
       options: this.severityOptions,
       value: 48
@@ -697,7 +696,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     },
     {
       header: 'Users',
-      content: 'multiSelect',
+      content: 'Select',
       identifier: 'responsibleUser',
       options: this.userOptions,
       value: 50
@@ -929,7 +928,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     if (stored) {
       returnState = JSON.parse(stored);
 
-      if (returnState.currentPreset === this.currentPreset) {
+      if (returnState.currentPreset === this.currentPreset()) {
         sessionStorage.removeItem('tenableFilterState');
 
         this.filterHistory = returnState.filterHistory || [];
@@ -1098,15 +1097,17 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   private initializeColumnsAndFilters() {
     this.setupColumns();
 
-    if (this.currentPreset === 'exploitAvailable') {
+    const currentPreset = this.currentPreset();
+
+    if (currentPreset === 'exploitAvailable') {
       this.tempFilters['exploitAvailable'] = 'true';
-    } else if (this.currentPreset === 'thirtyPlus') {
+    } else if (currentPreset === 'thirtyPlus') {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
       this.tempFilters['pluginPublished'] = '30:all';
-    } else if (this.currentPreset === 'failedCredential') {
+    } else if (currentPreset === 'failedCredential') {
       this.tempFilters['pluginID'] = { operator: '=', value: '117886,10428,21745,24786,26917,102094,104410,110385,110723' };
-    } else if (this.currentPreset === 'seol') {
+    } else if (currentPreset === 'seol') {
       this.tempFilters['pluginName'] = { operator: '=', value: 'SEoL' };
       this.tempFilters['seolDate'] = '30:all';
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
@@ -1513,8 +1514,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
           this.totalRecords = vulnData.totalRecords ? Number(vulnData.totalRecords) : this.allVulnerabilities.length;
           const table = this.table();
 
-          if (table && table.first >= this.totalRecords) {
-            table.first = 0;
+          if (table && table.first() >= this.totalRecords) {
+            table.first.set(0);
           }
 
           this.totalRecordsChange.emit(this.totalRecords);
@@ -2329,15 +2330,17 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
     this.tenableTool = 'sumid';
     this.tempFilters = this.initializeTempFilters();
 
-    if (this.currentPreset === 'exploitAvailable') {
+    const currentPreset = this.currentPreset();
+
+    if (currentPreset === 'exploitAvailable') {
       this.tempFilters['exploitAvailable'] = 'true';
-    } else if (this.currentPreset === 'thirtyPlus') {
+    } else if (currentPreset === 'thirtyPlus') {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
       this.tempFilters['pluginPublished'] = '30:all';
-    } else if (this.currentPreset === 'failedCredential') {
+    } else if (currentPreset === 'failedCredential') {
       this.tempFilters['pluginID'] = { operator: '=', value: '117886,10428,21745,24786,26917,102094,104410,110385,110723' };
-    } else if (this.currentPreset === 'seol') {
+    } else if (currentPreset === 'seol') {
       this.tempFilters['pluginName'] = { operator: '=', value: 'SEoL' };
       this.tempFilters['seolDate'] = '30:all';
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
@@ -2719,7 +2722,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
         tempFilters: structuredClone(this.tempFilters),
         activeFilters: structuredClone(this.activeFilters),
         tenableTool: this.tenableTool,
-        currentPreset: this.currentPreset,
+        currentPreset: this.currentPreset(),
         parentTabIndex: this.getParentTabIndex()
       };
 
@@ -2764,7 +2767,7 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   private getParentTabIndex(): number {
-    switch (this.currentPreset) {
+    switch (this.currentPreset()) {
       case 'main':
         return 0;
       case 'thirtyPlus':
@@ -2880,12 +2883,12 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
   }
 
   toggleAddColumnOverlay() {
-    const multiSelect = this.multiSelect();
+    const columnSelect = this.columnSelect();
 
-    if (multiSelect.overlayVisible) {
-      multiSelect.hide();
+    if (columnSelect.overlayVisible()) {
+      columnSelect.hide();
     } else {
-      multiSelect.show();
+      columnSelect.show();
     }
   }
 
@@ -2922,8 +2925,8 @@ export class TenableVulnerabilitiesComponent implements OnInit, OnDestroy {
 
     const table = this.table();
 
-    if (table && table.first >= this.totalRecords) {
-      table.first = 0;
+    if (table && table.first() >= this.totalRecords) {
+      table.first.set(0);
     }
   }
 

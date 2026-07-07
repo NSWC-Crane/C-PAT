@@ -1,4 +1,4 @@
-<!--
+﻿<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -59,15 +59,17 @@
                 class="w-full"
                 [disabled]="accessLevel < 2"
               />
-              <p-button
-                icon="pi pi-times"
+              <button
+                pButton
+                (click)="deletePoamExtension()"
                 [rounded]="false"
                 [text]="true"
                 severity="danger"
                 pTooltip="Remove the current extension: this must be done to request an updated extension with the same duration as an existing extension."
-                (click)="deletePoamExtension()"
                 [disabled]="accessLevel < 2"
-              />
+              >
+                <i class="pi pi-times" pButtonIcon></i>
+              </button>
             </div>
           </div>
         </div>
@@ -80,7 +82,7 @@
               @if (extensionHistory?.length) {
                 <i
                   class="pi pi-history flex shrink-0 cursor-help items-center"
-                  style="color: var(--p-text-muted-color); font-size: 1.25rem; line-height: 1.1; padding: 0.5rem"
+                  style="color: var(--p-surface-400); font-size: 1.25rem; line-height: 1.1; padding: 0.5rem"
                   [pTooltip]="extensionHistoryTooltip"
                   [escape]="false"
                   tooltipPosition="top"
@@ -93,7 +95,7 @@
         <div class="p-col-12">
           <div class="p-field">
             <label for="extensionJustification">Justification for Extension:</label>
-            <p-autoComplete
+            <p-autocomplete
               [(ngModel)]="extensionJustification"
               [invalid]="isExtensionInvalid('extensionJustification')"
               [dropdown]="true"
@@ -121,7 +123,7 @@
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
                   <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
-                    <ng-template pTemplate="header">
+                    <ng-template #header>
                       <tr>
                         <th scope="col">Milestone Comments</th>
                         <th scope="col" pSortableColumn="milestoneDate">Milestone Due Date</th>
@@ -131,35 +133,35 @@
                         <th scope="col">Milestone Teams</th>
                         <th scope="col"></th>
                         <th scope="col">
-                          <p-button icon="pi pi-plus" variant="text" (onClick)="onAddNewMilestone()" [disabled]="accessLevel < 2" />
+                          <button pButton (click)="onAddNewMilestone()" variant="text" [disabled]="accessLevel < 2"><i class="pi pi-plus" pButtonIcon></i></button>
                         </th>
                       </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-milestone let-editing="editing" let-ri="rowIndex">
+                    <ng-template #body let-milestone let-editing="editing" let-ri="rowIndex">
                       <tr [pEditableRow]="milestone" [class.p-highlight]="milestone.editing">
                         <td>
-                          <p-cellEditor>
-                            <ng-template pTemplate="input">
+                          <p-celleditor>
+                            <ng-template #input>
                               <textarea pTextarea class="w-full" cols="20" rows="5" [(ngModel)]="milestone.milestoneComments" disabled></textarea>
                             </ng-template>
-                            <ng-template pTemplate="output">
+                            <ng-template #output>
                               {{ milestone.milestoneComments }}
                             </ng-template>
-                          </p-cellEditor>
+                          </p-celleditor>
                         </td>
                         <td>
-                          <p-cellEditor>
-                            <ng-template pTemplate="input">
+                          <p-celleditor>
+                            <ng-template #input>
                               <p-datepicker [(ngModel)]="milestone.milestoneDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" disabled />
                             </ng-template>
-                            <ng-template pTemplate="output">
+                            <ng-template #output>
                               {{ milestone.milestoneDate | date: 'yyyy-MM-dd' }}
                             </ng-template>
-                          </p-cellEditor>
+                          </p-celleditor>
                         </td>
                         <td>
-                          <p-cellEditor>
-                            <ng-template pTemplate="input">
+                          <p-celleditor>
+                            <ng-template #input>
                               <textarea
                                 pTextarea
                                 class="w-full"
@@ -170,35 +172,38 @@
                                 [disabled]="accessLevel < 2"
                               ></textarea>
                             </ng-template>
-                            <ng-template pTemplate="output">
+                            <ng-template #output>
                               {{ milestone.milestoneChangeComments }}
                             </ng-template>
-                          </p-cellEditor>
+                          </p-celleditor>
                         </td>
                         <td>
-                          <p-cellEditor>
-                            <ng-template pTemplate="input">
+                          <p-celleditor>
+                            <ng-template #input>
                               <p-datepicker [(ngModel)]="milestone.milestoneChangeDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" [disabled]="accessLevel < 2" />
                             </ng-template>
-                            <ng-template pTemplate="output">
+                            <ng-template #output>
                               {{ milestone.milestoneChangeDate | date: 'yyyy-MM-dd' }}
                             </ng-template>
-                          </p-cellEditor>
+                          </p-celleditor>
                         </td>
                         <td>
-                          <p-cellEditor>
-                            <ng-template pTemplate="input">
+                          <p-celleditor>
+                            <ng-template #input>
                               <p-select [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" class="w-full" appendTo="body" [disabled]="accessLevel < 2" />
                             </ng-template>
-                            <ng-template pTemplate="output">
+                            <ng-template #output>
                               {{ milestone.milestoneStatus }}
                             </ng-template>
-                          </p-cellEditor>
+                          </p-celleditor>
                         </td>
                         <td>
-                          <p-cellEditor>
-                            <ng-template pTemplate="input">
-                              <p-multiselect
+                          <p-celleditor>
+                            <ng-template #input>
+                              <p-select
+                                [multiple]="true"
+                                [checkmark]="true"
+                                [showClear]="true"
                                 [options]="assignedTeamOptions"
                                 placeholder="Select Teams..."
                                 [(ngModel)]="milestone.assignedTeamIds"
@@ -208,33 +213,32 @@
                                 optionValue="assignedTeamId"
                                 class="w-full"
                                 appendTo="body"
-                                [maxSelectedLabels]="1"
                                 [disabled]="accessLevel < 2"
                               />
                             </ng-template>
-                            <ng-template pTemplate="output">
+                            <ng-template #output>
                               <div class="flex flex-wrap gap-1">
                                 @for (name of getTeamNameList(milestone.assignedTeamIds); track name) {
                                   <p-tag [value]="name" [rounded]="true" />
                                 }
                               </div>
                             </ng-template>
-                          </p-cellEditor>
+                          </p-celleditor>
                         </td>
                         <td></td>
                         <td style="text-align: center">
                           @if (editing) {
                             <div class="flex justify-center items-center gap-2">
-                              <p-button icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(milestone)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel < 2" />
-                              <p-button icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
+                              <button pButton (click)="$event.stopPropagation(); onRowEditSave(milestone)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel < 2"><i class="pi pi-check" pButtonIcon></i></button>
+                              <button pButton (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2"><i class="pi pi-times" pButtonIcon></i></button>
                             </div>
                           } @else {
-                            <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(milestone)" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
+                            <button pButton (click)="$event.stopPropagation(); onRowEditInit(milestone)" pInitEditableRow [rounded]="true" variant="text" [disabled]="accessLevel < 2"><i class="pi pi-pencil" pButtonIcon></i></button>
                           }
                         </td>
                       </tr>
                     </ng-template>
-                    <ng-template pTemplate="emptymessage">
+                    <ng-template #emptymessage>
                       <tr>
                         <td colspan="8" style="text-align: center">No Data to Display</td>
                       </tr>
@@ -242,7 +246,7 @@
                   </p-table>
                 </div>
                 <div class="stepper-buttons first-panel">
-                  <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(2)" />
+                  <button pButton (click)="activateCallback(2)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                 </div>
               </div>
             </ng-template>
@@ -277,7 +281,7 @@
 
                   <div class="team-mitigations-container">
                     @if (mitigationSaving) {
-                      <p-progressBar mode="indeterminate" [style]="{ height: '4px' }" />
+                      <p-progressbar mode="indeterminate" [style]="{ height: '4px' }" />
                     }
 
                     @if (!poam.isGlobalFinding && (!poamAssignedTeams || poamAssignedTeams.length === 0)) {
@@ -291,7 +295,7 @@
                     }
 
                     @if (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0)) {
-                      <p-tabs [(value)]="activeTabIndex" scrollable lazy>
+                      <p-tabs [(value)]="activeTabIndex" lazy>
                         <p-tablist>
                           @if (poam.isGlobalFinding) {
                             <p-tab [value]="0">Global Finding</p-tab>
@@ -300,7 +304,7 @@
                           @if (!poam.isGlobalFinding) {
                             @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
                               <p-tab [value]="i" [class]="teamMitigation.isActive ? '' : 'inactive-tab'">
-                                <span [ngClass]="{ 'inactive-tab': !teamMitigation.isActive }">{{ teamMitigation.assignedTeamName }}</span>
+                                <span [class]="{ 'inactive-tab': !teamMitigation.isActive }">{{ teamMitigation.assignedTeamName }}</span>
                                 @if (teamMitigation.isActive && isExtensionInvalid('teamMitigation:' + teamMitigation.assignedTeamId)) {
                                   <i class="pi pi-exclamation-circle ml-2 text-red-500" pTooltip="Mitigation required"></i>
                                 }
@@ -330,7 +334,7 @@
                           @if (!poam.isGlobalFinding) {
                             @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
                               <p-tabpanel [value]="i">
-                                <div [ngClass]="{ 'opacity-70': !teamMitigation.isActive }">
+                                <div [class]="{ 'opacity-70': !teamMitigation.isActive }">
                                   @if (!teamMitigation.isActive) {
                                     <div class="mb-2 rounded-md bg-yellow-600 p-2">
                                       <i class="pi pi-info-circle mr-2"></i>
@@ -357,8 +361,8 @@
                   </div>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(1)" />
-                  <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(3)" />
+                  <button pButton (click)="activateCallback(1)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                  <button pButton (click)="activateCallback(3)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                 </div>
               </div>
             </ng-template>
@@ -372,8 +376,8 @@
                   <textarea pTextarea class="w-full" [(ngModel)]="poam.requiredResources" name="requiredResources" rows="16" maxlength="2000" placeholder="Required Resources..." [disabled]="accessLevel < 2"></textarea>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(2)" />
-                  <p-button [rounded]="true" [text]="true" [raised]="true" icon="pi pi-arrow-right" iconPos="right" (onClick)="activateCallback(4)" />
+                  <button pButton (click)="activateCallback(2)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+                  <button pButton (click)="activateCallback(4)" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
                 </div>
               </div>
             </ng-template>
@@ -416,7 +420,7 @@
                   </div>
                 </div>
                 <div class="stepper-buttons">
-                  <p-button [rounded]="true" [text]="true" [raised]="true" severity="secondary" icon="pi pi-arrow-left" (onClick)="activateCallback(3)" />
+                  <button pButton (click)="activateCallback(3)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
                 </div>
               </div>
             </ng-template>
@@ -427,10 +431,12 @@
   }
   <ng-template #footer>
     <div class="m-2 flex w-full items-center justify-between">
-      <p-button class="ml-4" [outlined]="true" severity="secondary" label="Cancel" (click)="cancelExtension()" />
+      <button pButton class="ml-4" (click)="cancelExtension()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
       <div>
         @if (accessLevel >= 3) {
-          <p-button [outlined]="true" severity="success" label="Approve" pTooltip="Approving a POAM extension will automatically update the POAM status to 'Approved'" (click)="approveExtension()" [disabled]="accessLevel < 3" />
+          <button pButton (click)="approveExtension()" [outlined]="true" severity="success" pTooltip="Approving a POAM extension will automatically update the POAM status to 'Approved'" [disabled]="accessLevel < 3">
+            <span pButtonLabel>Approve</span>
+          </button>
           <p-splitbutton
             class="rejectSplitButton ml-4"
             [model]="rejectButtonItems"
@@ -443,18 +449,20 @@
             menuStyleClass="extension-splitbutton-menu"
           />
         }
-        <p-button
-          [outlined]="true"
+        <button
+          pButton
           class="ml-4 mr-4"
-          label="Save"
-          pTooltip="Saving an extension where 'Extension Time Requested' is provided will automatically update the POAM status to 'Extension Requested' and notify an Approver for review."
           (click)="submitPoamExtension()"
+          [outlined]="true"
+          pTooltip="Saving an extension where 'Extension Time Requested' is provided will automatically update the POAM status to 'Extension Requested' and notify an Approver for review."
           [disabled]="accessLevel < 2"
-        />
+        >
+          <span pButtonLabel>Save</span>
+        </button>
       </div>
     </div>
   </ng-template>
 </p-dialog>
 
 <p-toast class="!z-99999" />
-<p-confirmDialog header="Confirmation" icon="pi pi-exclamation-triangle" />
+<p-confirmdialog header="Confirmation" icon="pi pi-exclamation-triangle" />

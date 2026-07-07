@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnInit, signal, inject, viewChild, output } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, signal, inject, viewChild, output, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { addDays, isAfter, parseISO, startOfDay } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -17,7 +17,6 @@ import { ButtonModule } from 'primeng/button';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
-import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -44,7 +43,7 @@ export interface Milestone {
   styleUrls: ['./poam-milestones.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, ButtonModule, DatePicker, MultiSelectModule, TableModule, TagModule, ToastModule, DialogModule, ConfirmDialogModule, SelectModule, TextareaModule, TooltipModule],
+  imports: [FormsModule, ButtonModule, DatePicker, SelectModule, TableModule, TagModule, ToastModule, DialogModule, ConfirmDialogModule, TextareaModule, TooltipModule, DatePipe],
   providers: [DatePipe, ConfirmationService, MessageService]
 })
 export class PoamMilestonesComponent implements OnInit {
@@ -52,10 +51,10 @@ export class PoamMilestonesComponent implements OnInit {
   private readonly messageService = inject(MessageService);
 
   table = viewChild<Table>('dt');
-  @Input() poam: any = { status: '' };
-  @Input() accessLevel: number = 0;
-  @Input() poamMilestones: Milestone[] = [];
-  @Input() assignedTeamOptions: any[] = [];
+  readonly poam = input<any>({ status: '' });
+  readonly accessLevel = input<number>(0);
+  readonly poamMilestones = model<Milestone[]>([]);
+  readonly assignedTeamOptions = input<any[]>([]);
   readonly milestonesChanged = output<any[]>();
 
   editingMilestoneId = signal<string | null>(null);
@@ -71,8 +70,8 @@ export class PoamMilestonesComponent implements OnInit {
   ];
 
   ngOnInit() {
-    if (!Array.isArray(this.poamMilestones)) {
-      this.poamMilestones = [];
+    if (!Array.isArray(this.poamMilestones())) {
+      this.poamMilestones.set([]);
     }
   }
 
@@ -81,14 +80,17 @@ export class PoamMilestonesComponent implements OnInit {
   }
 
   private isChangeFieldsEditable(): boolean {
-    return this.poam.extensionDays > 0 || this.poam.status === 'Extension Requested' || this.poam.status === 'Approved';
+    const poam = this.poam();
+
+    return this.poam().extensionDays > 0 || poam.status === 'Extension Requested' || poam.status === 'Approved';
   }
 
   onAddNewMilestone() {
-    if (!Array.isArray(this.poamMilestones)) {
-      this.poamMilestones = [];
+    if (!Array.isArray(this.poamMilestones())) {
+      this.poamMilestones.set([]);
     }
 
+    const poamMilestones = this.poamMilestones();
     const tempId = this.generateTempId();
     const defaultDate = this.calculateDefaultMilestoneDate();
 
@@ -105,7 +107,7 @@ export class PoamMilestonesComponent implements OnInit {
       dateModified: false
     };
 
-    this.poamMilestones = [newMilestone, ...this.poamMilestones];
+    this.poamMilestones.set([newMilestone, ...poamMilestones]);
     this.editingMilestoneId.set(tempId);
     this.clonedMilestones[tempId] = { ...newMilestone };
 
@@ -117,23 +119,25 @@ export class PoamMilestonesComponent implements OnInit {
       }
     });
 
-    this.milestonesChanged.emit(this.poamMilestones);
+    this.milestonesChanged.emit(this.poamMilestones());
   }
 
   private calculateDefaultMilestoneDate(): Date {
     const defaultDate = addDays(new Date(), this.defaultMilestoneDateOffset);
 
-    if (!this.poam.scheduledCompletionDate) {
+    const poam = this.poam();
+
+    if (!poam.scheduledCompletionDate) {
       return defaultDate;
     }
 
-    const scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
-    const extensionDays = this.poam.extensionDays || 0;
+    const scheduledCompletionDate = new Date(poam.scheduledCompletionDate);
+    const extensionDays = poam.extensionDays || 0;
 
     let effectiveDeadline = scheduledCompletionDate;
 
-    if (extensionDays > 0 && this.poam.extensionDeadline) {
-      const extensionDeadline = new Date(this.poam.extensionDeadline);
+    if (extensionDays > 0 && poam.extensionDeadline) {
+      const extensionDeadline = new Date(poam.extensionDeadline);
 
       if (!isNaN(extensionDeadline.getTime())) {
         effectiveDeadline = extensionDeadline;
@@ -144,15 +148,17 @@ export class PoamMilestonesComponent implements OnInit {
   }
 
   private getEffectiveDeadline(): Date | null {
-    if (!this.poam.scheduledCompletionDate) {
+    const poam = this.poam();
+
+    if (!poam.scheduledCompletionDate) {
       return null;
     }
 
-    const scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
-    const extensionDays = this.poam.extensionDays || 0;
+    const scheduledCompletionDate = new Date(poam.scheduledCompletionDate);
+    const extensionDays = poam.extensionDays || 0;
 
-    if (extensionDays > 0 && this.poam.extensionDeadline) {
-      return new Date(this.poam.extensionDeadline);
+    if (extensionDays > 0 && poam.extensionDeadline) {
+      return new Date(poam.extensionDeadline);
     }
 
     return scheduledCompletionDate;
@@ -226,24 +232,24 @@ export class PoamMilestonesComponent implements OnInit {
       detail: 'Milestone updated. Remember to save the POAM to persist changes.'
     });
 
-    this.milestonesChanged.emit(this.poamMilestones);
+    this.milestonesChanged.emit(this.poamMilestones());
   }
 
   onRowEditCancel(milestone: Milestone, index: number) {
     if (milestone.isNew) {
-      this.poamMilestones.splice(index, 1);
+      this.poamMilestones().splice(index, 1);
     } else if (this.clonedMilestones[milestone.milestoneId]) {
       const restoredMilestone = { ...this.clonedMilestones[milestone.milestoneId] };
 
       restoredMilestone.editing = false;
-      this.poamMilestones[index] = restoredMilestone;
+      this.poamMilestones()[index] = restoredMilestone;
       delete this.clonedMilestones[milestone.milestoneId];
     } else {
       milestone.editing = false;
     }
 
     this.editingMilestoneId.set(null);
-    this.milestonesChanged.emit(this.poamMilestones);
+    this.milestonesChanged.emit(this.poamMilestones());
   }
 
   deleteMilestone(_milestone: Milestone, index: number) {
@@ -256,8 +262,8 @@ export class PoamMilestonesComponent implements OnInit {
       acceptButtonStyleClass: 'p-button-outlined p-button-primary',
       rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
       accept: () => {
-        this.poamMilestones.splice(index, 1);
-        this.milestonesChanged.emit(this.poamMilestones);
+        this.poamMilestones().splice(index, 1);
+        this.milestonesChanged.emit(this.poamMilestones());
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
@@ -268,11 +274,11 @@ export class PoamMilestonesComponent implements OnInit {
   }
 
   getTeamNames(teamIds: number[]): string {
-    if (!teamIds?.length || !this.assignedTeamOptions?.length) return '';
+    if (!teamIds?.length || !this.assignedTeamOptions()?.length) return '';
 
     return teamIds
       .map((id) => {
-        const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === id);
+        const team = this.assignedTeamOptions().find((t) => t.assignedTeamId === id);
 
         return team ? team.assignedTeamName : '';
       })
@@ -281,11 +287,11 @@ export class PoamMilestonesComponent implements OnInit {
   }
 
   getTeamNameList(teamIds: number[]): string[] {
-    if (!teamIds?.length || !this.assignedTeamOptions?.length) return [];
+    if (!teamIds?.length || !this.assignedTeamOptions()?.length) return [];
 
     return teamIds
       .map((id) => {
-        const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === id);
+        const team = this.assignedTeamOptions().find((t) => t.assignedTeamId === id);
 
         return team ? team.assignedTeamName : '';
       })
@@ -359,7 +365,7 @@ export class PoamMilestonesComponent implements OnInit {
         const effectiveDeadlineDay = startOfDay(effectiveDeadline);
 
         if (isAfter(changeDate, effectiveDeadlineDay)) {
-          const extensionDays = this.poam.extensionDays || 0;
+          const extensionDays = this.poam().extensionDays || 0;
           const message = extensionDays > 0 ? 'The Milestone change date provided exceeds the POAM scheduled completion date and the allowed extension time.' : 'The Milestone change date provided exceeds the POAM scheduled completion date.';
 
           this.messageService.add({
@@ -377,14 +383,16 @@ export class PoamMilestonesComponent implements OnInit {
   }
 
   private validateMilestoneDate(milestone: Milestone): boolean {
-    if (!this.poam.scheduledCompletionDate) {
+    const poam = this.poam();
+
+    if (!poam.scheduledCompletionDate) {
       return true;
     }
 
     const milestoneDate = new Date(milestone.milestoneDate);
-    const scheduledCompletionDate = new Date(this.poam.scheduledCompletionDate);
-    const extensionDays = this.poam.extensionDays || 0;
-    const extensionDeadline = new Date(this.poam.extensionDeadline);
+    const scheduledCompletionDate = new Date(poam.scheduledCompletionDate);
+    const extensionDays = poam.extensionDays || 0;
+    const extensionDeadline = new Date(poam.extensionDeadline);
 
     if (extensionDays === 0) {
       if (isAfter(milestoneDate, scheduledCompletionDate)) {

@@ -14,7 +14,7 @@
       <div class="col-12">
         <p-card>
           <div class="m-[-1rem] flex" style="position: relative">
-            <p-button icon="pi pi-times" [rounded]="true" variant="text" (onClick)="goBack()" class="absolute top-0 right-0" />
+            <button pButton class="absolute top-0 right-0" (click)="goBack()" [rounded]="true" variant="text"><i class="pi pi-times" pButtonIcon></i></button>
           </div>
           <div class="mb-3 mt-8 flex flex-wrap gap-3">
             <div><strong>App Version:</strong> {{ appInfo()?.version }}</div>
@@ -49,7 +49,7 @@
                   }
                 </div>
               </div>
-              <p-chart type="bar" [data]="requestsChartData()" [options]="requestsChartOptions()" height="400px" />
+              <cpat-chart type="bar" [data]="requestsChartData()" [options]="requestsChartOptions()" height="400px" />
             </p-card>
           </div>
           <div class="w-full lg:w-1/3">
@@ -65,7 +65,7 @@
                   }
                 </div>
               </div>
-              <p-chart type="bar" [data]="operationsChartData()" [options]="operationsChartOptions()" height="400px" />
+              <cpat-chart type="bar" [data]="operationsChartData()" [options]="operationsChartOptions()" height="400px" />
             </p-card>
           </div>
           <div class="w-full lg:w-1/3">
@@ -81,14 +81,14 @@
                   }
                 </div>
               </div>
-              <p-chart type="pie" [data]="memoryChartData()" [options]="memoryChartOptions()" height="400px" />
+              <cpat-chart type="pie" [data]="memoryChartData()" [options]="memoryChartOptions()" height="400px" />
             </p-card>
           </div>
         </div>
       </div>
       <div class="col-12 mt-4">
         <p-card>
-          <p-tabs value="0" scrollable lazy>
+          <p-tabs value="0" lazy>
             <p-tablist>
               <p-tab value="0">Request Details</p-tab>
               <p-tab value="1">MySQL Tables</p-tab>
@@ -110,7 +110,7 @@
                     [selection]="selectedOperation()"
                     (selectionChange)="selectedOperation.set($event)"
                   >
-                    <ng-template pTemplate="header">
+                    <ng-template #header>
                       <tr>
                         <th scope="col">Operation</th>
                         <th scope="col">Total Requests</th>
@@ -127,7 +127,7 @@
                         <th scope="col">Total Res Length</th>
                       </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-operation>
+                    <ng-template #body let-operation>
                       <tr [pSelectableRow]="operation">
                         <td>{{ operation.name }}</td>
                         <td>{{ operation.totalRequests }}</td>
@@ -150,19 +150,19 @@
                   <div class="flex-1">
                     <p-panel header="Client Requests" [toggleable]="true" [collapsed]="isPanelsCollapsed()" class="h-full" (collapsedChange)="toggleAllPanels($event)">
                       <p-table [value]="selectedOperationClients()" [scrollable]="true" [scrollHeight]="'150px'" class="w-full min-h-[200px]" size="small" selectionMode="single">
-                        <ng-template pTemplate="header">
+                        <ng-template #header>
                           <tr>
                             <th scope="col">Client</th>
                             <th scope="col">Count</th>
                           </tr>
                         </ng-template>
-                        <ng-template pTemplate="body" let-client>
+                        <ng-template #body let-client>
                           <tr>
                             <td>{{ client.name }}</td>
                             <td>{{ client.count }}</td>
                           </tr>
                         </ng-template>
-                        <ng-template pTemplate="emptymessage">
+                        <ng-template #emptymessage>
                           <tr>
                             <td colspan="2" class="text-center">No clients found</td>
                           </tr>
@@ -173,19 +173,19 @@
                   <div class="flex-1">
                     <p-panel header="User Requests" [toggleable]="true" [collapsed]="isPanelsCollapsed()" class="h-full" (collapsedChange)="toggleAllPanels($event)">
                       <p-table [value]="selectedOperationUsers()" [scrollable]="true" [scrollHeight]="'150px'" class="w-full min-h-[200px]" size="small" selectionMode="single">
-                        <ng-template pTemplate="header">
+                        <ng-template #header>
                           <tr>
                             <th scope="col">User</th>
                             <th scope="col">Count</th>
                           </tr>
                         </ng-template>
-                        <ng-template pTemplate="body" let-user>
+                        <ng-template #body let-user>
                           <tr>
                             <td>{{ user.name }}</td>
                             <td>{{ user.count }}</td>
                           </tr>
                         </ng-template>
-                        <ng-template pTemplate="emptymessage">
+                        <ng-template #emptymessage>
                           <tr>
                             <td colspan="2" class="text-center">No users found</td>
                           </tr>
@@ -196,19 +196,19 @@
                   <div class="flex-1">
                     <p-panel header="Errors" [toggleable]="true" [collapsed]="isPanelsCollapsed()" class="h-full" (collapsedChange)="toggleAllPanels($event)">
                       <p-table [value]="selectedOperationErrors()" [scrollable]="true" [scrollHeight]="'150px'" class="w-full min-h-[200px]" size="small" selectionMode="single">
-                        <ng-template pTemplate="header">
+                        <ng-template #header>
                           <tr>
                             <th scope="col">Error</th>
                             <th scope="col">Count</th>
                           </tr>
                         </ng-template>
-                        <ng-template pTemplate="body" let-error>
+                        <ng-template #body let-error>
                           <tr>
                             <td>{{ error.name }}</td>
                             <td>{{ error.count }}</td>
                           </tr>
                         </ng-template>
-                        <ng-template pTemplate="emptymessage">
+                        <ng-template #emptymessage>
                           <tr>
                             <td colspan="2" class="text-center">No errors found</td>
                           </tr>
@@ -221,7 +221,7 @@
               <p-tabpanel value="1">
                 <div class="overflow-x-auto">
                   <p-table [value]="mysqlTableRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
-                    <ng-template pTemplate="header">
+                    <ng-template #header>
                       <tr>
                         <th scope="col">Table Name</th>
                         <th scope="col">Row Count</th>
@@ -231,7 +231,7 @@
                         <th scope="col">Last Updated</th>
                       </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-table>
+                    <ng-template #body let-table>
                       <tr>
                         <td>{{ table.name }}</td>
                         <td>{{ table.rowCount }}</td>
@@ -247,14 +247,14 @@
               <p-tabpanel value="2">
                 <div class="overflow-x-auto">
                   <p-table [value]="cpuRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
-                    <ng-template pTemplate="header">
+                    <ng-template #header>
                       <tr>
                         <th scope="col">CPU #</th>
                         <th scope="col">Model</th>
                         <th scope="col">Speed (MHz)</th>
                       </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-cpu let-rowIndex="rowIndex">
+                    <ng-template #body let-cpu let-rowIndex="rowIndex">
                       <tr>
                         <td>CPU {{ rowIndex + 1 }}</td>
                         <td>{{ cpu.model }}</td>
@@ -267,13 +267,13 @@
               <p-tabpanel value="3">
                 <div class="overflow-x-auto">
                   <p-table [value]="environmentRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single">
-                    <ng-template pTemplate="header">
+                    <ng-template #header>
                       <tr>
                         <th scope="col">Variable</th>
                         <th scope="col">Value</th>
                       </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-env>
+                    <ng-template #body let-env>
                       <tr>
                         <td>{{ env.name }}</td>
                         <td>{{ env.value }}</td>
@@ -285,7 +285,7 @@
               <p-tabpanel value="4">
                 <div class="overflow-x-auto">
                   <p-table [value]="userRows()" [scrollable]="true" [tableStyle]="{ 'min-width': '50rem' }" [rows]="10" [paginator]="true" selectionMode="single" [selection]="selectedUser()" (selectionChange)="selectedUser.set($event)">
-                    <ng-template pTemplate="header">
+                    <ng-template #header>
                       <tr>
                         <th scope="col">Username</th>
                         <th scope="col">Created</th>
@@ -297,7 +297,7 @@
                         <th scope="col">CAT-I Approver Role</th>
                       </tr>
                     </ng-template>
-                    <ng-template pTemplate="body" let-user>
+                    <ng-template #body let-user>
                       <tr [pSelectableRow]="user">
                         <td>{{ user.username }}</td>
                         <td>{{ user.created | date: 'short' }}</td>
@@ -315,13 +315,13 @@
                   <div class="flex-1">
                     <p-panel header="Overall Privileges" [toggleable]="true" [collapsed]="isPanelsCollapsed()" class="h-full" (collapsedChange)="toggleAllPanels($event)">
                       <p-table [value]="userPrivilegeOverall()" [scrollable]="true" [scrollHeight]="'150px'" class="w-full min-h-[200px]" size="small" selectionMode="single">
-                        <ng-template pTemplate="header">
+                        <ng-template #header>
                           <tr>
                             <th scope="col">Privilege</th>
                             <th scope="col">Count</th>
                           </tr>
                         </ng-template>
-                        <ng-template pTemplate="body" let-priv>
+                        <ng-template #body let-priv>
                           <tr>
                             <td>{{ priv.name }}</td>
                             <td>{{ priv.count }}</td>
@@ -333,13 +333,13 @@
                   <div class="flex-1">
                     <p-panel header="Active in Last 30 Days" [toggleable]="true" [collapsed]="isPanelsCollapsed()" class="h-full" (collapsedChange)="toggleAllPanels($event)">
                       <p-table [value]="userPrivilege30Days()" [scrollable]="true" [scrollHeight]="'150px'" class="w-full min-h-[200px]" size="small" selectionMode="single">
-                        <ng-template pTemplate="header">
+                        <ng-template #header>
                           <tr>
                             <th scope="col">Privilege</th>
                             <th scope="col">Count</th>
                           </tr>
                         </ng-template>
-                        <ng-template pTemplate="body" let-priv>
+                        <ng-template #body let-priv>
                           <tr>
                             <td>{{ priv.name }}</td>
                             <td>{{ priv.count }}</td>
@@ -351,13 +351,13 @@
                   <div class="flex-1">
                     <p-panel header="Active in Last 90 Days" [toggleable]="true" [collapsed]="isPanelsCollapsed()" class="h-full" (collapsedChange)="toggleAllPanels($event)">
                       <p-table [value]="userPrivilege90Days()" [scrollable]="true" [scrollHeight]="'150px'" class="w-full min-h-[200px]" size="small" selectionMode="single">
-                        <ng-template pTemplate="header">
+                        <ng-template #header>
                           <tr>
                             <th scope="col">Privilege</th>
                             <th scope="col">Count</th>
                           </tr>
                         </ng-template>
-                        <ng-template pTemplate="body" let-priv>
+                        <ng-template #body let-priv>
                           <tr>
                             <td>{{ priv.name }}</td>
                             <td>{{ priv.count }}</td>
@@ -381,13 +381,13 @@
               </div>
               <div class="overflow-x-auto">
                 <p-table [value]="variableRows()" [scrollable]="true" scrollHeight="400px" class="w-full" size="small" selectionMode="single">
-                  <ng-template pTemplate="header">
+                  <ng-template #header>
                     <tr>
                       <th scope="col" class="font-semibold">Variable</th>
                       <th scope="col" class="font-semibold">Value</th>
                     </tr>
                   </ng-template>
-                  <ng-template pTemplate="body" let-variable>
+                  <ng-template #body let-variable>
                     <tr>
                       <td class="py-2">{{ variable.name }}</td>
                       <td class="py-2">{{ variable.value }}</td>
@@ -404,13 +404,13 @@
               </div>
               <div class="overflow-x-auto">
                 <p-table [value]="statusRows()" [scrollable]="true" scrollHeight="400px" class="w-full" size="small" selectionMode="single">
-                  <ng-template pTemplate="header">
+                  <ng-template #header>
                     <tr>
                       <th scope="col" class="font-semibold">Status</th>
                       <th scope="col" class="font-semibold">Value</th>
                     </tr>
                   </ng-template>
-                  <ng-template pTemplate="body" let-status>
+                  <ng-template #body let-status>
                     <tr>
                       <td class="py-2">{{ status.name }}</td>
                       <td class="py-2">{{ status.value }}</td>

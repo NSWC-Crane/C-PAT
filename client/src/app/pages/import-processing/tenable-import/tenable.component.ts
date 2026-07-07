@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, signal, viewChild } from '@angular/core';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
@@ -20,7 +19,7 @@ import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 @Component({
   selector: 'cpat-tenable',
   standalone: true,
-  imports: [CommonModule, TabsModule, CardModule, TenableVulnerabilitiesComponent, TenableSelectedVulnerabilitiesComponent, TenableSolutionsComponent, TourPrimeNg],
+  imports: [TabsModule, CardModule, TenableVulnerabilitiesComponent, TenableSelectedVulnerabilitiesComponent, TenableSolutionsComponent, TourPrimeNg],
   templateUrl: './tenable.component.html',
   styleUrls: ['./tenable.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -9,7 +9,7 @@
 */
 
 import { NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, computed, effect, signal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, linkedSignal, signal, inject, viewChild, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
@@ -62,36 +62,21 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   protected fileUpload = viewChild.required<FileUpload>('fileUpload');
   protected table = viewChild.required<Table>('dt');
 
-  @Input() userId?: number;
-  @Input() variant?: string;
-  @Input() showTourAnchor = false;
+  readonly userId = input<number>(undefined);
+  readonly variant = input<string>(undefined);
+  readonly showTourAnchor = input(false);
 
   globalFilterSignal = signal<string>('');
 
-  private readonly poamsDataSignal = signal<any[]>([]);
+  readonly poamsData = input<any[], any[] | null | undefined>([], { transform: (value) => value ?? [] });
 
-  @Input() set poamsData(value: any[]) {
-    this.poamsDataSignal.set(value || []);
-  }
+  readonly affectedAssetCounts = input<{ vulnerabilityId: string; assetCount: number }[], { vulnerabilityId: string; assetCount: number }[] | null | undefined>([], { transform: (value) => value ?? [] });
 
-  private readonly affectedAssetCountsSignal = signal<{ vulnerabilityId: string; assetCount: number }[]>([]);
-  private readonly _assetCountsLoaded = signal<boolean>(false);
-  private _hasReceivedData = false;
-
-  @Input() set affectedAssetCounts(value: { vulnerabilityId: string; assetCount: number }[]) {
-    this.affectedAssetCountsSignal.set(value || []);
-
-    if (value?.length > 0 || this._hasReceivedData) {
-      this._assetCountsLoaded.set(true);
-
-      if (value?.length > 0) {
-        this._hasReceivedData = true;
-      }
-    }
-  }
-  get affectedAssetCounts(): { vulnerabilityId: string; assetCount: number }[] {
-    return this.affectedAssetCountsSignal();
-  }
+  // Sticky: once counts have arrived, an empty update no longer means "still loading"
+  private readonly _assetCountsLoaded = linkedSignal<{ vulnerabilityId: string; assetCount: number }[], boolean>({
+    source: this.affectedAssetCounts,
+    computation: (counts, previous) => (previous?.value ?? false) || counts.length > 0
+  });
 
   private readonly statusSortCycle = signal<number>(0);
   private readonly STATUS_SORT_CYCLES = 4;
@@ -127,8 +112,8 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   protected preparedData = computed(() => {
-    const poams = this.poamsDataSignal();
-    const assetCounts = this.affectedAssetCountsSignal();
+    const poams = this.poamsData();
+    const assetCounts = this.affectedAssetCounts();
     const assetCountsLoaded = this._assetCountsLoaded();
     const assetCountMap = new Map<string, number>();
 
@@ -274,7 +259,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   filteredByCollectionType = computed(() => {
-    const poams = this.poamsDataSignal();
+    const poams = this.poamsData();
     const collectionType = this.collectionTypeSignal();
 
     if (collectionType === 'STIG Manager') {
@@ -448,7 +433,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
       { field: 'labels', header: 'Labels' }
     ];
 
-    const filename = `${this.variant ?? 'poams'}-${format(new Date(), 'yyyy-MM-dd')}`;
+    const filename = `${this.variant() ?? 'poams'}-${format(new Date(), 'yyyy-MM-dd')}`;
 
     this.csvExportService.exportToCsv(processedData, {
       filename,
@@ -476,7 +461,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const collectionId = this.selectedCollectionId();
       const collection = this.selectedCollection();
-      const allPoams = this.poamsDataSignal();
+      const allPoams = this.poamsData();
       let poams = allPoams.filter((poam) => selectedStatuses.includes(poam.status.toLowerCase()));
 
       poams = this.addAssociatedVulnerabilitiesToExport(poams);
@@ -822,7 +807,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
       });
 
       try {
-        const poams = this.poamsDataSignal();
+        const poams = this.poamsData();
 
         const updatedFile = await PoamExportService.updateEMASSterPoams(file, poams, this.selectedCollectionId(), selectedColumns, this.collectionsService, this.importService, this.poamService, this.sharedService);
 

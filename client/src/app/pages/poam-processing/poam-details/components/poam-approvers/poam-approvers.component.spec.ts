@@ -55,11 +55,11 @@ describe('PoamApproversComponent', () => {
 
     fixture = TestBed.createComponent(PoamApproversComponent);
     component = fixture.componentInstance;
-    component.poamId = 100;
-    component.accessLevel = 2;
-    component.poamApprovers = [];
-    component.collectionApprovers = mockCollectionApprovers;
-    component.poamService = mockPoamService;
+    fixture.componentRef.setInput('poamId', 100);
+    fixture.componentRef.setInput('accessLevel', 2);
+    fixture.componentRef.setInput('collectionApprovers', mockCollectionApprovers);
+    fixture.componentRef.setInput('poamService', mockPoamService);
+    component.poamApprovers.set([]);
   });
 
   afterEach(() => {
@@ -73,34 +73,34 @@ describe('PoamApproversComponent', () => {
     });
 
     it('should have default property values', () => {
-      expect(component.accessLevel).toBe(2);
-      expect(component.poamApprovers).toEqual([]);
+      expect(component.accessLevel()).toBe(2);
+      expect(component.poamApprovers()).toEqual([]);
     });
 
     it('should initialize poamApprovers to empty array if not an array', () => {
-      component.poamApprovers = null as any;
+      component.poamApprovers.set(null as any);
       component.ngOnInit();
-      expect(component.poamApprovers).toEqual([]);
+      expect(component.poamApprovers()).toEqual([]);
     });
 
     it('should initialize poamApprovers to empty array if undefined', () => {
-      component.poamApprovers = undefined as any;
+      component.poamApprovers.set(undefined as any);
       component.ngOnInit();
-      expect(component.poamApprovers).toEqual([]);
+      expect(component.poamApprovers()).toEqual([]);
     });
 
     it('should leave poamApprovers unchanged if already an array', () => {
       const approvers = [createApprover()];
 
-      component.poamApprovers = approvers;
+      component.poamApprovers.set(approvers);
       component.ngOnInit();
-      expect(component.poamApprovers).toBe(approvers);
+      expect(component.poamApprovers()).toBe(approvers);
     });
 
     it('should leave an empty array unchanged', () => {
-      component.poamApprovers = [];
+      component.poamApprovers.set([]);
       component.ngOnInit();
-      expect(component.poamApprovers).toEqual([]);
+      expect(component.poamApprovers()).toEqual([]);
     });
   });
 
@@ -124,7 +124,7 @@ describe('PoamApproversComponent', () => {
     });
 
     it('should return empty string when collectionApprovers is empty', () => {
-      component.collectionApprovers = [];
+      fixture.componentRef.setInput('collectionApprovers', []);
       const result = component.getApproverName(10);
 
       expect(result).toBe('');
@@ -141,19 +141,19 @@ describe('PoamApproversComponent', () => {
     it('should add a new approver to the beginning of the array', async () => {
       const existing = createApprover({ userId: 20 });
 
-      component.poamApprovers = [existing];
+      component.poamApprovers.set([existing]);
 
       await component.addApprover();
 
-      expect(component.poamApprovers.length).toBe(2);
-      expect(component.poamApprovers[0].isNew).toBe(true);
-      expect(component.poamApprovers[1].userId).toBe(20);
+      expect(component.poamApprovers().length).toBe(2);
+      expect(component.poamApprovers()[0].isNew).toBe(true);
+      expect(component.poamApprovers()[1].userId).toBe(20);
     });
 
     it('should set correct default values on the new approver', async () => {
       await component.addApprover();
 
-      const newApprover = component.poamApprovers[0];
+      const newApprover = component.poamApprovers()[0];
 
       expect(newApprover.userId).toBeNull();
       expect(newApprover.approvalStatus).toBe('Not Reviewed');
@@ -164,21 +164,21 @@ describe('PoamApproversComponent', () => {
 
     it('should emit approversChanged', async () => {
       await component.addApprover();
-      expect(emitSpy).toHaveBeenCalledWith(component.poamApprovers);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamApprovers());
     });
 
     it('should add to an empty array', async () => {
-      component.poamApprovers = [];
+      component.poamApprovers.set([]);
       await component.addApprover();
-      expect(component.poamApprovers.length).toBe(1);
+      expect(component.poamApprovers().length).toBe(1);
     });
 
     it('should add multiple approvers with repeated calls', async () => {
       await component.addApprover();
       await component.addApprover();
-      expect(component.poamApprovers.length).toBe(2);
-      expect(component.poamApprovers[0].isNew).toBe(true);
-      expect(component.poamApprovers[1].isNew).toBe(true);
+      expect(component.poamApprovers().length).toBe(2);
+      expect(component.poamApprovers()[0].isNew).toBe(true);
+      expect(component.poamApprovers()[1].isNew).toBe(true);
     });
   });
 
@@ -192,38 +192,38 @@ describe('PoamApproversComponent', () => {
     it('should update an existing approver in-place when found by userId', async () => {
       const approver = createApprover({ userId: 10, comments: 'Old comment', isNew: true });
 
-      component.poamApprovers = [approver];
+      component.poamApprovers.set([approver]);
 
       await component.onApproverChange({ userId: 10, comments: 'Updated comment' });
 
-      expect(component.poamApprovers[0].fullName).toBe('Alice Approver');
-      expect(component.poamApprovers[0].comments).toBe('Updated comment');
-      expect(component.poamApprovers[0].isNew).toBe(false);
-      expect(component.poamApprovers[0].approvalStatus).toBe('Not Reviewed');
+      expect(component.poamApprovers()[0].fullName).toBe('Alice Approver');
+      expect(component.poamApprovers()[0].comments).toBe('Updated comment');
+      expect(component.poamApprovers()[0].isNew).toBe(false);
+      expect(component.poamApprovers()[0].approvalStatus).toBe('Not Reviewed');
     });
 
     it('should add approver to beginning and filter out null userId entries when not found by index', async () => {
       const nullApprover = { userId: null, approvalStatus: 'Not Reviewed', approvedDate: null, comments: '', isNew: true };
       const existingApprover = createApprover({ userId: 20 });
 
-      component.poamApprovers = [nullApprover, existingApprover];
+      component.poamApprovers.set([nullApprover, existingApprover]);
 
       await component.onApproverChange({ userId: 10 });
 
-      expect(component.poamApprovers.length).toBe(2);
-      expect(component.poamApprovers[0].userId).toBe(10);
-      expect(component.poamApprovers[0].fullName).toBe('Alice Approver');
-      expect(component.poamApprovers[1].userId).toBe(20);
+      expect(component.poamApprovers().length).toBe(2);
+      expect(component.poamApprovers()[0].userId).toBe(10);
+      expect(component.poamApprovers()[0].fullName).toBe('Alice Approver');
+      expect(component.poamApprovers()[1].userId).toBe(20);
     });
 
     it('should emit approversChanged after update', async () => {
-      component.poamApprovers = [createApprover({ userId: 10 })];
+      component.poamApprovers.set([createApprover({ userId: 10 })]);
       await component.onApproverChange({ userId: 10 });
-      expect(emitSpy).toHaveBeenCalledWith(component.poamApprovers);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamApprovers());
     });
 
     it('should do nothing if selected approver is not in collectionApprovers', async () => {
-      component.poamApprovers = [createApprover()];
+      component.poamApprovers.set([createApprover()]);
       await component.onApproverChange({ userId: 999 });
       expect(emitSpy).not.toHaveBeenCalled();
     });
@@ -231,35 +231,35 @@ describe('PoamApproversComponent', () => {
     it('should set approvedDate to null on change', async () => {
       const approver = createApprover({ userId: 10, approvedDate: '2026-01-01' });
 
-      component.poamApprovers = [approver];
+      component.poamApprovers.set([approver]);
 
       await component.onApproverChange({ userId: 10, comments: '' });
 
-      expect(component.poamApprovers[0].approvedDate).toBeNull();
+      expect(component.poamApprovers()[0].approvedDate).toBeNull();
     });
 
     it('should reset approvalStatus to Not Reviewed on change', async () => {
       const approver = createApprover({ userId: 10, approvalStatus: 'Approved' });
 
-      component.poamApprovers = [approver];
+      component.poamApprovers.set([approver]);
 
       await component.onApproverChange({ userId: 10, comments: '' });
 
-      expect(component.poamApprovers[0].approvalStatus).toBe('Not Reviewed');
+      expect(component.poamApprovers()[0].approvalStatus).toBe('Not Reviewed');
     });
 
     it('should preserve comments from the approver parameter', async () => {
-      component.poamApprovers = [];
+      component.poamApprovers.set([]);
       await component.onApproverChange({ userId: 10, comments: 'My notes' });
 
-      expect(component.poamApprovers[0].comments).toBe('My notes');
+      expect(component.poamApprovers()[0].comments).toBe('My notes');
     });
 
     it('should default comments to empty string if not provided', async () => {
-      component.poamApprovers = [];
+      component.poamApprovers.set([]);
       await component.onApproverChange({ userId: 10 });
 
-      expect(component.poamApprovers[0].comments).toBe('');
+      expect(component.poamApprovers()[0].comments).toBe('');
     });
   });
 
@@ -271,68 +271,68 @@ describe('PoamApproversComponent', () => {
     });
 
     it('should remove the approver at the given index', async () => {
-      component.poamApprovers = [createApprover({ userId: 10 }), createApprover({ userId: 20 }), createApprover({ userId: 30 })];
+      component.poamApprovers.set([createApprover({ userId: 10 }), createApprover({ userId: 20 }), createApprover({ userId: 30 })]);
 
       await component.deleteApprover(1);
 
-      expect(component.poamApprovers.length).toBe(2);
-      expect(component.poamApprovers[0].userId).toBe(10);
-      expect(component.poamApprovers[1].userId).toBe(30);
+      expect(component.poamApprovers().length).toBe(2);
+      expect(component.poamApprovers()[0].userId).toBe(10);
+      expect(component.poamApprovers()[1].userId).toBe(30);
     });
 
     it('should remove the first approver', async () => {
-      component.poamApprovers = [createApprover({ userId: 10 }), createApprover({ userId: 20 })];
+      component.poamApprovers.set([createApprover({ userId: 10 }), createApprover({ userId: 20 })]);
 
       await component.deleteApprover(0);
 
-      expect(component.poamApprovers.length).toBe(1);
-      expect(component.poamApprovers[0].userId).toBe(20);
+      expect(component.poamApprovers().length).toBe(1);
+      expect(component.poamApprovers()[0].userId).toBe(20);
     });
 
     it('should remove the last approver leaving empty array', async () => {
-      component.poamApprovers = [createApprover({ userId: 10 })];
+      component.poamApprovers.set([createApprover({ userId: 10 })]);
 
       await component.deleteApprover(0);
 
-      expect(component.poamApprovers.length).toBe(0);
+      expect(component.poamApprovers().length).toBe(0);
     });
 
     it('should emit approversChanged after deletion', async () => {
-      component.poamApprovers = [createApprover()];
+      component.poamApprovers.set([createApprover()]);
 
       await component.deleteApprover(0);
 
-      expect(emitSpy).toHaveBeenCalledWith(component.poamApprovers);
+      expect(emitSpy).toHaveBeenCalledWith(component.poamApprovers());
     });
   });
 
   describe('getPoamApprovers', () => {
     it('should not call service if poamId is falsy', () => {
-      component.poamId = null;
+      (component as any).poamId = () => null;
       component.getPoamApprovers();
       expect(mockPoamService.getPoamApprovers).not.toHaveBeenCalled();
     });
 
     it('should not call service if poamId is "ADDPOAM"', () => {
-      component.poamId = 'ADDPOAM';
+      (component as any).poamId = () => 'ADDPOAM';
       component.getPoamApprovers();
       expect(mockPoamService.getPoamApprovers).not.toHaveBeenCalled();
     });
 
     it('should not call service if poamId is undefined', () => {
-      component.poamId = undefined;
+      (component as any).poamId = () => undefined;
       component.getPoamApprovers();
       expect(mockPoamService.getPoamApprovers).not.toHaveBeenCalled();
     });
 
     it('should not call service if poamId is 0', () => {
-      component.poamId = 0;
+      (component as any).poamId = () => 0;
       component.getPoamApprovers();
       expect(mockPoamService.getPoamApprovers).not.toHaveBeenCalled();
     });
 
     it('should not call service if poamId is empty string', () => {
-      component.poamId = '';
+      (component as any).poamId = () => '';
       component.getPoamApprovers();
       expect(mockPoamService.getPoamApprovers).not.toHaveBeenCalled();
     });
@@ -346,19 +346,19 @@ describe('PoamApproversComponent', () => {
       component.getPoamApprovers();
 
       expect(mockPoamService.getPoamApprovers).toHaveBeenCalledWith(100);
-      expect(component.poamApprovers).toBe(returnedApprovers);
+      expect(component.poamApprovers()).toBe(returnedApprovers);
       expect(emitSpy).toHaveBeenCalledWith(returnedApprovers);
     });
 
     it('should replace existing approvers on success', () => {
-      component.poamApprovers = [createApprover({ userId: 99 })];
+      component.poamApprovers.set([createApprover({ userId: 99 })]);
       const newApprovers = [createApprover({ userId: 10 })];
 
       mockPoamService.getPoamApprovers.mockReturnValue(of(newApprovers));
 
       component.getPoamApprovers();
 
-      expect(component.poamApprovers).toBe(newApprovers);
+      expect(component.poamApprovers()).toBe(newApprovers);
     });
 
     it('should show error message on failure with error.error.detail', () => {
@@ -406,7 +406,7 @@ describe('PoamApproversComponent', () => {
     });
 
     it('should call service with correct poamId', () => {
-      component.poamId = 42;
+      (component as any).poamId = () => 42;
       mockPoamService.getPoamApprovers.mockReturnValue(of([]));
 
       component.getPoamApprovers();

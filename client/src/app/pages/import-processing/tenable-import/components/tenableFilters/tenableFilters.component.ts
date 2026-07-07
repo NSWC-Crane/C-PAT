@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, Input, OnInit, inject, output, signal, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, output, signal, OnDestroy, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -46,9 +46,9 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
   private readonly messageService = inject(MessageService);
   private readonly setPayloadService = inject(PayloadService);
 
-  @Input() collectionId: number = 0;
-  @Input() activeFilters: any[] = [];
-  @Input() tenableTool: string = '';
+  readonly collectionId = input<number>(0);
+  readonly activeFilters = input<any[]>([]);
+  readonly tenableTool = input<string>('');
 
   readonly filterSaved = output<void>();
 
@@ -84,11 +84,11 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
 
   showSaveFilterDialog() {
     const filterToSave = {
-      tool: this.tenableTool,
+      tool: this.tenableTool(),
       sourceType: 'cumulative',
       type: 'vuln',
-      filters: this.activeFilters,
-      tenableTool: this.tenableTool
+      filters: this.activeFilters(),
+      tenableTool: this.tenableTool()
     };
 
     this.currentFilter = JSON.stringify(filterToSave, null, 2);
@@ -101,8 +101,10 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
   }
 
   loadExistingFilters() {
-    if (this.collectionId) {
-      this.importService.getTenableFilters(this.collectionId).subscribe({
+    const collectionId = this.collectionId();
+
+    if (collectionId) {
+      this.importService.getTenableFilters(collectionId).subscribe({
         next: (filters: TenableFilter[]) => {
           this.existingFilters = filters.map((filter) => {
             const hasAccess = this.accessLevel() === 4;
@@ -212,14 +214,14 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
     }
 
     const filterData: any = {
-      collectionId: this.collectionId,
+      collectionId: this.collectionId(),
       filterName: filterNameStr,
       filter: this.currentFilter
     };
 
     if (this.isUpdating && this.selectedFilterId && this.canUpdate) {
       filterData.filterId = this.selectedFilterId;
-      this.importService.updateTenableFilter(this.collectionId, this.selectedFilterId, filterData).subscribe({
+      this.importService.updateTenableFilter(this.collectionId(), this.selectedFilterId, filterData).subscribe({
         next: () => {
           this.messageService.add({
             severity: 'success',
@@ -238,7 +240,7 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      this.importService.addTenableFilter(this.collectionId, filterData).subscribe({
+      this.importService.addTenableFilter(this.collectionId(), filterData).subscribe({
         next: () => {
           this.messageService.add({
             severity: 'success',

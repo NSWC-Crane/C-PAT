@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
+import { NgClass, DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChild, output, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -20,7 +20,6 @@ import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
 import { Select, SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
@@ -47,7 +46,7 @@ interface NavyComplyDateFilter {
   styleUrls: ['./tenableSelectedVulnerabilities.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, CommonModule, DialogModule, SelectModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, SkeletonModule, TableModule, ToastModule, TooltipModule, TagModule]
+  imports: [ButtonModule, DialogModule, SelectModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, SelectModule, SkeletonModule, TableModule, ToastModule, TooltipModule, TagModule, DatePipe, NgClass]
 })
 export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestroy {
   private readonly importService = inject(ImportService);
@@ -59,10 +58,10 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   private readonly router = inject(Router);
 
   readonly totalRecordsChange = output<number>();
-  @Input() currentPreset: string = 'iav';
+  readonly currentPreset = input<string>('iav');
   private readonly table = viewChild.required<Table>('dt');
   private readonly select = viewChild.required<Select>('dd');
-  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly columnSelect = viewChild.required<Select>('ms');
   filters: { [key: string]: FilterMetadata[] } = {
     supersededBy: [{ value: 'N/A', matchMode: 'contains', operator: 'and' }],
     severity: [{ value: ['Low', 'Medium', 'High', 'Critical'], matchMode: 'in', operator: 'and' }]
@@ -105,7 +104,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
 
       sessionStorage.removeItem('tenableSelectedVulnState');
 
-      if (savedState.currentPreset === this.currentPreset) {
+      if (savedState.currentPreset === this.currentPreset()) {
         shouldRestoreState = true;
         this.filters = savedState.filters || this.filters;
         this.selectedSeverities = savedState.selectedSeverities || ['Low', 'Medium', 'High', 'Critical'];
@@ -130,7 +129,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
           this.initColumnsAndFilters();
           this.loadPoamAssociations();
 
-          if (this.currentPreset === 'taskOrder') {
+          if (this.currentPreset() === 'taskOrder') {
             this.getTaskOrderVulnerabilityIds();
           } else {
             this.getIAVPluginIDs();
@@ -206,7 +205,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         header: 'Plugin ID',
         filterType: 'text'
       },
-      ...(this.currentPreset === 'taskOrder' ? [{ field: 'taskOrderNumber', header: 'Task Order #', filterType: 'text' }] : []),
+      ...(this.currentPreset() === 'taskOrder' ? [{ field: 'taskOrderNumber', header: 'Task Order #', filterType: 'text' }] : []),
       {
         field: 'pluginName',
         header: 'Name',
@@ -464,7 +463,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
               acrScore: vuln.acrScore !== '' && vuln.acrScore != null ? Number(vuln.acrScore) : null,
               assetExposureScore: vuln.assetExposureScore !== '' && vuln.assetExposureScore != null ? Number(vuln.assetExposureScore) : null,
               port: vuln.port !== '' && vuln.port != null ? Number(vuln.port) : null,
-              ...(this.currentPreset === 'taskOrder' && { taskOrderNumber: this.taskOrderMap[vuln.pluginID] || '' })
+              ...(this.currentPreset() === 'taskOrder' && { taskOrderNumber: this.taskOrderMap[vuln.pluginID] || '' })
             };
           });
 
@@ -642,8 +641,8 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
         filterValue: this.filterValue,
         tenableTool: this.tenableTool,
         selectedColumns: this.selectedColumns,
-        currentPreset: this.currentPreset,
-        parentTabIndex: this.currentPreset === 'iav' ? 2 : 3
+        currentPreset: this.currentPreset(),
+        parentTabIndex: this.currentPreset() === 'iav' ? 2 : 3
       };
 
       sessionStorage.setItem('tenableFilterState', JSON.stringify(returnState));
@@ -872,7 +871,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   resetColumnSelections() {
     const defaultFields = ['poam', 'pluginID', 'pluginName', 'family', 'severity', 'vprScore', 'iav', 'navyComplyDate', 'supersededBy', 'total', 'hostTotal'];
 
-    if (this.currentPreset === 'taskOrder') {
+    if (this.currentPreset() === 'taskOrder') {
       defaultFields.push('taskOrderNumber');
     }
 
@@ -911,7 +910,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   toggleNavyComplyFilter() {
     const select = this.select();
 
-    if (select.overlayVisible) {
+    if (select.overlayVisible()) {
       select.hide();
     } else {
       select.show();
@@ -919,12 +918,12 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit, OnDestro
   }
 
   toggleAddColumnOverlay() {
-    const multiSelect = this.multiSelect();
+    const columnSelect = this.columnSelect();
 
-    if (multiSelect.overlayVisible) {
-      multiSelect.hide();
+    if (columnSelect.overlayVisible()) {
+      columnSelect.hide();
     } else {
-      multiSelect.show();
+      columnSelect.show();
     }
   }
 

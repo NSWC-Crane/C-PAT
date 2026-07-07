@@ -10,19 +10,19 @@
 
 <div class="table-container">
   <p-toast />
-  <p-table [value]="poamApprovers" dataKey="userId">
-    <ng-template pTemplate="header">
+  <p-table [value]="poamApprovers()" dataKey="userId">
+    <ng-template #header>
       <tr>
         <th scope="col" pSortableColumn="userId">Approver</th>
         <th scope="col" pSortableColumn="approvalStatus">Approval Status</th>
         <th scope="col" pSortableColumn="approvedDate">Approved Date</th>
         <th scope="col" pSortableColumn="comments">Approver Comments</th>
         <th scope="col" style="width: 8rem">
-          <p-button icon="pi pi-plus" (onClick)="addApprover()" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
+          <button pButton (click)="addApprover()" [rounded]="true" variant="text" [disabled]="accessLevel() < 2"><i class="pi pi-plus" pButtonIcon></i></button>
         </th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-approver let-rowIndex="rowIndex">
+    <ng-template #body let-approver let-rowIndex="rowIndex">
       <tr>
         <td>
           @if (!approver.isNew) {
@@ -30,7 +30,7 @@
           }
           @if (approver.isNew) {
             <p-select
-              [options]="collectionApprovers"
+              [options]="collectionApprovers()"
               [(ngModel)]="approver.userId"
               [filter]="true"
               filterBy="fullName"
@@ -39,7 +39,7 @@
               class="w-full"
               (onChange)="onApproverChange(approver)"
               appendTo="body"
-              [disabled]="accessLevel < 2"
+              [disabled]="accessLevel() < 2"
             />
           }
         </td>
@@ -52,15 +52,15 @@
             <span>{{ approver.comments }}</span>
           }
           @if (approver.isNew) {
-            <textarea pTextarea class="w-full" [(ngModel)]="approver.comments" rows="3" maxlength="2000" [disabled]="accessLevel < 2"></textarea>
+            <textarea pTextarea class="w-full" [(ngModel)]="approver.comments" rows="3" maxlength="2000" [disabled]="accessLevel() < 2"></textarea>
           }
         </td>
         <td>
-          <p-button icon="pi pi-trash" (onClick)="deleteApprover(rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
+          <button pButton (click)="deleteApprover(rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-trash" pButtonIcon></i></button>
         </td>
       </tr>
     </ng-template>
-    <ng-template pTemplate="emptymessage">
+    <ng-template #emptymessage>
       <tr>
         <td colspan="5" style="text-align: center">No Approvers to Display</td>
       </tr>

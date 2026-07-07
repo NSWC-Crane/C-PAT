@@ -12,48 +12,48 @@
   <div class="col-span-12">
     <div class="scrollable-aaPackages overflow-hidden">
       <p-table #dt [value]="aaPackages" [globalFilterFields]="['aaPackageId', 'aaPackage']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="aaPackageId" editMode="row">
-        <ng-template pTemplate="caption">
+        <ng-template #caption>
           <div class="flex items-center justify-between">
-            <p-iconField iconPosition="left">
-              <p-inputIcon>
+            <p-iconfield iconPosition="left">
+              <p-inputicon>
                 <i class="pi pi-search"></i>
-              </p-inputIcon>
+              </p-inputicon>
               <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search A&A Packages" id="aaPackageSearch" class="search-input" />
-            </p-iconField>
-            <p-button icon="pi pi-plus" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add A&A Package" (onClick)="onAddNewClick()" />
+            </p-iconfield>
+            <button pButton (click)="onAddNewClick()" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add A&A Package"><i class="pi pi-plus" pButtonIcon></i></button>
           </div>
         </ng-template>
-        <ng-template pTemplate="header">
+        <ng-template #header>
           <tr>
             <th scope="col" pSortableColumn="aaPackageId">A&A Package ID</th>
             <th scope="col" pSortableColumn="aaPackageName">A&A Package Name</th>
             <th scope="col">Actions</th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-aaPackage let-editing="editing" let-ri="rowIndex">
+        <ng-template #body let-aaPackage let-editing="editing" let-ri="rowIndex">
           <tr [pEditableRow]="aaPackage">
             <td>{{ aaPackage.aaPackageId }}</td>
             <td>
-              <p-cellEditor>
-                <ng-template pTemplate="input">
+              <p-celleditor>
+                <ng-template #input>
                   <input pInputText type="text" class="w-full" id="aaPackage" [(ngModel)]="aaPackage.aaPackage" maxlength="50" />
                 </ng-template>
-                <ng-template pTemplate="output"> {{ aaPackage.aaPackage }} </ng-template>
-              </p-cellEditor>
+                <ng-template #output> {{ aaPackage.aaPackage }} </ng-template>
+              </p-celleditor>
             </td>
             <td class="break-all">
               <div class="flex items-center justify-center gap-2">
                 @if (!editing) {
-                  <p-button pInitEditableRow icon="pi pi-pencil" (click)="$event.stopPropagation(); onRowEditInit(aaPackage)" [rounded]="true" variant="text" />
+                  <button pButton (click)="$event.stopPropagation(); onRowEditInit(aaPackage)" pInitEditableRow [rounded]="true" variant="text"><i class="pi pi-pencil" pButtonIcon></i></button>
                 }
                 @if (editing) {
-                  <p-button pSaveEditableRow icon="pi pi-check" (click)="$event.stopPropagation(); onRowEditSave(aaPackage)" [rounded]="true" variant="text" severity="success" class="mr-2" />
+                  <button pButton class="mr-2" (click)="$event.stopPropagation(); onRowEditSave(aaPackage)" pSaveEditableRow [rounded]="true" variant="text" severity="success"><i class="pi pi-check" pButtonIcon></i></button>
                 }
                 @if (editing) {
-                  <p-button pCancelEditableRow icon="pi pi-times" (click)="$event.stopPropagation(); onRowEditCancel(aaPackage, ri)" [rounded]="true" variant="text" severity="danger" />
+                  <button pButton (click)="$event.stopPropagation(); onRowEditCancel(aaPackage, ri)" pCancelEditableRow [rounded]="true" variant="text" severity="danger"><i class="pi pi-times" pButtonIcon></i></button>
                 }
                 @if (!editing) {
-                  <p-button icon="pi pi-trash" (click)="$event.stopPropagation(); onRowDelete(aaPackage)" [rounded]="true" variant="text" severity="danger" />
+                  <button pButton (click)="$event.stopPropagation(); onRowDelete(aaPackage)" [rounded]="true" variant="text" severity="danger"><i class="pi pi-trash" pButtonIcon></i></button>
                 }
               </div>
             </td>

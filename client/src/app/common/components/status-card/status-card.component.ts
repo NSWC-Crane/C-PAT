@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { CardModule } from 'primeng/card';
 
 @Component({
@@ -19,14 +19,14 @@ import { CardModule } from 'primeng/card';
       <div class="grid grid-cols-12 gap-4">
         <div class="col-span-12 md:col-span-6 lg:col-span-3">
           <div class="icon-container">
-            <div class="icon status-{{ type }}">
-              <i class="pi {{ icon }}"></i>
+            <div class="icon status-{{ type() }}">
+              <i class="pi {{ icon() }}"></i>
             </div>
           </div>
         </div>
         <div class="col-span-12 md:col-span-6 lg:col-span-9">
           <div class="details">
-            <div class="title h5">{{ title }}</div>
+            <div class="title h5">{{ title() }}</div>
           </div>
         </div>
       </div>
@@ -36,7 +36,7 @@ import { CardModule } from 'primeng/card';
   imports: [CardModule]
 })
 export class StatusCardComponent {
-  @Input() title!: string;
-  @Input() type!: string;
-  @Input() icon!: string;
+  readonly title = input.required<string>();
+  readonly type = input.required<string>();
+  readonly icon = input.required<string>();
 }

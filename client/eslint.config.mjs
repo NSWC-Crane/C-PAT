@@ -29,7 +29,6 @@ export default tseslint.config(
       '@angular-eslint': angular
     },
     rules: {
-      ...angular.configs.recommended.rules,
       '@angular-eslint/component-selector': [
         'error',
         {
@@ -101,7 +100,6 @@ export default tseslint.config(
       '@angular-eslint/template': angularTemplate
     },
     rules: {
-      ...angularTemplate.configs.recommended.rules,
       '@angular-eslint/template/eqeqeq': [
         'error',
         {

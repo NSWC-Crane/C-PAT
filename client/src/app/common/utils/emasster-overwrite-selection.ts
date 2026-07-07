@@ -28,18 +28,28 @@ export interface EMassField {
     <div class="flex flex-col min-w-[800px]">
       <div class="text-xl font-semibold mb-6 text-center">eMASSter POAM Fields to Overwrite</div>
 
-      <p-pickList [source]="unselectedFields" [target]="selectedFields" sourceHeader="Available Fields" targetHeader="Selected Fields" [dragdrop]="true" [responsive]="true" showSourceControls="false" showTargetControls="false" scrollHeight="38vh">
-        <ng-template let-field pTemplate="item">
+      <p-picklist
+        [(source)]="unselectedFields"
+        [(target)]="selectedFields"
+        sourceHeader="Available Fields"
+        targetHeader="Selected Fields"
+        [dragdrop]="true"
+        [responsive]="true"
+        [showSourceControls]="false"
+        [showTargetControls]="false"
+        scrollHeight="38vh"
+      >
+        <ng-template let-field #item>
           <div class="flex items-center p-2">
             <span class="font-medium">{{ field.description }}</span>
             <span class="text-sm text-gray-500 ml-2">(Column {{ field.column }})</span>
           </div>
         </ng-template>
-      </p-pickList>
+      </p-picklist>
 
       <div class="flex justify-between mt-4">
-        <p-button label="Cancel" severity="secondary" [outlined]="true" [rounded]="true" (onClick)="ref.close()" />
-        <p-button label="Confirm" severity="primary" [rounded]="true" (onClick)="confirm()" />
+        <button pButton severity="secondary" [outlined]="true" [rounded]="true" (click)="ref.close()"><span pButtonLabel>Cancel</span></button>
+        <button pButton severity="primary" [rounded]="true" (click)="confirm()"><span pButtonLabel>Confirm</span></button>
       </div>
     </div>
   `,

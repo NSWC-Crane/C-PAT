@@ -9,18 +9,18 @@
 -->
 
 <div class="stepper-content">
-  @if (collectionType === 'C-PAT') {
+  @if (collectionType() === 'C-PAT') {
     <div>
-      <p-table [value]="poamAssets">
-        <ng-template pTemplate="header">
+      <p-table [value]="poamAssets()">
+        <ng-template #header>
           <tr>
             <th scope="col" pSortableColumn="assetName">Asset</th>
             <th scope="col" style="width: 8rem">
-              <p-button icon="pi pi-plus" (onClick)="addAsset()" [rounded]="true" variant="text" [disabled]="accessLevel < 2" />
+              <button pButton (click)="addAsset()" [rounded]="true" variant="text" [disabled]="accessLevel() < 2"><i class="pi pi-plus" pButtonIcon></i></button>
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-asset let-rowIndex="rowIndex">
+        <ng-template #body let-asset let-rowIndex="rowIndex">
           <tr>
             <td>
               @if (!asset.isNew) {
@@ -28,7 +28,7 @@
               }
               @if (asset.isNew) {
                 <p-select
-                  [options]="assetList"
+                  [options]="assetList()"
                   [(ngModel)]="asset.assetId"
                   [filter]="true"
                   filterBy="assetName"
@@ -37,16 +37,16 @@
                   class="w-full"
                   (onChange)="onAssetChange(asset, rowIndex)"
                   appendTo="body"
-                  [disabled]="accessLevel < 2"
+                  [disabled]="accessLevel() < 2"
                 />
               }
             </td>
             <td>
-              <p-button icon="pi pi-trash" (onClick)="deleteAsset(asset, rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2" />
+              <button pButton (click)="deleteAsset(asset, rowIndex)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-trash" pButtonIcon></i></button>
             </td>
           </tr>
         </ng-template>
-        <ng-template pTemplate="emptymessage">
+        <ng-template #emptymessage>
           <tr>
             <td colspan="2" style="text-align: center">No Assets to Display</td>
           </tr>
@@ -55,15 +55,15 @@
     </div>
   }
 
-  @if (collectionType === 'STIG Manager') {
+  @if (collectionType() === 'STIG Manager') {
     <div class="stepper-content">
-      <cpat-stigmanager-poam-assets-table [stigmanCollectionId]="originCollectionId" [groupId]="poam.vulnerabilityId" [associatedVulnerabilities]="poamAssociatedVulnerabilities" />
+      <cpat-stigmanager-poam-assets-table [stigmanCollectionId]="originCollectionId()" [groupId]="poam().vulnerabilityId" [associatedVulnerabilities]="poamAssociatedVulnerabilities()" />
     </div>
   }
 
-  @if (collectionType === 'Tenable') {
+  @if (collectionType() === 'Tenable') {
     <div class="stepper-content">
-      <cpat-tenable-assets-table [pluginID]="poam.vulnerabilityId" [tenableRepoId]="originCollectionId" [associatedVulnerabilities]="poamAssociatedVulnerabilities" />
+      <cpat-tenable-assets-table [pluginID]="poam().vulnerabilityId" [tenableRepoId]="originCollectionId()" [associatedVulnerabilities]="poamAssociatedVulnerabilities()" />
     </div>
   }
 </div>

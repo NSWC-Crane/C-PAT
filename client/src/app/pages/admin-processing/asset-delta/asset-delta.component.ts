@@ -1,4 +1,4 @@
-/*
+﻿/*
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { HttpEvent, HttpResponse } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, effect, signal, OnDestroy, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -16,16 +16,15 @@ import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ChartModule } from 'primeng/chart';
+import { CpatChartComponent } from '../../../common/components/chart/chart.component';
 import { DialogModule } from 'primeng/dialog';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { FloatLabel } from 'primeng/floatlabel';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectModule } from 'primeng/select';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
@@ -78,21 +77,20 @@ interface ChartData {
     BadgeModule,
     ButtonModule,
     CardModule,
-    ChartModule,
-    CommonModule,
+    CpatChartComponent,
     DialogModule,
     FileUploadModule,
     FloatLabel,
     FormsModule,
     InputTextModule,
-    MultiSelectModule,
     IconField,
     InputIcon,
     ProgressBarModule,
     SelectModule,
     TableModule,
     ToastModule,
-    TooltipModule
+    TooltipModule,
+    DatePipe
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

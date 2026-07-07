@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, viewChild, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { MessageService } from 'primeng/api';
@@ -17,7 +16,7 @@ import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Select, SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
@@ -38,15 +37,15 @@ interface ExportColumn {
   styleUrls: ['./tenableHostAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectModule, ToastModule, TooltipModule, TagModule, TenableHostDialogComponent]
+  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, SelectModule, ToastModule, TooltipModule, TagModule, TenableHostDialogComponent]
 })
 export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   private readonly importService = inject(ImportService);
   private readonly messageService = inject(MessageService);
 
-  @Input() tenableRepoId: number;
+  readonly tenableRepoId = input<number>(undefined);
   private readonly hostAssetTable = viewChild.required<Table>('hostAssetTable');
-  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly columnSelect = viewChild.required<Select>('ms');
 
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -89,7 +88,9 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   }
 
   getAffectedAssets() {
-    if (!this.tenableRepoId) return;
+    const tenableRepoId = this.tenableRepoId();
+
+    if (!tenableRepoId) return;
 
     this.isLoading = true;
     const hostParams = {
@@ -98,7 +99,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
           {
             property: 'repositoryHost',
             operator: 'eq',
-            value: this.tenableRepoId.toString()
+            value: tenableRepoId.toString()
           },
           {
             property: 'assetCriticalityRating',
@@ -230,12 +231,12 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   }
 
   toggleAddColumnOverlay() {
-    const multiSelect = this.multiSelect();
+    const columnSelect = this.columnSelect();
 
-    if (multiSelect.overlayVisible) {
-      multiSelect.hide();
+    if (columnSelect.overlayVisible()) {
+      columnSelect.hide();
     } else {
-      multiSelect.show();
+      columnSelect.show();
     }
   }
 

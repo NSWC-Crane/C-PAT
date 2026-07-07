@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule, DatePipe, Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DoCheck, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
+import { DatePipe, Location } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DoCheck, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parse, parseISO } from 'date-fns';
@@ -82,7 +82,6 @@ interface PoamAction {
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AccordionModule,
-    CommonModule,
     FormsModule,
     AutoCompleteModule,
     ButtonModule,
@@ -112,7 +111,8 @@ interface PoamAction {
     PoamLabelsComponent,
     PoamTeamsComponent,
     ProgressBarModule,
-    TourPrimeNg
+    TourPrimeNg,
+    DatePipe
   ],
   providers: [DatePipe, ConfirmationService, MessageService]
 })
@@ -136,6 +136,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
   private readonly mappingService = inject(PoamVariableMappingService);
   private readonly location = inject(Location);
   private readonly tourService = inject(TourService);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly subs = new SubSink();
 
   protected activeStep = 1;
@@ -302,6 +303,18 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
     return items;
   });
 
+  private formatDate(date: string | Date | null | undefined): string | null {
+    if (typeof date === 'string') {
+      return date;
+    }
+
+    if (date) {
+      return format(date, 'yyyy-MM-dd');
+    }
+
+    return null;
+  }
+
   ngDoCheck(): void {
     this.invalidFields = this.poamValidationService.getInvalidSubmissionFields(this.poam, this.teamMitigations, this.teamResources, this.poamMilestones, this.dates);
   }
@@ -325,7 +338,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
     this.subs.add(
       this.tourService.stepHide$.subscribe(({ step, direction }) => {
         const steps = this.tourService.steps;
-        const currentIdx = steps.findIndex((s) => s === step);
+        const currentIdx = steps.indexOf(step);
         const nextIdx = direction === Direction.Forwards ? currentIdx + 1 : currentIdx - 1;
         const nextStep = steps[nextIdx];
         const target = nextStep?.anchorId ? this.tourAnchorToStep[nextStep.anchorId] : undefined;
@@ -408,8 +421,6 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
         summary: 'Error',
         detail: 'Failed to create POAM'
       });
-
-      return;
     } else if (isNewPoam && source === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
       try {
         await this.createNewACASPoam();
@@ -528,6 +539,8 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
         }
       });
     }
+
+    this.cdr.detectChanges();
   }
 
   getLabelData() {
@@ -775,12 +788,10 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
         return;
       }
 
-      this.poam.scheduledCompletionDate = this.dates.scheduledCompletionDate ? (typeof this.dates.scheduledCompletionDate === 'string' ? this.dates.scheduledCompletionDate : format(this.dates.scheduledCompletionDate, 'yyyy-MM-dd')) : null;
-
-      this.poam.submittedDate = this.dates.submittedDate ? (typeof this.dates.submittedDate === 'string' ? this.dates.submittedDate : format(this.dates.submittedDate, 'yyyy-MM-dd')) : null;
-
-      this.poam.iavComplyByDate = this.dates.iavComplyByDate ? (typeof this.dates.iavComplyByDate === 'string' ? this.dates.iavComplyByDate : format(this.dates.iavComplyByDate, 'yyyy-MM-dd')) : null;
-      this.poam.closedDate = this.dates.closedDate ? (typeof this.dates.closedDate === 'string' ? this.dates.closedDate : format(this.dates.closedDate, 'yyyy-MM-dd')) : null;
+      this.poam.scheduledCompletionDate = this.formatDate(this.dates.scheduledCompletionDate);
+      this.poam.submittedDate = this.formatDate(this.dates.submittedDate);
+      this.poam.iavComplyByDate = this.formatDate(this.dates.iavComplyByDate);
+      this.poam.closedDate = this.formatDate(this.dates.closedDate);
       this.poam.requiredResources = this.poam.requiredResources ? this.poam.requiredResources : '';
       this.poam.isGlobalFinding = this.poam.isGlobalFinding ?? false;
 
@@ -807,18 +818,14 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
         poamToSubmit.assets = [];
       }
 
-      if (this.poamApprovers?.length > 0) {
-        poamToSubmit.approvers = this.poamApprovers
-          .filter((approver) => approver.userId)
-          .map((approver) => ({
-            userId: approver.userId,
-            approvalStatus: approver.approvalStatus || 'Not Reviewed',
-            comments: approver.comments || '',
-            approvedDate: approver.approvedDate ? (typeof approver.approvedDate === 'string' ? approver.approvedDate : format(approver.approvedDate, 'yyyy-MM-dd')) : null
-          }));
-      } else {
-        poamToSubmit.approvers = [];
-      }
+      poamToSubmit.approvers = (this.poamApprovers ?? [])
+        .filter((approver) => approver.userId)
+        .map((approver) => ({
+          userId: approver.userId,
+          approvalStatus: approver.approvalStatus || 'Not Reviewed',
+          comments: approver.comments || '',
+          approvedDate: this.formatDate(approver.approvedDate)
+        }));
 
       if (this.poamLabels?.length > 0) {
         poamToSubmit.labels = this.poamLabels.filter((label) => label.labelId).map((label) => ({ labelId: label.labelId }));
@@ -826,23 +833,19 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
         poamToSubmit.labels = [];
       }
 
-      if (this.poamMilestones?.length > 0) {
-        poamToSubmit.milestones = this.poamMilestones
-          .filter((milestone) => milestone.milestoneComments)
-          .map((milestone) => ({
-            milestoneDate: milestone.milestoneDate ? (typeof milestone.milestoneDate === 'string' ? milestone.milestoneDate : format(milestone.milestoneDate, 'yyyy-MM-dd')) : null,
-            milestoneComments: milestone.milestoneComments || null,
-            milestoneChangeComments: milestone.milestoneChangeComments || null,
-            milestoneChangeDate: milestone.milestoneChangeDate ? (typeof milestone.milestoneChangeDate === 'string' ? milestone.milestoneChangeDate : format(milestone.milestoneChangeDate, 'yyyy-MM-dd')) : null,
-            milestoneStatus: milestone.milestoneStatus || 'In Progress',
-            assignedTeamIds: milestone.assignedTeamIds || []
-          }));
-      } else {
-        poamToSubmit.milestones = [];
-      }
+      poamToSubmit.milestones = (this.poamMilestones ?? [])
+        .filter((milestone) => milestone.milestoneComments)
+        .map((milestone) => ({
+          milestoneDate: this.formatDate(milestone.milestoneDate),
+          milestoneComments: milestone.milestoneComments || null,
+          milestoneChangeComments: milestone.milestoneChangeComments || null,
+          milestoneChangeDate: this.formatDate(milestone.milestoneChangeDate),
+          milestoneStatus: milestone.milestoneStatus || 'In Progress',
+          assignedTeamIds: milestone.assignedTeamIds || []
+        }));
 
       if (this.poamAssociatedVulnerabilities?.length > 0) {
-        const normalizedVulnerabilities = this.poamAssociatedVulnerabilities.map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : vuln)).filter((vuln) => vuln);
+        const normalizedVulnerabilities = this.poamAssociatedVulnerabilities.map((vuln) => (typeof vuln === 'string' ? vuln : vuln?.associatedVulnerability || vuln)).filter(Boolean);
 
         poamToSubmit.associatedVulnerabilities = normalizedVulnerabilities;
       } else {
@@ -855,7 +858,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
           .map((mitigation) => ({
             assignedTeamId: mitigation.assignedTeamId,
             mitigationText: mitigation.mitigationText || '',
-            isActive: mitigation.isActive !== undefined ? mitigation.isActive : true
+            isActive: mitigation.isActive ?? true
           }));
       } else {
         poamToSubmit.teamMitigations = [];
@@ -1093,7 +1096,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
 
     maxAllowedDate.setDate(currentDate.getDate() + daysToAdd);
 
-    if (!(this.accessLevel() === 4) && this.dates.scheduledCompletionDate > maxAllowedDate) {
+    if (this.accessLevel() !== 4 && this.dates.scheduledCompletionDate > maxAllowedDate) {
       this.dates.scheduledCompletionDate = maxAllowedDate;
       const formattedDate = maxAllowedDate.toLocaleDateString();
 
@@ -1255,9 +1258,9 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
 
     const currentAssignedTeams = Array.isArray(this.poamAssignedTeams) ? this.poamAssignedTeams : [];
 
-    const activeTeamIds = currentAssignedTeams.filter((team) => team.isActive !== false).map((team) => team.assignedTeamId);
+    const activeTeamIds = new Set(currentAssignedTeams.filter((team) => team.isActive !== false).map((team) => team.assignedTeamId));
 
-    const filteredTeams = (this.assignedTeamOptions || []).filter((teamOption: any) => activeTeamIds.includes(teamOption.assignedTeamId));
+    const filteredTeams = (this.assignedTeamOptions || []).filter((teamOption: any) => activeTeamIds.has(teamOption.assignedTeamId));
 
     this.milestoneTeamOptions = [...filteredTeams];
   }
@@ -1311,7 +1314,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   saveTeamMitigation(teamMitigation: any) {
-    if (!this.poam || !teamMitigation || !teamMitigation.assignedTeamId) {
+    if (!this.poam || !teamMitigation?.assignedTeamId) {
       console.error('Cannot save team mitigation: Missing POAM or team mitigation data.');
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Cannot save, missing data.' });
 
@@ -1436,7 +1439,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   deletePoam() {
-    if (!this.poam || !this.poam.poamId || this.poam.poamId === 'ADDPOAM') {
+    if (!this.poam?.poamId || this.poam.poamId === 'ADDPOAM') {
       this.messageService.add({
         severity: 'warn',
         summary: 'Cannot Delete',
@@ -1538,7 +1541,7 @@ export class PoamDetailsComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   saveTeamResource(teamResource: any) {
-    if (!this.poam || !teamResource || !teamResource.assignedTeamId) {
+    if (!this.poam || !teamResource?.assignedTeamId) {
       console.error('Cannot save team resource: Missing POAM or team resource data.');
 
       return;

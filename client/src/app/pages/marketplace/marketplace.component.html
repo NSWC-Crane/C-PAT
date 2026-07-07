@@ -11,7 +11,7 @@
 <div class="grid grid-cols-12 gap-4">
   <div class="col-span-12">
     <p-card class="pointsBalance">
-      <ng-template pTemplate="header"> User Points Balance: <p-chip [label]="userPoints + ' Points'" class="mr-2" /> </ng-template>
+      <ng-template #header> User Points Balance: <p-chip [label]="userPoints + ' Points'" class="mr-2" /> </ng-template>
     </p-card>
   </div>
 
@@ -23,13 +23,13 @@
         @for (theme of themes; track theme) {
           <div class="theme-card">
             <p-card [header]="theme.themeName">
-              <ng-template pTemplate="header">
+              <ng-template #header>
                 <p-image [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" [preview]="true" appendTo="body" />
               </ng-template>
               <p>{{ theme.themeDescription }}</p>
               <p-chip [label]="theme.cost + ' Points'" class="mr-2" />
-              <ng-template pTemplate="footer">
-                <p-button label="Purchase" variant="outlined" (onClick)="purchaseTheme(theme)" />
+              <ng-template #footer>
+                <button pButton (click)="purchaseTheme(theme)" variant="outlined"><span pButtonLabel>Purchase</span></button>
               </ng-template>
             </p-card>
           </div>
@@ -40,19 +40,19 @@
 
   @if (purchasedThemes.length > 0) {
     <div class="col-span-12">
-      <p-card header="Purchased Themes" styleClass="mb-0 pb-0">
+      <p-card header="Purchased Themes" class="mb-0 pb-0">
         <p-divider type="solid" class="mt-0 pt-0" />
         <p></p>
         <div class="p-grid">
           @for (theme of purchasedThemes; track theme) {
             <div class="theme-card">
               <p-card [header]="theme.themeName">
-                <ng-template pTemplate="header">
+                <ng-template #header>
                   <p-image [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" [preview]="true" appendTo="body" />
                 </ng-template>
                 <p>{{ theme.themeDescription }}</p>
-                <ng-template pTemplate="footer">
-                  <p-button label="Enable Theme" variant="outlined" (onClick)="setTheme(theme.themeIdentifier)" />
+                <ng-template #footer>
+                  <button pButton (click)="setTheme(theme.themeIdentifier)" variant="outlined"><span pButtonLabel>Enable Theme</span></button>
                 </ng-template>
               </p-card>
             </div>
@@ -63,5 +63,5 @@
   }
 </div>
 
-<p-confirmDialog class="w-[50vw]" />
+<p-confirmdialog styleClass="w-[50vw]" />
 <p-toast />
