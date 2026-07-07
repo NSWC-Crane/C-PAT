@@ -26,6 +26,10 @@
   overflow-y: auto;
 }
 
+:host ::ng-deep .p-dialog-header {
+  padding: 0.25rem;
+}
+
 .outputData {
   background-color: var(--ground-background);
   border: 1px solid var(--border-color);
