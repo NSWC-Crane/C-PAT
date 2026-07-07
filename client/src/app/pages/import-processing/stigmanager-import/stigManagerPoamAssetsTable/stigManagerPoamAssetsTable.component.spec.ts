@@ -100,9 +100,9 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
 
     fixture = TestBed.createComponent(STIGManagerPoamAssetsTableComponent);
     component = fixture.componentInstance;
-    component.stigmanCollectionId = 42;
-    component.groupId = 'V-001';
-    component.associatedVulnerabilities = [];
+    fixture.componentRef.setInput('stigmanCollectionId', 42);
+    fixture.componentRef.setInput('groupId', 'V-001');
+    fixture.componentRef.setInput('associatedVulnerabilities', []);
   });
 
   describe('Creation and Defaults', () => {
@@ -176,13 +176,13 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should show error message when groupId is missing', () => {
-      component.groupId = '';
+      (component as any).groupId = () => '';
       component.ngOnInit();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
 
     it('should not call loadData when groupId is missing', () => {
-      component.groupId = '';
+      (component as any).groupId = () => '';
       const spy = vi.spyOn(component, 'loadData');
 
       component.ngOnInit();
@@ -190,7 +190,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should not call loadData when stigmanCollectionId is 0', () => {
-      component.stigmanCollectionId = 0;
+      (component as any).stigmanCollectionId = () => 0;
       const spy = vi.spyOn(component, 'loadData');
 
       component.ngOnInit();
@@ -292,7 +292,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
         { groupId: 'V-002', assets: [{ name: 'Asset1', assetId: 101 }] }
       ];
 
-      component.associatedVulnerabilities = ['V-002'];
+      (component as any).associatedVulnerabilities = () => ['V-002'];
       mockSharedService.getPOAMAssetsFromSTIGMAN.mockReturnValue(of(duplicatePoamAssets));
       component.ngOnInit();
       const asset = component.affectedAssets.find((a) => a.assetId === 101);
@@ -302,7 +302,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should include associatedVulnerabilities in search', () => {
-      component.associatedVulnerabilities = ['V-002'];
+      (component as any).associatedVulnerabilities = () => ['V-002'];
       mockSharedService.getPOAMAssetsFromSTIGMAN.mockReturnValue(of([...mockPoamAssets]));
       component.ngOnInit();
       const asset3 = component.affectedAssets.find((a) => a.assetId === 103);
@@ -311,7 +311,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should handle object-form associatedVulnerabilities', () => {
-      component.associatedVulnerabilities = [{ associatedVulnerability: 'V-002' }];
+      (component as any).associatedVulnerabilities = () => [{ associatedVulnerability: 'V-002' }];
       mockSharedService.getPOAMAssetsFromSTIGMAN.mockReturnValue(of([...mockPoamAssets]));
       component.ngOnInit();
       const asset3 = component.affectedAssets.find((a) => a.assetId === 103);
@@ -573,23 +573,23 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
 
   describe('toggleAddColumnOverlay', () => {
     it('should call multiSelect().hide() when overlayVisible is true', () => {
-      const mockMs = { overlayVisible: true, hide: vi.fn(), show: vi.fn() };
+      const mockMs = { overlayVisible: vi.fn().mockReturnValue(true), hide: vi.fn(), show: vi.fn() };
 
-      (component as any).multiSelect = () => mockMs;
+      (component as any).columnSelect = () => mockMs;
       component.toggleAddColumnOverlay();
       expect(mockMs.hide).toHaveBeenCalled();
     });
 
     it('should call multiSelect().show() when overlayVisible is false', () => {
-      const mockMs = { overlayVisible: false, hide: vi.fn(), show: vi.fn() };
+      const mockMs = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
 
-      (component as any).multiSelect = () => mockMs;
+      (component as any).columnSelect = () => mockMs;
       component.toggleAddColumnOverlay();
       expect(mockMs.show).toHaveBeenCalled();
     });
 
     it('should not throw when multiSelect is undefined', () => {
-      (component as any).multiSelect = () => undefined;
+      (component as any).columnSelect = () => undefined;
       expect(() => component.toggleAddColumnOverlay()).not.toThrow();
     });
   });

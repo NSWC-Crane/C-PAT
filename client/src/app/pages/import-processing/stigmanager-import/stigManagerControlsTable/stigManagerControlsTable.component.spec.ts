@@ -106,8 +106,8 @@ describe('STIGManagerControlsTableComponent', () => {
 
     fixture = TestBed.createComponent(STIGManagerControlsTableComponent);
     component = fixture.componentInstance;
-    component.stigmanCollectionId = 42;
-    component.selectedCollection = 7;
+    fixture.componentRef.setInput('stigmanCollectionId', 42);
+    fixture.componentRef.setInput('selectedCollection', 7);
     (component as any).controlsTable = () => mockControlsTable;
     (component as any).findingsTable = () => mockFindingsTable;
   });
@@ -171,7 +171,7 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should not call loadControlsData when stigmanCollectionId is 0', () => {
-      component.stigmanCollectionId = 0;
+      (component as any).stigmanCollectionId = () => 0;
       const spy = vi.spyOn(component as any, 'loadControlsData');
 
       component.ngOnInit();
@@ -316,7 +316,7 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should not call getVulnerabilityIdsWithPoamByCollection when selectedCollection is 0', () => {
-      component.selectedCollection = 0;
+      (component as any).selectedCollection = () => 0;
       component.ngOnInit();
       expect(mockPoamService.getVulnerabilityIdsWithPoamByCollection).not.toHaveBeenCalled();
     });
@@ -455,7 +455,7 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should not call poamService when selectedCollection is 0', () => {
-      component.selectedCollection = 0;
+      (component as any).selectedCollection = () => 0;
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockClear();
       const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1')!;
 

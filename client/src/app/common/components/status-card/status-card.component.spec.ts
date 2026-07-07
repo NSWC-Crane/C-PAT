@@ -31,52 +31,49 @@ describe('StatusCardComponent', () => {
       expect(component).toBeTruthy();
     });
 
-    it('should have undefined inputs before initialization', () => {
-      expect(component.title).toBeUndefined();
-      expect(component.type).toBeUndefined();
-      expect(component.icon).toBeUndefined();
+    it('should throw when required inputs are read before being set', () => {
+      expect(() => component.title()).toThrow();
+      expect(() => component.type()).toThrow();
+      expect(() => component.icon()).toThrow();
     });
   });
 
   describe('input bindings', () => {
     it('should accept title input', () => {
-      component.title = 'Test Title';
-      fixture.detectChanges();
+      fixture.componentRef.setInput('title', 'Test Title');
 
-      expect(component.title).toBe('Test Title');
+      expect(component.title()).toBe('Test Title');
     });
 
     it('should accept type input', () => {
-      component.type = 'success';
-      fixture.detectChanges();
+      fixture.componentRef.setInput('type', 'success');
 
-      expect(component.type).toBe('success');
+      expect(component.type()).toBe('success');
     });
 
     it('should accept icon input', () => {
-      component.icon = 'pi-check';
-      fixture.detectChanges();
+      fixture.componentRef.setInput('icon', 'pi-check');
 
-      expect(component.icon).toBe('pi-check');
+      expect(component.icon()).toBe('pi-check');
     });
 
     it('should accept all inputs together', () => {
-      component.title = 'Success Message';
-      component.type = 'success';
-      component.icon = 'pi-check-circle';
+      fixture.componentRef.setInput('title', 'Success Message');
+      fixture.componentRef.setInput('type', 'success');
+      fixture.componentRef.setInput('icon', 'pi-check-circle');
       fixture.detectChanges();
 
-      expect(component.title).toBe('Success Message');
-      expect(component.type).toBe('success');
-      expect(component.icon).toBe('pi-check-circle');
+      expect(component.title()).toBe('Success Message');
+      expect(component.type()).toBe('success');
+      expect(component.icon()).toBe('pi-check-circle');
     });
   });
 
   describe('template rendering', () => {
     beforeEach(() => {
-      component.title = 'Test Card Title';
-      component.type = 'primary';
-      component.icon = 'pi-info-circle';
+      fixture.componentRef.setInput('title', 'Test Card Title');
+      fixture.componentRef.setInput('type', 'primary');
+      fixture.componentRef.setInput('icon', 'pi-info-circle');
       fixture.detectChanges();
     });
 
@@ -112,9 +109,9 @@ describe('StatusCardComponent', () => {
 
   describe('status type variations', () => {
     it('should apply status-success class for success type', () => {
-      component.type = 'success';
-      component.title = 'Success';
-      component.icon = 'pi-check';
+      fixture.componentRef.setInput('type', 'success');
+      fixture.componentRef.setInput('title', 'Success');
+      fixture.componentRef.setInput('icon', 'pi-check');
       fixture.detectChanges();
 
       const iconElement = fixture.debugElement.query(By.css('.icon'));
@@ -123,9 +120,9 @@ describe('StatusCardComponent', () => {
     });
 
     it('should apply status-info class for info type', () => {
-      component.type = 'info';
-      component.title = 'Info';
-      component.icon = 'pi-info';
+      fixture.componentRef.setInput('type', 'info');
+      fixture.componentRef.setInput('title', 'Info');
+      fixture.componentRef.setInput('icon', 'pi-info');
       fixture.detectChanges();
 
       const iconElement = fixture.debugElement.query(By.css('.icon'));
@@ -134,9 +131,9 @@ describe('StatusCardComponent', () => {
     });
 
     it('should apply status-warn class for warn type', () => {
-      component.type = 'warn';
-      component.title = 'Warning';
-      component.icon = 'pi-exclamation-triangle';
+      fixture.componentRef.setInput('type', 'warn');
+      fixture.componentRef.setInput('title', 'Warning');
+      fixture.componentRef.setInput('icon', 'pi-exclamation-triangle');
       fixture.detectChanges();
 
       const iconElement = fixture.debugElement.query(By.css('.icon'));
@@ -145,9 +142,9 @@ describe('StatusCardComponent', () => {
     });
 
     it('should apply status-danger class for danger type', () => {
-      component.type = 'danger';
-      component.title = 'Danger';
-      component.icon = 'pi-times';
+      fixture.componentRef.setInput('type', 'danger');
+      fixture.componentRef.setInput('title', 'Danger');
+      fixture.componentRef.setInput('icon', 'pi-times');
       fixture.detectChanges();
 
       const iconElement = fixture.debugElement.query(By.css('.icon'));
@@ -156,9 +153,9 @@ describe('StatusCardComponent', () => {
     });
 
     it('should apply status-primary class for primary type', () => {
-      component.type = 'primary';
-      component.title = 'Primary';
-      component.icon = 'pi-star';
+      fixture.componentRef.setInput('type', 'primary');
+      fixture.componentRef.setInput('title', 'Primary');
+      fixture.componentRef.setInput('icon', 'pi-star');
       fixture.detectChanges();
 
       const iconElement = fixture.debugElement.query(By.css('.icon'));
@@ -179,9 +176,9 @@ describe('StatusCardComponent', () => {
 
     iconTestCases.forEach(({ icon, description }) => {
       it(`should render ${description} correctly`, () => {
-        component.title = 'Test';
-        component.type = 'primary';
-        component.icon = icon;
+        fixture.componentRef.setInput('title', 'Test');
+        fixture.componentRef.setInput('type', 'primary');
+        fixture.componentRef.setInput('icon', icon);
         fixture.detectChanges();
 
         const iconElement = fixture.debugElement.query(By.css('.icon i'));
@@ -193,9 +190,9 @@ describe('StatusCardComponent', () => {
 
   describe('grid layout structure', () => {
     beforeEach(() => {
-      component.title = 'Test';
-      component.type = 'primary';
-      component.icon = 'pi-check';
+      fixture.componentRef.setInput('title', 'Test');
+      fixture.componentRef.setInput('type', 'primary');
+      fixture.componentRef.setInput('icon', 'pi-check');
       fixture.detectChanges();
     });
 
@@ -234,9 +231,9 @@ describe('StatusCardComponent', () => {
 
   describe('edge cases', () => {
     it('should handle empty string title', () => {
-      component.title = '';
-      component.type = 'primary';
-      component.icon = 'pi-check';
+      fixture.componentRef.setInput('title', '');
+      fixture.componentRef.setInput('type', 'primary');
+      fixture.componentRef.setInput('icon', 'pi-check');
       fixture.detectChanges();
 
       const titleElement = fixture.debugElement.query(By.css('.title'));
@@ -245,9 +242,9 @@ describe('StatusCardComponent', () => {
     });
 
     it('should handle long title text', () => {
-      component.title = 'This is a very long title that might wrap to multiple lines in the card component';
-      component.type = 'info';
-      component.icon = 'pi-info';
+      fixture.componentRef.setInput('title', 'This is a very long title that might wrap to multiple lines in the card component');
+      fixture.componentRef.setInput('type', 'info');
+      fixture.componentRef.setInput('icon', 'pi-info');
       fixture.detectChanges();
 
       const titleElement = fixture.debugElement.query(By.css('.title'));
@@ -256,9 +253,9 @@ describe('StatusCardComponent', () => {
     });
 
     it('should handle custom/unknown status type', () => {
-      component.title = 'Custom';
-      component.type = 'custom';
-      component.icon = 'pi-star';
+      fixture.componentRef.setInput('title', 'Custom');
+      fixture.componentRef.setInput('type', 'custom');
+      fixture.componentRef.setInput('icon', 'pi-star');
       fixture.detectChanges();
 
       const iconElement = fixture.debugElement.query(By.css('.icon'));
@@ -267,9 +264,9 @@ describe('StatusCardComponent', () => {
     });
 
     it('should handle special characters in title', () => {
-      component.title = 'Test <>&"\'';
-      component.type = 'primary';
-      component.icon = 'pi-check';
+      fixture.componentRef.setInput('title', 'Test <>&"\'');
+      fixture.componentRef.setInput('type', 'primary');
+      fixture.componentRef.setInput('icon', 'pi-check');
       fixture.detectChanges();
 
       const titleElement = fixture.debugElement.query(By.css('.title'));

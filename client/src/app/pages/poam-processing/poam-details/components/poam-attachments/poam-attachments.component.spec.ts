@@ -64,7 +64,7 @@ describe('PoamAttachmentsComponent', () => {
 
     fixture = TestBed.createComponent(PoamAttachmentsComponent);
     component = fixture.componentInstance;
-    component.poamId = 100;
+    fixture.componentRef.setInput('poamId', 100);
 
     Object.defineProperty(component, 'fileUpload', {
       value: () => mockFileUpload,
@@ -140,7 +140,7 @@ describe('PoamAttachmentsComponent', () => {
     });
 
     it('should return early for ADDPOAM', () => {
-      component.poamId = 'ADDPOAM';
+      (component as any).poamId = () => 'ADDPOAM';
 
       component.loadAttachedFiles();
 
@@ -148,7 +148,7 @@ describe('PoamAttachmentsComponent', () => {
     });
 
     it('should convert poamId to number', () => {
-      component.poamId = '200' as any;
+      (component as any).poamId = () => '200';
 
       component.loadAttachedFiles();
 
@@ -298,7 +298,7 @@ describe('PoamAttachmentsComponent', () => {
     });
 
     it('should convert poamId to number', () => {
-      component.poamId = '200' as any;
+      (component as any).poamId = () => '200';
       const attachment = { attachmentId: 3, filename: 'test.txt' };
 
       component.deleteAttachment(attachment);
@@ -417,7 +417,7 @@ describe('PoamAttachmentsComponent', () => {
 
   describe('customUploadHandler', () => {
     it('should return early for ADDPOAM', () => {
-      component.poamId = 'ADDPOAM';
+      (component as any).poamId = () => 'ADDPOAM';
 
       component.customUploadHandler({ files: [new File([''], 'test.pdf')] });
 

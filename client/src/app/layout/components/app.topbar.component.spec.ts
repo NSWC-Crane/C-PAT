@@ -119,7 +119,7 @@ describe('AppTopBarComponent', () => {
     });
 
     it('should have showConfigurator default to true', () => {
-      expect(component.showConfigurator).toBe(true);
+      expect(component.showConfigurator()).toBe(true);
     });
 
     it('should initialize notificationCount as null', () => {
@@ -412,12 +412,12 @@ describe('AppTopBarComponent', () => {
 
   describe('showConfigurator Input', () => {
     it('should default to true', () => {
-      expect(component.showConfigurator).toBe(true);
+      expect(component.showConfigurator()).toBe(true);
     });
 
     it('should accept false value', () => {
-      component.showConfigurator = false;
-      expect(component.showConfigurator).toBe(false);
+      fixture.componentRef.setInput('showConfigurator', false);
+      expect(component.showConfigurator()).toBe(false);
     });
   });
 });

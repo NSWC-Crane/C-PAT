@@ -85,7 +85,7 @@ describe('PoamMitigationGeneratorComponent', () => {
 
     fixture = TestBed.createComponent(PoamMitigationGeneratorComponent);
     component = fixture.componentInstance;
-    component.poam = { ...mockPoamStig };
+    fixture.componentRef.setInput('poam', { ...mockPoamStig });
   });
 
   afterEach(() => {
@@ -123,11 +123,11 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should have default team as null', () => {
-      expect(component.team).toBeNull();
+      expect(component.team()).toBeNull();
     });
 
     it('should have default teams as empty array', () => {
-      expect(component.teams).toEqual([]);
+      expect(component.teams()).toEqual([]);
     });
 
     it('should have items menu with Cancel option', () => {
@@ -145,8 +145,8 @@ describe('PoamMitigationGeneratorComponent', () => {
 
   describe('ngOnChanges', () => {
     it('should reset when team is removed from teams list (not first change)', () => {
-      component.team = { assignedTeamId: 99, assignedTeamName: 'Removed Team' };
-      component.teams = mockTeams;
+      (component as any).team = () => ({ assignedTeamId: 99, assignedTeamName: 'Removed Team' });
+      (component as any).teams = () => mockTeams;
       component.generatedMitigation = 'Some mitigation';
 
       const changes: SimpleChanges = {
@@ -160,8 +160,8 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should not reset when team still exists in teams list', () => {
-      component.team = mockTeam;
-      component.teams = mockTeams;
+      (component as any).team = () => mockTeam;
+      (component as any).teams = () => mockTeams;
       component.generatedMitigation = 'Some mitigation';
 
       const changes: SimpleChanges = {
@@ -173,8 +173,8 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should skip teams change logic on first change', () => {
-      component.team = { assignedTeamId: 99, assignedTeamName: 'Removed Team' };
-      component.teams = mockTeams;
+      (component as any).team = () => ({ assignedTeamId: 99, assignedTeamName: 'Removed Team' });
+      (component as any).teams = () => mockTeams;
       component.generatedMitigation = 'Some mitigation';
 
       const changes: SimpleChanges = {
@@ -220,8 +220,8 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should not reset when no team is set and teams change removes unrelated team', () => {
-      component.team = null;
-      component.teams = mockTeams;
+      (component as any).team = () => null;
+      (component as any).teams = () => mockTeams;
       component.generatedMitigation = 'Some mitigation';
 
       const changes: SimpleChanges = {
@@ -235,29 +235,29 @@ describe('PoamMitigationGeneratorComponent', () => {
 
   describe('isTeamActive', () => {
     it('should return true when team is null', () => {
-      component.team = null;
+      (component as any).team = () => null;
       expect(component.isTeamActive()).toBe(true);
     });
 
     it('should return true when team is active', () => {
-      component.team = mockTeam;
+      (component as any).team = () => mockTeam;
       expect(component.isTeamActive()).toBe(true);
     });
 
     it('should return false when team is inactive', () => {
-      component.team = mockInactiveTeam;
+      (component as any).team = () => mockInactiveTeam;
       expect(component.isTeamActive()).toBe(false);
     });
 
     it('should return true when team.isActive is undefined', () => {
-      component.team = { assignedTeamId: 5, assignedTeamName: 'No Active Prop' };
+      (component as any).team = () => ({ assignedTeamId: 5, assignedTeamName: 'No Active Prop' });
       expect(component.isTeamActive()).toBe(true);
     });
   });
 
   describe('initiateGeneration', () => {
     it('should build prompt and show editor when no team', () => {
-      component.team = null;
+      (component as any).team = () => null;
       component.initiateGeneration();
 
       expect(component.showPromptEditor()).toBe(true);
@@ -265,7 +265,7 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should build prompt and show editor when team is active', () => {
-      component.team = mockTeam;
+      (component as any).team = () => mockTeam;
       component.initiateGeneration();
 
       expect(component.showPromptEditor()).toBe(true);
@@ -273,7 +273,7 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should show warning and not open editor when team is inactive', () => {
-      component.team = mockInactiveTeam;
+      (component as any).team = () => mockInactiveTeam;
       component.initiateGeneration();
 
       expect(component.showPromptEditor()).toBe(false);
@@ -287,7 +287,7 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should include STIG check data for STIG source', () => {
-      component.poam = { ...mockPoamStig };
+      (component as any).poam = () => ({ ...mockPoamStig });
       component.initiateGeneration();
 
       expect(component.mitigationPrompt).toContain('STIG Control Details');
@@ -296,7 +296,7 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should include Tenable plugin data for non-STIG source', () => {
-      component.poam = { ...mockPoamTenable };
+      (component as any).poam = () => ({ ...mockPoamTenable });
       component.initiateGeneration();
 
       expect(component.mitigationPrompt).toContain('Nessus Plugin Details');
@@ -339,7 +339,7 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should show success message without team name when no team', () => {
-      component.team = null;
+      (component as any).team = () => null;
       component.generateMitigation();
 
       expect(mockMessageService.add).toHaveBeenCalledWith(
@@ -351,7 +351,7 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should show success message with team name when team is set', () => {
-      component.team = mockTeam;
+      (component as any).team = () => mockTeam;
       component.generateMitigation();
 
       expect(mockMessageService.add).toHaveBeenCalledWith(
@@ -430,7 +430,7 @@ describe('PoamMitigationGeneratorComponent', () => {
       const emitSpy = vi.spyOn(component.mitigationGenerated, 'emit');
 
       component.generatedMitigation = 'Final mitigation';
-      component.team = null;
+      (component as any).team = () => null;
 
       component.confirmApplyMitigation();
 
@@ -444,7 +444,7 @@ describe('PoamMitigationGeneratorComponent', () => {
       const emitSpy = vi.spyOn(component.mitigationGenerated, 'emit');
 
       component.generatedMitigation = 'Team mitigation';
-      component.team = mockTeam;
+      (component as any).team = () => mockTeam;
 
       component.confirmApplyMitigation();
 

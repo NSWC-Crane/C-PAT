@@ -19,7 +19,7 @@ import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ChartModule } from 'primeng/chart';
+import { CpatChartComponent } from '../../../common/components/chart/chart.component';
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
@@ -181,7 +181,7 @@ describe('AppInfoComponent', () => {
     })
       .overrideComponent(AppInfoComponent, {
         set: {
-          imports: [ButtonModule, CardModule, ChartModule, CommonModule, FormsModule, PanelModule, TableModule, TabsModule, ToastModule]
+          imports: [ButtonModule, CardModule, CpatChartComponent, CommonModule, FormsModule, PanelModule, TableModule, TabsModule, ToastModule]
         }
       })
       .compileComponents();

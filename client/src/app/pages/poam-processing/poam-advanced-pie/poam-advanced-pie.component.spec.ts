@@ -9,7 +9,7 @@
 */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { Component, signal } from '@angular/core';
 import { PoamAdvancedPieComponent } from './poam-advanced-pie.component';
 import { ScaleType } from '@swimlane/ngx-charts';
@@ -346,6 +346,87 @@ describe('PoamAdvancedPieComponent', () => {
       expect(scheme.domain.length).toBe(10);
       expect(scheme.domain.every((c: string) => c.startsWith('rgba('))).toBe(true);
       expect(scheme.domain).not.toContain('rgba(128, 128, 128, .7)');
+    });
+  });
+
+  describe('Legend label truncation', () => {
+    const buildLegendItem = (scrollWidth: number, clientWidth: number, hovered = false): HTMLElement => {
+      const item = document.createElement('div');
+
+      item.className = 'legend-item';
+      vi.spyOn(item, 'matches').mockImplementation((selector: string) => hovered && selector === ':hover');
+
+      const label = document.createElement('div');
+
+      label.className = 'item-label';
+      Object.defineProperty(label, 'scrollWidth', { value: scrollWidth, configurable: true });
+      Object.defineProperty(label, 'clientWidth', { value: clientWidth, configurable: true });
+      item.appendChild(label);
+
+      hostFixture.debugElement.children[0].nativeElement.appendChild(item);
+
+      return item;
+    };
+
+    const runTruncationCheck = () => (component as any).updateTruncationFlags();
+
+    it('should flag items whose label is ellipsized', () => {
+      const item = buildLegendItem(120, 60);
+
+      runTruncationCheck();
+
+      expect(item.classList.contains('label-truncated')).toBe(true);
+    });
+
+    it('should not flag items whose label fits', () => {
+      const item = buildLegendItem(60, 120);
+
+      runTruncationCheck();
+
+      expect(item.classList.contains('label-truncated')).toBe(false);
+    });
+
+    it('should not flag items within the 1px subpixel rounding tolerance', () => {
+      const item = buildLegendItem(61, 60);
+
+      runTruncationCheck();
+
+      expect(item.classList.contains('label-truncated')).toBe(false);
+    });
+
+    it('should clear the flag when the label no longer overflows', () => {
+      const item = buildLegendItem(120, 60);
+
+      item.classList.add('label-truncated');
+      Object.defineProperty(item.querySelector('.item-label'), 'clientWidth', { value: 200, configurable: true });
+
+      runTruncationCheck();
+
+      expect(item.classList.contains('label-truncated')).toBe(false);
+    });
+
+    it('should not toggle the flag on hovered items', () => {
+      const truncatedButHovered = buildLegendItem(120, 60, true);
+      const flaggedAndHovered = buildLegendItem(60, 120, true);
+
+      flaggedAndHovered.classList.add('label-truncated');
+
+      runTruncationCheck();
+
+      expect(truncatedButHovered.classList.contains('label-truncated')).toBe(false);
+      expect(flaggedAndHovered.classList.contains('label-truncated')).toBe(true);
+    });
+
+    it('should not flag items without a label element', () => {
+      const item = document.createElement('div');
+
+      item.className = 'legend-item';
+      vi.spyOn(item, 'matches').mockReturnValue(false);
+      hostFixture.debugElement.children[0].nativeElement.appendChild(item);
+
+      runTruncationCheck();
+
+      expect(item.classList.contains('label-truncated')).toBe(false);
     });
   });
 

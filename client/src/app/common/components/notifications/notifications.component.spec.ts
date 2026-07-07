@@ -499,15 +499,15 @@ describe('NotificationsComponent', () => {
     });
 
     it('should render mark all as read button', () => {
-      const buttons = fixture.debugElement.queryAll(By.css('p-button'));
-      const markAllButton = buttons.find((btn) => btn.attributes['label'] === 'Mark all as read');
+      const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
+      const markAllButton = buttons.find((btn) => btn.nativeElement.textContent.includes('Mark all as read'));
 
       expect(markAllButton).toBeTruthy();
     });
 
     it('should render delete all button', () => {
-      const buttons = fixture.debugElement.queryAll(By.css('p-button'));
-      const deleteAllButton = buttons.find((btn) => btn.attributes['label'] === 'Delete all');
+      const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
+      const deleteAllButton = buttons.find((btn) => btn.nativeElement.textContent.includes('Delete all'));
 
       expect(deleteAllButton).toBeTruthy();
     });

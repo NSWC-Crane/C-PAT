@@ -82,7 +82,7 @@ describe('TenableAssetsTableComponent', () => {
   beforeEach(async () => {
     selectedCollectionSubject = new Subject();
     mockTable = { clear: vi.fn(), filterGlobal: vi.fn(), exportCSV: vi.fn() };
-    mockMultiSelect = { overlayVisible: false, hide: vi.fn(), show: vi.fn() };
+    mockMultiSelect = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
 
     mockImportService = {
       postTenableAnalysis: vi.fn().mockReturnValue(of({ ...mockAnalysisResult })),
@@ -119,7 +119,7 @@ describe('TenableAssetsTableComponent', () => {
     fixture = TestBed.createComponent(TenableAssetsTableComponent);
     component = fixture.componentInstance;
     (component as any).tables = () => [];
-    (component as any).multiSelect = () => mockMultiSelect;
+    (component as any).columnSelect = () => mockMultiSelect;
   });
 
   describe('Creation and Defaults', () => {
@@ -132,7 +132,7 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should default isLoading to true', () => {
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
     });
 
     it('should default totalRecords to 0', () => {
@@ -144,11 +144,11 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should default displayDialog to false', () => {
-      expect(component.displayDialog).toBe(false);
+      expect(component.displayDialog()).toBe(false);
     });
 
     it('should default is30DayFilterActive to false', () => {
-      expect(component.is30DayFilterActive).toBe(false);
+      expect(component.is30DayFilterActive()).toBe(false);
     });
 
     it('should default activeTab to "all"', () => {
@@ -156,11 +156,11 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should default assetProcessing to false', () => {
-      expect(component.assetProcessing).toBe(false);
+      expect(component.assetProcessing()).toBe(false);
     });
 
     it('should default associatedVulnerabilities to empty array', () => {
-      expect(component.associatedVulnerabilities).toEqual([]);
+      expect(component.associatedVulnerabilities()).toEqual([]);
     });
 
     it('should default cveReferences to empty array', () => {
@@ -178,22 +178,22 @@ describe('TenableAssetsTableComponent', () => {
 
   describe('initColumnsAndFilters', () => {
     it('should set 16 base columns when pluginID and tenableRepoId are not set', () => {
-      component.pluginID = undefined as any;
-      component.tenableRepoId = undefined as any;
+      (component as any).pluginID = () => undefined;
+      (component as any).tenableRepoId = () => undefined;
       component.initColumnsAndFilters();
       expect(component.cols.length).toBe(16);
     });
 
     it('should add 3 POAM columns when pluginID and tenableRepoId are set', () => {
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
+      (component as any).pluginID = () => '12345';
+      (component as any).tenableRepoId = () => 99;
       component.initColumnsAndFilters();
       expect(component.cols.length).toBe(19);
     });
 
     it('should include firstSeen and lastSeen columns when pluginID is set', () => {
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
+      (component as any).pluginID = () => '12345';
+      (component as any).tenableRepoId = () => 99;
       component.initColumnsAndFilters();
       const fields = component.cols.map((c: any) => c.field);
 
@@ -203,15 +203,15 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should set exportColumns matching cols', () => {
-      component.pluginID = undefined as any;
-      component.tenableRepoId = undefined as any;
+      (component as any).pluginID = () => undefined;
+      (component as any).tenableRepoId = () => undefined;
       component.initColumnsAndFilters();
       expect(component.exportColumns.length).toBe(component.cols.length);
     });
 
     it('should set selectedColumns to default subset', () => {
-      component.pluginID = undefined as any;
-      component.tenableRepoId = undefined as any;
+      (component as any).pluginID = () => undefined;
+      (component as any).tenableRepoId = () => undefined;
       component.initColumnsAndFilters();
       const fields = component.selectedColumns.map((c: any) => c.field);
 
@@ -221,8 +221,8 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should include lastSeen in selectedColumns when pluginID is set', () => {
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
+      (component as any).pluginID = () => '12345';
+      (component as any).tenableRepoId = () => 99;
       component.initColumnsAndFilters();
       const fields = component.selectedColumns.map((c: any) => c.field);
 
@@ -255,9 +255,9 @@ describe('TenableAssetsTableComponent', () => {
 
   describe('getAffectedAssetsForAllPlugins', () => {
     beforeEach(() => {
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
-      component.associatedVulnerabilities = [];
+      fixture.componentRef.setInput('pluginID', '12345');
+      fixture.componentRef.setInput('tenableRepoId', 99);
+      fixture.componentRef.setInput('associatedVulnerabilities', []);
     });
 
     it('should set isLoading to true at start', () => {
@@ -285,7 +285,7 @@ describe('TenableAssetsTableComponent', () => {
     it('should set isLoading to false on success', () => {
       component.assetDeltaList = { assets: [] };
       component.getAffectedAssetsForAllPlugins();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should map family name from nested object', () => {
@@ -334,7 +334,7 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should include 30-day filter when is30DayFilterActive is true', () => {
-      component.is30DayFilterActive = true;
+      component.is30DayFilterActive.set(true);
       component.getAffectedAssetsForAllPlugins();
       const callArgs = mockImportService.postTenableAnalysis.mock.calls[0][0];
       const filters = callArgs.query.filters;
@@ -344,7 +344,7 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should include associatedVulnerability IDs in filter', () => {
-      component.associatedVulnerabilities = ['99999', { associatedVulnerability: '88888' }];
+      (component as any).associatedVulnerabilities = () => ['99999', { associatedVulnerability: '88888' }];
       component.getAffectedAssetsForAllPlugins();
       const callArgs = mockImportService.postTenableAnalysis.mock.calls[0][0];
       const pluginFilter = callArgs.query.filters.find((f: any) => f.filterName === 'pluginID');
@@ -500,9 +500,9 @@ describe('TenableAssetsTableComponent', () => {
     it('should call getAffectedAssetsByPluginId when pluginID set and not assetProcessing', () => {
       const spy = vi.spyOn(component, 'getAffectedAssetsByPluginId').mockReturnValue(of([]));
 
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
-      component.assetProcessing = false;
+      (component as any).pluginID = () => '12345';
+      (component as any).tenableRepoId = () => 99;
+      (component as any).assetProcessing = () => false;
       component.lazyOrNot(event);
       expect(spy).toHaveBeenCalledWith('12345', 99);
     });
@@ -510,8 +510,8 @@ describe('TenableAssetsTableComponent', () => {
     it('should call getAffectedAssets when assetProcessing is true', () => {
       const spy = vi.spyOn(component, 'getAffectedAssets').mockImplementation(() => {});
 
-      component.pluginID = undefined as any;
-      component.assetProcessing = true;
+      (component as any).pluginID = () => undefined;
+      (component as any).assetProcessing = () => true;
       component.lazyOrNot(event);
       expect(spy).toHaveBeenCalledWith(event);
     });
@@ -629,30 +629,30 @@ describe('TenableAssetsTableComponent', () => {
 
   describe('filter30Days', () => {
     it('should toggle is30DayFilterActive from false to true', () => {
-      component.is30DayFilterActive = false;
+      component.is30DayFilterActive.set(false);
       vi.spyOn(component, 'getAffectedAssetsForAllPlugins').mockImplementation(() => {});
 
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
+      (component as any).pluginID = () => '12345';
+      (component as any).tenableRepoId = () => 99;
       component.filter30Days();
-      expect(component.is30DayFilterActive).toBe(true);
+      expect(component.is30DayFilterActive()).toBe(true);
     });
 
     it('should toggle is30DayFilterActive from true to false', () => {
-      component.is30DayFilterActive = true;
+      component.is30DayFilterActive.set(true);
       vi.spyOn(component, 'getAffectedAssetsForAllPlugins').mockImplementation(() => {});
 
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
+      (component as any).pluginID = () => '12345';
+      (component as any).tenableRepoId = () => 99;
       component.filter30Days();
-      expect(component.is30DayFilterActive).toBe(false);
+      expect(component.is30DayFilterActive()).toBe(false);
     });
 
     it('should call getAffectedAssetsForAllPlugins when pluginID and tenableRepoId are set', () => {
       const spy = vi.spyOn(component, 'getAffectedAssetsForAllPlugins').mockImplementation(() => {});
 
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
+      (component as any).pluginID = () => '12345';
+      (component as any).tenableRepoId = () => 99;
       component.filter30Days();
       expect(spy).toHaveBeenCalled();
     });
@@ -660,9 +660,9 @@ describe('TenableAssetsTableComponent', () => {
     it('should call getAffectedAssets when assetProcessing is true', () => {
       const spy = vi.spyOn(component, 'getAffectedAssets').mockImplementation(() => {});
 
-      component.assetProcessing = true;
-      component.tenableRepoId = 99;
-      component.pluginID = undefined as any;
+      (component as any).assetProcessing = () => true;
+      (component as any).tenableRepoId = () => 99;
+      (component as any).pluginID = () => undefined;
       component.filter30Days();
       expect(spy).toHaveBeenCalled();
     });
@@ -698,8 +698,8 @@ describe('TenableAssetsTableComponent', () => {
 
   describe('exportCSV', () => {
     beforeEach(() => {
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
+      (component as any).pluginID = () => '12345';
+      (component as any).tenableRepoId = () => 99;
       component.initColumnsAndFilters();
     });
 
@@ -765,8 +765,8 @@ describe('TenableAssetsTableComponent', () => {
 
   describe('resetColumnSelections', () => {
     it('should filter selectedColumns to default fields', () => {
-      component.pluginID = undefined as any;
-      component.tenableRepoId = undefined as any;
+      (component as any).pluginID = () => undefined;
+      (component as any).tenableRepoId = () => undefined;
       component.initColumnsAndFilters();
       component.selectedColumns = [];
       component.resetColumnSelections();
@@ -778,8 +778,8 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should include lastSeen when pluginID is set', () => {
-      component.pluginID = '12345';
-      component.tenableRepoId = 99;
+      (component as any).pluginID = () => '12345';
+      (component as any).tenableRepoId = () => 99;
       component.initColumnsAndFilters();
       component.resetColumnSelections();
       const fields = component.selectedColumns.map((c: any) => c.field);
@@ -790,19 +790,19 @@ describe('TenableAssetsTableComponent', () => {
 
   describe('toggleAddColumnOverlay', () => {
     it('should call hide() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.hide).toHaveBeenCalled();
     });
 
     it('should call show() when overlayVisible is false', () => {
-      mockMultiSelect.overlayVisible = false;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(false);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).toHaveBeenCalled();
     });
 
     it('should not call show() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).not.toHaveBeenCalled();
     });

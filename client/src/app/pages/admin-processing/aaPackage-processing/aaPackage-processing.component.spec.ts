@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
@@ -127,7 +128,7 @@ describe('AAPackageProcessingComponent', () => {
     });
 
     it('should prepend new package with aaPackageId 0', () => {
-      const mockTable = { first: 0, initRowEdit: vi.fn() };
+      const mockTable = { first: signal(0), initRowEdit: vi.fn() };
 
       (component as any).table = vi.fn().mockReturnValue(mockTable);
       component.onAddNewClick();
@@ -135,7 +136,7 @@ describe('AAPackageProcessingComponent', () => {
     });
 
     it('should increase aaPackages length by 1', () => {
-      const mockTable = { first: 0, initRowEdit: vi.fn() };
+      const mockTable = { first: signal(0), initRowEdit: vi.fn() };
 
       (component as any).table = vi.fn().mockReturnValue(mockTable);
       const previousLength = component.aaPackages.length;
@@ -145,15 +146,15 @@ describe('AAPackageProcessingComponent', () => {
     });
 
     it('should reset table.first to 0', () => {
-      const mockTable = { first: 5, initRowEdit: vi.fn() };
+      const mockTable = { first: signal(5), initRowEdit: vi.fn() };
 
       (component as any).table = vi.fn().mockReturnValue(mockTable);
       component.onAddNewClick();
-      expect(mockTable.first).toBe(0);
+      expect(mockTable.first()).toBe(0);
     });
 
     it('should reset newAAPackage to blank state', () => {
-      const mockTable = { first: 0, initRowEdit: vi.fn() };
+      const mockTable = { first: signal(0), initRowEdit: vi.fn() };
 
       (component as any).table = vi.fn().mockReturnValue(mockTable);
       component.newAAPackage = { aaPackageId: 5, aaPackage: 'old' };

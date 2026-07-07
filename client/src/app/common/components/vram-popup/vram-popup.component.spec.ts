@@ -186,19 +186,19 @@ describe('VramPopupComponent', () => {
 
   describe('template rendering - initial state', () => {
     it('should render VRAM IAV TABLE button', () => {
-      const button = fixture.debugElement.query(By.css('p-button'));
+      const button = fixture.debugElement.query(By.css('button[pButton]'));
 
       expect(button).toBeTruthy();
     });
 
     it('should have correct button label', () => {
-      const button = fixture.debugElement.query(By.css('p-button'));
+      const button = fixture.debugElement.query(By.css('button[pButton]'));
 
-      expect(button.attributes['label']).toBe('VRAM IAV TABLE');
+      expect(button.nativeElement.textContent).toContain('VRAM IAV TABLE');
     });
 
     it('should have button with secondary severity', () => {
-      const button = fixture.debugElement.query(By.css('p-button'));
+      const button = fixture.debugElement.query(By.css('button[pButton]'));
 
       expect(button.attributes['severity']).toBe('secondary');
     });
@@ -240,7 +240,7 @@ describe('VramPopupComponent', () => {
   describe('button click interaction', () => {
     it('should call openVRAM when button is clicked', () => {
       const openVRAMSpy = vi.spyOn(component, 'openVRAM');
-      const button = fixture.debugElement.query(By.css('p-button'));
+      const button = fixture.debugElement.query(By.css('button[pButton]'));
 
       button.triggerEventHandler('click', null);
 
@@ -248,7 +248,7 @@ describe('VramPopupComponent', () => {
     });
 
     it('should set isPopupOpen to true after button click', () => {
-      const button = fixture.debugElement.query(By.css('p-button'));
+      const button = fixture.debugElement.query(By.css('button[pButton]'));
 
       button.triggerEventHandler('click', null);
 

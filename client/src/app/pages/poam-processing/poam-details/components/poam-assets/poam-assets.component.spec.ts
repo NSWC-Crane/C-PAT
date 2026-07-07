@@ -49,6 +49,14 @@ describe('PoamAssetsComponent', () => {
     return changes;
   }
 
+  function getInternalAssets(comp: PoamAssetsComponent): any[] {
+    return (comp as any).poamAssetsSignal();
+  }
+
+  function setInternalAssets(comp: PoamAssetsComponent, assets: any[]): void {
+    (comp as any).poamAssetsSignal.set(assets);
+  }
+
   beforeEach(async () => {
     mockMessageService = createMockMessageService();
 
@@ -65,15 +73,15 @@ describe('PoamAssetsComponent', () => {
 
     fixture = TestBed.createComponent(PoamAssetsComponent);
     component = fixture.componentInstance;
-    component.poam = { poamId: 100, status: 'Draft' };
-    component.accessLevel = 2;
-    component.collectionType = 'C-PAT';
-    component.poamAssets = [];
-    component.assetList = mockAssetList;
-    component.originCollectionId = null;
-    component.poamService = mockPoamService as any;
-    component.poamAssignedTeams = [];
-    component.poamAssociatedVulnerabilities = [];
+    fixture.componentRef.setInput('poam', { poamId: 100, status: 'Draft' });
+    fixture.componentRef.setInput('accessLevel', 2);
+    fixture.componentRef.setInput('collectionType', 'C-PAT');
+    fixture.componentRef.setInput('poamAssets', []);
+    fixture.componentRef.setInput('assetList', mockAssetList);
+    fixture.componentRef.setInput('originCollectionId', null);
+    fixture.componentRef.setInput('poamService', mockPoamService);
+    fixture.componentRef.setInput('poamAssignedTeams', []);
+    fixture.componentRef.setInput('poamAssociatedVulnerabilities', []);
   });
 
   afterEach(() => {
@@ -87,8 +95,8 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should have default property values', () => {
-      expect(component.poamAssets).toEqual([]);
-      expect(component.assetList).toBe(mockAssetList);
+      expect(component.poamAssets()).toEqual([]);
+      expect(component.assetList()).toBe(mockAssetList);
     });
   });
 
@@ -96,7 +104,7 @@ describe('PoamAssetsComponent', () => {
     it('should update signal when poamAssets changes', () => {
       const assets = [createAsset()];
 
-      component.poamAssets = assets;
+      (component as any).poamAssets = () => assets;
 
       component.ngOnChanges(
         makeChanges({
@@ -108,7 +116,7 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should set signal to empty array when poamAssets is null', () => {
-      component.poamAssets = null as any;
+      (component as any).poamAssets = () => null;
 
       component.ngOnChanges(
         makeChanges({
@@ -120,19 +128,25 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should trigger re-computation when assetList changes', () => {
-      component.poamAssets = [createAsset({ assetId: 1 })];
+      const assets = [createAsset({ assetId: 1 })];
+
+      (component as any).poamAssets = () => assets;
+      (component as any).assetList = () => mockAssetList;
+
       component.ngOnChanges(
         makeChanges({
-          poamAssets: { currentValue: component.poamAssets }
+          poamAssets: { currentValue: assets }
         })
       );
 
       expect(component.displayAssets()[0].displayName).toBe('Server-Alpha');
 
-      component.assetList = [{ assetId: 1, assetName: 'Renamed-Server' }];
+      const renamedList = [{ assetId: 1, assetName: 'Renamed-Server' }];
+
+      (component as any).assetList = () => renamedList;
       component.ngOnChanges(
         makeChanges({
-          assetList: { currentValue: component.assetList }
+          assetList: { currentValue: renamedList }
         })
       );
 
@@ -142,19 +156,23 @@ describe('PoamAssetsComponent', () => {
     it('should call refreshAssets when teams are removed', () => {
       const refreshSpy = vi.spyOn(component, 'refreshAssets');
 
-      component.poamAssignedTeams = [{ assignedTeamId: 1 }, { assignedTeamId: 2 }];
+      const teams1 = [{ assignedTeamId: 1 }, { assignedTeamId: 2 }];
+
+      (component as any).poamAssignedTeams = () => teams1;
       component.ngOnChanges(
         makeChanges({
-          poamAssignedTeams: { currentValue: component.poamAssignedTeams }
+          poamAssignedTeams: { currentValue: teams1 }
         })
       );
 
-      component.poamAssignedTeams = [{ assignedTeamId: 1 }];
+      const teams2 = [{ assignedTeamId: 1 }];
+
+      (component as any).poamAssignedTeams = () => teams2;
       component.ngOnChanges(
         makeChanges({
           poamAssignedTeams: {
-            currentValue: component.poamAssignedTeams,
-            previousValue: [{ assignedTeamId: 1 }, { assignedTeamId: 2 }],
+            currentValue: teams2,
+            previousValue: teams1,
             firstChange: false
           }
         })
@@ -166,19 +184,23 @@ describe('PoamAssetsComponent', () => {
     it('should not call refreshAssets when teams are added', () => {
       const refreshSpy = vi.spyOn(component, 'refreshAssets');
 
-      component.poamAssignedTeams = [{ assignedTeamId: 1 }];
+      const teams1 = [{ assignedTeamId: 1 }];
+
+      (component as any).poamAssignedTeams = () => teams1;
       component.ngOnChanges(
         makeChanges({
-          poamAssignedTeams: { currentValue: component.poamAssignedTeams }
+          poamAssignedTeams: { currentValue: teams1 }
         })
       );
 
-      component.poamAssignedTeams = [{ assignedTeamId: 1 }, { assignedTeamId: 2 }];
+      const teams2 = [{ assignedTeamId: 1 }, { assignedTeamId: 2 }];
+
+      (component as any).poamAssignedTeams = () => teams2;
       component.ngOnChanges(
         makeChanges({
           poamAssignedTeams: {
-            currentValue: component.poamAssignedTeams,
-            previousValue: [{ assignedTeamId: 1 }],
+            currentValue: teams2,
+            previousValue: teams1,
             firstChange: false
           }
         })
@@ -190,7 +212,7 @@ describe('PoamAssetsComponent', () => {
     it('should not call refreshAssets when poamAssignedTeams is null', () => {
       const refreshSpy = vi.spyOn(component, 'refreshAssets');
 
-      component.poamAssignedTeams = null as any;
+      (component as any).poamAssignedTeams = () => null;
       component.ngOnChanges(
         makeChanges({
           poamAssignedTeams: { currentValue: null }
@@ -201,21 +223,25 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should track previousTeamCount correctly across changes', () => {
-      component.poamAssignedTeams = [{ assignedTeamId: 1 }, { assignedTeamId: 2 }];
+      const teams1 = [{ assignedTeamId: 1 }, { assignedTeamId: 2 }];
+
+      (component as any).poamAssignedTeams = () => teams1;
       component.ngOnChanges(
         makeChanges({
-          poamAssignedTeams: { currentValue: component.poamAssignedTeams }
+          poamAssignedTeams: { currentValue: teams1 }
         })
       );
 
       const refreshSpy = vi.spyOn(component, 'refreshAssets');
 
-      component.poamAssignedTeams = [{ assignedTeamId: 1 }];
+      const teams2 = [{ assignedTeamId: 1 }];
+
+      (component as any).poamAssignedTeams = () => teams2;
       component.ngOnChanges(
         makeChanges({
           poamAssignedTeams: {
-            currentValue: component.poamAssignedTeams,
-            previousValue: [{ assignedTeamId: 1 }, { assignedTeamId: 2 }],
+            currentValue: teams2,
+            previousValue: teams1,
             firstChange: false
           }
         })
@@ -227,10 +253,12 @@ describe('PoamAssetsComponent', () => {
 
   describe('displayAssets computed', () => {
     it('should map asset names from assetList', () => {
-      component.poamAssets = [createAsset({ assetId: 1 }), createAsset({ assetId: 2 })];
+      const assets = [createAsset({ assetId: 1 }), createAsset({ assetId: 2 })];
+
+      (component as any).poamAssets = () => assets;
       component.ngOnChanges(
         makeChanges({
-          poamAssets: { currentValue: component.poamAssets }
+          poamAssets: { currentValue: assets }
         })
       );
 
@@ -241,10 +269,12 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should show fallback name for unknown asset IDs', () => {
-      component.poamAssets = [createAsset({ assetId: 999 })];
+      const assets = [createAsset({ assetId: 999 })];
+
+      (component as any).poamAssets = () => assets;
       component.ngOnChanges(
         makeChanges({
-          poamAssets: { currentValue: component.poamAssets }
+          poamAssets: { currentValue: assets }
         })
       );
 
@@ -252,7 +282,7 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should return empty array when no assets', () => {
-      component.poamAssets = [];
+      (component as any).poamAssets = () => [];
       component.ngOnChanges(
         makeChanges({
           poamAssets: { currentValue: [] }
@@ -273,32 +303,32 @@ describe('PoamAssetsComponent', () => {
     it('should add a new asset to the beginning of the array', async () => {
       const existing = createAsset({ assetId: 2 });
 
-      component.poamAssets = [existing];
+      setInternalAssets(component, [existing]);
 
       await component.addAsset();
 
-      expect(component.poamAssets.length).toBe(2);
-      expect(component.poamAssets[0].isNew).toBe(true);
-      expect(component.poamAssets[0].assetId).toBeNull();
-      expect(component.poamAssets[1].assetId).toBe(2);
+      expect(getInternalAssets(component).length).toBe(2);
+      expect(getInternalAssets(component)[0].isNew).toBe(true);
+      expect(getInternalAssets(component)[0].assetId).toBeNull();
+      expect(getInternalAssets(component)[1].assetId).toBe(2);
     });
 
     it('should set the poamId from the current poam', async () => {
-      component.poam = { poamId: 42 };
+      (component as any).poam = () => ({ poamId: 42 });
       await component.addAsset();
 
-      expect(component.poamAssets[0].poamId).toBe(42);
+      expect(getInternalAssets(component)[0].poamId).toBe(42);
     });
 
     it('should emit assetsChanged', async () => {
       await component.addAsset();
-      expect(emitSpy).toHaveBeenCalledWith(component.poamAssets);
+      expect(emitSpy).toHaveBeenCalledWith(getInternalAssets(component));
     });
 
     it('should add to an empty array', async () => {
-      component.poamAssets = [];
+      setInternalAssets(component, []);
       await component.addAsset();
-      expect(component.poamAssets.length).toBe(1);
+      expect(getInternalAssets(component).length).toBe(1);
     });
   });
 
@@ -313,7 +343,7 @@ describe('PoamAssetsComponent', () => {
       const createSpy = vi.spyOn(component, 'confirmCreateAsset').mockResolvedValue(undefined);
       const asset = createAsset({ assetId: 1, isNew: true });
 
-      component.poamAssets = [asset];
+      setInternalAssets(component, [asset]);
 
       await component.onAssetChange(asset, 0);
 
@@ -326,23 +356,23 @@ describe('PoamAssetsComponent', () => {
       const nullAsset = createAsset({ assetId: null, isNew: true });
       const existing = createAsset({ assetId: 2 });
 
-      component.poamAssets = [nullAsset, existing];
+      setInternalAssets(component, [nullAsset, existing]);
 
       await component.onAssetChange(nullAsset, 0);
 
-      expect(component.poamAssets.length).toBe(1);
-      expect(component.poamAssets[0].assetId).toBe(2);
+      expect(getInternalAssets(component).length).toBe(1);
+      expect(getInternalAssets(component)[0].assetId).toBe(2);
       expect(emitSpy).toHaveBeenCalled();
     });
 
     it('should remove asset when assetId is 0 (falsy)', async () => {
       const asset = createAsset({ assetId: 0 });
 
-      component.poamAssets = [asset];
+      setInternalAssets(component, [asset]);
 
       await component.onAssetChange(asset, 0);
 
-      expect(component.poamAssets.length).toBe(0);
+      expect(getInternalAssets(component).length).toBe(0);
     });
   });
 
@@ -357,7 +387,7 @@ describe('PoamAssetsComponent', () => {
       const deleteSpy = vi.spyOn(component, 'confirmDeleteAsset').mockResolvedValue(undefined);
       const asset = createAsset({ assetId: 1 });
 
-      component.poamAssets = [asset];
+      setInternalAssets(component, [asset]);
 
       await component.deleteAsset(asset, 0);
 
@@ -368,12 +398,12 @@ describe('PoamAssetsComponent', () => {
       const asset = createAsset({ assetId: null, isNew: true });
       const existing = createAsset({ assetId: 2 });
 
-      component.poamAssets = [asset, existing];
+      setInternalAssets(component, [asset, existing]);
 
       await component.deleteAsset(asset, 0);
 
-      expect(component.poamAssets.length).toBe(1);
-      expect(component.poamAssets[0].assetId).toBe(2);
+      expect(getInternalAssets(component).length).toBe(1);
+      expect(getInternalAssets(component)[0].assetId).toBe(2);
       expect(emitSpy).toHaveBeenCalled();
     });
   });
@@ -392,7 +422,7 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should return fallback when assetList is empty', () => {
-      component.assetList = [];
+      (component as any).assetList = () => [];
       expect(component.getAssetName(1)).toBe('Asset ID: 1');
     });
   });
@@ -419,7 +449,7 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should convert poamId and assetId to numbers', async () => {
-      component.poam = { poamId: '42' };
+      (component as any).poam = () => ({ poamId: '42' });
       mockPoamService.postPoamAsset.mockReturnValue(of({}));
       mockPoamService.getPoamAssets.mockReturnValue(of([]));
 
@@ -473,33 +503,33 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should filter out the asset by assetId', async () => {
-      component.poamAssets = [createAsset({ assetId: 1 }), createAsset({ assetId: 2 }), createAsset({ assetId: 3 })];
+      setInternalAssets(component, [createAsset({ assetId: 1 }), createAsset({ assetId: 2 }), createAsset({ assetId: 3 })]);
 
       await component.confirmDeleteAsset({ assetId: 2 });
 
-      expect(component.poamAssets.length).toBe(2);
-      expect(component.poamAssets.map((a: any) => a.assetId)).toEqual([1, 3]);
+      expect(getInternalAssets(component).length).toBe(2);
+      expect(getInternalAssets(component).map((a: any) => a.assetId)).toEqual([1, 3]);
     });
 
     it('should emit assetsChanged after filtering', async () => {
-      component.poamAssets = [createAsset({ assetId: 1 })];
+      setInternalAssets(component, [createAsset({ assetId: 1 })]);
       await component.confirmDeleteAsset({ assetId: 1 });
 
-      expect(emitSpy).toHaveBeenCalledWith(component.poamAssets);
+      expect(emitSpy).toHaveBeenCalledWith(getInternalAssets(component));
     });
 
     it('should result in empty array when deleting only asset', async () => {
-      component.poamAssets = [createAsset({ assetId: 1 })];
+      setInternalAssets(component, [createAsset({ assetId: 1 })]);
       await component.confirmDeleteAsset({ assetId: 1 });
 
-      expect(component.poamAssets).toEqual([]);
+      expect(getInternalAssets(component)).toEqual([]);
     });
 
     it('should not remove anything if assetId does not match', async () => {
-      component.poamAssets = [createAsset({ assetId: 1 })];
+      setInternalAssets(component, [createAsset({ assetId: 1 })]);
       await component.confirmDeleteAsset({ assetId: 999 });
 
-      expect(component.poamAssets.length).toBe(1);
+      expect(getInternalAssets(component).length).toBe(1);
     });
   });
 
@@ -511,13 +541,13 @@ describe('PoamAssetsComponent', () => {
     });
 
     it('should not call service if poamId is falsy', () => {
-      component.poam = { poamId: null };
+      (component as any).poam = () => ({ poamId: null });
       component.fetchAssets();
       expect(mockPoamService.getPoamAssets).not.toHaveBeenCalled();
     });
 
     it('should not call service if poamId is ADDPOAM', () => {
-      component.poam = { poamId: 'ADDPOAM' };
+      (component as any).poam = () => ({ poamId: 'ADDPOAM' });
       component.fetchAssets();
       expect(mockPoamService.getPoamAssets).not.toHaveBeenCalled();
     });
@@ -530,7 +560,7 @@ describe('PoamAssetsComponent', () => {
       component.fetchAssets();
 
       expect(mockPoamService.getPoamAssets).toHaveBeenCalledWith(100);
-      expect(component.poamAssets).toBe(returnedAssets);
+      expect(getInternalAssets(component)).toBe(returnedAssets);
       expect(emitSpy).toHaveBeenCalledWith(returnedAssets);
     });
 
@@ -565,7 +595,7 @@ describe('PoamAssetsComponent', () => {
     it('should call fetchAssets for C-PAT collection type', () => {
       const fetchSpy = vi.spyOn(component, 'fetchAssets');
 
-      component.collectionType = 'C-PAT';
+      (component as any).collectionType = () => 'C-PAT';
 
       component.refreshAssets();
 
@@ -575,8 +605,8 @@ describe('PoamAssetsComponent', () => {
     it('should emit assetsChanged for STIG Manager collection type', () => {
       const emitSpy = vi.spyOn(component.assetsChanged, 'emit');
 
-      component.collectionType = 'STIG Manager';
-      component.poamAssets = [createAsset({ assetId: 1 })];
+      (component as any).collectionType = () => 'STIG Manager';
+      setInternalAssets(component, [createAsset({ assetId: 1 })]);
 
       component.refreshAssets();
 
@@ -586,8 +616,8 @@ describe('PoamAssetsComponent', () => {
     it('should emit assetsChanged for Tenable collection type', () => {
       const emitSpy = vi.spyOn(component.assetsChanged, 'emit');
 
-      component.collectionType = 'Tenable';
-      component.poamAssets = [createAsset({ assetId: 2 })];
+      (component as any).collectionType = () => 'Tenable';
+      setInternalAssets(component, [createAsset({ assetId: 2 })]);
 
       component.refreshAssets();
 
@@ -598,7 +628,7 @@ describe('PoamAssetsComponent', () => {
       const fetchSpy = vi.spyOn(component, 'fetchAssets');
       const emitSpy = vi.spyOn(component.assetsChanged, 'emit');
 
-      component.collectionType = 'Unknown';
+      (component as any).collectionType = () => 'Unknown';
 
       component.refreshAssets();
 
@@ -609,10 +639,10 @@ describe('PoamAssetsComponent', () => {
     it('should emit a new array reference for STIG Manager (spread)', () => {
       const emitSpy = vi.spyOn(component.assetsChanged, 'emit');
 
-      component.collectionType = 'STIG Manager';
+      (component as any).collectionType = () => 'STIG Manager';
       const original = [createAsset({ assetId: 1 })];
 
-      component.poamAssets = original;
+      setInternalAssets(component, original);
 
       component.refreshAssets();
 

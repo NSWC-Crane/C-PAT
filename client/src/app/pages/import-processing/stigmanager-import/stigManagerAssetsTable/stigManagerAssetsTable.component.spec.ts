@@ -43,7 +43,7 @@ describe('STIGManagerAssetsTableComponent', () => {
 
   beforeEach(async () => {
     mockTable = { clear: vi.fn(), filterGlobal: vi.fn(), exportCSV: vi.fn() };
-    mockMultiSelect = { overlayVisible: false, hide: vi.fn(), show: vi.fn() };
+    mockMultiSelect = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
 
     mockSharedService = {
       getAssetsFromSTIGMAN: vi.fn().mockReturnValue(of([...mockAssets]))
@@ -58,9 +58,9 @@ describe('STIGManagerAssetsTableComponent', () => {
 
     fixture = TestBed.createComponent(STIGManagerAssetsTableComponent);
     component = fixture.componentInstance;
-    component.stigmanCollectionId = 42;
+    fixture.componentRef.setInput('stigmanCollectionId', 42);
     (component as any).table = () => mockTable;
-    (component as any).multiSelect = () => mockMultiSelect;
+    (component as any).columnSelect = () => mockMultiSelect;
   });
 
   describe('Creation and Defaults', () => {
@@ -69,15 +69,15 @@ describe('STIGManagerAssetsTableComponent', () => {
     });
 
     it('should default assets to empty array', () => {
-      expect(component.assets).toEqual([]);
+      expect(component.assets()).toEqual([]);
     });
 
     it('should default isLoading to true', () => {
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
     });
 
     it('should default totalRecords to 0', () => {
-      expect(component.totalRecords).toBe(0);
+      expect(component.totalRecords()).toBe(0);
     });
 
     it('should default filterValue to empty string', () => {
@@ -101,7 +101,7 @@ describe('STIGManagerAssetsTableComponent', () => {
     });
 
     it('should not call loadData when stigmanCollectionId is falsy', () => {
-      component.stigmanCollectionId = 0 as any;
+      (component as any).stigmanCollectionId = () => 0;
       const spy = vi.spyOn(component, 'loadData');
 
       component.ngOnInit();
@@ -109,14 +109,14 @@ describe('STIGManagerAssetsTableComponent', () => {
     });
 
     it('should show error message when stigmanCollectionId is missing', () => {
-      component.stigmanCollectionId = 0 as any;
+      (component as any).stigmanCollectionId = () => 0;
       component.ngOnInit();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
 
     it('should populate assets after init with valid collectionId', () => {
       component.ngOnInit();
-      expect(component.assets.length).toBe(2);
+      expect(component.assets()).toHaveLength(2);
     });
   });
 
@@ -169,7 +169,7 @@ describe('STIGManagerAssetsTableComponent', () => {
     it('should set isLoading to true at start', () => {
       mockSharedService.getAssetsFromSTIGMAN.mockReturnValue(of([]));
       component.loadData();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should call getAssetsFromSTIGMAN with stigmanCollectionId', () => {
@@ -179,18 +179,18 @@ describe('STIGManagerAssetsTableComponent', () => {
 
     it('should map assets with collectionName from collection.name', () => {
       component.loadData();
-      expect(component.assets[0].collectionName).toBe('Alpha');
-      expect(component.assets[1].collectionName).toBe('Beta');
+      expect(component.assets()[0].collectionName).toBe('Alpha');
+      expect(component.assets()[1].collectionName).toBe('Beta');
     });
 
     it('should set totalRecords to the number of assets', () => {
       component.loadData();
-      expect(component.totalRecords).toBe(2);
+      expect(component.totalRecords()).toBe(2);
     });
 
     it('should set isLoading to false on complete', () => {
       component.loadData();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should show error message when assets array is empty', () => {
@@ -213,8 +213,8 @@ describe('STIGManagerAssetsTableComponent', () => {
 
     it('should preserve original asset properties when mapping', () => {
       component.loadData();
-      expect(component.assets[0].name).toBe('Asset1');
-      expect(component.assets[0].fqdn).toBe('asset1.example.com');
+      expect(component.assets()[0].name).toBe('Asset1');
+      expect(component.assets()[0].fqdn).toBe('asset1.example.com');
     });
   });
 
@@ -263,25 +263,25 @@ describe('STIGManagerAssetsTableComponent', () => {
 
   describe('toggleAddColumnOverlay', () => {
     it('should call multiSelect().hide() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.hide).toHaveBeenCalled();
     });
 
     it('should not call multiSelect().show() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).not.toHaveBeenCalled();
     });
 
     it('should call multiSelect().show() when overlayVisible is false', () => {
-      mockMultiSelect.overlayVisible = false;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(false);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).toHaveBeenCalled();
     });
 
     it('should not call multiSelect().hide() when overlayVisible is false', () => {
-      mockMultiSelect.overlayVisible = false;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(false);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.hide).not.toHaveBeenCalled();
     });

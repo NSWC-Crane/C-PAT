@@ -88,8 +88,8 @@ describe('TenableHostDialogComponent', () => {
     fixture = TestBed.createComponent(TenableHostDialogComponent);
     component = fixture.componentInstance;
     (component as any).hostFindingsTable = () => mockTable;
-    component.tenableRepoId = 42;
-    component.host = { dns: 'host1.example.com', ipAddress: '10.0.0.1', name: 'Alpha' };
+    fixture.componentRef.setInput('tenableRepoId', 42);
+    fixture.componentRef.setInput('host', { dns: 'host1.example.com', ipAddress: '10.0.0.1', name: 'Alpha' });
   });
 
   describe('Creation and Defaults', () => {
@@ -137,42 +137,42 @@ describe('TenableHostDialogComponent', () => {
 
   describe('Getter properties', () => {
     it('hostDns should return dns from host', () => {
-      component.host = { dns: 'alpha.com', ipAddress: '1.1.1.1', name: 'Alpha' };
+      (component as any).host = () => ({ dns: 'alpha.com', ipAddress: '1.1.1.1', name: 'Alpha' });
       expect(component.hostDns).toBe('alpha.com');
     });
 
     it('hostDns should fall back to dnsName', () => {
-      component.host = { dnsName: 'fallback.com', ipAddress: '1.1.1.1' };
+      (component as any).host = () => ({ dnsName: 'fallback.com', ipAddress: '1.1.1.1' });
       expect(component.hostDns).toBe('fallback.com');
     });
 
     it('hostDns should return empty string when host has no dns', () => {
-      component.host = { ipAddress: '1.1.1.1' };
+      (component as any).host = () => ({ ipAddress: '1.1.1.1' });
       expect(component.hostDns).toBe('');
     });
 
     it('hostIp should return ipAddress from host', () => {
-      component.host = { ipAddress: '10.0.0.5', dns: 'd.com' };
+      (component as any).host = () => ({ ipAddress: '10.0.0.5', dns: 'd.com' });
       expect(component.hostIp).toBe('10.0.0.5');
     });
 
     it('hostIp should fall back to ip', () => {
-      component.host = { ip: '10.0.0.9', dns: 'd.com' };
+      (component as any).host = () => ({ ip: '10.0.0.9', dns: 'd.com' });
       expect(component.hostIp).toBe('10.0.0.9');
     });
 
     it('hostName should return name from host', () => {
-      component.host = { name: 'MyHost', dns: 'd.com' };
+      (component as any).host = () => ({ name: 'MyHost', dns: 'd.com' });
       expect(component.hostName).toBe('MyHost');
     });
 
     it('hostName should extract last segment from netbiosName', () => {
-      component.host = { netbiosName: 'DOMAIN\\MYHOST', dns: 'd.com' };
+      (component as any).host = () => ({ netbiosName: 'DOMAIN\\MYHOST', dns: 'd.com' });
       expect(component.hostName).toBe('MYHOST');
     });
 
     it('hostName should return empty string when no name', () => {
-      component.host = { dns: 'd.com', ipAddress: '1.1.1.1' };
+      (component as any).host = () => ({ dns: 'd.com', ipAddress: '1.1.1.1' });
       expect(component.hostName).toBe('');
     });
   });
@@ -181,7 +181,7 @@ describe('TenableHostDialogComponent', () => {
     it('should call loadData when visible changes to true and data not loaded', () => {
       const loadSpy = vi.spyOn(component as any, 'loadData');
 
-      component.visible = true;
+      (component as any).visible = () => true;
       component.ngOnChanges({
         visible: new SimpleChange(false, true, false)
       });
@@ -191,7 +191,7 @@ describe('TenableHostDialogComponent', () => {
     it('should not call loadData when visible changes to false', () => {
       const loadSpy = vi.spyOn(component as any, 'loadData');
 
-      component.visible = false;
+      (component as any).visible = () => false;
       component.ngOnChanges({
         visible: new SimpleChange(true, false, false)
       });
@@ -200,7 +200,7 @@ describe('TenableHostDialogComponent', () => {
 
     it('should reset dataLoaded to false when visible changes to false', () => {
       (component as any).dataLoaded = true;
-      component.visible = false;
+      (component as any).visible = () => false;
       component.ngOnChanges({
         visible: new SimpleChange(true, false, false)
       });
@@ -211,7 +211,7 @@ describe('TenableHostDialogComponent', () => {
       (component as any).dataLoaded = true;
       const loadSpy = vi.spyOn(component as any, 'loadData');
 
-      component.visible = true;
+      (component as any).visible = () => true;
       component.ngOnChanges({
         visible: new SimpleChange(false, true, false)
       });

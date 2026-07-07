@@ -132,9 +132,10 @@ describe('UserComponent', () => {
 
     fixture = TestBed.createComponent(UserComponent);
     component = fixture.componentInstance;
-    component.user = { ...mockUserData };
-    component.users = [];
-    component.payload = {};
+    fixture.componentRef.setInput('userInput', { ...mockUserData });
+    fixture.componentRef.setInput('users', []);
+    fixture.componentRef.setInput('payload', {});
+    component.userState.set({ ...mockUserData });
   });
 
   describe('Creation and Defaults', () => {
@@ -147,7 +148,7 @@ describe('UserComponent', () => {
     });
 
     it('should default checked to false', () => {
-      expect(component.checked).toBe(false);
+      expect(component.checked()).toBe(false);
     });
 
     it('should have teamCols with 2 columns', () => {
@@ -161,7 +162,7 @@ describe('UserComponent', () => {
 
   describe('ngOnInit', () => {
     it('should call loadUserData when user.userId is present', () => {
-      component.user = { userId: 1 };
+      fixture.componentRef.setInput('userInput', { userId: 1 });
       component.ngOnInit();
       expect(mockUserService.getUser).toHaveBeenCalledWith(1);
     });
@@ -175,11 +176,11 @@ describe('UserComponent', () => {
 
     it('should set marketplaceDisabled from CPAT.Env', () => {
       component.ngOnInit();
-      expect(component.marketplaceDisabled).toBe(false);
+      expect(component.marketplaceDisabled()).toBe(false);
     });
 
     it('should subscribe to payloadService.user$ when user has no userId', async () => {
-      component.user = {};
+      fixture.componentRef.setInput('userInput', {});
       const userWithId = { userId: 2, permissions: [], assignedTeams: [] };
 
       mockPayloadService.user$ = of(userWithId);
@@ -200,38 +201,38 @@ describe('UserComponent', () => {
 
   describe('loadUserData (via ngOnInit)', () => {
     it('should set user data on success', async () => {
-      component.user = { userId: 1 };
+      fixture.componentRef.setInput('userInput', { userId: 1 });
       component.ngOnInit();
       await new Promise((r) => setTimeout(r, 0));
-      expect(component.user.firstName).toBe('Test');
+      expect(component.userState().firstName).toBe('Test');
     });
 
     it('should set checked to true when user isAdmin', async () => {
       mockUserService.getUser.mockReturnValue(of({ ...mockUserData, isAdmin: true, permissions: [], assignedTeams: [] }));
-      component.user = { userId: 1 };
+      fixture.componentRef.setInput('userInput', { userId: 1 });
       component.ngOnInit();
       await new Promise((r) => setTimeout(r, 0));
-      expect(component.checked).toBe(true);
+      expect(component.checked()).toBe(true);
     });
 
     it('should set checked to false when user is not admin', async () => {
       mockUserService.getUser.mockReturnValue(of({ ...mockUserData, isAdmin: false, permissions: [], assignedTeams: [] }));
-      component.user = { userId: 1 };
+      fixture.componentRef.setInput('userInput', { userId: 1 });
       component.ngOnInit();
       await new Promise((r) => setTimeout(r, 0));
-      expect(component.checked).toBe(false);
+      expect(component.checked()).toBe(false);
     });
 
     it('should show error message on failure', async () => {
       mockUserService.getUser.mockReturnValue(throwError(() => new Error('Network error')));
-      component.user = { userId: 1 };
+      fixture.componentRef.setInput('userInput', { userId: 1 });
       component.ngOnInit();
       await new Promise((r) => setTimeout(r, 0));
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
     });
 
     it('should load collections and assigned teams after getting user', async () => {
-      component.user = { userId: 1 };
+      fixture.componentRef.setInput('userInput', { userId: 1 });
       component.ngOnInit();
       await new Promise((r) => setTimeout(r, 0));
       expect(mockCollectionsService.getAllCollections).toHaveBeenCalled();
@@ -242,14 +243,14 @@ describe('UserComponent', () => {
   describe('loadAssignedTeams', () => {
     it('should set assignedTeams on success', async () => {
       await component.loadAssignedTeams();
-      expect(component.assignedTeams).toEqual(mockTeams);
+      expect(component.assignedTeams()).toEqual(mockTeams);
     });
 
     it('should map availableTeams with title and value', async () => {
       await component.loadAssignedTeams();
-      expect(component.availableTeams.length).toBe(2);
-      expect(component.availableTeams[0].title).toBe('Team Alpha');
-      expect(component.availableTeams[0].value).toBe(1);
+      expect(component.availableTeams().length).toBe(2);
+      expect(component.availableTeams()[0].title).toBe('Team Alpha');
+      expect(component.availableTeams()[0].value).toBe(1);
     });
 
     it('should show error when service fails', async () => {
@@ -261,80 +262,80 @@ describe('UserComponent', () => {
     it('should set assignedTeams to empty array when response is falsy', async () => {
       mockAssignedTeamService.getAssignedTeams.mockReturnValue(of(null));
       await component.loadAssignedTeams();
-      expect(component.assignedTeams).toEqual([]);
+      expect(component.assignedTeams()).toEqual([]);
     });
   });
 
   describe('getData', () => {
     beforeEach(() => {
-      component.collectionList = [
+      component.collectionList.set([
         { title: 'Collection A', value: 1 },
         { title: 'Collection B', value: 2 }
-      ];
-      component.assignedTeams = mockTeams;
+      ]);
+      component.assignedTeams.set(mockTeams);
     });
 
     it('should map collectionPermissions from user.permissions', () => {
-      component.user = {
+      component.userState.set({
         permissions: [{ userId: 1, collectionId: 1, accessLevel: 2 }],
         assignedTeams: []
-      };
+      });
       component.getData();
-      expect(component.collectionPermissions.length).toBe(1);
-      expect(component.collectionPermissions[0].collectionName).toBe('Collection A');
+      expect(component.collectionPermissions().length).toBe(1);
+      expect(component.collectionPermissions()[0].collectionName).toBe('Collection A');
     });
 
     it('should set correct accessLevelLabel for permissions', () => {
-      component.user = {
+      component.userState.set({
         permissions: [{ userId: 1, collectionId: 1, accessLevel: 2 }],
         assignedTeams: []
-      };
+      });
       component.getData();
-      expect(component.collectionPermissions[0].accessLevelLabel).toBe('Submitter');
+      expect(component.collectionPermissions()[0].accessLevelLabel).toBe('Submitter');
     });
 
     it('should set editing to false for all permissions', () => {
-      component.user = {
+      component.userState.set({
         permissions: [{ userId: 1, collectionId: 1, accessLevel: 1 }],
         assignedTeams: []
-      };
+      });
       component.getData();
-      expect(component.collectionPermissions[0].editing).toBe(false);
+      expect(component.collectionPermissions()[0].editing).toBe(false);
     });
 
     it('should map userAssignedTeams from user.assignedTeams', () => {
-      component.user = {
+      component.userState.set({
         permissions: [],
         assignedTeams: [{ userId: 1, assignedTeamId: 1, accessLevel: 3 }]
-      };
+      });
       component.getData();
-      expect(component.userAssignedTeams.length).toBe(1);
-      expect(component.userAssignedTeams[0].assignedTeamName).toBe('Team Alpha');
-      expect(component.userAssignedTeams[0].accessLevelLabel).toBe('Approver');
+      expect(component.userAssignedTeams().length).toBe(1);
+      expect(component.userAssignedTeams()[0].assignedTeamName).toBe('Team Alpha');
+      expect(component.userAssignedTeams()[0].accessLevelLabel).toBe('Approver');
     });
 
     it('should set assignedTeamName to empty string when team not found', () => {
-      component.user = {
+      component.userState.set({
         permissions: [],
         assignedTeams: [{ userId: 1, assignedTeamId: 99, accessLevel: 1 }]
-      };
+      });
       component.getData();
-      expect(component.userAssignedTeams[0].assignedTeamName).toBe('');
+      expect(component.userAssignedTeams()[0].assignedTeamName).toBe('');
     });
 
     it('should set collectionName to empty string when collection not found', () => {
-      component.user = {
+      component.userState.set({
         permissions: [{ userId: 1, collectionId: 99, accessLevel: 1 }],
         assignedTeams: []
-      };
+      });
       component.getData();
-      expect(component.collectionPermissions[0].collectionName).toBe('');
+      expect(component.collectionPermissions()[0].collectionName).toBe('');
     });
 
     it('should log error when user is null', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      component.user = null;
+      component.userState.set(null);
       component.getData();
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -343,7 +344,7 @@ describe('UserComponent', () => {
     it('should log error when permissions is not an array', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      component.user = { permissions: null, assignedTeams: [] };
+      component.userState.set({ permissions: null, assignedTeams: [] });
       component.getData();
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
@@ -375,66 +376,66 @@ describe('UserComponent', () => {
   describe('filterOfficeOrgs', () => {
     it('should filter orgs starting with query', () => {
       component.filterOfficeOrgs({ query: 'NSWC' });
-      expect(component.filteredOfficeOrgs.every((org) => org.toLowerCase().startsWith('nswc'))).toBe(true);
+      expect(component.filteredOfficeOrgs().every((org) => org.toLowerCase().startsWith('nswc'))).toBe(true);
     });
 
     it('should be case-insensitive', () => {
       component.filterOfficeOrgs({ query: 'nswc' });
-      expect(component.filteredOfficeOrgs.length).toBeGreaterThan(0);
+      expect(component.filteredOfficeOrgs().length).toBeGreaterThan(0);
     });
 
     it('should return empty array when no match', () => {
       component.filterOfficeOrgs({ query: 'ZZZZZ' });
-      expect(component.filteredOfficeOrgs.length).toBe(0);
+      expect(component.filteredOfficeOrgs().length).toBe(0);
     });
 
     it('should return all NAVSEA entries for navsea query', () => {
       component.filterOfficeOrgs({ query: 'NAVSEA' });
-      expect(component.filteredOfficeOrgs).toContain('NAVSEA');
+      expect(component.filteredOfficeOrgs()).toContain('NAVSEA');
     });
   });
 
   describe('onAddNewPermission', () => {
     beforeEach(() => {
-      component.collectionList = [{ title: 'Col A', value: 1 }];
-      component.collectionPermissions = [];
+      component.collectionList.set([{ title: 'Col A', value: 1 }]);
+      component.collectionPermissions.set([]);
     });
 
     it('should add new permission to front of list', () => {
       component.onAddNewPermission();
-      expect(component.collectionPermissions.length).toBe(1);
+      expect(component.collectionPermissions().length).toBe(1);
     });
 
     it('should add permission with null collectionId', () => {
       component.onAddNewPermission();
-      expect(component.collectionPermissions[0].collectionId).toBeNull();
+      expect(component.collectionPermissions()[0].collectionId).toBeNull();
     });
 
     it('should add permission with editing true', () => {
       component.onAddNewPermission();
-      expect(component.collectionPermissions[0].editing).toBe(true);
+      expect(component.collectionPermissions()[0].editing).toBe(true);
     });
 
     it('should set userId from component user', () => {
-      component.user = { userId: 5, permissions: [], assignedTeams: [] };
+      component.userState.set({ userId: 5, permissions: [], assignedTeams: [] });
       component.onAddNewPermission();
-      expect(component.collectionPermissions[0].userId).toBe(5);
+      expect(component.collectionPermissions()[0].userId).toBe(5);
     });
 
     it('should prepend when list is not empty', () => {
       const existing = { userId: 1, collectionId: 1, accessLevel: 1, collectionName: 'A', accessLevelLabel: 'Viewer', editing: false };
 
-      component.collectionPermissions = [existing as any];
+      component.collectionPermissions.set([existing as any]);
       component.onAddNewPermission();
-      expect(component.collectionPermissions.length).toBe(2);
-      expect(component.collectionPermissions[0].collectionId).toBeNull();
+      expect(component.collectionPermissions().length).toBe(2);
+      expect(component.collectionPermissions()[0].collectionId).toBeNull();
     });
   });
 
   describe('onEditPermission', () => {
     beforeEach(() => {
-      component.collectionList = [{ title: 'Collection A', value: 1 }];
-      component.collectionPermissions = [];
+      component.collectionList.set([{ title: 'Collection A', value: 1 }]);
+      component.collectionPermissions.set([]);
     });
 
     it('should set editing to true', () => {
@@ -455,7 +456,7 @@ describe('UserComponent', () => {
       const perm = { userId: 1, collectionId: 1, accessLevel: 1, collectionName: 'A', accessLevelLabel: 'Viewer', editing: false };
 
       component.onEditPermission(perm as any);
-      expect(component.availableCollections.some((c) => c.value === 1)).toBe(true);
+      expect(component.availableCollections().some((c) => c.value === 1)).toBe(true);
     });
 
     it('should not set oldCollectionId when collectionId is null', () => {
@@ -468,22 +469,22 @@ describe('UserComponent', () => {
 
   describe('onCancelEditPermission', () => {
     beforeEach(() => {
-      component.collectionList = [];
-      component.collectionPermissions = [];
+      component.collectionList.set([]);
+      component.collectionPermissions.set([]);
     });
 
     it('should remove permission when collectionId is null', () => {
       const perm = { userId: 1, collectionId: null, accessLevel: 1, editing: true };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onCancelEditPermission(perm as any);
-      expect(component.collectionPermissions.length).toBe(0);
+      expect(component.collectionPermissions().length).toBe(0);
     });
 
     it('should set editing to false for existing permission', () => {
       const perm = { userId: 1, collectionId: 1, accessLevel: 1, editing: true };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onCancelEditPermission(perm as any);
       expect(perm.editing).toBe(false);
     });
@@ -491,7 +492,7 @@ describe('UserComponent', () => {
     it('should restore collectionId from oldCollectionId', () => {
       const perm = { userId: 1, collectionId: 2, oldCollectionId: 1, accessLevel: 1, editing: true };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onCancelEditPermission(perm as any);
       expect(perm.collectionId).toBe(1);
     });
@@ -499,7 +500,7 @@ describe('UserComponent', () => {
     it('should delete oldCollectionId after cancel', () => {
       const perm = { userId: 1, collectionId: 2, oldCollectionId: 1, accessLevel: 1, editing: true };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onCancelEditPermission(perm as any);
       expect((perm as any).oldCollectionId).toBeUndefined();
     });
@@ -507,14 +508,14 @@ describe('UserComponent', () => {
 
   describe('onSavePermission', () => {
     beforeEach(() => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' };
-      component.collectionList = [];
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
+      component.collectionList.set([]);
     });
 
     it('should call postPermission for new permission (no label or name)', () => {
       const perm = { userId: 1, collectionId: 2, accessLevel: 1, editing: true };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onSavePermission(perm as any);
       expect(mockUserService.postPermission).toHaveBeenCalled();
     });
@@ -522,7 +523,7 @@ describe('UserComponent', () => {
     it('should call updatePermission for existing permission (has label and name)', () => {
       const perm = { userId: 1, collectionId: 1, accessLevel: 2, accessLevelLabel: 'Submitter', collectionName: 'Collection A', editing: true };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onSavePermission(perm as any);
       expect(mockUserService.updatePermission).toHaveBeenCalled();
     });
@@ -530,7 +531,7 @@ describe('UserComponent', () => {
     it('should show success message after postPermission', async () => {
       const perm = { userId: 1, collectionId: 2, accessLevel: 1, editing: true };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onSavePermission(perm as any);
       await new Promise((r) => setTimeout(r, 0));
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
@@ -540,7 +541,7 @@ describe('UserComponent', () => {
       mockUserService.postPermission.mockReturnValue(throwError(() => new Error('Error')));
       const perm = { userId: 1, collectionId: 2, accessLevel: 1, editing: true };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onSavePermission(perm as any);
       await new Promise((r) => setTimeout(r, 0));
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
@@ -550,7 +551,7 @@ describe('UserComponent', () => {
       mockUserService.updatePermission.mockReturnValue(throwError(() => new Error('Error')));
       const perm = { userId: 1, collectionId: 1, accessLevel: 2, accessLevelLabel: 'Submitter', collectionName: 'Collection A', editing: true };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onSavePermission(perm as any);
       await new Promise((r) => setTimeout(r, 0));
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
@@ -559,22 +560,22 @@ describe('UserComponent', () => {
 
   describe('onDeletePermission', () => {
     beforeEach(() => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' };
-      component.collectionList = [];
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
+      component.collectionList.set([]);
     });
 
     it('should remove permission with null collectionId immediately', () => {
       const perm = { userId: 1, collectionId: null, accessLevel: 1, editing: false };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onDeletePermission(perm as any);
-      expect(component.collectionPermissions.length).toBe(0);
+      expect(component.collectionPermissions().length).toBe(0);
     });
 
     it('should call confirmationService.confirm for existing permission', () => {
       const perm = { userId: 1, collectionId: 1, accessLevel: 2, accessLevelLabel: 'Submitter', collectionName: 'A', editing: false };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onDeletePermission(perm as any);
       expect(mockConfirmationService.confirm).toHaveBeenCalled();
     });
@@ -582,7 +583,7 @@ describe('UserComponent', () => {
     it('should pass delete-related message to confirmation', () => {
       const perm = { userId: 1, collectionId: 1, accessLevel: 2, accessLevelLabel: 'Submitter', collectionName: 'A', editing: false };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onDeletePermission(perm as any);
       expect(mockConfirmationService.confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Delete Confirmation' }));
     });
@@ -595,7 +596,7 @@ describe('UserComponent', () => {
       });
       const perm = { userId: 1, collectionId: 1, accessLevel: 2, accessLevelLabel: 'Submitter', collectionName: 'A', editing: false };
 
-      component.collectionPermissions = [perm as any];
+      component.collectionPermissions.set([perm as any]);
       component.onDeletePermission(perm as any);
       acceptFn!();
       expect(mockUserService.deletePermission).toHaveBeenCalledWith(1, 1);
@@ -604,36 +605,36 @@ describe('UserComponent', () => {
 
   describe('onAddNewAssignedTeam', () => {
     beforeEach(() => {
-      component.assignedTeams = [...mockTeams];
-      component.userAssignedTeams = [];
+      component.assignedTeams.set([...mockTeams]);
+      component.userAssignedTeams.set([]);
     });
 
     it('should add new team to front of list', () => {
       component.onAddNewAssignedTeam();
-      expect(component.userAssignedTeams.length).toBe(1);
+      expect(component.userAssignedTeams().length).toBe(1);
     });
 
     it('should add team with null assignedTeamId', () => {
       component.onAddNewAssignedTeam();
-      expect(component.userAssignedTeams[0].assignedTeamId).toBeNull();
+      expect(component.userAssignedTeams()[0].assignedTeamId).toBeNull();
     });
 
     it('should add team with editing true', () => {
       component.onAddNewAssignedTeam();
-      expect(component.userAssignedTeams[0].editing).toBe(true);
+      expect(component.userAssignedTeams()[0].editing).toBe(true);
     });
 
     it('should set userId from component user', () => {
-      component.user = { userId: 7, permissions: [], assignedTeams: [] };
+      component.userState.set({ userId: 7, permissions: [], assignedTeams: [] });
       component.onAddNewAssignedTeam();
-      expect(component.userAssignedTeams[0].userId).toBe(7);
+      expect(component.userAssignedTeams()[0].userId).toBe(7);
     });
   });
 
   describe('onEditAssignedTeam', () => {
     beforeEach(() => {
-      component.assignedTeams = [...mockTeams];
-      component.userAssignedTeams = [];
+      component.assignedTeams.set([...mockTeams]);
+      component.userAssignedTeams.set([]);
     });
 
     it('should set editing to true', () => {
@@ -654,7 +655,7 @@ describe('UserComponent', () => {
       const team = { userId: 1, assignedTeamId: 1, accessLevel: 1, editing: false };
 
       component.onEditAssignedTeam(team as any);
-      expect(component.availableTeams.some((t) => t.value === 1)).toBe(true);
+      expect(component.availableTeams().some((t) => t.value === 1)).toBe(true);
     });
 
     it('should not set oldAssignedTeamId when assignedTeamId is null', () => {
@@ -667,21 +668,21 @@ describe('UserComponent', () => {
 
   describe('onCancelEditAssignedTeam', () => {
     beforeEach(() => {
-      component.assignedTeams = [...mockTeams];
+      component.assignedTeams.set([...mockTeams]);
     });
 
     it('should remove team when assignedTeamId is null', () => {
       const team = { userId: 1, assignedTeamId: null, accessLevel: 1, editing: true };
 
-      component.userAssignedTeams = [team as any];
+      component.userAssignedTeams.set([team as any]);
       component.onCancelEditAssignedTeam(team as any);
-      expect(component.userAssignedTeams.length).toBe(0);
+      expect(component.userAssignedTeams().length).toBe(0);
     });
 
     it('should set editing to false for existing team', () => {
       const team = { userId: 1, assignedTeamId: 1, accessLevel: 1, editing: true };
 
-      component.userAssignedTeams = [team as any];
+      component.userAssignedTeams.set([team as any]);
       component.onCancelEditAssignedTeam(team as any);
       expect(team.editing).toBe(false);
     });
@@ -689,7 +690,7 @@ describe('UserComponent', () => {
     it('should restore assignedTeamId from oldAssignedTeamId', () => {
       const team = { userId: 1, assignedTeamId: 2, oldAssignedTeamId: 1, accessLevel: 1, editing: true };
 
-      component.userAssignedTeams = [team as any];
+      component.userAssignedTeams.set([team as any]);
       component.onCancelEditAssignedTeam(team as any);
       expect(team.assignedTeamId).toBe(1);
     });
@@ -697,7 +698,7 @@ describe('UserComponent', () => {
     it('should delete oldAssignedTeamId after cancel', () => {
       const team = { userId: 1, assignedTeamId: 2, oldAssignedTeamId: 1, accessLevel: 1, editing: true };
 
-      component.userAssignedTeams = [team as any];
+      component.userAssignedTeams.set([team as any]);
       component.onCancelEditAssignedTeam(team as any);
       expect((team as any).oldAssignedTeamId).toBeUndefined();
     });
@@ -705,22 +706,22 @@ describe('UserComponent', () => {
 
   describe('onDeleteAssignedTeam', () => {
     beforeEach(() => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' };
-      component.assignedTeams = [...mockTeams];
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
+      component.assignedTeams.set([...mockTeams]);
     });
 
     it('should remove team with null assignedTeamId immediately', () => {
       const team = { userId: 1, assignedTeamId: null, accessLevel: 1, editing: false };
 
-      component.userAssignedTeams = [team as any];
+      component.userAssignedTeams.set([team as any]);
       component.onDeleteAssignedTeam(team as any);
-      expect(component.userAssignedTeams.length).toBe(0);
+      expect(component.userAssignedTeams().length).toBe(0);
     });
 
     it('should call confirmationService.confirm for existing team', () => {
       const team = { userId: 1, assignedTeamId: 1, assignedTeamName: 'Team Alpha', accessLevel: 1, accessLevelLabel: 'Viewer', editing: false };
 
-      component.userAssignedTeams = [team as any];
+      component.userAssignedTeams.set([team as any]);
       component.onDeleteAssignedTeam(team as any);
       expect(mockConfirmationService.confirm).toHaveBeenCalled();
     });
@@ -733,7 +734,7 @@ describe('UserComponent', () => {
       });
       const team = { userId: 1, assignedTeamId: 1, assignedTeamName: 'Team Alpha', accessLevel: 1, accessLevelLabel: 'Viewer', editing: false };
 
-      component.userAssignedTeams = [team as any];
+      component.userAssignedTeams.set([team as any]);
       component.onDeleteAssignedTeam(team as any);
       acceptFn!();
       expect(mockUserService.deleteTeamAssignment).toHaveBeenCalledWith(1, 1);
@@ -748,7 +749,7 @@ describe('UserComponent', () => {
       });
       const team = { userId: 1, assignedTeamId: 1, assignedTeamName: 'T', accessLevel: 1, accessLevelLabel: 'Viewer', editing: false };
 
-      component.userAssignedTeams = [team as any];
+      component.userAssignedTeams.set([team as any]);
       component.onDeleteAssignedTeam(team as any);
       acceptFn!();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
@@ -757,24 +758,24 @@ describe('UserComponent', () => {
 
   describe('onSaveAssignedTeam', () => {
     beforeEach(() => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User', permissions: [] };
-      component.userAssignedTeams = [];
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User', permissions: [] });
+      component.userAssignedTeams.set([]);
     });
 
     it('should show error when team is not found in assignedTeams', async () => {
-      component.assignedTeams = [];
+      component.assignedTeams.set([]);
       await component.onSaveAssignedTeam({ userId: 1, assignedTeamId: 99, accessLevel: 1 } as any);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: 'Unable to find team permissions' }));
     });
 
     it('should show error when team has no permissions', async () => {
-      component.assignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'T', permissions: null }];
+      component.assignedTeams.set([{ assignedTeamId: 1, assignedTeamName: 'T', permissions: null }]);
       await component.onSaveAssignedTeam({ userId: 1, assignedTeamId: 1, accessLevel: 1 } as any);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: 'Unable to find team permissions' }));
     });
 
     it('should call confirmAssignedTeam directly when no permission changes', async () => {
-      component.assignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] }];
+      component.assignedTeams.set([{ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] }]);
       const spy = vi.spyOn(component, 'confirmAssignedTeam');
 
       await component.onSaveAssignedTeam({ userId: 1, assignedTeamId: 1, accessLevel: 1 } as any);
@@ -782,7 +783,7 @@ describe('UserComponent', () => {
     });
 
     it('should show confirmation dialog when there are permission additions', async () => {
-      component.assignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'T', permissions: [{ collectionId: 99, collectionName: 'New Col' }] }];
+      component.assignedTeams.set([{ assignedTeamId: 1, assignedTeamName: 'T', permissions: [{ collectionId: 99, collectionName: 'New Col' }] }]);
       await component.onSaveAssignedTeam({ userId: 1, assignedTeamId: 1, accessLevel: 2 } as any);
       expect(mockConfirmationService.confirm).toHaveBeenCalled();
     });
@@ -790,9 +791,9 @@ describe('UserComponent', () => {
 
   describe('confirmAssignedTeam', () => {
     beforeEach(() => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' };
-      component.assignedTeams = [...mockTeams];
-      component.userAssignedTeams = [];
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
+      component.assignedTeams.set([...mockTeams]);
+      component.userAssignedTeams.set([]);
     });
 
     it('should call postTeamAssignment for new team (no label or name)', () => {
@@ -838,31 +839,31 @@ describe('UserComponent', () => {
 
   describe('onSubmit', () => {
     it('should call disableUser when accountStatus is DISABLED', () => {
-      component.user = { userId: 1, accountStatus: 'DISABLED', lastAccess: '2024-01-01T00:00:00' };
+      component.userState.set({ userId: 1, accountStatus: 'DISABLED', lastAccess: '2024-01-01T00:00:00' });
       component.onSubmit(false);
       expect(mockUserService.disableUser).toHaveBeenCalledWith(1);
     });
 
     it('should not call updateUser when DISABLED', () => {
-      component.user = { userId: 1, accountStatus: 'DISABLED', lastAccess: '2024-01-01T00:00:00' };
+      component.userState.set({ userId: 1, accountStatus: 'DISABLED', lastAccess: '2024-01-01T00:00:00' });
       component.onSubmit(false);
       expect(mockUserService.updateUser).not.toHaveBeenCalled();
     });
 
     it('should call updateUser when accountStatus is ACTIVE', () => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' };
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
       component.onSubmit(false);
       expect(mockUserService.updateUser).toHaveBeenCalled();
     });
 
     it('should set fullName before calling updateUser', () => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'John', lastName: 'Doe' };
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'John', lastName: 'Doe' });
       component.onSubmit(false);
-      expect(component.user.fullName).toBe('John Doe');
+      expect(component.userState().fullName).toBe('John Doe');
     });
 
     it('should emit userChange when final is true (ACTIVE)', () => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' };
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
       const emitSpy = vi.spyOn(component.userChange, 'emit');
 
       component.onSubmit(true);
@@ -870,7 +871,7 @@ describe('UserComponent', () => {
     });
 
     it('should emit userChange when final is true (DISABLED)', () => {
-      component.user = { userId: 1, accountStatus: 'DISABLED', lastAccess: '2024-01-01T00:00:00' };
+      component.userState.set({ userId: 1, accountStatus: 'DISABLED', lastAccess: '2024-01-01T00:00:00' });
       const emitSpy = vi.spyOn(component.userChange, 'emit');
 
       component.onSubmit(true);
@@ -878,7 +879,7 @@ describe('UserComponent', () => {
     });
 
     it('should not emit userChange when final is false', () => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' };
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
       const emitSpy = vi.spyOn(component.userChange, 'emit');
 
       component.onSubmit(false);
@@ -886,7 +887,7 @@ describe('UserComponent', () => {
     });
 
     it('should default final to true', () => {
-      component.user = { userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' };
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
       const emitSpy = vi.spyOn(component.userChange, 'emit');
 
       component.onSubmit();

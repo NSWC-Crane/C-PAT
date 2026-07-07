@@ -55,12 +55,12 @@ describe('PoamTeamsComponent', () => {
 
     fixture = TestBed.createComponent(PoamTeamsComponent);
     component = fixture.componentInstance;
-    component.poam = { poamId: 100 };
-    component.accessLevel = 2;
-    component.poamAssignedTeams = [];
-    component.assignedTeamOptions = [...mockTeamOptions.map((t) => ({ ...t }))];
-    component.loading = false;
-    component.poamService = mockPoamService;
+    fixture.componentRef.setInput('poam', { poamId: 100 });
+    fixture.componentRef.setInput('accessLevel', 2);
+    component.poamAssignedTeams.set([]);
+    fixture.componentRef.setInput('assignedTeamOptions', [...mockTeamOptions.map((t) => ({ ...t }))]);
+    fixture.componentRef.setInput('loading', false);
+    fixture.componentRef.setInput('poamService', mockPoamService);
   });
 
   afterEach(() => {
@@ -74,29 +74,29 @@ describe('PoamTeamsComponent', () => {
     });
 
     it('should have default property values', () => {
-      expect(component.accessLevel).toBe(2);
-      expect(component.poamAssignedTeams).toEqual([]);
-      expect(component.loading).toBe(false);
+      expect(component.accessLevel()).toBe(2);
+      expect(component.poamAssignedTeams()).toEqual([]);
+      expect(component.loading()).toBe(false);
     });
 
     it('should accept poam input', () => {
-      expect(component.poam.poamId).toBe(100);
+      expect(component.poam().poamId).toBe(100);
     });
 
     it('should accept assignedTeamOptions input', () => {
-      expect(component.assignedTeamOptions).toHaveLength(3);
+      expect(component.assignedTeamOptions()).toHaveLength(3);
     });
   });
 
   describe('availableTeamOptions', () => {
     it('should return all options when no teams are assigned', () => {
-      component.poamAssignedTeams = [];
+      component.poamAssignedTeams.set([]);
 
       expect(component.availableTeamOptions).toHaveLength(3);
     });
 
     it('should exclude teams already assigned to the POAM', () => {
-      component.poamAssignedTeams = [createTeam({ assignedTeamId: 1, assignedTeamName: 'Alpha Team' })];
+      component.poamAssignedTeams.set([createTeam({ assignedTeamId: 1, assignedTeamName: 'Alpha Team' })]);
       const available = component.availableTeamOptions;
 
       expect(available).toHaveLength(2);
@@ -104,7 +104,7 @@ describe('PoamTeamsComponent', () => {
     });
 
     it('should exclude multiple assigned teams', () => {
-      component.poamAssignedTeams = [createTeam({ assignedTeamId: 1 }), createTeam({ assignedTeamId: 3, assignedTeamName: 'Gamma Team' })];
+      component.poamAssignedTeams.set([createTeam({ assignedTeamId: 1 }), createTeam({ assignedTeamId: 3, assignedTeamName: 'Gamma Team' })]);
       const available = component.availableTeamOptions;
 
       expect(available).toHaveLength(1);
@@ -112,23 +112,23 @@ describe('PoamTeamsComponent', () => {
     });
 
     it('should return empty when all teams are assigned', () => {
-      component.poamAssignedTeams = [createTeam({ assignedTeamId: 1 }), createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' }), createTeam({ assignedTeamId: 3, assignedTeamName: 'Gamma Team' })];
+      component.poamAssignedTeams.set([createTeam({ assignedTeamId: 1 }), createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' }), createTeam({ assignedTeamId: 3, assignedTeamName: 'Gamma Team' })]);
 
       expect(component.availableTeamOptions).toHaveLength(0);
     });
 
     it('should not exclude new teams with null assignedTeamId', () => {
-      component.poamAssignedTeams = [createTeam({ assignedTeamId: null, isNew: true })];
+      component.poamAssignedTeams.set([createTeam({ assignedTeamId: null, isNew: true })]);
 
       expect(component.availableTeamOptions).toHaveLength(3);
     });
 
     it('should update dynamically when poamAssignedTeams changes', () => {
-      component.poamAssignedTeams = [];
+      component.poamAssignedTeams.set([]);
 
       expect(component.availableTeamOptions).toHaveLength(3);
 
-      component.poamAssignedTeams = [createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' })];
+      component.poamAssignedTeams.set([createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' })]);
 
       expect(component.availableTeamOptions).toHaveLength(2);
       expect(component.availableTeamOptions.find((t: any) => t.assignedTeamId === 2)).toBeUndefined();
@@ -145,20 +145,20 @@ describe('PoamTeamsComponent', () => {
     it('should add a new team to the beginning of the array', async () => {
       const existing = createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' });
 
-      component.poamAssignedTeams = [existing];
+      component.poamAssignedTeams.set([existing]);
 
       await component.addAssignedTeam();
 
-      expect(component.poamAssignedTeams).toHaveLength(2);
-      expect(component.poamAssignedTeams[0].isNew).toBe(true);
-      expect(component.poamAssignedTeams[0].assignedTeamId).toBeNull();
-      expect(component.poamAssignedTeams[1].assignedTeamId).toBe(2);
+      expect(component.poamAssignedTeams()).toHaveLength(2);
+      expect(component.poamAssignedTeams()[0].isNew).toBe(true);
+      expect(component.poamAssignedTeams()[0].assignedTeamId).toBeNull();
+      expect(component.poamAssignedTeams()[1].assignedTeamId).toBe(2);
     });
 
     it('should set correct default values on the new team', async () => {
       await component.addAssignedTeam();
 
-      const newTeam = component.poamAssignedTeams[0];
+      const newTeam = component.poamAssignedTeams()[0];
 
       expect(newTeam.assignedTeamId).toBeNull();
       expect(newTeam.assignedTeamName).toBe('');
@@ -167,44 +167,44 @@ describe('PoamTeamsComponent', () => {
     });
 
     it('should set poamId to 0 for ADDPOAM', async () => {
-      component.poam = { poamId: 'ADDPOAM' };
+      (component as any).poam = () => ({ poamId: 'ADDPOAM' });
 
       await component.addAssignedTeam();
 
-      expect(component.poamAssignedTeams[0].poamId).toBe(0);
+      expect(component.poamAssignedTeams()[0].poamId).toBe(0);
     });
 
     it('should convert poamId to number', async () => {
-      component.poam = { poamId: '50' };
+      (component as any).poam = () => ({ poamId: '50' });
 
       await component.addAssignedTeam();
 
-      expect(component.poamAssignedTeams[0].poamId).toBe(50);
+      expect(component.poamAssignedTeams()[0].poamId).toBe(50);
     });
 
     it('should emit teamsChanged with action added', async () => {
       await component.addAssignedTeam();
 
       expect(emitSpy).toHaveBeenCalledWith({
-        teams: component.poamAssignedTeams,
+        teams: component.poamAssignedTeams(),
         action: 'added',
-        team: component.poamAssignedTeams[0]
+        team: component.poamAssignedTeams()[0]
       });
     });
 
     it('should add to an empty array', async () => {
-      component.poamAssignedTeams = [];
+      component.poamAssignedTeams.set([]);
       await component.addAssignedTeam();
-      expect(component.poamAssignedTeams).toHaveLength(1);
+      expect(component.poamAssignedTeams()).toHaveLength(1);
     });
 
     it('should support multiple consecutive adds', async () => {
       await component.addAssignedTeam();
       await component.addAssignedTeam();
 
-      expect(component.poamAssignedTeams).toHaveLength(2);
-      expect(component.poamAssignedTeams[0].isNew).toBe(true);
-      expect(component.poamAssignedTeams[1].isNew).toBe(true);
+      expect(component.poamAssignedTeams()).toHaveLength(2);
+      expect(component.poamAssignedTeams()[0].isNew).toBe(true);
+      expect(component.poamAssignedTeams()[1].isNew).toBe(true);
     });
   });
 
@@ -218,7 +218,7 @@ describe('PoamTeamsComponent', () => {
     it('should update team name from options when assignedTeamId is set', async () => {
       const team = createTeam({ assignedTeamId: 2, assignedTeamName: '', isNew: true });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.onAssignedTeamChange(team, 0);
 
@@ -229,7 +229,7 @@ describe('PoamTeamsComponent', () => {
     it('should set assignedTeamName to empty string if team not found in options', async () => {
       const team = createTeam({ assignedTeamId: 999, assignedTeamName: 'Old', isNew: true });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.onAssignedTeamChange(team, 0);
 
@@ -239,12 +239,12 @@ describe('PoamTeamsComponent', () => {
     it('should emit teamsChanged with action added when team is selected', async () => {
       const team = createTeam({ assignedTeamId: 1, isNew: true });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.onAssignedTeamChange(team, 0);
 
       expect(emitSpy).toHaveBeenCalledWith({
-        teams: component.poamAssignedTeams,
+        teams: component.poamAssignedTeams(),
         action: 'added',
         team
       });
@@ -253,7 +253,7 @@ describe('PoamTeamsComponent', () => {
     it('should show success message when team is selected', async () => {
       const team = createTeam({ assignedTeamId: 1, isNew: true });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.onAssignedTeamChange(team, 0);
 
@@ -270,24 +270,24 @@ describe('PoamTeamsComponent', () => {
       const team2 = createTeam({ assignedTeamId: null, isNew: true });
       const team3 = createTeam({ assignedTeamId: 3 });
 
-      component.poamAssignedTeams = [team1, team2, team3];
+      component.poamAssignedTeams.set([team1, team2, team3]);
 
       await component.onAssignedTeamChange(team2, 1);
 
-      expect(component.poamAssignedTeams).toHaveLength(2);
-      expect(component.poamAssignedTeams[0].assignedTeamId).toBe(1);
-      expect(component.poamAssignedTeams[1].assignedTeamId).toBe(3);
+      expect(component.poamAssignedTeams()).toHaveLength(2);
+      expect(component.poamAssignedTeams()[0].assignedTeamId).toBe(1);
+      expect(component.poamAssignedTeams()[1].assignedTeamId).toBe(3);
     });
 
     it('should emit teamsChanged with action updated when team is removed', async () => {
       const team = createTeam({ assignedTeamId: null });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.onAssignedTeamChange(team, 0);
 
       expect(emitSpy).toHaveBeenCalledWith({
-        teams: component.poamAssignedTeams,
+        teams: component.poamAssignedTeams(),
         action: 'updated'
       });
     });
@@ -295,7 +295,7 @@ describe('PoamTeamsComponent', () => {
     it('should not show success message when team is removed (falsy id)', async () => {
       const team = createTeam({ assignedTeamId: null });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.onAssignedTeamChange(team, 0);
 
@@ -305,11 +305,11 @@ describe('PoamTeamsComponent', () => {
     it('should handle assignedTeamId of 0 as falsy (splice)', async () => {
       const team = createTeam({ assignedTeamId: 0 });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.onAssignedTeamChange(team, 0);
 
-      expect(component.poamAssignedTeams).toHaveLength(0);
+      expect(component.poamAssignedTeams()).toHaveLength(0);
     });
   });
 
@@ -325,46 +325,46 @@ describe('PoamTeamsComponent', () => {
       const team2 = createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' });
       const team3 = createTeam({ assignedTeamId: 3, assignedTeamName: 'Gamma Team' });
 
-      component.poamAssignedTeams = [team1, team2, team3];
+      component.poamAssignedTeams.set([team1, team2, team3]);
 
       await component.deleteAssignedTeam(team2, 1);
 
-      expect(component.poamAssignedTeams).toHaveLength(2);
-      expect(component.poamAssignedTeams[0].assignedTeamId).toBe(1);
-      expect(component.poamAssignedTeams[1].assignedTeamId).toBe(3);
+      expect(component.poamAssignedTeams()).toHaveLength(2);
+      expect(component.poamAssignedTeams()[0].assignedTeamId).toBe(1);
+      expect(component.poamAssignedTeams()[1].assignedTeamId).toBe(3);
     });
 
     it('should remove the first team', async () => {
       const team1 = createTeam({ assignedTeamId: 1 });
       const team2 = createTeam({ assignedTeamId: 2 });
 
-      component.poamAssignedTeams = [team1, team2];
+      component.poamAssignedTeams.set([team1, team2]);
 
       await component.deleteAssignedTeam(team1, 0);
 
-      expect(component.poamAssignedTeams).toHaveLength(1);
-      expect(component.poamAssignedTeams[0].assignedTeamId).toBe(2);
+      expect(component.poamAssignedTeams()).toHaveLength(1);
+      expect(component.poamAssignedTeams()[0].assignedTeamId).toBe(2);
     });
 
     it('should remove the last team leaving empty array', async () => {
       const team = createTeam({ assignedTeamId: 1 });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.deleteAssignedTeam(team, 0);
 
-      expect(component.poamAssignedTeams).toHaveLength(0);
+      expect(component.poamAssignedTeams()).toHaveLength(0);
     });
 
     it('should emit teamsChanged with action deleted', async () => {
       const team = createTeam({ assignedTeamId: 1, assignedTeamName: 'Alpha Team' });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.deleteAssignedTeam(team, 0);
 
       expect(emitSpy).toHaveBeenCalledWith({
-        teams: component.poamAssignedTeams,
+        teams: component.poamAssignedTeams(),
         action: 'deleted',
         team
       });
@@ -373,7 +373,7 @@ describe('PoamTeamsComponent', () => {
     it('should show success message with team name', async () => {
       const team = createTeam({ assignedTeamName: 'Alpha Team' });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.deleteAssignedTeam(team, 0);
 
@@ -389,7 +389,7 @@ describe('PoamTeamsComponent', () => {
     it('should show fallback name when assignedTeamName is empty', async () => {
       const team = createTeam({ assignedTeamName: '' });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.deleteAssignedTeam(team, 0);
 
@@ -403,7 +403,7 @@ describe('PoamTeamsComponent', () => {
     it('should show fallback name when assignedTeamName is undefined', async () => {
       const team = createTeam({ assignedTeamName: undefined });
 
-      component.poamAssignedTeams = [team];
+      component.poamAssignedTeams.set([team]);
 
       await component.deleteAssignedTeam(team, 0);
 
@@ -424,7 +424,7 @@ describe('PoamTeamsComponent', () => {
 
     describe('with existing POAM (not ADDPOAM)', () => {
       beforeEach(() => {
-        component.poam = { poamId: 100 };
+        fixture.componentRef.setInput('poam', { poamId: 100 });
       });
 
       it('should post team and refresh list on success', async () => {
@@ -441,7 +441,7 @@ describe('PoamTeamsComponent', () => {
           assignedTeamId: 2
         });
         expect(mockPoamService.getPoamAssignedTeams).toHaveBeenCalledWith(100);
-        expect(component.poamAssignedTeams).toBe(updatedTeams);
+        expect(component.poamAssignedTeams()).toBe(updatedTeams);
       });
 
       it('should emit teamsChanged with action saved on success', async () => {
@@ -538,7 +538,7 @@ describe('PoamTeamsComponent', () => {
       });
 
       it('should convert poamId and assignedTeamId to numbers', async () => {
-        component.poam = { poamId: '200' };
+        (component as any).poam = () => ({ poamId: '200' });
         const newTeam = { assignedTeamId: '3', assignedTeamName: 'Gamma Team' };
 
         mockPoamService.postPoamAssignedTeam.mockReturnValue(of({}));
@@ -582,7 +582,7 @@ describe('PoamTeamsComponent', () => {
 
     describe('with ADDPOAM (new POAM)', () => {
       beforeEach(() => {
-        component.poam = { poamId: 'ADDPOAM' };
+        fixture.componentRef.setInput('poam', { poamId: 'ADDPOAM' });
       });
 
       it('should not call API for ADDPOAM', async () => {
@@ -639,13 +639,13 @@ describe('PoamTeamsComponent', () => {
 
     describe('with existing POAM (not ADDPOAM)', () => {
       beforeEach(() => {
-        component.poam = { poamId: 100 };
+        fixture.componentRef.setInput('poam', { poamId: 100 });
       });
 
       it('should call deletePoamAssignedTeam API on success', () => {
         const team = createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' });
 
-        component.poamAssignedTeams = [createTeam({ assignedTeamId: 1 }), team, createTeam({ assignedTeamId: 3 })];
+        component.poamAssignedTeams.set([createTeam({ assignedTeamId: 1 }), team, createTeam({ assignedTeamId: 3 })]);
 
         mockPoamService.deletePoamAssignedTeam.mockReturnValue(of({}));
 
@@ -657,26 +657,26 @@ describe('PoamTeamsComponent', () => {
       it('should filter the team out of poamAssignedTeams on success', () => {
         const team = createTeam({ assignedTeamId: 2, assignedTeamName: 'Beta Team' });
 
-        component.poamAssignedTeams = [createTeam({ assignedTeamId: 1 }), team, createTeam({ assignedTeamId: 3 })];
+        component.poamAssignedTeams.set([createTeam({ assignedTeamId: 1 }), team, createTeam({ assignedTeamId: 3 })]);
 
         mockPoamService.deletePoamAssignedTeam.mockReturnValue(of({}));
 
         component.confirmDeleteAssignedTeam(team);
 
-        expect(component.poamAssignedTeams).toHaveLength(2);
-        expect(component.poamAssignedTeams.find((t: any) => t.assignedTeamId === 2)).toBeUndefined();
+        expect(component.poamAssignedTeams()).toHaveLength(2);
+        expect(component.poamAssignedTeams().find((t: any) => t.assignedTeamId === 2)).toBeUndefined();
       });
 
       it('should emit teamsChanged with action deleted on success', () => {
         const team = createTeam({ assignedTeamId: 1, assignedTeamName: 'Alpha Team' });
 
-        component.poamAssignedTeams = [team];
+        component.poamAssignedTeams.set([team]);
         mockPoamService.deletePoamAssignedTeam.mockReturnValue(of({}));
 
         component.confirmDeleteAssignedTeam(team);
 
         expect(emitSpy).toHaveBeenCalledWith({
-          teams: component.poamAssignedTeams,
+          teams: component.poamAssignedTeams(),
           action: 'deleted',
           team
         });
@@ -685,7 +685,7 @@ describe('PoamTeamsComponent', () => {
       it('should show success message with team name', () => {
         const team = createTeam({ assignedTeamId: 1, assignedTeamName: 'Alpha Team' });
 
-        component.poamAssignedTeams = [team];
+        component.poamAssignedTeams.set([team]);
         mockPoamService.deletePoamAssignedTeam.mockReturnValue(of({}));
 
         component.confirmDeleteAssignedTeam(team);
@@ -699,10 +699,10 @@ describe('PoamTeamsComponent', () => {
       });
 
       it('should convert poamId and assignedTeamId to numbers', () => {
-        component.poam = { poamId: '200' };
+        (component as any).poam = () => ({ poamId: '200' });
         const team = { assignedTeamId: '3', assignedTeamName: 'Gamma Team' };
 
-        component.poamAssignedTeams = [team];
+        component.poamAssignedTeams.set([team]);
         mockPoamService.deletePoamAssignedTeam.mockReturnValue(of({}));
 
         component.confirmDeleteAssignedTeam(team);
@@ -713,7 +713,7 @@ describe('PoamTeamsComponent', () => {
       it('should show error message on API failure', () => {
         const team = createTeam({ assignedTeamId: 1 });
 
-        component.poamAssignedTeams = [team];
+        component.poamAssignedTeams.set([team]);
         mockPoamService.deletePoamAssignedTeam.mockReturnValue(throwError(() => ({ error: { detail: 'Cannot delete' } })));
 
         component.confirmDeleteAssignedTeam(team);
@@ -730,7 +730,7 @@ describe('PoamTeamsComponent', () => {
       it('should show generic error when error has no detail', () => {
         const team = createTeam({ assignedTeamId: 1 });
 
-        component.poamAssignedTeams = [team];
+        component.poamAssignedTeams.set([team]);
         mockPoamService.deletePoamAssignedTeam.mockReturnValue(throwError(() => ({ message: 'Server down' })));
 
         component.confirmDeleteAssignedTeam(team);
@@ -746,12 +746,12 @@ describe('PoamTeamsComponent', () => {
       it('should not modify teams on API error', () => {
         const team = createTeam({ assignedTeamId: 1 });
 
-        component.poamAssignedTeams = [team];
+        component.poamAssignedTeams.set([team]);
         mockPoamService.deletePoamAssignedTeam.mockReturnValue(throwError(() => ({ message: 'Error' })));
 
         component.confirmDeleteAssignedTeam(team);
 
-        expect(component.poamAssignedTeams).toHaveLength(1);
+        expect(component.poamAssignedTeams()).toHaveLength(1);
       });
 
       it('should show invalid input error when assignedTeamId is falsy', () => {
@@ -784,13 +784,13 @@ describe('PoamTeamsComponent', () => {
 
     describe('with ADDPOAM (new POAM)', () => {
       beforeEach(() => {
-        component.poam = { poamId: 'ADDPOAM' };
+        fixture.componentRef.setInput('poam', { poamId: 'ADDPOAM' });
       });
 
       it('should not call API for ADDPOAM', () => {
         const team = createTeam({ assignedTeamId: 1 });
 
-        component.poamAssignedTeams = [team];
+        component.poamAssignedTeams.set([team]);
 
         component.confirmDeleteAssignedTeam(team);
 
@@ -801,23 +801,23 @@ describe('PoamTeamsComponent', () => {
         const team1 = createTeam({ assignedTeamId: 1 });
         const team2 = createTeam({ assignedTeamId: 2 });
 
-        component.poamAssignedTeams = [team1, team2];
+        component.poamAssignedTeams.set([team1, team2]);
 
         component.confirmDeleteAssignedTeam(team1);
 
-        expect(component.poamAssignedTeams).toHaveLength(1);
-        expect(component.poamAssignedTeams[0].assignedTeamId).toBe(2);
+        expect(component.poamAssignedTeams()).toHaveLength(1);
+        expect(component.poamAssignedTeams()[0].assignedTeamId).toBe(2);
       });
 
       it('should emit teamsChanged with action deleted for ADDPOAM', () => {
         const team = createTeam({ assignedTeamId: 1, assignedTeamName: 'Alpha Team' });
 
-        component.poamAssignedTeams = [team];
+        component.poamAssignedTeams.set([team]);
 
         component.confirmDeleteAssignedTeam(team);
 
         expect(emitSpy).toHaveBeenCalledWith({
-          teams: component.poamAssignedTeams,
+          teams: component.poamAssignedTeams(),
           action: 'deleted',
           team
         });
@@ -826,7 +826,7 @@ describe('PoamTeamsComponent', () => {
       it('should show success message for ADDPOAM', () => {
         const team = createTeam({ assignedTeamId: 1, assignedTeamName: 'Alpha Team' });
 
-        component.poamAssignedTeams = [team];
+        component.poamAssignedTeams.set([team]);
 
         component.confirmDeleteAssignedTeam(team);
 

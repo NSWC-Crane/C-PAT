@@ -1,10 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from 'vitest';
-import { signal } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { AppLayoutComponent } from './app.layout.component';
-import { AppConfigService } from '../services/appconfigservice';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
@@ -14,13 +12,12 @@ import { provideUiTour } from 'ngx-ui-tour-primeng';
 describe('AppLayoutComponent', () => {
   let component: AppLayoutComponent;
   let fixture: ComponentFixture<AppLayoutComponent>;
-  let mockConfigService: any;
   let mockUserService: any;
   let mockAuthService: any;
   let mockCollectionsService: any;
   let mockSharedService: any;
   let mockRouter: any;
-  let appStateSignal: any;
+  let routerEventsSubject: Subject<any>;
   let authUserSubject: BehaviorSubject<any>;
   let accessLevelSubject: BehaviorSubject<any>;
 
@@ -33,6 +30,11 @@ describe('AppLayoutComponent', () => {
     { collectionId: 1, collectionName: 'Collection A', collectionType: 'C-PAT', manualCreationAllowed: true },
     { collectionId: 2, collectionName: 'Collection B', collectionType: 'STIG Manager', manualCreationAllowed: false }
   ];
+
+  const navigateTo = (url: string) => {
+    mockRouter.url = url;
+    routerEventsSubject.next(new NavigationEnd(1, url, url));
+  };
 
   beforeAll(() => {
     (globalThis as any).CPAT = {
@@ -49,15 +51,6 @@ describe('AppLayoutComponent', () => {
   });
 
   beforeEach(async () => {
-    appStateSignal = signal({
-      preset: 'Aura',
-      primary: 'noir',
-      surface: 'soho',
-      darkTheme: true,
-      menuActive: false,
-      RTL: false
-    });
-
     authUserSubject = new BehaviorSubject<any>({
       userId: 1,
       accountStatus: 'ACTIVE',
@@ -67,10 +60,6 @@ describe('AppLayoutComponent', () => {
       email: 'test@example.com'
     });
     accessLevelSubject = new BehaviorSubject<any>(2);
-
-    mockConfigService = {
-      appState: appStateSignal
-    };
 
     mockUserService = {
       updateUserLastCollection: vi.fn().mockReturnValue(of({ success: true }))
@@ -93,8 +82,9 @@ describe('AppLayoutComponent', () => {
       startTour$: new Subject()
     };
 
+    routerEventsSubject = new Subject<any>();
     mockRouter = {
-      events: new Subject().asObservable(),
+      events: routerEventsSubject.asObservable(),
       url: '/home',
       createUrlTree: vi.fn().mockReturnValue({}),
       serializeUrl: vi.fn().mockReturnValue(''),
@@ -104,13 +94,12 @@ describe('AppLayoutComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AppLayoutComponent],
       providers: [
-        { provide: AppConfigService, useValue: mockConfigService },
         { provide: UsersService, useValue: mockUserService },
         { provide: AuthService, useValue: mockAuthService },
         { provide: CollectionsService, useValue: mockCollectionsService },
         { provide: SharedService, useValue: mockSharedService },
         { provide: Router, useValue: mockRouter },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn() } } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: vi.fn() } }, data: of({}) } },
         provideUiTour()
       ]
     }).compileComponents();
@@ -129,81 +118,68 @@ describe('AppLayoutComponent', () => {
     });
 
     it('should initialize items as empty array', () => {
-      expect(component.items).toEqual([]);
+      expect(component.items()).toEqual([]);
     });
 
     it('should initialize collections as empty array', () => {
-      expect(component.collections).toEqual([]);
+      expect(component.collections()).toEqual([]);
     });
 
     it('should initialize collectionType as C-PAT', () => {
-      expect(component.collectionType).toBe('C-PAT');
+      expect(component.collectionType()).toBe('C-PAT');
     });
 
     it('should initialize collectionName as empty string', () => {
-      expect(component.collectionName).toBe('');
+      expect(component.collectionName()).toBe('');
     });
 
     it('should initialize manualCreationAllowed as true', () => {
-      expect(component.manualCreationAllowed).toBe(true);
+      expect(component.manualCreationAllowed()).toBe(true);
     });
 
     it('should initialize selectedCollection as null', () => {
-      expect(component.selectedCollection).toBeNull();
+      expect(component.selectedCollection()).toBeNull();
     });
 
     it('should initialize confirmPopupVisible as false', () => {
-      expect(component.confirmPopupVisible).toBe(false);
+      expect(component.confirmPopupVisible()).toBe(false);
     });
 
     it('should initialize userMenu as empty array', () => {
-      expect(component.userMenu).toEqual([]);
+      expect(component.userMenu()).toEqual([]);
     });
 
-    it('should initialize currentUser as null', () => {
-      expect(component.currentUser).toBeNull();
-    });
-  });
-
-  describe('isDarkMode Getter', () => {
-    it('should return true when darkTheme is true', () => {
-      appStateSignal.set({ ...appStateSignal(), darkTheme: true });
-      expect(component.isDarkMode).toBe(true);
-    });
-
-    it('should return false when darkTheme is false', () => {
-      appStateSignal.set({ ...appStateSignal(), darkTheme: false });
-      expect(component.isDarkMode).toBe(false);
+    it('should expose the current user from authService.user$', () => {
+      expect(component.user()).toEqual(expect.objectContaining({ userId: 1 }));
     });
   });
 
-  describe('tooltipContent Getter', () => {
-    it('should return user name and email when currentUser is set', () => {
-      component.currentUser = { name: 'Test User', email: 'test@example.com' };
-      expect(component.tooltipContent).toContain('Test User');
-      expect(component.tooltipContent).toContain('test@example.com');
+  describe('tooltipContent', () => {
+    it('should return user name and email when user is set', () => {
+      authUserSubject.next({ name: 'Test User', email: 'test@example.com' });
+      expect(component.tooltipContent()).toContain('Test User');
+      expect(component.tooltipContent()).toContain('test@example.com');
     });
 
-    it('should return default name when currentUser is null', () => {
-      component.currentUser = null;
-      expect(component.tooltipContent).toContain('C-PAT User');
+    it('should return default name when user is null', () => {
+      authUserSubject.next(null);
+      expect(component.tooltipContent()).toContain('C-PAT User');
     });
 
-    it('should return default name when currentUser has no name', () => {
-      component.currentUser = { email: 'test@example.com' };
-      expect(component.tooltipContent).toContain('C-PAT User');
+    it('should return default name when user has no name', () => {
+      authUserSubject.next({ email: 'test@example.com' });
+      expect(component.tooltipContent()).toContain('C-PAT User');
     });
   });
 
   describe('ngOnInit', () => {
-    it('should set currentUser from authService.user$', () => {
+    it('should set user from authService.user$', () => {
       fixture.detectChanges();
-      expect(component.currentUser).toEqual(expect.objectContaining({ userId: 1 }));
+      expect(component.user()).toEqual(expect.objectContaining({ userId: 1 }));
     });
 
-    it('should set user and accessLevel from combined observables', () => {
+    it('should set accessLevel from combined observables', () => {
       fixture.detectChanges();
-      expect(component.user).toEqual(expect.objectContaining({ userId: 1 }));
       expect(component.accessLevel).toBe(2);
     });
 
@@ -215,7 +191,7 @@ describe('AppLayoutComponent', () => {
 
     it('should set menu items after loading collections', () => {
       fixture.detectChanges();
-      expect(component.items.length).toBeGreaterThan(0);
+      expect(component.items().length).toBeGreaterThan(0);
     });
 
     it('should not subscribe when user is null', () => {
@@ -267,34 +243,34 @@ describe('AppLayoutComponent', () => {
   describe('loadCollections', () => {
     it('should populate collections from service', () => {
       fixture.detectChanges();
-      expect(component.collections).toEqual(mockCollections);
+      expect(component.collections()).toEqual(mockCollections.map((c) => ({ ...c, label: c.collectionName })));
     });
 
     it('should set selectedCollection when user has lastCollectionAccessedId', () => {
       fixture.detectChanges();
-      expect(component.selectedCollection).toEqual(mockCollections[0]);
+      expect(component.selectedCollection()).toEqual(mockCollections[0]);
     });
 
     it('should set collectionType from basic list data', () => {
       fixture.detectChanges();
-      expect(component.collectionType).toBe('C-PAT');
+      expect(component.collectionType()).toBe('C-PAT');
     });
 
     it('should set collectionName from basic list data', () => {
       fixture.detectChanges();
-      expect(component.collectionName).toBe('Collection A');
+      expect(component.collectionName()).toBe('Collection A');
     });
 
     it('should set manualCreationAllowed from basic list data', () => {
       fixture.detectChanges();
-      expect(component.manualCreationAllowed).toBe(true);
+      expect(component.manualCreationAllowed()).toBe(true);
     });
 
     it('should not set selectedCollection when user has no lastCollectionAccessedId', () => {
       authUserSubject.next({ userId: 1, accountStatus: 'ACTIVE', lastCollectionAccessedId: 0, isAdmin: false });
       fixture.detectChanges();
 
-      expect(component.selectedCollection).toBeNull();
+      expect(component.selectedCollection()).toBeNull();
     });
 
     it('should handle error from collections service', () => {
@@ -304,7 +280,7 @@ describe('AppLayoutComponent', () => {
       fixture.detectChanges();
 
       expect(consoleSpy).toHaveBeenCalledWith('Error loading collections:', expect.any(Error));
-      expect(component.collectionType).toBe('C-PAT');
+      expect(component.collectionType()).toBe('C-PAT');
       consoleSpy.mockRestore();
     });
 
@@ -312,10 +288,10 @@ describe('AppLayoutComponent', () => {
       authUserSubject.next({ userId: 1, accountStatus: 'ACTIVE', lastCollectionAccessedId: 2, isAdmin: false });
       fixture.detectChanges();
 
-      expect(component.selectedCollection).toEqual(mockCollections[1]);
-      expect(component.collectionType).toBe('STIG Manager');
-      expect(component.collectionName).toBe('Collection B');
-      expect(component.manualCreationAllowed).toBe(false);
+      expect(component.selectedCollection()).toEqual(mockCollections[1]);
+      expect(component.collectionType()).toBe('STIG Manager');
+      expect(component.collectionName()).toBe('Collection B');
+      expect(component.manualCreationAllowed()).toBe(false);
     });
   });
 
@@ -362,7 +338,7 @@ describe('AppLayoutComponent', () => {
 
   describe('resetWorkspace', () => {
     beforeEach(() => {
-      component.collections = [...mockCollections];
+      component.collections.set([...mockCollections]);
     });
 
     it('should call sharedService.setSelectedCollection', () => {
@@ -372,7 +348,7 @@ describe('AppLayoutComponent', () => {
 
     it('should set selectedCollection from collections array', () => {
       component.resetWorkspace(2);
-      expect(component.selectedCollection).toEqual(mockCollections[1]);
+      expect(component.selectedCollection()).toEqual(mockCollections[1]);
     });
 
     it('should call updateUserLastCollection', () => {
@@ -399,7 +375,10 @@ describe('AppLayoutComponent', () => {
       (globalThis as any).CPAT.Env.features.marketplaceDisabled = false;
       component.setUserMenuItems();
 
-      const labels = component.userMenu.filter((m) => m.label).map((m) => m.label);
+      const labels = component
+        .userMenu()
+        .filter((m) => m.label)
+        .map((m) => m.label);
 
       expect(labels).toContain('Marketplace');
       expect(labels).toContain('Log Out');
@@ -409,22 +388,23 @@ describe('AppLayoutComponent', () => {
       (globalThis as any).CPAT.Env.features.marketplaceDisabled = false;
       component.setUserMenuItems();
 
-      expect(component.userMenu.some((m) => m.separator)).toBe(true);
+      expect(component.userMenu().some((m) => m.separator)).toBe(true);
     });
 
     it('should only include Log Out when marketplace is disabled', () => {
       (globalThis as any).CPAT.Env.features.marketplaceDisabled = true;
       component.setUserMenuItems();
 
-      expect(component.userMenu.length).toBe(1);
-      expect(component.userMenu[0].label).toBe('Log Out');
+      expect(component.userMenu().length).toBe(1);
+      expect(component.userMenu()[0].label).toBe('Log Out');
 
       (globalThis as any).CPAT.Env.features.marketplaceDisabled = false;
     });
 
     it('should assign command functions to menu items', () => {
       component.setUserMenuItems();
-      component.userMenu
+      component
+        .userMenu()
         .filter((m) => m.label)
         .forEach((item) => {
           expect(item.command).toBeDefined();
@@ -432,53 +412,33 @@ describe('AppLayoutComponent', () => {
     });
   });
 
-  describe('setupUserMenuActions', () => {
-    it('should wire Marketplace command to goToMarketplace', () => {
-      component.setUserMenuItems();
-      component.setupUserMenuActions();
-
-      const marketplaceItem = component.userMenu.find((m) => m.label === 'Marketplace');
-
-      expect(marketplaceItem?.command).toBeDefined();
-    });
-
-    it('should wire Log Out command to logout', () => {
-      component.setUserMenuItems();
-      component.setupUserMenuActions();
-
-      const logoutItem = component.userMenu.find((m) => m.label === 'Log Out');
-
-      expect(logoutItem?.command).toBeDefined();
-    });
-  });
-
   describe('setMenuItems', () => {
     beforeEach(() => {
-      component.user = { userId: 1, isAdmin: false };
+      authUserSubject.next({ userId: 1, isAdmin: false });
       component.accessLevel = 2;
-      component.collectionType = 'C-PAT';
-      component.manualCreationAllowed = true;
+      component.collectionType.set('C-PAT');
+      component.manualCreationAllowed.set(true);
     });
 
     it('should always include Home item', () => {
       (component as any).setMenuItems();
-      const homeItem = component.items.find((i) => i.label === 'Home');
+      const homeItem = component.items().find((i) => i.label === 'Home');
 
       expect(homeItem).toBeDefined();
     });
 
     it('should include Admin Portal when user is admin', () => {
-      component.user = { userId: 1, isAdmin: true };
+      authUserSubject.next({ userId: 1, isAdmin: true });
       (component as any).setMenuItems();
-      const adminItem = component.items.find((i) => i.label === 'Admin Portal');
+      const adminItem = component.items().find((i) => i.label === 'Admin Portal');
 
       expect(adminItem).toBeDefined();
     });
 
     it('should not include Admin Portal when user is not admin', () => {
-      component.user = { userId: 1, isAdmin: false };
+      authUserSubject.next({ userId: 1, isAdmin: false });
       (component as any).setMenuItems();
-      const adminItem = component.items.find((i) => i.label === 'Admin Portal');
+      const adminItem = component.items().find((i) => i.label === 'Admin Portal');
 
       expect(adminItem).toBeUndefined();
     });
@@ -486,7 +446,7 @@ describe('AppLayoutComponent', () => {
     it('should include Metrics when accessLevel >= 1', () => {
       component.accessLevel = 1;
       (component as any).setMenuItems();
-      const metricsItem = component.items.find((i) => i.label === 'Metrics');
+      const metricsItem = component.items().find((i) => i.label === 'Metrics');
 
       expect(metricsItem).toBeDefined();
     });
@@ -494,7 +454,7 @@ describe('AppLayoutComponent', () => {
     it('should not include Metrics when accessLevel < 1', () => {
       component.accessLevel = 0;
       (component as any).setMenuItems();
-      const metricsItem = component.items.find((i) => i.label === 'Metrics');
+      const metricsItem = component.items().find((i) => i.label === 'Metrics');
 
       expect(metricsItem).toBeUndefined();
     });
@@ -502,66 +462,66 @@ describe('AppLayoutComponent', () => {
     it('should configure the Metrics item as a popup trigger with no routerLink', () => {
       component.accessLevel = 1;
       (component as any).setMenuItems();
-      const metricsItem = component.items.find((i) => i.label === 'Metrics');
+      const metricsItem = component.items().find((i) => i.label === 'Metrics');
 
       expect(metricsItem?.id).toBe('metrics-menu');
       expect(metricsItem?.routerLink).toBeUndefined();
     });
 
     it('should include STIG Manager when collectionType is STIG Manager', () => {
-      component.collectionType = 'STIG Manager';
+      component.collectionType.set('STIG Manager');
       (component as any).setMenuItems();
-      const stigItem = component.items.find((i) => i.label === 'STIG Manager');
+      const stigItem = component.items().find((i) => i.label === 'STIG Manager');
 
       expect(stigItem).toBeDefined();
     });
 
     it('should not include STIG Manager when collectionType is not STIG Manager', () => {
-      component.collectionType = 'C-PAT';
+      component.collectionType.set('C-PAT');
       (component as any).setMenuItems();
-      const stigItem = component.items.find((i) => i.label === 'STIG Manager');
+      const stigItem = component.items().find((i) => i.label === 'STIG Manager');
 
       expect(stigItem).toBeUndefined();
     });
 
     it('should include Tenable when collectionType is Tenable', () => {
-      component.collectionType = 'Tenable';
+      component.collectionType.set('Tenable');
       (component as any).setMenuItems();
-      const tenableItem = component.items.find((i) => i.label === 'Tenable');
+      const tenableItem = component.items().find((i) => i.label === 'Tenable');
 
       expect(tenableItem).toBeDefined();
     });
 
     it('should include Manual POAM Entry when accessLevel >= 2 and manualCreationAllowed', () => {
       component.accessLevel = 2;
-      component.manualCreationAllowed = true;
+      component.manualCreationAllowed.set(true);
       (component as any).setMenuItems();
-      const manualItem = component.items.find((i) => i.label === 'Manual POAM Entry');
+      const manualItem = component.items().find((i) => i.label === 'Manual POAM Entry');
 
       expect(manualItem).toBeDefined();
     });
 
     it('should not include Manual POAM Entry when manualCreationAllowed is false', () => {
       component.accessLevel = 2;
-      component.manualCreationAllowed = false;
+      component.manualCreationAllowed.set(false);
       (component as any).setMenuItems();
-      const manualItem = component.items.find((i) => i.label === 'Manual POAM Entry');
+      const manualItem = component.items().find((i) => i.label === 'Manual POAM Entry');
 
       expect(manualItem).toBeUndefined();
     });
 
     it('should not include Manual POAM Entry when accessLevel < 2', () => {
       component.accessLevel = 1;
-      component.manualCreationAllowed = true;
+      component.manualCreationAllowed.set(true);
       (component as any).setMenuItems();
-      const manualItem = component.items.find((i) => i.label === 'Manual POAM Entry');
+      const manualItem = component.items().find((i) => i.label === 'Manual POAM Entry');
 
       expect(manualItem).toBeUndefined();
     });
 
     it('should always include Log Out item', () => {
       (component as any).setMenuItems();
-      const logoutItem = component.items.find((i) => i.label === 'Log Out');
+      const logoutItem = component.items().find((i) => i.label === 'Log Out');
 
       expect(logoutItem).toBeDefined();
     });
@@ -569,8 +529,8 @@ describe('AppLayoutComponent', () => {
     it('should include Asset Processing and Label Processing when accessLevel >= 1', () => {
       component.accessLevel = 1;
       (component as any).setMenuItems();
-      expect(component.items.find((i) => i.label === 'Asset Processing')).toBeDefined();
-      expect(component.items.find((i) => i.label === 'Label Processing')).toBeDefined();
+      expect(component.items().find((i) => i.label === 'Asset Processing')).toBeDefined();
+      expect(component.items().find((i) => i.label === 'Label Processing')).toBeDefined();
     });
   });
 
@@ -633,43 +593,53 @@ describe('AppLayoutComponent', () => {
 
   describe('isItemActive', () => {
     it('should mark the metrics menu active on any /metrics route', () => {
-      mockRouter.url = '/metrics/global';
+      navigateTo('/metrics/global');
       expect(component.isItemActive({ id: 'metrics-menu', label: 'Metrics' })).toBe(true);
     });
 
     it('should mark a routerLink item active on an exact url match', () => {
-      mockRouter.url = '/home';
+      navigateTo('/home');
       expect(component.isItemActive({ label: 'Home', routerLink: ['/home'] })).toBe(true);
     });
 
     it('should return false for a non-active routerLink item', () => {
-      mockRouter.url = '/home';
+      navigateTo('/home');
       expect(component.isItemActive({ label: 'X', routerLink: ['/other'] })).toBe(false);
     });
 
     it('should return false without throwing for a command-only item with no routerLink or id', () => {
-      mockRouter.url = '/home';
+      navigateTo('/home');
       expect(component.isItemActive({ label: 'Log Out', command: () => {} })).toBe(false);
+    });
+
+    it('should reflect the initial router url before any navigation', () => {
+      expect(component.isItemActive({ label: 'Home', routerLink: ['/home'] })).toBe(true);
+    });
+
+    it('should track url changes across navigations', () => {
+      navigateTo('/asset-processing');
+      expect(component.isItemActive({ label: 'Home', routerLink: ['/home'] })).toBe(false);
+      expect(component.isItemActive({ label: 'Assets', routerLink: ['/asset-processing'] })).toBe(true);
     });
   });
 
   describe('Confirm Popup', () => {
     it('should set confirmPopupVisible to true on showConfirmPopup', () => {
       component.showConfirmPopup();
-      expect(component.confirmPopupVisible).toBe(true);
+      expect(component.confirmPopupVisible()).toBe(true);
     });
 
     it('should navigate to ADDPOAM and close popup on confirm', () => {
-      component.confirmPopupVisible = true;
+      component.confirmPopupVisible.set(true);
       component.onConfirm();
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM']);
-      expect(component.confirmPopupVisible).toBe(false);
+      expect(component.confirmPopupVisible()).toBe(false);
     });
 
     it('should close popup on reject', () => {
-      component.confirmPopupVisible = true;
+      component.confirmPopupVisible.set(true);
       component.onReject();
-      expect(component.confirmPopupVisible).toBe(false);
+      expect(component.confirmPopupVisible()).toBe(false);
     });
   });
 

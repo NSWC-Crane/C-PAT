@@ -71,7 +71,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
       tenableRepoId: new SimpleChange(previousValue ?? null, repoId, previousValue === undefined)
     };
 
-    component.tenableRepoId = repoId;
+    fixture.componentRef.setInput('tenableRepoId', repoId);
     component.ngOnChanges(changes);
   };
 
@@ -88,7 +88,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
 
     fixture = TestBed.createComponent(TenableHighRiskAssetsTableComponent);
     component = fixture.componentInstance;
-    component.tenableRepoId = 42;
+    fixture.componentRef.setInput('tenableRepoId', 42);
   });
 
   it('should create', () => {
@@ -159,7 +159,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
     });
 
     it('should include repository filter with tenableRepoId as string', () => {
-      component.tenableRepoId = 42;
+      (component as any).tenableRepoId = () => 42;
       component.loadHighRiskAssets();
       const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
       const repoFilter = params.query.filters.find((f: any) => f.id === 'repository');

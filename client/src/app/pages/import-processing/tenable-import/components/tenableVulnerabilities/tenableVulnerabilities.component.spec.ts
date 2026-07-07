@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -53,8 +54,8 @@ describe('TenableVulnerabilitiesComponent', () => {
     sessionStorage.clear();
 
     selectedCollectionSubject = new Subject();
-    mockTable = { clear: vi.fn(), exportCSV: vi.fn(), first: 0 };
-    mockMultiSelect = { overlayVisible: false, hide: vi.fn(), show: vi.fn() };
+    mockTable = { clear: vi.fn(), exportCSV: vi.fn(), first: signal(0) };
+    mockMultiSelect = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
     mockOverlayPanel = { toggle: vi.fn() };
 
     mockImportService = {
@@ -113,7 +114,7 @@ describe('TenableVulnerabilitiesComponent', () => {
     fixture = TestBed.createComponent(TenableVulnerabilitiesComponent);
     component = fixture.componentInstance;
     (component as any).table = () => mockTable;
-    (component as any).multiSelect = () => mockMultiSelect;
+    (component as any).columnSelect = () => mockMultiSelect;
     (component as any).overlayPanel = () => mockOverlayPanel;
   });
 
@@ -155,7 +156,7 @@ describe('TenableVulnerabilitiesComponent', () => {
     });
 
     it('should default currentPreset to "main"', () => {
-      expect(component.currentPreset).toBe('main');
+      expect(component.currentPreset()).toBe('main');
     });
 
     it('should default activeFilters to empty array', () => {
@@ -852,15 +853,15 @@ describe('TenableVulnerabilitiesComponent', () => {
     });
 
     it('should reset table.first when >= totalRecords', () => {
-      mockTable.first = 5;
+      mockTable.first.set(5);
       component.onTableFilter({ filteredValue: [1, 2, 3] });
-      expect(mockTable.first).toBe(0);
+      expect(mockTable.first()).toBe(0);
     });
 
     it('should not reset table.first when < totalRecords', () => {
-      mockTable.first = 2;
+      mockTable.first.set(2);
       component.onTableFilter({ filteredValue: [1, 2, 3, 4, 5] });
-      expect(mockTable.first).toBe(2);
+      expect(mockTable.first()).toBe(2);
     });
   });
 
@@ -899,19 +900,19 @@ describe('TenableVulnerabilitiesComponent', () => {
 
   describe('toggleAddColumnOverlay', () => {
     it('should call hide() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.hide).toHaveBeenCalled();
     });
 
     it('should call show() when overlayVisible is false', () => {
-      mockMultiSelect.overlayVisible = false;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(false);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).toHaveBeenCalled();
     });
 
     it('should not call show() when overlayVisible is true', () => {
-      mockMultiSelect.overlayVisible = true;
+      mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(true);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).not.toHaveBeenCalled();
     });

@@ -119,10 +119,10 @@ describe('PoamApproveComponent', () => {
 
     it('should have default property values', () => {
       expect(component.isLoggedIn).toBe(false);
-      expect(component.hqsChecked).toBe(false);
-      expect(component.displayDialog).toBe(false);
-      expect(component.displayConfirmDialog).toBe(false);
-      expect(component.confirmDialogMessage).toBe('');
+      expect(component.hqsChecked()).toBe(false);
+      expect(component.displayDialog()).toBe(false);
+      expect(component.displayConfirmDialog()).toBe(false);
+      expect(component.confirmDialogMessage()).toBe('');
     });
 
     it('should have approval status options defined', () => {
@@ -134,30 +134,30 @@ describe('PoamApproveComponent', () => {
   describe('ngOnInit', () => {
     it('should extract poamId from route params', () => {
       fixture.detectChanges();
-      expect(component.poamId).toBe('42');
+      expect(component.poamId()).toBe('42');
     });
 
     it('should subscribe to selectedCollection from sharedService', () => {
       fixture.detectChanges();
-      expect(component.selectedCollection).toBe(1);
+      expect(component.selectedCollection()).toBe(1);
     });
 
     it('should update selectedCollection when sharedService emits', () => {
       fixture.detectChanges();
       selectedCollectionSubject.next(5);
-      expect(component.selectedCollection).toBe(5);
+      expect(component.selectedCollection()).toBe(5);
     });
   });
 
   describe('setPayload', () => {
     it('should set user from payload service', () => {
       fixture.detectChanges();
-      expect(component.user).toEqual(mockUser);
+      expect(component.user()).toEqual(mockUser);
     });
 
     it('should set payload from payload service', () => {
       fixture.detectChanges();
-      expect(component.payload).toEqual({ lastCollectionAccessedId: 1 });
+      expect(component.payload()).toEqual({ lastCollectionAccessedId: 1 });
     });
 
     it('should not call getData when accessLevel is 0', () => {
@@ -174,7 +174,7 @@ describe('PoamApproveComponent', () => {
     it('should update accessLevel property', () => {
       fixture.detectChanges();
       accessLevelSubject.next(3);
-      expect((component as any).accessLevel).toBe(3);
+      expect((component as any).accessLevel()).toBe(3);
     });
   });
 
@@ -190,76 +190,76 @@ describe('PoamApproveComponent', () => {
     });
 
     it('should reset approvalStatus to null regardless of prior approval', () => {
-      expect(component.approvalStatus).toBeNull();
+      expect(component.approvalStatus()).toBeNull();
     });
 
     it('should reset approvedDate to current date regardless of prior approval', () => {
-      expect(component.dates.approvedDate).toBeDefined();
-      expect(component.dates.approvedDate instanceof Date).toBe(true);
+      expect(component.dates().approvedDate).toBeDefined();
+      expect(component.dates().approvedDate instanceof Date).toBe(true);
     });
 
     it('should reset comments to null regardless of prior approval', () => {
-      expect(component.comments).toBeNull();
+      expect(component.comments()).toBeNull();
     });
 
     it('should store prior approval in previousApproval when user has existing record', () => {
-      expect(component.previousApproval).toBeDefined();
-      expect(component.previousApproval.userId).toBe(100);
-      expect(component.previousApproval.approvalStatus).toBe('Not Reviewed');
+      expect(component.previousApproval()).toBeDefined();
+      expect(component.previousApproval().userId).toBe(100);
+      expect(component.previousApproval().approvalStatus).toBe('Not Reviewed');
     });
 
     it('should populate formattedApprovalHistory when user has existing record', () => {
-      expect(component.formattedApprovalHistory).toContain('Status: Not Reviewed');
-      expect(component.formattedApprovalHistory).toContain('Comments: Pending review');
+      expect(component.formattedApprovalHistory()).toContain('Status: Not Reviewed');
+      expect(component.formattedApprovalHistory()).toContain('Comments: Pending review');
     });
 
     it('should reset showApprovalHistory to false', () => {
-      expect(component.showApprovalHistory).toBe(false);
+      expect(component.showApprovalHistory()).toBe(false);
     });
 
     it('should set hqsChecked from poam response', () => {
-      expect(component.hqsChecked).toBe(true);
+      expect(component.hqsChecked()).toBe(true);
     });
 
     it('should set displayDialog to true on success', () => {
-      expect(component.displayDialog).toBe(true);
+      expect(component.displayDialog()).toBe(true);
     });
 
     describe('when user is not an approver', () => {
       beforeEach(() => {
         mockPoamApproveService.getPoamApprovers.mockReturnValue(of([{ userId: 999, approvalStatus: 'Approved', approvedDate: '2024-01-01', comments: 'ok' }]));
 
-        component.displayDialog = false;
+        component.displayDialog.set(false);
         (component as any).getData();
       });
 
       it('should set approvalStatus to null', () => {
-        expect(component.approvalStatus).toBeNull();
+        expect(component.approvalStatus()).toBeNull();
       });
 
       it('should set approvedDate to current date', () => {
-        expect(component.dates.approvedDate).toBeDefined();
-        expect(component.dates.approvedDate instanceof Date).toBe(true);
+        expect(component.dates().approvedDate).toBeDefined();
+        expect(component.dates().approvedDate instanceof Date).toBe(true);
       });
 
       it('should set comments to null', () => {
-        expect(component.comments).toBeNull();
+        expect(component.comments()).toBeNull();
       });
 
       it('should still set hqsChecked from poam response', () => {
-        expect(component.hqsChecked).toBe(true);
+        expect(component.hqsChecked()).toBe(true);
       });
 
       it('should still show the dialog', () => {
-        expect(component.displayDialog).toBe(true);
+        expect(component.displayDialog()).toBe(true);
       });
 
       it('should set previousApproval to null', () => {
-        expect(component.previousApproval).toBeNull();
+        expect(component.previousApproval()).toBeNull();
       });
 
       it('should set formattedApprovalHistory to empty string', () => {
-        expect(component.formattedApprovalHistory).toBe('');
+        expect(component.formattedApprovalHistory()).toBe('');
       });
     });
 
@@ -271,7 +271,7 @@ describe('PoamApproveComponent', () => {
       });
 
       it('should default approvedDate to current date', () => {
-        expect(component.dates.approvedDate instanceof Date).toBe(true);
+        expect(component.dates().approvedDate instanceof Date).toBe(true);
       });
     });
 
@@ -282,7 +282,7 @@ describe('PoamApproveComponent', () => {
       });
 
       it('should set hqsChecked to false', () => {
-        expect(component.hqsChecked).toBe(false);
+        expect(component.hqsChecked()).toBe(false);
       });
     });
 
@@ -293,7 +293,7 @@ describe('PoamApproveComponent', () => {
       });
 
       it('should set hqsChecked to false', () => {
-        expect(component.hqsChecked).toBe(false);
+        expect(component.hqsChecked()).toBe(false);
       });
     });
 
@@ -301,7 +301,7 @@ describe('PoamApproveComponent', () => {
       beforeEach(() => {
         mockPoamApproveService.getPoamApprovers.mockReturnValue(throwError(() => ({ status: 500, message: 'Server Error' })));
 
-        component.displayDialog = false;
+        component.displayDialog.set(false);
         (component as any).getData();
       });
 
@@ -315,7 +315,7 @@ describe('PoamApproveComponent', () => {
       });
 
       it('should not show the dialog', () => {
-        expect(component.displayDialog).toBe(false);
+        expect(component.displayDialog()).toBe(false);
       });
     });
   });
@@ -323,25 +323,25 @@ describe('PoamApproveComponent', () => {
   describe('confirm', () => {
     it('should set confirmDialogMessage', () => {
       component.confirm('Are you sure?');
-      expect(component.confirmDialogMessage).toBe('Are you sure?');
+      expect(component.confirmDialogMessage()).toBe('Are you sure?');
     });
 
     it('should set displayConfirmDialog to true', () => {
       component.confirm('Confirm this action');
-      expect(component.displayConfirmDialog).toBe(true);
+      expect(component.displayConfirmDialog()).toBe(true);
     });
   });
 
   describe('cancelApproval', () => {
     it('should set displayDialog to false', () => {
-      component.displayDialog = true;
-      component.poamId = '42';
+      component.displayDialog.set(true);
+      component.poamId.set('42');
       component.cancelApproval();
-      expect(component.displayDialog).toBe(false);
+      expect(component.displayDialog()).toBe(false);
     });
 
     it('should navigate to poam details page', () => {
-      component.poamId = '42';
+      component.poamId.set('42');
       component.cancelApproval();
       expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/42');
     });
@@ -352,12 +352,12 @@ describe('PoamApproveComponent', () => {
       fixture.detectChanges();
       accessLevelSubject.next(2);
 
-      component.poamId = '42';
-      component.user = mockUser;
-      component.approvalStatus = 'Approved';
-      component.dates.approvedDate = new Date(2024, 5, 15);
-      component.comments = 'Looks good';
-      component.hqsChecked = true;
+      component.poamId.set('42');
+      component.user.set(mockUser);
+      component.approvalStatus.set('Approved');
+      component.dates.set({ approvedDate: new Date(2024, 5, 15) });
+      component.comments.set('Looks good');
+      component.hqsChecked.set(true);
     });
 
     it('should call updatePoamApprover with correct approval data', () => {
@@ -374,7 +374,7 @@ describe('PoamApproveComponent', () => {
     });
 
     it('should format approvedDate as yyyy-MM-dd', () => {
-      component.dates.approvedDate = new Date(2025, 0, 1);
+      component.dates.set({ approvedDate: new Date(2025, 0, 1) });
       component.submitApprovalData();
 
       expect(mockPoamApproveService.updatePoamApprover).toHaveBeenCalledWith(
@@ -385,7 +385,7 @@ describe('PoamApproveComponent', () => {
     });
 
     it('should convert poamId to number', () => {
-      component.poamId = '99';
+      component.poamId.set('99');
       component.submitApprovalData();
 
       expect(mockPoamApproveService.updatePoamApprover).toHaveBeenCalledWith(
@@ -396,7 +396,7 @@ describe('PoamApproveComponent', () => {
     });
 
     it('should convert hqsChecked to boolean', () => {
-      component.hqsChecked = false;
+      component.hqsChecked.set(false);
       component.submitApprovalData();
 
       expect(mockPoamApproveService.updatePoamApprover).toHaveBeenCalledWith(
@@ -417,14 +417,14 @@ describe('PoamApproveComponent', () => {
     });
 
     it('should set displayDialog to false after timeout on success', () => {
-      component.displayDialog = true;
+      component.displayDialog.set(true);
       component.submitApprovalData();
 
-      expect(component.displayDialog).toBe(true);
+      expect(component.displayDialog()).toBe(true);
 
       vi.advanceTimersByTime(1000);
 
-      expect(component.displayDialog).toBe(false);
+      expect(component.displayDialog()).toBe(false);
     });
 
     it('should navigate to poam details after timeout on success', () => {
@@ -460,12 +460,12 @@ describe('PoamApproveComponent', () => {
       });
 
       it('should not close dialog on error', () => {
-        component.displayDialog = true;
+        component.displayDialog.set(true);
         component.submitApprovalData();
 
         vi.advanceTimersByTime(2000);
 
-        expect(component.displayDialog).toBe(true);
+        expect(component.displayDialog()).toBe(true);
       });
     });
   });

@@ -80,8 +80,8 @@ describe('PoamChatComponent', () => {
 
     fixture = TestBed.createComponent(PoamChatComponent);
     component = fixture.componentInstance;
-    component.poamId = 100;
-    component.userId = 10;
+    fixture.componentRef.setInput('poamId', 100);
+    fixture.componentRef.setInput('userId', 10);
 
     Object.defineProperty(component, 'chatWindow', {
       value: () => mockChatWindow,
@@ -126,7 +126,7 @@ describe('PoamChatComponent', () => {
     });
 
     it('should not load messages when poamId is falsy', () => {
-      component.poamId = 0 as any;
+      (component as any).poamId = () => 0;
       const loadSpy = vi.spyOn(component, 'loadMessages');
 
       component.ngOnInit();
@@ -135,7 +135,7 @@ describe('PoamChatComponent', () => {
     });
 
     it('should not load messages when poamId is undefined', () => {
-      component.poamId = undefined as any;
+      (component as any).poamId = () => undefined;
       const loadSpy = vi.spyOn(component, 'loadMessages');
 
       component.ngOnInit();
