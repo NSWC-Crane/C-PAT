@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -39,9 +39,9 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   private readonly messageService = inject(MessageService);
   private readonly setPayloadService = inject(PayloadService);
 
-  @Input() asset: any;
-  @Input() assets: any;
-  @Input() payload: any;
+  readonly asset = model<any>(undefined);
+  readonly assets = input<any>(undefined);
+  readonly payload = input<any>(undefined);
   readonly assetchange = output();
 
   labelList: any;
@@ -56,7 +56,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   protected accessLevel: any;
 
   ngOnInit(): void {
-    if (!this.payload) return;
+    if (!this.payload()) return;
 
     this.setPayloadService.accessLevel$.subscribe((level) => {
       this.accessLevel = level;
@@ -67,7 +67,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['asset']?.currentValue) {
-      this.asset = { ...changes['asset'].currentValue };
+      this.asset.set({ ...changes['asset'].currentValue });
     }
   }
 
@@ -82,7 +82,9 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
     this.getLabelData();
 
-    if (this.asset && this.asset.assetId !== 'ADDASSET') {
+    const asset = this.asset();
+
+    if (asset && asset.assetId !== 'ADDASSET') {
       this.getAssetLabels();
     }
   }
@@ -94,7 +96,9 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getAssetLabels() {
-    if (!this.asset?.assetId) {
+    const asset = this.asset();
+
+    if (!asset?.assetId) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -104,7 +108,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    this.subs.sink = this.assetService.getAssetLabels(this.asset.assetId).subscribe(
+    this.subs.sink = this.assetService.getAssetLabels(asset.assetId).subscribe(
       (assetLabels: any) => {
         this.assetLabels = assetLabels || [];
       },
@@ -127,7 +131,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
   addNewRow() {
     const newLabel = {
-      assetId: +this.asset.assetId,
+      assetId: +this.asset().assetId,
       labelId: null,
       labelName: null,
       isNew: true
@@ -151,7 +155,9 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   deleteAssetLabel(label: any, index: number) {
-    if (this.asset.assetId === 'ADDASSET') {
+    const asset = this.asset();
+
+    if (asset.assetId === 'ADDASSET') {
       this.assetLabels.splice(index, 1);
       this.assetLabels = [...this.assetLabels];
       this.messageService.add({
@@ -160,7 +166,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
         detail: 'Label removed'
       });
     } else if (label.labelId) {
-      this.assetService.deleteAssetLabel(this.asset.assetId, label.labelId).subscribe(
+      this.assetService.deleteAssetLabel(asset.assetId, label.labelId).subscribe(
         () => {
           this.assetLabels.splice(index, 1);
           this.assetLabels = [...this.assetLabels];
@@ -184,9 +190,11 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   confirmLabelCreate(newLabel: any) {
     const labelName = this.getLabelName(newLabel.labelId);
 
-    if (this.asset.assetId !== 'ADDASSET' && newLabel.labelId) {
+    const asset = this.asset();
+
+    if (asset.assetId !== 'ADDASSET' && newLabel.labelId) {
       const assetLabel = {
-        assetId: +this.asset.assetId,
+        assetId: +asset.assetId,
         labelId: +newLabel.labelId,
         collectionId: this.selectedCollection
       };
@@ -208,7 +216,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
           });
         }
       );
-    } else if (this.asset.assetId === 'ADDASSET' && newLabel.labelId) {
+    } else if (asset.assetId === 'ADDASSET' && newLabel.labelId) {
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
@@ -232,14 +240,15 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   onSubmit() {
     if (!this.validData()) return;
 
+    const assetValue = this.asset();
     const asset = {
-      assetId: this.asset.assetId == 'ADDASSET' || !this.asset.assetId ? 0 : +this.asset.assetId,
-      assetName: this.asset.assetName,
-      description: this.asset.description,
+      assetId: assetValue.assetId == 'ADDASSET' || !assetValue.assetId ? 0 : +assetValue.assetId,
+      assetName: this.asset().assetName,
+      description: this.asset().description,
       collectionId: this.selectedCollection,
-      fullyQualifiedDomainName: this.asset.fullyQualifiedDomainName,
-      ipAddress: this.asset.ipAddress,
-      macAddress: this.asset.macAddress
+      fullyQualifiedDomainName: this.asset().fullyQualifiedDomainName,
+      ipAddress: this.asset().ipAddress,
+      macAddress: this.asset().macAddress
     };
 
     if (asset.assetId === 0) {
@@ -258,14 +267,14 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       );
     } else {
       this.subs.sink = this.assetService.updateAsset(asset).subscribe((data) => {
-        this.asset = data;
+        this.asset.set(data);
         this.assetchange.emit();
       });
     }
   }
 
   resetData() {
-    this.asset = {
+    this.asset.set({
       assetId: '',
       assetName: '',
       description: '',
@@ -273,27 +282,29 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       collectionId: 0,
       ipAddress: '',
       macAddress: ''
-    };
+    });
     this.assetchange.emit();
   }
 
   validData(): boolean {
-    if (!this.asset.assetName || this.asset.assetName == undefined) {
+    const asset = this.asset();
+
+    if (!asset.assetName || asset.assetName == undefined) {
       this.invalidData('Asset name required');
 
       return false;
-    } else if (!this.asset.fullyQualifiedDomainName || this.asset.fullyQualifiedDomainName == undefined) {
+    } else if (!asset.fullyQualifiedDomainName || asset.fullyQualifiedDomainName == undefined) {
       this.invalidData('FQDN required');
 
       return false;
-    } else if (!this.asset.ipAddress || this.asset.ipAddress == undefined) {
+    } else if (!asset.ipAddress || asset.ipAddress == undefined) {
       this.invalidData('IP Address is required');
 
       return false;
     }
 
-    if (this.asset.assetId == 'ADDASSET') {
-      const exists = this.assets.find((e: { assetName: any }) => e.assetName === this.asset.assetName);
+    if (asset.assetId == 'ADDASSET') {
+      const exists = this.assets().find((e: { assetName: any }) => e.assetName === this.asset().assetName);
 
       if (exists) {
         this.invalidData('Asset Already Exists');
