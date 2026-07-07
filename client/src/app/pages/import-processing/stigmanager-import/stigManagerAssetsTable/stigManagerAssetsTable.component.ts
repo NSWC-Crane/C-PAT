@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, viewChild, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -17,7 +16,7 @@ import { CardModule } from 'primeng/card';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Select, SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
@@ -32,27 +31,27 @@ import { getErrorMessage } from '../../../../common/utils/error-utils';
   styleUrls: ['./stigManagerAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, CardModule, CommonModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, TableModule, ToastModule, TagModule, TooltipModule]
+  imports: [ButtonModule, CardModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, SelectModule, TableModule, ToastModule, TagModule, TooltipModule]
 })
 export class STIGManagerAssetsTableComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly sharedService = inject(SharedService);
 
-  @Input() stigmanCollectionId!: number;
+  readonly stigmanCollectionId = input.required<number>();
   private readonly table = viewChild.required<Table>('dt');
-  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly columnSelect = viewChild.required<Select>('ms');
 
   cols: any[];
   selectedColumns: any[];
-  assets: any[] = [];
-  isLoading: boolean = true;
-  totalRecords: number = 0;
+  readonly assets = signal<any[]>([]);
+  readonly isLoading = signal<boolean>(true);
+  readonly totalRecords = signal<number>(0);
   filterValue: string = '';
 
   ngOnInit() {
     this.initColumnsAndFilters();
 
-    if (this.stigmanCollectionId) {
+    if (this.stigmanCollectionId()) {
       this.loadData();
     } else {
       this.showErrorMessage('Unable to fetch STIG Manager Assets, please try again later..');
@@ -60,8 +59,8 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   }
 
   loadData() {
-    this.isLoading = true;
-    this.sharedService.getAssetsFromSTIGMAN(this.stigmanCollectionId).subscribe({
+    this.isLoading.set(true);
+    this.sharedService.getAssetsFromSTIGMAN(this.stigmanCollectionId()).subscribe({
       next: (assets) => {
         if (!assets || assets.length === 0) {
           this.showErrorMessage('No assets found.');
@@ -69,11 +68,13 @@ export class STIGManagerAssetsTableComponent implements OnInit {
           return;
         }
 
-        this.assets = assets.map((asset) => ({
-          ...asset,
-          collectionName: asset.collection.name
-        }));
-        this.totalRecords = this.assets.length;
+        this.assets.set(
+          assets.map((asset) => ({
+            ...asset,
+            collectionName: asset.collection.name
+          }))
+        );
+        this.totalRecords.set(this.assets().length);
       },
       error: (error) => {
         this.messageService.add({
@@ -83,7 +84,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
         });
       },
       complete: () => {
-        this.isLoading = false;
+        this.isLoading.set(false);
       }
     });
   }
@@ -129,12 +130,12 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   }
 
   toggleAddColumnOverlay() {
-    const multiSelect = this.multiSelect();
+    const columnSelect = this.columnSelect();
 
-    if (multiSelect.overlayVisible) {
-      multiSelect.hide();
+    if (columnSelect.overlayVisible()) {
+      columnSelect.hide();
     } else {
-      multiSelect.show();
+      columnSelect.show();
     }
   }
 
