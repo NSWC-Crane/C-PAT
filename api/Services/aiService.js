@@ -10,20 +10,20 @@
 
 'use strict';
 
-const { anthropic } = require('@ai-sdk/anthropic');
-const { cerebras } = require('@ai-sdk/cerebras');
-const { cohere } = require('@ai-sdk/cohere');
-const { deepinfra } = require('@ai-sdk/deepinfra');
-const { fireworks } = require('@ai-sdk/fireworks');
+const { createAnthropic } = require('@ai-sdk/anthropic');
+const { createCerebras } = require('@ai-sdk/cerebras');
+const { createCohere } = require('@ai-sdk/cohere');
+const { createDeepInfra } = require('@ai-sdk/deepinfra');
+const { createFireworks } = require('@ai-sdk/fireworks');
 const { generateText } = require('ai');
-const { google } = require('@ai-sdk/google');
-const { groq } = require('@ai-sdk/groq');
-const { mistral } = require('@ai-sdk/mistral');
-const { openai } = require('@ai-sdk/openai');
-const { perplexity } = require('@ai-sdk/perplexity');
-const { replicate } = require('@ai-sdk/replicate');
-const { togetherai } = require('@ai-sdk/togetherai');
-const { xai } = require('@ai-sdk/xai');
+const { createGoogleGenerativeAI } = require('@ai-sdk/google');
+const { createGroq } = require('@ai-sdk/groq');
+const { createMistral } = require('@ai-sdk/mistral');
+const { createOpenAI } = require('@ai-sdk/openai');
+const { createPerplexity } = require('@ai-sdk/perplexity');
+const { createReplicate } = require('@ai-sdk/replicate');
+const { createTogetherAI } = require('@ai-sdk/togetherai');
+const { createXai } = require('@ai-sdk/xai');
 const { createOpenAICompatible } = require('@ai-sdk/openai-compatible');
 const config = require('../utils/config');
 const logger = require('../utils/logger');
@@ -64,23 +64,6 @@ const AI_MODELS = {
     xai: 'grok-4-latest',
 };
 
-const ENV_KEYS = {
-    anthropic: 'ANTHROPIC_API_KEY',
-    cerebras: 'CEREBRAS_API_KEY',
-    cohere: 'COHERE_API_KEY',
-    deepinfra: 'DEEPINFRA_API_KEY',
-    fireworks: 'FIREWORKS_API_KEY',
-    genai: 'GENAI_API_KEY',
-    google: 'GOOGLE_GENERATIVE_AI_API_KEY',
-    groq: 'GROQ_API_KEY',
-    mistral: 'MISTRAL_API_KEY',
-    openai: 'OPENAI_API_KEY',
-    perplexity: 'PERPLEXITY_API_KEY',
-    replicate: 'REPLICATE_API_TOKEN',
-    togetherai: 'TOGETHER_AI_API_KEY',
-    xai: 'XAI_API_KEY',
-};
-
 async function getAIModel() {
     if (!config.ai.provider) {
         throw new Error('AI provider is not configured');
@@ -95,53 +78,52 @@ async function getAIModel() {
         throw new Error('AI API key is not configured');
     }
 
-    if (provider !== 'ollama' && ENV_KEYS[provider]) {
-        process.env[ENV_KEYS[provider]] = config.ai.apiKey;
-    }
-
     const modelName = config.ai.modelName || AI_MODELS[provider];
+
+    const providerSettings = { apiKey: config.ai.apiKey };
+    if (config.ai.aiBaseURL) {
+        providerSettings.baseURL = config.ai.aiBaseURL;
+    }
 
     switch (provider) {
         case 'anthropic':
-            return anthropic(modelName);
+            return createAnthropic(providerSettings)(modelName);
         case 'cerebras':
-            return cerebras(modelName);
+            return createCerebras(providerSettings)(modelName);
         case 'cohere':
-            return cohere(modelName);
+            return createCohere(providerSettings)(modelName);
         case 'deepinfra':
-            return deepinfra(modelName);
+            return createDeepInfra(providerSettings)(modelName);
         case 'fireworks':
-            return fireworks(modelName);
+            return createFireworks(providerSettings)(modelName);
         case 'genai':
-            const genaiProvider = createOpenAICompatible({
-                baseURL: AI_BASE_URLS.genai,
+            return createOpenAICompatible({
+                baseURL: config.ai.aiBaseURL || AI_BASE_URLS.genai,
                 apiKey: config.ai.apiKey,
                 name: 'genai-provider',
-            });
-            return genaiProvider.chatModel(modelName);
+            }).chatModel(modelName);
         case 'google':
-            return google(modelName);
+            return createGoogleGenerativeAI(providerSettings)(modelName);
         case 'groq':
-            return groq(modelName);
+            return createGroq(providerSettings)(modelName);
         case 'mistral':
-            return mistral(modelName);
+            return createMistral(providerSettings)(modelName);
         case 'ollama':
-            const ollamaProvider = createOpenAICompatible({
-                baseURL: AI_BASE_URLS.ollama,
+            return createOpenAICompatible({
+                baseURL: config.ai.aiBaseURL || AI_BASE_URLS.ollama,
                 name: 'ollama-provider',
                 apiKey: 'ollama',
-            });
-            return ollamaProvider.chatModel(modelName);
+            }).chatModel(modelName);
         case 'openai':
-            return openai(modelName);
+            return createOpenAI(providerSettings)(modelName);
         case 'perplexity':
-            return perplexity(modelName);
+            return createPerplexity(providerSettings)(modelName);
         case 'replicate':
-            return replicate(modelName);
+            return createReplicate(providerSettings)(modelName);
         case 'togetherai':
-            return togetherai(modelName);
+            return createTogetherAI(providerSettings)(modelName);
         case 'xai':
-            return xai(modelName);
+            return createXai(providerSettings)(modelName);
         default:
             throw new Error('Unsupported AI provider');
     }
@@ -182,10 +164,8 @@ exports.generateMitigation = async function generateMitigation(req, res, next) {
 
     try {
         const model = await getAIModel();
-        const baseURL = config.ai.aiBaseURL || AI_BASE_URLS[config.ai.provider.toLowerCase()];
 
         const { text } = await generateText({
-            baseURL,
             model,
             prompt: req.body,
             timeout: 60000,
