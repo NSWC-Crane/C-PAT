@@ -74,6 +74,9 @@ const CPAT = {
     tenable: {
         url: "${config.tenable.url}"
     },
+    primeng: {
+        license: "${config.primeng.license}"
+    },
     features: {
         marketplaceDisabled: ${config.client.features.marketplaceDisabled},
         docsDisabled: ${config.docs.disabled},

@@ -11,7 +11,7 @@
 import './pace-config';
 import 'pace-js';
 import { APP_BASE_HREF } from '@angular/common';
-import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { enableProdMode, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule, bootstrapApplication } from '@angular/platform-browser';
@@ -82,7 +82,12 @@ bootstrapApplication(AppComponent, {
     },
     provideZoneChangeDetection(),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
-    providePrimeNG({ theme: Noir, ripple: false, inputStyle: 'outlined' }),
+    providePrimeNG({
+      theme: Noir,
+      ripple: false,
+      inputVariant: 'outlined',
+      license: CPAT.Env.primeng?.license ?? undefined
+    }),
     importProvidersFrom(BrowserModule, FormsModule),
     provideAuth(
       {
@@ -140,7 +145,7 @@ bootstrapApplication(AppComponent, {
       },
       withAppInitializerAuthCheck()
     ),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor, authErrorInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, authErrorInterceptor])),
     MessageService,
     ConfirmationService,
     DialogService,
