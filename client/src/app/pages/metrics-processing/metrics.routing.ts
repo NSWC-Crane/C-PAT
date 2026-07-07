@@ -14,5 +14,9 @@ export const metricsRoutes: Routes = [
   {
     path: '',
     loadComponent: () => import('./metrics.component').then((m) => m.MetricsComponent)
+  },
+  {
+    path: 'global',
+    loadComponent: () => import('./global-metrics/global-metrics.component').then((m) => m.GlobalMetricsComponent)
   }
 ];

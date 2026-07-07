@@ -14,20 +14,10 @@ import { ImportService } from '../../pages/import-processing/import.service';
 import { PoamService } from '../../pages/poam-processing/poams.service';
 import { Poam } from '../models/poam.model';
 import { SharedService } from '../services/shared.service';
+import { applyClassificationBanner } from './classification-export.util';
 import { getEMassBranchConfig } from './emass-branch-config';
 
 type CellValueMapper = (value: any, poam: Poam, columnKey: string) => any;
-
-enum Classification {
-  U = 'U',
-  CUI = 'CUI',
-  FOUO = 'FOUO',
-  C = 'C',
-  S = 'S',
-  TS = 'TS',
-  SCI = 'SCI',
-  NONE = 'NONE'
-}
 
 export class PoamExportService {
   private static mapRawSeverity(rawSeverity: string): string {
@@ -53,47 +43,6 @@ export class PoamExportService {
     }
   }
 
-  private static getClassificationText(classification: Classification): string {
-    switch (classification) {
-      case 'U':
-        return '***** UNCLASSIFIED *****';
-      case 'CUI':
-      case 'FOUO':
-        return '***** CONTROLLED UNCLASSIFIED INFORMATION *****';
-      case 'C':
-        return '***** CONFIDENTIAL *****';
-      case 'S':
-        return '***** SECRET *****';
-      case 'TS':
-        return '***** TOP SECRET *****';
-      case 'SCI':
-        return '***** TOP SECRET // SCI *****';
-      case 'NONE':
-      default:
-        return '***** UNCLASSIFIED *****';
-    }
-  }
-
-  private static getClassificationColorCode(classification: Classification): string {
-    switch (classification) {
-      case 'U':
-        return 'ff007a33';
-      case 'CUI':
-      case 'FOUO':
-        return 'ff502b85';
-      case 'C':
-        return 'ff0033a0';
-      case 'S':
-        return 'ffc8102e';
-      case 'TS':
-        return 'ffff8c00';
-      case 'SCI':
-        return 'fffce83a';
-      case 'NONE':
-      default:
-        return 'ff007a33';
-    }
-  }
   private static mapStatus(status: string): string {
     if (status === 'Closed') return 'Completed';
     if (status === 'False-Positive') return 'Not Applicable';
@@ -235,23 +184,7 @@ export class PoamExportService {
     worksheet.getCell('M5').value = exportingUser.phoneNumber.toUpperCase() ?? '';
     worksheet.getCell('M6').value = exportingUser.email.toUpperCase() ?? '';
 
-    const cellA1 = worksheet.getCell('A1');
-
-    cellA1.value = PoamExportService.getClassificationText(CPAT.Env.classification);
-    cellA1.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: {
-        argb: PoamExportService.getClassificationColorCode(CPAT.Env.classification)
-      }
-    };
-    cellA1.font = {
-      color: {
-        argb: CPAT.Env.classification === 'SCI' || CPAT.Env.classification === 'TS' ? 'FF000000' : 'FFFFFFFF'
-      },
-      bold: true,
-      size: 14
-    };
+    applyClassificationBanner(worksheet.getCell('A1'), CPAT.Env.classification);
 
     let rowIndex = 8;
     const cellValueMappers: { [key: string]: CellValueMapper } = {

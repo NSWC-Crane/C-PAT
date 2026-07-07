@@ -12,6 +12,32 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { PoamExportService } from './poam-export.service';
 import { Poam } from '../models/poam.model';
 
+const xlsxMock = vi.hoisted(() => {
+  const cells: Record<string, any> = {};
+  const makeCell = (addr: string) => (cells[addr] ??= { value: null, fill: {}, font: {} });
+  const worksheet = {
+    getCell: (addr: string) => makeCell(addr),
+    getRow: (rowNum: number) => ({ getCell: (key: string | number) => makeCell(`${key}${rowNum}`), commit: () => {} })
+  };
+
+  return { cells, worksheet };
+});
+
+vi.mock('exceljs', () => {
+  class Workbook {
+    xlsx = {
+      load: async () => {},
+      writeBuffer: async () => new ArrayBuffer(0)
+    };
+
+    getWorksheet() {
+      return xlsxMock.worksheet;
+    }
+  }
+
+  return { default: { Workbook } };
+});
+
 describe('PoamExportService', () => {
   beforeEach(() => {
     (globalThis as any).CPAT = {
@@ -33,23 +59,11 @@ describe('PoamExportService', () => {
   });
 
   describe('formatMilestones', () => {
-    it('should handle POAM with no milestones', async () => {
+    it('should handle POAM with no milestones', () => {
       const poam = {
         poamId: 1,
         milestones: []
       } as unknown as Poam;
-
-      const mockWorkbook = createMockWorkbook();
-
-      vi.spyOn(global, 'fetch').mockResolvedValue({
-        arrayBuffer: () => Promise.resolve(new ArrayBuffer(0))
-      } as Response);
-
-      vi.doMock('exceljs', () => ({
-        default: {
-          Workbook: vi.fn().mockImplementation(() => mockWorkbook)
-        }
-      }));
 
       expect(poam.milestones).toHaveLength(0);
     });
@@ -291,6 +305,22 @@ describe('PoamExportService', () => {
       expect(collection.systemName).toBe('Production System');
       expect(collection.systemType).toBe('Web Application');
     });
+
+    it('writes the classification banner to A1 via the shared util', async () => {
+      (globalThis as any).CPAT = { Env: { classification: 'S', basePath: '' } };
+
+      for (const key of Object.keys(xlsxMock.cells)) delete xlsxMock.cells[key];
+      vi.spyOn(globalThis, 'fetch').mockResolvedValue({ arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) } as Response);
+
+      const user = { fullName: 'Test User', phoneNumber: '555-1234', email: 'test@test.com' };
+      const collection = { ccsafa: 'TEST', systemName: 'Test System', systemType: 'Type' };
+
+      await PoamExportService.convertToExcel([], user, collection);
+
+      expect(xlsxMock.cells['A1'].value).toBe('***** SECRET *****');
+      expect(xlsxMock.cells['A1'].fill.fgColor.argb).toBe('ffc8102e');
+      expect(xlsxMock.cells['A1'].font.color.argb).toBe('FFFFFFFF');
+    });
   });
 
   describe('updateEMASSterPoams', () => {
@@ -423,29 +453,3 @@ describe('PoamExportService', () => {
     });
   });
 });
-
-function createMockWorkbook() {
-  const mockCell = {
-    value: null as any,
-    fill: {},
-    font: {}
-  };
-
-  const mockRow = {
-    getCell: vi.fn().mockReturnValue(mockCell),
-    commit: vi.fn()
-  };
-
-  const mockWorksheet = {
-    getCell: vi.fn().mockReturnValue(mockCell),
-    getRow: vi.fn().mockReturnValue(mockRow)
-  };
-
-  return {
-    getWorksheet: vi.fn().mockReturnValue(mockWorksheet),
-    xlsx: {
-      load: vi.fn().mockResolvedValue(undefined),
-      writeBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0))
-    }
-  };
-}

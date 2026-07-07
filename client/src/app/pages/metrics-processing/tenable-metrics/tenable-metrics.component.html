@@ -14,43 +14,25 @@
     <div class="flex items-center gap-2">
       <span class="text-xs text-gray-400">Findings:</span>
       <p-buttongroup>
-        <p-button
-          size="small"
-          severity="secondary"
-          label="7 Days"
-          tooltipPosition="left"
-          pTooltip="Vulnerability Last Observed within 7 days"
-          [outlined]="lastObservedTimeRange() !== '7'"
-          (onClick)="onLastObservedRangeChange('7')"
-          [disabled]="isLoading()"
-        />
-        <p-button
-          size="small"
-          severity="secondary"
-          label="30 Days"
-          tooltipPosition="left"
-          pTooltip="Vulnerability Last Observed within 30 days"
-          [outlined]="lastObservedTimeRange() !== '30'"
-          (onClick)="onLastObservedRangeChange('30')"
-          [disabled]="isLoading()"
-        />
-        <p-button
-          size="small"
-          severity="secondary"
-          label="90 Days"
-          tooltipPosition="left"
-          pTooltip="Vulnerability Last Observed within 90 days"
-          [outlined]="lastObservedTimeRange() !== '90'"
-          (onClick)="onLastObservedRangeChange('90')"
-          [disabled]="isLoading()"
-        />
-        <p-button size="small" severity="secondary" label="All" tooltipPosition="left" pTooltip="All open findings" [outlined]="lastObservedTimeRange() !== 'all'" (onClick)="onLastObservedRangeChange('all')" [disabled]="isLoading()" />
+        <button pButton (click)="onLastObservedRangeChange('7')" size="small" severity="secondary" tooltipPosition="left" pTooltip="Vulnerability Last Observed within 7 days" [outlined]="lastObservedTimeRange() !== '7'" [disabled]="isLoading()">
+          <span pButtonLabel>7 Days</span>
+        </button>
+        <button pButton (click)="onLastObservedRangeChange('30')" size="small" severity="secondary" tooltipPosition="left" pTooltip="Vulnerability Last Observed within 30 days" [outlined]="lastObservedTimeRange() !== '30'" [disabled]="isLoading()">
+          <span pButtonLabel>30 Days</span>
+        </button>
+        <button pButton (click)="onLastObservedRangeChange('90')" size="small" severity="secondary" tooltipPosition="left" pTooltip="Vulnerability Last Observed within 90 days" [outlined]="lastObservedTimeRange() !== '90'" [disabled]="isLoading()">
+          <span pButtonLabel>90 Days</span>
+        </button>
+        <button pButton (click)="onLastObservedRangeChange('all')" size="small" severity="secondary" tooltipPosition="left" pTooltip="All open findings" [outlined]="lastObservedTimeRange() !== 'all'" [disabled]="isLoading()">
+          <span pButtonLabel>All</span>
+        </button>
       </p-buttongroup>
     </div>
 
     <div class="relative flex gap-1">
-      <p-button icon="pi pi-refresh" [rounded]="true" [text]="true" severity="secondary" (onClick)="refreshMetrics()" [disabled]="isLoading()" pTooltip="Refresh metrics" tooltipPosition="left" />
-      <p-button icon="pi pi-external-link" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics" tooltipPosition="left" (onClick)="exportMetrics()" [disabled]="isLoading()" />
+      <button pButton (click)="refreshMetrics()" [rounded]="true" [text]="true" severity="secondary" [disabled]="isLoading()" pTooltip="Refresh metrics" tooltipPosition="left"><i class="pi pi-refresh" pButtonIcon></i></button>
+      <button pButton (click)="exportMetrics()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics" tooltipPosition="left" [disabled]="isLoading()"><i class="pi pi-external-link" pButtonIcon></i></button>
+      <button pButton (click)="exportGlobalMetrics()" [rounded]="true" pTooltip="Export Metrics (GLOBAL)" tooltipPosition="left" [loading]="isGlobalExporting()" [disabled]="isGlobalExporting()"><i class="pi pi-database" pButtonIcon></i></button>
     </div>
   </div>
 </div>
@@ -60,10 +42,10 @@
     <div class="relative flex items-center gap-2 mb-2">
       <span class="text-xs text-gray-400">Hosts:</span>
       <p-buttongroup>
-        <p-button size="small" severity="secondary" label="7 Days" [outlined]="hostTimeRange() !== '7'" (onClick)="onHostTimeRangeChange('7')" [disabled]="isLoading()" />
-        <p-button size="small" severity="secondary" label="30 Days" [outlined]="hostTimeRange() !== '30'" (onClick)="onHostTimeRangeChange('30')" [disabled]="isLoading()" />
-        <p-button size="small" severity="secondary" label="90 Days" [outlined]="hostTimeRange() !== '90'" (onClick)="onHostTimeRangeChange('90')" [disabled]="isLoading()" />
-        <p-button size="small" severity="secondary" label="All" [outlined]="hostTimeRange() !== 'all'" (onClick)="onHostTimeRangeChange('all')" [disabled]="isLoading()" />
+        <button pButton (click)="onHostTimeRangeChange('7')" size="small" severity="secondary" [outlined]="hostTimeRange() !== '7'" [disabled]="isLoading()"><span pButtonLabel>7 Days</span></button>
+        <button pButton (click)="onHostTimeRangeChange('30')" size="small" severity="secondary" [outlined]="hostTimeRange() !== '30'" [disabled]="isLoading()"><span pButtonLabel>30 Days</span></button>
+        <button pButton (click)="onHostTimeRangeChange('90')" size="small" severity="secondary" [outlined]="hostTimeRange() !== '90'" [disabled]="isLoading()"><span pButtonLabel>90 Days</span></button>
+        <button pButton (click)="onHostTimeRangeChange('all')" size="small" severity="secondary" [outlined]="hostTimeRange() !== 'all'" [disabled]="isLoading()"><span pButtonLabel>All</span></button>
       </p-buttongroup>
       <div class="absolute left-0 right-0 flex justify-center pointer-events-none">
         <span class="text-s font-medium text-gray-400"> Vulnerability Per Host (VPH) Score - {{ tenableMetrics().validOnlineAssets }} Valid Hosts </span>
@@ -240,7 +222,7 @@
       @if (findingsChartData()) {
         <div class="flex items-center w-full flex-grow">
           <div class="flex-[0_0_55%] flex justify-center items-center">
-            <p-chart type="doughnut" [data]="findingsChartData()" [options]="findingsChartOptions()" styleClass="findings-chart"> </p-chart>
+            <cpat-chart type="doughnut" [data]="findingsChartData()" [options]="findingsChartOptions()" styleClass="findings-chart" />
           </div>
 
           <div class="flex-[0_0_45%] flex flex-col justify-center ml-2">
@@ -285,7 +267,7 @@
       @if (allFindingsChartData()) {
         <div class="flex items-center w-full flex-grow">
           <div class="flex-[0_0_55%] flex justify-center items-center">
-            <p-chart type="doughnut" [data]="allFindingsChartData()" [options]="findingsChartOptions()" styleClass="findings-chart"> </p-chart>
+            <cpat-chart type="doughnut" [data]="allFindingsChartData()" [options]="findingsChartOptions()" styleClass="findings-chart" />
           </div>
 
           <div class="flex-[0_0_45%] flex flex-col justify-center ml-2">
@@ -358,5 +340,5 @@
 
 <div class="card mt-4">
   <h3 class="chart-title !mb-4">High-Risk Assets</h3>
-  <cpat-tenable-high-risk-assets-table [tenableRepoId]="this.collection?.originCollectionId" />
+  <cpat-tenable-high-risk-assets-table [tenableRepoId]="this.collection()?.originCollectionId" />
 </div>

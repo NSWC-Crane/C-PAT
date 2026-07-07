@@ -11,12 +11,13 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableMetricsComponent } from './tenable-metrics.component';
 import { ImportService } from '../../import-processing/import.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
+import { MetricsExportService } from '../metrics-export.service';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 beforeAll(() => {
@@ -61,6 +62,7 @@ describe('TenableMetricsComponent', () => {
   let mockImportService: any;
   let mockCollectionsService: any;
   let mockMessageService: any;
+  let mockMetricsExportService: any;
 
   beforeEach(async () => {
     mockImportService = {
@@ -76,9 +78,19 @@ describe('TenableMetricsComponent', () => {
 
     mockMessageService = createMockMessageService();
 
+    mockMetricsExportService = {
+      exportGlobalMetrics: vi.fn().mockReturnValue(of(undefined))
+    };
+
     await TestBed.configureTestingModule({
       imports: [TenableMetricsComponent],
-      providers: [{ provide: ImportService, useValue: mockImportService }, { provide: CollectionsService, useValue: mockCollectionsService }, { provide: MessageService, useValue: mockMessageService }, provideUiTour()],
+      providers: [
+        { provide: ImportService, useValue: mockImportService },
+        { provide: CollectionsService, useValue: mockCollectionsService },
+        { provide: MessageService, useValue: mockMessageService },
+        { provide: MetricsExportService, useValue: mockMetricsExportService },
+        provideUiTour()
+      ],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
@@ -216,44 +228,44 @@ describe('TenableMetricsComponent', () => {
 
   describe('ngOnChanges', () => {
     it('should set collectionName from collection', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.collectionName()).toBe('Tenable Collection');
     });
 
     it('should set originCollectionId from collection', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.originCollectionId()).toBe('42');
     });
 
     it('should handle null originCollectionId gracefully', () => {
-      component.collection = { ...mockCollection, originCollectionId: null };
+      (component as any).collection = () => ({ ...mockCollection, originCollectionId: null });
       component.ngOnChanges();
       expect(component.originCollectionId()).toBe('');
     });
 
     it('should not call services when no collection', () => {
-      component.collection = null;
+      (component as any).collection = () => null;
       component.ngOnChanges();
       expect(mockImportService.postTenableAnalysis).not.toHaveBeenCalled();
     });
 
     it('should clear loadedRanges cache on change', () => {
       component.loadedRanges.set(new Set(['30', '7'] as any));
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.loadedRanges().has('7')).toBe(false);
     });
 
     it('should set isLoading to false after successful load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.isLoading()).toBe(false);
     });
 
     it('should update catIOpenCount after load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       const m = component.tenableMetrics();
 
@@ -261,37 +273,37 @@ describe('TenableMetricsComponent', () => {
     });
 
     it('should update catIIOpenCount after load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.tenableMetrics().catIIOpenCount).toBe(8);
     });
 
     it('should update catIIIOpenCount after load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.tenableMetrics().catIIIOpenCount).toBe(2);
     });
 
     it('should add 30 to loadedRanges after load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.loadedRanges().has('30')).toBe(true);
     });
 
     it('should set findingsChartData after load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.findingsChartData()).not.toBeNull();
     });
 
     it('should set allFindingsChartData after load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.allFindingsChartData()).not.toBeNull();
     });
 
     it('should set empty metrics when no repoId', () => {
-      component.collection = { collectionId: 1, collectionName: 'No Repo', originCollectionId: null };
+      (component as any).collection = () => ({ collectionId: 1, collectionName: 'No Repo', originCollectionId: null });
       component.ngOnChanges();
       expect(component.tenableMetrics().catIOpenCount).toBe(0);
       expect(component.isLoading()).toBe(false);
@@ -301,7 +313,7 @@ describe('TenableMetricsComponent', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('fail')));
       mockImportService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('fail')));
       mockImportService.getIAVPluginIds.mockReturnValue(throwError(() => new Error('fail')));
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
       expect(component.isLoading()).toBe(false);
@@ -309,7 +321,7 @@ describe('TenableMetricsComponent', () => {
 
     it('should set isLoading to false on error', () => {
       mockImportService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('fail')));
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.isLoading()).toBe(false);
     });
@@ -317,14 +329,14 @@ describe('TenableMetricsComponent', () => {
 
   describe('onLastObservedRangeChange', () => {
     it('should update lastObservedTimeRange when range is already loaded', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       component.onLastObservedRangeChange('30');
       expect(component.lastObservedTimeRange()).toBe('30');
     });
 
     it('should load new range when not in cache', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.originCollectionId.set('42');
       component.ngOnChanges();
       const callsBefore = mockImportService.postTenableAnalysis.mock.calls.length;
@@ -419,7 +431,7 @@ describe('TenableMetricsComponent', () => {
     });
 
     it('should show info message when data for range is not loaded', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.originCollectionId.set('42');
       (component as any).cachedVulnerabilityData.set({ '7': null, '30': null, '90': null, all: null });
       component.exportMetrics();
@@ -427,7 +439,7 @@ describe('TenableMetricsComponent', () => {
     });
 
     it('should not throw when called after successful load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(() => component.exportMetrics()).not.toThrow();
     });
@@ -435,7 +447,7 @@ describe('TenableMetricsComponent', () => {
     it('should call exportAsCSV with collection name in filename', () => {
       const spy = vi.spyOn(component as any, 'exportAsCSV');
 
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       component.exportMetrics();
       const filename = spy.mock.calls[0]?.[1] as string;
@@ -459,13 +471,55 @@ describe('TenableMetricsComponent', () => {
     });
 
     it('should reload data when collection is set', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.originCollectionId.set('42');
       component.ngOnChanges();
       const callsBefore = mockImportService.postTenableAnalysis.mock.calls.length;
 
       component.refreshMetrics();
       expect(mockImportService.postTenableAnalysis.mock.calls.length).toBeGreaterThan(callsBefore);
+    });
+  });
+
+  describe('exportGlobalMetrics', () => {
+    it('delegates to the metrics export service and sets the exporting flag during the call', () => {
+      let exportingDuringCall = false;
+
+      mockMetricsExportService.exportGlobalMetrics.mockImplementation(() => {
+        exportingDuringCall = component.isGlobalExporting();
+
+        return of(undefined);
+      });
+
+      component.exportGlobalMetrics();
+
+      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalled();
+      expect(exportingDuringCall).toBe(true);
+    });
+
+    it('clears the exporting flag and shows a success toast on completion', () => {
+      component.exportGlobalMetrics();
+
+      expect(component.isGlobalExporting()).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('clears the exporting flag and shows an error toast on failure', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(throwError(() => new Error('export failed')));
+
+      component.exportGlobalMetrics();
+
+      expect(component.isGlobalExporting()).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+
+    it('does not start a second export while one is in progress', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
+
+      component.exportGlobalMetrics();
+      component.exportGlobalMetrics();
+
+      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalledTimes(1);
     });
   });
 });

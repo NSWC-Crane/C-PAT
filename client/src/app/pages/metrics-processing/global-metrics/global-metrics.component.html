@@ -1,0 +1,321 @@
+﻿<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<div class="metrics-container overflow-hidden">
+  <div class="flex flex-wrap justify-between items-center gap-3 card !p-2">
+    <div class="font-medium opacity-70 ml-2">Global Metrics ({{ selectedCollections().length }} {{ selectedCollections().length === 1 ? 'collection' : 'collections' }}) - {{ now | date: 'MMM d, y, h:mm a' }}</div>
+    <div class="flex items-center gap-2 mr-1">
+      <p-select
+        [multiple]="true"
+        [checkmark]="true"
+        [showClear]="true"
+        [options]="collections()"
+        [ngModel]="selectedCollections()"
+        (ngModelChange)="onSelectionChange($event)"
+        optionLabel="collectionName"
+        dataKey="collectionId"
+        [filter]="true"
+        filterBy="collectionName"
+        placeholder="Select collections"
+        [disabled]="isLoading()"
+        class="w-[24rem] max-w-full"
+        appendTo="body"
+      >
+        <ng-template let-collection #item>
+          <div class="flex items-center gap-2">
+            <p-tag [value]="collection.collectionType" [severity]="getTagColor(collection.collectionType)" class="text-xs px-1 py-0.5 shrink-0" />
+            <span class="break-words">{{ collection.collectionName }}</span>
+          </div>
+        </ng-template>
+      </p-select>
+      <button pButton (click)="refreshMetrics()" [rounded]="true" [text]="true" severity="secondary" [disabled]="isLoading() || !hasSelection()" pTooltip="Refresh metrics" tooltipPosition="left"><i class="pi pi-refresh" pButtonIcon></i></button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="card mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm text-gray-400">Loading {{ progress().loaded }} of {{ progress().total }} collections…</span>
+        <span class="text-sm text-gray-400">{{ progressPercent() }}%</span>
+      </div>
+      <p-progressbar [value]="progressPercent()" />
+    </div>
+  }
+
+  @if (!hasSelection() && !isLoading()) {
+    <div class="card mt-4">
+      <div class="no-data-message">Select one or more STIG Manager or Tenable collections to view combined metrics.</div>
+    </div>
+  }
+
+  @if (allCollectionsFailed()) {
+    <div class="card mt-4">
+      <div class="no-data-message">Could not load metrics for any of the selected collections. Please check the source systems and try again.</div>
+    </div>
+  }
+
+  @if (result(); as result) {
+    @if (result.stig || result.tenable) {
+      <div class="mt-4" [class.opacity-50]="isLoading()">
+        <div class="flex flex-wrap items-center gap-4 mb-3 ml-1">
+          @if (result.stig; as stig) {
+            <div class="flex items-center gap-2">
+              <p-tag value="STIG Manager" severity="success" />
+              <span class="font-medium opacity-70">{{ stig.collectionCount }} {{ stig.collectionCount === 1 ? 'collection' : 'collections' }}</span>
+            </div>
+          }
+          @if (result.tenable; as tenable) {
+            <div class="flex items-center gap-2">
+              <p-tag value="Tenable" severity="danger" />
+              <span class="font-medium opacity-70">{{ tenable.collectionCount }} {{ tenable.collectionCount === 1 ? 'collection' : 'collections' }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="card flex flex-col lg:flex-row gap-4 mt-0">
+          <div class="lg:basis-2/5">
+            <h3 class="text-base font-semibold text-[var(--text-color)]">Mean Time to Remediate (MTTR)</h3>
+            <p class="text-xs text-gray-400 mb-4">Average days to close by severity, split by source</p>
+            @if (mttrSummaryChartData(); as summary) {
+              <cpat-chart type="bar" height="240px" [data]="summary" [options]="mttrBarChartOptions" />
+            } @else {
+              <div class="no-data-message">No closed POAMs with data</div>
+            }
+          </div>
+          <div class="lg:basis-3/5">
+            <h3 class="text-base font-semibold text-[var(--text-color)]">MTTR Trend</h3>
+            <p class="text-xs text-gray-400 mb-4">Average MTTR trend over the last 12 months</p>
+            @if (mttrTrendChartData(); as trend) {
+              <cpat-chart type="line" height="240px" [data]="trend" [options]="mttrLineChartOptions" />
+            } @else {
+              <div class="no-data-message">No MTTR trend data available</div>
+            }
+          </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-4">
+          @if (result.stig; as stig) {
+            <p-card class="flex-1">
+              <div class="relative">
+                <div class="text-center text-sm font-medium text-gray-400 mb-2">Combined CORA Risk Score</div>
+                <div class="relative -mb-10 mr-4 ml-4" style="height: 60px">
+                  <div class="absolute w-full">
+                    <div class="absolute" [style.left.%]="100 - stig.cora.score" style="transform: translateX(-50%); z-index: 10">
+                      <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
+                        <div
+                          class="px-3 py-2 rounded-lg font-bold text-center"
+                          [style.background-color]="getCoraRiskColor(stig.cora.score)"
+                          style="opacity: 0.9; color: white"
+                          pTooltip="Combined CORA recomputed from the summed assessments, assessed reviews, and open findings by severity across all selected STIG Manager collections."
+                          tooltipPosition="left"
+                        >
+                          {{ isLoading() ? '-' : stig.cora.score.toFixed(1) + '%' }}
+                        </div>
+                      </div>
+                      <div class="absolute left-1/2 transform -translate-x-1/2" style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px">
+                        <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="relative">
+                  <div class="flex justify-between mb-2">
+                    <span class="text-red-400 font-semibold text-xs opacity-90">High Risk</span>
+                    <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
+                  </div>
+                  <div
+                    class="relative rounded-full h-10 overflow-hidden shadow-lg"
+                    style="background: linear-gradient(to right, rgba(235, 70, 100, 0.8) 0%, rgba(235, 70, 100, 0.8) 75%, rgba(245, 125, 70, 0.8) 80%, rgba(230, 190, 45, 0.8) 92%, rgba(100, 185, 120, 0.8) 100%)"
+                  ></div>
+                </div>
+
+                <div class="mt-5 pt-3 border-t border-gray-700">
+                  <div class="flex justify-center">
+                    <span class="text-xs text-gray-300"
+                      >Combined Rating: <span class="font-semibold">{{ stig.cora.rating }}</span></span
+                    >
+                  </div>
+                </div>
+              </div>
+            </p-card>
+          }
+
+          @if (result.tenable; as tenable) {
+            <p-card class="flex-1">
+              <div class="relative">
+                <div class="text-center text-sm font-medium text-gray-400 mb-2">Combined Vulnerability Per Host (VPH) Score</div>
+                <div class="relative -mb-10 mr-4 ml-4" style="height: 60px">
+                  <div class="absolute w-full">
+                    <div class="absolute" [style.left.%]="tenable.vph.score < 2.5 ? 100 : tenable.vph.score > 3.5 ? 0 : 100 - (tenable.vph.score - 2.5) * 100" style="transform: translateX(-50%); z-index: 10">
+                      <div class="flex items-center gap-2 -mt-2 ml-2 mr-2">
+                        <div
+                          class="px-3 py-2 rounded-lg font-bold text-center"
+                          [style.background-color]="getVPHColor(tenable.vph.score)"
+                          style="opacity: 0.9; color: white"
+                          pTooltip="Combined VPH recomputed from the summed severity counts and valid assets across all selected Tenable collections."
+                          tooltipPosition="left"
+                        >
+                          {{ isLoading() ? '-' : tenable.vph.score.toFixed(2) }}
+                        </div>
+                      </div>
+                      <div class="absolute left-1/2 transform -translate-x-1/2" style="width: 2px; background-color: white; border-radius: 1px; height: 42px; top: 39px">
+                        <div class="absolute w-2 h-2 bg-white rounded-full" style="top: -2px; left: -2.3px"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="relative">
+                  <div class="flex justify-between mb-2">
+                    <span class="text-red-400 font-semibold text-xs opacity-90">High Risk</span>
+                    <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
+                  </div>
+                  <div
+                    class="relative rounded-full h-10 overflow-hidden shadow-lg"
+                    style="background: linear-gradient(to right, rgba(235, 70, 100, 0.8) 0%, rgba(250, 145, 60, 0.8) 33%, rgba(250, 190, 35, 0.8) 66%, rgba(15, 185, 130, 0.8) 100%)"
+                  ></div>
+                </div>
+
+                <div class="mt-5 pt-3 border-t border-gray-700">
+                  <div class="flex justify-center gap-3">
+                    <span class="text-xs text-gray-300"
+                      >Combined Rating: <span class="font-semibold">{{ tenable.vph.rating }}</span></span
+                    >
+                    <span class="text-xs text-gray-500">Across {{ tenable.validAssets }} valid {{ tenable.validAssets === 1 ? 'asset' : 'assets' }}</span>
+                  </div>
+                </div>
+              </div>
+            </p-card>
+          }
+        </div>
+
+        <div class="flex flex-col md:flex-row mt-4 gap-4">
+          @for (ring of complianceRings(); track ring.numeral) {
+            <div class="basis-1/3">
+              <p-card class="compliance-card">
+                <div class="flex flex-col items-center gap-3 py-4">
+                  <div class="compliance-ring" [pTooltip]="ring.tooltip" tooltipPosition="top">
+                    <svg viewBox="0 0 140 140" class="ring-svg">
+                      @if (ring.stig !== null) {
+                        <circle class="ring-track" cx="70" cy="70" [attr.r]="outerRadius" />
+                        <circle class="ring-arc stig" cx="70" cy="70" [attr.r]="outerRadius" [attr.stroke-dasharray]="outerCircumference" [attr.stroke-dashoffset]="arcOffset(ring.stig, outerCircumference)" />
+                      }
+                      @if (ring.tenable !== null) {
+                        <circle class="ring-track" cx="70" cy="70" [attr.r]="innerRadius" />
+                        <circle class="ring-arc tenable" cx="70" cy="70" [attr.r]="innerRadius" [attr.stroke-dasharray]="innerCircumference" [attr.stroke-dashoffset]="arcOffset(ring.tenable, innerCircumference)" />
+                      }
+                    </svg>
+                    <div class="ring-center">{{ ring.numeral }}</div>
+                  </div>
+                  <div class="text-sm font-semibold opacity-80">{{ ring.catLabel }} POAM Compliance %</div>
+                  <div class="flex items-center gap-4 text-xs opacity-70">
+                    @if (ring.stig !== null) {
+                      <span class="flex items-center gap-1"><span class="legend-swatch stig"></span>STIG Manager</span>
+                    }
+                    @if (ring.tenable !== null) {
+                      <span class="flex items-center gap-1"><span class="legend-swatch tenable"></span>Tenable</span>
+                    }
+                  </div>
+                </div>
+              </p-card>
+            </div>
+          }
+        </div>
+
+        <div class="grid gap-3 grid-cols-1 sm:grid-cols-3 mt-4">
+          @for (card of findingCards(); track card.label) {
+            <p-card
+              class="metric-card flex items-center justify-center transition-all duration-300 ease-in-out rounded-xl overflow-hidden relative p-3"
+              [class.high]="card.severity === 'high'"
+              [class.medium]="card.severity === 'medium'"
+              [class.low]="card.severity === 'low'"
+            >
+              <div class="flex flex-col items-center text-center w-full">
+                <div class="min-h-[40px] flex items-center justify-center">
+                  <div class="text-[2.5rem] font-bold text-[var(--text-secondary-color)] leading-none metric-value" [class.high]="card.severity === 'high'" [class.medium]="card.severity === 'medium'" [class.low]="card.severity === 'low'">
+                    {{ card.total }}
+                  </div>
+                </div>
+                <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] font-semibold leading-tight">{{ card.label }}</div>
+                <div class="flex h-6 rounded-[14px] overflow-hidden mt-3 w-full">
+                  @if (card.total > 0) {
+                    @if (card.stig !== null) {
+                      <div class="bar-segment stig" [style.width.%]="card.stigPct" [pTooltip]="'STIG Manager: ' + card.stig" tooltipPosition="top"></div>
+                    }
+                    @if (card.tenable !== null) {
+                      <div class="bar-segment tenable" [style.width.%]="card.tenablePct" [pTooltip]="'Tenable: ' + card.tenable" tooltipPosition="top"></div>
+                    }
+                  } @else {
+                    <div class="bar-segment no-findings">
+                      <span class="text-xs text-gray-400">No Findings</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </p-card>
+          }
+        </div>
+
+        @if (stigDetailCards().length > 0) {
+          <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 mt-4">
+            @for (metric of stigDetailCards(); track metric.label) {
+              <p-card
+                class="metric-card flex items-center justify-center transition-all duration-300 ease-in-out rounded-xl overflow-hidden relative p-3"
+                [class.high]="metric.severity === 'high'"
+                [class.medium]="metric.severity === 'medium'"
+                [class.low]="metric.severity === 'low'"
+              >
+                <div class="flex flex-col items-center text-center w-full" [pTooltip]="metric?.tooltip" tooltipPosition="top">
+                  <div class="min-h-[40px] flex items-center justify-center">
+                    <div class="text-[2.5rem] font-bold text-[var(--text-secondary-color)] leading-none metric-value" [class.high]="metric.severity === 'high'" [class.medium]="metric.severity === 'medium'" [class.low]="metric.severity === 'low'">
+                      {{ metric.value }}
+                    </div>
+                  </div>
+                  @if (metric.type) {
+                    <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] opacity-70 font-medium leading-tight">{{ metric.type }}</div>
+                  }
+                  <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] font-semibold leading-tight">{{ metric.label }}</div>
+                </div>
+              </p-card>
+            }
+          </div>
+        }
+
+        @if (tenableDetailCards().length > 0) {
+          <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 mt-4">
+            @for (metric of tenableDetailCards(); track metric.label) {
+              <p-card
+                class="metric-card flex items-center justify-center transition-all duration-300 ease-in-out rounded-xl overflow-hidden relative p-3"
+                [class.high]="metric.severity === 'high'"
+                [class.medium]="metric.severity === 'medium'"
+                [class.low]="metric.severity === 'low'"
+              >
+                <div class="flex flex-col items-center text-center w-full" [pTooltip]="metric?.tooltip" tooltipPosition="top">
+                  <div class="min-h-[40px] flex items-center justify-center">
+                    <div class="text-[2.5rem] font-bold text-[var(--text-secondary-color)] leading-none metric-value" [class.high]="metric.severity === 'high'" [class.medium]="metric.severity === 'medium'" [class.low]="metric.severity === 'low'">
+                      {{ metric.value }}
+                    </div>
+                  </div>
+                  @if (metric.type) {
+                    <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] opacity-70 font-medium leading-tight">{{ metric.type }}</div>
+                  }
+                  <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] font-semibold leading-tight">{{ metric.label }}</div>
+                </div>
+              </p-card>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<p-toast position="top-right" />

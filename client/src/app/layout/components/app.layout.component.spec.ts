@@ -499,6 +499,15 @@ describe('AppLayoutComponent', () => {
       expect(metricsItem).toBeUndefined();
     });
 
+    it('should configure the Metrics item as a popup trigger with no routerLink', () => {
+      component.accessLevel = 1;
+      (component as any).setMenuItems();
+      const metricsItem = component.items.find((i) => i.label === 'Metrics');
+
+      expect(metricsItem?.id).toBe('metrics-menu');
+      expect(metricsItem?.routerLink).toBeUndefined();
+    });
+
     it('should include STIG Manager when collectionType is STIG Manager', () => {
       component.collectionType = 'STIG Manager';
       (component as any).setMenuItems();
@@ -593,6 +602,54 @@ describe('AppLayoutComponent', () => {
 
       component.handleMenuClick(item);
       expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should toggle the metrics popup menu for the metrics-menu item', () => {
+      const metricsMenu = { toggle: vi.fn() };
+      const event = new Event('click');
+
+      component.handleMenuClick({ id: 'metrics-menu', label: 'Metrics' }, event, metricsMenu);
+
+      expect(metricsMenu.toggle).toHaveBeenCalledWith(event);
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('metricsMenuItems', () => {
+    it('should navigate to /metrics from the Metrics popup item', () => {
+      const metricsItem = component.metricsMenuItems.find((i) => i.label === 'Metrics');
+
+      metricsItem?.command?.({} as any);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/metrics']);
+    });
+
+    it('should navigate to /metrics/global from the Global Metrics popup item', () => {
+      const globalItem = component.metricsMenuItems.find((i) => i.label === 'Global Metrics');
+
+      globalItem?.command?.({} as any);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/metrics/global']);
+    });
+  });
+
+  describe('isItemActive', () => {
+    it('should mark the metrics menu active on any /metrics route', () => {
+      mockRouter.url = '/metrics/global';
+      expect(component.isItemActive({ id: 'metrics-menu', label: 'Metrics' })).toBe(true);
+    });
+
+    it('should mark a routerLink item active on an exact url match', () => {
+      mockRouter.url = '/home';
+      expect(component.isItemActive({ label: 'Home', routerLink: ['/home'] })).toBe(true);
+    });
+
+    it('should return false for a non-active routerLink item', () => {
+      mockRouter.url = '/home';
+      expect(component.isItemActive({ label: 'X', routerLink: ['/other'] })).toBe(false);
+    });
+
+    it('should return false without throwing for a command-only item with no routerLink or id', () => {
+      mockRouter.url = '/home';
+      expect(component.isItemActive({ label: 'Log Out', command: () => {} })).toBe(false);
     });
   });
 
