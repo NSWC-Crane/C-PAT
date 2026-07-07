@@ -9,7 +9,7 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, TemplateRef, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, TemplateRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parseISO } from 'date-fns';
@@ -55,18 +55,17 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
   private readonly sharedService = inject(SharedService);
   private readonly poamApproveService = inject(PoamApproveService);
   private readonly poamService = inject(PoamService);
-  protected accessLevel: number = 0;
-  user: any;
-  payload: any;
+  protected readonly accessLevel = signal<number>(0);
+  readonly user = signal<any>(undefined);
+  readonly payload = signal<any>(undefined);
   public isLoggedIn = false;
-  hqsChecked: boolean = false;
+  readonly hqsChecked = signal(false);
   poam: any;
-  poamId: any;
-  approvalStatus: any;
-  approvedDate: any;
-  dates: any = {};
-  comments: any;
-  selectedCollection: any;
+  readonly poamId = signal<any>(undefined);
+  readonly approvalStatus = signal<any>(undefined);
+  readonly dates = signal<any>({});
+  readonly comments = signal<any>(undefined);
+  readonly selectedCollection = signal<any>(undefined);
   private readonly payloadSubscription: Subscription[] = [];
   private readonly subscriptions = new Subscription();
   approvalStatusOptions = [
@@ -75,25 +74,25 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
     { label: 'Approved', value: 'Approved' },
     { label: 'Rejected', value: 'Rejected' }
   ];
-  showApprovalHistory: boolean = false;
-  previousApproval: any = null;
-  formattedApprovalHistory: string = '';
-  displayDialog: boolean = false;
-  displayConfirmDialog: boolean = false;
-  confirmDialogMessage: string = '';
+  readonly showApprovalHistory = signal(false);
+  readonly previousApproval = signal<any>(null);
+  readonly formattedApprovalHistory = signal('');
+  readonly displayDialog = signal(false);
+  readonly displayConfirmDialog = signal(false);
+  readonly confirmDialogMessage = signal('');
 
   readonly approveTemplate = viewChild.required<TemplateRef<any>>('approveTemplate');
 
   public ngOnInit() {
     this.subscriptions.add(
       this.route.params.subscribe(async (params) => {
-        this.poamId = params['poamId'];
+        this.poamId.set(params['poamId']);
       })
     );
 
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
+        this.selectedCollection.set(collectionId);
       })
     );
     this.setPayload();
@@ -102,15 +101,15 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
   setPayload() {
     this.payloadSubscription.push(
       this.setPayloadService.user$.subscribe((user) => {
-        this.user = user;
+        this.user.set(user);
       }),
       this.setPayloadService.payload$.subscribe((payload) => {
-        this.payload = payload;
+        this.payload.set(payload);
       }),
       this.setPayloadService.accessLevel$.subscribe((level) => {
-        this.accessLevel = level;
+        this.accessLevel.set(level);
 
-        if (this.accessLevel > 0) {
+        if (level > 0) {
           this.getData();
         }
       })
@@ -118,26 +117,26 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
   }
 
   getData() {
-    forkJoin([this.poamApproveService.getPoamApprovers(this.poamId), this.poamService.getPoam(this.poamId)]).subscribe({
+    forkJoin([this.poamApproveService.getPoamApprovers(this.poamId()), this.poamService.getPoam(this.poamId())]).subscribe({
       next: ([approversResponse, poamResponse]: [any, any]) => {
         const currentDate = new Date();
-        const userApproval = approversResponse.find((approval: any) => approval.userId === this.user.userId);
+        const userApproval = approversResponse.find((approval: any) => approval.userId === this.user().userId);
 
         if (userApproval) {
-          this.previousApproval = userApproval;
-          this.formattedApprovalHistory = this.formatApprovalHistory(userApproval);
+          this.previousApproval.set(userApproval);
+          this.formattedApprovalHistory.set(this.formatApprovalHistory(userApproval));
         } else {
-          this.previousApproval = null;
-          this.formattedApprovalHistory = '';
+          this.previousApproval.set(null);
+          this.formattedApprovalHistory.set('');
         }
 
-        this.approvalStatus = null;
-        this.dates.approvedDate = currentDate;
-        this.comments = null;
-        this.showApprovalHistory = false;
-        this.hqsChecked = Boolean(poamResponse.hqs);
+        this.approvalStatus.set(null);
+        this.dates.update((dates) => ({ ...dates, approvedDate: currentDate }));
+        this.comments.set(null);
+        this.showApprovalHistory.set(false);
+        this.hqsChecked.set(Boolean(poamResponse.hqs));
 
-        this.displayDialog = true;
+        this.displayDialog.set(true);
       },
       error: (error) => {
         this.messageService.add({
@@ -158,24 +157,23 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
   }
 
   confirm(message: string) {
-    this.confirmDialogMessage = message;
-    this.displayConfirmDialog = true;
+    this.confirmDialogMessage.set(message);
+    this.displayConfirmDialog.set(true);
   }
 
   cancelApproval() {
-    this.displayDialog = false;
-    this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+    this.displayDialog.set(false);
+    this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId()}`);
   }
 
   submitApprovalData() {
-    this.approvedDate = format(this.dates.approvedDate, 'yyyy-MM-dd');
     const approvalData: PoamApproval = {
-      poamId: Number.parseInt(this.poamId, 10),
-      userId: this.user.userId,
-      approvalStatus: this.approvalStatus,
-      approvedDate: this.approvedDate,
-      comments: this.comments,
-      hqs: Boolean(this.hqsChecked)
+      poamId: Number.parseInt(this.poamId(), 10),
+      userId: this.user().userId,
+      approvalStatus: this.approvalStatus(),
+      approvedDate: format(this.dates().approvedDate, 'yyyy-MM-dd'),
+      comments: this.comments(),
+      hqs: Boolean(this.hqsChecked())
     };
 
     this.poamApproveService.updatePoamApprover(approvalData).subscribe({
@@ -186,8 +184,8 @@ export class PoamApproveComponent implements OnInit, OnDestroy {
           detail: 'Approval saved successfully.'
         });
         setTimeout(() => {
-          this.displayDialog = false;
-          this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+          this.displayDialog.set(false);
+          this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId()}`);
         }, 1000);
       },
       error: (error) => {
