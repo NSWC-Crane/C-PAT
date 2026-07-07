@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, inject, viewChildren, viewChild, effect } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChildren, viewChild, effect, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MessageService } from 'primeng/api';
@@ -18,7 +18,7 @@ import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelect, MultiSelectModule } from 'primeng/multiselect';
+import { Select, SelectModule } from 'primeng/select';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
@@ -48,7 +48,7 @@ interface ExportColumn {
   styleUrls: ['./tenableAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, FormsModule, TableModule, TabsModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, MultiSelectModule, DialogModule, ToastModule, TooltipModule, TagModule]
+  imports: [FormsModule, TableModule, TabsModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, SelectModule, DialogModule, ToastModule, TooltipModule, TagModule, DatePipe]
 })
 export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly assetDeltaService = inject(AssetDeltaService);
@@ -58,12 +58,12 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   private readonly messageService = inject(MessageService);
   private readonly sharedService = inject(SharedService);
 
-  @Input() pluginID!: string;
-  @Input() assetProcessing: boolean = false;
-  @Input() tenableRepoId: number;
-  @Input() associatedVulnerabilities: any[] = [];
+  readonly pluginID = input.required<string>();
+  readonly assetProcessing = input<boolean>(false);
+  readonly tenableRepoId = input<number>(undefined);
+  readonly associatedVulnerabilities = input<any[]>([]);
   private readonly tables = viewChildren(Table);
-  private readonly multiSelect = viewChild.required<MultiSelect>('ms');
+  private readonly columnSelect = viewChild.required<Select>('ms');
 
   cols: any[];
   exportColumns!: ExportColumn[];
@@ -73,10 +73,10 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   otherReferences: Reference[] = [];
   affectedAssets: any[] = [];
   selectedVulnerability: any;
-  displayDialog: boolean = false;
+  readonly displayDialog = signal(false);
   parsedVprContext: any[] = [];
-  isLoading: boolean = true;
-  is30DayFilterActive: boolean = false;
+  readonly isLoading = signal(true);
+  readonly is30DayFilterActive = signal(false);
   formattedDescription: SafeHtml = '';
   pluginData: any;
   totalRecords: number = 0;
@@ -111,9 +111,11 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
     this.activeTab = 'all';
 
-    if (this.pluginID && this.tenableRepoId) {
+    const tenableRepoId = this.tenableRepoId();
+
+    if (this.pluginID() && tenableRepoId) {
       this.getAffectedAssetsForAllPlugins();
-    } else if (this.assetProcessing && this.tenableRepoId) {
+    } else if (this.assetProcessing() && tenableRepoId) {
       this.getAffectedAssets({ first: 0, rows: 25 } as TableLazyLoadEvent);
     }
   }
@@ -198,7 +200,10 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
       }
     ];
 
-    if (this.pluginID && this.tenableRepoId) {
+    const pluginID = this.pluginID();
+    const tenableRepoId = this.tenableRepoId();
+
+    if (pluginID && tenableRepoId) {
       this.cols = [...cols, ...poamCols];
     } else {
       this.cols = cols;
@@ -211,7 +216,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
     let selectedFields = ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'ips', 'netbiosName', 'dnsName', 'port', 'protocol', 'teamAssigned'];
 
-    if (this.pluginID && this.tenableRepoId) {
+    if (pluginID && tenableRepoId) {
       selectedFields.push('lastSeen');
     }
 
@@ -233,11 +238,13 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   getAffectedAssetsForAllPlugins() {
-    this.isLoading = true;
+    this.isLoading.set(true);
 
-    const associatedPluginIds = this.associatedVulnerabilities.map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null)).filter((id) => id !== null);
+    const associatedPluginIds = this.associatedVulnerabilities()
+      .map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null))
+      .filter((id) => id !== null);
 
-    const allPluginIds = [this.pluginID, ...associatedPluginIds];
+    const allPluginIds = [this.pluginID(), ...associatedPluginIds];
 
     const filters = [
       {
@@ -254,11 +261,11 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         operator: '=',
         type: 'vuln',
         isPredefined: true,
-        value: [{ id: this.tenableRepoId.toString() }]
+        value: [{ id: this.tenableRepoId().toString() }]
       }
     ];
 
-    if (this.is30DayFilterActive) {
+    if (this.is30DayFilterActive()) {
       filters.push({
         id: 'lastSeen',
         filterName: 'lastSeen',
@@ -298,7 +305,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
             summary: 'Error',
             detail: 'No assets found for these vulnerabilities'
           });
-          this.isLoading = false;
+          this.isLoading.set(false);
 
           return;
         }
@@ -334,7 +341,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
         this.affectedAssets = Array.from(assetMap.values());
         this.totalRecords = this.affectedAssets.length;
-        this.isLoading = false;
+        this.isLoading.set(false);
 
         this.matchAssetsWithTeams();
       },
@@ -344,7 +351,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
           summary: 'Error',
           detail: `Error fetching affected assets: ${getErrorMessage(error)}`
         });
-        this.isLoading = false;
+        this.isLoading.set(false);
       }
     });
   }
@@ -504,17 +511,22 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   lazyOrNot(event: TableLazyLoadEvent) {
-    if (this.pluginID && !this.assetProcessing) {
-      this.getAffectedAssetsByPluginId(this.pluginID, this.tenableRepoId);
-    } else if (this.assetProcessing) {
+    const pluginID = this.pluginID();
+    const assetProcessing = this.assetProcessing();
+
+    if (pluginID && !assetProcessing) {
+      this.getAffectedAssetsByPluginId(pluginID, this.tenableRepoId());
+    } else if (assetProcessing) {
       this.getAffectedAssets(event);
     }
   }
 
   getAffectedAssets(event: TableLazyLoadEvent) {
-    if (!this.tenableRepoId) return;
+    const tenableRepoId = this.tenableRepoId();
 
-    this.isLoading = true;
+    if (!tenableRepoId) return;
+
+    this.isLoading.set(true);
 
     const startOffset = event.first ?? 0;
     const endOffset = startOffset + (event.rows ?? 25);
@@ -524,7 +536,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
       operator: '=',
       type: 'vuln',
       isPredefined: true,
-      value: [{ id: this.tenableRepoId.toString() }]
+      value: [{ id: tenableRepoId.toString() }]
     };
 
     const analysisParams = {
@@ -570,13 +582,13 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
 
         this.totalRecords = data.response.totalRecords;
 
-        if (this.assetProcessing) {
+        if (this.assetProcessing()) {
           this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }];
         } else {
           this.matchAssetsWithTeams();
         }
 
-        this.isLoading = false;
+        this.isLoading.set(false);
       },
       error: (error) => {
         this.messageService.add({
@@ -584,7 +596,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
           summary: 'Error',
           detail: `Error fetching affected assets: ${getErrorMessage(error)}`
         });
-        this.isLoading = false;
+        this.isLoading.set(false);
       }
     });
   }
@@ -618,7 +630,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
         }
 
         this.selectedVulnerability = vulnerability;
-        this.displayDialog = true;
+        this.displayDialog.set(true);
       },
       error: (error) => {
         this.messageService.add({
@@ -716,11 +728,13 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   filter30Days() {
-    this.is30DayFilterActive = !this.is30DayFilterActive;
+    this.is30DayFilterActive.update((value) => !value);
 
-    if (this.pluginID && this.tenableRepoId) {
+    const tenableRepoId = this.tenableRepoId();
+
+    if (this.pluginID() && tenableRepoId) {
       this.getAffectedAssetsForAllPlugins();
-    } else if (this.assetProcessing && this.tenableRepoId) {
+    } else if (this.assetProcessing() && tenableRepoId) {
       this.getAffectedAssets({ first: 0, rows: 25 } as TableLazyLoadEvent);
     }
   }
@@ -773,7 +787,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
     });
 
     this.csvExportService.exportToCsv(processedData, {
-      filename: `CPAT_${this.pluginID}-affected-assets-${new Date().toISOString().split('T')[0]}`,
+      filename: `CPAT_${this.pluginID()}-affected-assets-${new Date().toISOString().split('T')[0]}`,
       columns: this.selectedColumns,
       includeTimestamp: false
     });
@@ -798,7 +812,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   resetColumnSelections() {
     let selectedFields = ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'ips', 'netbiosName', 'dnsName', 'port', 'protocol', 'teamAssigned'];
 
-    if (this.pluginID && this.tenableRepoId) {
+    if (this.pluginID() && this.tenableRepoId()) {
       selectedFields.push('lastSeen');
     }
 
@@ -806,12 +820,12 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit, OnDes
   }
 
   toggleAddColumnOverlay() {
-    const multiSelect = this.multiSelect();
+    const columnSelect = this.columnSelect();
 
-    if (multiSelect.overlayVisible) {
-      multiSelect.hide();
+    if (columnSelect.overlayVisible()) {
+      columnSelect.hide();
     } else {
-      multiSelect.show();
+      columnSelect.show();
     }
   }
 
