@@ -8,12 +8,11 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, signal, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ChartModule } from 'primeng/chart';
+import { CpatChartComponent } from '../../common/components/chart/chart.component';
 import { DividerModule } from 'primeng/divider';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
@@ -40,7 +39,7 @@ const SEVERITY_COLORS: Record<string, string> = {
   styleUrls: ['./metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ButtonModule, CardModule, ChartModule, DividerModule, ProgressSpinnerModule, ToastModule, TooltipModule, STIGManagerMetricsComponent, TenableMetricsComponent],
+  imports: [ButtonModule, CardModule, CpatChartComponent, DividerModule, ProgressSpinnerModule, ToastModule, TooltipModule, STIGManagerMetricsComponent, TenableMetricsComponent],
   providers: [MessageService]
 })
 export class MetricsComponent implements OnInit, OnDestroy {

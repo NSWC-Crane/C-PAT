@@ -1,0 +1,152 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package!
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+$color-high: rgba(235, 70, 100, 0.8);
+$color-medium: rgba(250, 165, 50, 0.8);
+$color-low: rgba(230, 190, 45, 0.8);
+$color-stig: rgba(15, 185, 130, 0.85);
+$color-tenable: rgba(235, 70, 100, 0.85);
+
+.no-data-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4rem;
+  color: var(--text-secondary-color);
+  opacity: 0.7;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.compliance-ring {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+
+  .ring-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .ring-track {
+    fill: none;
+    stroke: rgba(128, 128, 128, 0.25);
+    stroke-width: 13;
+  }
+
+  .ring-arc {
+    fill: none;
+    stroke-width: 13;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.4s ease;
+
+    &.stig {
+      stroke: $color-stig;
+    }
+    &.tenable {
+      stroke: $color-tenable;
+    }
+  }
+
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    line-height: 1;
+  }
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.stig {
+    background: $color-stig;
+  }
+  &.tenable {
+    background: $color-tenable;
+  }
+}
+
+.bar-segment {
+  &.stig {
+    background: $color-stig;
+  }
+  &.tenable {
+    background: $color-tenable;
+  }
+
+  &.no-findings {
+    width: 100%;
+    background: #4b5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.metric-card {
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--text-secondary-color);
+    opacity: 0.5;
+  }
+
+  &.high::before {
+    background: $color-high;
+    opacity: 1;
+  }
+  &.medium::before {
+    background: $color-medium;
+    opacity: 1;
+  }
+  &.low::before {
+    background: $color-low;
+    opacity: 1;
+  }
+
+  .metric-value {
+    &.high {
+      color: $color-high;
+    }
+    &.medium {
+      color: $color-medium;
+    }
+    &.low {
+      color: $color-low;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .compliance-ring {
+    width: 120px;
+    height: 120px;
+
+    .ring-center {
+      font-size: 2rem;
+    }
+  }
+}

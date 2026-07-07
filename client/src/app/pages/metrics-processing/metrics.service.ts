@@ -33,6 +33,10 @@ export interface MTTRData {
   trend: MTTRTrendItem[];
 }
 
+export function normalizeMttrSeverity(severity: string): string {
+  return severity === 'CAT I - Critical' || severity === 'CAT I - High' ? 'CAT I - Critical/High' : severity;
+}
+
 @Injectable({
   providedIn: 'root'
 })

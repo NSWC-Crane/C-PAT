@@ -18,3 +18,8 @@ export interface MetricData {
   isPercentage?: boolean;
   isLoading?: boolean;
 }
+
+export interface ComplianceCount {
+  compliant: number;
+  total: number;
+}

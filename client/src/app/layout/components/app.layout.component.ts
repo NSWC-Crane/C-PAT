@@ -91,17 +91,18 @@ import { CardModule } from 'primeng/card';
                 @for (item of items; track item) {
                   <div
                     [pTooltip]="item.label"
-                    (click)="handleMenuClick(item)"
+                    (click)="handleMenuClick(item, $event, metricsMenu)"
                     class="w-12 justify-center py-4 px-4 py-1 flex items-center gap-1 cursor-pointer text-base rounded-lg transition-all select-none"
                     [ngClass]="{
-                      'text-muted-color hover:bg-emphasis bg-transparent': router.url !== item.routerLink?.[0],
-                      'text-primary-contrast bg-primary hover:bg-primary-emphasis': router.url === item.routerLink?.[0]
+                      'text-muted-color hover:bg-emphasis bg-transparent': !isItemActive(item),
+                      'text-primary-contrast bg-primary hover:bg-primary-emphasis': isItemActive(item)
                     }"
                   >
                     <i [class]="item.icon"></i>
                   </div>
                 }
               </div>
+              <p-menu #metricsMenu [popup]="true" [model]="metricsMenuItems" appendTo="body" styleClass="collections-menu" />
             </div>
             <div class="w-12 flex flex-col items-center">
               <div class="mt-10 flex flex-col gap-2">
@@ -261,6 +262,18 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   private readonly userService = inject(UsersService);
 
   items: MenuItem[] = [];
+  metricsMenuItems: MenuItem[] = [
+    {
+      label: 'Metrics',
+      icon: 'pi pi-chart-bar',
+      command: () => this.router.navigate(['/metrics'])
+    },
+    {
+      label: 'Global Metrics',
+      icon: 'pi pi-globe',
+      command: () => this.router.navigate(['/metrics/global'])
+    }
+  ];
   collections: any[] = [];
   collectionType: string = 'C-PAT';
   collectionName: string = '';
@@ -440,15 +453,29 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     this.router.navigate(['/marketplace']);
   }
 
-  handleMenuClick(item: MenuItem) {
+  handleMenuClick(item: MenuItem, event?: Event, metricsMenu?: { toggle: (event: Event) => void }) {
+    if (item.id === 'metrics-menu' && metricsMenu && event) {
+      metricsMenu.toggle(event);
+
+      return;
+    }
+
     if (item.command) {
       item.command({
-        originalEvent: undefined,
+        originalEvent: event,
         item: item
       });
     } else if (item.routerLink) {
       this.router.navigate(item.routerLink);
     }
+  }
+
+  isItemActive(item: MenuItem): boolean {
+    if (item.id === 'metrics-menu') {
+      return this.router.url.startsWith('/metrics');
+    }
+
+    return this.router.url === item.routerLink?.[0];
   }
 
   private setMenuItems() {
@@ -467,8 +494,8 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
       },
       {
         label: 'Metrics',
+        id: 'metrics-menu',
         icon: 'pi pi-chart-bar',
-        routerLink: ['/metrics'],
         visible: this.accessLevel >= 1
       },
       {

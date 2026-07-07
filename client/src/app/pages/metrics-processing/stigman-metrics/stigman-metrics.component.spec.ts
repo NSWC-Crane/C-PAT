@@ -11,12 +11,13 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { STIGManagerMetricsComponent } from './stigman-metrics.component';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
+import { MetricsExportService } from '../metrics-export.service';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 beforeAll(() => {
@@ -66,6 +67,7 @@ describe('STIGManagerMetricsComponent', () => {
   let mockSharedService: any;
   let mockCollectionsService: any;
   let mockMessageService: any;
+  let mockMetricsExportService: any;
 
   beforeEach(async () => {
     mockSharedService = {
@@ -80,9 +82,19 @@ describe('STIGManagerMetricsComponent', () => {
 
     mockMessageService = createMockMessageService();
 
+    mockMetricsExportService = {
+      exportGlobalMetrics: vi.fn().mockReturnValue(of(undefined))
+    };
+
     await TestBed.configureTestingModule({
       imports: [STIGManagerMetricsComponent],
-      providers: [{ provide: SharedService, useValue: mockSharedService }, { provide: CollectionsService, useValue: mockCollectionsService }, { provide: MessageService, useValue: mockMessageService }, provideUiTour()],
+      providers: [
+        { provide: SharedService, useValue: mockSharedService },
+        { provide: CollectionsService, useValue: mockCollectionsService },
+        { provide: MessageService, useValue: mockMessageService },
+        { provide: MetricsExportService, useValue: mockMetricsExportService },
+        provideUiTour()
+      ],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
@@ -196,37 +208,37 @@ describe('STIGManagerMetricsComponent', () => {
 
   describe('ngOnChanges', () => {
     it('should set collectionName from collection', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.collectionName()).toBe('Test Collection');
     });
 
     it('should set originCollectionId from collection', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.originCollectionId()).toBe('42');
     });
 
     it('should handle null originCollectionId gracefully', () => {
-      component.collection = { ...mockCollection, originCollectionId: null };
+      (component as any).collection = () => ({ ...mockCollection, originCollectionId: null });
       component.ngOnChanges();
       expect(component.originCollectionId()).toBe('');
     });
 
     it('should call loadMetrics (service calls) when collection is set', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(mockSharedService.getCollectionSTIGSummaryFromSTIGMAN).toHaveBeenCalledWith(42);
     });
 
     it('should not call loadMetrics when collection is null', () => {
-      component.collection = null;
+      (component as any).collection = () => null;
       component.ngOnChanges();
       expect(mockSharedService.getCollectionSTIGSummaryFromSTIGMAN).not.toHaveBeenCalled();
     });
 
     it('should set isLoading to true before load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       let capturedLoading: boolean | undefined;
 
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockImplementation(() => {
@@ -239,13 +251,13 @@ describe('STIGManagerMetricsComponent', () => {
     });
 
     it('should set isLoading to false after successful load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.isLoading()).toBe(false);
     });
 
     it('should update stigManagerMetrics after load', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       const m = component.stigManagerMetrics();
 
@@ -253,85 +265,85 @@ describe('STIGManagerMetricsComponent', () => {
     });
 
     it('should set catIOpenRawCount from STIG findings.high', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigManagerMetrics().catIOpenRawCount).toBe(2);
     });
 
     it('should set catIIOpenRawCount from STIG findings.medium', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigManagerMetrics().catIIOpenRawCount).toBe(3);
     });
 
     it('should set catIIIOpenRawCount from STIG findings.low', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigManagerMetrics().catIIIOpenRawCount).toBe(1);
     });
 
     it('should set catIOpenCount from deduplicated findings', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigManagerMetrics().catIOpenCount).toBe(1);
     });
 
     it('should set totalAssessments from aggregated metrics', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigManagerMetrics().totalAssessments).toBe(10);
     });
 
     it('should populate stigsAssessmentData', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigsAssessmentData().length).toBe(1);
     });
 
     it('should set stigAssessmentData title from STIG summary', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigsAssessmentData()[0].title).toBe('Test STIG');
     });
 
     it('should show error and set isLoading false on service failure', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('fail')));
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.isLoading()).toBe(false);
     });
 
     it('should degrade to empty metrics on service failure (inner catchError)', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('fail')));
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigManagerMetrics().catIOpenCount).toBe(0);
     });
 
     it('should return empty metrics on combineLatest inner error', () => {
       mockCollectionsService.getPoamsByCollection.mockReturnValue(throwError(() => new Error('poam fail')));
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigManagerMetrics().catIOpenCount).toBe(0);
     });
 
     it('should handle array stigSummary', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of(mockStigSummary));
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigsAssessmentData().length).toBe(1);
     });
 
     it('should handle non-array stigSummary (single object)', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of(mockStigSummary[0]));
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigsAssessmentData().length).toBe(1);
     });
 
     it('should handle null stigSummary', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of(null));
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.stigsAssessmentData().length).toBe(0);
     });
@@ -444,7 +456,7 @@ describe('STIGManagerMetricsComponent', () => {
     });
 
     it('should call service when collection is set', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.originCollectionId.set('42');
       component.refreshMetrics();
       expect(mockSharedService.getCollectionSTIGSummaryFromSTIGMAN).toHaveBeenCalled();
@@ -453,7 +465,7 @@ describe('STIGManagerMetricsComponent', () => {
 
   describe('POAM label/approved filtering', () => {
     it('should add approved POAM vulnerabilityId to approvedVulnIds', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       const m = component.stigManagerMetrics();
 
@@ -461,11 +473,53 @@ describe('STIGManagerMetricsComponent', () => {
     });
 
     it('should count KIOR label POAMs', () => {
-      component.collection = mockCollection;
+      (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       const stig = component.stigsAssessmentData()[0];
 
       expect(stig.kiorCount).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('exportGlobalMetrics', () => {
+    it('delegates to the metrics export service and sets the exporting flag during the call', () => {
+      let exportingDuringCall = false;
+
+      mockMetricsExportService.exportGlobalMetrics.mockImplementation(() => {
+        exportingDuringCall = component.isGlobalExporting();
+
+        return of(undefined);
+      });
+
+      component.exportGlobalMetrics();
+
+      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalled();
+      expect(exportingDuringCall).toBe(true);
+    });
+
+    it('clears the exporting flag and shows a success toast on completion', () => {
+      component.exportGlobalMetrics();
+
+      expect(component.isGlobalExporting()).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('clears the exporting flag and shows an error toast on failure', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(throwError(() => new Error('export failed')));
+
+      component.exportGlobalMetrics();
+
+      expect(component.isGlobalExporting()).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+
+    it('does not start a second export while one is in progress', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
+
+      component.exportGlobalMetrics();
+      component.exportGlobalMetrics();
+
+      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalledTimes(1);
     });
   });
 });

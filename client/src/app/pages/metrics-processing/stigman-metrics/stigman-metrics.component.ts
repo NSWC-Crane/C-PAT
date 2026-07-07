@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, computed, signal, inject, OnChanges } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, computed, signal, inject, OnChanges, input, output } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -20,33 +20,12 @@ import { EMPTY, catchError, combineLatest, map, of, tap } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { ChartModule } from 'primeng/chart';
+import { CpatChartComponent } from '../../../common/components/chart/chart.component';
 import { DividerModule } from 'primeng/divider';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 import { MetricData } from '../../../common/models/metrics.model';
-
-interface STIGManagerMetrics {
-  assetCount: number;
-  catICompliance: number;
-  catIICompliance: number;
-  catIIICompliance: number;
-  catIOpenCount: number;
-  catIIOpenCount: number;
-  catIIIOpenCount: number;
-  catIOpenRawCount: number;
-  catIIOpenRawCount: number;
-  catIIIOpenRawCount: number;
-  coraRiskScore: number;
-  coraRiskRating: string;
-  totalAssessments: number;
-  assessedCount: number;
-  submittedCount: number;
-  acceptedCount: number;
-  rejectedCount: number;
-  assessedPercentage: number;
-  fullyAssessedSTIGsCount: number;
-  totalSTIGsCount: number;
-}
+import { MetricsExportService } from '../metrics-export.service';
+import { STIGManagerMetrics, computeStigManagerMetrics, getEmptySTIGManagerMetrics } from './stigman-metrics.compute';
 
 @Component({
   selector: 'cpat-stigman-metrics',
@@ -54,17 +33,19 @@ interface STIGManagerMetrics {
   styleUrls: ['./stigman-metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ButtonModule, CardModule, ProgressBarModule, ProgressSpinnerModule, TooltipModule, ChartModule, DividerModule, TourPrimeNg]
+  imports: [ButtonModule, CardModule, ProgressBarModule, ProgressSpinnerModule, TooltipModule, CpatChartComponent, DividerModule, TourPrimeNg, DatePipe]
 })
 export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   private readonly sharedService = inject(SharedService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly messageService = inject(MessageService);
+  private readonly metricsExportService = inject(MetricsExportService);
 
-  @Input() collection: any;
-  @Output() componentInit = new EventEmitter<STIGManagerMetricsComponent>();
+  readonly collection = input<any>(undefined);
+  readonly componentInit = output<STIGManagerMetricsComponent>();
 
   isLoading = signal<boolean>(true);
+  isGlobalExporting = signal<boolean>(false);
   collectionName = signal<string>('');
   originCollectionId = signal<string>('');
   findingsChartData = signal<any>(null);
@@ -115,15 +96,17 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
-    if (this.collection) {
-      this.collectionName.set(this.collection.collectionName || '');
-      this.originCollectionId.set(this.collection.originCollectionId?.toString() || '');
+    const collection = this.collection();
+
+    if (collection) {
+      this.collectionName.set(collection.collectionName || '');
+      this.originCollectionId.set(collection.originCollectionId?.toString() || '');
       this.loadMetrics();
     }
   }
 
   private loadMetrics() {
-    if (!this.collection) return;
+    if (!this.collection()) return;
 
     this.isLoading.set(true);
     this.loadSTIGManagerMetrics()
@@ -213,11 +196,11 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   }
 
   private loadSTIGManagerMetrics() {
-    const collectionId = this.collection?.collectionId;
+    const collectionId = this.collection()?.collectionId;
     const originCollectionId = this.originCollectionId();
 
     if (!originCollectionId || !collectionId) {
-      return of(this.getEmptySTIGManagerMetrics());
+      return of(getEmptySTIGManagerMetrics());
     }
 
     return combineLatest([
@@ -227,165 +210,9 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
       this.collectionsService.getPoamsByCollection(collectionId)
     ]).pipe(
       map(([stigSummary, findings, collectionMetrics, poams]: [any, any[], any, any[]]) => {
-        let fullyAssessedSTIGsCount = 0;
-        let totalSTIGsCount = 0;
-        let aggregatedMetrics = {
-          assessments: 0,
-          assessed: 0,
-          findings: { high: 0, medium: 0, low: 0 },
-          assessedBySeverity: { high: 0, medium: 0, low: 0 },
-          assessmentsBySeverity: { high: 0, medium: 0, low: 0 },
-          statuses: { submitted: 0, accepted: 0, rejected: 0, saved: 0 }
-        };
-
-        const stigAssetCount = collectionMetrics?.assets || 0;
-        const stigAssessmentData: any[] = [];
-        const initialStigSummary = Array.isArray(stigSummary) ? stigSummary : stigSummary ? [stigSummary] : [];
-
-        const kiorVulnIds = new Set<string>();
-        const approvedVulnIds = new Set<string>();
-        const kiorLabelNames = new Set(['cora stig kior', 'cora stig kiors', 'stig kior', 'stig kiors', 'cora kior', 'cora kiors']);
-
-        poams.forEach((poam: any) => {
-          const hasKiorLabel = poam.labels?.some((label: any) => kiorLabelNames.has(label.labelName?.toLowerCase()));
-          const isApproved = poam.status === 'Approved';
-
-          if (hasKiorLabel || isApproved) {
-            if (poam.vulnerabilityId) {
-              if (hasKiorLabel) kiorVulnIds.add(poam.vulnerabilityId);
-              if (isApproved) approvedVulnIds.add(poam.vulnerabilityId);
-            }
-
-            poam.associatedVulnerabilities?.forEach((id: string) => {
-              if (hasKiorLabel) kiorVulnIds.add(id);
-              if (isApproved) approvedVulnIds.add(id);
-            });
-          }
-        });
-
-        const findingsByBenchmark = new Map<string, any[]>();
-        const findingsBySeverity = { high: [] as any[], medium: [] as any[], low: [] as any[] };
-
-        findings.forEach((f: any) => {
-          if (f.severity === 'high') findingsBySeverity.high.push(f);
-          else if (f.severity === 'medium') findingsBySeverity.medium.push(f);
-          else if (f.severity === 'low') findingsBySeverity.low.push(f);
-
-          f.stigs?.forEach((s: any) => {
-            if (!findingsByBenchmark.has(s.benchmarkId)) {
-              findingsByBenchmark.set(s.benchmarkId, []);
-            }
-
-            findingsByBenchmark.get(s.benchmarkId)!.push(f);
-          });
-        });
-
-        if (initialStigSummary.length > 0) {
-          totalSTIGsCount = initialStigSummary.length;
-
-          initialStigSummary.forEach((stig: any) => {
-            const metrics = stig.metrics || {};
-            const assessments = metrics.assessments || 0;
-            const assessed = metrics.assessed || 0;
-
-            if (assessments > 0 && assessed === assessments) {
-              fullyAssessedSTIGsCount++;
-            }
-
-            aggregatedMetrics.assessments += assessments;
-            aggregatedMetrics.assessed += assessed;
-
-            aggregatedMetrics.findings.high += metrics.findings?.high || 0;
-            aggregatedMetrics.findings.medium += metrics.findings?.medium || 0;
-            aggregatedMetrics.findings.low += metrics.findings?.low || 0;
-
-            aggregatedMetrics.assessedBySeverity.high += metrics.assessedBySeverity?.high || 0;
-            aggregatedMetrics.assessedBySeverity.medium += metrics.assessedBySeverity?.medium || 0;
-            aggregatedMetrics.assessedBySeverity.low += metrics.assessedBySeverity?.low || 0;
-
-            aggregatedMetrics.assessmentsBySeverity.high += metrics.assessmentsBySeverity?.high || 0;
-            aggregatedMetrics.assessmentsBySeverity.medium += metrics.assessmentsBySeverity?.medium || 0;
-            aggregatedMetrics.assessmentsBySeverity.low += metrics.assessmentsBySeverity?.low || 0;
-
-            aggregatedMetrics.statuses.submitted += metrics.statuses?.submitted || 0;
-            aggregatedMetrics.statuses.accepted += metrics.statuses?.accepted || 0;
-            aggregatedMetrics.statuses.rejected += metrics.statuses?.rejected || 0;
-            aggregatedMetrics.statuses.saved += metrics.statuses?.saved || 0;
-
-            const findingsData = metrics.findings || { high: 0, medium: 0, low: 0 };
-            const totalFindings = findingsData.high + findingsData.medium + findingsData.low;
-
-            const highPct = totalFindings > 0 ? (findingsData.high / totalFindings) * 100 : 0;
-            const mediumPct = totalFindings > 0 ? (findingsData.medium / totalFindings) * 100 : 0;
-            const lowPct = totalFindings > 0 ? (findingsData.low / totalFindings) * 100 : 0;
-
-            const stigFindings = findingsByBenchmark.get(stig.benchmarkId) || [];
-            const kiorCount = stigFindings.filter((f: any) => kiorVulnIds.has(f.groupId)).length;
-
-            stigAssessmentData.push({
-              title: stig.title,
-              benchmarkId: stig.benchmarkId,
-              assets: stig.assets || 0,
-              totalFindings,
-              highPercentage: highPct,
-              mediumPercentage: mediumPct,
-              lowPercentage: lowPct,
-              findings: findingsData,
-              assessed: Math.round((stig.metrics.assessed / stig.metrics.assessments) * 100),
-              kiorCount
-            });
-          });
-        }
+        const { metrics, stigAssessmentData } = computeStigManagerMetrics(stigSummary, findings, collectionMetrics, poams);
 
         this.stigsAssessmentData.set(stigAssessmentData);
-
-        const totalAssessments = aggregatedMetrics.assessments;
-        const assessed = aggregatedMetrics.assessed;
-        const submitted = aggregatedMetrics.statuses.submitted;
-        const accepted = aggregatedMetrics.statuses.accepted;
-        const rejected = aggregatedMetrics.statuses.rejected;
-
-        const assessedPercentage = totalAssessments > 0 ? (assessed / totalAssessments) * 100 : 0;
-
-        const rawFindings = aggregatedMetrics.findings;
-        const assessedBySeverity = aggregatedMetrics.assessedBySeverity;
-        const assessmentsBySeverity = aggregatedMetrics.assessmentsBySeverity;
-
-        const catIOpenRawCount = rawFindings.high || 0;
-        const catIIOpenRawCount = rawFindings.medium || 0;
-        const catIIIOpenRawCount = rawFindings.low || 0;
-
-        const catIOpenCount = findingsBySeverity.high.length;
-        const catIIOpenCount = findingsBySeverity.medium.length;
-        const catIIIOpenCount = findingsBySeverity.low.length;
-
-        const catICompliance = this.calculateSTIGComplianceFromFindings(findingsBySeverity.high, approvedVulnIds);
-        const catIICompliance = this.calculateSTIGComplianceFromFindings(findingsBySeverity.medium, approvedVulnIds);
-        const catIIICompliance = this.calculateSTIGComplianceFromFindings(findingsBySeverity.low, approvedVulnIds);
-        const coraData = this.calculateCORAScore(assessmentsBySeverity, assessedBySeverity, rawFindings);
-
-        const metrics = {
-          assetCount: stigAssetCount,
-          catICompliance,
-          catIICompliance,
-          catIIICompliance,
-          catIOpenCount,
-          catIIOpenCount,
-          catIIIOpenCount,
-          catIOpenRawCount,
-          catIIOpenRawCount,
-          catIIIOpenRawCount,
-          coraRiskScore: coraData.score,
-          coraRiskRating: coraData.rating,
-          totalAssessments,
-          assessedCount: assessed,
-          submittedCount: submitted,
-          acceptedCount: accepted,
-          rejectedCount: rejected,
-          assessedPercentage,
-          fullyAssessedSTIGsCount,
-          totalSTIGsCount
-        };
 
         setTimeout(() => {
           this.prepareChartsData();
@@ -397,58 +224,9 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
       catchError(() => {
         this.stigsAssessmentData.set([]);
 
-        return of(this.getEmptySTIGManagerMetrics());
+        return of(getEmptySTIGManagerMetrics());
       })
     );
-  }
-
-  private calculateSTIGComplianceFromFindings(findings: any[], approvedVulnIds: Set<string>): number {
-    if (findings.length === 0) return 100;
-    const findingsWithApprovedPoams = findings.filter((finding) => approvedVulnIds.has(finding.groupId)).length;
-
-    return (findingsWithApprovedPoams / findings.length) * 100;
-  }
-
-  private calculateCORAScore(assessmentsBySeverity: any, assessedBySeverity: any, findings: any): { score: number; rating: string } {
-    const catITotal = assessmentsBySeverity.high || 0;
-    const catIITotal = assessmentsBySeverity.medium || 0;
-    const catIIITotal = assessmentsBySeverity.low || 0;
-
-    const catIAssessed = assessedBySeverity.high || 0;
-    const catIIAssessed = assessedBySeverity.medium || 0;
-    const catIIIAssessed = assessedBySeverity.low || 0;
-
-    const catIOpen = findings.high || 0;
-    const catIIOpen = findings.medium || 0;
-    const catIIIOpen = findings.low || 0;
-
-    const catIUnassessed = catITotal - catIAssessed;
-    const catIIUnassessed = catIITotal - catIIAssessed;
-    const catIIIUnassessed = catIIITotal - catIIIAssessed;
-
-    const catIPercentage = catITotal > 0 ? ((catIOpen + catIUnassessed) / catITotal) * 100 : 0;
-    const catIIPercentage = catIITotal > 0 ? ((catIIOpen + catIIUnassessed) / catIITotal) * 100 : 0;
-    const catIIIPercentage = catIIITotal > 0 ? ((catIIIOpen + catIIIUnassessed) / catIIITotal) * 100 : 0;
-
-    const weightedSum = catIPercentage * 10 + catIIPercentage * 4 + catIIIPercentage * 1;
-    const totalWeight = 10 + 4 + 1;
-    const weightedAverage = weightedSum / totalWeight;
-
-    let rating: string;
-
-    if (weightedAverage === 0) {
-      rating = 'Very Low';
-    } else if (catIPercentage === 0 && catIIPercentage < 5 && catIIIPercentage < 5) {
-      rating = 'Low';
-    } else if (weightedAverage < 10) {
-      rating = 'Moderate';
-    } else if (weightedAverage < 20) {
-      rating = 'High';
-    } else {
-      rating = 'Very High';
-    }
-
-    return { score: weightedAverage, rating };
   }
 
   private getSTIGManagerMetricsDisplay(loading: boolean): MetricData[] {
@@ -528,31 +306,6 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
     ];
   }
 
-  private getEmptySTIGManagerMetrics(): STIGManagerMetrics {
-    return {
-      assetCount: 0,
-      catICompliance: 0,
-      catIICompliance: 0,
-      catIIICompliance: 0,
-      catIOpenCount: 0,
-      catIIOpenCount: 0,
-      catIIIOpenCount: 0,
-      catIOpenRawCount: 0,
-      catIIOpenRawCount: 0,
-      catIIIOpenRawCount: 0,
-      coraRiskScore: 0,
-      coraRiskRating: 'Very Low',
-      totalAssessments: 0,
-      assessedCount: 0,
-      submittedCount: 0,
-      acceptedCount: 0,
-      rejectedCount: 0,
-      assessedPercentage: 0,
-      fullyAssessedSTIGsCount: 0,
-      totalSTIGsCount: 0
-    };
-  }
-
   getCoraRiskColor(riskScore: number): string {
     const m = this.stigManagerMetrics();
 
@@ -577,7 +330,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
 
   setChartOptions() {
     const documentStyle = getComputedStyle(document.documentElement);
-    const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
+    const textColorSecondary = documentStyle.getPropertyValue('--p-surface-400');
 
     return {
       maintainAspectRatio: false,
@@ -694,5 +447,35 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   refreshMetrics() {
     this.loadMetrics();
     this.now = new Date();
+  }
+
+  exportGlobalMetrics() {
+    if (this.isGlobalExporting()) return;
+
+    this.isGlobalExporting.set(true);
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Exporting',
+      detail: 'Compiling metrics for all collections. This may take a moment...'
+    });
+
+    this.metricsExportService.exportGlobalMetrics().subscribe({
+      next: () => {
+        this.isGlobalExporting.set(false);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Export Complete',
+          detail: 'Global metrics export downloaded successfully.'
+        });
+      },
+      error: (error) => {
+        this.isGlobalExporting.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Export Failed',
+          detail: `Error exporting global metrics: ${getErrorMessage(error)}`
+        });
+      }
+    });
   }
 }

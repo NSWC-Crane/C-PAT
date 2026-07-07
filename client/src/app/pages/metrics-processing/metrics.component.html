@@ -10,9 +10,9 @@
 
 <div class="metrics-container overflow-hidden">
   @if (collectionType() === 'STIG Manager') {
-    <cpat-stigman-metrics [collection]="selectedCollection()" (componentInit)="onSTIGManagerMetricsInit($event)"> </cpat-stigman-metrics>
+    <cpat-stigman-metrics [collection]="selectedCollection()" (componentInit)="onSTIGManagerMetricsInit($event)" />
   } @else {
-    <cpat-tenable-metrics [collection]="selectedCollection()" (componentInit)="onTenableMetricsInit($event)"> </cpat-tenable-metrics>
+    <cpat-tenable-metrics [collection]="selectedCollection()" (componentInit)="onTenableMetricsInit($event)" />
   }
   <div class="card flex flex-row two-col-panel">
     <div class="basis-2/5">
@@ -23,7 +23,7 @@
           <p-progress-spinner class="!w-12 !h-12" strokeWidth="3" animationDuration=".8s" />
         </div>
       } @else if (mttrSummaryChartData()) {
-        <p-chart type="bar" height="225px" [data]="mttrSummaryChartData()" [options]="horizontalBarChartOptions" />
+        <cpat-chart type="bar" height="225px" [data]="mttrSummaryChartData()" [options]="horizontalBarChartOptions" />
       } @else {
         <div class="no-data-message">No closed POAMs with data</div>
       }
@@ -39,7 +39,7 @@
           <p-progress-spinner class="!w-12 !h-12" strokeWidth="3" animationDuration=".8s" />
         </div>
       } @else if (mttrTrendChartData()) {
-        <p-chart type="line" height="225px" [data]="mttrTrendChartData()" [options]="lineChartOptions" />
+        <cpat-chart type="line" height="225px" [data]="mttrTrendChartData()" [options]="lineChartOptions" />
       } @else {
         <div class="no-data-message">No MTTR trend data available</div>
       }
@@ -47,4 +47,4 @@
   </div>
 </div>
 
-<p-toast position="top-right"></p-toast>
+<p-toast position="top-right" />

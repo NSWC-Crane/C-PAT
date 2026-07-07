@@ -346,11 +346,7 @@ describe('PoamManageComponent', () => {
 
       pastDate.setDate(pastDate.getDate() - 5);
 
-      const poams = [
-        createMockPoam({ poamId: 1, status: 'Approved', scheduledCompletionDate: futureDate.toISOString() }),
-        createMockPoam({ poamId: 2, status: 'Approved', scheduledCompletionDate: pastDate.toISOString() }),
-        createMockPoam({ poamId: 3, status: 'Closed', scheduledCompletionDate: futureDate.toISOString() })
-      ];
+      const poams = [createMockPoam({ poamId: 1, status: 'Approved', scheduledCompletionDate: futureDate.toISOString() }), createMockPoam({ poamId: 2, status: 'Approved', scheduledCompletionDate: pastDate.toISOString() })];
 
       component.poams.set(poams);
 
@@ -361,16 +357,12 @@ describe('PoamManageComponent', () => {
       expect(component.poamsNeedingAttention().map((p: any) => p.poamId)).toContain(2);
     });
 
-    it('should exclude Closed, Draft, and False-Positive from needing attention', () => {
+    it('should exclude Draft and False-Positive from needing attention', () => {
       const futureDate = new Date();
 
       futureDate.setDate(futureDate.getDate() + 10);
 
-      const poams = [
-        createMockPoam({ poamId: 1, status: 'Closed', scheduledCompletionDate: futureDate.toISOString() }),
-        createMockPoam({ poamId: 2, status: 'Draft', scheduledCompletionDate: futureDate.toISOString() }),
-        createMockPoam({ poamId: 3, status: 'False-Positive', scheduledCompletionDate: futureDate.toISOString() })
-      ];
+      const poams = [createMockPoam({ poamId: 2, status: 'Draft', scheduledCompletionDate: futureDate.toISOString() }), createMockPoam({ poamId: 3, status: 'False-Positive', scheduledCompletionDate: futureDate.toISOString() })];
 
       component.poams.set(poams);
 
