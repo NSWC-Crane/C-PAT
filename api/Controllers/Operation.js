@@ -25,6 +25,10 @@ module.exports.getConfiguration = async function getConfiguration(req, res, next
 
 module.exports.setConfigurationItem = async function setConfigurationItem(req, res, next) {
     try {
+        if (!req.userObject.isAdmin) {
+            throw new SmError.PrivilegeError('User has insufficient privilege to modify application configuration.');
+        }
+
         const { key, value } = req.body;
         if (!key || !value) {
             return res.status(400).json({ error: 'Key and value are required.' });
@@ -39,6 +43,10 @@ module.exports.setConfigurationItem = async function setConfigurationItem(req, r
 
 module.exports.deleteConfigurationItem = async function deleteConfigurationItem(req, res, next) {
     try {
+        if (!req.userObject.isAdmin) {
+            throw new SmError.PrivilegeError('User has insufficient privilege to delete application configuration.');
+        }
+
         const { key } = req.params;
 
         if (!key) {

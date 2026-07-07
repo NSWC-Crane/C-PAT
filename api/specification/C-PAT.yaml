@@ -2689,7 +2689,7 @@ paths:
         - Operation
       security:
         - oauth:
-            - 'c-pat:read'
+            - 'c-pat:op'
     delete:
       summary: Delete a configuration item
       operationId: deleteConfigurationItem
