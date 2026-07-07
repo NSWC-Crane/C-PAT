@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -36,6 +36,7 @@ interface ExportColumn {
   templateUrl: './tenableSolutions.component.html',
   styleUrls: ['./tenableSolutions.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, ButtonModule, DialogModule, SkeletonModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule, ToastModule]
 })
 export class TenableSolutionsComponent implements OnInit, OnDestroy {

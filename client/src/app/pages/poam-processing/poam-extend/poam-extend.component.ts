@@ -1,4 +1,4 @@
-/*
+﻿/*
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule, DatePipe } from '@angular/common';
-import { Component, DoCheck, OnDestroy, OnInit, inject, ViewChild } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DoCheck, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addDays, format, isAfter, parseISO, startOfDay } from 'date-fns';
@@ -22,7 +22,6 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TabsModule } from 'primeng/tabs';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { StepperModule } from 'primeng/stepper';
@@ -47,8 +46,8 @@ import { PoamService } from '../poams.service';
   templateUrl: './poam-extend.component.html',
   styleUrls: ['./poam-extend.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    CommonModule,
     FormsModule,
     AutoCompleteModule,
     ButtonModule,
@@ -58,7 +57,6 @@ import { PoamService } from '../poams.service';
     SelectModule,
     SplitButtonModule,
     InputTextModule,
-    MultiSelectModule,
     TabsModule,
     TextareaModule,
     TooltipModule,
@@ -73,7 +71,7 @@ import { PoamService } from '../poams.service';
   providers: [ConfirmationService, MessageService]
 })
 export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
-  @ViewChild('dt') table!: Table;
+  readonly table = viewChild.required<Table>('dt');
   private readonly assignedTeamService = inject(AssignedTeamService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -372,8 +370,10 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
     milestone.editing = false;
     delete this.clonedMilestones[milestone.milestoneId];
 
-    if (this.table) {
-      this.table.cancelRowEdit(milestone);
+    const table = this.table();
+
+    if (table) {
+      table.cancelRowEdit(milestone);
     }
   }
 
@@ -586,8 +586,10 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
 
     milestone.editing = false;
 
-    if (this.table) {
-      this.table.cancelRowEdit(milestone);
+    const table = this.table();
+
+    if (table) {
+      table.cancelRowEdit(milestone);
     }
   }
 

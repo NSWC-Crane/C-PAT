@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Classification } from './common/models/classification.model';
@@ -21,6 +21,7 @@ import { InactivityWarningComponent } from './common/components/inactivity-warni
   selector: 'cpat-app',
   templateUrl: './app.component.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, InactivityWarningComponent]
 })
 export class AppComponent implements OnInit, OnDestroy {

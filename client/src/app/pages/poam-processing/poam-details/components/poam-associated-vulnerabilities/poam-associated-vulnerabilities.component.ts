@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnChanges, OnInit, SimpleChanges, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnChanges, OnInit, SimpleChanges, inject, output, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
@@ -40,8 +40,6 @@ interface AutocompleteSuggestion {
 @Component({
   selector: 'cpat-poam-associated-vulnerabilities',
   templateUrl: './poam-associated-vulnerabilities.component.html',
-  standalone: true,
-  imports: [FormsModule, TableModule, ButtonModule, TagModule, ToastModule, TooltipModule, AutoCompleteModule],
   styles: [
     `
       :host ::ng-deep .p-datatable {
@@ -56,7 +54,10 @@ interface AutocompleteSuggestion {
         overflow: visible;
       }
     `
-  ]
+  ],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FormsModule, TableModule, ButtonModule, TagModule, ToastModule, TooltipModule, AutoCompleteModule]
 })
 export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges {
   private readonly importService = inject(ImportService);
@@ -64,10 +65,10 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   poamService = inject(PoamService);
   sharedService = inject(SharedService);
 
-  @Input() poamId: any;
-  @Input() accessLevel: number;
-  @Input() currentCollection: any;
-  @Input() poamAssociatedVulnerabilities: any[] = [];
+  readonly poamId = input<any>(undefined);
+  readonly accessLevel = input<number>(undefined);
+  readonly currentCollection = input<any>(undefined);
+  readonly poamAssociatedVulnerabilities = input<any[]>([]);
   readonly vulnerabilitiesChanged = output<string[]>();
   private readonly vulnTitleMap = new Map<string, string>();
   private readonly vulnSeverityMap = new Map<string, string>();
@@ -94,7 +95,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   }
 
   private initializeDisplayVulnerabilities(): void {
-    this.displayVulnerabilities = (this.poamAssociatedVulnerabilities || [])
+    this.displayVulnerabilities = (this.poamAssociatedVulnerabilities() || [])
       .filter((vuln) => vuln)
       .map((vuln) => {
         const vulnId = typeof vuln === 'string' ? vuln : vuln.associatedVulnerability;
@@ -144,15 +145,17 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   }
 
   getVulnTitles(): void {
-    if (this.currentCollection?.collectionType === 'STIG Manager' && this.currentCollection.originCollectionId) {
+    const currentCollection = this.currentCollection();
+
+    if (currentCollection?.collectionType === 'STIG Manager' && currentCollection.originCollectionId) {
       this.loadSTIGManagerData();
-    } else if (this.currentCollection?.collectionType === 'Tenable' && this.currentCollection.originCollectionId) {
+    } else if (currentCollection?.collectionType === 'Tenable' && currentCollection.originCollectionId) {
       this.loadTenableData();
     }
   }
 
   private loadSTIGManagerData(): void {
-    this.sharedService.getFindingsMetricsAndRulesFromSTIGMAN(this.currentCollection.originCollectionId).subscribe({
+    this.sharedService.getFindingsMetricsAndRulesFromSTIGMAN(this.currentCollection().originCollectionId).subscribe({
       next: (response: any) => {
         this.vulnTitleMap.clear();
         this.vulnSeverityMap.clear();
@@ -178,7 +181,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   }
 
   private loadTenableData(): void {
-    const collectionId = this.currentCollection.originCollectionId;
+    const collectionId = this.currentCollection().originCollectionId;
 
     this.importService
       .postTenableAnalysis({
@@ -316,7 +319,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
       return;
     }
 
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.currentCollection.collectionId).subscribe({
+    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.currentCollection().collectionId).subscribe({
       next: (response: any) => {
         const existingPoams = response;
         const newVulnerabilities = rowData.selectedVulnerabilities!.map((vulnId) => (typeof vulnId === 'string' ? vulnId.toUpperCase() : vulnId));
@@ -366,7 +369,6 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   private emitVulnerabilityChanges(): void {
     const updatedVulnerabilities = this.displayVulnerabilities.filter((item) => !item.isNew && item.associatedVulnerability).map((item) => item.associatedVulnerability);
 
-    this.poamAssociatedVulnerabilities = updatedVulnerabilities;
     this.vulnerabilitiesChanged.emit(updatedVulnerabilities);
   }
 }

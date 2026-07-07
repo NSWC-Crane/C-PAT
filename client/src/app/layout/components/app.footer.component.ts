@@ -8,15 +8,13 @@
 !##########################################################################
 */
 
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'cpat-footer',
-  standalone: true,
-  imports: [FormsModule, RouterModule, TooltipModule],
   template: `
     <section class="landing-footer bottom-0">
       <div class="landing-footer-container">
@@ -61,7 +59,10 @@ import { TooltipModule } from 'primeng/tooltip';
         </div>
       </div>
     </section>
-  `
+  `,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, RouterModule, TooltipModule]
 })
 export class AppFooterComponent {
   readonly docsDisabled: boolean;

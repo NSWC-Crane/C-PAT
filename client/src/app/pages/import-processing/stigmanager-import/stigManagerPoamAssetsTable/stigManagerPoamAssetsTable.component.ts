@@ -1,4 +1,4 @@
-/*
+﻿/*
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, inject, viewChildren, viewChild, effect } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Input, Component, OnDestroy, OnInit, inject, viewChildren, viewChild, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -39,6 +39,7 @@ interface ExportColumn {
   templateUrl: './stigManagerPoamAssetsTable.component.html',
   styleUrls: ['./stigManagerPoamAssetsTable.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ButtonModule, CardModule, CommonModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, MultiSelectModule, TabsModule, TableModule, ToastModule, TagModule, TooltipModule]
 })
 export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {

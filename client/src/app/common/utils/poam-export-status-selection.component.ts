@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -22,7 +22,6 @@ interface StatusOption {
 @Component({
   selector: 'cpat-poam-export-status-selection',
   standalone: true,
-  imports: [FormsModule, ListboxModule, ButtonModule],
   template: `
     <div class="flex flex-col min-w-[600px]">
       <div class="text-xl font-semibold mb-6 text-center">Select POAM Statuses to Export</div>
@@ -40,7 +39,9 @@ interface StatusOption {
         <p-button label="Confirm" severity="primary" [rounded]="true" (onClick)="confirm()" [disabled]="selectedStatuses.length === 0" />
       </div>
     </div>
-  `
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, ListboxModule, ButtonModule]
 })
 export class PoamExportStatusSelectionComponent {
   ref = inject(DynamicDialogRef);

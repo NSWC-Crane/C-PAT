@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -30,6 +30,7 @@ import { AssetService } from '../assets.service';
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ButtonModule, CardModule, DialogModule, Select, FormsModule, InputTextModule, TableModule, ToastModule]
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {

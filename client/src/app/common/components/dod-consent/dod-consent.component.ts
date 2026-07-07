@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -19,6 +19,7 @@ import { DialogModule } from 'primeng/dialog';
   templateUrl: './dod-consent.component.html',
   styleUrls: ['./dod-consent.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, DialogModule, FormsModule]
 })
 export class DoDConsentComponent implements OnInit {

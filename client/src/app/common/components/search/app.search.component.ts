@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AutoComplete } from 'primeng/autocomplete';
@@ -50,7 +50,8 @@ interface SearchItem {
         max-width: 100%;
       }
     `
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppSearchComponent {
   private readonly router = inject(Router);

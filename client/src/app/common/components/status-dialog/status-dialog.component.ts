@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -25,6 +25,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
     </p-dialog>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, DialogModule, FormsModule, ProgressBarModule]
 })
 export class StatusDialogComponent implements OnInit, OnDestroy {

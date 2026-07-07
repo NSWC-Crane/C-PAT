@@ -9,7 +9,7 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -23,6 +23,7 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
   selector: 'cpat-poam-approvers',
   templateUrl: './poam-approvers.component.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, TableModule, ButtonModule, TextareaModule, SelectModule, ToastModule]
 })
 export class PoamApproversComponent implements OnInit {

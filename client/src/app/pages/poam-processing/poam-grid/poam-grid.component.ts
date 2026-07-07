@@ -9,7 +9,7 @@
 */
 
 import { NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, Component, Input, OnDestroy, OnInit, computed, effect, signal, inject, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, computed, effect, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
@@ -45,6 +45,7 @@ import { TourPrimeNg } from 'ngx-ui-tour-primeng';
   templateUrl: './poam-grid.component.html',
   styleUrls: ['./poam-grid.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonModule, CardModule, SelectModule, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, NgTemplateOutlet, TableModule, TooltipModule, ToastModule, TagModule, TourPrimeNg]
 })
 export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {

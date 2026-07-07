@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, ElementRef, Input, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -25,6 +25,7 @@ import { PoamChatService } from '../../services/poam-chat.service';
   templateUrl: './poam-chat.component.html',
   styleUrls: ['./poam-chat.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule, ToastModule]
 })
 export class PoamChatComponent implements OnInit {

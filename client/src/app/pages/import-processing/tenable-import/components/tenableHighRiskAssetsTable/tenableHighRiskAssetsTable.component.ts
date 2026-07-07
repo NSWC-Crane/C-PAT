@@ -8,8 +8,8 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, inject, signal, viewChild } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, SimpleChanges, inject, signal, viewChild, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -47,13 +47,14 @@ export interface HighRiskAsset {
   templateUrl: './tenableHighRiskAssetsTable.component.html',
   styleUrls: ['./tenableHighRiskAssetsTable.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule, ProgressSpinnerModule, TableModule, TooltipModule, TenableHostDialogComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule, ProgressSpinnerModule, TableModule, TooltipModule, TenableHostDialogComponent, DecimalPipe]
 })
 export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy {
   private readonly csvExportService = inject(CsvExportService);
   private readonly importService = inject(ImportService);
 
-  @Input({ required: true }) tenableRepoId!: number;
+  readonly tenableRepoId = input.required<number>();
   private readonly highRiskAssetTable = viewChild.required<Table>('highRiskAssetTable');
   highRiskAssets = signal<HighRiskAsset[]>([]);
   highRiskAssetsTotalRecords = signal<number>(0);
@@ -65,7 +66,7 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
   private readonly subscriptions = new Subscription();
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['tenableRepoId'] && this.tenableRepoId) {
+    if (changes['tenableRepoId'] && this.tenableRepoId()) {
       this.loadHighRiskAssets();
     }
   }
@@ -91,7 +92,7 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
         startOffset: 0,
         endOffset: 10000,
         filters: [
-          this.createRepositoryFilter(this.tenableRepoId),
+          this.createRepositoryFilter(this.tenableRepoId()),
           {
             id: 'patchPublished',
             filterName: 'patchPublished',

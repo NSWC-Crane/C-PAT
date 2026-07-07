@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { Component, NgZone, OnDestroy, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, NgZone, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ImageModule } from 'primeng/image';
@@ -84,7 +83,8 @@ import { StepperModule } from 'primeng/stepper';
     `
   ],
   standalone: true,
-  imports: [ButtonModule, CommonModule, ImageModule, FormsModule, StepperModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ButtonModule, ImageModule, FormsModule, StepperModule]
 })
 export class VramPopupComponent implements OnDestroy {
   private readonly ngZone = inject(NgZone);

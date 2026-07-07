@@ -8,7 +8,6 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import type { EChartsType } from 'echarts/core';
 import { CardModule } from 'primeng/card';
@@ -57,7 +56,7 @@ function formatHourLabel(d: Date): string {
   styleUrl: './uptime-monitor.component.scss',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CardModule, DividerModule, SkeletonModule, TooltipModule]
+  imports: [CardModule, DividerModule, SkeletonModule, TooltipModule]
 })
 export class UptimeMonitorComponent implements OnInit, OnDestroy {
   private readonly uptimeService = inject(UptimeService);

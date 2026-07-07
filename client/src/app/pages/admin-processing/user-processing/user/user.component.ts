@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -79,7 +78,8 @@ interface PermissionChangeSummary {
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   standalone: true,
-  imports: [AutoCompleteModule, ButtonModule, CardModule, CommonModule, ConfirmDialogModule, SelectModule, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, StepperModule, TableModule, ToastModule, TooltipModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [AutoCompleteModule, ButtonModule, CardModule, ConfirmDialogModule, SelectModule, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, StepperModule, TableModule, ToastModule, TooltipModule],
   providers: [ConfirmationService, MessageService]
 })
 export class UserComponent implements OnInit, OnChanges, OnDestroy {

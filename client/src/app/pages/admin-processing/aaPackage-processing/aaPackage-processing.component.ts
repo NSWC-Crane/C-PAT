@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -27,6 +27,7 @@ import { AAPackageService } from './aaPackage-processing.service';
   templateUrl: './aaPackage-processing.component.html',
   styleUrls: ['./aaPackage-processing.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule, TooltipModule]
 })
 export class AAPackageProcessingComponent implements OnInit {
@@ -65,7 +66,7 @@ export class AAPackageProcessingComponent implements OnInit {
     const table = this.table();
 
     if (table) {
-      table.first = 0;
+      table.first.set(0);
     }
 
     setTimeout(() => {

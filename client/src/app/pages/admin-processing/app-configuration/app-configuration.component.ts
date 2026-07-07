@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -26,6 +26,7 @@ import { AppConfigurationService } from './app-configuration.service';
   templateUrl: './app-configuration.component.html',
   styleUrls: ['./app-configuration.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
 })
 export class AppConfigurationComponent implements OnInit {

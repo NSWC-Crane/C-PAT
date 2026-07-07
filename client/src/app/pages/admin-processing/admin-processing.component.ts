@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, OnInit, OnDestroy, inject, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -30,6 +30,7 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
   templateUrl: './admin-processing.component.html',
   styleUrls: ['./admin-processing.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AAPackageProcessingComponent,
     AppConfigurationComponent,

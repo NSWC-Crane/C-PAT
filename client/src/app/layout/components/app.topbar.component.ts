@@ -8,8 +8,7 @@
 !##########################################################################
 */
 
-import { CommonModule } from '@angular/common';
-import { Component, DOCUMENT, ElementRef, Input, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, ElementRef, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -30,8 +29,6 @@ import { PayloadService } from '../../common/services/setPayload.service';
 
 @Component({
   selector: 'cpat-topbar',
-  standalone: true,
-  imports: [BadgeModule, OverlayBadgeModule, AppSearchComponent, CommonModule, FormsModule, StyleClass, RouterModule, ButtonModule, AppConfiguratorComponent, Popover, TooltipModule, NotificationsPanelComponent],
   template: `<div class="layout-topbar">
     <div class="layout-topbar-inner">
       <div class="layout-topbar-logo-container">
@@ -81,9 +78,9 @@ import { PayloadService } from '../../common/services/setPayload.service';
           <cpat-search />
         </li>
         <li>
-          <p-button class="topbar-item" [icon]="isDarkMode() ? 'pi pi-moon' : 'pi pi-sun'" (click)="toggleDarkMode()" [text]="true" />
+          <button pButton class="topbar-item" [text]="true" (click)="toggleDarkMode()"><i [class]="isDarkMode() ? 'pi pi-moon' : 'pi pi-sun'" pButtonIcon></i></button>
         </li>
-        @if (showConfigurator) {
+        @if (showConfigurator()) {
           <li class="relative">
             <button
               pButton
@@ -107,7 +104,7 @@ import { PayloadService } from '../../common/services/setPayload.service';
         }
         <li>
           <p-overlaybadge styleClass="!outline-0 opacity-80 !mr-px !mt-px" badgeSize="small" [value]="notificationCount > 0 ? notificationCount.toString() : '0'">
-            <p-button class="topbar-item overflow-visible" icon="pi pi-bell" [text]="true" (click)="op.toggle($event)" (keyup.enter)="op.toggle($event)" />
+            <button pButton class="topbar-item overflow-visible" [text]="true" (click)="op.toggle($event)" (keyup.enter)="op.toggle($event)"><i class="pi pi-bell" pButtonIcon></i></button>
           </p-overlaybadge>
           <p-popover #op class="overlay" [dismissable]="true">
             <cpat-notifications-popover [overlayPanel]="op" />
@@ -122,7 +119,10 @@ import { PayloadService } from '../../common/services/setPayload.service';
         </li>
       </ul>
     </div>
-  </div>`
+  </div>`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [BadgeModule, OverlayBadgeModule, AppSearchComponent, FormsModule, StyleClass, RouterModule, ButtonModule, AppConfiguratorComponent, Popover, TooltipModule, NotificationsPanelComponent]
 })
 export class AppTopBarComponent implements OnInit, OnDestroy {
   private readonly document = inject<Document>(DOCUMENT);
@@ -134,7 +134,7 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
   private readonly notificationService = inject(NotificationService);
   private readonly payloadService = inject(PayloadService);
 
-  @Input({ transform: booleanAttribute }) showConfigurator = true;
+  readonly showConfigurator = input(true, { transform: booleanAttribute });
   scrollListener: VoidFunction | null = null;
   private readonly window: Window;
   notificationCount: number | null = null;

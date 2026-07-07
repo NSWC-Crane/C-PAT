@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, Input, OnInit, signal, inject, viewChild, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, signal, inject, viewChild, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { addDays, isAfter, parseISO, startOfDay } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -43,6 +43,7 @@ export interface Milestone {
   templateUrl: './poam-milestones.component.html',
   styleUrls: ['./poam-milestones.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, ButtonModule, DatePicker, MultiSelectModule, TableModule, TagModule, ToastModule, DialogModule, ConfirmDialogModule, SelectModule, TextareaModule, TooltipModule],
   providers: [DatePipe, ConfirmationService, MessageService]
 })

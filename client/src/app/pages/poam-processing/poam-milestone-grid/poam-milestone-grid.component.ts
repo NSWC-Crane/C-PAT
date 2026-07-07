@@ -9,7 +9,7 @@
 */
 
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, Input, computed, signal, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, computed, signal, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { addDays, format, isAfter, parseISO, startOfDay } from 'date-fns';
@@ -54,6 +54,7 @@ const EXCLUDED_POAM_STATUSES = new Set(['Closed', 'Draft']);
   templateUrl: './poam-milestone-grid.component.html',
   styleUrl: './poam-milestone-grid.component.scss',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgTemplateOutlet, ButtonModule, CardModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, TableModule, TabsModule, TagModule, TooltipModule, TourPrimeNg]
 })
 export class PoamMilestoneGridComponent {

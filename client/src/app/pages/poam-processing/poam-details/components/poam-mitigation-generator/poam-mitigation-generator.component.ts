@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, OnChanges, SimpleChanges, signal, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, signal, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -24,6 +24,7 @@ import { PoamService } from '../../../poams.service';
 @Component({
   selector: 'cpat-poam-mitigation-generator',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, ButtonModule, TextareaModule, ProgressBarModule, TooltipModule, DialogModule, SplitButtonModule, ToastModule],
   templateUrl: './poam-mitigation-generator.component.html'
 })

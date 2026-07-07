@@ -9,7 +9,7 @@
 */
 
 import { CommonModule, DatePipe, Location } from '@angular/common';
-import { Component, DoCheck, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DoCheck, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { format, parse, parseISO } from 'date-fns';
@@ -79,6 +79,7 @@ interface PoamAction {
   templateUrl: './poam-details.component.html',
   styleUrls: ['./poam-details.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AccordionModule,
     CommonModule,

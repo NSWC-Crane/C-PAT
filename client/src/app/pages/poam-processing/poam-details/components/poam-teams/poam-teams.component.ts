@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Component, Input, inject, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -24,6 +24,7 @@ import { PoamService } from '../../../poams.service';
   selector: 'cpat-poam-teams',
   templateUrl: './poam-teams.component.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, TableModule, ProgressBarModule, SelectModule, ButtonModule, ToastModule]
 })
 export class PoamTeamsComponent {
