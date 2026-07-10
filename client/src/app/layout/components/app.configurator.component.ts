@@ -12,7 +12,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { $t, updatePreset, updateSurfacePalette } from '@primeuix/themes';
-import Aura from '@primeuix/themes/aura';
+import Aura from '@primeuix/themes/aura-compat';
 import { ButtonModule } from 'primeng/button';
 import { PrimeNG } from 'primeng/config';
 import { RadioButtonModule } from 'primeng/radiobutton';
@@ -812,13 +812,13 @@ export class AppConfiguratorComponent implements OnInit {
 
     switch (name) {
       case 'Lara':
-        preset = (await import('@primeuix/themes/lara')).default;
+        preset = (await import('@primeuix/themes/lara-compat')).default;
         break;
       case 'Material':
-        preset = (await import('@primeuix/themes/material')).default;
+        preset = (await import('@primeuix/themes/material-compat')).default;
         break;
       case 'Nora':
-        preset = (await import('@primeuix/themes/nora')).default;
+        preset = (await import('@primeuix/themes/nora-compat')).default;
         break;
       default:
         preset = Aura;
