@@ -9,7 +9,7 @@
 */
 
 import { definePreset } from '@primeuix/themes';
-import Aura from '@primeuix/themes/aura';
+import Aura from '@primeuix/themes/aura-compat';
 
 const Noir = definePreset(Aura, {
   semantic: {

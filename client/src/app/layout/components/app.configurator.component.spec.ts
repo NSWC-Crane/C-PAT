@@ -32,10 +32,10 @@ function createMockPrimitive() {
   return primitive;
 }
 
-vi.mock('@primeuix/themes/aura', () => ({ default: { primitive: createMockPrimitive() } }));
-vi.mock('@primeuix/themes/lara', () => ({ default: { primitive: createMockPrimitive() } }));
-vi.mock('@primeuix/themes/material', () => ({ default: { primitive: createMockPrimitive() } }));
-vi.mock('@primeuix/themes/nora', () => ({ default: { primitive: createMockPrimitive() } }));
+vi.mock('@primeuix/themes/aura-compat', () => ({ default: { primitive: createMockPrimitive() } }));
+vi.mock('@primeuix/themes/lara-compat', () => ({ default: { primitive: createMockPrimitive() } }));
+vi.mock('@primeuix/themes/material-compat', () => ({ default: { primitive: createMockPrimitive() } }));
+vi.mock('@primeuix/themes/nora-compat', () => ({ default: { primitive: createMockPrimitive() } }));
 
 function createAppState(overrides: any = {}) {
   return {
