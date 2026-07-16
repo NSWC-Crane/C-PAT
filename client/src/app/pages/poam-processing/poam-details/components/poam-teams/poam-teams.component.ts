@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, inject, output, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, output, input, model } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -29,6 +30,7 @@ import { PoamService } from '../../../poams.service';
 })
 export class PoamTeamsComponent {
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly poam = input<any>(undefined);
   readonly accessLevel = input<number>(undefined);
@@ -165,6 +167,7 @@ export class PoamTeamsComponent {
     if (poam.poamId !== 'ADDPOAM' && assignedTeamData.assignedTeamId) {
       this.poamService()
         .deletePoamAssignedTeam(+poam.poamId, +assignedTeamData.assignedTeamId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
             this.poamAssignedTeams.set(this.poamAssignedTeams().filter((a: any) => a.assignedTeamId !== assignedTeamData.assignedTeamId));

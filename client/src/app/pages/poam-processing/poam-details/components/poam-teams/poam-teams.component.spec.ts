@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 import { PoamTeamsComponent } from './poam-teams.component';
@@ -850,6 +850,29 @@ describe('PoamTeamsComponent', () => {
           })
         );
       });
+    });
+  });
+
+  describe('cleanup', () => {
+    it('stops applying team deletion after destroy (takeUntilDestroyed)', () => {
+      const delete$ = new Subject<any>();
+
+      fixture.componentRef.setInput('poam', { poamId: 100 });
+      component.poamAssignedTeams.set([createTeam({ assignedTeamId: 1 }), createTeam({ assignedTeamId: 2 })]);
+      mockPoamService.deletePoamAssignedTeam.mockReturnValue(delete$.asObservable());
+      fixture.detectChanges();
+
+      component.confirmDeleteAssignedTeam(createTeam({ assignedTeamId: 1 }));
+
+      fixture.destroy();
+      delete$.next({});
+
+      expect(component.poamAssignedTeams()).toHaveLength(2);
+    });
+
+    it('does not throw on destroy', () => {
+      fixture.detectChanges();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
