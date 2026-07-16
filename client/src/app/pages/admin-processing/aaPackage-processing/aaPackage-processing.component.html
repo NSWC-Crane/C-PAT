@@ -11,7 +11,7 @@
 <div class="grid grid-cols-12 gap-4">
   <div class="col-span-12">
     <div class="scrollable-aaPackages overflow-hidden">
-      <p-table #dt [value]="aaPackages" [globalFilterFields]="['aaPackageId', 'aaPackage']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="aaPackageId" editMode="row">
+      <p-table #dt [value]="aaPackages()" [globalFilterFields]="['aaPackageId', 'aaPackage']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="aaPackageId" editMode="row">
         <ng-template #caption>
           <div class="flex items-center justify-between">
             <p-iconfield iconPosition="left">

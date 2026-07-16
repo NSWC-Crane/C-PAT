@@ -79,7 +79,7 @@ describe('AAPackageProcessingComponent', () => {
     });
 
     it('should default aaPackages to empty array', () => {
-      expect(component.aaPackages).toEqual([]);
+      expect(component.aaPackages()).toEqual([]);
     });
 
     it('should default newAAPackage with aaPackageId 0', () => {
@@ -99,20 +99,20 @@ describe('AAPackageProcessingComponent', () => {
 
     it('should populate aaPackages after init', () => {
       component.ngOnInit();
-      expect(component.aaPackages).toEqual(mockPackages);
+      expect(component.aaPackages()).toEqual(mockPackages);
     });
   });
 
   describe('loadAAPackages', () => {
     it('should set aaPackages on success', () => {
       component.loadAAPackages();
-      expect(component.aaPackages).toEqual(mockPackages);
+      expect(component.aaPackages()).toEqual(mockPackages);
     });
 
     it('should set aaPackages to empty array when response is null', () => {
       mockAAPackageService.getAAPackages.mockReturnValue(of(null));
       component.loadAAPackages();
-      expect(component.aaPackages).toEqual([]);
+      expect(component.aaPackages()).toEqual([]);
     });
 
     it('should show error message on failure', () => {
@@ -124,7 +124,7 @@ describe('AAPackageProcessingComponent', () => {
 
   describe('onAddNewClick', () => {
     beforeEach(() => {
-      component.aaPackages = [...mockPackages];
+      component.aaPackages.set([...mockPackages]);
     });
 
     it('should prepend new package with aaPackageId 0', () => {
@@ -132,17 +132,17 @@ describe('AAPackageProcessingComponent', () => {
 
       (component as any).table = vi.fn().mockReturnValue(mockTable);
       component.onAddNewClick();
-      expect(component.aaPackages[0]).toEqual({ aaPackageId: 0, aaPackage: '' });
+      expect(component.aaPackages()[0]).toEqual({ aaPackageId: 0, aaPackage: '' });
     });
 
     it('should increase aaPackages length by 1', () => {
       const mockTable = { first: signal(0), initRowEdit: vi.fn() };
 
       (component as any).table = vi.fn().mockReturnValue(mockTable);
-      const previousLength = component.aaPackages.length;
+      const previousLength = component.aaPackages().length;
 
       component.onAddNewClick();
-      expect(component.aaPackages.length).toBe(previousLength + 1);
+      expect(component.aaPackages().length).toBe(previousLength + 1);
     });
 
     it('should reset table.first to 0', () => {
@@ -159,7 +159,7 @@ describe('AAPackageProcessingComponent', () => {
       (component as any).table = vi.fn().mockReturnValue(mockTable);
       component.newAAPackage = { aaPackageId: 5, aaPackage: 'old' };
       component.onAddNewClick();
-      expect(component.aaPackages[0]).toEqual({ aaPackageId: 0, aaPackage: '' });
+      expect(component.aaPackages()[0]).toEqual({ aaPackageId: 0, aaPackage: '' });
     });
   });
 
@@ -177,7 +177,7 @@ describe('AAPackageProcessingComponent', () => {
     it('should call postAAPackage when aaPackageId is 0', () => {
       const newPkg = { aaPackageId: 0, aaPackage: 'New Package' };
 
-      component.aaPackages = [newPkg];
+      component.aaPackages.set([newPkg]);
       component.onRowEditSave(newPkg);
       expect(mockAAPackageService.postAAPackage).toHaveBeenCalledWith(newPkg);
     });
@@ -192,15 +192,15 @@ describe('AAPackageProcessingComponent', () => {
     it('should replace placeholder in aaPackages after post', () => {
       const newPkg = { aaPackageId: 0, aaPackage: 'New Package' };
 
-      component.aaPackages = [newPkg, ...mockPackages];
+      component.aaPackages.set([newPkg, ...mockPackages]);
       component.onRowEditSave(newPkg);
-      expect(component.aaPackages[0].aaPackageId).toBe(99);
+      expect(component.aaPackages()[0].aaPackageId).toBe(99);
     });
 
     it('should show success message with Added for new package', () => {
       const newPkg = { aaPackageId: 0, aaPackage: 'New Package' };
 
-      component.aaPackages = [newPkg];
+      component.aaPackages.set([newPkg]);
       component.onRowEditSave(newPkg);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: 'A&A Package Added' }));
     });
@@ -230,7 +230,7 @@ describe('AAPackageProcessingComponent', () => {
       mockAAPackageService.postAAPackage.mockReturnValue(throwError(() => new Error('Error')));
       const newPkg = { aaPackageId: 0, aaPackage: 'New Package' };
 
-      component.aaPackages = [newPkg];
+      component.aaPackages.set([newPkg]);
       component.onRowEditSave(newPkg);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
     });
@@ -240,23 +240,23 @@ describe('AAPackageProcessingComponent', () => {
     it('should remove package with aaPackageId 0 from list', () => {
       const newPkg = { aaPackageId: 0, aaPackage: '' };
 
-      component.aaPackages = [newPkg, ...mockPackages];
+      component.aaPackages.set([newPkg, ...mockPackages]);
       component.onRowEditCancel(newPkg, 0);
-      expect(component.aaPackages.some((p) => p.aaPackageId === 0)).toBe(false);
+      expect(component.aaPackages().some((p) => p.aaPackageId === 0)).toBe(false);
     });
 
     it('should restore original package when cancelling edit of existing', () => {
       component.editingAAPackage = { aaPackageId: 1, aaPackage: 'Original' };
       const modifiedPkg = { aaPackageId: 1, aaPackage: 'Modified' };
 
-      component.aaPackages = [...mockPackages];
+      component.aaPackages.set([...mockPackages]);
       component.onRowEditCancel(modifiedPkg, 0);
-      expect(component.aaPackages[0]).toEqual({ aaPackageId: 1, aaPackage: 'Original' });
+      expect(component.aaPackages()[0]).toEqual({ aaPackageId: 1, aaPackage: 'Original' });
     });
 
     it('should clear editingAAPackage after cancel', () => {
       component.editingAAPackage = { aaPackageId: 1, aaPackage: 'Original' };
-      component.aaPackages = [...mockPackages];
+      component.aaPackages.set([...mockPackages]);
       component.onRowEditCancel(mockPackages[0], 0);
       expect(component.editingAAPackage).toBeNull();
     });
@@ -264,32 +264,32 @@ describe('AAPackageProcessingComponent', () => {
 
   describe('onRowDelete', () => {
     it('should call deleteAAPackage with correct id', () => {
-      component.aaPackages = [...mockPackages];
+      component.aaPackages.set([...mockPackages]);
       component.onRowDelete(mockPackages[0]);
       expect(mockAAPackageService.deleteAAPackage).toHaveBeenCalledWith(1);
     });
 
     it('should remove package from aaPackages on success', () => {
-      component.aaPackages = [...mockPackages];
+      component.aaPackages.set([...mockPackages]);
       component.onRowDelete(mockPackages[0]);
-      expect(component.aaPackages.some((p) => p.aaPackageId === 1)).toBe(false);
+      expect(component.aaPackages().some((p) => p.aaPackageId === 1)).toBe(false);
     });
 
     it('should keep remaining packages after delete', () => {
-      component.aaPackages = [...mockPackages];
+      component.aaPackages.set([...mockPackages]);
       component.onRowDelete(mockPackages[0]);
-      expect(component.aaPackages.length).toBe(2);
+      expect(component.aaPackages().length).toBe(2);
     });
 
     it('should show success message on delete', () => {
-      component.aaPackages = [...mockPackages];
+      component.aaPackages.set([...mockPackages]);
       component.onRowDelete(mockPackages[0]);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: 'A&A Package Deleted' }));
     });
 
     it('should show error message on failure', () => {
       mockAAPackageService.deleteAAPackage.mockReturnValue(throwError(() => new Error('Error')));
-      component.aaPackages = [...mockPackages];
+      component.aaPackages.set([...mockPackages]);
       component.onRowDelete(mockPackages[0]);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
     });
