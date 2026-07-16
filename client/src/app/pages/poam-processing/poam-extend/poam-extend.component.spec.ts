@@ -154,7 +154,7 @@ describe('PoamExtendComponent', () => {
     mockPoamMitigationService = {
       loadTeamMitigations: vi.fn().mockReturnValue(of([])),
       initializeTeamMitigations: vi.fn().mockResolvedValue([]),
-      syncTeamMitigations: vi.fn(),
+      syncTeamMitigations: vi.fn().mockReturnValue(of([])),
       saveTeamMitigation: vi.fn().mockReturnValue(of({})),
       saveAllTeamMitigations: vi.fn()
     };
@@ -214,12 +214,12 @@ describe('PoamExtendComponent', () => {
     });
 
     it('should have default property values', () => {
-      expect(component.displayExtensionDialog).toBe(false);
-      expect(component.mitigationSaving).toBe(false);
-      expect(component.activeTabIndex).toBe(0);
-      expect(component.poamAssignedTeams).toEqual([]);
-      expect(component.teamMitigations).toEqual([]);
-      expect(component.poamMilestones).toEqual([]);
+      expect(component.displayExtensionDialog()).toBe(false);
+      expect(component.mitigationSaving()).toBe(false);
+      expect(component.activeTabIndex()).toBe(0);
+      expect(component.poamAssignedTeams()).toEqual([]);
+      expect(component.teamMitigations()).toEqual([]);
+      expect(component.poamMilestones()).toEqual([]);
     });
 
     it('should have extension time options defined', () => {
@@ -250,7 +250,7 @@ describe('PoamExtendComponent', () => {
   describe('ngOnInit', () => {
     it('should open the extension dialog', () => {
       fixture.detectChanges();
-      expect(component.displayExtensionDialog).toBe(true);
+      expect(component.displayExtensionDialog()).toBe(true);
     });
 
     it('should extract poamId from route params', () => {
@@ -314,24 +314,24 @@ describe('PoamExtendComponent', () => {
       });
 
       it('should set extensionJustification from extension data', () => {
-        expect(component.extensionJustification).toBe('Need more time');
+        expect(component.extensionJustification()).toBe('Need more time');
       });
 
       it('should parse milestone dates by splitting on T', () => {
-        expect(component.poamMilestones[0].milestoneDate).toBe('2025-06-01');
-        expect(component.poamMilestones[0].milestoneChangeDate).toBe('2025-06-10');
+        expect(component.poamMilestones()[0].milestoneDate).toBe('2025-06-01');
+        expect(component.poamMilestones()[0].milestoneChangeDate).toBe('2025-06-10');
       });
 
       it('should set assignedTeamOptions', () => {
-        expect(component.assignedTeamOptions).toEqual(mockAssignedTeams);
+        expect(component.assignedTeamOptions()).toEqual(mockAssignedTeams);
       });
 
       it('should set poamAssignedTeams', () => {
-        expect(component.poamAssignedTeams).toEqual(mockPoamAssignedTeams);
+        expect(component.poamAssignedTeams()).toEqual(mockPoamAssignedTeams);
       });
 
       it('should compute completionDateWithExtension as extensionDays from the current day, not the stored deadline', () => {
-        expect(component.completionDateWithExtension).toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
+        expect(component.completionDateWithExtension()).toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
       });
 
       it('should call loadTeamMitigations', () => {
@@ -359,7 +359,7 @@ describe('PoamExtendComponent', () => {
       });
 
       it('should compute completionDateWithExtension from addDays', () => {
-        expect(component.completionDateWithExtension).toBeTruthy();
+        expect(component.completionDateWithExtension()).toBeTruthy();
       });
     });
 
@@ -379,7 +379,7 @@ describe('PoamExtendComponent', () => {
       });
 
       it('should set completionDateWithExtension to empty string', () => {
-        expect(component.completionDateWithExtension).toBe('');
+        expect(component.completionDateWithExtension()).toBe('');
       });
     });
 
@@ -396,11 +396,11 @@ describe('PoamExtendComponent', () => {
       });
 
       it('should set extensionJustification to empty string', () => {
-        expect(component.extensionJustification).toBe('');
+        expect(component.extensionJustification()).toBe('');
       });
 
       it('should set completionDateWithExtension to empty string', () => {
-        expect(component.completionDateWithExtension).toBe('');
+        expect(component.completionDateWithExtension()).toBe('');
       });
 
       it('should use fallback values for poam fields', () => {
@@ -416,7 +416,7 @@ describe('PoamExtendComponent', () => {
       });
 
       it('should default poamAssignedTeams to empty array', () => {
-        expect(component.poamAssignedTeams).toEqual([]);
+        expect(component.poamAssignedTeams()).toEqual([]);
       });
     });
   });
@@ -428,16 +428,16 @@ describe('PoamExtendComponent', () => {
 
     describe('onAddNewMilestone', () => {
       it('should add a new milestone to the beginning of the list', () => {
-        const originalLength = component.poamMilestones.length;
+        const originalLength = component.poamMilestones().length;
 
         component.onAddNewMilestone();
-        expect(component.poamMilestones.length).toBe(originalLength + 1);
-        expect(component.poamMilestones[0].isNew).toBe(true);
+        expect(component.poamMilestones().length).toBe(originalLength + 1);
+        expect(component.poamMilestones()[0].isNew).toBe(true);
       });
 
       it('should set default values on new milestone', () => {
         component.onAddNewMilestone();
-        const newMilestone = component.poamMilestones[0];
+        const newMilestone = component.poamMilestones()[0];
 
         expect(newMilestone.milestoneComments).toBeNull();
         expect(newMilestone.milestoneDate).toBeNull();
@@ -448,12 +448,12 @@ describe('PoamExtendComponent', () => {
 
       it('should generate a temp id', () => {
         component.onAddNewMilestone();
-        expect(component.poamMilestones[0].milestoneId).toMatch(/^temp_/);
+        expect(component.poamMilestones()[0].milestoneId).toMatch(/^temp_/);
       });
 
       it('should clone the new milestone for editing', () => {
         component.onAddNewMilestone();
-        const id = component.poamMilestones[0].milestoneId;
+        const id = component.poamMilestones()[0].milestoneId;
 
         expect(component.clonedMilestones[id]).toBeDefined();
       });
@@ -487,19 +487,19 @@ describe('PoamExtendComponent', () => {
     describe('onRowEditCancel', () => {
       it('should remove new milestones from list', () => {
         component.onAddNewMilestone();
-        const milestone = component.poamMilestones[0];
+        const milestone = component.poamMilestones()[0];
 
         component.onRowEditCancel(milestone, 0);
-        expect(component.poamMilestones.find((m: any) => m.milestoneId === milestone.milestoneId)).toBeUndefined();
+        expect(component.poamMilestones().find((m: any) => m.milestoneId === milestone.milestoneId)).toBeUndefined();
       });
 
       it('should restore cloned milestone for existing milestones', () => {
-        const milestone = component.poamMilestones[0];
+        const milestone = component.poamMilestones()[0];
 
         component.onRowEditInit(milestone);
         milestone.milestoneComments = 'Changed';
         component.onRowEditCancel(milestone, 0);
-        expect(component.poamMilestones[0].milestoneComments).toBe('Milestone 1');
+        expect(component.poamMilestones()[0].milestoneComments).toBe('Milestone 1');
       });
 
       it('should set editing to false', () => {
@@ -574,7 +574,7 @@ describe('PoamExtendComponent', () => {
 
       it('should fail if milestone date exceeds completion date with extension', () => {
         component.poam.extensionDays = 30;
-        component.completionDateWithExtension = '2025-06-20';
+        component.completionDateWithExtension.set('2025-06-20');
         const futureDate = new Date(2025, 6, 1);
         const result = (component as any).validateMilestoneDates({ milestoneChangeDate: futureDate });
 
@@ -639,9 +639,9 @@ describe('PoamExtendComponent', () => {
 
     describe('deleteMilestone', () => {
       it('should splice milestone if no milestoneId', () => {
-        component.poamMilestones = [{ milestoneId: null }, { milestoneId: 1 }];
-        component.deleteMilestone(component.poamMilestones[0], 0);
-        expect(component.poamMilestones).toHaveLength(1);
+        component.poamMilestones.set([{ milestoneId: null }, { milestoneId: 1 }]);
+        component.deleteMilestone(component.poamMilestones()[0], 0);
+        expect(component.poamMilestones()).toHaveLength(1);
       });
 
       it('should call confirmationService.confirm for milestones with id', () => {
@@ -671,14 +671,14 @@ describe('PoamExtendComponent', () => {
 
       it('should initialize team mitigations when none exist but teams are assigned', () => {
         mockPoamMitigationService.loadTeamMitigations.mockReturnValue(of([]));
-        component.poamAssignedTeams = [{ assignedTeamId: 10 }];
+        component.poamAssignedTeams.set([{ assignedTeamId: 10 }]);
         component.loadTeamMitigations();
         expect(mockPoamMitigationService.initializeTeamMitigations).toHaveBeenCalled();
       });
 
       it('should sync team mitigations when both exist', () => {
         mockPoamMitigationService.loadTeamMitigations.mockReturnValue(of([{ assignedTeamId: 10, mitigationText: 'test' }]));
-        component.poamAssignedTeams = [{ assignedTeamId: 10 }];
+        component.poamAssignedTeams.set([{ assignedTeamId: 10 }]);
         component.loadTeamMitigations();
         expect(mockPoamMitigationService.syncTeamMitigations).toHaveBeenCalled();
       });
@@ -692,7 +692,7 @@ describe('PoamExtendComponent', () => {
       it('should handle case when poam is undefined', () => {
         component.poam = null;
         component.loadTeamMitigations();
-        expect(component.teamMitigations).toEqual([]);
+        expect(component.teamMitigations()).toEqual([]);
       });
     });
 
@@ -708,7 +708,7 @@ describe('PoamExtendComponent', () => {
         const tm = { assignedTeamId: 10, assignedTeamName: 'Team Alpha' };
 
         component.saveTeamMitigation(tm);
-        expect(component.mitigationSaving).toBe(false);
+        expect(component.mitigationSaving()).toBe(false);
       });
 
       it('should show success message on save', () => {
@@ -732,7 +732,7 @@ describe('PoamExtendComponent', () => {
         mockPoamMitigationService.saveTeamMitigation.mockReturnValue(throwError(() => new Error('fail')));
         component.saveTeamMitigation({ assignedTeamId: 10, assignedTeamName: 'Team Alpha' });
         expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
-        expect(component.mitigationSaving).toBe(false);
+        expect(component.mitigationSaving()).toBe(false);
       });
     });
 
@@ -749,9 +749,9 @@ describe('PoamExtendComponent', () => {
       });
 
       it('should update team mitigation when teamId matches', () => {
-        component.teamMitigations = [{ assignedTeamId: 10, assignedTeamName: 'Team Alpha', mitigationText: '' }];
+        component.teamMitigations.set([{ assignedTeamId: 10, assignedTeamName: 'Team Alpha', mitigationText: '' }]);
         component.onMitigationGenerated({ mitigation: 'Team mitigation', teamId: 10 });
-        expect(component.teamMitigations[0].mitigationText).toBe('Team mitigation');
+        expect(component.teamMitigations()[0].mitigationText).toBe('Team mitigation');
       });
 
       it('should show success message', () => {
@@ -762,19 +762,19 @@ describe('PoamExtendComponent', () => {
 
     describe('_ensureUniqueTeamMitigations', () => {
       it('should remove duplicate team mitigations', () => {
-        component.teamMitigations = [
+        component.teamMitigations.set([
           { assignedTeamId: 10, mitigationText: 'first' },
           { assignedTeamId: 10, mitigationText: 'duplicate' },
           { assignedTeamId: 20, mitigationText: 'second' }
-        ];
+        ]);
         (component as any)._ensureUniqueTeamMitigations();
-        expect(component.teamMitigations).toHaveLength(2);
+        expect(component.teamMitigations()).toHaveLength(2);
       });
 
       it('should handle non-array teamMitigations', () => {
-        component.teamMitigations = null as any;
+        component.teamMitigations.set(null as any);
         (component as any)._ensureUniqueTeamMitigations();
-        expect(component.teamMitigations).toEqual([]);
+        expect(component.teamMitigations()).toEqual([]);
       });
     });
   });
@@ -789,20 +789,20 @@ describe('PoamExtendComponent', () => {
         component.poam.extensionDays = 0;
         component.poam.scheduledCompletionDate = '2025-06-15';
         component.computeDeadlineWithExtension();
-        expect(component.completionDateWithExtension).toContain('2025');
+        expect(component.completionDateWithExtension()).toContain('2025');
       });
 
       it('should use scheduledCompletionDate when extensionDays is null', () => {
         component.poam.extensionDays = null;
         component.poam.scheduledCompletionDate = '2025-06-15';
         component.computeDeadlineWithExtension();
-        expect(component.completionDateWithExtension).toContain('2025');
+        expect(component.completionDateWithExtension()).toContain('2025');
       });
 
       it('should add extensionDays to current date when extensionDays > 0', () => {
         component.poam.extensionDays = 30;
         component.computeDeadlineWithExtension();
-        expect(component.completionDateWithExtension).toBeTruthy();
+        expect(component.completionDateWithExtension()).toBeTruthy();
       });
     });
 
@@ -824,17 +824,17 @@ describe('PoamExtendComponent', () => {
 
     describe('openModal', () => {
       it('should set displayExtensionDialog to true', () => {
-        component.displayExtensionDialog = false;
+        component.displayExtensionDialog.set(false);
         component.openModal();
-        expect(component.displayExtensionDialog).toBe(true);
+        expect(component.displayExtensionDialog()).toBe(true);
       });
     });
 
     describe('cancelExtension', () => {
       it('should set displayExtensionDialog to false', () => {
-        component.displayExtensionDialog = true;
+        component.displayExtensionDialog.set(true);
         component.cancelExtension();
-        expect(component.displayExtensionDialog).toBe(false);
+        expect(component.displayExtensionDialog()).toBe(false);
       });
 
       it('should navigate to poam details', () => {
@@ -889,10 +889,10 @@ describe('PoamExtendComponent', () => {
       mockPoamMitigationService.loadTeamMitigations.mockReturnValue(of([{ assignedTeamId: 10, isActive: true, mitigationText: 'Valid team mitigation' }]));
       initComponentWithAccess(2);
       await vi.runAllTimersAsync();
-      component.extensionJustification = 'Valid justification';
+      component.extensionJustification.set('Valid justification');
       component.poam.extensionDays = 30;
       component.poam.mitigations = 'Valid mitigation';
-      component.poamMilestones = [
+      component.poamMilestones.set([
         {
           milestoneId: 1,
           milestoneDate: '2025-06-01',
@@ -903,11 +903,11 @@ describe('PoamExtendComponent', () => {
           editing: false,
           isNew: false
         }
-      ];
+      ]);
     });
 
     it('should fail if there are unsaved milestones', async () => {
-      component.poamMilestones = [{ editing: true }];
+      component.poamMilestones.set([{ editing: true }]);
       await component.submitPoamExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Unsaved Changes' }));
       expect(mockPoamExtensionService.putPoamExtension).not.toHaveBeenCalled();
@@ -920,7 +920,7 @@ describe('PoamExtendComponent', () => {
     });
 
     it('should fail if extensionJustification is empty', async () => {
-      component.extensionJustification = '';
+      component.extensionJustification.set('');
       await component.submitPoamExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: 'Justification for Extension is required.' }));
     });
@@ -934,22 +934,22 @@ describe('PoamExtendComponent', () => {
 
     it('should fail for non-global finding with teams but no team mitigation text', async () => {
       component.poam.isGlobalFinding = false;
-      component.poamAssignedTeams = [{ assignedTeamId: 10, assignedTeamName: 'Alpha' }];
-      component.teamMitigations = [{ assignedTeamId: 10, assignedTeamName: 'Alpha', isActive: true, mitigationText: '' }];
+      component.poamAssignedTeams.set([{ assignedTeamId: 10, assignedTeamName: 'Alpha' }]);
+      component.teamMitigations.set([{ assignedTeamId: 10, assignedTeamName: 'Alpha', isActive: true, mitigationText: '' }]);
       await component.submitPoamExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: 'A mitigation is required for the following team(s): Alpha.' }));
     });
 
     it('should fail when only some teams have mitigation text', async () => {
       component.poam.isGlobalFinding = false;
-      component.poamAssignedTeams = [
+      component.poamAssignedTeams.set([
         { assignedTeamId: 10, assignedTeamName: 'Alpha' },
         { assignedTeamId: 20, assignedTeamName: 'Bravo' }
-      ];
-      component.teamMitigations = [
+      ]);
+      component.teamMitigations.set([
         { assignedTeamId: 10, assignedTeamName: 'Alpha', isActive: true, mitigationText: 'done' },
         { assignedTeamId: 20, assignedTeamName: 'Bravo', isActive: true, mitigationText: '' }
-      ];
+      ]);
       await component.submitPoamExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: 'A mitigation is required for the following team(s): Bravo.' }));
       expect(mockPoamExtensionService.putPoamExtension).not.toHaveBeenCalled();
@@ -957,9 +957,9 @@ describe('PoamExtendComponent', () => {
 
     it('should fail when a team has no non-completed milestone', async () => {
       component.poam.isGlobalFinding = false;
-      component.poamAssignedTeams = [{ assignedTeamId: 10, assignedTeamName: 'Alpha' }];
-      component.teamMitigations = [{ assignedTeamId: 10, assignedTeamName: 'Alpha', isActive: true, mitigationText: 'done' }];
-      component.poamMilestones = [
+      component.poamAssignedTeams.set([{ assignedTeamId: 10, assignedTeamName: 'Alpha' }]);
+      component.teamMitigations.set([{ assignedTeamId: 10, assignedTeamName: 'Alpha', isActive: true, mitigationText: 'done' }]);
+      component.poamMilestones.set([
         {
           milestoneId: 1,
           milestoneChangeDate: '2025-06-15',
@@ -969,7 +969,7 @@ describe('PoamExtendComponent', () => {
           editing: false,
           isNew: false
         }
-      ];
+      ]);
       await component.submitPoamExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('not in a Completed status. Missing for: Alpha') }));
       expect(mockPoamExtensionService.putPoamExtension).not.toHaveBeenCalled();
@@ -978,46 +978,46 @@ describe('PoamExtendComponent', () => {
     it('should fail for non-global finding without teams and no mitigations', async () => {
       component.poam.isGlobalFinding = false;
       component.poam.mitigations = '';
-      component.poamAssignedTeams = [];
+      component.poamAssignedTeams.set([]);
       await component.submitPoamExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: 'Mitigations are required.' }));
     });
 
     it('should fail if milestone has change date but no comments', async () => {
-      component.poamMilestones = [
+      component.poamMilestones.set([
         {
           milestoneChangeDate: '2025-06-15',
           milestoneChangeComments: null,
           milestoneDate: '2025-06-01',
           editing: false
         }
-      ];
+      ]);
       await component.submitPoamExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('change date must also have change comments') }));
     });
 
     it('should fail if past-due milestones have no change date', async () => {
-      component.poamMilestones = [
+      component.poamMilestones.set([
         {
           milestoneDate: '2020-01-01',
           milestoneChangeDate: null,
           milestoneChangeComments: null,
           editing: false
         }
-      ];
+      ]);
       await component.submitPoamExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('past-due milestones') }));
     });
 
     it('should fail if no milestone has both change comments and change date', async () => {
-      component.poamMilestones = [
+      component.poamMilestones.set([
         {
           milestoneDate: '2025-12-01',
           milestoneChangeDate: null,
           milestoneChangeComments: null,
           editing: false
         }
-      ];
+      ]);
       await component.submitPoamExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('At least one milestone') }));
     });
@@ -1034,14 +1034,14 @@ describe('PoamExtendComponent', () => {
     });
 
     it('should fail if there are unsaved milestones', () => {
-      component.poamMilestones = [{ editing: true }];
+      component.poamMilestones.set([{ editing: true }]);
       component.approveExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Unsaved Changes' }));
     });
 
     it('should call putPoamExtension with Approved status', () => {
-      component.poamMilestones = [];
-      component.extensionJustification = 'test';
+      component.poamMilestones.set([]);
+      component.extensionJustification.set('test');
       component.approveExtension();
       expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(expect.objectContaining({ status: 'Approved' }));
     });
@@ -1053,14 +1053,14 @@ describe('PoamExtendComponent', () => {
     });
 
     it('should fail if there are unsaved milestones', () => {
-      component.poamMilestones = [{ isNew: true }];
+      component.poamMilestones.set([{ isNew: true }]);
       component.rejectExtension();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Unsaved Changes' }));
     });
 
     it('should call putPoamExtension with Rejected status', () => {
-      component.poamMilestones = [];
-      component.extensionJustification = 'test';
+      component.poamMilestones.set([]);
+      component.extensionJustification.set('test');
       component.rejectExtension();
       expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(expect.objectContaining({ status: 'Rejected' }));
     });
@@ -1069,7 +1069,7 @@ describe('PoamExtendComponent', () => {
   describe('putPoamExtension', () => {
     beforeEach(() => {
       initComponentWithAccess(2);
-      component.extensionJustification = 'Test justification';
+      component.extensionJustification.set('Test justification');
     });
 
     it('should construct extension data correctly', () => {
@@ -1130,7 +1130,7 @@ describe('PoamExtendComponent', () => {
 
     it('should save all team mitigations for non-global findings with mitigations', () => {
       component.poam.isGlobalFinding = false;
-      component.teamMitigations = [{ assignedTeamId: 10 }];
+      component.teamMitigations.set([{ assignedTeamId: 10 }]);
       (component as any).putPoamExtension('Approved');
       expect(mockPoamMitigationService.saveAllTeamMitigations).toHaveBeenCalled();
     });
@@ -1148,10 +1148,10 @@ describe('PoamExtendComponent', () => {
     });
 
     it('should close dialog after timeout on success', () => {
-      component.displayExtensionDialog = true;
+      component.displayExtensionDialog.set(true);
       (component as any).putPoamExtension('Approved');
       vi.advanceTimersByTime(1000);
-      expect(component.displayExtensionDialog).toBe(false);
+      expect(component.displayExtensionDialog()).toBe(false);
     });
 
     it('should show error on null response', () => {
@@ -1212,62 +1212,58 @@ describe('PoamExtendComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
+  describe('cleanup', () => {
+    it('should tear down the selectedCollection subscription on destroy', () => {
       fixture.detectChanges();
-      accessLevelSubject.next(2);
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+      expect(component.selectedCollection).toBe(1);
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      fixture.destroy();
+      selectedCollectionSubject.next(99);
+
+      expect(component.selectedCollection).toBe(1);
     });
 
-    it('should unsubscribe from payloadSubscription', () => {
+    it('should tear down the payload trio on destroy', () => {
       fixture.detectChanges();
-      const payloadSubs = (component as any).payloadSubscription;
-      const spies = payloadSubs.map((sub: any) => vi.spyOn(sub, 'unsubscribe'));
+      fixture.destroy();
+      accessLevelSubject.next(5);
 
-      component.ngOnDestroy();
-      spies.forEach((spy: any) => expect(spy).toHaveBeenCalled());
+      expect(mockPoamService.getPoam).not.toHaveBeenCalled();
     });
 
-    it('should handle cleanup when no subscriptions exist', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
+    it('should not throw when destroyed immediately', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 
   describe('isExtensionInvalid', () => {
     it('should return empty set fields when no poam', () => {
       component.poam = null;
-      component.ngDoCheck();
       expect(component.isExtensionInvalid('extensionDays')).toBe(false);
     });
 
     it('should flag extensionDays and justification when empty', () => {
       component.poam = { isGlobalFinding: false, extensionDays: 0, mitigations: 'x' };
-      component.poamAssignedTeams = [];
-      component.extensionJustification = '';
-      component.ngDoCheck();
+      component.poamAssignedTeams.set([]);
+      component.extensionJustification.set('');
       expect(component.isExtensionInvalid('extensionDays')).toBe(true);
       expect(component.isExtensionInvalid('extensionJustification')).toBe(true);
     });
 
     it('should flag global mitigations when empty for a global finding', () => {
       component.poam = { isGlobalFinding: true, extensionDays: 30, mitigations: '' };
-      component.extensionJustification = 'Resource Constraints';
-      component.ngDoCheck();
+      component.extensionJustification.set('Resource Constraints');
       expect(component.isExtensionInvalid('mitigations')).toBe(true);
     });
 
     it('should flag only the active team missing mitigation text', () => {
       component.poam = { isGlobalFinding: false, extensionDays: 30 };
-      component.extensionJustification = 'Resource Constraints';
-      component.poamAssignedTeams = [{ assignedTeamId: 10 }, { assignedTeamId: 20 }];
-      component.teamMitigations = [
+      component.extensionJustification.set('Resource Constraints');
+      component.poamAssignedTeams.set([{ assignedTeamId: 10 }, { assignedTeamId: 20 }]);
+      component.teamMitigations.set([
         { assignedTeamId: 10, isActive: true, mitigationText: '' },
         { assignedTeamId: 20, isActive: true, mitigationText: 'done' }
-      ];
-      component.ngDoCheck();
+      ]);
       expect(component.isExtensionInvalid('teamMitigation:10')).toBe(true);
       expect(component.isExtensionInvalid('teamMitigation:20')).toBe(false);
       expect(component.isExtensionInvalid('mitigations')).toBe(false);
@@ -1275,11 +1271,10 @@ describe('PoamExtendComponent', () => {
 
     it('should return no invalid fields when extension is fully populated', () => {
       component.poam = { isGlobalFinding: false, extensionDays: 30 };
-      component.extensionJustification = 'Resource Constraints';
-      component.poamAssignedTeams = [{ assignedTeamId: 10 }];
-      component.teamMitigations = [{ assignedTeamId: 10, isActive: true, mitigationText: 'done' }];
-      component.ngDoCheck();
-      expect(component.invalidExtensionFields.size).toBe(0);
+      component.extensionJustification.set('Resource Constraints');
+      component.poamAssignedTeams.set([{ assignedTeamId: 10 }]);
+      component.teamMitigations.set([{ assignedTeamId: 10, isActive: true, mitigationText: 'done' }]);
+      expect((component as any).computeInvalidExtensionFields().size).toBe(0);
     });
   });
 });
