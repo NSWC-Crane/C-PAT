@@ -10,9 +10,10 @@
 
 import { Injectable, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { Observable, firstValueFrom, of } from 'rxjs';
+import { Observable, catchError, firstValueFrom, forkJoin, map, of } from 'rxjs';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { PoamService } from '../../poams.service';
+import { TeamSyncChange } from './team-sync-changes';
 
 @Injectable({
   providedIn: 'root'
@@ -29,47 +30,54 @@ export class PoamResourceService {
     return this.poamService.getPoamTeamResources(poamId);
   }
 
-  syncTeamResources(poam: any, poamAssignedTeams: any[], teamResources: any[]): void {
+  syncTeamResources(poam: any, poamAssignedTeams: any[], teamResources: any[]): Observable<TeamSyncChange[]> {
     if (!poamAssignedTeams || poamAssignedTeams.length === 0) {
-      return;
+      return of([]);
     }
+
+    const ops: Observable<TeamSyncChange | null>[] = [];
 
     poamAssignedTeams.forEach((team) => {
       const existingResource = teamResources.find((r) => r.assignedTeamId === team.assignedTeamId);
 
       if (!existingResource) {
-        this.poamService
-          .postPoamTeamResource({
-            poamId: poam.poamId,
-            assignedTeamId: team.assignedTeamId,
-            resourceText: '',
-            isActive: true
-          })
-          .subscribe({
-            next: (response) => {
-              teamResources.push({
-                resourceId: response.resourceId,
-                assignedTeamId: team.assignedTeamId,
-                assignedTeamName: team.assignedTeamName,
-                resourceText: '',
-                isActive: true
-              });
+        ops.push(
+          this.poamService
+            .postPoamTeamResource({
+              poamId: poam.poamId,
+              assignedTeamId: team.assignedTeamId,
+              resourceText: '',
+              isActive: true
+            })
+            .pipe(
+              map((response) => ({
+                type: 'add' as const,
+                record: {
+                  resourceId: response.resourceId,
+                  assignedTeamId: team.assignedTeamId,
+                  assignedTeamName: team.assignedTeamName,
+                  resourceText: '',
+                  isActive: true
+                }
+              })),
+              catchError((error) => {
+                console.error('Error adding team resource:', error);
 
-              teamResources.sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName));
-            },
-            error: (error) => {
-              console.error('Error adding team resource:', error);
-            }
-          });
+                return of(null);
+              })
+            )
+        );
       } else if (!existingResource.isActive) {
-        this.poamService.updatePoamTeamResourceStatus(poam.poamId, team.assignedTeamId, true).subscribe({
-          next: () => {
-            existingResource.isActive = true;
-          },
-          error: (error) => {
-            console.error('Error updating team resource status:', error);
-          }
-        });
+        ops.push(
+          this.poamService.updatePoamTeamResourceStatus(poam.poamId, team.assignedTeamId, true).pipe(
+            map(() => ({ type: 'setActive' as const, assignedTeamId: team.assignedTeamId, isActive: true })),
+            catchError((error) => {
+              console.error('Error updating team resource status:', error);
+
+              return of(null);
+            })
+          )
+        );
       }
     });
 
@@ -77,16 +85,20 @@ export class PoamResourceService {
       const teamIsAssigned = poamAssignedTeams.some((team) => team.assignedTeamId === resource.assignedTeamId);
 
       if (!teamIsAssigned && resource.isActive) {
-        this.poamService.updatePoamTeamResourceStatus(poam.poamId, resource.assignedTeamId, false).subscribe({
-          next: () => {
-            resource.isActive = false;
-          },
-          error: (error) => {
-            console.error('Error updating team resource status:', error);
-          }
-        });
+        ops.push(
+          this.poamService.updatePoamTeamResourceStatus(poam.poamId, resource.assignedTeamId, false).pipe(
+            map(() => ({ type: 'setActive' as const, assignedTeamId: resource.assignedTeamId, isActive: false })),
+            catchError((error) => {
+              console.error('Error updating team resource status:', error);
+
+              return of(null);
+            })
+          )
+        );
       }
     });
+
+    return ops.length ? forkJoin(ops).pipe(map((changes) => changes.filter((change): change is TeamSyncChange => change !== null))) : of([]);
   }
 
   async initializeTeamResources(poam: any, poamAssignedTeams: any[], teamResources: any[]): Promise<any[]> {
