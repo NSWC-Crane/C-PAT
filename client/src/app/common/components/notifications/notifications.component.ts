@@ -9,7 +9,8 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, linkedSignal, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MessageService } from 'primeng/api';
@@ -18,7 +19,7 @@ import { CardModule } from 'primeng/card';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { Subscription, map } from 'rxjs';
+import { filter, map } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { NotificationService } from './notifications.service';
@@ -28,33 +29,39 @@ import { NotificationService } from './notifications.service';
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, CardModule, TableModule, ToastModule, SelectModule, FormsModule, DatePipe]
 })
-export class NotificationsComponent implements OnInit, OnDestroy {
+export class NotificationsComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly setPayloadService = inject(PayloadService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  notifications: any[] = [];
-  filteredNotifications: any[] = [];
-  filterStatus: string = 'Unread';
-  public isLoggedIn = false;
-  protected accessLevel: any;
-  user: any;
-  payload: any;
-  poam: any;
-  private readonly payloadSubscription: Subscription[] = [];
-  layout: 'list' | 'grid grid-cols-12 gap-4' = 'list';
-  sortField: string = 'timestamp';
-  sortOrder: number = -1;
+  readonly notifications = signal<any[]>([]);
+  readonly filterStatus = signal<string>('Unread');
+  readonly filteredNotifications = linkedSignal(() => {
+    const notifications = this.notifications();
+    const filterStatus = this.filterStatus();
+
+    if (filterStatus === 'Read') {
+      return notifications.filter((notification) => notification.read === 1);
+    } else if (filterStatus === 'Unread') {
+      return notifications.filter((notification) => notification.read === 0);
+    }
+
+    return [...notifications];
+  });
+  private readonly user = this.setPayloadService.user;
+  readonly sortField = signal<string>('timestamp');
+  readonly sortOrder = signal<number>(-1);
   sortOptions = [
     { label: 'Newest First', value: '!timestamp' },
     { label: 'Oldest First', value: 'timestamp' },
     { label: 'Title', value: 'title' }
   ];
-  sortKey: string = '!timestamp';
+  readonly sortKey = signal<string>('!timestamp');
 
   ngOnInit() {
     this.setPayload();
@@ -62,21 +69,14 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   setPayload() {
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
-        this.user = user;
-      }),
-      this.setPayloadService.payload$.subscribe((payload) => {
-        this.payload = payload;
-      }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
-        this.accessLevel = level;
-
-        if (this.accessLevel > 0) {
-          this.fetchNotifications();
-        }
-      })
-    );
+    this.setPayloadService.accessLevel$
+      .pipe(
+        filter((level) => level > 0),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.fetchNotifications();
+      });
   }
 
   fetchNotifications() {
@@ -92,8 +92,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (formattedNotifications) => {
-          this.notifications = formattedNotifications;
-          this.filterNotifications();
+          this.notifications.set(formattedNotifications);
         },
         error: (error) => {
           this.messageService.add({
@@ -119,30 +118,14 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     return message;
   }
 
-  filterNotifications() {
-    if (this.filterStatus === 'Read') {
-      this.filteredNotifications = this.notifications.filter((notification) => notification.read === 1);
-    } else if (this.filterStatus === 'Unread') {
-      this.filteredNotifications = this.notifications.filter((notification) => notification.read === 0);
-    } else {
-      this.filteredNotifications = [...this.notifications];
-    }
-  }
-
   resetFilter() {
-    this.filterStatus = 'Unread';
-    this.filterNotifications();
+    this.filterStatus.set('Unread');
   }
 
   deleteNotification(notification: any) {
     this.notificationService.deleteNotification(notification.notificationId).subscribe({
       next: () => {
-        const index = this.notifications.indexOf(notification);
-
-        if (index !== -1) {
-          this.notifications.splice(index, 1);
-        }
-
+        this.notifications.update((current) => current.filter((item) => item !== notification));
         this.fetchNotifications();
       },
       error: (error) => {
@@ -156,7 +139,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   dismissAllNotifications() {
-    if (!this.user?.userId) {
+    if (!this.user()?.userId) {
       console.error('User ID is not available');
 
       return;
@@ -177,7 +160,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   deleteAllNotifications() {
-    if (!this.user?.userId) {
+    if (!this.user()?.userId) {
       console.error('User ID is not available');
 
       return;
@@ -186,8 +169,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.notificationService.deleteAllNotifications().subscribe({
       next: () => {
         this.fetchNotifications();
-        this.notifications = [{ title: 'You have no new notifications...', read: 1 }];
-        this.filteredNotifications = [{ title: 'You have no new notifications...', read: 1 }];
+        this.notifications.set([{ title: 'You have no new notifications...', read: 1 }]);
+        this.filteredNotifications.set([{ title: 'You have no new notifications...', read: 1 }]);
       },
       error: (error) => {
         this.messageService.add({
@@ -203,11 +186,11 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     const value = event.value;
 
     if (value.indexOf('!') === 0) {
-      this.sortOrder = -1;
-      this.sortField = value.substring(1, value.length);
+      this.sortOrder.set(-1);
+      this.sortField.set(value.substring(1, value.length));
     } else {
-      this.sortOrder = 1;
-      this.sortField = value;
+      this.sortOrder.set(1);
+      this.sortField.set(value);
     }
   }
 
@@ -234,9 +217,5 @@ export class NotificationsComponent implements OnInit, OnDestroy {
         this.navigateToPOAM(+poamId);
       }
     }
-  }
-
-  ngOnDestroy(): void {
-    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }

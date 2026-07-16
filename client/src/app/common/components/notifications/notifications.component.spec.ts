@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
 import { NotificationsComponent } from './notifications.component';
@@ -38,8 +39,7 @@ describe('NotificationsComponent', () => {
     deleteAllNotifications: ReturnType<typeof vi.fn>;
   };
   let mockPayloadService: {
-    user$: BehaviorSubject<any>;
-    payload$: BehaviorSubject<any>;
+    user: WritableSignal<any>;
     accessLevel$: BehaviorSubject<number>;
   };
   let mockMessageService: any;
@@ -77,8 +77,7 @@ describe('NotificationsComponent', () => {
     };
 
     mockPayloadService = {
-      user$: new BehaviorSubject({ userId: 1, userName: 'testuser' }),
-      payload$: new BehaviorSubject({}),
+      user: signal<any>({ userId: 1, userName: 'testuser' }),
       accessLevel$: new BehaviorSubject(1)
     };
 
@@ -103,23 +102,19 @@ describe('NotificationsComponent', () => {
     });
 
     it('should have default filterStatus of Unread', () => {
-      expect(component.filterStatus).toBe('Unread');
-    });
-
-    it('should have default layout of list', () => {
-      expect(component.layout).toBe('list');
+      expect(component.filterStatus()).toBe('Unread');
     });
 
     it('should have default sortField of timestamp', () => {
-      expect(component.sortField).toBe('timestamp');
+      expect(component.sortField()).toBe('timestamp');
     });
 
     it('should have default sortOrder of -1 (descending)', () => {
-      expect(component.sortOrder).toBe(-1);
+      expect(component.sortOrder()).toBe(-1);
     });
 
     it('should have default sortKey of !timestamp', () => {
-      expect(component.sortKey).toBe('!timestamp');
+      expect(component.sortKey()).toBe('!timestamp');
     });
 
     it('should have sortOptions defined', () => {
@@ -132,14 +127,8 @@ describe('NotificationsComponent', () => {
   });
 
   describe('setPayload', () => {
-    it('should subscribe to user$', () => {
-      component.setPayload();
-      expect(component.user).toEqual({ userId: 1, userName: 'testuser' });
-    });
-
-    it('should subscribe to payload$', () => {
-      component.setPayload();
-      expect(component.payload).toEqual({});
+    it('should expose current user from the payload service', () => {
+      expect(component['user']()).toEqual({ userId: 1, userName: 'testuser' });
     });
 
     it('should fetch notifications when accessLevel > 0', () => {
@@ -159,14 +148,14 @@ describe('NotificationsComponent', () => {
     it('should fetch and format notifications', () => {
       component.fetchNotifications();
 
-      expect(component.notifications.length).toBe(3);
-      expect(component.notifications[0].formattedMessage).toBeTruthy();
+      expect(component.notifications().length).toBe(3);
+      expect(component.notifications()[0].formattedMessage).toBeTruthy();
     });
 
     it('should filter notifications after fetching', () => {
       component.fetchNotifications();
 
-      expect(component.filteredNotifications.length).toBe(2);
+      expect(component.filteredNotifications().length).toBe(2);
     });
 
     it('should show error message on fetch failure', () => {
@@ -187,8 +176,8 @@ describe('NotificationsComponent', () => {
 
       component.fetchNotifications();
 
-      expect(component.notifications).toEqual([]);
-      expect(component.filteredNotifications).toEqual([]);
+      expect(component.notifications()).toEqual([]);
+      expect(component.filteredNotifications()).toEqual([]);
     });
 
     it('should handle notification without timestamp', () => {
@@ -196,7 +185,7 @@ describe('NotificationsComponent', () => {
 
       component.fetchNotifications();
 
-      expect(component.notifications.length).toBe(1);
+      expect(component.notifications().length).toBe(1);
     });
   });
 
@@ -223,72 +212,76 @@ describe('NotificationsComponent', () => {
     });
   });
 
-  describe('filterNotifications', () => {
+  describe('filtering', () => {
     beforeEach(() => {
-      component.notifications = mockNotifications.map((n) => ({
-        ...n,
-        formattedMessage: component.formatMessage(n.message)
-      }));
+      component.notifications.set(
+        mockNotifications.map((n) => ({
+          ...n,
+          formattedMessage: component.formatMessage(n.message)
+        }))
+      );
     });
 
     it('should filter to show only unread notifications by default', () => {
-      component.filterStatus = 'Unread';
-      component.filterNotifications();
-      expect(component.filteredNotifications.every((n) => n.read === 0)).toBe(true);
+      component.filterStatus.set('Unread');
+      expect(component.filteredNotifications().every((n) => n.read === 0)).toBe(true);
     });
 
     it('should filter to show only read notifications', () => {
-      component.filterStatus = 'Read';
-      component.filterNotifications();
-      expect(component.filteredNotifications.every((n) => n.read === 1)).toBe(true);
+      component.filterStatus.set('Read');
+      expect(component.filteredNotifications().every((n) => n.read === 1)).toBe(true);
     });
 
     it('should show all notifications when filter is All', () => {
-      component.filterStatus = 'All';
-      component.filterNotifications();
-      expect(component.filteredNotifications.length).toBe(3);
+      component.filterStatus.set('All');
+      expect(component.filteredNotifications().length).toBe(3);
     });
   });
 
   describe('resetFilter', () => {
     beforeEach(() => {
-      component.notifications = mockNotifications.map((n) => ({
-        ...n,
-        formattedMessage: component.formatMessage(n.message)
-      }));
+      component.notifications.set(
+        mockNotifications.map((n) => ({
+          ...n,
+          formattedMessage: component.formatMessage(n.message)
+        }))
+      );
     });
 
     it('should reset filterStatus to Unread', () => {
-      component.filterStatus = 'All';
+      component.filterStatus.set('All');
       component.resetFilter();
-      expect(component.filterStatus).toBe('Unread');
+      expect(component.filterStatus()).toBe('Unread');
     });
 
-    it('should call filterNotifications after reset', () => {
-      const filterSpy = vi.spyOn(component, 'filterNotifications');
+    it('should update filtered notifications after reset', () => {
+      component.filterStatus.set('All');
+      expect(component.filteredNotifications().length).toBe(3);
 
       component.resetFilter();
-      expect(filterSpy).toHaveBeenCalled();
+      expect(component.filteredNotifications().every((n) => n.read === 0)).toBe(true);
     });
   });
 
   describe('deleteNotification', () => {
     beforeEach(() => {
-      component.notifications = mockNotifications.map((n) => ({
-        ...n,
-        formattedMessage: component.formatMessage(n.message)
-      }));
+      component.notifications.set(
+        mockNotifications.map((n) => ({
+          ...n,
+          formattedMessage: component.formatMessage(n.message)
+        }))
+      );
     });
 
     it('should call deleteNotification service method', () => {
-      const notification = component.notifications[0];
+      const notification = component.notifications()[0];
 
       component.deleteNotification(notification);
       expect(mockNotificationService.deleteNotification).toHaveBeenCalledWith(notification.notificationId);
     });
 
     it('should refresh notifications after deletion', () => {
-      const notification = component.notifications[0];
+      const notification = component.notifications()[0];
 
       mockNotificationService.getAllNotifications.mockClear();
 
@@ -299,7 +292,7 @@ describe('NotificationsComponent', () => {
 
     it('should show error message on delete failure', () => {
       mockNotificationService.deleteNotification.mockReturnValue(throwError(() => new Error('Delete failed')));
-      const notification = component.notifications[0];
+      const notification = component.notifications()[0];
 
       component.deleteNotification(notification);
 
@@ -314,11 +307,12 @@ describe('NotificationsComponent', () => {
 
   describe('dismissAllNotifications', () => {
     beforeEach(() => {
-      component.user = { userId: 1, userName: 'testuser' };
-      component.notifications = mockNotifications.map((n) => ({
-        ...n,
-        formattedMessage: component.formatMessage(n.message)
-      }));
+      component.notifications.set(
+        mockNotifications.map((n) => ({
+          ...n,
+          formattedMessage: component.formatMessage(n.message)
+        }))
+      );
     });
 
     it('should call dismissAllNotifications service method', () => {
@@ -334,7 +328,7 @@ describe('NotificationsComponent', () => {
     });
 
     it('should not call service if user is not available', () => {
-      component.user = null;
+      mockPayloadService.user.set(null);
       mockNotificationService.dismissAllNotifications.mockClear();
       component.dismissAllNotifications();
       expect(mockNotificationService.dismissAllNotifications).not.toHaveBeenCalled();
@@ -355,11 +349,12 @@ describe('NotificationsComponent', () => {
 
   describe('deleteAllNotifications', () => {
     beforeEach(() => {
-      component.user = { userId: 1, userName: 'testuser' };
-      component.notifications = mockNotifications.map((n) => ({
-        ...n,
-        formattedMessage: component.formatMessage(n.message)
-      }));
+      component.notifications.set(
+        mockNotifications.map((n) => ({
+          ...n,
+          formattedMessage: component.formatMessage(n.message)
+        }))
+      );
     });
 
     it('should call deleteAllNotifications service method', () => {
@@ -370,12 +365,12 @@ describe('NotificationsComponent', () => {
     it('should set empty state notifications after deleting all', () => {
       component.deleteAllNotifications();
 
-      expect(component.notifications).toEqual([{ title: 'You have no new notifications...', read: 1 }]);
-      expect(component.filteredNotifications).toEqual([{ title: 'You have no new notifications...', read: 1 }]);
+      expect(component.notifications()).toEqual([{ title: 'You have no new notifications...', read: 1 }]);
+      expect(component.filteredNotifications()).toEqual([{ title: 'You have no new notifications...', read: 1 }]);
     });
 
     it('should not call service if user is not available', () => {
-      component.user = null;
+      mockPayloadService.user.set(null);
       mockNotificationService.deleteAllNotifications.mockClear();
       component.deleteAllNotifications();
       expect(mockNotificationService.deleteAllNotifications).not.toHaveBeenCalled();
@@ -397,20 +392,20 @@ describe('NotificationsComponent', () => {
   describe('onSortChange', () => {
     it('should set descending sort order for values starting with !', () => {
       component.onSortChange({ value: '!timestamp' });
-      expect(component.sortOrder).toBe(-1);
-      expect(component.sortField).toBe('timestamp');
+      expect(component.sortOrder()).toBe(-1);
+      expect(component.sortField()).toBe('timestamp');
     });
 
     it('should set ascending sort order for values without !', () => {
       component.onSortChange({ value: 'timestamp' });
-      expect(component.sortOrder).toBe(1);
-      expect(component.sortField).toBe('timestamp');
+      expect(component.sortOrder()).toBe(1);
+      expect(component.sortField()).toBe('timestamp');
     });
 
     it('should set sortField to title', () => {
       component.onSortChange({ value: 'title' });
-      expect(component.sortField).toBe('title');
-      expect(component.sortOrder).toBe(1);
+      expect(component.sortField()).toBe('title');
+      expect(component.sortOrder()).toBe(1);
     });
   });
 
@@ -453,30 +448,27 @@ describe('NotificationsComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from all subscriptions', () => {
+  describe('cleanup', () => {
+    it('should stop reacting to accessLevel changes after destroy', () => {
       component.setPayload();
+      mockNotificationService.getAllNotifications.mockClear();
 
-      const subscriptionCount = component['payloadSubscription'].length;
+      fixture.destroy();
 
-      expect(subscriptionCount).toBeGreaterThan(0);
+      mockPayloadService.accessLevel$.next(2);
 
-      component.ngOnDestroy();
-
-      component['payloadSubscription'].forEach((sub) => {
-        expect(sub.closed).toBe(true);
-      });
+      expect(mockNotificationService.getAllNotifications).not.toHaveBeenCalled();
     });
   });
 
   describe('template rendering', () => {
     beforeEach(() => {
-      component.user = { userId: 1, userName: 'testuser' };
-      component.notifications = mockNotifications.map((n) => ({
-        ...n,
-        formattedMessage: component.formatMessage(n.message)
-      }));
-      component.filteredNotifications = component.notifications.filter((n) => n.read === 0);
+      component.notifications.set(
+        mockNotifications.map((n) => ({
+          ...n,
+          formattedMessage: component.formatMessage(n.message)
+        }))
+      );
       fixture.detectChanges();
     });
 

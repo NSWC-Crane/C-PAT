@@ -18,14 +18,13 @@
         { label: 'Unread', value: 'Unread' }
       ]"
       [(ngModel)]="filterStatus"
-      (onChange)="filterNotifications()"
       placeholder="Filter by status..."
       class="mb-2 md:mb-0"
     />
   </div>
 
   <div class="notifications-container">
-    <p-table [value]="filteredNotifications" [sortField]="sortField" [sortOrder]="sortOrder" [paginator]="true" [rows]="10" class="notification-table p-0">
+    <p-table [value]="filteredNotifications()" [sortField]="sortField()" [sortOrder]="sortOrder()" [paginator]="true" [rows]="10" class="notification-table p-0">
       <ng-template #body let-notification>
         <tr>
           <td>
