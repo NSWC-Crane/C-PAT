@@ -8,13 +8,14 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
 import { ToastModule } from 'primeng/toast';
-import { filter, Subject, takeUntil } from 'rxjs';
+import { filter } from 'rxjs';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
 import { AppConfigurationComponent } from './app-configuration/app-configuration.component';
@@ -46,20 +47,19 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
     VRAMImportComponent
   ]
 })
-export class AdminProcessingComponent implements OnInit, OnDestroy {
+export class AdminProcessingComponent implements OnInit {
   private readonly payloadService = inject(PayloadService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   readonly nessusPluginMappingComponent = viewChild(NessusPluginMappingComponent);
-  value: number = 0;
-  user: any;
-  private readonly destroy$ = new Subject<void>();
+  readonly value = signal(0);
   tenableEnabled = CPAT.Env.features.tenableEnabled;
 
   ngOnInit() {
     this.payloadService.isAdmin$
       .pipe(
         filter((isAdmin) => isAdmin !== null),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (isAdmin) => {
@@ -75,7 +75,7 @@ export class AdminProcessingComponent implements OnInit, OnDestroy {
   }
 
   switchToPluginMapping() {
-    this.value = 4;
+    this.value.set(4);
 
     setTimeout(() => {
       const nessusPluginMappingComponent = this.nessusPluginMappingComponent();
@@ -84,10 +84,5 @@ export class AdminProcessingComponent implements OnInit, OnDestroy {
         nessusPluginMappingComponent.updatePluginIds();
       }
     }, 0);
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }
