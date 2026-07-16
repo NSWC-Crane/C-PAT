@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -61,16 +61,16 @@ export class EMASSOverwriteSelectionComponent {
 
   allFields: EMassField[] = getEMassBranchConfig().overwriteFields;
 
-  selectedFields: EMassField[] = [];
-  unselectedFields: EMassField[] = [];
+  readonly selectedFields = signal<EMassField[]>([]);
+  readonly unselectedFields = signal<EMassField[]>([]);
 
   constructor() {
-    this.selectedFields = this.allFields.filter((field) => field.selected);
-    this.unselectedFields = this.allFields.filter((field) => !field.selected);
+    this.selectedFields.set(this.allFields.filter((field) => field.selected));
+    this.unselectedFields.set(this.allFields.filter((field) => !field.selected));
   }
 
   confirm() {
-    const selectedColumns = this.selectedFields.map((field) => field.column);
+    const selectedColumns = this.selectedFields().map((field) => field.column);
 
     this.ref.close(selectedColumns);
   }
