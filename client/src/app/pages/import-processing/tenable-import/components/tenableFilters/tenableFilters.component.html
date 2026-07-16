@@ -59,7 +59,7 @@
   <ng-template #footer>
     <div class="flex w-full justify-between">
       <button pButton (click)="cancelSaveFilter()" severity="secondary"><i class="pi pi-times" pButtonIcon></i><span pButtonLabel>Cancel</span></button>
-      <button pButton (click)="saveCustomFilter()" [disabled]="!selectedFilter || (typeof selectedFilter === 'string' && !selectedFilter.trim())">
+      <button pButton (click)="saveCustomFilter()" [disabled]="saveDisabled()">
         <i [class]="isUpdating ? 'pi pi-refresh' : 'pi pi-save'" pButtonIcon></i>
         <span pButtonLabel>{{ isUpdating ? 'Update Filter' : 'Save Filter' }}</span>
       </button>

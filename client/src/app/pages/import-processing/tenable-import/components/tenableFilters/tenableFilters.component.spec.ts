@@ -91,11 +91,11 @@ describe('TenableFiltersComponent', () => {
     });
 
     it('should default saveFilterDialog to false', () => {
-      expect(component.saveFilterDialog).toBe(false);
+      expect(component.saveFilterDialog()).toBe(false);
     });
 
     it('should default selectedFilter to empty string', () => {
-      expect(component.selectedFilter).toBe('');
+      expect(component.selectedFilter()).toBe('');
     });
 
     it('should default currentFilter to empty string', () => {
@@ -149,13 +149,13 @@ describe('TenableFiltersComponent', () => {
 
     it('should set saveFilterDialog to true', () => {
       component.showSaveFilterDialog();
-      expect(component.saveFilterDialog).toBe(true);
+      expect(component.saveFilterDialog()).toBe(true);
     });
 
     it('should reset selectedFilter to empty string', () => {
-      component.selectedFilter = 'old';
+      component.selectedFilter.set('old');
       component.showSaveFilterDialog();
-      expect(component.selectedFilter).toBe('');
+      expect(component.selectedFilter()).toBe('');
     });
 
     it('should reset selectedFilterId to null', () => {
@@ -343,36 +343,36 @@ describe('TenableFiltersComponent', () => {
     });
 
     it('should show error when filter name is empty string', () => {
-      component.selectedFilter = '';
+      component.selectedFilter.set('');
       component.saveCustomFilter();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: 'Filter name is required' }));
     });
 
     it('should show error when filter name is whitespace only', () => {
-      component.selectedFilter = '   ';
+      component.selectedFilter.set('   ');
       component.saveCustomFilter();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: 'Filter name is required' }));
     });
 
     it('should call addTenableFilter when not updating', () => {
-      component.selectedFilter = 'New Filter';
+      component.selectedFilter.set('New Filter');
       component.isUpdating = false;
       component.saveCustomFilter();
       expect(mockImportService.addTenableFilter).toHaveBeenCalledWith(1, expect.objectContaining({ filterName: 'New Filter' }));
     });
 
     it('should show success and close dialog on add success', () => {
-      component.selectedFilter = 'New Filter';
+      component.selectedFilter.set('New Filter');
       component.isUpdating = false;
       component.saveCustomFilter();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
-      expect(component.saveFilterDialog).toBe(false);
+      expect(component.saveFilterDialog()).toBe(false);
     });
 
     it('should emit filterSaved on add success', () => {
       const spy = vi.spyOn(component.filterSaved, 'emit');
 
-      component.selectedFilter = 'New Filter';
+      component.selectedFilter.set('New Filter');
       component.isUpdating = false;
       component.saveCustomFilter();
       expect(spy).toHaveBeenCalled();
@@ -380,14 +380,14 @@ describe('TenableFiltersComponent', () => {
 
     it('should show error on add failure', () => {
       mockImportService.addTenableFilter.mockReturnValue(throwError(() => new Error('fail')));
-      component.selectedFilter = 'New Filter';
+      component.selectedFilter.set('New Filter');
       component.isUpdating = false;
       component.saveCustomFilter();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
 
     it('should call updateTenableFilter when isUpdating and canUpdate', () => {
-      component.selectedFilter = 'Existing Filter';
+      component.selectedFilter.set('Existing Filter');
       component.isUpdating = true;
       component.canUpdate = true;
       component.selectedFilterId = 3;
@@ -396,19 +396,19 @@ describe('TenableFiltersComponent', () => {
     });
 
     it('should show success and close dialog on update success', () => {
-      component.selectedFilter = 'Existing Filter';
+      component.selectedFilter.set('Existing Filter');
       component.isUpdating = true;
       component.canUpdate = true;
       component.selectedFilterId = 3;
       component.saveCustomFilter();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
-      expect(component.saveFilterDialog).toBe(false);
+      expect(component.saveFilterDialog()).toBe(false);
     });
 
     it('should emit filterSaved on update success', () => {
       const spy = vi.spyOn(component.filterSaved, 'emit');
 
-      component.selectedFilter = 'Existing Filter';
+      component.selectedFilter.set('Existing Filter');
       component.isUpdating = true;
       component.canUpdate = true;
       component.selectedFilterId = 3;
@@ -418,7 +418,7 @@ describe('TenableFiltersComponent', () => {
 
     it('should show error on update failure', () => {
       mockImportService.updateTenableFilter.mockReturnValue(throwError(() => new Error('fail')));
-      component.selectedFilter = 'Existing Filter';
+      component.selectedFilter.set('Existing Filter');
       component.isUpdating = true;
       component.canUpdate = true;
       component.selectedFilterId = 3;
@@ -429,7 +429,7 @@ describe('TenableFiltersComponent', () => {
     it('should show warn when filter name already exists and current user can update it', () => {
       component.currentUser = { userName: 'testuser' };
       component.existingFilters = [{ label: 'My Filter', value: 'My Filter', filterId: 1, createdBy: 'testuser' }];
-      component.selectedFilter = 'My Filter';
+      component.selectedFilter.set('My Filter');
       component.isUpdating = false;
       component.saveCustomFilter();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn' }));
@@ -438,7 +438,7 @@ describe('TenableFiltersComponent', () => {
     it('should show error when filter name exists and user cannot update it', () => {
       component.currentUser = { userName: 'testuser' };
       component.existingFilters = [{ label: 'Admin Filter', value: 'Admin Filter', filterId: 2, createdBy: 'adminuser' }];
-      component.selectedFilter = 'Admin Filter';
+      component.selectedFilter.set('Admin Filter');
       component.isUpdating = false;
       component.saveCustomFilter();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Filter Name Taken' }));
@@ -446,14 +446,14 @@ describe('TenableFiltersComponent', () => {
 
     it('should match existing filter name case-insensitively', () => {
       component.existingFilters = [{ label: 'My Filter', value: 'My Filter', filterId: 1, createdBy: 'testuser' }];
-      component.selectedFilter = 'my filter';
+      component.selectedFilter.set('my filter');
       component.isUpdating = false;
       component.saveCustomFilter();
       expect(mockImportService.addTenableFilter).not.toHaveBeenCalled();
     });
 
     it('should use label from FilterOption object as filter name', () => {
-      component.selectedFilter = { label: 'Option Filter', value: 'option-filter', filterId: 5 };
+      component.selectedFilter.set({ label: 'Option Filter', value: 'option-filter', filterId: 5 });
       component.isUpdating = false;
       component.saveCustomFilter();
       expect(mockImportService.addTenableFilter).toHaveBeenCalledWith(1, expect.objectContaining({ filterName: 'Option Filter' }));
@@ -462,15 +462,15 @@ describe('TenableFiltersComponent', () => {
 
   describe('cancelSaveFilter', () => {
     it('should set saveFilterDialog to false', () => {
-      component.saveFilterDialog = true;
+      component.saveFilterDialog.set(true);
       component.cancelSaveFilter();
-      expect(component.saveFilterDialog).toBe(false);
+      expect(component.saveFilterDialog()).toBe(false);
     });
 
     it('should reset selectedFilter to empty string', () => {
-      component.selectedFilter = 'some filter';
+      component.selectedFilter.set('some filter');
       component.cancelSaveFilter();
-      expect(component.selectedFilter).toBe('');
+      expect(component.selectedFilter()).toBe('');
     });
 
     it('should reset currentFilter to empty string', () => {
@@ -510,13 +510,21 @@ describe('TenableFiltersComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
+  describe('cleanup', () => {
+    it('should stop updating accessLevel after destroy', () => {
       component.ngOnInit();
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+      expect(component.accessLevel()).toBe(2);
+      fixture.destroy();
+      accessLevelSubject.next(9);
+      expect(component.accessLevel()).toBe(2);
+    });
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+    it('should stop updating currentUser after destroy', () => {
+      component.ngOnInit();
+      expect(component.currentUser).toEqual({ userName: 'testuser' });
+      fixture.destroy();
+      userSubject.next({ userName: 'after-destroy' });
+      expect(component.currentUser).toEqual({ userName: 'testuser' });
     });
   });
 });
