@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SimpleChange, SimpleChanges } from '@angular/core';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { createMockConfirmationService, createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 import { PoamMitigationGeneratorComponent } from './poam-mitigation-generator.component';
@@ -111,15 +111,15 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should initialize generatedMitigation as empty string', () => {
-      expect(component.generatedMitigation).toBe('');
+      expect(component.generatedMitigation()).toBe('');
     });
 
     it('should initialize mitigationPrompt as empty string', () => {
-      expect(component.mitigationPrompt).toBe('');
+      expect(component.mitigationPrompt()).toBe('');
     });
 
     it('should initialize consentDialogVisible as false', () => {
-      expect(component.consentDialogVisible).toBe(false);
+      expect(component.consentDialogVisible()).toBe(false);
     });
 
     it('should have default team as null', () => {
@@ -147,89 +147,122 @@ describe('PoamMitigationGeneratorComponent', () => {
     it('should reset when team is removed from teams list (not first change)', () => {
       (component as any).team = () => ({ assignedTeamId: 99, assignedTeamName: 'Removed Team' });
       (component as any).teams = () => mockTeams;
-      component.generatedMitigation = 'Some mitigation';
+      component.generatedMitigation.set('Some mitigation');
 
       const changes: SimpleChanges = {
         teams: new SimpleChange([], mockTeams, false)
       };
 
       component.ngOnChanges(changes);
-      expect(component.generatedMitigation).toBe('');
-      expect(component.mitigationPrompt).toBe('');
+      expect(component.generatedMitigation()).toBe('');
+      expect(component.mitigationPrompt()).toBe('');
       expect(component.showPromptEditor()).toBe(false);
     });
 
     it('should not reset when team still exists in teams list', () => {
       (component as any).team = () => mockTeam;
       (component as any).teams = () => mockTeams;
-      component.generatedMitigation = 'Some mitigation';
+      component.generatedMitigation.set('Some mitigation');
 
       const changes: SimpleChanges = {
         teams: new SimpleChange([], mockTeams, false)
       };
 
       component.ngOnChanges(changes);
-      expect(component.generatedMitigation).toBe('Some mitigation');
+      expect(component.generatedMitigation()).toBe('Some mitigation');
     });
 
     it('should skip teams change logic on first change', () => {
       (component as any).team = () => ({ assignedTeamId: 99, assignedTeamName: 'Removed Team' });
       (component as any).teams = () => mockTeams;
-      component.generatedMitigation = 'Some mitigation';
+      component.generatedMitigation.set('Some mitigation');
 
       const changes: SimpleChanges = {
         teams: new SimpleChange(undefined, mockTeams, true)
       };
 
       component.ngOnChanges(changes);
-      expect(component.generatedMitigation).toBe('Some mitigation');
+      expect(component.generatedMitigation()).toBe('Some mitigation');
     });
 
     it('should reset when team changes and generatedMitigation exists (not first change)', () => {
-      component.generatedMitigation = 'Existing mitigation';
+      component.generatedMitigation.set('Existing mitigation');
 
       const changes: SimpleChanges = {
         team: new SimpleChange(mockTeam, { assignedTeamId: 3 }, false)
       };
 
       component.ngOnChanges(changes);
-      expect(component.generatedMitigation).toBe('');
+      expect(component.generatedMitigation()).toBe('');
     });
 
     it('should not reset when team changes on first change', () => {
-      component.generatedMitigation = 'Existing mitigation';
+      component.generatedMitigation.set('Existing mitigation');
 
       const changes: SimpleChanges = {
         team: new SimpleChange(undefined, mockTeam, true)
       };
 
       component.ngOnChanges(changes);
-      expect(component.generatedMitigation).toBe('Existing mitigation');
+      expect(component.generatedMitigation()).toBe('Existing mitigation');
     });
 
     it('should not reset when team changes but no generatedMitigation exists', () => {
-      component.generatedMitigation = '';
-      component.mitigationPrompt = 'Some prompt';
+      component.generatedMitigation.set('');
+      component.mitigationPrompt.set('Some prompt');
 
       const changes: SimpleChanges = {
         team: new SimpleChange(mockTeam, { assignedTeamId: 3 }, false)
       };
 
       component.ngOnChanges(changes);
-      expect(component.mitigationPrompt).toBe('Some prompt');
+      expect(component.mitigationPrompt()).toBe('Some prompt');
     });
 
     it('should not reset when no team is set and teams change removes unrelated team', () => {
       (component as any).team = () => null;
       (component as any).teams = () => mockTeams;
-      component.generatedMitigation = 'Some mitigation';
+      component.generatedMitigation.set('Some mitigation');
 
       const changes: SimpleChanges = {
         teams: new SimpleChange([], mockTeams, false)
       };
 
       component.ngOnChanges(changes);
-      expect(component.generatedMitigation).toBe('Some mitigation');
+      expect(component.generatedMitigation()).toBe('Some mitigation');
+    });
+
+    it('should reset when the same team flips from active to inactive', () => {
+      component.generatedMitigation.set('Existing mitigation');
+
+      const changes: SimpleChanges = {
+        team: new SimpleChange(mockTeam, { ...mockTeam, isActive: false }, false)
+      };
+
+      component.ngOnChanges(changes);
+      expect(component.generatedMitigation()).toBe('');
+    });
+
+    it('should not reset when the same team stays active across a change', () => {
+      component.generatedMitigation.set('Existing mitigation');
+
+      const changes: SimpleChanges = {
+        team: new SimpleChange(mockTeam, { ...mockTeam, assignedTeamName: 'Renamed Team' }, false)
+      };
+
+      component.ngOnChanges(changes);
+      expect(component.generatedMitigation()).toBe('Existing mitigation');
+    });
+
+    it('should not reset when the same team was already inactive', () => {
+      component.generatedMitigation.set('Existing mitigation');
+
+      const changes: SimpleChanges = {
+        team: new SimpleChange(mockInactiveTeam, { ...mockInactiveTeam }, false)
+      };
+
+      component.ngOnChanges(changes);
+      expect(component.generatedMitigation()).toBe('Existing mitigation');
     });
   });
 
@@ -261,7 +294,7 @@ describe('PoamMitigationGeneratorComponent', () => {
       component.initiateGeneration();
 
       expect(component.showPromptEditor()).toBe(true);
-      expect(component.mitigationPrompt).toContain('Test STIG Vulnerability');
+      expect(component.mitigationPrompt()).toContain('Test STIG Vulnerability');
     });
 
     it('should build prompt and show editor when team is active', () => {
@@ -269,7 +302,7 @@ describe('PoamMitigationGeneratorComponent', () => {
       component.initiateGeneration();
 
       expect(component.showPromptEditor()).toBe(true);
-      expect(component.mitigationPrompt).toContain('V-12345');
+      expect(component.mitigationPrompt()).toContain('V-12345');
     });
 
     it('should show warning and not open editor when team is inactive', () => {
@@ -277,7 +310,7 @@ describe('PoamMitigationGeneratorComponent', () => {
       component.initiateGeneration();
 
       expect(component.showPromptEditor()).toBe(false);
-      expect(component.mitigationPrompt).toBe('');
+      expect(component.mitigationPrompt()).toBe('');
       expect(mockMessageService.add).toHaveBeenCalledWith(
         expect.objectContaining({
           severity: 'warn',
@@ -290,31 +323,31 @@ describe('PoamMitigationGeneratorComponent', () => {
       (component as any).poam = () => ({ ...mockPoamStig });
       component.initiateGeneration();
 
-      expect(component.mitigationPrompt).toContain('STIG Control Details');
-      expect(component.mitigationPrompt).toContain('STIG check data for testing purposes');
-      expect(component.mitigationPrompt).not.toContain('Nessus Plugin Details');
+      expect(component.mitigationPrompt()).toContain('STIG Control Details');
+      expect(component.mitigationPrompt()).toContain('STIG check data for testing purposes');
+      expect(component.mitigationPrompt()).not.toContain('Nessus Plugin Details');
     });
 
     it('should include Tenable plugin data for non-STIG source', () => {
       (component as any).poam = () => ({ ...mockPoamTenable });
       component.initiateGeneration();
 
-      expect(component.mitigationPrompt).toContain('Nessus Plugin Details');
-      expect(component.mitigationPrompt).toContain('Nessus plugin data for testing purposes');
-      expect(component.mitigationPrompt).not.toContain('STIG Control Details');
+      expect(component.mitigationPrompt()).toContain('Nessus Plugin Details');
+      expect(component.mitigationPrompt()).toContain('Nessus plugin data for testing purposes');
+      expect(component.mitigationPrompt()).not.toContain('STIG Control Details');
     });
 
     it('should include vulnerability title and ID in prompt', () => {
       component.initiateGeneration();
 
-      expect(component.mitigationPrompt).toContain('Test STIG Vulnerability');
-      expect(component.mitigationPrompt).toContain('V-12345');
+      expect(component.mitigationPrompt()).toContain('Test STIG Vulnerability');
+      expect(component.mitigationPrompt()).toContain('V-12345');
     });
   });
 
   describe('generateMitigation', () => {
     beforeEach(() => {
-      component.mitigationPrompt = 'Test prompt';
+      component.mitigationPrompt.set('Test prompt');
       component.showPromptEditor.set(true);
     });
 
@@ -335,7 +368,7 @@ describe('PoamMitigationGeneratorComponent', () => {
       mockPoamService.automateMitigation.mockReturnValue(of({ mitigation: '**Bold** text *here*' }));
       component.generateMitigation();
 
-      expect(component.generatedMitigation).toBe('Bold text here');
+      expect(component.generatedMitigation()).toBe('Bold text here');
     });
 
     it('should show success message without team name when no team', () => {
@@ -409,11 +442,11 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should not set generatedMitigation on error', () => {
-      component.generatedMitigation = '';
+      component.generatedMitigation.set('');
       mockPoamService.automateMitigation.mockReturnValue(throwError(() => new Error('fail')));
       component.generateMitigation();
 
-      expect(component.generatedMitigation).toBe('');
+      expect(component.generatedMitigation()).toBe('');
     });
   });
 
@@ -421,7 +454,7 @@ describe('PoamMitigationGeneratorComponent', () => {
     it('should set consentDialogVisible to true', () => {
       component.applyMitigation();
 
-      expect(component.consentDialogVisible).toBe(true);
+      expect(component.consentDialogVisible()).toBe(true);
     });
   });
 
@@ -429,7 +462,7 @@ describe('PoamMitigationGeneratorComponent', () => {
     it('should emit mitigationGenerated with mitigation text and no teamId when no team', () => {
       const emitSpy = vi.spyOn(component.mitigationGenerated, 'emit');
 
-      component.generatedMitigation = 'Final mitigation';
+      component.generatedMitigation.set('Final mitigation');
       (component as any).team = () => null;
 
       component.confirmApplyMitigation();
@@ -443,7 +476,7 @@ describe('PoamMitigationGeneratorComponent', () => {
     it('should emit mitigationGenerated with teamId when team is set', () => {
       const emitSpy = vi.spyOn(component.mitigationGenerated, 'emit');
 
-      component.generatedMitigation = 'Team mitigation';
+      component.generatedMitigation.set('Team mitigation');
       (component as any).team = () => mockTeam;
 
       component.confirmApplyMitigation();
@@ -455,39 +488,72 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should set consentDialogVisible to false', () => {
-      component.consentDialogVisible = true;
+      component.consentDialogVisible.set(true);
       component.confirmApplyMitigation();
 
-      expect(component.consentDialogVisible).toBe(false);
+      expect(component.consentDialogVisible()).toBe(false);
     });
 
     it('should reset state after confirming', () => {
-      component.generatedMitigation = 'Some text';
-      component.mitigationPrompt = 'Some prompt';
+      component.generatedMitigation.set('Some text');
+      component.mitigationPrompt.set('Some prompt');
       component.showPromptEditor.set(true);
 
       component.confirmApplyMitigation();
 
-      expect(component.generatedMitigation).toBe('');
-      expect(component.mitigationPrompt).toBe('');
+      expect(component.generatedMitigation()).toBe('');
+      expect(component.mitigationPrompt()).toBe('');
       expect(component.showPromptEditor()).toBe(false);
+    });
+
+    it('should warn and not emit when the team is inactive', () => {
+      const emitSpy = vi.spyOn(component.mitigationGenerated, 'emit');
+
+      component.generatedMitigation.set('Stale mitigation');
+      component.consentDialogVisible.set(true);
+      (component as any).team = () => mockInactiveTeam;
+
+      component.confirmApplyMitigation();
+
+      expect(emitSpy).not.toHaveBeenCalled();
+      expect(mockMessageService.add).toHaveBeenCalledWith({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: 'Cannot apply mitigations to inactive team Legacy Team'
+      });
+      expect(component.consentDialogVisible()).toBe(false);
+      expect(component.generatedMitigation()).toBe('');
+    });
+
+    it('should emit for an active team', () => {
+      const emitSpy = vi.spyOn(component.mitigationGenerated, 'emit');
+
+      component.generatedMitigation.set('Team mitigation');
+      (component as any).team = () => mockTeam;
+
+      component.confirmApplyMitigation();
+
+      expect(emitSpy).toHaveBeenCalledWith({
+        mitigation: 'Team mitigation',
+        teamId: 1
+      });
     });
   });
 
   describe('cancelApplyMitigation', () => {
     it('should set consentDialogVisible to false', () => {
-      component.consentDialogVisible = true;
+      component.consentDialogVisible.set(true);
       component.cancelApplyMitigation();
 
-      expect(component.consentDialogVisible).toBe(false);
+      expect(component.consentDialogVisible()).toBe(false);
     });
 
     it('should not reset generatedMitigation', () => {
-      component.generatedMitigation = 'Keep this';
-      component.consentDialogVisible = true;
+      component.generatedMitigation.set('Keep this');
+      component.consentDialogVisible.set(true);
       component.cancelApplyMitigation();
 
-      expect(component.generatedMitigation).toBe('Keep this');
+      expect(component.generatedMitigation()).toBe('Keep this');
     });
   });
 
@@ -500,33 +566,33 @@ describe('PoamMitigationGeneratorComponent', () => {
     });
 
     it('should clear mitigationPrompt', () => {
-      component.mitigationPrompt = 'Some prompt text';
+      component.mitigationPrompt.set('Some prompt text');
       component.cancelPromptEdit();
 
-      expect(component.mitigationPrompt).toBe('');
+      expect(component.mitigationPrompt()).toBe('');
     });
 
     it('should not affect generatedMitigation', () => {
-      component.generatedMitigation = 'Existing';
+      component.generatedMitigation.set('Existing');
       component.cancelPromptEdit();
 
-      expect(component.generatedMitigation).toBe('Existing');
+      expect(component.generatedMitigation()).toBe('Existing');
     });
   });
 
   describe('reset', () => {
     it('should clear generatedMitigation', () => {
-      component.generatedMitigation = 'To clear';
+      component.generatedMitigation.set('To clear');
       component.reset();
 
-      expect(component.generatedMitigation).toBe('');
+      expect(component.generatedMitigation()).toBe('');
     });
 
     it('should clear mitigationPrompt', () => {
-      component.mitigationPrompt = 'To clear';
+      component.mitigationPrompt.set('To clear');
       component.reset();
 
-      expect(component.mitigationPrompt).toBe('');
+      expect(component.mitigationPrompt()).toBe('');
     });
 
     it('should set showPromptEditor to false', () => {
@@ -554,6 +620,23 @@ describe('PoamMitigationGeneratorComponent', () => {
 
       expect(resetSpy).toHaveBeenCalled();
       expect(initiateSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('cleanup', () => {
+    it('should tear down the automateMitigation subscription on destroy', () => {
+      const mitigation$ = new Subject<any>();
+
+      mockPoamService.automateMitigation.mockReturnValue(mitigation$.asObservable());
+      fixture.detectChanges();
+
+      component.generateMitigation();
+      expect(component.isGenerating()).toBe(true);
+
+      fixture.destroy();
+      mitigation$.next({ mitigation: 'Late mitigation' });
+
+      expect(component.generatedMitigation()).toBe('');
     });
   });
 

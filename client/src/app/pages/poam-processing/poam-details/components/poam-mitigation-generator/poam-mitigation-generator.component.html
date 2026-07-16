@@ -10,7 +10,7 @@
 
 @if (aiEnabled) {
   <div>
-    @if (!generatedMitigation && !isGenerating() && !showPromptEditor()) {
+    @if (!generatedMitigation() && !isGenerating() && !showPromptEditor()) {
       <button pButton class="ml-2" (click)="initiateGeneration()" variant="text" [rounded]="true" pTooltip="Generate a mitigation statement using AI"><i class="pi pi-microchip-ai" pButtonIcon></i></button>
     }
     <div class="mitigation-generator">
@@ -34,7 +34,7 @@
           <small class="mt-1 block text-center">Generating mitigation...</small>
         </div>
       }
-      @if (generatedMitigation) {
+      @if (generatedMitigation()) {
         <div class="generated-content mb-2">
           <div class="position-relative mb-2 mt-2" style="display: flex; justify-content: space-between; align-items: center">
             <div>

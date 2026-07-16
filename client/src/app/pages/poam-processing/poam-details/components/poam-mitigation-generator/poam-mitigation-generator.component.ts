@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnChanges, SimpleChanges, signal, inject, output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, SimpleChanges, signal, inject, output, input } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MenuItem, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -25,12 +26,13 @@ import { PoamService } from '../../../poams.service';
   selector: 'cpat-poam-mitigation-generator',
   templateUrl: './poam-mitigation-generator.component.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonModule, TextareaModule, ProgressBarModule, TooltipModule, DialogModule, SplitButtonModule, ToastModule]
 })
 export class PoamMitigationGeneratorComponent implements OnChanges {
   private readonly poamService = inject(PoamService);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly poam = input<any>(undefined);
   readonly team = input<any>(null);
@@ -42,9 +44,9 @@ export class PoamMitigationGeneratorComponent implements OnChanges {
   aiEnabled: boolean = CPAT.Env.features.aiEnabled;
   isGenerating = signal<boolean>(false);
   showPromptEditor = signal<boolean>(false);
-  generatedMitigation: string = '';
-  mitigationPrompt: string = '';
-  consentDialogVisible: boolean = false;
+  readonly generatedMitigation = signal<string>('');
+  readonly mitigationPrompt = signal<string>('');
+  readonly consentDialogVisible = signal<boolean>(false);
 
   items: MenuItem[] = [
     {
@@ -74,8 +76,15 @@ export class PoamMitigationGeneratorComponent implements OnChanges {
       }
     }
 
-    if (changes['team'] && !changes['team'].firstChange && this.generatedMitigation) {
-      this.reset();
+    if (changes['team'] && !changes['team'].firstChange && this.generatedMitigation()) {
+      const prev = changes['team'].previousValue;
+      const curr = changes['team'].currentValue;
+      const idChanged = prev?.assignedTeamId !== curr?.assignedTeamId;
+      const deactivated = curr?.isActive === false && prev?.isActive !== false;
+
+      if (idChanged || deactivated) {
+        this.reset();
+      }
     }
   }
 
@@ -108,42 +117,45 @@ export class PoamMitigationGeneratorComponent implements OnChanges {
     this.showPromptEditor.set(false);
     this.isGenerating.set(true);
 
-    this.poamService.automateMitigation(this.mitigationPrompt).subscribe({
-      next: (response) => {
-        if (response?.mitigation) {
-          this.generatedMitigation = response.mitigation.replace(/\*/g, '');
-          const team = this.team();
+    this.poamService
+      .automateMitigation(this.mitigationPrompt())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          if (response?.mitigation) {
+            this.generatedMitigation.set(response.mitigation.replaceAll('*', ''));
+            const team = this.team();
 
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: `Mitigation content generated successfully${team ? ' for ' + team.assignedTeamName : ''}`
+            });
+          } else {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Warning',
+              detail: 'No mitigation content could be generated'
+            });
+          }
+
+          this.isGenerating.set(false);
+        },
+        error: (error) => {
           this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: `Mitigation content generated successfully${team ? ' for ' + team.assignedTeamName : ''}`
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to generate mitigation content: ${getErrorMessage(error)}`
           });
-        } else {
-          this.messageService.add({
-            severity: 'warn',
-            summary: 'Warning',
-            detail: 'No mitigation content could be generated'
-          });
+          this.isGenerating.set(false);
         }
-
-        this.isGenerating.set(false);
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to generate mitigation content: ${getErrorMessage(error)}`
-        });
-        this.isGenerating.set(false);
-      }
-    });
+      });
   }
 
   private buildMitigationPrompt() {
     const poam = this.poam();
 
-    this.mitigationPrompt = `Instructions:
+    this.mitigationPrompt.set(`Instructions:
 You are an expert cyber security architect tasked with creating a comprehensive mitigation strategy for a vulnerability that has been detected within your organization. Your organization CANNOT implement the recommended security control, so you must develop alternative compensating controls. Focus only on specific technical measures that WILL be implemented to achieve the same security objectives as the original control.
 
 Context for Mitigation:
@@ -177,34 +189,46 @@ Remember:
 - Your response should be written as a formal POAM mitigation statement that stands on its own without restating the vulnerability details unless they are applicable to the mitigation.
 - Write in a professional, direct tone appropriate for a formal security document.
 - Structure your response as a complete mitigation plan that could be copied directly into a POAM document.
-- Ensure the output is suitable for a textarea input; do not apply markdown formatting or any other form of special formatting.`;
+- Ensure the output is suitable for a textarea input; do not apply markdown formatting or any other form of special formatting.`);
   }
 
   applyMitigation() {
-    this.consentDialogVisible = true;
+    this.consentDialogVisible.set(true);
   }
 
   confirmApplyMitigation() {
+    if (this.team() && !this.isTeamActive()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Warning',
+        detail: `Cannot apply mitigations to inactive team ${this.team().assignedTeamName}`
+      });
+      this.consentDialogVisible.set(false);
+      this.reset();
+
+      return;
+    }
+
     this.mitigationGenerated.emit({
-      mitigation: this.generatedMitigation,
+      mitigation: this.generatedMitigation(),
       teamId: this.team()?.assignedTeamId
     });
-    this.consentDialogVisible = false;
+    this.consentDialogVisible.set(false);
     this.reset();
   }
 
   cancelApplyMitigation() {
-    this.consentDialogVisible = false;
+    this.consentDialogVisible.set(false);
   }
 
   cancelPromptEdit() {
     this.showPromptEditor.set(false);
-    this.mitigationPrompt = '';
+    this.mitigationPrompt.set('');
   }
 
   reset() {
-    this.generatedMitigation = '';
-    this.mitigationPrompt = '';
+    this.generatedMitigation.set('');
+    this.mitigationPrompt.set('');
     this.showPromptEditor.set(false);
   }
 }
