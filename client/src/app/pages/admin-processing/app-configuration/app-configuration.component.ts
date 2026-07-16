@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -26,7 +26,7 @@ import { AppConfigurationService } from './app-configuration.service';
   templateUrl: './app-configuration.component.html',
   styleUrls: ['./app-configuration.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
 })
 export class AppConfigurationComponent implements OnInit {
@@ -35,7 +35,7 @@ export class AppConfigurationComponent implements OnInit {
 
   private readonly table = viewChild.required<Table>('dt');
 
-  appConfiguration: AppConfiguration[] = [];
+  readonly appConfiguration = signal<AppConfiguration[]>([]);
   editingAppConfiguration: AppConfiguration | null = null;
 
   ngOnInit() {
@@ -45,7 +45,7 @@ export class AppConfigurationComponent implements OnInit {
   loadAppConfiguration() {
     this.appConfigurationService.getAppConfiguration().subscribe({
       next: (response) => {
-        this.appConfiguration = response || [];
+        this.appConfiguration.set(response || []);
       },
       error: (error) => {
         this.messageService.add({
@@ -82,7 +82,9 @@ export class AppConfigurationComponent implements OnInit {
   }
 
   onRowEditCancel(index: number) {
-    this.appConfiguration[index] = this.editingAppConfiguration!;
+    const restored = this.editingAppConfiguration!;
+
+    this.appConfiguration.update((current) => current.map((c, i) => (i === index ? restored : c)));
     this.editingAppConfiguration = null;
   }
 
