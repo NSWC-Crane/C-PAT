@@ -118,7 +118,6 @@ describe('PoamApproveComponent', () => {
     });
 
     it('should have default property values', () => {
-      expect(component.isLoggedIn).toBe(false);
       expect(component.hqsChecked()).toBe(false);
       expect(component.displayDialog()).toBe(false);
       expect(component.displayConfirmDialog()).toBe(false);
@@ -500,33 +499,30 @@ describe('PoamApproveComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from all subscriptions', () => {
+  describe('cleanup', () => {
+    it('stops reacting to selectedCollection changes after destroy (takeUntilDestroyed)', () => {
       fixture.detectChanges();
-      accessLevelSubject.next(2);
+      expect(component.selectedCollection()).toBe(1);
 
-      const subscriptionsSpy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+      fixture.destroy();
+      selectedCollectionSubject.next(99);
 
-      component.ngOnDestroy();
-
-      expect(subscriptionsSpy).toHaveBeenCalled();
+      expect(component.selectedCollection()).toBe(1);
     });
 
-    it('should unsubscribe from all payload subscriptions', () => {
+    it('stops reacting to payload accessLevel changes after destroy (takeUntilDestroyed)', () => {
       fixture.detectChanges();
+      fixture.destroy();
+      mockPoamApproveService.getPoamApprovers.mockClear();
 
-      const payloadSubs = (component as any).payloadSubscription;
-      const spies = payloadSubs.map((sub: any) => vi.spyOn(sub, 'unsubscribe'));
+      accessLevelSubject.next(5);
 
-      component.ngOnDestroy();
-
-      spies.forEach((spy: any) => {
-        expect(spy).toHaveBeenCalled();
-      });
+      expect(mockPoamApproveService.getPoamApprovers).not.toHaveBeenCalled();
     });
 
-    it('should handle cleanup when no payload subscriptions exist', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
+    it('does not throw on destroy', () => {
+      fixture.detectChanges();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
