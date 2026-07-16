@@ -155,15 +155,15 @@ describe('TenableSolutionsComponent', () => {
 
   describe('initial state', () => {
     it('should initialize solutions as empty array', () => {
-      expect(component.solutions).toEqual([]);
+      expect(component.solutions()).toEqual([]);
     });
 
     it('should initialize affectedHosts as empty array', () => {
-      expect(component.affectedHosts).toEqual([]);
+      expect(component.affectedHosts()).toEqual([]);
     });
 
     it('should initialize solutionVulnDetails as empty array', () => {
-      expect(component.solutionVulnDetails).toEqual([]);
+      expect(component.solutionVulnDetails()).toEqual([]);
     });
 
     it('should initialize displayDialog as false', () => {
@@ -171,11 +171,11 @@ describe('TenableSolutionsComponent', () => {
     });
 
     it('should initialize loadingAffectedHosts as true', () => {
-      expect(component.loadingAffectedHosts).toBe(true);
+      expect(component.loadingAffectedHosts()).toBe(true);
     });
 
     it('should initialize loadingVulnDetails as true', () => {
-      expect(component.loadingVulnDetails).toBe(true);
+      expect(component.loadingVulnDetails()).toBe(true);
     });
 
     it('should initialize filterValue as empty string', () => {
@@ -194,7 +194,7 @@ describe('TenableSolutionsComponent', () => {
   describe('ngOnInit', () => {
     it('should set loadingSolutions to true', () => {
       component.ngOnInit();
-      expect(component.loadingSolutions).toBe(true);
+      expect(component.loadingSolutions()).toBe(true);
     });
 
     it('should define cols with 6 columns', () => {
@@ -312,20 +312,20 @@ describe('TenableSolutionsComponent', () => {
     });
 
     it('should set loadingSolutions to true before request', () => {
-      component.loadingSolutions = false;
+      component.loadingSolutions.set(false);
       mockImportService.postTenableSolutions.mockReturnValue(of(mockSolutionsResponse));
       component.getSolutions();
-      expect(component.loadingSolutions).toBe(false);
+      expect(component.loadingSolutions()).toBe(false);
     });
 
     it('should map solutions from response on success', () => {
       component.getSolutions();
-      expect(component.solutions).toHaveLength(2);
+      expect(component.solutions()).toHaveLength(2);
     });
 
     it('should map solution fields correctly', () => {
       component.getSolutions();
-      const first = component.solutions[0];
+      const first = component.solutions()[0];
 
       expect(first.solution).toBe('Update OpenSSL to version 3.0');
       expect(first.scorePctg).toBe('75.5');
@@ -337,7 +337,7 @@ describe('TenableSolutionsComponent', () => {
 
     it('should set loadingSolutions to false on success', () => {
       component.getSolutions();
-      expect(component.loadingSolutions).toBe(false);
+      expect(component.loadingSolutions()).toBe(false);
     });
 
     it('should call messageService.add on error', () => {
@@ -357,12 +357,12 @@ describe('TenableSolutionsComponent', () => {
     it('should set loadingSolutions to false on error', () => {
       mockImportService.postTenableSolutions.mockReturnValue(throwError(() => new Error('API error')));
       component.getSolutions();
-      expect(component.loadingSolutions).toBe(false);
+      expect(component.loadingSolutions()).toBe(false);
     });
 
     it('should spread all solution properties into mapped object', () => {
       component.getSolutions();
-      expect(component.solutions[0].solutionID).toBe('sol-12345');
+      expect(component.solutions()[0].solutionID).toBe('sol-12345');
     });
   });
 
@@ -396,20 +396,20 @@ describe('TenableSolutionsComponent', () => {
     });
 
     it('should set loadingAffectedHosts to true before request', () => {
-      component.loadingAffectedHosts = false;
+      component.loadingAffectedHosts.set(false);
       mockImportService.postTenableSolutionAssets.mockReturnValue(of(mockSolutionAssetsResponse));
       component.getAffectedHosts(mockSolution);
-      expect(component.loadingAffectedHosts).toBe(false);
+      expect(component.loadingAffectedHosts()).toBe(false);
     });
 
     it('should map affectedHosts from response on success', () => {
       component.getAffectedHosts(mockSolution);
-      expect(component.affectedHosts).toHaveLength(2);
+      expect(component.affectedHosts()).toHaveLength(2);
     });
 
     it('should map affectedHost fields correctly', () => {
       component.getAffectedHosts(mockSolution);
-      const first = component.affectedHosts[0];
+      const first = component.affectedHosts()[0];
 
       expect(first.ip).toBe('192.168.1.1');
       expect(first.netbiosName).toBe('HOST-1');
@@ -421,7 +421,7 @@ describe('TenableSolutionsComponent', () => {
 
     it('should set loadingAffectedHosts to false on success', () => {
       component.getAffectedHosts(mockSolution);
-      expect(component.loadingAffectedHosts).toBe(false);
+      expect(component.loadingAffectedHosts()).toBe(false);
     });
 
     it('should call messageService.add on postTenableSolutionAssets error', () => {
@@ -441,7 +441,7 @@ describe('TenableSolutionsComponent', () => {
     it('should set loadingAffectedHosts to false on error', () => {
       mockImportService.postTenableSolutionAssets.mockReturnValue(throwError(() => new Error('Assets error')));
       component.getAffectedHosts(mockSolution);
-      expect(component.loadingAffectedHosts).toBe(false);
+      expect(component.loadingAffectedHosts()).toBe(false);
     });
 
     it('should parse solutionId correctly from solutionID string', () => {
@@ -467,20 +467,20 @@ describe('TenableSolutionsComponent', () => {
     });
 
     it('should set loadingVulnDetails to true before request', () => {
-      component.loadingVulnDetails = false;
+      component.loadingVulnDetails.set(false);
       mockImportService.postTenableSolutionVuln.mockReturnValue(of(mockSolutionVulnResponse));
       component.getVulnDetails(12345);
-      expect(component.loadingVulnDetails).toBe(false);
+      expect(component.loadingVulnDetails()).toBe(false);
     });
 
     it('should map solutionVulnDetails from response on success', () => {
       component.getVulnDetails(12345);
-      expect(component.solutionVulnDetails).toHaveLength(2);
+      expect(component.solutionVulnDetails()).toHaveLength(2);
     });
 
     it('should map vuln fields correctly', () => {
       component.getVulnDetails(12345);
-      const first = component.solutionVulnDetails[0];
+      const first = component.solutionVulnDetails()[0];
 
       expect(first.pluginID).toBe('12345');
       expect(first.vprScore).toBe('8.5');
@@ -490,7 +490,7 @@ describe('TenableSolutionsComponent', () => {
 
     it('should set loadingVulnDetails to false on success', () => {
       component.getVulnDetails(12345);
-      expect(component.loadingVulnDetails).toBe(false);
+      expect(component.loadingVulnDetails()).toBe(false);
     });
 
     it('should call messageService.add on error', () => {
@@ -510,7 +510,7 @@ describe('TenableSolutionsComponent', () => {
     it('should set loadingVulnDetails to false on error', () => {
       mockImportService.postTenableSolutionVuln.mockReturnValue(throwError(() => new Error('Vuln error')));
       component.getVulnDetails(12345);
-      expect(component.loadingVulnDetails).toBe(false);
+      expect(component.loadingVulnDetails()).toBe(false);
     });
 
     it('should include tenableRepoId in filter value', () => {
@@ -524,27 +524,27 @@ describe('TenableSolutionsComponent', () => {
 
   describe('resetData', () => {
     it('should set loadingAffectedHosts to true', () => {
-      component.loadingAffectedHosts = false;
+      component.loadingAffectedHosts.set(false);
       component.resetData();
-      expect(component.loadingAffectedHosts).toBe(true);
+      expect(component.loadingAffectedHosts()).toBe(true);
     });
 
     it('should set loadingVulnDetails to true', () => {
-      component.loadingVulnDetails = false;
+      component.loadingVulnDetails.set(false);
       component.resetData();
-      expect(component.loadingVulnDetails).toBe(true);
+      expect(component.loadingVulnDetails()).toBe(true);
     });
 
     it('should clear affectedHosts array', () => {
-      component.affectedHosts = [{ ip: '192.168.1.1' }];
+      component.affectedHosts.set([{ ip: '192.168.1.1' }]);
       component.resetData();
-      expect(component.affectedHosts).toEqual([]);
+      expect(component.affectedHosts()).toEqual([]);
     });
 
     it('should clear solutionVulnDetails array', () => {
-      component.solutionVulnDetails = [{ pluginID: '12345' }];
+      component.solutionVulnDetails.set([{ pluginID: '12345' }]);
       component.resetData();
-      expect(component.solutionVulnDetails).toEqual([]);
+      expect(component.solutionVulnDetails()).toEqual([]);
     });
   });
 
@@ -616,17 +616,19 @@ describe('TenableSolutionsComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
+  describe('cleanup', () => {
+    it('should stop updating selectedCollection after destroy (takeUntilDestroyed)', () => {
       component.ngOnInit();
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
-
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      selectedCollectionSubject.next(1);
+      expect(component.selectedCollection).toBe(1);
+      fixture.destroy();
+      selectedCollectionSubject.next(2);
+      expect(component.selectedCollection).toBe(1);
     });
 
-    it('should not throw when destroyed before init', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
+    it('should not throw when destroyed', () => {
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
