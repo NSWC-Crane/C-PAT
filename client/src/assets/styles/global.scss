@@ -74,6 +74,23 @@ svg[data-p-icon='filter-fill'] path {
   }
 }
 
+.p-datatable-filter-overlay {
+  min-width: 15rem !important;
+
+  .p-select {
+    margin-bottom: 0.5rem !important;
+  }
+}
+
+.p-datatable-filter-rule-list,
+.p-datatable-filter-rule {
+  row-gap: 0 !important;
+}
+
+.p-datatable-filter-buttonbar:empty {
+  display: none;
+}
+
 .p-tooltip.wide-tooltip {
   max-width: none;
 
