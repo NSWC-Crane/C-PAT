@@ -126,30 +126,21 @@ describe('AppBreadcrumbComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should complete destroy$ subject', () => {
-      fixture.detectChanges();
-
-      const destroySubject = (component as any).destroy$ as Subject<void>;
-      const completeSpy = vi.spyOn(destroySubject, 'complete');
-      const nextSpy = vi.spyOn(destroySubject, 'next');
-
-      component.ngOnDestroy();
-
-      expect(nextSpy).toHaveBeenCalled();
-      expect(completeSpy).toHaveBeenCalled();
-    });
-
+  describe('cleanup', () => {
     it('should unsubscribe from router events after destroy', () => {
       mockLocation.path.mockReturnValue('/home');
       fixture.detectChanges();
 
-      component.ngOnDestroy();
+      fixture.destroy();
 
       mockLocation.path.mockReturnValue('/user-processing');
       routerEventsSubject.next(new NavigationEnd(1, '/user-processing', '/user-processing'));
 
       expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
+    });
+
+    it('should not throw when destroyed', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 
