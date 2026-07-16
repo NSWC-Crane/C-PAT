@@ -8,11 +8,10 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, linkedSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
-import { Subscription } from 'rxjs';
 import { InactivityService } from '../../../core/auth/services/inactivity.service';
 
 @Component({
@@ -28,7 +27,7 @@ import { InactivityService } from '../../../core/auth/services/inactivity.servic
         <h3>Inactivity Detected</h3>
         <p>
           Inactivity detected, you will be logged out in
-          <strong class="text-primary">{{ countdown }}</strong> seconds.
+          <strong class="text-primary">{{ countdown() }}</strong> seconds.
         </p>
         <p class="!mb-0">Would you like to keep working?</p>
       </div>
@@ -49,29 +48,16 @@ import { InactivityService } from '../../../core/auth/services/inactivity.servic
       }
     `
   ],
-  changeDetection: ChangeDetectionStrategy.Eager
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class InactivityWarningComponent implements OnInit, OnDestroy {
+export class InactivityWarningComponent {
   private readonly inactivityService = inject(InactivityService);
 
-  visible = false;
-  countdown = 60;
-
-  private warningSubscription?: Subscription;
-
-  ngOnInit(): void {
-    this.warningSubscription = this.inactivityService.warningState$.subscribe((state) => {
-      this.visible = state.show;
-
-      if (state.countdown !== undefined) {
-        this.countdown = state.countdown;
-      }
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.warningSubscription?.unsubscribe();
-  }
+  readonly visible = linkedSignal(() => this.inactivityService.warningState().show);
+  readonly countdown = linkedSignal<{ show: boolean; countdown?: number }, number>({
+    source: this.inactivityService.warningState,
+    computation: (state, previous) => state.countdown ?? previous?.value ?? 60
+  });
 
   keepWorking(): void {
     this.inactivityService.dismissWarning();

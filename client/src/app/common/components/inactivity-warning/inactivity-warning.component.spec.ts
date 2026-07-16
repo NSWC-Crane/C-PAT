@@ -8,11 +8,11 @@
 !##########################################################################
 */
 
+import { WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from 'vitest';
 import { InactivityWarningComponent } from './inactivity-warning.component';
 import { InactivityService } from '../../../core/auth/services/inactivity.service';
-import { BehaviorSubject, Subject } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -31,7 +31,7 @@ describe('InactivityWarningComponent', () => {
   let component: InactivityWarningComponent;
   let fixture: ComponentFixture<InactivityWarningComponent>;
   let mockInactivityService: {
-    warningState$: Subject<{ show: boolean; countdown?: number }>;
+    warningState: WritableSignal<{ show: boolean; countdown?: number }>;
     dismissWarning: ReturnType<typeof vi.fn>;
     stopMonitoring: ReturnType<typeof vi.fn>;
   };
@@ -39,7 +39,7 @@ describe('InactivityWarningComponent', () => {
 
   beforeEach(async () => {
     mockInactivityService = {
-      warningState$: new Subject<{ show: boolean; countdown?: number }>(),
+      warningState: signal<{ show: boolean; countdown?: number }>({ show: false }),
       dismissWarning: vi.fn(),
       stopMonitoring: vi.fn()
     };
@@ -79,110 +79,100 @@ describe('InactivityWarningComponent', () => {
     });
 
     it('should have visible set to false by default', () => {
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
     });
 
     it('should have countdown set to 60 by default', () => {
-      expect(component.countdown).toBe(60);
+      expect(component.countdown()).toBe(60);
     });
   });
 
-  describe('ngOnInit', () => {
-    it('should subscribe to warningState$', () => {
+  describe('service state reflection', () => {
+    it('should reflect hidden service state', () => {
       fixture.detectChanges();
 
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
     });
 
-    it('should update visible when warningState$ emits show: true', () => {
+    it('should update visible when warningState emits show: true', () => {
       fixture.detectChanges();
 
-      mockInactivityService.warningState$.next({ show: true });
+      mockInactivityService.warningState.set({ show: true });
 
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
     });
 
-    it('should update visible when warningState$ emits show: false', () => {
+    it('should update visible when warningState emits show: false', () => {
       fixture.detectChanges();
 
-      mockInactivityService.warningState$.next({ show: true });
-      expect(component.visible).toBe(true);
+      mockInactivityService.warningState.set({ show: true });
+      expect(component.visible()).toBe(true);
 
-      mockInactivityService.warningState$.next({ show: false });
-      expect(component.visible).toBe(false);
+      mockInactivityService.warningState.set({ show: false });
+      expect(component.visible()).toBe(false);
     });
 
-    it('should update countdown when warningState$ emits countdown value', () => {
+    it('should update countdown when warningState emits countdown value', () => {
       fixture.detectChanges();
 
-      mockInactivityService.warningState$.next({ show: true, countdown: 45 });
+      mockInactivityService.warningState.set({ show: true, countdown: 45 });
 
-      expect(component.countdown).toBe(45);
+      expect(component.countdown()).toBe(45);
     });
 
-    it('should not update countdown when warningState$ emits without countdown', () => {
+    it('should not update countdown when warningState emits without countdown', () => {
       fixture.detectChanges();
 
-      component.countdown = 30;
-      mockInactivityService.warningState$.next({ show: true });
+      component.countdown.set(30);
+      mockInactivityService.warningState.set({ show: true });
 
-      expect(component.countdown).toBe(30);
+      expect(component.countdown()).toBe(30);
     });
 
     it('should handle multiple state updates', () => {
       fixture.detectChanges();
 
-      mockInactivityService.warningState$.next({ show: true, countdown: 60 });
-      expect(component.visible).toBe(true);
-      expect(component.countdown).toBe(60);
+      mockInactivityService.warningState.set({ show: true, countdown: 60 });
+      expect(component.visible()).toBe(true);
+      expect(component.countdown()).toBe(60);
 
-      mockInactivityService.warningState$.next({ show: true, countdown: 59 });
-      expect(component.countdown).toBe(59);
+      mockInactivityService.warningState.set({ show: true, countdown: 59 });
+      expect(component.countdown()).toBe(59);
 
-      mockInactivityService.warningState$.next({ show: true, countdown: 58 });
-      expect(component.countdown).toBe(58);
+      mockInactivityService.warningState.set({ show: true, countdown: 58 });
+      expect(component.countdown()).toBe(58);
     });
 
     it('should handle countdown reaching zero', () => {
       fixture.detectChanges();
 
-      mockInactivityService.warningState$.next({ show: true, countdown: 1 });
-      expect(component.countdown).toBe(1);
+      mockInactivityService.warningState.set({ show: true, countdown: 1 });
+      expect(component.countdown()).toBe(1);
 
-      mockInactivityService.warningState$.next({ show: true, countdown: 0 });
-      expect(component.countdown).toBe(0);
+      mockInactivityService.warningState.set({ show: true, countdown: 0 });
+      expect(component.countdown()).toBe(0);
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from warningState$ on destroy', () => {
+  describe('linkedSignal behavior', () => {
+    it('should allow the dialog to write visible back', () => {
       fixture.detectChanges();
 
-      const subscription = component['warningSubscription'];
+      mockInactivityService.warningState.set({ show: true, countdown: 45 });
+      expect(component.visible()).toBe(true);
 
-      expect(subscription).toBeTruthy();
-
-      component.ngOnDestroy();
-
-      expect(subscription?.closed).toBe(true);
+      component.visible.set(false);
+      expect(component.visible()).toBe(false);
     });
 
-    it('should handle destroy when subscription is undefined', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
-    });
-
-    it('should not receive updates after destroy', () => {
+    it('should reset visible when service state changes again', () => {
       fixture.detectChanges();
 
-      component.ngOnDestroy();
+      mockInactivityService.warningState.set({ show: true, countdown: 45 });
+      component.visible.set(false);
 
-      component.visible = false;
-      component.countdown = 60;
-
-      mockInactivityService.warningState$.next({ show: true, countdown: 30 });
-
-      expect(component.visible).toBe(false);
-      expect(component.countdown).toBe(60);
+      mockInactivityService.warningState.set({ show: true, countdown: 44 });
+      expect(component.visible()).toBe(true);
     });
   });
 
@@ -254,15 +244,15 @@ describe('InactivityWarningComponent', () => {
 
     it('should have dialog not visible initially', () => {
       fixture.detectChanges();
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
     });
 
     it('should show dialog when visible is true', () => {
-      component.visible = true;
-      component.countdown = 60;
+      component.visible.set(true);
+      component.countdown.set(60);
       fixture.detectChanges();
 
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
     });
 
     it('should have modal set to true', () => {
@@ -298,8 +288,8 @@ describe('InactivityWarningComponent', () => {
     });
 
     it('should render warning icon when dialog is visible', () => {
-      component.visible = true;
-      component.countdown = 60;
+      component.visible.set(true);
+      component.countdown.set(60);
       fixture.detectChanges();
 
       const icon = fixture.debugElement.query(By.css('.pi-exclamation-triangle'));
@@ -308,8 +298,8 @@ describe('InactivityWarningComponent', () => {
     });
 
     it('should render "Inactivity Detected" heading when dialog is visible', () => {
-      component.visible = true;
-      component.countdown = 60;
+      component.visible.set(true);
+      component.countdown.set(60);
       fixture.detectChanges();
 
       const heading = fixture.debugElement.query(By.css('h3'));
@@ -319,8 +309,8 @@ describe('InactivityWarningComponent', () => {
     });
 
     it('should display countdown value', () => {
-      component.visible = true;
-      component.countdown = 42;
+      component.visible.set(true);
+      component.countdown.set(42);
       fixture.detectChanges();
 
       const countdownElement = fixture.debugElement.query(By.css('.text-primary'));
@@ -330,8 +320,8 @@ describe('InactivityWarningComponent', () => {
     });
 
     it('should render Keep Working button when dialog is visible', () => {
-      component.visible = true;
-      component.countdown = 60;
+      component.visible.set(true);
+      component.countdown.set(60);
       fixture.detectChanges();
 
       const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
@@ -341,8 +331,8 @@ describe('InactivityWarningComponent', () => {
     });
 
     it('should render Log Out button when dialog is visible', () => {
-      component.visible = true;
-      component.countdown = 60;
+      component.visible.set(true);
+      component.countdown.set(60);
       fixture.detectChanges();
 
       const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
@@ -352,8 +342,8 @@ describe('InactivityWarningComponent', () => {
     });
 
     it('should render Log Out button with sign-out icon', () => {
-      component.visible = true;
-      component.countdown = 60;
+      component.visible.set(true);
+      component.countdown.set(60);
       fixture.detectChanges();
 
       const buttons = fixture.debugElement.queryAll(By.css('button[pButton]'));
@@ -365,8 +355,8 @@ describe('InactivityWarningComponent', () => {
 
   describe('button interactions', () => {
     beforeEach(() => {
-      component.visible = true;
-      component.countdown = 60;
+      component.visible.set(true);
+      component.countdown.set(60);
       fixture.detectChanges();
     });
 
@@ -398,90 +388,61 @@ describe('InactivityWarningComponent', () => {
       fixture.detectChanges();
 
       for (let i = 60; i >= 50; i--) {
-        mockInactivityService.warningState$.next({ show: true, countdown: i });
+        mockInactivityService.warningState.set({ show: true, countdown: i });
       }
 
-      expect(component.countdown).toBe(50);
-      expect(component.visible).toBe(true);
+      expect(component.countdown()).toBe(50);
+      expect(component.visible()).toBe(true);
     });
 
     it('should handle toggle visibility multiple times', () => {
       fixture.detectChanges();
 
-      mockInactivityService.warningState$.next({ show: true });
-      expect(component.visible).toBe(true);
+      mockInactivityService.warningState.set({ show: true });
+      expect(component.visible()).toBe(true);
 
-      mockInactivityService.warningState$.next({ show: false });
-      expect(component.visible).toBe(false);
+      mockInactivityService.warningState.set({ show: false });
+      expect(component.visible()).toBe(false);
 
-      mockInactivityService.warningState$.next({ show: true });
-      expect(component.visible).toBe(true);
+      mockInactivityService.warningState.set({ show: true });
+      expect(component.visible()).toBe(true);
     });
 
     it('should handle countdown with zero value', () => {
       fixture.detectChanges();
 
-      mockInactivityService.warningState$.next({ show: true, countdown: 0 });
+      mockInactivityService.warningState.set({ show: true, countdown: 0 });
 
-      expect(component.countdown).toBe(0);
+      expect(component.countdown()).toBe(0);
     });
 
     it('should handle negative countdown value gracefully', () => {
       fixture.detectChanges();
 
-      mockInactivityService.warningState$.next({ show: true, countdown: -1 });
+      mockInactivityService.warningState.set({ show: true, countdown: -1 });
 
-      expect(component.countdown).toBe(-1);
+      expect(component.countdown()).toBe(-1);
     });
 
     it('should preserve countdown when only visibility changes', () => {
       fixture.detectChanges();
 
-      mockInactivityService.warningState$.next({ show: true, countdown: 45 });
-      expect(component.countdown).toBe(45);
+      mockInactivityService.warningState.set({ show: true, countdown: 45 });
+      expect(component.countdown()).toBe(45);
 
-      mockInactivityService.warningState$.next({ show: false });
-      expect(component.countdown).toBe(45);
+      mockInactivityService.warningState.set({ show: false });
+      expect(component.countdown()).toBe(45);
     });
   });
 
-  describe('BehaviorSubject variation', () => {
-    let behaviorSubjectService: {
-      warningState$: BehaviorSubject<{ show: boolean; countdown?: number }>;
-      dismissWarning: ReturnType<typeof vi.fn>;
-      stopMonitoring: ReturnType<typeof vi.fn>;
-    };
-
-    beforeEach(async () => {
-      behaviorSubjectService = {
-        warningState$: new BehaviorSubject<{ show: boolean; countdown?: number }>({ show: false }),
-        dismissWarning: vi.fn(),
-        stopMonitoring: vi.fn()
-      };
-
-      await TestBed.resetTestingModule();
-      await TestBed.configureTestingModule({
-        imports: [InactivityWarningComponent, NoopAnimationsModule],
-        providers: [{ provide: InactivityService, useValue: behaviorSubjectService }]
-      }).compileComponents();
-
-      fixture = TestBed.createComponent(InactivityWarningComponent);
-      component = fixture.componentInstance;
-    });
-
-    it('should receive initial state from BehaviorSubject', () => {
-      fixture.detectChanges();
-
-      expect(component.visible).toBe(false);
-    });
-
-    it('should receive initial state with countdown from BehaviorSubject', () => {
-      behaviorSubjectService.warningState$.next({ show: true, countdown: 55 });
+  describe('pre-set state', () => {
+    it('should reflect state set before first change detection', () => {
+      mockInactivityService.warningState.set({ show: true, countdown: 55 });
 
       fixture.detectChanges();
 
-      expect(component.visible).toBe(true);
-      expect(component.countdown).toBe(55);
+      expect(component.visible()).toBe(true);
+      expect(component.countdown()).toBe(55);
     });
   });
 });
