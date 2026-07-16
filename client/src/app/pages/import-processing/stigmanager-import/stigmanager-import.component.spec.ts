@@ -13,7 +13,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -207,11 +207,11 @@ describe('STIGManagerImportComponent', () => {
     });
 
     it('should default loadingTableInfo to true', () => {
-      expect(component.loadingTableInfo).toBe(true);
+      expect(component.loadingTableInfo()).toBe(true);
     });
 
     it('should default displayDataSource to empty array', () => {
-      expect(component.displayDataSource).toEqual([]);
+      expect(component.displayDataSource()).toEqual([]);
     });
 
     it('should default existingPoams to empty array', () => {
@@ -254,7 +254,7 @@ describe('STIGManagerImportComponent', () => {
   describe('ngOnInit', () => {
     it('should subscribe to sharedService.selectedCollection', () => {
       component.ngOnInit();
-      expect(component.selectedCollection).toBe(10);
+      expect(component.selectedCollection()).toBe(10);
     });
 
     it('should call initializeComponent', () => {
@@ -321,7 +321,7 @@ describe('STIGManagerImportComponent', () => {
     it('should set stigmanCollection when STIG Manager collection is found', () => {
       component.user = mockUser;
       component.validateStigManagerCollection();
-      expect(component.stigmanCollection).toEqual({ collectionId: 100, name: 'STIG Collection' });
+      expect(component.stigmanCollection()).toEqual({ collectionId: 100, name: 'STIG Collection' });
     });
 
     it('should call loadBenchmarkSummaries with originCollectionId', () => {
@@ -362,7 +362,7 @@ describe('STIGManagerImportComponent', () => {
   describe('loadBenchmarkSummaries', () => {
     it('should populate benchmarkSummaries', () => {
       (component as any).loadBenchmarkSummaries(100);
-      expect(component.benchmarkSummaries.length).toBe(2);
+      expect(component.benchmarkSummaries().length).toBe(2);
     });
 
     it('should set benchmarksCount', () => {
@@ -372,24 +372,24 @@ describe('STIGManagerImportComponent', () => {
 
     it('should set loadingTableInfo to false on complete', () => {
       (component as any).loadBenchmarkSummaries(100);
-      expect(component.loadingTableInfo).toBe(false);
+      expect(component.loadingTableInfo()).toBe(false);
     });
 
     it('should calculate assessedPercentage for non-zero assessments', () => {
       (component as any).loadBenchmarkSummaries(100);
-      expect(component.benchmarkSummaries[0].assessedPercentage).toBeCloseTo(75);
+      expect(component.benchmarkSummaries()[0].assessedPercentage).toBeCloseTo(75);
     });
 
     it('should set assessedPercentage to 0 when assessments is 0', () => {
       (component as any).loadBenchmarkSummaries(100);
-      expect(component.benchmarkSummaries[1].assessedPercentage).toBe(0);
+      expect(component.benchmarkSummaries()[1].assessedPercentage).toBe(0);
     });
 
     it('should compute cat1Count, cat2Count, cat3Count', () => {
       (component as any).loadBenchmarkSummaries(100);
-      expect(component.benchmarkSummaries[0].cat1Count).toBe(3);
-      expect(component.benchmarkSummaries[0].cat2Count).toBe(15);
-      expect(component.benchmarkSummaries[0].cat3Count).toBe(8);
+      expect(component.benchmarkSummaries()[0].cat1Count).toBe(3);
+      expect(component.benchmarkSummaries()[0].cat2Count).toBe(15);
+      expect(component.benchmarkSummaries()[0].cat3Count).toBe(8);
     });
 
     it('should show warn when data is empty', () => {
@@ -407,7 +407,7 @@ describe('STIGManagerImportComponent', () => {
 
   describe('selectBenchmark', () => {
     beforeEach(() => {
-      component.stigmanCollection = { collectionId: 100, name: 'STIG Collection' };
+      component.stigmanCollection.set({ collectionId: 100, name: 'STIG Collection' });
     });
 
     it('should set selectedBenchmark', () => {
@@ -432,7 +432,7 @@ describe('STIGManagerImportComponent', () => {
 
   describe('getAllFindings', () => {
     beforeEach(() => {
-      component.stigmanCollection = { collectionId: 100, name: 'STIG Collection' };
+      component.stigmanCollection.set({ collectionId: 100, name: 'STIG Collection' });
     });
 
     it('should set viewMode to "findings"', () => {
@@ -452,7 +452,7 @@ describe('STIGManagerImportComponent', () => {
     beforeEach(() => {
       component.viewMode = 'findings';
       component.selectedBenchmark = { benchmarkId: 'RHEL_8_STIG' };
-      component.benchmarkSummaries = [...mockBenchmarkData];
+      component.benchmarkSummaries.set([...mockBenchmarkData]);
       component.findingsCount.set(5);
     });
 
@@ -467,9 +467,9 @@ describe('STIGManagerImportComponent', () => {
     });
 
     it('should clear displayDataSource', () => {
-      component.displayDataSource = [{ groupId: 'V-001' } as any];
+      component.displayDataSource.set([{ groupId: 'V-001' } as any]);
       component.backToBenchmarkSummary();
-      expect(component.displayDataSource).toEqual([]);
+      expect(component.displayDataSource()).toEqual([]);
     });
 
     it('should reset findingsCount to 0', () => {
@@ -485,7 +485,7 @@ describe('STIGManagerImportComponent', () => {
 
   describe('getSTIGMANFindings', () => {
     beforeEach(() => {
-      component.selectedCollection = 10;
+      component.selectedCollection.set(10);
     });
 
     it('should call getFindingsByBenchmarkFromSTIGMAN when benchmarkId provided', () => {
@@ -500,18 +500,18 @@ describe('STIGManagerImportComponent', () => {
 
     it('should map findings data into displayDataSource', () => {
       component.getSTIGMANFindings(100);
-      expect(component.displayDataSource.length).toBe(2);
-      expect(component.displayDataSource[0].groupId).toBe('V-230221');
+      expect(component.displayDataSource().length).toBe(2);
+      expect(component.displayDataSource()[0].groupId).toBe('V-230221');
     });
 
     it('should map severity "high" to "CAT I - High"', () => {
       component.getSTIGMANFindings(100);
-      expect(component.displayDataSource[0].severity).toBe('CAT I - High');
+      expect(component.displayDataSource()[0].severity).toBe('CAT I - High');
     });
 
     it('should map severity "medium" to "CAT II - Medium"', () => {
       component.getSTIGMANFindings(100);
-      expect(component.displayDataSource[1].severity).toBe('CAT II - Medium');
+      expect(component.displayDataSource()[1].severity).toBe('CAT II - Medium');
     });
 
     it('should set findingsCount to number of results', () => {
@@ -521,7 +521,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should set loadingTableInfo to false on complete', () => {
       component.getSTIGMANFindings(100);
-      expect(component.loadingTableInfo).toBe(false);
+      expect(component.loadingTableInfo()).toBe(false);
     });
 
     it('should show warn when data is empty', () => {
@@ -573,7 +573,7 @@ describe('STIGManagerImportComponent', () => {
 
   describe('filterFindings', () => {
     it('should call getVulnerabilityIdsWithPoamByCollection with selectedCollection', () => {
-      component.selectedCollection = 10;
+      component.selectedCollection.set(10);
       component.filterFindings();
       expect(mockPoamService.getVulnerabilityIdsWithPoamByCollection).toHaveBeenCalledWith(10);
     });
@@ -627,7 +627,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should update displayDataSource', () => {
       (component as any).updateExistingPoams();
-      expect(component.displayDataSource.length).toBe(3);
+      expect(component.displayDataSource().length).toBe(3);
     });
 
     it('should update findingsCount', () => {
@@ -823,7 +823,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should set findingsCount from displayDataSource when no active filter', () => {
       mockFindingsTable.filteredValue = null;
-      component.displayDataSource = [{ groupId: 'V-001' } as any, { groupId: 'V-002' } as any];
+      component.displayDataSource.set([{ groupId: 'V-001' } as any, { groupId: 'V-002' } as any]);
       component.onFilter({});
       expect(component.findingsCount()).toBe(2);
     });
@@ -838,7 +838,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should set benchmarksCount from benchmarkSummaries when no active filter', () => {
       mockBenchmarksTable.filteredValue = null;
-      component.benchmarkSummaries = [...mockBenchmarkData];
+      component.benchmarkSummaries.set([...mockBenchmarkData]);
       component.onBenchmarkFilter({});
       expect(component.benchmarksCount()).toBe(2);
     });
@@ -918,12 +918,21 @@ describe('STIGManagerImportComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from all subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('stops loading benchmark summaries after destroy (takeUntilDestroyed)', () => {
+      const summarySubject = new Subject<any[]>();
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(summarySubject.asObservable());
+      (component as any).loadBenchmarkSummaries(100);
+      expect(component.benchmarkSummaries()).toEqual([]);
+      fixture.destroy();
+      summarySubject.next([...mockBenchmarkData]);
+      expect(component.benchmarkSummaries()).toEqual([]);
+    });
+
+    it('does not throw on destroy', () => {
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
