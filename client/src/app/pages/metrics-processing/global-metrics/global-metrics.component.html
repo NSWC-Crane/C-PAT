@@ -10,12 +10,13 @@
 
 <div class="metrics-container overflow-hidden">
   <div class="flex flex-wrap justify-between items-center gap-3 card !p-2">
-    <div class="font-medium opacity-70 ml-2">Global Metrics ({{ selectedCollections().length }} {{ selectedCollections().length === 1 ? 'collection' : 'collections' }}) - {{ now | date: 'MMM d, y, h:mm a' }}</div>
+    <div class="font-medium opacity-70 ml-2">Global Metrics ({{ selectedCollections().length }} {{ selectedCollections().length === 1 ? 'collection' : 'collections' }}) - {{ now() | date: 'MMM d, y, h:mm a' }}</div>
     <div class="flex items-center gap-2 mr-1">
       <p-select
         [multiple]="true"
         [checkmark]="true"
         [showClear]="true"
+        [filter]="true"
         [options]="collections()"
         [ngModel]="selectedCollections()"
         (ngModelChange)="onSelectionChange($event)"

@@ -9,7 +9,8 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -20,7 +21,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subject, catchError, map, of, switchMap, take, takeUntil, tap } from 'rxjs';
+import { Subject, catchError, map, of, switchMap, take, tap } from 'rxjs';
+import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { MetricData } from '../../../common/models/metrics.model';
 import { SharedService } from '../../../common/services/shared.service';
@@ -65,15 +67,15 @@ interface FindingCard {
   styleUrls: ['./global-metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, CardModule, CpatChartComponent, SelectModule, ProgressBarModule, TagModule, ToastModule, TooltipModule, DatePipe],
+  imports: [FormsModule, ButtonModule, CardModule, CpatChartComponent, SelectModule, MultiSelectDirective, ProgressBarModule, TagModule, ToastModule, TooltipModule, DatePipe],
   providers: [MessageService]
 })
-export class GlobalMetricsComponent implements OnInit, OnDestroy {
+export class GlobalMetricsComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);
   private readonly sharedService = inject(SharedService);
   private readonly globalMetricsService = inject(GlobalMetricsService);
   private readonly messageService = inject(MessageService);
-  private readonly destroy$ = new Subject<void>();
+  private readonly destroyRef = inject(DestroyRef);
   private readonly load$ = new Subject<CollectionsBasicList[]>();
 
   collections = signal<CollectionsBasicList[]>([]);
@@ -81,7 +83,7 @@ export class GlobalMetricsComponent implements OnInit, OnDestroy {
   isLoading = signal<boolean>(false);
   progress = signal<{ loaded: number; total: number }>({ loaded: 0, total: 0 });
   result = signal<GlobalMetricsResult | null>(null);
-  now = new Date();
+  now = signal(new Date());
 
   readonly outerRadius = RING_OUTER_RADIUS;
   readonly innerRadius = RING_INNER_RADIUS;
@@ -318,7 +320,7 @@ export class GlobalMetricsComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit() {
-    this.globalMetricsService.progress$.pipe(takeUntil(this.destroy$)).subscribe((progress) => this.progress.set(progress));
+    this.globalMetricsService.progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((progress) => this.progress.set(progress));
 
     this.load$
       .pipe(
@@ -332,11 +334,11 @@ export class GlobalMetricsComponent implements OnInit, OnDestroy {
             catchError((error) => of({ result: null as GlobalMetricsResult | null, error: getErrorMessage(error) }))
           )
         ),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(({ result, error }) => {
         this.isLoading.set(false);
-        this.now = new Date();
+        this.now.set(new Date());
 
         if (error) {
           this.messageService.add({ severity: 'error', summary: 'Error', detail: `Error loading global metrics: ${error}` });
@@ -357,7 +359,7 @@ export class GlobalMetricsComponent implements OnInit, OnDestroy {
 
     this.collectionsService
       .getCollectionBasicList()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (collections) => {
           const metricsCollections = (collections || []).filter((c) => !!c.originCollectionId && (c.collectionType === 'STIG Manager' || c.collectionType === 'Tenable'));
@@ -372,7 +374,7 @@ export class GlobalMetricsComponent implements OnInit, OnDestroy {
   }
 
   private initializeDefaultSelection(collections: CollectionsBasicList[]) {
-    this.sharedService.selectedCollection.pipe(take(1), takeUntil(this.destroy$)).subscribe((selectedCollectionId) => {
+    this.sharedService.selectedCollection.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((selectedCollectionId) => {
       const current = collections.find((c) => c.collectionId === selectedCollectionId);
 
       if (current) {
@@ -470,10 +472,5 @@ export class GlobalMetricsComponent implements OnInit, OnDestroy {
     } else {
       return '#f05a6acc';
     }
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }
