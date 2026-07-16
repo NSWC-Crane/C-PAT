@@ -10,9 +10,10 @@
 
 import { Injectable, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { Observable, firstValueFrom, of } from 'rxjs';
+import { Observable, catchError, firstValueFrom, forkJoin, map, of } from 'rxjs';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { PoamService } from '../../poams.service';
+import { TeamSyncChange } from './team-sync-changes';
 
 @Injectable({
   providedIn: 'root'
@@ -29,47 +30,54 @@ export class PoamMitigationService {
     return this.poamService.getPoamTeamMitigations(poamId);
   }
 
-  syncTeamMitigations(poam: any, poamAssignedTeams: any[], teamMitigations: any[]): void {
+  syncTeamMitigations(poam: any, poamAssignedTeams: any[], teamMitigations: any[]): Observable<TeamSyncChange[]> {
     if (!poamAssignedTeams || poamAssignedTeams.length === 0) {
-      return;
+      return of([]);
     }
+
+    const ops: Observable<TeamSyncChange | null>[] = [];
 
     poamAssignedTeams.forEach((team) => {
       const existingMitigation = teamMitigations.find((m) => m.assignedTeamId === team.assignedTeamId);
 
       if (!existingMitigation) {
-        this.poamService
-          .postPoamTeamMitigation({
-            poamId: poam.poamId,
-            assignedTeamId: team.assignedTeamId,
-            mitigationText: '',
-            isActive: true
-          })
-          .subscribe({
-            next: (response) => {
-              teamMitigations.push({
-                mitigationId: response.mitigationId,
-                assignedTeamId: team.assignedTeamId,
-                assignedTeamName: team.assignedTeamName,
-                mitigationText: '',
-                isActive: true
-              });
+        ops.push(
+          this.poamService
+            .postPoamTeamMitigation({
+              poamId: poam.poamId,
+              assignedTeamId: team.assignedTeamId,
+              mitigationText: '',
+              isActive: true
+            })
+            .pipe(
+              map((response) => ({
+                type: 'add' as const,
+                record: {
+                  mitigationId: response.mitigationId,
+                  assignedTeamId: team.assignedTeamId,
+                  assignedTeamName: team.assignedTeamName,
+                  mitigationText: '',
+                  isActive: true
+                }
+              })),
+              catchError((error) => {
+                console.error('Error adding team mitigation:', error);
 
-              teamMitigations.sort((a, b) => a.assignedTeamName.localeCompare(b.assignedTeamName));
-            },
-            error: (error) => {
-              console.error('Error adding team mitigation:', error);
-            }
-          });
+                return of(null);
+              })
+            )
+        );
       } else if (!existingMitigation.isActive) {
-        this.poamService.updatePoamTeamMitigationStatus(poam.poamId, team.assignedTeamId, true).subscribe({
-          next: () => {
-            existingMitigation.isActive = true;
-          },
-          error: (error) => {
-            console.error('Error updating team mitigation status:', error);
-          }
-        });
+        ops.push(
+          this.poamService.updatePoamTeamMitigationStatus(poam.poamId, team.assignedTeamId, true).pipe(
+            map(() => ({ type: 'setActive' as const, assignedTeamId: team.assignedTeamId, isActive: true })),
+            catchError((error) => {
+              console.error('Error updating team mitigation status:', error);
+
+              return of(null);
+            })
+          )
+        );
       }
     });
 
@@ -77,16 +85,20 @@ export class PoamMitigationService {
       const teamIsAssigned = poamAssignedTeams.some((team) => team.assignedTeamId === mitigation.assignedTeamId);
 
       if (!teamIsAssigned && mitigation.isActive) {
-        this.poamService.updatePoamTeamMitigationStatus(poam.poamId, mitigation.assignedTeamId, false).subscribe({
-          next: () => {
-            mitigation.isActive = false;
-          },
-          error: (error) => {
-            console.error('Error updating team mitigation status:', error);
-          }
-        });
+        ops.push(
+          this.poamService.updatePoamTeamMitigationStatus(poam.poamId, mitigation.assignedTeamId, false).pipe(
+            map(() => ({ type: 'setActive' as const, assignedTeamId: mitigation.assignedTeamId, isActive: false })),
+            catchError((error) => {
+              console.error('Error updating team mitigation status:', error);
+
+              return of(null);
+            })
+          )
+        );
       }
     });
+
+    return ops.length ? forkJoin(ops).pipe(map((changes) => changes.filter((change): change is TeamSyncChange => change !== null))) : of([]);
   }
 
   async initializeTeamMitigations(poam: any, poamAssignedTeams: any[], teamMitigations: any[]): Promise<any[]> {
