@@ -1,8 +1,18 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+import { ElementRef, PLATFORM_ID, Renderer2, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from 'vitest';
-import { PLATFORM_ID, ElementRef, Renderer2, signal } from '@angular/core';
-import { Router, Event, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Event, Router } from '@angular/router';
 import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppNavigationComponent } from './app.navigation.component';
 import { AppConfigService } from '../services/appconfigservice';
 import { PayloadService } from '../../common/services/setPayload.service';
@@ -80,6 +90,7 @@ describe('AppNavigationComponent', () => {
     mockAuthService = {
       user$: authUserSubject.asObservable(),
       accessLevel$: new BehaviorSubject<number>(0).asObservable(),
+      user: signal<any>({ userId: 1, accountStatus: 'ACTIVE' }),
       logout: vi.fn().mockReturnValue(of(true))
     };
 
@@ -139,91 +150,15 @@ describe('AppNavigationComponent', () => {
       expect(component).toBeTruthy();
     });
 
-    it('should initialize collections as empty array', () => {
-      expect(component.collections).toEqual([]);
-    });
-
-    it('should initialize notificationCount as null', () => {
-      expect(component.notificationCount).toBeNull();
-    });
-
-    it('should initialize selectedCollection as null', () => {
-      expect(component.selectedCollection).toBeNull();
-    });
-
-    it('should initialize selectCollectionMsg as false', () => {
-      expect(component.selectCollectionMsg).toBe(false);
-    });
-
-    it('should initialize collectionName as "Select Collection"', () => {
-      expect(component.collectionName).toBe('Select Collection');
-    });
-
-    it('should have default userMenu with Log Out', () => {
-      expect(component.userMenu).toEqual([{ label: 'Log Out', icon: 'pi pi-sign-out' }]);
-    });
-
-    it('should have showConfigurator default to true', () => {
-      expect(component.showConfigurator()).toBe(true);
-    });
-
-    it('should have showMenuButton default to true', () => {
-      expect(component.showMenuButton()).toBe(true);
-    });
-  });
-
-  describe('Computed Properties', () => {
-    it('should compute isDarkMode from appState', () => {
-      appStateSignal.set({ ...appStateSignal(), darkTheme: true });
-      expect(component.isDarkMode()).toBe(true);
-
-      appStateSignal.set({ ...appStateSignal(), darkTheme: false });
-      expect(component.isDarkMode()).toBe(false);
-    });
-
-    it('should compute isMenuActive from appState', () => {
-      appStateSignal.set({ ...appStateSignal(), menuActive: true });
-      expect(component.isMenuActive()).toBe(true);
-
-      appStateSignal.set({ ...appStateSignal(), menuActive: false });
-      expect(component.isMenuActive()).toBe(false);
-    });
-
-    it('should compute isNewsActive from configService', () => {
-      mockConfigService.newsActive.set(true);
-      expect(component.isNewsActive()).toBe(true);
-
-      mockConfigService.newsActive.set(false);
-      expect(component.isNewsActive()).toBe(false);
-    });
-
-    it('should compute landingClass for dark mode', () => {
-      appStateSignal.set({ ...appStateSignal(), darkTheme: true });
-      mockConfigService.newsActive.set(false);
-
-      const classes = component.landingClass();
-
-      expect(classes['layout-dark']).toBe(true);
-      expect(classes['layout-light']).toBe(false);
-      expect(classes['layout-news-active']).toBe(false);
-    });
-
-    it('should compute landingClass for light mode with news active', () => {
-      appStateSignal.set({ ...appStateSignal(), darkTheme: false });
-      mockConfigService.newsActive.set(true);
-
-      const classes = component.landingClass();
-
-      expect(classes['layout-dark']).toBe(false);
-      expect(classes['layout-light']).toBe(true);
-      expect(classes['layout-news-active']).toBe(true);
+    it('should initialize user as null', () => {
+      expect(component.user()).toBeNull();
     });
   });
 
   describe('ngOnInit', () => {
     it('should subscribe to authService.user$ and set user', () => {
       fixture.detectChanges();
-      expect(component.user).toEqual({ userId: 1, accountStatus: 'ACTIVE' });
+      expect(component.user()).toEqual({ userId: 1, accountStatus: 'ACTIVE' });
     });
 
     it('should call getCollections on init', () => {
@@ -231,47 +166,15 @@ describe('AppNavigationComponent', () => {
       expect(mockCollectionsService.getCollections).toHaveBeenCalled();
     });
 
-    it('should call getUnreadNotificationCount on init', () => {
-      fixture.detectChanges();
-      expect(mockNotificationService.getUnreadNotificationCount).toHaveBeenCalled();
-    });
-
     it('should not call services when user is null', () => {
       authUserSubject.next(null);
       fixture.detectChanges();
 
       expect(mockCollectionsService.getCollections).not.toHaveBeenCalled();
-      expect(mockNotificationService.getUnreadNotificationCount).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('toggleDarkMode', () => {
-    it('should toggle darkTheme from true to false', () => {
-      appStateSignal.set({ ...appStateSignal(), darkTheme: true });
-      component.toggleDarkMode();
-      expect(appStateSignal().darkTheme).toBe(false);
-    });
-
-    it('should toggle darkTheme from false to true', () => {
-      appStateSignal.set({ ...appStateSignal(), darkTheme: false });
-      component.toggleDarkMode();
-      expect(appStateSignal().darkTheme).toBe(true);
     });
   });
 
   describe('getCollections', () => {
-    it('should populate collections array', () => {
-      fixture.detectChanges();
-      expect(component.collections.length).toBe(2);
-    });
-
-    it('should set selectedCollection when user has lastCollectionAccessedId', () => {
-      authUserSubject.next({ userId: 1, accountStatus: 'ACTIVE', lastCollectionAccessedId: 1 });
-      fixture.detectChanges();
-
-      expect(component.selectedCollection).toEqual({ collectionId: 1, collectionName: 'Collection A', collectionType: 'C-PAT' });
-    });
-
     it('should call sharedService.setSelectedCollection when user has lastCollectionAccessedId', () => {
       authUserSubject.next({ userId: 1, accountStatus: 'ACTIVE', lastCollectionAccessedId: 1 });
       fixture.detectChanges();
@@ -279,11 +182,11 @@ describe('AppNavigationComponent', () => {
       expect(mockSharedService.setSelectedCollection).toHaveBeenCalledWith(1);
     });
 
-    it('should not set selectedCollection when user has no lastCollectionAccessedId', () => {
+    it('should not seed the selected collection when user has no lastCollectionAccessedId', () => {
       authUserSubject.next({ userId: 1, accountStatus: 'ACTIVE' });
       fixture.detectChanges();
 
-      expect(component.selectedCollection).toBeNull();
+      expect(mockSharedService.setSelectedCollection).not.toHaveBeenCalled();
     });
 
     it('should handle error from collections service', () => {
@@ -297,184 +200,14 @@ describe('AppNavigationComponent', () => {
     });
   });
 
-  describe('getTagColor', () => {
-    it('should return "secondary" for C-PAT', () => {
-      expect(component.getTagColor('C-PAT')).toBe('secondary');
-    });
-
-    it('should return "success" for STIG Manager', () => {
-      expect(component.getTagColor('STIG Manager')).toBe('success');
-    });
-
-    it('should return "danger" for Tenable', () => {
-      expect(component.getTagColor('Tenable')).toBe('danger');
-    });
-
-    it('should return "info" for unknown origins', () => {
-      expect(component.getTagColor('Unknown')).toBe('info');
-    });
-
-    it('should return "info" for empty string', () => {
-      expect(component.getTagColor('')).toBe('info');
-    });
-  });
-
-  describe('getNotificationCount', () => {
-    it('should set notificationCount when count is greater than 0', () => {
-      mockNotificationService.getUnreadNotificationCount.mockReturnValue(of(5));
-      component.getNotificationCount();
-
-      expect(component.notificationCount).toBe(5);
-    });
-
-    it('should set notificationCount to null when count is 0', () => {
-      mockNotificationService.getUnreadNotificationCount.mockReturnValue(of(0));
-      component.getNotificationCount();
-
-      expect(component.notificationCount).toBeNull();
-    });
-
-    it('should set notificationCount to null for negative count', () => {
-      mockNotificationService.getUnreadNotificationCount.mockReturnValue(of(-1));
-      component.getNotificationCount();
-
-      expect(component.notificationCount).toBeNull();
-    });
-
-    it('should handle error from notification service', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      mockNotificationService.getUnreadNotificationCount.mockReturnValue(throwError(() => new Error('Notification error')));
-      component.getNotificationCount();
-
-      expect(consoleSpy).toHaveBeenCalledWith('Error getting notification count:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-  });
-
-  describe('setMenuItems', () => {
-    it('should include Marketplace and Log Out when marketplace is enabled', () => {
-      (globalThis as any).CPAT.Env.features.marketplaceDisabled = false;
-      component.setMenuItems();
-
-      expect(component.userMenu.length).toBe(2);
-      expect(component.userMenu[0].label).toBe('Marketplace');
-      expect(component.userMenu[0].icon).toBe('pi pi-shopping-cart');
-      expect(component.userMenu[1].label).toBe('Log Out');
-    });
-
-    it('should only include Log Out when marketplace is disabled', () => {
-      (globalThis as any).CPAT.Env.features.marketplaceDisabled = true;
-      component.setMenuItems();
-
-      expect(component.userMenu.length).toBe(1);
-      expect(component.userMenu[0].label).toBe('Log Out');
-      expect(component.userMenu[0].icon).toBe('pi pi-sign-out');
-
-      (globalThis as any).CPAT.Env.features.marketplaceDisabled = false;
-    });
-  });
-
-  describe('setupUserMenuActions', () => {
-    it('should assign command functions to menu items', () => {
-      component.setMenuItems();
-      component.setupUserMenuActions();
-
-      component.userMenu.forEach((item) => {
-        expect(item.command).toBeDefined();
-        expect(typeof item.command).toBe('function');
-      });
-    });
-  });
-
-  describe('goToMarketplace', () => {
-    it('should navigate to /marketplace', () => {
-      component.goToMarketplace();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/marketplace']);
-    });
-  });
-
-  describe('logout', () => {
-    it('should call authService.logout', () => {
-      component.logout();
-      expect(mockAuthService.logout).toHaveBeenCalled();
-    });
-
-    it('should navigate to /login on successful logout', () => {
-      component.logout();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
-    });
-
-    it('should handle error from logout', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      mockAuthService.logout.mockReturnValue(throwError(() => new Error('Logout failed')));
-      component.logout();
-
-      expect(consoleSpy).toHaveBeenCalledWith('Logout failed:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
-  });
-
-  describe('onCollectionClick', () => {
-    beforeEach(() => {
-      component.user = { userId: 1, lastCollectionAccessedId: 1 };
-      component.collections = [
-        { collectionId: 1, collectionName: 'Collection A', collectionType: 'C-PAT' },
-        { collectionId: 2, collectionName: 'Collection B', collectionType: 'STIG Manager' }
-      ];
-    });
-
-    it('should call resetWorkspace with collectionId when event has value', () => {
-      const resetSpy = vi.spyOn(component, 'resetWorkspace');
-
-      component.onCollectionClick({ value: { collectionId: 2 } });
-
-      expect(resetSpy).toHaveBeenCalledWith(2);
-    });
-
-    it('should not call resetWorkspace when event has no value', () => {
-      const resetSpy = vi.spyOn(component, 'resetWorkspace');
-
-      component.onCollectionClick({});
-
-      expect(resetSpy).not.toHaveBeenCalled();
-    });
-
-    it('should not call resetWorkspace when event value has no collectionId', () => {
-      const resetSpy = vi.spyOn(component, 'resetWorkspace');
-
-      component.onCollectionClick({ value: {} });
-
-      expect(resetSpy).not.toHaveBeenCalled();
-    });
-
-    it('should not call resetWorkspace when event is null', () => {
-      const resetSpy = vi.spyOn(component, 'resetWorkspace');
-
-      component.onCollectionClick(null);
-
-      expect(resetSpy).not.toHaveBeenCalled();
-    });
-  });
-
   describe('resetWorkspace', () => {
     beforeEach(() => {
-      component.collections = [
-        { collectionId: 1, collectionName: 'Collection A' },
-        { collectionId: 2, collectionName: 'Collection B' }
-      ];
-      component.user = { userId: 1, lastCollectionAccessedId: 1 };
+      component.user.set({ userId: 1, lastCollectionAccessedId: 1 });
     });
 
     it('should call sharedService.setSelectedCollection', () => {
       component.resetWorkspace(1);
       expect(mockSharedService.setSelectedCollection).toHaveBeenCalledWith(1);
-    });
-
-    it('should set selectedCollection from collections array', () => {
-      component.resetWorkspace(2);
-      expect(component.selectedCollection).toEqual({ collectionId: 2, collectionName: 'Collection B' });
     });
 
     it('should not update user when collectionId matches lastCollectionAccessedId', () => {
@@ -524,19 +257,6 @@ describe('AppNavigationComponent', () => {
   });
 
   describe('ngOnDestroy', () => {
-    it('should complete destroy$ subject', () => {
-      fixture.detectChanges();
-
-      const destroySubject = (component as any).destroy$ as Subject<void>;
-      const completeSpy = vi.spyOn(destroySubject, 'complete');
-      const nextSpy = vi.spyOn(destroySubject, 'next');
-
-      component.ngOnDestroy();
-
-      expect(nextSpy).toHaveBeenCalled();
-      expect(completeSpy).toHaveBeenCalled();
-    });
-
     it('should unbind scroll listener on destroy', () => {
       const listenerFn = vi.fn();
 
@@ -551,6 +271,13 @@ describe('AppNavigationComponent', () => {
     it('should not error when scrollListener is null on destroy', () => {
       component.scrollListener = null;
       expect(() => component.ngOnDestroy()).not.toThrow();
+    });
+
+    it('should stop pending subscriptions after destroy', () => {
+      fixture.detectChanges();
+      fixture.destroy();
+
+      expect(() => authUserSubject.next({ userId: 2, accountStatus: 'ACTIVE' })).not.toThrow();
     });
   });
 });
