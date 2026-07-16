@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable.component';
 import { SharedService } from '../../../../common/services/shared.service';
@@ -108,11 +108,11 @@ describe('STIGManagerReviewsTableComponent', () => {
     });
 
     it('should default treeNodes to empty array', () => {
-      expect(component.treeNodes).toEqual([]);
+      expect(component.treeNodes()).toEqual([]);
     });
 
     it('should default isLoading to true', () => {
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
     });
 
     it('should default totalRecords to 0', () => {
@@ -120,7 +120,7 @@ describe('STIGManagerReviewsTableComponent', () => {
     });
 
     it('should default assetCount to 0', () => {
-      expect(component.assetCount).toBe(0);
+      expect(component.assetCount()).toBe(0);
     });
 
     it('should default showBenchmarkSelector to true', () => {
@@ -190,7 +190,7 @@ describe('STIGManagerReviewsTableComponent', () => {
 
     it('should set treeNodes to empty array', () => {
       component.ngOnInit();
-      expect(component.treeNodes).toEqual([]);
+      expect(component.treeNodes()).toEqual([]);
     });
   });
 
@@ -231,21 +231,21 @@ describe('STIGManagerReviewsTableComponent', () => {
 
     it('should deduplicate benchmarkIds', () => {
       component.loadBenchmarkIds();
-      const ids = component.benchmarkOptions.map((o) => o.value);
+      const ids = component.benchmarkOptions().map((o) => o.value);
 
       expect(new Set(ids).size).toBe(ids.length);
     });
 
     it('should set benchmarkOptions sorted', () => {
       component.loadBenchmarkIds();
-      expect(component.benchmarkOptions.length).toBe(2);
-      expect(component.benchmarkOptions[0].value).toBe('BENCH-001');
-      expect(component.benchmarkOptions[1].value).toBe('BENCH-002');
+      expect(component.benchmarkOptions().length).toBe(2);
+      expect(component.benchmarkOptions()[0].value).toBe('BENCH-001');
+      expect(component.benchmarkOptions()[1].value).toBe('BENCH-002');
     });
 
     it('should set isLoading to false after success', () => {
       component.loadBenchmarkIds();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should show error message on service failure', () => {
@@ -257,7 +257,7 @@ describe('STIGManagerReviewsTableComponent', () => {
     it('should set isLoading to false on error', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('Fetch error')));
       component.loadBenchmarkIds();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
   });
 
@@ -344,9 +344,9 @@ describe('STIGManagerReviewsTableComponent', () => {
     });
 
     it('should reset treeNodes to empty', () => {
-      component.treeNodes = [{ data: {} }];
+      component.treeNodes.set([{ data: {} }]);
       component.clearBenchmarkSelection();
-      expect(component.treeNodes).toEqual([]);
+      expect(component.treeNodes()).toEqual([]);
     });
 
     it('should set showBenchmarkSelector to true', () => {
@@ -404,17 +404,17 @@ describe('STIGManagerReviewsTableComponent', () => {
 
     it('should build treeNodes from reviews', () => {
       component.loadReviews();
-      expect(component.treeNodes.length).toBeGreaterThan(0);
+      expect(component.treeNodes().length).toBeGreaterThan(0);
     });
 
     it('should set assetCount to treeNodes length', () => {
       component.loadReviews();
-      expect(component.assetCount).toBe(component.treeNodes.length);
+      expect(component.assetCount()).toBe(component.treeNodes().length);
     });
 
     it('should set isLoading to false on complete', () => {
       component.loadReviews();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should set showBenchmarkSelector to false while loading', () => {
@@ -733,15 +733,15 @@ describe('STIGManagerReviewsTableComponent', () => {
 
     it('should reset tree nodes when no active filters', () => {
       component.filterState.filters = {};
-      component.treeNodes = [];
+      component.treeNodes.set([]);
       component.applyFilters();
-      expect(component.treeNodes).toEqual(component.originalTreeNodes);
+      expect(component.treeNodes()).toEqual(component.originalTreeNodes);
     });
 
     it('should filter tree nodes when active filters present', () => {
       component.filterState.filters = { assetName: 'Asset1' };
       component.applyFilters();
-      expect(component.treeNodes.length).toBeGreaterThanOrEqual(0);
+      expect(component.treeNodes().length).toBeGreaterThanOrEqual(0);
     });
 
     it('should emit reviewsCountChange', () => {
@@ -817,7 +817,7 @@ describe('STIGManagerReviewsTableComponent', () => {
       component.originalTreeNodes = [{ data: {} }] as any;
       component.reviews = [];
       component.clearFilters();
-      expect(component.treeNodes).toEqual(component.originalTreeNodes);
+      expect(component.treeNodes()).toEqual(component.originalTreeNodes);
     });
   });
 
@@ -926,16 +926,16 @@ describe('STIGManagerReviewsTableComponent', () => {
 
   describe('exportCSV', () => {
     it('should show warn message when treeNodes is empty', () => {
-      component.treeNodes = [];
+      component.treeNodes.set([]);
       component.exportCSV();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn' }));
     });
 
     it('should call csvExportService.flattenTreeNodes and exportToCsv when data exists', () => {
       component.initColumnsAndFilters();
-      component.treeNodes = [{ data: { assetName: 'Asset1' } }] as any;
+      component.treeNodes.set([{ data: { assetName: 'Asset1' } }] as any);
       component.exportCSV();
-      expect(mockCsvExportService.flattenTreeNodes).toHaveBeenCalledWith(component.treeNodes);
+      expect(mockCsvExportService.flattenTreeNodes).toHaveBeenCalledWith(component.treeNodes());
       expect(mockCsvExportService.exportToCsv).toHaveBeenCalled();
     });
 
@@ -944,7 +944,7 @@ describe('STIGManagerReviewsTableComponent', () => {
       const date = new Date('2024-03-15');
 
       mockCsvExportService.flattenTreeNodes.mockReturnValue([{ assetName: 'Asset1', evaluatedDate: date }]);
-      component.treeNodes = [{ data: {} }] as any;
+      component.treeNodes.set([{ data: {} }] as any);
       component.exportCSV();
       const data = mockCsvExportService.exportToCsv.mock.calls[0][0];
 
@@ -954,7 +954,7 @@ describe('STIGManagerReviewsTableComponent', () => {
     it('should process assetLabels to semicolon-separated string', () => {
       component.initColumnsAndFilters();
       mockCsvExportService.flattenTreeNodes.mockReturnValue([{ assetName: 'Asset1', assetLabels: [{ name: 'prod' }, { name: 'sec' }] }]);
-      component.treeNodes = [{ data: {} }] as any;
+      component.treeNodes.set([{ data: {} }] as any);
       component.exportCSV();
       const data = mockCsvExportService.exportToCsv.mock.calls[0][0];
 
@@ -982,6 +982,25 @@ describe('STIGManagerReviewsTableComponent', () => {
       mockMultiSelect.overlayVisible = vi.fn().mockReturnValue(false);
       component.toggleAddColumnOverlay();
       expect(mockMultiSelect.show).toHaveBeenCalled();
+    });
+  });
+
+  describe('cleanup', () => {
+    it('stops loading benchmark IDs after destroy (takeUntilDestroyed)', () => {
+      const benchmarkSubject = new Subject<any[]>();
+
+      mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(benchmarkSubject.asObservable());
+      component.loadBenchmarkIds();
+      expect(component.benchmarkOptions()).toEqual([]);
+
+      fixture.destroy();
+      benchmarkSubject.next([...mockBenchmarkData]);
+      expect(component.benchmarkOptions()).toEqual([]);
+    });
+
+    it('does not throw on destroy', () => {
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

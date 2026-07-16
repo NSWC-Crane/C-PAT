@@ -9,7 +9,8 @@
 */
 
 import { NgClass, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, viewChild, output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, output, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { parseISO } from 'date-fns';
 import { MessageService, TreeNode } from 'primeng/api';
@@ -27,6 +28,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
 import { forkJoin, map } from 'rxjs';
+import { MultiSelectDirective } from '../../../../common/directives/multi-select.directive';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { CsvExportService } from '../../../../common/utils/csv-export.service';
@@ -60,7 +62,7 @@ interface FilterState {
   templateUrl: './stigManagerReviewsTable.component.html',
   styleUrls: ['./stigManagerReviewsTable.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ButtonModule,
     CardModule,
@@ -71,7 +73,7 @@ interface FilterState {
     IconFieldModule,
     TextareaModule,
     SelectModule,
-    SelectModule,
+    MultiSelectDirective,
     TreeTableModule,
     ToastModule,
     TagModule,
@@ -85,6 +87,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly sharedService = inject(SharedService);
   private readonly csvExportService = inject(CsvExportService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly reviewsCountChange = output<number>();
   readonly stigmanCollectionId = input.required<number>();
@@ -93,14 +96,14 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   readonly treeTable = viewChild.required<TreeTable>('tt');
   private readonly filterPopover = viewChild.required<Popover>('filterPopover');
   currentFilterColumn: any = null;
-  treeNodes: TreeNode[] = [];
-  assetCount: number = 0;
+  readonly treeNodes = signal<TreeNode[]>([]);
+  readonly assetCount = signal<number>(0);
   cols: any[];
   selectedColumns: any[];
   reviews: any;
-  isLoading: boolean = true;
+  readonly isLoading = signal<boolean>(true);
   totalRecords: number = 0;
-  benchmarkOptions: BenchmarkOption[] = [];
+  readonly benchmarkOptions = signal<BenchmarkOption[]>([]);
   appliedBenchmarkIds: string[] = [];
   selectedBenchmarkIds: string[] = [];
   showBenchmarkSelector: boolean = true;
@@ -188,7 +191,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       label,
       value
     }));
-    this.treeNodes = [];
+    this.treeNodes.set([]);
 
     if (this.stigmanCollectionId()) {
       this.loadBenchmarkIds();
@@ -239,11 +242,11 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   }
 
   private resetDataState() {
-    this.treeNodes = [];
+    this.treeNodes.set([]);
     this.originalTreeNodes = [];
     this.reviews = [];
     this.totalRecords = 0;
-    this.assetCount = 0;
+    this.assetCount.set(0);
     this.reviewsCountChange.emit(0);
     this.showBenchmarkSelector = true;
   }
@@ -253,14 +256,17 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.showBenchmarkSelector = false;
 
     const savedFilterState = this.cloneFilterState();
     const reviewRequests = this.appliedBenchmarkIds.map((benchmarkId) => this.sharedService.getReviewsFromSTIGMAN(this.stigmanCollectionId(), this.filterState.result, benchmarkId));
 
     forkJoin(reviewRequests)
-      .pipe(map((reviewArrays: any[][]) => reviewArrays.flat()))
+      .pipe(
+        map((reviewArrays: any[][]) => reviewArrays.flat()),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: (reviews) => {
           const processedReviews = (reviews ?? []).map((review) => ({
@@ -277,9 +283,9 @@ export class STIGManagerReviewsTableComponent implements OnInit {
           this.reviews = processedReviews;
           this.totalRecords = this.reviews.length;
           this.reviewsCountChange.emit(this.totalRecords);
-          this.treeNodes = this.transformReviewsToTreeNodes(processedReviews);
-          this.originalTreeNodes = [...this.treeNodes];
-          this.assetCount = this.treeNodes.length;
+          this.treeNodes.set(this.transformReviewsToTreeNodes(processedReviews));
+          this.originalTreeNodes = [...this.treeNodes()];
+          this.assetCount.set(this.treeNodes().length);
           this.filterState = savedFilterState;
 
           if (this.hasActiveFilters()) {
@@ -294,7 +300,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
           });
         },
         complete: () => {
-          this.isLoading = false;
+          this.isLoading.set(false);
         }
       });
   }
@@ -316,21 +322,24 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   }
 
   loadBenchmarkIds() {
-    this.isLoading = true;
-    this.sharedService.getCollectionSTIGSummaryFromSTIGMAN(this.stigmanCollectionId()).subscribe({
-      next: (data: any[]) => {
-        this.benchmarkOptions = [...new Set(data.map((stig) => stig.benchmarkId))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map((id) => ({ label: id, value: id }));
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load benchmark IDs: ${getErrorMessage(error)}`
-        });
-        this.isLoading = false;
-      }
-    });
+    this.isLoading.set(true);
+    this.sharedService
+      .getCollectionSTIGSummaryFromSTIGMAN(this.stigmanCollectionId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data: any[]) => {
+          this.benchmarkOptions.set([...new Set(data.map((stig) => stig.benchmarkId))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map((id) => ({ label: id, value: id })));
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load benchmark IDs: ${getErrorMessage(error)}`
+          });
+          this.isLoading.set(false);
+        }
+      });
   }
 
   getStatusIcon(status: string): string {
@@ -514,9 +523,9 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
   applyFilters() {
     if (this.hasActiveFilters()) {
-      this.treeNodes = this.filterTreeNodes(this.originalTreeNodes);
-      this.assetCount = this.treeNodes.length;
-      this.totalRecords = this.countAllNodes(this.treeNodes);
+      this.treeNodes.set(this.filterTreeNodes(this.originalTreeNodes));
+      this.assetCount.set(this.treeNodes().length);
+      this.totalRecords = this.countAllNodes(this.treeNodes());
       this.reviewsCountChange.emit(this.totalRecords);
     } else {
       this.resetTreeNodes();
@@ -573,8 +582,8 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   }
 
   private resetTreeNodes() {
-    this.treeNodes = [...this.originalTreeNodes];
-    this.assetCount = this.originalTreeNodes.length;
+    this.treeNodes.set([...this.originalTreeNodes]);
+    this.assetCount.set(this.originalTreeNodes.length);
     this.totalRecords = this.reviews?.length ?? 0;
     this.reviewsCountChange.emit(this.totalRecords);
   }
@@ -769,7 +778,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   }
 
   exportCSV() {
-    if (!this.treeNodes || this.treeNodes.length === 0) {
+    if (!this.treeNodes() || this.treeNodes().length === 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Export',
@@ -779,7 +788,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       return;
     }
 
-    const flattenedData = this.csvExportService.flattenTreeNodes(this.treeNodes);
+    const flattenedData = this.csvExportService.flattenTreeNodes(this.treeNodes());
     const processedData = flattenedData.map((row) => {
       const processedRow = { ...row };
 
@@ -802,7 +811,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   }
 
   exportDeduplicatedCSV() {
-    if (!this.treeNodes || this.treeNodes.length === 0) {
+    if (!this.treeNodes() || this.treeNodes().length === 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Export',
@@ -812,7 +821,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       return;
     }
 
-    const flattenedData = this.csvExportService.flattenTreeNodes(this.treeNodes);
+    const flattenedData = this.csvExportService.flattenTreeNodes(this.treeNodes());
     const seen = new Set<string>();
     const deduplicatedData = flattenedData.filter((row) => {
       const assetName = row.assetName || '';

@@ -18,10 +18,10 @@
             [checkmark]="true"
             [showClear]="true"
             #benchmarkMs
-            [options]="benchmarkOptions"
+            [options]="benchmarkOptions()"
             [(ngModel)]="selectedBenchmarkIds"
             placeholder="Select Benchmarks..."
-            [disabled]="isLoading && !showBenchmarkSelector"
+            [disabled]="isLoading() && !showBenchmarkSelector"
             appendTo="body"
             [filter]="true"
             filterPlaceholder="Search benchmarks..."
@@ -38,15 +38,15 @@
             <ng-template #footer>
               <div class="p-3 flex justify-between align-items-center border-top-1 surface-border">
                 <button pButton (click)="clearBenchmarkSelection()" severity="secondary" outlined="true" size="small" [disabled]="selectedBenchmarkIds.length === 0"><span pButtonLabel>Clear</span></button>
-                <button pButton (click)="applyBenchmarkSelection()" size="small" [disabled]="!hasPendingBenchmarkChanges()" [loading]="isLoading"><span pButtonLabel>Apply</span></button>
+                <button pButton (click)="applyBenchmarkSelection()" size="small" [disabled]="!hasPendingBenchmarkChanges()" [loading]="isLoading()"><span pButtonLabel>Apply</span></button>
               </div>
             </ng-template>
           </p-select>
           <button pButton class="ml-4" (click)="clearFilters()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters" tooltipPosition="top"><i class="pi pi-filter-slash" pButtonIcon></i></button>
-          @if (assetCount > 0) {
+          @if (assetCount() > 0) {
             <div class="text-color-secondary ml-6 mt-1 flex items-center gap-2 text-sm">
               <i class="pi pi-list"></i>
-              <span>Unique Assets: {{ assetCount }}</span>
+              <span>Unique Assets: {{ assetCount() }}</span>
             </div>
           }
         </div>
@@ -55,18 +55,31 @@
           <button pButton (click)="toggleAddColumnOverlay()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-plus" pButtonIcon></i></button>
           <button pButton (click)="exportCSV()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export All" tooltipPosition="top"><i class="pi pi-external-link" pButtonIcon></i></button>
           <button pButton (click)="exportDeduplicatedCSV()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export Deduplicated List" tooltipPosition="top"><i class="pi pi-file-export" pButtonIcon></i></button>
-          <p-select [multiple]="true" [checkmark]="true" [showClear]="true" #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceholder="Add columns..." />
+          <p-select
+            [multiple]="true"
+            [filter]="true"
+            [checkmark]="true"
+            [showClear]="true"
+            #ms
+            [options]="cols"
+            [(ngModel)]="selectedColumns"
+            optionLabel="header"
+            class="custom-multiselect"
+            appendTo="body"
+            name="columnSearch"
+            filterPlaceholder="Add columns..."
+          />
         </div>
       </div>
 
       <p-treetable
         #tt
-        [value]="treeNodes"
+        [value]="treeNodes()"
         [columns]="selectedColumns"
         [paginator]="true"
         [rows]="100"
-        [totalRecords]="assetCount"
-        [loading]="isLoading"
+        [totalRecords]="assetCount()"
+        [loading]="isLoading()"
         [showCurrentPageReport]="true"
         [rowsPerPageOptions]="[25, 50, 100]"
         [filterDelay]="300"
