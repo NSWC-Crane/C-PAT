@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -17,7 +18,7 @@ import { DividerModule } from 'primeng/divider';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, map, switchMap, tap, of } from 'rxjs';
+import { map, switchMap, tap, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SharedService } from '../../common/services/shared.service';
 import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
@@ -42,13 +43,11 @@ const SEVERITY_COLORS: Record<string, string> = {
   imports: [ButtonModule, CardModule, CpatChartComponent, DividerModule, ProgressSpinnerModule, ToastModule, TooltipModule, STIGManagerMetricsComponent, TenableMetricsComponent],
   providers: [MessageService]
 })
-export class MetricsComponent implements OnInit, OnDestroy {
+export class MetricsComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);
   private readonly sharedService = inject(SharedService);
   private readonly trendService = inject(MetricsService);
-  private readonly cdr = inject(ChangeDetectorRef);
-
-  private readonly subscriptions = new Subscription();
+  private readonly destroyRef = inject(DestroyRef);
 
   selectedCollection = signal<any>(null);
   selectedCollectionId = signal<any>(null);
@@ -88,40 +87,39 @@ export class MetricsComponent implements OnInit, OnDestroy {
   }
 
   private initializeComponent() {
-    this.subscriptions.add(
-      this.sharedService.selectedCollection
-        .pipe(
-          tap((collectionId) => this.selectedCollectionId.set(collectionId)),
-          switchMap((collectionId) => this.collectionsService.getCollectionBasicList().pipe(map((collections) => collections.find((c: any) => c.collectionId === collectionId)))),
-          tap((collection) => {
-            this.selectedCollection.set(collection);
+    this.sharedService.selectedCollection
+      .pipe(
+        tap((collectionId) => this.selectedCollectionId.set(collectionId)),
+        switchMap((collectionId) => this.collectionsService.getCollectionBasicList().pipe(map((collections) => collections.find((c: any) => c.collectionId === collectionId)))),
+        tap((collection) => {
+          this.selectedCollection.set(collection);
 
-            if (collection?.collectionType) {
-              this.collectionType.set(collection.collectionType);
-            }
+          if (collection?.collectionType) {
+            this.collectionType.set(collection.collectionType);
+          }
 
-            if (collection?.collectionId) {
-              this.loadMTTRData(collection.collectionId);
-            }
-          })
-        )
-        .subscribe()
-    );
+          if (collection?.collectionId) {
+            this.loadMTTRData(collection.collectionId);
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe();
   }
 
   private loadMTTRData(collectionId: number) {
     this.isMttrLoading.set(true);
 
-    const sub = this.trendService
+    this.trendService
       .getPoamMTTR(collectionId, 12)
-      .pipe(catchError(() => of<MTTRData>({ summary: [], trend: [] })))
+      .pipe(
+        catchError(() => of<MTTRData>({ summary: [], trend: [] })),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe((mttr) => {
         this.buildMTTRCharts(mttr);
         this.isMttrLoading.set(false);
-        this.cdr.markForCheck();
       });
-
-    this.subscriptions.add(sub);
   }
 
   private buildMTTRCharts(data: MTTRData) {
@@ -238,9 +236,5 @@ export class MetricsComponent implements OnInit, OnDestroy {
 
   onTenableMetricsInit(component: TenableMetricsComponent) {
     this.tenableMetrics = component;
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
   }
 }

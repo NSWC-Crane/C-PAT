@@ -194,17 +194,18 @@ describe('MetricsComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
+  describe('cleanup', () => {
+    it('stops reacting to collection changes after destroy (takeUntilDestroyed)', () => {
       component.ngOnInit();
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
-
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      expect(component.selectedCollectionId()).toBe(1);
+      fixture.destroy();
+      selectedCollectionSubject.next(99);
+      expect(component.selectedCollectionId()).toBe(1);
     });
 
-    it('should not throw when destroyed without prior init', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
+    it('does not throw on destroy', () => {
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
