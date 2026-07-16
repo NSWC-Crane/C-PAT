@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { STIGManagerPoamAssetsTableComponent } from './stigManagerPoamAssetsTable.component';
 import { SharedService } from '../../../../common/services/shared.service';
@@ -114,10 +114,6 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
       expect(component.affectedAssets).toEqual([]);
     });
 
-    it('should default combinedAssets to empty array', () => {
-      expect(component.combinedAssets).toEqual([]);
-    });
-
     it('should default totalRecords to 0', () => {
       expect(component.totalRecords).toBe(0);
     });
@@ -131,7 +127,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should default loading to true', () => {
-      expect(component.loading).toBe(true);
+      expect(component.loading()).toBe(true);
     });
 
     it('should default assetsByTeam to empty object', () => {
@@ -139,7 +135,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should default teamTabs to empty array', () => {
-      expect(component.teamTabs).toEqual([]);
+      expect(component.teamTabs()).toEqual([]);
     });
   });
 
@@ -165,7 +161,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
 
     it('should initialize teamTabs with "all" entry', () => {
       component.ngOnInit();
-      expect(component.teamTabs[0]).toMatchObject({ teamId: 'all', teamName: 'All Assets' });
+      expect(component.teamTabs()[0]).toMatchObject({ teamId: 'all', teamName: 'All Assets' });
     });
 
     it('should call loadData when stigmanCollectionId and groupId are set', () => {
@@ -328,7 +324,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     it('should set loading to false on fetch error', () => {
       mockSharedService.getPOAMAssetsFromSTIGMAN.mockReturnValue(throwError(() => new Error('Fetch error')));
       component.ngOnInit();
-      expect(component.loading).toBe(false);
+      expect(component.loading()).toBe(false);
     });
   });
 
@@ -359,7 +355,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
 
     it('should set loading to false on complete', () => {
       component.ngOnInit();
-      expect(component.loading).toBe(false);
+      expect(component.loading()).toBe(false);
     });
 
     it('should use mappedAssets as fallback when no assetDetails returned', () => {
@@ -382,7 +378,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     it('should set loading to false on detail error', () => {
       mockSharedService.getAssetDetailsFromSTIGMAN.mockReturnValue(throwError(() => new Error('Detail error')));
       component.loadAssetDetails([]);
-      expect(component.loading).toBe(false);
+      expect(component.loading()).toBe(false);
     });
   });
 
@@ -390,7 +386,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     beforeEach(() => {
       component.assetDeltaList = mockAssetDeltaList;
       component.affectedAssets = [{ assetId: 101, assetName: 'Asset1', fqdn: 'asset1.example.com', sourceVulnIds: ['V-001'] }];
-      component.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
+      component.teamTabs.set([{ teamId: 'all', teamName: 'All Assets', assets: [] }]);
     });
 
     it('should return early when assetDeltaList has no assets', () => {
@@ -445,24 +441,24 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
 
     it('should always include "all" tab first', () => {
       component.createTeamTabs();
-      expect(component.teamTabs[0].teamId).toBe('all');
+      expect(component.teamTabs()[0].teamId).toBe('all');
     });
 
     it('should add a tab for each team in assetsByTeam', () => {
       component.createTeamTabs();
-      expect(component.teamTabs.length).toBe(2);
+      expect(component.teamTabs().length).toBe(2);
     });
 
     it('should set correct teamName for team tab', () => {
       component.createTeamTabs();
-      const teamTab = component.teamTabs.find((t) => t.teamId === 'team1');
+      const teamTab = component.teamTabs().find((t) => t.teamId === 'team1');
 
       expect(teamTab?.teamName).toBe('Team Alpha');
     });
 
     it('should set assets for each team tab', () => {
       component.createTeamTabs();
-      const teamTab = component.teamTabs.find((t) => t.teamId === 'team1');
+      const teamTab = component.teamTabs().find((t) => t.teamId === 'team1');
 
       expect(teamTab?.assets.length).toBe(1);
     });
@@ -470,7 +466,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
 
   describe('updateTableReferences', () => {
     it('should clear the tableMap and repopulate from teamTabs', () => {
-      component.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
+      component.teamTabs.set([{ teamId: 'all', teamName: 'All Assets', assets: [] }]);
       component.updateTableReferences();
       expect((component as any).tableMap.size).toBe(0);
     });
@@ -517,7 +513,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
   describe('exportCSV', () => {
     beforeEach(() => {
       component.initColumnsAndFilters();
-      component.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [{ assetId: 101, assetName: 'Asset1', sourceVulnIds: ['V-001'], labels: [{ name: 'prod' }], assignedTeams: [{ assignedTeamName: 'Alpha' }] }] }];
+      component.teamTabs.set([{ teamId: 'all', teamName: 'All Assets', assets: [{ assetId: 101, assetName: 'Asset1', sourceVulnIds: ['V-001'], labels: [{ name: 'prod' }], assignedTeams: [{ assignedTeamName: 'Alpha' }] }] }]);
       component.activeTab = 'all';
     });
 
@@ -534,7 +530,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should show warn message when no assets to export', () => {
-      component.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
+      component.teamTabs.set([{ teamId: 'all', teamName: 'All Assets', assets: [] }]);
       component.affectedAssets = [];
       component.exportCSV();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn' }));
@@ -594,12 +590,30 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('stops updating selectedCollection after destroy (takeUntilDestroyed)', () => {
+      const collectionSubject = new Subject<number>();
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      mockSharedService.selectedCollection = collectionSubject.asObservable();
+
+      const localFixture = TestBed.createComponent(STIGManagerPoamAssetsTableComponent);
+      const localComponent = localFixture.componentInstance;
+
+      localFixture.componentRef.setInput('stigmanCollectionId', 42);
+      localFixture.componentRef.setInput('groupId', 'V-001');
+      localFixture.componentRef.setInput('associatedVulnerabilities', []);
+      localComponent.ngOnInit();
+      collectionSubject.next(7);
+      expect(localComponent.selectedCollection).toBe(7);
+
+      localFixture.destroy();
+      collectionSubject.next(99);
+      expect(localComponent.selectedCollection).toBe(7);
+    });
+
+    it('does not throw on destroy', () => {
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

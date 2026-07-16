@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChildren, viewChild, effect, input } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, OnInit, effect, inject, input, signal, viewChild, viewChildren } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -22,11 +23,11 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription } from 'rxjs';
 import { SharedService } from '../../../../common/services/shared.service';
 import { CsvExportService } from '../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
+import { MultiSelectDirective } from '../../../../common/directives/multi-select.directive';
 
 interface ExportColumn {
   title: string;
@@ -38,14 +39,15 @@ interface ExportColumn {
   templateUrl: './stigManagerPoamAssetsTable.component.html',
   styleUrls: ['./stigManagerPoamAssetsTable.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, CardModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, SelectModule, TabsModule, TableModule, ToastModule, TagModule, TooltipModule]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ButtonModule, CardModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, MultiSelectDirective, SelectModule, TabsModule, TableModule, ToastModule, TagModule, TooltipModule]
 })
-export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit, OnDestroy {
+export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit {
   private readonly assetDeltaService = inject(AssetDeltaService);
   private readonly csvExportService = inject(CsvExportService);
   private readonly messageService = inject(MessageService);
   private readonly sharedService = inject(SharedService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly stigmanCollectionId = input.required<number>();
   readonly groupId = input.required<string>();
@@ -58,17 +60,15 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   exportColumns!: ExportColumn[];
   selectedColumns: any[];
   affectedAssets: any[] = [];
-  combinedAssets: any[] = [];
   totalRecords: number = 0;
   filterValue: string = '';
   assetDeltaList: any;
   assetsByTeam: { [teamId: string]: any[] } = {};
-  teamTabs: { teamId: string; teamName: string; assets: any[] }[] = [];
+  readonly teamTabs = signal<{ teamId: string; teamName: string; assets: any[] }[]>([]);
   activeTab: string = 'all';
-  loading: boolean = true;
+  readonly loading = signal<boolean>(true);
   private readonly tableMap = new Map<string, Table>();
   selectedCollection: any;
-  private readonly subscriptions = new Subscription();
 
   constructor() {
     effect(() => {
@@ -81,15 +81,13 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   }
 
   ngOnInit() {
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
-      })
-    );
+    this.sharedService.selectedCollection.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((collectionId) => {
+      this.selectedCollection = collectionId;
+    });
     this.initColumnsAndFilters();
     this.loadAssetDeltaList();
 
-    this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
+    this.teamTabs.set([{ teamId: 'all', teamName: 'All Assets', assets: [] }]);
 
     if (this.stigmanCollectionId()) {
       if (this.groupId()) {
@@ -112,7 +110,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
     this.tableMap.clear();
     const tablesArray = this.tables();
 
-    this.teamTabs.forEach((tab, index) => {
+    this.teamTabs().forEach((tab, index) => {
       if (index < tablesArray.length) {
         this.tableMap.set(tab.teamId, tablesArray[index]);
       }
@@ -120,116 +118,125 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   }
 
   loadAssetDeltaList() {
-    this.assetDeltaService.getAssetDeltaListByCollection(this.selectedCollection).subscribe({
-      next: (response) => {
-        this.assetDeltaList = response || [];
-      },
-      error: (error) =>
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load Asset Delta List: ${getErrorMessage(error)}`
-        })
-    });
+    this.assetDeltaService
+      .getAssetDeltaListByCollection(this.selectedCollection)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.assetDeltaList = response || [];
+        },
+        error: (error) =>
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load Asset Delta List: ${getErrorMessage(error)}`
+          })
+      });
   }
 
   loadData() {
-    this.loading = true;
+    this.loading.set(true);
     const associatedVulnIds = this.associatedVulnerabilities()
       .map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null))
       .filter((id) => id !== null);
 
     const allVulnIds = [this.groupId(), ...associatedVulnIds];
 
-    this.sharedService.getPOAMAssetsFromSTIGMAN(this.stigmanCollectionId()).subscribe({
-      next: (poamAssets) => {
-        let allAssets: any[] = [];
+    this.sharedService
+      .getPOAMAssetsFromSTIGMAN(this.stigmanCollectionId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (poamAssets) => {
+          let allAssets: any[] = [];
 
-        allVulnIds.forEach((vulnId) => {
-          const matchingItem = poamAssets.find((item) => item.groupId === vulnId);
+          allVulnIds.forEach((vulnId) => {
+            const matchingItem = poamAssets.find((item) => item.groupId === vulnId);
 
-          if (matchingItem?.assets) {
-            const assetsForVuln = matchingItem.assets.map((asset: any) => ({
-              assetName: asset.name,
-              assetId: asset.assetId,
-              sourceVulnIds: [vulnId]
-            }));
+            if (matchingItem?.assets) {
+              const assetsForVuln = matchingItem.assets.map((asset: any) => ({
+                assetName: asset.name,
+                assetId: asset.assetId,
+                sourceVulnIds: [vulnId]
+              }));
 
-            allAssets = [...allAssets, ...assetsForVuln];
-          }
-        });
+              allAssets = [...allAssets, ...assetsForVuln];
+            }
+          });
 
-        const assetMap = new Map<number, any>();
+          const assetMap = new Map<number, any>();
 
-        allAssets.forEach((asset) => {
-          if (!assetMap.has(asset.assetId)) {
-            assetMap.set(asset.assetId, asset);
-          } else {
-            const existing = assetMap.get(asset.assetId)!;
+          allAssets.forEach((asset) => {
+            if (!assetMap.has(asset.assetId)) {
+              assetMap.set(asset.assetId, asset);
+            } else {
+              const existing = assetMap.get(asset.assetId)!;
 
-            existing.sourceVulnIds = [...new Set([...existing.sourceVulnIds, ...asset.sourceVulnIds])];
-          }
-        });
+              existing.sourceVulnIds = [...new Set([...existing.sourceVulnIds, ...asset.sourceVulnIds])];
+            }
+          });
 
-        this.loadAssetDetails(Array.from(assetMap.values()));
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to fetch POAM assets: ${getErrorMessage(error)}`
-        });
-        this.loading = false;
-      }
-    });
+          this.loadAssetDetails(Array.from(assetMap.values()));
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch POAM assets: ${getErrorMessage(error)}`
+          });
+          this.loading.set(false);
+        }
+      });
   }
 
   loadAssetDetails(mappedAssets: any[]) {
-    this.sharedService.getAssetDetailsFromSTIGMAN(this.stigmanCollectionId()).subscribe({
-      next: (assetDetails) => {
-        if (!assetDetails || assetDetails.length === 0) {
-          console.error('No asset details found.');
+    this.sharedService
+      .getAssetDetailsFromSTIGMAN(this.stigmanCollectionId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (assetDetails) => {
+          if (!assetDetails || assetDetails.length === 0) {
+            console.error('No asset details found.');
+            this.affectedAssets = mappedAssets;
+
+            return;
+          }
+
+          this.affectedAssets = mappedAssets.map((asset) => {
+            const details = assetDetails.find((detail) => detail.assetId === asset.assetId);
+
+            if (!details) return asset;
+
+            return {
+              ...asset,
+              ...(details.description && { description: details.description }),
+              ...(details.fqdn && { fqdn: details.fqdn }),
+              ...(details.ip && { ip: details.ip }),
+              ...(details.labels && { labels: details.labels }),
+              ...(details.mac && { mac: details.mac }),
+              ...(details.metadata && { metadata: details.metadata }),
+              ...(details.statusStats && { statusStats: details.statusStats }),
+              ...(details.stigGrants && { stigGrants: details.stigGrants }),
+              ...(details.stigs && { stigs: details.stigs }),
+              ...(details.collection && {
+                collectionId: details.collection.collectionId
+              })
+            };
+          });
+          this.totalRecords = this.affectedAssets.length;
+
+          this.matchAssetsWithTeams();
+          this.loading.set(false);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch asset details: ${getErrorMessage(error)}`
+          });
           this.affectedAssets = mappedAssets;
-
-          return;
+          this.loading.set(false);
         }
-
-        this.affectedAssets = mappedAssets.map((asset) => {
-          const details = assetDetails.find((detail) => detail.assetId === asset.assetId);
-
-          if (!details) return asset;
-
-          return {
-            ...asset,
-            ...(details.description && { description: details.description }),
-            ...(details.fqdn && { fqdn: details.fqdn }),
-            ...(details.ip && { ip: details.ip }),
-            ...(details.labels && { labels: details.labels }),
-            ...(details.mac && { mac: details.mac }),
-            ...(details.metadata && { metadata: details.metadata }),
-            ...(details.statusStats && { statusStats: details.statusStats }),
-            ...(details.stigGrants && { stigGrants: details.stigGrants }),
-            ...(details.stigs && { stigs: details.stigs }),
-            ...(details.collection && {
-              collectionId: details.collection.collectionId
-            })
-          };
-        });
-        this.totalRecords = this.affectedAssets.length;
-
-        this.matchAssetsWithTeams();
-        this.loading = false;
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to fetch asset details: ${getErrorMessage(error)}`
-        });
-        this.affectedAssets = mappedAssets;
-        this.loading = false;
-      }
-    });
+      });
   }
 
   matchAssetsWithTeams() {
@@ -299,19 +306,21 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   }
 
   createTeamTabs() {
-    this.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }];
+    const tabs: { teamId: string; teamName: string; assets: any[] }[] = [{ teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }];
 
     Object.keys(this.assetsByTeam).forEach((teamId) => {
       if (this.assetsByTeam[teamId].length > 0) {
         const teamName = this.assetsByTeam[teamId][0].assignedTeamName || `Team ${teamId}`;
 
-        this.teamTabs.push({
+        tabs.push({
           teamId: teamId,
           teamName: teamName,
           assets: this.assetsByTeam[teamId]
         });
       }
     });
+
+    this.teamTabs.set(tabs);
   }
 
   initColumnsAndFilters() {
@@ -372,7 +381,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   }
 
   exportCSV() {
-    const activeTab = this.teamTabs.find((tab) => tab.teamId === this.activeTab);
+    const activeTab = this.teamTabs().find((tab) => tab.teamId === this.activeTab);
     const assetsToExport = activeTab?.assets || this.affectedAssets;
 
     if (!assetsToExport || assetsToExport.length === 0) {
@@ -424,9 +433,5 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
         columnSelect.show();
       }
     }
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 }
