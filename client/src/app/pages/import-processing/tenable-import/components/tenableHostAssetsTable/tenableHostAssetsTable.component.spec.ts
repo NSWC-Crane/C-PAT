@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableHostAssetsTableComponent } from './tenableHostAssetsTable.component';
 import { ImportService } from '../../../import.service';
@@ -104,15 +104,15 @@ describe('TenableHostAssetsTableComponent', () => {
     });
 
     it('should default affectedAssets to empty array', () => {
-      expect(component.affectedAssets).toEqual([]);
+      expect(component.affectedAssets()).toEqual([]);
     });
 
     it('should default isLoading to true', () => {
-      expect(component.isLoading).toBe(true);
+      expect(component.isLoading()).toBe(true);
     });
 
     it('should default totalRecords to 0', () => {
-      expect(component.totalRecords).toBe(0);
+      expect(component.totalRecords()).toBe(0);
     });
 
     it('should default filterValue to empty string', () => {
@@ -188,67 +188,67 @@ describe('TenableHostAssetsTableComponent', () => {
     it('should map host assets from response', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets.length).toBe(2);
+      expect(component.affectedAssets().length).toBe(2);
     });
 
     it('should extract source type from source array', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets[0].source).toBe('nessus');
+      expect(component.affectedAssets()[0].source).toBe('nessus');
     });
 
     it('should default source to empty string when source is null', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets[1].source).toBe('');
+      expect(component.affectedAssets()[1].source).toBe('');
     });
 
     it('should extract acr score', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets[0].acr).toBe('8');
+      expect(component.affectedAssets()[0].acr).toBe('8');
     });
 
     it('should default acr to empty string when null', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets[1].acr).toBe('');
+      expect(component.affectedAssets()[1].acr).toBe('');
     });
 
     it('should extract aes score', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets[0].aes).toBe('450');
+      expect(component.affectedAssets()[0].aes).toBe('450');
     });
 
     it('should format systemType with capitalization and spaces', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets[0].systemType).toBe('General-Purpose, Router');
+      expect(component.affectedAssets()[0].systemType).toBe('General-Purpose, Router');
     });
 
     it('should default systemType to empty string when null', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets[1].systemType).toBe('');
+      expect(component.affectedAssets()[1].systemType).toBe('');
     });
 
     it('should format lastSeen timestamp', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets[0].lastSeen).toMatch(/\d{2}\/\d{2}\/\d{4}/);
+      expect(component.affectedAssets()[0].lastSeen).toMatch(/\d{2}\/\d{2}\/\d{4}/);
     });
 
     it('should set lastSeen to undefined for "-1"', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets[1].lastSeen).toBeUndefined();
+      expect(component.affectedAssets()[1].lastSeen).toBeUndefined();
     });
 
     it('should set isLoading to false on success', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should show error and set isLoading=false on failure', () => {
@@ -256,7 +256,7 @@ describe('TenableHostAssetsTableComponent', () => {
       mockImportService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('fail')));
       component.getAffectedAssets();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
   });
 
@@ -383,12 +383,20 @@ describe('TenableHostAssetsTableComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('should not update affectedAssets after destroy (takeUntilDestroyed)', () => {
+      const subject = new Subject<any>();
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      mockImportService.postTenableHostSearch.mockReturnValue(subject.asObservable());
+      (component as any).tenableRepoId = () => 42;
+      component.getAffectedAssets();
+      fixture.destroy();
+      subject.next({ ...mockHostResponse });
+      expect(component.affectedAssets()).toEqual([]);
+    });
+
+    it('should not throw when destroyed', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
