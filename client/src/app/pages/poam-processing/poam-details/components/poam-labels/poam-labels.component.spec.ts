@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 import { PoamLabelsComponent } from './poam-labels.component';
@@ -348,6 +348,26 @@ describe('PoamLabelsComponent', () => {
       component.getPoamLabels();
 
       expect(mockPoamService.getPoamLabelsByPoam).toHaveBeenCalledWith(42);
+    });
+  });
+
+  describe('cleanup', () => {
+    it('stops applying fetched labels after destroy (takeUntilDestroyed)', () => {
+      const labels$ = new Subject<any[]>();
+
+      mockPoamService.getPoamLabelsByPoam.mockReturnValue(labels$.asObservable());
+      fixture.detectChanges();
+      component.getPoamLabels();
+
+      fixture.destroy();
+      labels$.next([createLabel({ labelId: 7 })]);
+
+      expect(component.poamLabels()).toEqual([]);
+    });
+
+    it('does not throw on destroy', () => {
+      fixture.detectChanges();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
