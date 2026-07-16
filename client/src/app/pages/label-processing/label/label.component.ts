@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
@@ -35,7 +35,7 @@ import { PoamService } from '../../poam-processing/poams.service';
   templateUrl: './label.component.html',
   styleUrls: ['./label.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, ToastModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
@@ -50,23 +50,19 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   readonly labels = input<any>(undefined);
   readonly payload = input<any>(undefined);
   readonly labelchange = output();
-  errorMessage: string = '';
-  data: any = [];
-  showLaborCategorySelect: boolean = false;
-  selectedCollection: any;
+  readonly selectedCollection = signal<any>(undefined);
   private readonly subscriptions = new Subscription();
   private readonly subs = new SubSink();
-  protected accessLevel: any;
-  displayPoams: any[] = [];
-  loadingPoams: boolean = false;
-  availablePoams: any[] = [];
-  selectedPoams: any[] = [];
-  poamSuggestions: any[] = [];
+  protected readonly accessLevel = signal<any>(undefined);
+  readonly displayPoams = signal<any[]>([]);
+  readonly loadingPoams = signal(false);
+  readonly availablePoams = signal<any[]>([]);
+  readonly poamSuggestions = signal<any[]>([]);
 
   ngOnInit() {
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
+        this.selectedCollection.set(collectionId);
 
         if (collectionId) {
           this.loadAvailablePoams();
@@ -74,9 +70,11 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
       })
     );
 
-    this.setPayloadService.accessLevel$.subscribe((level) => {
-      this.accessLevel = level;
-    });
+    this.subscriptions.add(
+      this.setPayloadService.accessLevel$.subscribe((level) => {
+        this.accessLevel.set(level);
+      })
+    );
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -88,17 +86,17 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
       if (label.labelId && label.labelId !== 'ADDLABEL') {
         this.loadPoamsByLabel();
       } else {
-        this.displayPoams = [];
+        this.displayPoams.set([]);
       }
     }
   }
 
   loadAvailablePoams() {
-    if (!this.selectedCollection) return;
+    if (!this.selectedCollection()) return;
 
-    this.subs.sink = this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
+    this.subs.sink = this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection()).subscribe({
       next: (data: any) => {
-        this.availablePoams = data || [];
+        this.availablePoams.set(data || []);
       },
       error: (error) => {
         this.messageService.add({
@@ -114,19 +112,21 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     const label = this.label();
 
     if (!label?.labelId || label?.labelId === 'ADDLABEL') {
-      this.displayPoams = [];
+      this.displayPoams.set([]);
 
       return;
     }
 
-    this.loadingPoams = true;
+    this.loadingPoams.set(true);
     this.subs.sink = this.poamService.getPoamsByLabel(label.labelId).subscribe({
       next: (data: any) => {
-        this.displayPoams = (data || []).map((poam) => ({
-          ...poam,
-          isNew: false
-        }));
-        this.loadingPoams = false;
+        this.displayPoams.set(
+          (data || []).map((poam) => ({
+            ...poam,
+            isNew: false
+          }))
+        );
+        this.loadingPoams.set(false);
       },
       error: (error) => {
         this.messageService.add({
@@ -134,8 +134,8 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
           summary: 'Error',
           detail: `Error loading POAMs: ${getErrorMessage(error)}`
         });
-        this.loadingPoams = false;
-        this.displayPoams = [];
+        this.loadingPoams.set(false);
+        this.displayPoams.set([]);
       }
     });
   }
@@ -143,13 +143,15 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   searchPoams(event: AutoCompleteCompleteEvent) {
     const query = event.query.toLowerCase();
 
-    this.poamSuggestions = this.availablePoams.filter((poam) => {
-      const isAlreadyAdded = this.displayPoams.some((dp) => !dp.isNew && dp.poamId === poam.poamId);
+    this.poamSuggestions.set(
+      this.availablePoams().filter((poam) => {
+        const isAlreadyAdded = this.displayPoams().some((dp) => !dp.isNew && dp.poamId === poam.poamId);
 
-      if (isAlreadyAdded) return false;
+        if (isAlreadyAdded) return false;
 
-      return poam.poamId?.toString().toLowerCase().includes(query) || poam.vulnerabilityId?.toLowerCase().includes(query) || poam.vulnerabilityTitle?.toLowerCase().includes(query);
-    });
+        return poam.poamId?.toString().toLowerCase().includes(query) || poam.vulnerabilityId?.toLowerCase().includes(query) || poam.vulnerabilityTitle?.toLowerCase().includes(query);
+      })
+    );
   }
 
   parseVulnerabilityIds(pastedText: string, rowData: any): void {
@@ -166,10 +168,10 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     const unmatchedIds: string[] = [];
 
     vulnIds.forEach((vulnId) => {
-      const matchedPoam = this.availablePoams.find((poam) => poam.vulnerabilityId === vulnId);
+      const matchedPoam = this.availablePoams().find((poam) => poam.vulnerabilityId === vulnId);
 
       if (matchedPoam) {
-        const isAlreadyAdded = this.displayPoams.some((dp) => !dp.isNew && dp.poamId === matchedPoam.poamId);
+        const isAlreadyAdded = this.displayPoams().some((dp) => !dp.isNew && dp.poamId === matchedPoam.poamId);
         const isAlreadySelected = rowData.selectedPoams?.some((sp: any) => sp.poamId === matchedPoam.poamId);
 
         if (!isAlreadyAdded && !isAlreadySelected) {
@@ -188,6 +190,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
       const currentSelection = rowData.selectedPoams || [];
 
       rowData.selectedPoams = [...currentSelection, ...matchedPoams];
+      this.displayPoams.update((current) => [...current]);
 
       setTimeout(() => {
         this.messageService.add({
@@ -248,7 +251,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
       rawSeverity: ''
     };
 
-    this.displayPoams = [newPoamRow, ...this.displayPoams];
+    this.displayPoams.update((current) => [newPoamRow, ...current]);
   }
 
   async onPoamAdd(rowData: any, rowIndex: number) {
@@ -263,7 +266,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     for (const poam of rowData.selectedPoams) {
-      const isDuplicate = this.displayPoams.some((dp) => !dp.isNew && dp.poamId === poam.poamId);
+      const isDuplicate = this.displayPoams().some((dp) => !dp.isNew && dp.poamId === poam.poamId);
 
       if (isDuplicate) {
         this.messageService.add({
@@ -281,12 +284,15 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
 
       this.subs.sink = this.poamService.postPoamLabel(poamLabel).subscribe({
         next: () => {
-          this.displayPoams.push({
-            ...poam,
-            labelId: this.label().labelId,
-            labelName: this.label().labelName,
-            isNew: false
-          });
+          this.displayPoams.update((current) => [
+            ...current,
+            {
+              ...poam,
+              labelId: this.label().labelId,
+              labelName: this.label().labelName,
+              isNew: false
+            }
+          ]);
 
           this.messageService.add({
             severity: 'success',
@@ -304,19 +310,19 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
       });
     }
 
-    this.displayPoams.splice(rowIndex, 1);
+    this.displayPoams.update((current) => current.filter((_, index) => index !== rowIndex));
   }
 
   async deletePoamFromLabel(poam: any, rowIndex: number) {
     if (poam.isNew) {
-      this.displayPoams.splice(rowIndex, 1);
+      this.displayPoams.update((current) => current.filter((_, index) => index !== rowIndex));
 
       return;
     }
 
     this.subs.sink = this.poamService.deletePoamLabel(poam.poamId, this.label().labelId).subscribe({
       next: () => {
-        this.displayPoams.splice(rowIndex, 1);
+        this.displayPoams.update((current) => current.filter((_, index) => index !== rowIndex));
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
@@ -357,13 +363,13 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     const labelValue = this.label();
     const label = {
       labelId: labelValue.labelId == 'ADDLABEL' || !labelValue.labelId ? 0 : labelValue.labelId,
-      collectionId: this.selectedCollection,
+      collectionId: this.selectedCollection(),
       labelName: this.label().labelName,
       description: this.label().description
     };
 
     if (label.labelId === 0) {
-      this.subs.sink = this.labelService.addLabel(this.selectedCollection, label).subscribe(
+      this.subs.sink = this.labelService.addLabel(this.selectedCollection(), label).subscribe(
         (data: any) => {
           this.labelchange.emit(data.labelId);
         },
@@ -376,7 +382,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
         }
       );
     } else {
-      this.subs.sink = this.labelService.updateLabel(this.selectedCollection, label.labelId, label).subscribe((data) => {
+      this.subs.sink = this.labelService.updateLabel(this.selectedCollection(), label.labelId, label).subscribe((data) => {
         this.label.set(data);
         this.labelchange.emit();
       });
@@ -385,13 +391,13 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
 
   resetData() {
     this.label.set({ labelId: '', labelName: '', description: '' });
-    this.displayPoams = [];
+    this.displayPoams.set([]);
     this.labelchange.emit();
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
     this.dialogService.open(ConfirmationDialogComponent, {
-      data: {
+      inputValues: {
         options: dialogOptions
       }
     }).onClose;
