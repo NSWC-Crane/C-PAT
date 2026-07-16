@@ -72,7 +72,6 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly affectedAssetCounts = input<{ vulnerabilityId: string; assetCount: number }[], { vulnerabilityId: string; assetCount: number }[] | null | undefined>([], { transform: (value) => value ?? [] });
 
-  // Sticky: once counts have arrived, an empty update no longer means "still loading"
   private readonly _assetCountsLoaded = linkedSignal<{ vulnerabilityId: string; assetCount: number }[], boolean>({
     source: this.affectedAssetCounts,
     computation: (counts, previous) => (previous?.value ?? false) || counts.length > 0

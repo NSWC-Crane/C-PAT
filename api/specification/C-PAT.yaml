@@ -4873,6 +4873,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '409':
+          description: A POAM already exists for this vulnerability ID within the collection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -4902,6 +4908,18 @@ paths:
                 $ref: '#/components/schemas/poam_Object'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: POAM not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '409':
+          description: A POAM already exists for this vulnerability ID within the collection
           content:
             application/json:
               schema:
@@ -6983,6 +7001,21 @@ components:
               assignedTeamId:
                 type: integer
               mitigationText:
+                type: string
+                default: ''
+              isActive:
+                type: boolean
+                default: true
+            required:
+              - assignedTeamId
+        teamResources:
+          type: array
+          items:
+            type: object
+            properties:
+              assignedTeamId:
+                type: integer
+              resourceText:
                 type: string
                 default: ''
               isActive:

@@ -155,11 +155,11 @@ export class PoamService {
   }
 
   postPoam(poam: any): Observable<any> {
-    return this.http.post<any>(`${this.cpatApiBase}/poam`, poam).pipe(catchError(this.handleError));
+    return this.http.post<any>(`${this.cpatApiBase}/poam`, poam);
   }
 
   updatePoam(poam: any): Observable<any> {
-    return this.http.put<any>(`${this.cpatApiBase}/poam`, poam).pipe(catchError(this.handleError));
+    return this.http.put<any>(`${this.cpatApiBase}/poam`, poam);
   }
 
   updatePoamStatus(poamId: number, poamStatusUpdate: any): Observable<any> {
