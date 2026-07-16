@@ -86,10 +86,10 @@ describe('PoamLogComponent', () => {
       expect(component.customColumn).toBe('Timestamp');
       expect(component.defaultColumns).toEqual(['User', 'Action']);
       expect(component.allColumns).toEqual(['Timestamp', 'User', 'Action']);
-      expect(component.dataSource).toEqual([]);
-      expect(component.displayModal).toBe(true);
-      expect(component.poamId).toBeUndefined();
-      expect(component.selectedCollection).toBeUndefined();
+      expect(component.dataSource()).toEqual([]);
+      expect(component.displayModal()).toBe(true);
+      expect(component.poamId()).toBeUndefined();
+      expect(component.selectedCollection()).toBeUndefined();
     });
   });
 
@@ -97,7 +97,7 @@ describe('PoamLogComponent', () => {
     it('should subscribe to route params', () => {
       fixture.detectChanges();
       paramsSubject.next({ poamId: '42' });
-      expect(component.poamId).toBe('42');
+      expect(component.poamId()).toBe('42');
     });
 
     it('should fetch poam log when poamId is present in params', () => {
@@ -120,24 +120,24 @@ describe('PoamLogComponent', () => {
 
     it('should subscribe to selectedCollection', () => {
       fixture.detectChanges();
-      expect(component.selectedCollection).toBe(1);
+      expect(component.selectedCollection()).toBe(1);
     });
 
     it('should update selectedCollection when it changes', () => {
       fixture.detectChanges();
       selectedCollectionSubject.next(5);
-      expect(component.selectedCollection).toBe(5);
+      expect(component.selectedCollection()).toBe(5);
     });
 
     it('should handle multiple route param emissions', () => {
       fixture.detectChanges();
       paramsSubject.next({ poamId: '10' });
-      expect(component.poamId).toBe('10');
+      expect(component.poamId()).toBe('10');
       expect(mockPoamLogService.getPoamLogByPoamId).toHaveBeenCalledWith('10');
 
       mockPoamLogService.getPoamLogByPoamId.mockClear();
       paramsSubject.next({ poamId: '20' });
-      expect(component.poamId).toBe('20');
+      expect(component.poamId()).toBe('20');
       expect(mockPoamLogService.getPoamLogByPoamId).toHaveBeenCalledWith('20');
     });
   });
@@ -147,7 +147,7 @@ describe('PoamLogComponent', () => {
       fixture.detectChanges();
       paramsSubject.next({ poamId: '42' });
 
-      expect(component.dataSource).toEqual([
+      expect(component.dataSource()).toEqual([
         { Timestamp: '2024-06-15T10:30:00Z', User: 'admin', Action: 'Created POAM' },
         { Timestamp: '2024-06-16T14:00:00Z', User: 'analyst', Action: 'Updated status to <b>Submitted</b>' },
         { Timestamp: '2024-06-17T09:15:00Z', User: 'approver', Action: 'Approved POAM' }
@@ -159,7 +159,7 @@ describe('PoamLogComponent', () => {
       fixture.detectChanges();
       paramsSubject.next({ poamId: '42' });
 
-      expect(component.dataSource).toEqual([]);
+      expect(component.dataSource()).toEqual([]);
     });
 
     it('should map only Timestamp, User, and Action fields', () => {
@@ -169,9 +169,9 @@ describe('PoamLogComponent', () => {
       fixture.detectChanges();
       paramsSubject.next({ poamId: '42' });
 
-      expect(component.dataSource).toEqual([{ Timestamp: '2024-01-01', User: 'user1', Action: 'Test' }]);
-      expect((component.dataSource[0] as any).extraField).toBeUndefined();
-      expect((component.dataSource[0] as any).id).toBeUndefined();
+      expect(component.dataSource()).toEqual([{ Timestamp: '2024-01-01', User: 'user1', Action: 'Test' }]);
+      expect((component.dataSource()[0] as any).extraField).toBeUndefined();
+      expect((component.dataSource()[0] as any).id).toBeUndefined();
     });
 
     it('should show error message on fetch failure', () => {
@@ -189,57 +189,57 @@ describe('PoamLogComponent', () => {
     });
 
     it('should not modify dataSource on fetch failure', () => {
-      component.dataSource = [{ Timestamp: 'old', User: 'old', Action: 'old' }];
+      component.dataSource.set([{ Timestamp: 'old', User: 'old', Action: 'old' }]);
       mockPoamLogService.getPoamLogByPoamId.mockReturnValue(throwError(() => new Error('fail')));
       fixture.detectChanges();
       paramsSubject.next({ poamId: '42' });
 
-      expect(component.dataSource).toEqual([{ Timestamp: 'old', User: 'old', Action: 'old' }]);
+      expect(component.dataSource()).toEqual([{ Timestamp: 'old', User: 'old', Action: 'old' }]);
     });
 
     it('should replace previous dataSource on subsequent fetches', () => {
       fixture.detectChanges();
       paramsSubject.next({ poamId: '42' });
-      expect(component.dataSource).toHaveLength(3);
+      expect(component.dataSource()).toHaveLength(3);
 
       const newLogs = [{ Timestamp: '2024-07-01', User: 'newuser', Action: 'New action' }];
 
       mockPoamLogService.getPoamLogByPoamId.mockReturnValue(of(newLogs));
       paramsSubject.next({ poamId: '43' });
-      expect(component.dataSource).toHaveLength(1);
-      expect(component.dataSource[0].User).toBe('newuser');
+      expect(component.dataSource()).toHaveLength(1);
+      expect(component.dataSource()[0].User).toBe('newuser');
     });
   });
 
   describe('openModal', () => {
     it('should set displayModal to true', () => {
-      component.displayModal = false;
+      component.displayModal.set(false);
       component.openModal();
-      expect(component.displayModal).toBe(true);
+      expect(component.displayModal()).toBe(true);
     });
   });
 
   describe('closeModal', () => {
     it('should set displayModal to false', () => {
-      component.displayModal = true;
+      component.displayModal.set(true);
       component.closeModal();
-      expect(component.displayModal).toBe(false);
+      expect(component.displayModal()).toBe(false);
     });
 
     it('should navigate to poam-details with the current poamId', () => {
-      component.poamId = 42;
+      component.poamId.set(42);
       component.closeModal();
       expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/42');
     });
 
     it('should navigate even when poamId is undefined', () => {
-      component.poamId = undefined;
+      component.poamId.set(undefined);
       component.closeModal();
       expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/undefined');
     });
 
     it('should navigate with string poamId', () => {
-      component.poamId = '99';
+      component.poamId.set('99');
       component.closeModal();
       expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/99');
     });
@@ -269,9 +269,9 @@ describe('PoamLogComponent', () => {
       fixture.detectChanges();
       component.ngOnDestroy();
 
-      component.selectedCollection = 1;
+      component.selectedCollection.set(1);
       selectedCollectionSubject.next(999);
-      expect(component.selectedCollection).toBe(1);
+      expect(component.selectedCollection()).toBe(1);
     });
   });
 

@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
@@ -30,7 +30,7 @@ interface FSEntry {
   templateUrl: './poam-log.component.html',
   styleUrls: ['./poam-log.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DialogModule, TableModule, ToastModule]
 })
 export class PoamLogComponent implements OnInit, OnDestroy {
@@ -44,25 +44,25 @@ export class PoamLogComponent implements OnInit, OnDestroy {
   customColumn = 'Timestamp';
   defaultColumns = ['User', 'Action'];
   allColumns = [this.customColumn, ...this.defaultColumns];
-  dataSource: FSEntry[] = [];
-  poamId: any;
-  selectedCollection: any;
-  displayModal: boolean = true;
+  readonly dataSource = signal<FSEntry[]>([]);
+  readonly poamId = signal<any>(undefined);
+  readonly selectedCollection = signal<any>(undefined);
+  readonly displayModal = signal(true);
 
   ngOnInit() {
     this.subscriptions.add(
       this.route.params.subscribe((params) => {
-        this.poamId = params['poamId'];
+        this.poamId.set(params['poamId']);
 
-        if (this.poamId) {
-          this.fetchPoamLog(this.poamId);
+        if (params['poamId']) {
+          this.fetchPoamLog(params['poamId']);
         }
       })
     );
 
     this.subscriptions.add(
       this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
+        this.selectedCollection.set(collectionId);
       })
     );
   }
@@ -70,11 +70,13 @@ export class PoamLogComponent implements OnInit, OnDestroy {
   private fetchPoamLog(poamId: number) {
     this.poamLogService.getPoamLogByPoamId(poamId).subscribe({
       next: (response: any) => {
-        this.dataSource = response.map((log: FSEntry) => ({
-          Timestamp: log.Timestamp,
-          User: log.User,
-          Action: log.Action
-        }));
+        this.dataSource.set(
+          response.map((log: FSEntry) => ({
+            Timestamp: log.Timestamp,
+            User: log.User,
+            Action: log.Action
+          }))
+        );
       },
       error: (error: any) => {
         this.messageService.add({
@@ -87,12 +89,12 @@ export class PoamLogComponent implements OnInit, OnDestroy {
   }
 
   openModal() {
-    this.displayModal = true;
+    this.displayModal.set(true);
   }
 
   closeModal() {
-    this.displayModal = false;
-    this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+    this.displayModal.set(false);
+    this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId()}`);
   }
 
   ngOnDestroy() {
