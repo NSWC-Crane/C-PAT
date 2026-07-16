@@ -136,7 +136,7 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should default totalRecords to 0', () => {
-      expect(component.totalRecords).toBe(0);
+      expect(component.totalRecords()).toBe(0);
     });
 
     it('should default filterValue to empty string', () => {
@@ -164,15 +164,15 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should default cveReferences to empty array', () => {
-      expect(component.cveReferences).toEqual([]);
+      expect(component.cveReferences()).toEqual([]);
     });
 
     it('should default iavReferences to empty array', () => {
-      expect(component.iavReferences).toEqual([]);
+      expect(component.iavReferences()).toEqual([]);
     });
 
     it('should default otherReferences to empty array', () => {
-      expect(component.otherReferences).toEqual([]);
+      expect(component.otherReferences()).toEqual([]);
     });
   });
 
@@ -279,7 +279,7 @@ describe('TenableAssetsTableComponent', () => {
     it('should set totalRecords to affectedAssets length', () => {
       component.assetDeltaList = { assets: [] };
       component.getAffectedAssetsForAllPlugins();
-      expect(component.totalRecords).toBe(2);
+      expect(component.totalRecords()).toBe(2);
     });
 
     it('should set isLoading to false on success', () => {
@@ -462,7 +462,7 @@ describe('TenableAssetsTableComponent', () => {
       component.affectedAssets = [];
       component.assetsByTeam = {};
       component.createTeamTabs();
-      expect(component.teamTabs[0].teamId).toBe('all');
+      expect(component.teamTabs()[0].teamId).toBe('all');
     });
 
     it('should create a tab for each team with assets', () => {
@@ -472,7 +472,7 @@ describe('TenableAssetsTableComponent', () => {
         team2: [{ assignedTeamName: 'Team Beta', hostUUID: 'u2' }]
       };
       component.createTeamTabs();
-      expect(component.teamTabs.length).toBe(3);
+      expect(component.teamTabs().length).toBe(3);
     });
 
     it('should use assignedTeamName from first asset in team', () => {
@@ -481,7 +481,7 @@ describe('TenableAssetsTableComponent', () => {
         team1: [{ assignedTeamName: 'Alpha Team', hostUUID: 'u1' }]
       };
       component.createTeamTabs();
-      const teamTab = component.teamTabs.find((t) => t.teamId === 'team1');
+      const teamTab = component.teamTabs().find((t) => t.teamId === 'team1');
 
       expect(teamTab?.teamName).toBe('Alpha Team');
     });
@@ -490,7 +490,7 @@ describe('TenableAssetsTableComponent', () => {
       component.affectedAssets = [];
       component.assetsByTeam = { team1: [] };
       component.createTeamTabs();
-      expect(component.teamTabs.length).toBe(1);
+      expect(component.teamTabs().length).toBe(1);
     });
   });
 
@@ -544,46 +544,46 @@ describe('TenableAssetsTableComponent', () => {
   describe('parseVprContext', () => {
     it('should parse valid JSON array', () => {
       component.parseVprContext('[{"key":"val"}]');
-      expect(component.parsedVprContext).toEqual([{ key: 'val' }]);
+      expect(component.parsedVprContext()).toEqual([{ key: 'val' }]);
     });
 
     it('should set empty array on invalid JSON', () => {
       component.parseVprContext('not-json');
-      expect(component.parsedVprContext).toEqual([]);
+      expect(component.parsedVprContext()).toEqual([]);
     });
   });
 
   describe('parseReferences', () => {
     it('should parse CVE references', () => {
       component.parseReferences('CVE:CVE-2023-1234');
-      expect(component.cveReferences).toEqual([{ type: 'CVE', value: 'CVE-2023-1234' }]);
+      expect(component.cveReferences()).toEqual([{ type: 'CVE', value: 'CVE-2023-1234' }]);
     });
 
     it('should parse IAVB references', () => {
       component.parseReferences('IAVB:2023-B-0001');
-      expect(component.iavReferences).toEqual([{ type: 'IAVB', value: '2023-B-0001' }]);
+      expect(component.iavReferences()).toEqual([{ type: 'IAVB', value: '2023-B-0001' }]);
     });
 
     it('should parse IAVA references', () => {
       component.parseReferences('IAVA:2023-A-0001');
-      expect(component.iavReferences.length).toBe(1);
+      expect(component.iavReferences().length).toBe(1);
     });
 
     it('should parse other references', () => {
       component.parseReferences('BID:12345');
-      expect(component.otherReferences).toEqual([{ type: 'BID', value: '12345' }]);
+      expect(component.otherReferences()).toEqual([{ type: 'BID', value: '12345' }]);
     });
 
     it('should handle multiple references', () => {
       component.parseReferences('CVE:CVE-2023-1234 IAVB:2023-B-0001 BID:99');
-      expect(component.cveReferences.length).toBe(1);
-      expect(component.iavReferences.length).toBe(1);
-      expect(component.otherReferences.length).toBe(1);
+      expect(component.cveReferences().length).toBe(1);
+      expect(component.iavReferences().length).toBe(1);
+      expect(component.otherReferences().length).toBe(1);
     });
 
     it('should strip trailing comma from reference value', () => {
       component.parseReferences('CVE:CVE-2023-1234,');
-      expect(component.cveReferences[0].value).toBe('CVE-2023-1234');
+      expect(component.cveReferences()[0].value).toBe('CVE-2023-1234');
     });
   });
 
@@ -704,7 +704,7 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should show warn message when no assets to export', () => {
-      component.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [] }];
+      component.teamTabs.set([{ teamId: 'all', teamName: 'All Assets', assets: [] }]);
       component.affectedAssets = [];
       component.activeTab = 'all';
       component.exportCSV();
@@ -712,14 +712,14 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should call csvExportService.exportToCsv when assets exist', () => {
-      component.teamTabs = [{ teamId: 'all', teamName: 'All Assets', assets: [{ pluginID: '12345', assignedTeams: [], sourcePluginIDs: ['12345'] }] }];
+      component.teamTabs.set([{ teamId: 'all', teamName: 'All Assets', assets: [{ pluginID: '12345', assignedTeams: [], sourcePluginIDs: ['12345'] }] }]);
       component.activeTab = 'all';
       component.exportCSV();
       expect(mockCsvExportService.exportToCsv).toHaveBeenCalled();
     });
 
     it('should flatten assignedTeams array to string in export', () => {
-      component.teamTabs = [
+      component.teamTabs.set([
         {
           teamId: 'all',
           teamName: 'All',
@@ -731,7 +731,7 @@ describe('TenableAssetsTableComponent', () => {
             }
           ]
         }
-      ];
+      ]);
       component.activeTab = 'all';
       component.exportCSV();
       const exportedData = mockCsvExportService.exportToCsv.mock.calls[0][0];
@@ -740,13 +740,13 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should flatten sourcePluginIDs array to string in export', () => {
-      component.teamTabs = [
+      component.teamTabs.set([
         {
           teamId: 'all',
           teamName: 'All',
           assets: [{ pluginID: '12345', sourcePluginIDs: ['11111', '22222'] }]
         }
-      ];
+      ]);
       component.activeTab = 'all';
       component.exportCSV();
       const exportedData = mockCsvExportService.exportToCsv.mock.calls[0][0];
@@ -755,7 +755,7 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should use fallback affectedAssets when no matching tab', () => {
-      component.teamTabs = [];
+      component.teamTabs.set([]);
       component.affectedAssets = [{ pluginID: '12345', sourcePluginIDs: ['12345'] }];
       component.activeTab = 'all';
       component.exportCSV();
@@ -808,12 +808,21 @@ describe('TenableAssetsTableComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('stops updating selectedCollection after destroy (takeUntilDestroyed)', () => {
+      fixture.componentRef.setInput('pluginID', '12345');
+      component.ngOnInit();
+      selectedCollectionSubject.next(7);
+      expect(component.selectedCollection).toBe(7);
+      fixture.destroy();
+      selectedCollectionSubject.next(99);
+      expect(component.selectedCollection).toBe(7);
+    });
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+    it('does not throw on destroy', () => {
+      fixture.componentRef.setInput('pluginID', '12345');
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
