@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 import { PoamApproversComponent } from './poam-approvers.component';
@@ -412,6 +412,26 @@ describe('PoamApproversComponent', () => {
       component.getPoamApprovers();
 
       expect(mockPoamService.getPoamApprovers).toHaveBeenCalledWith(42);
+    });
+  });
+
+  describe('cleanup', () => {
+    it('stops applying fetched approvers after destroy (takeUntilDestroyed)', () => {
+      const approvers$ = new Subject<any[]>();
+
+      mockPoamService.getPoamApprovers.mockReturnValue(approvers$.asObservable());
+      fixture.detectChanges();
+      component.getPoamApprovers();
+
+      fixture.destroy();
+      approvers$.next([createApprover({ userId: 7 })]);
+
+      expect(component.poamApprovers()).toEqual([]);
+    });
+
+    it('does not throw on destroy', () => {
+      fixture.detectChanges();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

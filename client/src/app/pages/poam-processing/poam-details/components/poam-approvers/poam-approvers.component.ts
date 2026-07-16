@@ -9,7 +9,8 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, output, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, output, input, model } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -35,6 +36,7 @@ export class PoamApproversComponent implements OnInit {
   readonly approversChanged = output<any[]>();
 
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit() {
     if (!Array.isArray(this.poamApprovers())) {
@@ -102,6 +104,7 @@ export class PoamApproversComponent implements OnInit {
 
     this.poamService()
       .getPoamApprovers(poamId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (poamApprovers: any) => {
           this.poamApprovers.set(poamApprovers);
