@@ -9,7 +9,8 @@
 */
 
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, SimpleChanges, inject, signal, viewChild, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, SimpleChanges, inject, input, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -18,7 +19,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, catchError, map, of } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 import { ImportService } from '../../../import.service';
 import { TenableHostDialogComponent } from '../tenableHostDialog/tenableHostDialog.component';
@@ -50,9 +51,10 @@ export interface HighRiskAsset {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonModule, IconFieldModule, InputIconModule, InputTextModule, ProgressSpinnerModule, TableModule, TooltipModule, TenableHostDialogComponent, DecimalPipe]
 })
-export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy {
+export class TenableHighRiskAssetsTableComponent implements OnChanges {
   private readonly csvExportService = inject(CsvExportService);
   private readonly importService = inject(ImportService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly tenableRepoId = input.required<number>();
   private readonly highRiskAssetTable = viewChild.required<Table>('highRiskAssetTable');
@@ -63,16 +65,10 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
   displayDialog = signal<boolean>(false);
   filterValue: string = '';
 
-  private readonly subscriptions = new Subscription();
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tenableRepoId'] && this.tenableRepoId()) {
       this.loadHighRiskAssets();
     }
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 
   loadHighRiskAssets(): void {
@@ -137,7 +133,7 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
       type: 'vuln'
     };
 
-    const subscription = this.importService
+    this.importService
       .postTenableAnalysis(analysisParams)
       .pipe(
         map((response: any) => {
@@ -174,7 +170,8 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
             };
           });
         }),
-        catchError(() => of([]))
+        catchError(() => of([])),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (assets) => {
@@ -185,8 +182,6 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges, OnDestroy
           this.isLoading.set(false);
         }
       });
-
-    this.subscriptions.add(subscription);
   }
 
   onHostNameClick(host: any, event: Event): void {
