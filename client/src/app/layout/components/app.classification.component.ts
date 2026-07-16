@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { take } from 'rxjs';
 import { Classification } from '../../common/models/classification.model';
@@ -18,22 +18,22 @@ import { SharedService } from '../../common/services/shared.service';
   selector: 'cpat-classification',
   standalone: true,
   template: `
-    @if (isClassificationActive) {
+    @if (isClassificationActive()) {
       <div class="layout-classification">
-        <div class="layout-classification-content" [style.background-color]="classification?.classificationColorCode">
-          <span class="layout-classification-text">{{ classification?.classificationText }}</span>
+        <div class="layout-classification-content" [style.background-color]="classification()?.classificationColorCode">
+          <span class="layout-classification-text">{{ classification()?.classificationText }}</span>
         </div>
       </div>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule]
 })
 export class AppClassificationComponent implements OnInit {
   private readonly sharedService = inject(SharedService);
 
-  classification: Classification | undefined;
-  isClassificationActive: boolean = false;
+  readonly classification = signal<Classification | undefined>(undefined);
+  readonly isClassificationActive = computed(() => !!this.classification());
 
   ngOnInit() {
     this.sharedService
@@ -44,8 +44,7 @@ export class AppClassificationComponent implements OnInit {
           if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {
             const apiClassification = (apiConfig as { classification: string }).classification;
 
-            this.classification = new Classification(apiClassification);
-            this.isClassificationActive = true;
+            this.classification.set(new Classification(apiClassification));
           } else {
             console.error('Invalid API configuration response');
           }
