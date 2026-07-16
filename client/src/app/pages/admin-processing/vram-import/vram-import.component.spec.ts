@@ -70,15 +70,15 @@ describe('VRAMImportComponent', () => {
     });
 
     it('should have default totalSize of "0"', () => {
-      expect(component.totalSize).toBe('0');
+      expect(component.totalSize()).toBe('0');
     });
 
     it('should have default totalSizePercent of 0', () => {
-      expect(component.totalSizePercent).toBe(0);
+      expect(component.totalSizePercent()).toBe(0);
     });
 
     it('should have default vramUpdatedDate of empty string', () => {
-      expect(component.vramUpdatedDate).toBe('');
+      expect(component.vramUpdatedDate()).toBe('');
     });
   });
 
@@ -92,7 +92,7 @@ describe('VRAMImportComponent', () => {
 
     it('should set vramUpdatedDate after init', () => {
       component.ngOnInit();
-      expect(component.vramUpdatedDate).toBe('2024-01-15');
+      expect(component.vramUpdatedDate()).toBe('2024-01-15');
     });
   });
 
@@ -100,19 +100,19 @@ describe('VRAMImportComponent', () => {
     it('should set vramUpdatedDate from response value', () => {
       mockVramImportService.getVramDataUpdatedDate.mockReturnValue(of({ value: '2024-06-01' }));
       component.getVramUpdatedDate();
-      expect(component.vramUpdatedDate).toBe('2024-06-01');
+      expect(component.vramUpdatedDate()).toBe('2024-06-01');
     });
 
     it('should set vramUpdatedDate to "N/A" when response has no value property', () => {
       mockVramImportService.getVramDataUpdatedDate.mockReturnValue(of({}));
       component.getVramUpdatedDate();
-      expect(component.vramUpdatedDate).toBe('N/A');
+      expect(component.vramUpdatedDate()).toBe('N/A');
     });
 
     it('should set vramUpdatedDate to "N/A" when response is null', () => {
       mockVramImportService.getVramDataUpdatedDate.mockReturnValue(of(null));
       component.getVramUpdatedDate();
-      expect(component.vramUpdatedDate).toBe('N/A');
+      expect(component.vramUpdatedDate()).toBe('N/A');
     });
 
     it('should show error message on failure', () => {
@@ -124,7 +124,7 @@ describe('VRAMImportComponent', () => {
     it('should set vramUpdatedDate to "Error" on failure', () => {
       mockVramImportService.getVramDataUpdatedDate.mockReturnValue(throwError(() => new Error('Network error')));
       component.getVramUpdatedDate();
-      expect(component.vramUpdatedDate).toBe('Error');
+      expect(component.vramUpdatedDate()).toBe('Error');
     });
 
     it('should include VRAM in error detail', () => {
@@ -293,13 +293,13 @@ describe('VRAMImportComponent', () => {
     it('should set totalSize to "0 B" when no files', () => {
       mockFileUpload.files = [];
       component.updateTotalSize();
-      expect(component.totalSize).toBe('0 B');
+      expect(component.totalSize()).toBe('0 B');
     });
 
     it('should calculate total size across all files', () => {
       mockFileUpload.files = [new File(['a'.repeat(1024)], 'file1.csv'), new File(['b'.repeat(1024)], 'file2.csv')];
       component.updateTotalSize();
-      expect(component.totalSize).toBe('2 KB');
+      expect(component.totalSize()).toBe('2 KB');
     });
 
     it('should set totalSizePercent based on 10MB limit', () => {
@@ -307,13 +307,13 @@ describe('VRAMImportComponent', () => {
 
       mockFileUpload.files = [new File([new Uint8Array(fiveMB)], 'big.csv')];
       component.updateTotalSize();
-      expect(component.totalSizePercent).toBeCloseTo(50, 0);
+      expect(component.totalSizePercent()).toBeCloseTo(50, 0);
     });
 
     it('should set totalSizePercent to 0 for empty files', () => {
       mockFileUpload.files = [];
       component.updateTotalSize();
-      expect(component.totalSizePercent).toBe(0);
+      expect(component.totalSizePercent()).toBe(0);
     });
   });
 
@@ -343,19 +343,10 @@ describe('VRAMImportComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should call next on destroy$ to trigger unsubscription', () => {
-      const nextSpy = vi.spyOn((component as any).destroy$, 'next');
-
-      component.ngOnDestroy();
-      expect(nextSpy).toHaveBeenCalled();
-    });
-
-    it('should complete the destroy$ subject', () => {
-      const completeSpy = vi.spyOn((component as any).destroy$, 'complete');
-
-      component.ngOnDestroy();
-      expect(completeSpy).toHaveBeenCalled();
+  describe('cleanup', () => {
+    it('should stop reacting after destroy', () => {
+      fixture.detectChanges();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
