@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -21,7 +22,6 @@ import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -33,16 +33,17 @@ import { UsersService } from './users.service';
   templateUrl: './user-processing.component.html',
   styleUrls: ['./user-processing.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, DialogModule, FormsModule, InputIconModule, InputTextModule, IconFieldModule, SelectModule, TableModule, ToastModule, TooltipModule, UserComponent],
   providers: [MessageService]
 })
-export class UserProcessingComponent implements OnInit, OnDestroy {
+export class UserProcessingComponent implements OnInit {
   private readonly userService = inject(UsersService);
   private readonly router = inject(Router);
   private readonly setPayloadService = inject(PayloadService);
   private readonly csvExportService = inject(CsvExportService);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly usersTable = viewChild.required<Table>('usersTable');
 
@@ -68,7 +69,6 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     { label: 'Active', value: 'ACTIVE' },
     { label: 'Pending', value: 'PENDING' }
   ];
-  private readonly payloadSubscription: Subscription[] = [];
 
   ngOnInit() {
     this.usernameClaimLabel.set(CPAT.Env.oauth.claims.username ?? 'preferred_username');
@@ -113,23 +113,21 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
   }
 
   setPayload() {
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
-        this.user.set(user);
-      }),
-      this.setPayloadService.payload$.subscribe((payload) => {
-        this.payload.set(payload);
-      }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
-        this.accessLevel.set(level);
+    this.setPayloadService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
+      this.user.set(user);
+    });
+    this.setPayloadService.payload$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((payload) => {
+      this.payload.set(payload);
+    });
+    this.setPayloadService.accessLevel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((level) => {
+      this.accessLevel.set(level);
 
-        if (this.user().isAdmin) {
-          this.getUserData();
-        } else {
-          this.router.navigate(['/403']);
-        }
-      })
-    );
+      if (this.user().isAdmin) {
+        this.getUserData();
+      } else {
+        this.router.navigate(['/403']);
+      }
+    });
   }
 
   getUserData() {
@@ -170,9 +168,5 @@ export class UserProcessingComponent implements OnInit, OnDestroy {
     this.user.set({});
     this.showUserSelect.set(true);
     this.getUserData();
-  }
-
-  ngOnDestroy(): void {
-    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }

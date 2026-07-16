@@ -79,7 +79,7 @@ interface PermissionChangeSummary {
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AutoCompleteModule, ButtonModule, CardModule, ConfirmDialogModule, SelectModule, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, StepperModule, TableModule, ToastModule, TooltipModule, JsonPipe],
   providers: [ConfirmationService, MessageService]
 })
