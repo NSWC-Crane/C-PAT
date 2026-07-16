@@ -11,7 +11,7 @@
 <div class="grid grid-cols-12 gap-4">
   <div class="col-span-12">
     <div class="scrollable-teams overflow-hidden">
-      <p-table #dt [value]="assignedTeams" [globalFilterFields]="['assignedTeamId', 'assignedTeamName', 'adTeam']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="assignedTeamId">
+      <p-table #dt [value]="assignedTeams()" [globalFilterFields]="['assignedTeamId', 'assignedTeamName', 'adTeam']" [rows]="15" [paginator]="true" [scrollable]="true" scrollHeight="flex" [rowHover]="true" dataKey="assignedTeamId">
         <ng-template #caption>
           <div class="flex items-center justify-between">
             <p-iconfield iconPosition="left">
@@ -57,16 +57,16 @@
 
 <p-dialog [(visible)]="teamDialog" (onHide)="onDialogHide()" styleClass="w-[50vw] overflow-hidden p-fluid" [modal]="true">
   <ng-template #content>
-    @if (editingAssignedTeam) {
+    @if (editingAssignedTeam(); as editingTeam) {
       <div class="mb-6">
         <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
         <input
           type="text"
           pInputText
           id="name"
-          [(ngModel)]="editingAssignedTeam.assignedTeamName"
+          [(ngModel)]="editingTeam.assignedTeamName"
           required
-          [class]="{ 'ng-invalid ng-dirty': !editingAssignedTeam.assignedTeamName }"
+          [class]="{ 'ng-invalid ng-dirty': !editingTeam.assignedTeamName }"
           maxlength="99"
           class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
@@ -78,7 +78,7 @@
           [showClear]="true"
           id="adTeam"
           [(ngModel)]="selectedAdTeams"
-          [options]="filteredTeams"
+          [options]="filteredTeams()"
           [filter]="true"
           (onFilter)="filterTeams($event)"
           placeholder="Select AD Team(s)"
@@ -112,10 +112,10 @@
   </ng-template>
 
   <ng-template #footer>
-    @if (editingAssignedTeam) {
+    @if (editingAssignedTeam(); as editingTeam) {
       <div class="flex w-full justify-between">
         <button pButton (click)="hideDialog()" variant="outlined"><span pButtonLabel>Cancel</span></button>
-        <button pButton (click)="saveTeam()" variant="outlined" [disabled]="!editingAssignedTeam.assignedTeamName"><span pButtonLabel>Save</span></button>
+        <button pButton (click)="saveTeam()" variant="outlined" [disabled]="!editingTeam.assignedTeamName"><span pButtonLabel>Save</span></button>
       </div>
     }
   </ng-template>
