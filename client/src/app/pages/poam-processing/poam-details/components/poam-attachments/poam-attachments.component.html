@@ -10,7 +10,7 @@
 
 <p-toast />
 <div class="card mb-6">
-  <p-table [value]="attachedFiles" [tableStyle]="{ 'min-width': '50rem' }">
+  <p-table [value]="attachedFiles()" [tableStyle]="{ 'min-width': '50rem' }">
     <ng-template #header>
       <tr>
         <th id="col">Filename</th>
@@ -26,7 +26,7 @@
         <td>{{ attachment.uploadDate | date: 'medium' }}</td>
         <td>
           <button pButton (click)="downloadFile(attachment)" [rounded]="true" [text]="true"><i class="pi pi-download" pButtonIcon></i></button>
-          <button pButton class="ml-2" (click)="deleteAttachment(attachment)" [rounded]="true" [text]="true" severity="danger" [disabled]="accessLevel < 2"><i class="pi pi-trash" pButtonIcon></i></button>
+          <button pButton class="ml-2" (click)="deleteAttachment(attachment)" [rounded]="true" [text]="true" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-trash" pButtonIcon></i></button>
         </td>
       </tr>
     </ng-template>
@@ -42,26 +42,26 @@
   <ng-template #header let-files let-chooseCallback="chooseCallback" let-clearCallback="clearCallback" let-uploadCallback="uploadCallback">
     <div class="flex flex-1 flex-wrap items-center justify-between gap-2">
       <div class="flex gap-2">
-        <button pButton (click)="choose($event, chooseCallback)" [rounded]="true" [outlined]="true" [disabled]="accessLevel < 2" pTooltip="Select File" tooltipPosition="bottom"><i class="pi pi-file" pButtonIcon></i></button>
+        <button pButton (click)="choose($event, chooseCallback)" [rounded]="true" [outlined]="true" [disabled]="accessLevel() < 2" pTooltip="Select File" tooltipPosition="bottom"><i class="pi pi-file" pButtonIcon></i></button>
         <button
           pButton
           (click)="uploadEvent(uploadCallback)"
           [rounded]="true"
           [outlined]="true"
           severity="success"
-          [disabled]="!files || files.length === 0 || accessLevel < 2"
+          [disabled]="!files || files.length === 0 || accessLevel() < 2"
           pTooltip="Upload Selected File"
           tooltipPosition="bottom"
           [class]="{ 'focus-attention': files?.length > 0 }"
         >
           <i class="pi pi-cloud-upload" pButtonIcon></i>
         </button>
-        <button pButton (click)="clearCallback()" [rounded]="true" [outlined]="true" severity="danger" [disabled]="!files || files.length === 0 || accessLevel < 2" pTooltip="Clear Selection" tooltipPosition="bottom">
+        <button pButton (click)="clearCallback()" [rounded]="true" [outlined]="true" severity="danger" [disabled]="!files || files.length === 0 || accessLevel() < 2" pTooltip="Clear Selection" tooltipPosition="bottom">
           <i class="pi pi-times" pButtonIcon></i>
         </button>
       </div>
-      <p-progressbar [value]="totalSizePercent" [showValue]="false" class="h-4 w-full md:ml-auto md:w-80" [class]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">
-        <span class="whitespace-nowrap">{{ totalSize }}B / 5Mb</span>
+      <p-progressbar [value]="totalSizePercent()" [showValue]="false" class="h-4 w-full md:ml-auto md:w-80" [class]="{ 'exceeded-progress-bar': totalSizePercent() > 100 }">
+        <span class="whitespace-nowrap">{{ totalSize() }}B / 5Mb</span>
       </p-progressbar>
     </div>
   </ng-template>
