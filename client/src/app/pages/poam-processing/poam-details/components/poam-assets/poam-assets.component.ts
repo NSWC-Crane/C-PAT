@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnChanges, SimpleChanges, computed, inject, output, signal, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, SimpleChanges, computed, inject, output, signal, input } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -44,6 +45,7 @@ export class PoamAssetsComponent implements OnChanges {
   private readonly poamAssetsSignal = signal<any[]>([]);
   private readonly assetListSignal = signal<any[]>([]);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
   private previousTeamCount = 0;
   private previousTeams: any[] = [];
 
@@ -99,10 +101,10 @@ export class PoamAssetsComponent implements OnChanges {
 
   async onAssetChange(asset: any, rowIndex: number) {
     if (asset.assetId) {
+      this.poamAssetsSignal.update((assets) => assets.map((a, index) => (index === rowIndex ? { ...a, assetId: asset.assetId, isNew: false } : a)));
       await this.confirmCreateAsset(asset);
-      asset.isNew = false;
     } else {
-      this.poamAssetsSignal().splice(rowIndex, 1);
+      this.poamAssetsSignal.update((assets) => assets.filter((_, index) => index !== rowIndex));
     }
 
     this.assetsChanged.emit(this.poamAssetsSignal());
@@ -112,7 +114,7 @@ export class PoamAssetsComponent implements OnChanges {
     if (asset.assetId) {
       await this.confirmDeleteAsset(asset);
     } else {
-      this.poamAssetsSignal().splice(rowIndex, 1);
+      this.poamAssetsSignal.update((assets) => assets.filter((_, index) => index !== rowIndex));
       this.assetsChanged.emit(this.poamAssetsSignal());
     }
   }
@@ -175,6 +177,7 @@ export class PoamAssetsComponent implements OnChanges {
 
     this.poamService()
       .getPoamAssets(poam.poamId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (poamAssets: any) => {
           this.poamAssetsSignal.set(poamAssets);

@@ -13,7 +13,7 @@ import { SimpleChange, SimpleChanges } from '@angular/core';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 import { PoamAssetsComponent } from './poam-assets.component';
@@ -339,17 +339,35 @@ describe('PoamAssetsComponent', () => {
       emitSpy = vi.spyOn(component.assetsChanged, 'emit');
     });
 
-    it('should call confirmCreateAsset and mark not new when assetId is set', async () => {
+    it('should call confirmCreateAsset and mark the source row not new when assetId is set', async () => {
       const createSpy = vi.spyOn(component, 'confirmCreateAsset').mockResolvedValue(undefined);
-      const asset = createAsset({ assetId: 1, isNew: true });
+      const sourceRow = createAsset({ assetId: null, isNew: true });
 
-      setInternalAssets(component, [asset]);
+      setInternalAssets(component, [sourceRow]);
 
-      await component.onAssetChange(asset, 0);
+      const selectedCopy = { ...sourceRow, assetId: 1 };
 
-      expect(createSpy).toHaveBeenCalledWith(asset);
-      expect(asset.isNew).toBe(false);
+      await component.onAssetChange(selectedCopy, 0);
+
+      expect(createSpy).toHaveBeenCalledWith(selectedCopy);
+      expect(getInternalAssets(component)[0].isNew).toBe(false);
+      expect(getInternalAssets(component)[0].assetId).toBe(1);
       expect(emitSpy).toHaveBeenCalled();
+    });
+
+    it('should commit the selection with a new array identity so displayAssets recomputes', async () => {
+      vi.spyOn(component, 'confirmCreateAsset').mockResolvedValue(undefined);
+      const sourceRow = createAsset({ assetId: null, isNew: true });
+      const original = [sourceRow];
+
+      setInternalAssets(component, original);
+      fixture.componentRef.setInput('assetList', mockAssetList);
+      component.ngOnChanges(makeChanges({ assetList: { currentValue: mockAssetList } }));
+
+      await component.onAssetChange({ ...sourceRow, assetId: 1 }, 0);
+
+      expect(getInternalAssets(component)).not.toBe(original);
+      expect(component.displayAssets()[0].displayName).toBe('Server-Alpha');
     });
 
     it('should remove asset from array when assetId is null', async () => {
@@ -363,6 +381,20 @@ describe('PoamAssetsComponent', () => {
       expect(getInternalAssets(component).length).toBe(1);
       expect(getInternalAssets(component)[0].assetId).toBe(2);
       expect(emitSpy).toHaveBeenCalled();
+    });
+
+    it('should emit a new array reference when removing an unsaved row', async () => {
+      const nullAsset = createAsset({ assetId: null, isNew: true });
+      const original = [nullAsset];
+
+      setInternalAssets(component, original);
+
+      await component.onAssetChange(nullAsset, 0);
+
+      const emittedArray = emitSpy.mock.calls[0][0];
+
+      expect(emittedArray).not.toBe(original);
+      expect(component.displayAssets()).toHaveLength(0);
     });
 
     it('should remove asset when assetId is 0 (falsy)', async () => {
@@ -650,6 +682,25 @@ describe('PoamAssetsComponent', () => {
 
       expect(emittedArray).not.toBe(original);
       expect(emittedArray).toEqual(original);
+    });
+  });
+
+  describe('cleanup', () => {
+    it('stops applying fetched assets after destroy (takeUntilDestroyed)', () => {
+      const assets$ = new Subject<any[]>();
+
+      mockPoamService.getPoamAssets.mockReturnValue(assets$.asObservable());
+      setInternalAssets(component, []);
+      component.fetchAssets();
+
+      fixture.destroy();
+      assets$.next([createAsset({ assetId: 9 })]);
+
+      expect(getInternalAssets(component)).toEqual([]);
+    });
+
+    it('does not throw on destroy', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
