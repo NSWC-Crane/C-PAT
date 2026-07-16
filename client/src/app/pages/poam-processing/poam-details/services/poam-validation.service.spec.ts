@@ -610,6 +610,41 @@ describe('PoamValidationService', () => {
       expect(result.message).toContain('is in the past');
     });
 
+    it('should return valid for active milestone due today', () => {
+      const milestones = [
+        {
+          milestoneId: 5,
+          milestoneComments: 'Due today',
+          milestoneDate: new Date(),
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [1]
+        }
+      ];
+      const result = service.validateMilestoneCompleteness(milestones);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it('should parse yyyy-MM-dd string dates in local time', () => {
+      const pastDate = new Date();
+
+      pastDate.setDate(pastDate.getDate() - 10);
+
+      const milestones = [
+        {
+          milestoneId: 6,
+          milestoneComments: 'String date',
+          milestoneDate: `${pastDate.getFullYear()}-${String(pastDate.getMonth() + 1).padStart(2, '0')}-${String(pastDate.getDate()).padStart(2, '0')}`,
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [1]
+        }
+      ];
+      const result = service.validateMilestoneCompleteness(milestones);
+
+      expect(result.valid).toBe(false);
+      expect(result.message).toContain('is in the past');
+    });
+
     it('should return valid for completed milestone with past date', () => {
       const pastDate = new Date();
 
