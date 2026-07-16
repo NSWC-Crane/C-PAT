@@ -15,7 +15,7 @@
     <p-floatlabel class="w-full" variant="in">
       <p-select
         id="collection-select"
-        [options]="availableCollections"
+        [options]="availableCollections()"
         [ngModel]="selectedCollection()"
         (ngModelChange)="onCollectionChange($event)"
         (onChange)="onCollectionChange($event.value)"
@@ -78,7 +78,7 @@
     <p-table
       #assetDeltaTable
       [value]="filteredAssets()"
-      [columns]="cols"
+      [columns]="cols()"
       [paginator]="true"
       [rows]="100"
       [rowsPerPageOptions]="[25, 50, 100]"
@@ -256,7 +256,7 @@
         [multiple]="true"
         [checkmark]="true"
         id="upload-collection-select"
-        [options]="availableCollections"
+        [options]="availableCollections()"
         [ngModel]="selectedUploadCollections()"
         (ngModelChange)="selectedUploadCollections.set($event)"
         optionLabel="collectionName"
