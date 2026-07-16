@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule, ButtonSeverity } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -50,7 +50,7 @@ export class ConfirmationDialogComponent {
   protected dialogRef = inject(DynamicDialogRef);
 
   readonly options = input.required<ConfirmationDialogOptions>();
-  visible: boolean = true;
+  readonly visible = signal(true);
 
   cancel() {
     this.dialogRef.close(false);
