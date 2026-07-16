@@ -9,7 +9,7 @@
 -->
 
 <div class="flex justify-between items-center card !p-2">
-  <div class="font-medium opacity-70 ml-2">{{ collectionName() }} - {{ now | date: 'MMM d, y, h:mm a' }}</div>
+  <div class="font-medium opacity-70 ml-2">{{ collectionName() }} - {{ now() | date: 'MMM d, y, h:mm a' }}</div>
   <div class="flex items-center gap-3">
     <div class="flex items-center gap-2">
       <span class="text-xs text-gray-400">Findings:</span>
