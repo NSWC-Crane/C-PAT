@@ -9,7 +9,7 @@
 -->
 
 <div class="flex justify-between items-center card !p-2">
-  <div class="font-medium opacity-70 ml-2">{{ collectionName() }} - {{ now | date: 'MMM d, y, h:mm a' }}</div>
+  <div class="font-medium opacity-70 ml-2">{{ collectionName() }} - {{ now() | date: 'MMM d, y, h:mm a' }}</div>
   <div class="relative flex gap-1 mr-1">
     <button pButton (click)="refreshMetrics()" [rounded]="true" [text]="true" severity="secondary" [disabled]="isLoading()" pTooltip="Refresh metrics" tooltipPosition="left"><i class="pi pi-refresh" pButtonIcon></i></button>
     <button pButton (click)="exportMetrics()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics" tooltipPosition="left" [disabled]="isLoading()"><i class="pi pi-external-link" pButtonIcon></i></button>

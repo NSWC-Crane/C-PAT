@@ -9,7 +9,8 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, signal, inject, OnChanges, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, signal, inject, OnChanges, input, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -40,6 +41,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   private readonly collectionsService = inject(CollectionsService);
   private readonly messageService = inject(MessageService);
   private readonly metricsExportService = inject(MetricsExportService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly collection = input<any>(undefined);
   readonly componentInit = output<STIGManagerMetricsComponent>();
@@ -53,7 +55,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   stigsAssessmentData = signal<any[]>([]);
   assessmentChartData = signal<any>(null);
   assessmentChartOptions = signal<any>(null);
-  now = new Date();
+  now = signal(new Date());
 
   totalRawFindings = computed(() => {
     const m = this.stigManagerMetrics();
@@ -124,7 +126,8 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
           this.isLoading.set(false);
 
           return EMPTY;
-        })
+        }),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
   }
@@ -446,7 +449,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
 
   refreshMetrics() {
     this.loadMetrics();
-    this.now = new Date();
+    this.now.set(new Date());
   }
 
   exportGlobalMetrics() {
@@ -459,23 +462,26 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
       detail: 'Compiling metrics for all collections. This may take a moment...'
     });
 
-    this.metricsExportService.exportGlobalMetrics().subscribe({
-      next: () => {
-        this.isGlobalExporting.set(false);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Export Complete',
-          detail: 'Global metrics export downloaded successfully.'
-        });
-      },
-      error: (error) => {
-        this.isGlobalExporting.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Export Failed',
-          detail: `Error exporting global metrics: ${getErrorMessage(error)}`
-        });
-      }
-    });
+    this.metricsExportService
+      .exportGlobalMetrics()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isGlobalExporting.set(false);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Export Complete',
+            detail: 'Global metrics export downloaded successfully.'
+          });
+        },
+        error: (error) => {
+          this.isGlobalExporting.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Export Failed',
+            detail: `Error exporting global metrics: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 }
