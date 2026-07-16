@@ -50,7 +50,7 @@ describe('AppSearchComponent', () => {
     });
 
     it('should have empty query initially', () => {
-      expect(component.query).toBe('');
+      expect(component.query()).toBe('');
     });
 
     it('should have default placeholder', () => {
@@ -58,7 +58,7 @@ describe('AppSearchComponent', () => {
     });
 
     it('should have empty filteredItems initially', () => {
-      expect(component.filteredItems).toEqual([]);
+      expect(component.filteredItems()).toEqual([]);
     });
 
     it('should inject Router', () => {
@@ -169,60 +169,60 @@ describe('AppSearchComponent', () => {
   describe('search', () => {
     it('should filter items based on query', () => {
       component.search({ query: 'poam' });
-      expect(component.filteredItems.length).toBeGreaterThan(0);
+      expect(component.filteredItems().length).toBeGreaterThan(0);
     });
 
     it('should find Add POAM when searching for "add"', () => {
       component.search({ query: 'add' });
-      expect(component.filteredItems.some((i) => i.title === 'Add POAM')).toBe(true);
+      expect(component.filteredItems().some((i) => i.title === 'Add POAM')).toBe(true);
     });
 
     it('should find Manage POAMs when searching for "manage"', () => {
       component.search({ query: 'manage' });
-      expect(component.filteredItems.some((i) => i.title === 'Manage POAMs')).toBe(true);
+      expect(component.filteredItems().some((i) => i.title === 'Manage POAMs')).toBe(true);
     });
 
     it('should be case insensitive', () => {
       component.search({ query: 'POAM' });
-      const upperResults = [...component.filteredItems];
+      const upperResults = [...component.filteredItems()];
 
       component.search({ query: 'poam' });
-      const lowerResults = [...component.filteredItems];
+      const lowerResults = [...component.filteredItems()];
 
       expect(upperResults.length).toBe(lowerResults.length);
     });
 
     it('should find Home when searching for "home"', () => {
       component.search({ query: 'home' });
-      expect(component.filteredItems.some((i) => i.title === 'Home')).toBe(true);
+      expect(component.filteredItems().some((i) => i.title === 'Home')).toBe(true);
     });
 
     it('should find multiple items with common text', () => {
       component.search({ query: 'processing' });
-      expect(component.filteredItems.length).toBeGreaterThan(1);
+      expect(component.filteredItems().length).toBeGreaterThan(1);
     });
 
     it('should return empty array for non-matching query', () => {
       component.search({ query: 'xyz123nonexistent' });
-      expect(component.filteredItems).toEqual([]);
+      expect(component.filteredItems()).toEqual([]);
     });
 
     it('should find items with partial match', () => {
       component.search({ query: 'met' });
-      expect(component.filteredItems.some((i) => i.title === 'Metrics')).toBe(true);
+      expect(component.filteredItems().some((i) => i.title === 'Metrics')).toBe(true);
     });
 
     it('should find Notifications when searching for "notif"', () => {
       component.search({ query: 'notif' });
-      expect(component.filteredItems.some((i) => i.title === 'Notifications')).toBe(true);
+      expect(component.filteredItems().some((i) => i.title === 'Notifications')).toBe(true);
     });
 
     it('should update filteredItems on each search', () => {
       component.search({ query: 'home' });
-      expect(component.filteredItems.length).toBe(1);
+      expect(component.filteredItems().length).toBe(1);
 
       component.search({ query: 'processing' });
-      expect(component.filteredItems.length).toBeGreaterThan(1);
+      expect(component.filteredItems().length).toBeGreaterThan(1);
     });
   });
 
@@ -235,11 +235,11 @@ describe('AppSearchComponent', () => {
     });
 
     it('should clear query after navigation', () => {
-      component.query = 'test';
+      component.query.set('test');
       const item = { title: 'Home', path: '/home' };
 
       component.navigateTo({ value: item });
-      expect(component.query).toBe('');
+      expect(component.query()).toBe('');
     });
 
     it('should navigate to Add POAM path', () => {
@@ -274,9 +274,9 @@ describe('AppSearchComponent', () => {
     });
 
     it('should not clear query if navigation fails due to null item', () => {
-      component.query = 'test';
+      component.query.set('test');
       component.navigateTo({ value: null as any });
-      expect(component.query).toBe('test');
+      expect(component.query()).toBe('test');
     });
   });
 
@@ -324,9 +324,9 @@ describe('AppSearchComponent', () => {
 
   describe('autocomplete integration', () => {
     it('should bind query to ngModel', () => {
-      component.query = 'test query';
+      component.query.set('test query');
       fixture.detectChanges();
-      expect(component.query).toBe('test query');
+      expect(component.query()).toBe('test query');
     });
 
     it('should bind filteredItems to suggestions', () => {
@@ -335,31 +335,31 @@ describe('AppSearchComponent', () => {
       const autocomplete = fixture.debugElement.query(By.css('p-autoComplete'));
       const suggestions = autocomplete.componentInstance.suggestions;
 
-      expect(typeof suggestions === 'function' ? suggestions() : suggestions).toEqual(component.filteredItems);
+      expect(typeof suggestions === 'function' ? suggestions() : suggestions).toEqual(component.filteredItems());
     });
   });
 
   describe('search and navigation workflow', () => {
     it('should complete full search and select workflow', () => {
       component.search({ query: 'home' });
-      expect(component.filteredItems.length).toBe(1);
-      expect(component.filteredItems[0].title).toBe('Home');
+      expect(component.filteredItems().length).toBe(1);
+      expect(component.filteredItems()[0].title).toBe('Home');
 
-      component.navigateTo({ value: component.filteredItems[0] });
+      component.navigateTo({ value: component.filteredItems()[0] });
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
-      expect(component.query).toBe('');
+      expect(component.query()).toBe('');
     });
 
     it('should handle multiple searches before navigation', () => {
       component.search({ query: 'poam' });
-      const poamResults = component.filteredItems.length;
+      const poamResults = component.filteredItems().length;
 
       component.search({ query: 'processing' });
-      const processingResults = component.filteredItems.length;
+      const processingResults = component.filteredItems().length;
 
       expect(poamResults).not.toBe(processingResults);
 
-      component.navigateTo({ value: component.filteredItems[0] });
+      component.navigateTo({ value: component.filteredItems()[0] });
       expect(mockRouter.navigate).toHaveBeenCalled();
     });
   });
@@ -367,27 +367,27 @@ describe('AppSearchComponent', () => {
   describe('edge cases', () => {
     it('should handle empty search query', () => {
       component.search({ query: '' });
-      expect(component.filteredItems.length).toBe(component['searchItems'].length);
+      expect(component.filteredItems().length).toBe(component['searchItems'].length);
     });
 
     it('should handle single character search', () => {
       component.search({ query: 'a' });
-      expect(component.filteredItems.length).toBeGreaterThan(0);
+      expect(component.filteredItems().length).toBeGreaterThan(0);
     });
 
     it('should handle search with spaces', () => {
       component.search({ query: 'add poam' });
-      expect(component.filteredItems.some((i) => i.title === 'Add POAM')).toBe(true);
+      expect(component.filteredItems().some((i) => i.title === 'Add POAM')).toBe(true);
     });
 
     it('should handle search with leading/trailing spaces', () => {
       component.search({ query: ' home ' });
-      expect(component.filteredItems).toEqual([]);
+      expect(component.filteredItems()).toEqual([]);
     });
 
     it('should preserve item structure in filtered results', () => {
       component.search({ query: 'home' });
-      const item = component.filteredItems[0];
+      const item = component.filteredItems()[0];
 
       expect(item).toHaveProperty('title');
       expect(item).toHaveProperty('path');
