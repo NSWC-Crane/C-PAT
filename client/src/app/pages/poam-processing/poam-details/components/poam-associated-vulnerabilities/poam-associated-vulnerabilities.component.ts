@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnChanges, OnInit, SimpleChanges, inject, output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, OnInit, SimpleChanges, inject, output, signal, input } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocomplete';
@@ -56,7 +57,7 @@ interface AutocompleteSuggestion {
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, TableModule, ButtonModule, TagModule, ToastModule, TooltipModule, AutoCompleteModule]
 })
 export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges {
@@ -64,6 +65,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   private readonly messageService = inject(MessageService);
   poamService = inject(PoamService);
   sharedService = inject(SharedService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly poamId = input<any>(undefined);
   readonly accessLevel = input<number>(undefined);
@@ -81,7 +83,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
     informational: 'CAT III - Informational'
   };
 
-  displayVulnerabilities: DisplayVulnerability[] = [];
+  readonly displayVulnerabilities = signal<DisplayVulnerability[]>([]);
   filteredSuggestions: AutocompleteSuggestion[] = [];
 
   ngOnInit() {
@@ -95,16 +97,18 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   }
 
   private initializeDisplayVulnerabilities(): void {
-    this.displayVulnerabilities = (this.poamAssociatedVulnerabilities() || [])
-      .filter((vuln) => vuln)
-      .map((vuln) => {
-        const vulnId = typeof vuln === 'string' ? vuln : vuln.associatedVulnerability;
+    this.displayVulnerabilities.set(
+      (this.poamAssociatedVulnerabilities() || [])
+        .filter((vuln) => vuln)
+        .map((vuln) => {
+          const vulnId = typeof vuln === 'string' ? vuln : vuln.associatedVulnerability;
 
-        if (!vulnId) return null;
+          if (!vulnId) return null;
 
-        return this.createDisplayVulnerability(vulnId, false);
-      })
-      .filter((v): v is DisplayVulnerability => v !== null);
+          return this.createDisplayVulnerability(vulnId, false);
+        })
+        .filter((v): v is DisplayVulnerability => v !== null)
+    );
   }
 
   private createDisplayVulnerability(vulnId: string, isNew: boolean): DisplayVulnerability {
@@ -131,7 +135,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   }
 
   private refreshDisplayVulnerabilities(): void {
-    for (const vuln of this.displayVulnerabilities) {
+    for (const vuln of this.displayVulnerabilities()) {
       if (!vuln.isNew) {
         const severity = this.vulnSeverityMap.get(vuln.associatedVulnerability) || 'unknown';
         const severityLower = severity.toLowerCase();
@@ -142,6 +146,8 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
         vuln.tagSeverity = this.computeTagSeverity(severityLower);
       }
     }
+
+    this.displayVulnerabilities.set([...this.displayVulnerabilities()]);
   }
 
   getVulnTitles(): void {
@@ -155,29 +161,32 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   }
 
   private loadSTIGManagerData(): void {
-    this.sharedService.getFindingsMetricsAndRulesFromSTIGMAN(this.currentCollection().originCollectionId).subscribe({
-      next: (response: any) => {
-        this.vulnTitleMap.clear();
-        this.vulnSeverityMap.clear();
+    this.sharedService
+      .getFindingsMetricsAndRulesFromSTIGMAN(this.currentCollection().originCollectionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          this.vulnTitleMap.clear();
+          this.vulnSeverityMap.clear();
 
-        for (const group of response) {
-          if (group.rules?.length > 0) {
-            this.vulnTitleMap.set(group.groupId, group.rules[0].title);
+          for (const group of response) {
+            if (group.rules?.length > 0) {
+              this.vulnTitleMap.set(group.groupId, group.rules[0].title);
+            }
+
+            this.vulnSeverityMap.set(group.groupId, group.severity);
           }
 
-          this.vulnSeverityMap.set(group.groupId, group.severity);
+          this.refreshDisplayVulnerabilities();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to retrieve vulnerability titles: ${getErrorMessage(error)}`
+          });
         }
-
-        this.refreshDisplayVulnerabilities();
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to retrieve vulnerability titles: ${getErrorMessage(error)}`
-        });
-      }
-    });
+      });
   }
 
   private loadTenableData(): void {
@@ -213,6 +222,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
         columns: [],
         type: 'vuln'
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data: any) => {
           if (data.error_msg) {
@@ -305,7 +315,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
       selectedVulnerabilities: []
     };
 
-    this.displayVulnerabilities = [newVuln, ...this.displayVulnerabilities];
+    this.displayVulnerabilities.set([newVuln, ...this.displayVulnerabilities()]);
   }
 
   onAssociatedVulnerabilityChange(rowData: DisplayVulnerability, rowIndex: number): void {
@@ -319,55 +329,63 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
       return;
     }
 
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.currentCollection().collectionId).subscribe({
-      next: (response: any) => {
-        const existingPoams = response;
-        const newVulnerabilities = rowData.selectedVulnerabilities!.map((vulnId) => (typeof vulnId === 'string' ? vulnId.toUpperCase() : vulnId));
+    this.poamService
+      .getVulnerabilityIdsWithPoamByCollection(this.currentCollection().collectionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          const existingPoams = response;
+          const newVulnerabilities = rowData.selectedVulnerabilities!.map((vulnId) => (typeof vulnId === 'string' ? vulnId.toUpperCase() : vulnId));
+          const updated = [...this.displayVulnerabilities()];
 
-        for (const vulnId of newVulnerabilities) {
-          const duplicatePoam = existingPoams.find((poam: any) => poam.vulnerabilityId === vulnId);
+          for (const vulnId of newVulnerabilities) {
+            const duplicatePoam = existingPoams.find((poam: any) => poam.vulnerabilityId === vulnId);
 
-          if (duplicatePoam) {
-            this.messageService.add({
-              severity: 'warn',
-              summary: 'Duplicate Vulnerability',
-              detail: `A POAM (ID: ${duplicatePoam.poamId}) already exists for vulnerability ID: ${vulnId}`
-            });
-            continue;
+            if (duplicatePoam) {
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'Duplicate Vulnerability',
+                detail: `A POAM (ID: ${duplicatePoam.poamId}) already exists for vulnerability ID: ${vulnId}`
+              });
+              continue;
+            }
+
+            if (rowIndex === 0) {
+              updated.push(this.createDisplayVulnerability(vulnId, false));
+            }
           }
 
-          if (rowIndex === 0) {
-            this.displayVulnerabilities.push(this.createDisplayVulnerability(vulnId, false));
+          if (rowData.isNew) {
+            updated.splice(rowIndex, 1);
           }
-        }
 
-        if (rowData.isNew) {
-          this.displayVulnerabilities.splice(rowIndex, 1);
-        }
+          this.displayVulnerabilities.set(updated);
 
-        if (rowIndex === 0 && rowData.isNew) {
-          this.addAssociatedVulnerability();
-        }
+          if (rowIndex === 0 && rowData.isNew) {
+            this.addAssociatedVulnerability();
+          }
 
-        this.emitVulnerabilityChanges();
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to add associated vulnerability: ${getErrorMessage(error)}`
-        });
-      }
-    });
+          this.emitVulnerabilityChanges();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to add associated vulnerability: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   deleteAssociatedVulnerability(_associatedVulnerability: DisplayVulnerability, rowIndex: number): void {
-    this.displayVulnerabilities.splice(rowIndex, 1);
+    this.displayVulnerabilities.set(this.displayVulnerabilities().filter((_v, i) => i !== rowIndex));
     this.emitVulnerabilityChanges();
   }
 
   private emitVulnerabilityChanges(): void {
-    const updatedVulnerabilities = this.displayVulnerabilities.filter((item) => !item.isNew && item.associatedVulnerability).map((item) => item.associatedVulnerability);
+    const updatedVulnerabilities = this.displayVulnerabilities()
+      .filter((item) => !item.isNew && item.associatedVulnerability)
+      .map((item) => item.associatedVulnerability);
 
     this.vulnerabilitiesChanged.emit(updatedVulnerabilities);
   }
