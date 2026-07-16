@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<p-table class="associatedVulnTable" [value]="displayVulnerabilities" dataKey="associatedVulnerability">
+<p-table class="associatedVulnTable" [value]="displayVulnerabilities()" dataKey="associatedVulnerability">
   <ng-template #header>
     <tr>
       <th scope="col" pSortableColumn="associatedVulnerability">Associated Vulnerability</th>

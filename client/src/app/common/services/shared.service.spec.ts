@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { firstValueFrom } from 'rxjs';
 import { SharedService } from './shared.service';
 
 describe('SharedService', () => {
@@ -53,18 +54,16 @@ describe('SharedService', () => {
         });
       }));
 
-    it('should update selected collection multiple times', () => {
-      const emissions: any[] = [];
-
-      service.selectedCollection.subscribe((value) => {
-        emissions.push(value);
-      });
-
+    it('should reflect the latest value after multiple updates', async () => {
       service.setSelectedCollection(1);
       service.setSelectedCollection(2);
       service.setSelectedCollection(3);
 
-      expect(emissions).toEqual([null, 1, 2, 3]);
+      expect(service.selectedCollectionSig()).toBe(3);
+
+      const value = await firstValueFrom(service.selectedCollection);
+
+      expect(value).toBe(3);
     });
   });
 

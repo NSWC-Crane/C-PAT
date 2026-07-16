@@ -25,19 +25,32 @@
           <button pButton class="mr-2" (click)="resetColumnSelections()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset column selections"><i class="pi pi-refresh" pButtonIcon></i></button>
           <button pButton (click)="toggleAddColumnOverlay()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-plus" pButtonIcon></i></button>
           <button pButton (click)="exportCSV()" severity="secondary" [rounded]="true" [text]="true"><i class="pi pi-external-link" pButtonIcon></i></button>
-          <p-select [multiple]="true" [checkmark]="true" [showClear]="true" #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceholder="Add columns..." />
+          <p-select
+            [multiple]="true"
+            [checkmark]="true"
+            [filter]="true"
+            [showClear]="true"
+            #ms
+            [options]="cols"
+            [(ngModel)]="selectedColumns"
+            optionLabel="header"
+            class="custom-multiselect"
+            appendTo="body"
+            name="columnSearch"
+            filterPlaceholder="Add columns..."
+          />
         </div>
       </div>
       <p-table
         #hostAssetTable
-        [value]="affectedAssets"
+        [value]="affectedAssets()"
         [columns]="selectedColumns"
         [paginator]="true"
         [rows]="100"
         [showCurrentPageReport]="true"
         [rowsPerPageOptions]="[25, 50, 100]"
-        [totalRecords]="totalRecords"
-        [loading]="isLoading"
+        [totalRecords]="totalRecords()"
+        [loading]="isLoading()"
         [globalFilterFields]="['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes']"
         [filterDelay]="300"
         [rowHover]="true"

@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -24,8 +25,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
-import { EMPTY, Observable, Subscription, catchError, forkJoin, from, map, of, switchMap, tap, throwError } from 'rxjs';
-import { SubSink } from 'subsink';
+import { EMPTY, Observable, catchError, forkJoin, from, map, of, switchMap, tap, throwError } from 'rxjs';
 import { AAPackage } from '../../../common/models/aaPackage.model';
 import { Collections } from '../../../common/models/collections.model';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -48,10 +48,10 @@ interface TreeNode<T> {
   templateUrl: './collection-processing.component.html',
   styleUrls: ['./collection-processing.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TagModule, TextareaModule, ToastModule, TooltipModule, TreeTableModule]
 })
-export class CollectionProcessingComponent implements OnInit, OnDestroy {
+export class CollectionProcessingComponent implements OnInit {
   private readonly aaPackageService = inject(AAPackageService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly setPayloadService = inject(PayloadService);
@@ -59,14 +59,13 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   private readonly sharedService = inject(SharedService);
   private readonly importService = inject(ImportService);
   private readonly poamService = inject(PoamService);
+  private readonly destroyRef = inject(DestroyRef);
 
   public readonly table = viewChild.required<TreeTable>('dt');
-  cols: any = [];
+  readonly cols = signal<any[]>([]);
   aaPackages: AAPackage[] = [];
-  filteredAAPackages: string[] = [];
-  collectionTreeData: TreeNode<Collections>[] = [];
-  public isLoggedIn = false;
-  exportCollectionId: any;
+  readonly filteredAAPackages = signal<string[]>([]);
+  readonly collectionTreeData = signal<TreeNode<Collections>[]>([]);
   poams: any[] = [];
   collections: any;
   collection: any = {
@@ -79,9 +78,8 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     aaPackage: '',
     manualCreationAllowed: true
   };
-  collectionToExport: string = 'Select Collection to Export...';
   data: any = [];
-  displayCollectionDialog: boolean = false;
+  readonly displayCollectionDialog = signal(false);
   dialogMode: 'add' | 'modify' = 'add';
   editingCollection: any = {};
   collectionTypeOptions = [
@@ -89,42 +87,39 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     { label: 'STIG Manager', value: 'STIG Manager' },
     { label: 'Tenable', value: 'Tenable' }
   ];
-  originCollectionOptions: { label: string; value: number }[] = [];
-  loadingOriginCollections: boolean = false;
+  readonly originCollectionOptions = signal<{ label: string; value: number }[]>([]);
+  readonly loadingOriginCollections = signal(false);
   previousCollectionType: string | null = null;
   pendingCollectionType: string | null = null;
-  displayCollectionTypeConfirmDialog: boolean = false;
+  readonly displayCollectionTypeConfirmDialog = signal(false);
   previousOriginCollectionId: number | null = null;
   pendingOriginCollectionId: number | null = null;
-  displayOriginIdConfirmDialog: boolean = false;
+  readonly displayOriginIdConfirmDialog = signal(false);
   protected accessLevel: any;
   user: any;
   payload: any;
   cpatAffectedAssets: any;
-  stigmanAffectedAssets: any;
   tenableAffectedAssets: any;
-  displayDeleteDialog: boolean = false;
+  readonly displayDeleteDialog = signal(false);
   collectionToDelete: any = null;
-  displayExportDialog: boolean = false;
-  selectableCollections: any[] = [];
-  selectedExportCollections: any[] = [];
-  exporting: boolean = false;
-  displayBulkImportDialog: boolean = false;
-  bulkImportSource: 'STIG Manager' | 'Tenable' = 'STIG Manager';
+  readonly displayExportDialog = signal(false);
+  readonly selectableCollections = signal<any[]>([]);
+  readonly selectedExportCollections = signal<any[]>([]);
+  readonly exporting = signal(false);
+  readonly displayBulkImportDialog = signal(false);
+  readonly bulkImportSource = signal<'STIG Manager' | 'Tenable'>('STIG Manager');
   bulkImportSourceOptions = CPAT.Env.features.tenableEnabled
     ? [
         { label: 'STIG Manager', value: 'STIG Manager' as const },
         { label: 'Tenable', value: 'Tenable' as const }
       ]
     : [{ label: 'STIG Manager', value: 'STIG Manager' as const }];
-  bulkImportAvailable: { label: string; value: any }[] = [];
-  selectedBulkImports: any[] = [];
-  bulkImporting: boolean = false;
-  loadingBulkImports: boolean = false;
+  readonly bulkImportAvailable = signal<{ label: string; value: any }[]>([]);
+  readonly selectedBulkImports = signal<any[]>([]);
+  readonly bulkImporting = signal(false);
+  readonly loadingBulkImports = signal(false);
   tenableEnabled = CPAT.Env.features.tenableEnabled;
   private readonly findingsCache: Map<string, any[]> = new Map();
-  private readonly payloadSubscription: Subscription[] = [];
-  private readonly subs = new SubSink();
 
   ngOnInit() {
     this.initColumnsAndFilters();
@@ -132,7 +127,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   }
 
   initColumnsAndFilters() {
-    this.cols = [
+    this.cols.set([
       { field: 'collectionId', header: 'Collection ID' },
       { field: 'collectionName', header: 'Name' },
       { field: 'description', header: 'Description' },
@@ -141,17 +136,17 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       { field: 'ccsafa', header: 'CC/S/A/FA' },
       { field: 'aaPackage', header: 'A&A Package' },
       { field: 'collectionType', header: 'Collection Type' }
-    ];
+    ]);
   }
 
   setPayload() {
-    this.subs.sink = this.setPayloadService.user$.subscribe((user) => {
+    this.setPayloadService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
       this.user = user;
     });
-    this.subs.sink = this.setPayloadService.payload$.subscribe((payload) => {
+    this.setPayloadService.payload$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((payload) => {
       this.payload = payload;
     });
-    this.subs.sink = this.setPayloadService.accessLevel$.subscribe((level) => {
+    this.setPayloadService.accessLevel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((level) => {
       this.accessLevel = level;
     });
     this.getCollectionData();
@@ -199,7 +194,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   filterAAPackages(event: { query: string }) {
     const query = event.query.toLowerCase();
 
-    this.filteredAAPackages = this.aaPackages.filter((aaPackage) => aaPackage.aaPackage.toLowerCase().includes(query)).map((aaPackage) => aaPackage.aaPackage);
+    this.filteredAAPackages.set(this.aaPackages.filter((aaPackage) => aaPackage.aaPackage.toLowerCase().includes(query)).map((aaPackage) => aaPackage.aaPackage));
   }
 
   getCollectionsTreeData() {
@@ -239,7 +234,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       }
     );
 
-    this.collectionTreeData = treeViewData;
+    this.collectionTreeData.set(treeViewData);
   }
 
   exportCollection(rowData: any) {
@@ -498,7 +493,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
           life: 3000
         });
         this.getCollectionData();
-        this.displayCollectionDialog = false;
+        this.displayCollectionDialog.set(false);
       });
   }
 
@@ -523,8 +518,8 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     };
     this.previousCollectionType = 'C-PAT';
     this.previousOriginCollectionId = 0;
-    this.originCollectionOptions = [];
-    this.displayCollectionDialog = true;
+    this.originCollectionOptions.set([]);
+    this.displayCollectionDialog.set(true);
   }
 
   showModifyCollectionDialog(rowData: any) {
@@ -547,13 +542,13 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     };
     this.previousCollectionType = collectionType;
     this.previousOriginCollectionId = collectionType === 'C-PAT' ? 0 : originId;
-    this.originCollectionOptions = [];
+    this.originCollectionOptions.set([]);
 
     if (collectionType !== 'C-PAT') {
       this.loadOriginCollections(collectionType);
     }
 
-    this.displayCollectionDialog = true;
+    this.displayCollectionDialog.set(true);
   }
 
   onCollectionTypeChange(newCollectionType: string) {
@@ -567,7 +562,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
     this.pendingCollectionType = newCollectionType;
     this.editingCollection.collectionType = this.previousCollectionType;
-    this.displayCollectionTypeConfirmDialog = true;
+    this.displayCollectionTypeConfirmDialog.set(true);
   }
 
   confirmCollectionTypeChange() {
@@ -576,12 +571,12 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     }
 
     this.pendingCollectionType = null;
-    this.displayCollectionTypeConfirmDialog = false;
+    this.displayCollectionTypeConfirmDialog.set(false);
   }
 
   cancelCollectionTypeChange() {
     this.pendingCollectionType = null;
-    this.displayCollectionTypeConfirmDialog = false;
+    this.displayCollectionTypeConfirmDialog.set(false);
   }
 
   private applyCollectionTypeChange(newCollectionType: string) {
@@ -591,20 +586,20 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     if (newCollectionType === 'C-PAT') {
       this.editingCollection.originCollectionId = 0;
       this.previousOriginCollectionId = 0;
-      this.originCollectionOptions = [];
+      this.originCollectionOptions.set([]);
 
       return;
     }
 
     this.editingCollection.originCollectionId = null;
     this.previousOriginCollectionId = null;
-    this.originCollectionOptions = [];
+    this.originCollectionOptions.set([]);
     this.editingCollection.manualCreationAllowed = false;
     this.loadOriginCollections(newCollectionType);
   }
 
   private loadOriginCollections(collectionType: string) {
-    this.loadingOriginCollections = true;
+    this.loadingOriginCollections.set(true);
 
     const source$ =
       collectionType === 'STIG Manager'
@@ -624,8 +619,8 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe((options) => {
-        this.originCollectionOptions = this.filterAvailableOriginOptions(options, collectionType);
-        this.loadingOriginCollections = false;
+        this.originCollectionOptions.set(this.filterAvailableOriginOptions(options, collectionType));
+        this.loadingOriginCollections.set(false);
       });
   }
 
@@ -649,24 +644,24 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
 
     this.pendingOriginCollectionId = newValue;
     this.editingCollection.originCollectionId = this.previousOriginCollectionId;
-    this.displayOriginIdConfirmDialog = true;
+    this.displayOriginIdConfirmDialog.set(true);
   }
 
   confirmOriginCollectionIdChange() {
     this.editingCollection.originCollectionId = this.pendingOriginCollectionId;
     this.previousOriginCollectionId = this.pendingOriginCollectionId;
     this.pendingOriginCollectionId = null;
-    this.displayOriginIdConfirmDialog = false;
+    this.displayOriginIdConfirmDialog.set(false);
   }
 
   cancelOriginCollectionIdChange() {
     this.pendingOriginCollectionId = null;
-    this.displayOriginIdConfirmDialog = false;
+    this.displayOriginIdConfirmDialog.set(false);
   }
 
   confirmDeleteCollection(rowData: any) {
     this.collectionToDelete = rowData;
-    this.displayDeleteDialog = true;
+    this.displayDeleteDialog.set(true);
   }
 
   deleteCollection() {
@@ -701,40 +696,42 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
   }
 
   hideDeleteDialog() {
-    this.displayDeleteDialog = false;
+    this.displayDeleteDialog.set(false);
     this.collectionToDelete = null;
   }
 
   hideCollectionDialog() {
-    this.displayCollectionDialog = false;
+    this.displayCollectionDialog.set(false);
   }
 
   showExportDialog() {
-    this.selectableCollections = this.data.map((collection: any) => ({
-      label: collection.collectionName,
-      value: {
-        collectionId: collection.collectionId,
-        name: collection.collectionName,
-        collectionType: collection.collectionType || '',
-        originCollectionId: collection.originCollectionId ?? 0,
-        systemType: collection.systemType || '',
-        systemName: collection.systemName || '',
-        ccsafa: collection.ccsafa || '',
-        aaPackage: collection.aaPackage || '',
-        predisposingConditions: collection.predisposingConditions || ''
-      }
-    }));
-    this.selectedExportCollections = [];
-    this.displayExportDialog = true;
+    this.selectableCollections.set(
+      this.data.map((collection: any) => ({
+        label: collection.collectionName,
+        value: {
+          collectionId: collection.collectionId,
+          name: collection.collectionName,
+          collectionType: collection.collectionType || '',
+          originCollectionId: collection.originCollectionId ?? 0,
+          systemType: collection.systemType || '',
+          systemName: collection.systemName || '',
+          ccsafa: collection.ccsafa || '',
+          aaPackage: collection.aaPackage || '',
+          predisposingConditions: collection.predisposingConditions || ''
+        }
+      }))
+    );
+    this.selectedExportCollections.set([]);
+    this.displayExportDialog.set(true);
   }
 
   hideExportDialog() {
-    this.displayExportDialog = false;
-    this.selectedExportCollections = [];
+    this.displayExportDialog.set(false);
+    this.selectedExportCollections.set([]);
   }
 
   exportMultipleCollections() {
-    if (!this.selectedExportCollections?.length) {
+    if (!this.selectedExportCollections().length) {
       this.messageService.add({
         severity: 'warn',
         summary: 'No Selection',
@@ -744,11 +741,11 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.exporting = true;
+    this.exporting.set(true);
     const skippedCollections: string[] = [];
     const emptyCollections: string[] = [];
 
-    const collectionExports = this.selectedExportCollections.map((exportCollection) =>
+    const collectionExports = this.selectedExportCollections().map((exportCollection) =>
       this.collectionsService.getPoamsByCollection(exportCollection.collectionId).pipe(
         switchMap((poams) => {
           if (!poams?.length) {
@@ -780,10 +777,10 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             throw new Error('No POAMs were available to export from the selected collections.');
           }
 
-          const primaryCollection = this.selectedExportCollections[0];
+          const primaryCollection = this.selectedExportCollections()[0];
           const syntheticExportCollection = {
             ...primaryCollection,
-            name: this.selectedExportCollections.length > 1 ? 'Multi_Collection' : primaryCollection.name
+            name: this.selectedExportCollections().length > 1 ? 'Multi_Collection' : primaryCollection.name
           };
 
           return from(PoamExportService.convertToExcel(allPoams, this.user, syntheticExportCollection));
@@ -800,7 +797,7 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (excelData) => {
-          const exportName = this.selectedExportCollections.length > 1 ? 'Multi_Collection' : this.selectedExportCollections[0].name;
+          const exportName = this.selectedExportCollections().length > 1 ? 'Multi_Collection' : this.selectedExportCollections()[0].name;
 
           this.downloadExcel(excelData, exportName);
 
@@ -822,36 +819,36 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             });
           }
 
-          this.displayExportDialog = false;
+          this.displayExportDialog.set(false);
         },
         complete: () => {
-          this.exporting = false;
+          this.exporting.set(false);
         }
       });
   }
 
   showBulkImportDialog() {
-    this.bulkImportSource = 'STIG Manager';
-    this.selectedBulkImports = [];
-    this.bulkImportAvailable = [];
-    this.displayBulkImportDialog = true;
+    this.bulkImportSource.set('STIG Manager');
+    this.selectedBulkImports.set([]);
+    this.bulkImportAvailable.set([]);
+    this.displayBulkImportDialog.set(true);
     this.loadAvailableImports();
   }
 
   hideBulkImportDialog() {
-    this.displayBulkImportDialog = false;
-    this.selectedBulkImports = [];
-    this.bulkImportAvailable = [];
+    this.displayBulkImportDialog.set(false);
+    this.selectedBulkImports.set([]);
+    this.bulkImportAvailable.set([]);
   }
 
   onBulkImportSourceChange() {
-    this.selectedBulkImports = [];
+    this.selectedBulkImports.set([]);
     this.loadAvailableImports();
   }
 
   private loadAvailableImports() {
-    this.loadingBulkImports = true;
-    const collectionType = this.bulkImportSource;
+    this.loadingBulkImports.set(true);
+    const collectionType = this.bulkImportSource();
     const usedOriginIds = new Set((this.data ?? []).filter((c: any) => c.collectionType === collectionType).map((c: any) => +c.originCollectionId));
 
     const source$ =
@@ -895,19 +892,19 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
             summary: 'Error',
             detail: `Failed to load ${collectionType} collections: ${getErrorMessage(error)}`
           });
-          this.loadingBulkImports = false;
+          this.loadingBulkImports.set(false);
 
           return of([] as { label: string; value: any }[]);
         })
       )
       .subscribe((options) => {
-        this.bulkImportAvailable = options;
-        this.loadingBulkImports = false;
+        this.bulkImportAvailable.set(options);
+        this.loadingBulkImports.set(false);
       });
   }
 
   executeBulkImport() {
-    if (!this.selectedBulkImports?.length) {
+    if (!this.selectedBulkImports().length) {
       this.messageService.add({
         severity: 'warn',
         summary: 'No Selection',
@@ -917,9 +914,9 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.bulkImporting = true;
+    this.bulkImporting.set(true);
     forkJoin(
-      this.selectedBulkImports.map((data) =>
+      this.selectedBulkImports().map((data) =>
         this.collectionsService.addCollection(data).pipe(
           tap(() => {
             this.messageService.add({
@@ -941,14 +938,14 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
       )
     ).subscribe({
       next: () => {
-        this.bulkImporting = false;
-        this.displayBulkImportDialog = false;
-        this.selectedBulkImports = [];
-        this.bulkImportAvailable = [];
+        this.bulkImporting.set(false);
+        this.displayBulkImportDialog.set(false);
+        this.selectedBulkImports.set([]);
+        this.bulkImportAvailable.set([]);
         this.getCollectionData();
       },
       error: () => {
-        this.bulkImporting = false;
+        this.bulkImporting.set(false);
       }
     });
   }
@@ -957,10 +954,5 @@ export class CollectionProcessingComponent implements OnInit, OnDestroy {
     const inputValue = (event.target as HTMLInputElement).value;
 
     this.table().filterGlobal(inputValue, 'contains');
-  }
-
-  ngOnDestroy(): void {
-    this.subs.unsubscribe();
-    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }

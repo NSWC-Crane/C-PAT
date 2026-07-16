@@ -11,7 +11,7 @@
 import { NO_ERRORS_SCHEMA, SimpleChange, SimpleChanges } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { TenableHighRiskAssetsTableComponent } from './tenableHighRiskAssetsTable.component';
 import { ImportService } from '../../../import.service';
 
@@ -494,16 +494,22 @@ describe('TenableHighRiskAssetsTableComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('stops updating high-risk assets after destroy (takeUntilDestroyed)', () => {
+      const analysisSubject = new Subject<any>();
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      mockImportService.postTenableAnalysis.mockReturnValue(analysisSubject.asObservable());
+      component.loadHighRiskAssets();
+      expect(component.highRiskAssets()).toEqual([]);
+
+      fixture.destroy();
+      analysisSubject.next(makeAnalysisResponse([mockAssetRaw]));
+      expect(component.highRiskAssets()).toEqual([]);
     });
 
-    it('should not throw when destroyed without prior loadHighRiskAssets call', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
+    it('does not throw on destroy', () => {
+      component.loadHighRiskAssets();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

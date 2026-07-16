@@ -40,7 +40,7 @@ describe('ConfirmationDialogComponent', () => {
     });
 
     it('should have visible set to true by default', () => {
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
     });
 
     it('should inject DynamicDialogRef', () => {

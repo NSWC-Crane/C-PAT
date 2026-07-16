@@ -15,7 +15,7 @@
     <p-floatlabel class="w-full" variant="in">
       <p-select
         id="collection-select"
-        [options]="availableCollections"
+        [options]="availableCollections()"
         [ngModel]="selectedCollection()"
         (ngModelChange)="onCollectionChange($event)"
         (onChange)="onCollectionChange($event.value)"
@@ -23,7 +23,7 @@
         filterBy="collectionName"
         optionLabel="collectionName"
         optionValue="collectionId"
-        placeholder="Select a Collection"
+        placeholder="Select Collection..."
         class="w-full"
         [disabled]="loading()"
       />
@@ -78,7 +78,7 @@
     <p-table
       #assetDeltaTable
       [value]="filteredAssets()"
-      [columns]="cols"
+      [columns]="cols()"
       [paginator]="true"
       [rows]="100"
       [rowsPerPageOptions]="[25, 50, 100]"
@@ -162,7 +162,7 @@
                     { label: 'No', value: false }
                   ]"
                   (onChange)="filter($event.value)"
-                  placeholder="Select"
+                  placeholder="Select..."
                   class="w-full"
                   appendTo="body"
                 />
@@ -181,7 +181,7 @@
                     { label: 'No', value: false }
                   ]"
                   (onChange)="filter($event.value)"
-                  placeholder="Select"
+                  placeholder="Select..."
                   class="w-full"
                   appendTo="body"
                 />
@@ -200,7 +200,7 @@
                     { label: 'No', value: false }
                   ]"
                   (onChange)="filter($event.value)"
-                  placeholder="Select"
+                  placeholder="Select..."
                   class="w-full"
                   appendTo="body"
                 />
@@ -256,12 +256,12 @@
         [multiple]="true"
         [checkmark]="true"
         id="upload-collection-select"
-        [options]="availableCollections"
+        [options]="availableCollections()"
         [ngModel]="selectedUploadCollections()"
         (ngModelChange)="selectedUploadCollections.set($event)"
         optionLabel="collectionName"
         optionValue="collectionId"
-        placeholder="Select Collection(s)"
+        placeholder="Select Collections..."
         class="w-full"
         [disabled]="loading()"
         [showClear]="true"

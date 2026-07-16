@@ -106,20 +106,11 @@ describe('NotificationsPanelComponent', () => {
     });
 
     it('should have empty notifications array initially', () => {
-      expect(component.notifications).toEqual([]);
-    });
-
-    it('should have isLoggedIn as false initially', () => {
-      expect(component.isLoggedIn).toBe(false);
+      expect(component.notifications()).toEqual([]);
     });
   });
 
   describe('setPayload', () => {
-    it('should subscribe to user$', () => {
-      component.setPayload();
-      expect(component.user).toEqual({ userId: 1, userName: 'testuser' });
-    });
-
     it('should fetch notifications when accessLevel > 0', () => {
       component.setPayload();
       expect(mockNotificationService.getUnreadNotifications).toHaveBeenCalled();
@@ -149,8 +140,8 @@ describe('NotificationsPanelComponent', () => {
     it('should fetch and format unread notifications', () => {
       component.fetchNotifications();
 
-      expect(component.notifications.length).toBe(2);
-      expect(component.notifications[0].formattedMessage).toBeTruthy();
+      expect(component.notifications().length).toBe(2);
+      expect(component.notifications()[0].formattedMessage).toBeTruthy();
     });
 
     it('should handle fetch error gracefully', () => {
@@ -169,8 +160,8 @@ describe('NotificationsPanelComponent', () => {
 
       component.fetchNotifications();
 
-      expect(component.notifications.length).toBe(1);
-      expect(component.notifications[0].notificationId).toBeUndefined();
+      expect(component.notifications().length).toBe(1);
+      expect(component.notifications()[0].notificationId).toBeUndefined();
     });
 
     it('should handle notification without icon', () => {
@@ -178,8 +169,8 @@ describe('NotificationsPanelComponent', () => {
 
       component.fetchNotifications();
 
-      expect(component.notifications.length).toBe(1);
-      expect(component.notifications[0].icon).toBeUndefined();
+      expect(component.notifications().length).toBe(1);
+      expect(component.notifications()[0].icon).toBeUndefined();
     });
   });
 
@@ -215,27 +206,29 @@ describe('NotificationsPanelComponent', () => {
 
   describe('dismissNotification', () => {
     beforeEach(() => {
-      component.notifications = mockNotifications.map((n) => ({
-        ...n,
-        formattedMessage: component.formatMessage(n.message)
-      }));
+      component.notifications.set(
+        mockNotifications.map((n) => ({
+          ...n,
+          formattedMessage: component.formatMessage(n.message)
+        }))
+      );
     });
 
     it('should call dismissNotification service method', () => {
-      const notification = component.notifications[0];
+      const notification = component.notifications()[0];
 
       component.dismissNotification(notification);
       expect(mockNotificationService.dismissNotification).toHaveBeenCalledWith(notification.notificationId);
     });
 
     it('should remove notification from array after dismissal', () => {
-      const notification = component.notifications[0];
-      const initialLength = component.notifications.length;
+      const notification = component.notifications()[0];
+      const initialLength = component.notifications().length;
 
       component.dismissNotification(notification);
 
-      expect(component.notifications.length).toBe(initialLength - 1);
-      expect(component.notifications.find((n) => n.notificationId === notification.notificationId)).toBeUndefined();
+      expect(component.notifications().length).toBe(initialLength - 1);
+      expect(component.notifications().find((n) => n.notificationId === notification.notificationId)).toBeUndefined();
     });
 
     it('should handle dismiss error gracefully', () => {
@@ -243,7 +236,7 @@ describe('NotificationsPanelComponent', () => {
 
       mockNotificationService.dismissNotification.mockReturnValue(throwError(() => new Error('Dismiss failed')));
 
-      const notification = component.notifications[0];
+      const notification = component.notifications()[0];
 
       component.dismissNotification(notification);
 
@@ -254,10 +247,12 @@ describe('NotificationsPanelComponent', () => {
 
   describe('dismissAllNotifications', () => {
     beforeEach(() => {
-      component.notifications = mockNotifications.map((n) => ({
-        ...n,
-        formattedMessage: component.formatMessage(n.message)
-      }));
+      component.notifications.set(
+        mockNotifications.map((n) => ({
+          ...n,
+          formattedMessage: component.formatMessage(n.message)
+        }))
+      );
     });
 
     it('should call dismissAllNotifications service method', () => {
@@ -266,11 +261,11 @@ describe('NotificationsPanelComponent', () => {
     });
 
     it('should clear notifications array after dismissing all', () => {
-      expect(component.notifications.length).toBeGreaterThan(0);
+      expect(component.notifications().length).toBeGreaterThan(0);
 
       component.dismissAllNotifications();
 
-      expect(component.notifications).toEqual([]);
+      expect(component.notifications()).toEqual([]);
     });
 
     it('should handle dismiss all error gracefully', () => {
@@ -389,29 +384,28 @@ describe('NotificationsPanelComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from all subscriptions', () => {
+  describe('cleanup', () => {
+    it('should stop reacting to accessLevel changes after destroy', () => {
       component.setPayload();
+      mockNotificationService.getUnreadNotifications.mockClear();
 
-      const subscriptionCount = component['payloadSubscription'].length;
+      fixture.destroy();
 
-      expect(subscriptionCount).toBeGreaterThan(0);
+      mockPayloadService.accessLevel$.next(2);
 
-      component.ngOnDestroy();
-
-      component['payloadSubscription'].forEach((sub) => {
-        expect(sub.closed).toBe(true);
-      });
+      expect(mockNotificationService.getUnreadNotifications).not.toHaveBeenCalled();
     });
   });
 
   describe('template rendering', () => {
     describe('with notifications', () => {
       beforeEach(() => {
-        component.notifications = mockNotifications.map((n) => ({
-          ...n,
-          formattedMessage: component.formatMessage(n.message)
-        }));
+        component.notifications.set(
+          mockNotifications.map((n) => ({
+            ...n,
+            formattedMessage: component.formatMessage(n.message)
+          }))
+        );
         fixture.detectChanges();
       });
 
@@ -438,7 +432,7 @@ describe('NotificationsPanelComponent', () => {
     describe('without notifications', () => {
       beforeEach(() => {
         mockNotificationService.getUnreadNotifications.mockReturnValue(of([]));
-        component.notifications = [];
+        component.notifications.set([]);
         fixture.detectChanges();
       });
 

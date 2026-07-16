@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -25,14 +25,14 @@ import { DialogModule } from 'primeng/dialog';
 export class DoDConsentComponent implements OnInit {
   private readonly router = inject(Router);
 
-  visible: boolean = false;
+  readonly visible = signal(false);
 
   ngOnInit() {
-    this.visible = true;
+    this.visible.set(true);
   }
 
   consentOk() {
-    this.visible = false;
+    this.visible.set(false);
     this.router.navigate(['/home']);
   }
 }

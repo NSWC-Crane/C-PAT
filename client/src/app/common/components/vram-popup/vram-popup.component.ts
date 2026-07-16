@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, NgZone, OnDestroy, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ImageModule } from 'primeng/image';
@@ -19,7 +19,7 @@ import { StepperModule } from 'primeng/stepper';
   template: `
     <button pButton class="w-full" severity="secondary" [outlined]="true" (click)="openVRAM()"><span pButtonLabel>VRAM IAV TABLE</span></button>
 
-    @if (isPopupOpen) {
+    @if (isPopupOpen()) {
       <div class="card mt-6">
         <p-stepper [value]="1" orientation="vertical">
           <p-step-item [value]="1">
@@ -83,21 +83,19 @@ import { StepperModule } from 'primeng/stepper';
     `
   ],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, ImageModule, FormsModule, StepperModule]
 })
 export class VramPopupComponent implements OnDestroy {
-  private readonly ngZone = inject(NgZone);
-
   authWindow: Window | null = null;
-  isPopupOpen = false;
+  readonly isPopupOpen = signal(false);
   checkInterval: any;
 
   openVRAM() {
     this.authWindow = globalThis.open('https://vram.navy.mil/iav', 'Auth Window', 'width=600,height=600');
 
     if (this.authWindow) {
-      this.isPopupOpen = true;
+      this.isPopupOpen.set(true);
       this.startCheckingWindow();
     }
   }
@@ -105,10 +103,8 @@ export class VramPopupComponent implements OnDestroy {
   startCheckingWindow() {
     this.checkInterval = setInterval(() => {
       if (this.authWindow?.closed) {
-        this.ngZone.run(() => {
-          this.isPopupOpen = false;
-          clearInterval(this.checkInterval);
-        });
+        this.isPopupOpen.set(false);
+        clearInterval(this.checkInterval);
       }
     }, 1000);
   }

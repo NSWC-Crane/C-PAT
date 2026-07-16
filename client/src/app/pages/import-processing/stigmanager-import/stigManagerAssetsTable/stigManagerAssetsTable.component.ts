@@ -24,14 +24,15 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
+import { MultiSelectDirective } from '../../../../common/directives/multi-select.directive';
 
 @Component({
   selector: 'cpat-stigmanager-assets-table',
   templateUrl: './stigManagerAssetsTable.component.html',
   styleUrls: ['./stigManagerAssetsTable.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, CardModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, SelectModule, TableModule, ToastModule, TagModule, TooltipModule]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ButtonModule, CardModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, TextareaModule, SelectModule, TableModule, ToastModule, TagModule, TooltipModule]
 })
 export class STIGManagerAssetsTableComponent implements OnInit {
   private readonly messageService = inject(MessageService);

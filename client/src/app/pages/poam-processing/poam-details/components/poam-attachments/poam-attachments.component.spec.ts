@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient, HttpResponse } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 import { PoamAttachmentsComponent } from './poam-attachments.component';
@@ -82,15 +82,15 @@ describe('PoamAttachmentsComponent', () => {
     });
 
     it('should have default totalSize of 0', () => {
-      expect(component.totalSize).toBe('0');
+      expect(component.totalSize()).toBe('0');
     });
 
     it('should have default totalSizePercent of 0', () => {
-      expect(component.totalSizePercent).toBe(0);
+      expect(component.totalSizePercent()).toBe(0);
     });
 
     it('should have empty attachedFiles array', () => {
-      expect(component.attachedFiles).toEqual([]);
+      expect(component.attachedFiles()).toEqual([]);
     });
 
     it('should have allowedTypes defined', () => {
@@ -104,7 +104,7 @@ describe('PoamAttachmentsComponent', () => {
   describe('ngOnInit', () => {
     it('should subscribe to accessLevel$ and set accessLevel', async () => {
       component.ngOnInit();
-      expect(component['accessLevel']).toBe(2);
+      expect(component['accessLevel']()).toBe(2);
     });
 
     it('should load attached files when accessLevel > 0', async () => {
@@ -136,7 +136,7 @@ describe('PoamAttachmentsComponent', () => {
       component.loadAttachedFiles();
 
       expect(mockAttachmentService.getAttachmentsByPoamId).toHaveBeenCalledWith(100);
-      expect(component.attachedFiles).toEqual(mockAttachments);
+      expect(component.attachedFiles()).toEqual(mockAttachments);
     });
 
     it('should return early for ADDPOAM', () => {
@@ -603,8 +603,8 @@ describe('PoamAttachmentsComponent', () => {
 
       component.updateTotalSize();
 
-      expect(component.totalSize).toBe('3 KB');
-      expect(component.totalSizePercent).toBeCloseTo((3072 / 5242880) * 100, 2);
+      expect(component.totalSize()).toBe('3 KB');
+      expect(component.totalSizePercent()).toBeCloseTo((3072 / 5242880) * 100, 2);
     });
 
     it('should handle empty files array', () => {
@@ -612,8 +612,8 @@ describe('PoamAttachmentsComponent', () => {
 
       component.updateTotalSize();
 
-      expect(component.totalSize).toBe('0 B');
-      expect(component.totalSizePercent).toBe(0);
+      expect(component.totalSize()).toBe('0 B');
+      expect(component.totalSizePercent()).toBe(0);
     });
 
     it('should handle null files', () => {
@@ -621,8 +621,8 @@ describe('PoamAttachmentsComponent', () => {
 
       component.updateTotalSize();
 
-      expect(component.totalSize).toBe('0 B');
-      expect(component.totalSizePercent).toBe(0);
+      expect(component.totalSize()).toBe('0 B');
+      expect(component.totalSizePercent()).toBe(0);
     });
   });
 
@@ -656,21 +656,35 @@ describe('PoamAttachmentsComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from accessLevelSubscription', async () => {
+  describe('cleanup', () => {
+    it('stops reacting to accessLevel changes after destroy (takeUntilDestroyed)', () => {
+      const accessLevel$ = new BehaviorSubject(0);
+
+      mockPayloadService.accessLevel$ = accessLevel$;
       component.ngOnInit();
+      fixture.destroy();
+      mockAttachmentService.getAttachmentsByPoamId.mockClear();
 
-      const subscription = component['accessLevelSubscription'];
+      accessLevel$.next(3);
 
-      expect(subscription.closed).toBe(false);
-
-      component.ngOnDestroy();
-
-      expect(subscription.closed).toBe(true);
+      expect(mockAttachmentService.getAttachmentsByPoamId).not.toHaveBeenCalled();
     });
 
-    it('should not throw if subscription does not exist', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
+    it('stops applying fetched attachments after destroy (takeUntilDestroyed)', () => {
+      const files$ = new Subject<any[]>();
+
+      mockAttachmentService.getAttachmentsByPoamId.mockReturnValue(files$.asObservable());
+      component.loadAttachedFiles();
+
+      fixture.destroy();
+      files$.next(mockAttachments);
+
+      expect(component.attachedFiles()).toEqual([]);
+    });
+
+    it('does not throw on destroy', () => {
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

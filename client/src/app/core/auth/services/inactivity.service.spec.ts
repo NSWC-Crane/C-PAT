@@ -14,7 +14,6 @@ import { NgZone } from '@angular/core';
 import { createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { of, BehaviorSubject, throwError } from 'rxjs';
-import { take } from 'rxjs/operators';
 import { InactivityService } from './inactivity.service';
 import { AuthService } from './auth.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -71,19 +70,15 @@ describe('InactivityService', () => {
   });
 
   describe('Initial State', () => {
-    it('should have warningState$ observable', () => {
-      expect(service.warningState$).toBeDefined();
+    it('should expose warningState signal with hidden default', () => {
+      expect(service.warningState()).toEqual({ show: false });
     });
 
-    it('should emit warning state when triggered', () =>
-      new Promise<void>((resolve) => {
-        service.warningState$.pipe(take(1)).subscribe((state) => {
-          expect(state.show).toBe(false);
-          resolve();
-        });
+    it('should update warning state when triggered', () => {
+      service['_warningState'].set({ show: true, countdown: 10 });
 
-        service['showWarning$'].next({ show: false });
-      }));
+      expect(service.warningState()).toEqual({ show: true, countdown: 10 });
+    });
   });
 
   describe('startMonitoring', () => {
@@ -237,15 +232,13 @@ describe('InactivityService', () => {
       expect(service['warningShown']).toBe(false);
     });
 
-    it('should emit show: false on showWarning$', () =>
-      new Promise<void>((resolve) => {
-        service.warningState$.pipe(take(1)).subscribe((state) => {
-          expect(state.show).toBe(false);
-          resolve();
-        });
+    it('should set show: false on warningState', () => {
+      service['_warningState'].set({ show: true, countdown: 30 });
 
-        service.dismissWarning();
-      }));
+      service.dismissWarning();
+
+      expect(service.warningState().show).toBe(false);
+    });
 
     it('should update lastActivity to current time', () => {
       const now = Date.now();
@@ -276,15 +269,13 @@ describe('InactivityService', () => {
       expect(stopMonitoringSpy).toHaveBeenCalled();
     });
 
-    it('should emit show: false on showWarning$', () =>
-      new Promise<void>((resolve) => {
-        service.warningState$.pipe(take(1)).subscribe((state) => {
-          expect(state.show).toBe(false);
-          resolve();
-        });
+    it('should set show: false on warningState', () => {
+      service['_warningState'].set({ show: true, countdown: 30 });
 
-        service['performLogout']();
-      }));
+      service['performLogout']();
+
+      expect(service.warningState().show).toBe(false);
+    });
 
     it('should call authService.logout', () => {
       service['performLogout']();
@@ -316,45 +307,35 @@ describe('InactivityService', () => {
       expect(service['warningShown']).toBe(true);
     });
 
-    it('should emit initial countdown value', () =>
-      new Promise<void>((resolve) => {
-        service.warningState$.pipe(take(1)).subscribe((state) => {
-          expect(state.show).toBe(true);
-          expect(state.countdown).toBe(60);
-          resolve();
-        });
+    it('should set initial countdown value', () => {
+      service['showWarningDialog']();
 
-        service['showWarningDialog']();
-      }));
+      expect(service.warningState()).toEqual({ show: true, countdown: 60 });
+
+      service.stopMonitoring();
+    });
 
     it('should not show warning dialog if already shown', () => {
       service['warningShown'] = true;
-      const showWarningSpy = vi.spyOn(service['showWarning$'], 'next');
+      const setSpy = vi.spyOn(service['_warningState'], 'set');
 
       service['showWarningDialog']();
 
-      expect(showWarningSpy).not.toHaveBeenCalled();
+      expect(setSpy).not.toHaveBeenCalled();
     });
 
     it('should decrement countdown every second', async () => {
-      const emissions: any[] = [];
-      const subscription = service.warningState$.subscribe((state) => {
-        emissions.push({ ...state });
-      });
-
       service['showWarningDialog']();
 
-      await vi.advanceTimersByTimeAsync(0);
-      await vi.advanceTimersByTimeAsync(1000);
-      await vi.advanceTimersByTimeAsync(1000);
+      expect(service.warningState().countdown).toBe(60);
 
-      subscription.unsubscribe();
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(service.warningState().countdown).toBe(59);
+
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(service.warningState().countdown).toBe(58);
+
       service.stopMonitoring();
-
-      expect(emissions.length).toBeGreaterThanOrEqual(3);
-      expect(emissions[0].countdown).toBe(60);
-      expect(emissions[1].countdown).toBe(59);
-      expect(emissions[2].countdown).toBe(58);
     });
 
     it('should call performLogout when countdown reaches 0', async () => {

@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnInit, inject, output, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, output, input, model } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -33,6 +34,7 @@ export class PoamLabelsComponent implements OnInit {
   readonly labelsChanged = output<any[]>();
 
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit() {
     if (!Array.isArray(this.poamLabels())) {
@@ -84,6 +86,7 @@ export class PoamLabelsComponent implements OnInit {
 
     this.poamService()
       .getPoamLabelsByPoam(poamId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (poamLabels: any) => {
           this.poamLabels.set(poamLabels);

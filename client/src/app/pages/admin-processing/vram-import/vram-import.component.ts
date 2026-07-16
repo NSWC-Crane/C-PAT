@@ -9,7 +9,8 @@
 */
 
 import { HttpResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject, viewChild, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -19,7 +20,6 @@ import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subject, takeUntil } from 'rxjs';
 import { VramPopupComponent } from '../../../common/components/vram-popup/vram-popup.component';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { VRAMImportService } from './vram-import.service';
@@ -29,20 +29,20 @@ import { VRAMImportService } from './vram-import.service';
   templateUrl: './vram-import.component.html',
   styleUrls: ['./vram-import.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [BadgeModule, ButtonModule, CardModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, TooltipModule, VramPopupComponent]
 })
-export class VRAMImportComponent implements OnInit, OnDestroy {
+export class VRAMImportComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly vramImportService = inject(VRAMImportService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
   readonly navigateToPluginMapping = output<void>();
   uploadUrl: string = '/api/import/vram';
-  totalSize: string = '0';
-  totalSizePercent: number = 0;
-  vramUpdatedDate: string = '';
-  private readonly destroy$ = new Subject<void>();
+  readonly totalSize = signal('0');
+  readonly totalSizePercent = signal(0);
+  readonly vramUpdatedDate = signal('');
 
   ngOnInit() {
     this.getVramUpdatedDate();
@@ -51,10 +51,10 @@ export class VRAMImportComponent implements OnInit, OnDestroy {
   getVramUpdatedDate() {
     this.vramImportService
       .getVramDataUpdatedDate()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: any) => {
-          this.vramUpdatedDate = response?.value || 'N/A';
+          this.vramUpdatedDate.set(response?.value || 'N/A');
         },
         error: (error) => {
           this.messageService.add({
@@ -62,7 +62,7 @@ export class VRAMImportComponent implements OnInit, OnDestroy {
             summary: 'Error',
             detail: `Error fetching VRAM updated date: ${getErrorMessage(error)}`
           });
-          this.vramUpdatedDate = 'Error';
+          this.vramUpdatedDate.set('Error');
         }
       });
   }
@@ -94,7 +94,7 @@ export class VRAMImportComponent implements OnInit, OnDestroy {
 
     this.vramImportService
       .upload(file)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (event: any) => {
           if (event instanceof HttpResponse) {
@@ -155,8 +155,8 @@ export class VRAMImportComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.totalSize = this.formatSize(totalSize);
-    this.totalSizePercent = (totalSize / 10485760) * 100;
+    this.totalSize.set(this.formatSize(totalSize));
+    this.totalSizePercent.set((totalSize / 10485760) * 100);
   }
 
   formatSize(bytes: number): string {
@@ -166,10 +166,5 @@ export class VRAMImportComponent implements OnInit, OnDestroy {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
     return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }

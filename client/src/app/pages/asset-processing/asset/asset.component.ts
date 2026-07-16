@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, output, input, model, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -18,7 +19,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
-import { Subscription } from 'rxjs';
 import { SubSink } from 'subsink';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
@@ -30,7 +30,7 @@ import { AssetService } from '../assets.service';
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, CardModule, DialogModule, Select, FormsModule, InputTextModule, TableModule, ToastModule]
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {
@@ -38,28 +38,24 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   private readonly sharedService = inject(SharedService);
   private readonly messageService = inject(MessageService);
   private readonly setPayloadService = inject(PayloadService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly asset = model<any>(undefined);
   readonly assets = input<any>(undefined);
   readonly payload = input<any>(undefined);
   readonly assetchange = output();
 
-  labelList: any;
-  clonedLabels: { [s: string]: any } = {};
-  assetLabels: any[] = [];
-  data: any = [];
-  selectedCollection: any;
-  private readonly subscriptions = new Subscription();
-  labelOptions: any[] = [];
-  invalidDataMessage: string = '';
+  readonly labelList = signal<any[]>([]);
+  readonly assetLabels = signal<any[]>([]);
+  readonly selectedCollection = signal<any>(undefined);
   private readonly subs = new SubSink();
-  protected accessLevel: any;
+  protected readonly accessLevel = signal<any>(undefined);
 
   ngOnInit(): void {
     if (!this.payload()) return;
 
-    this.setPayloadService.accessLevel$.subscribe((level) => {
-      this.accessLevel = level;
+    this.setPayloadService.accessLevel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((level) => {
+      this.accessLevel.set(level);
     });
 
     this.getData();
@@ -72,12 +68,10 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getData() {
-    if (!this.selectedCollection) {
-      this.subscriptions.add(
-        this.sharedService.selectedCollection.subscribe((collectionId) => {
-          this.selectedCollection = collectionId;
-        })
-      );
+    if (!this.selectedCollection()) {
+      this.sharedService.selectedCollection.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((collectionId) => {
+        this.selectedCollection.set(collectionId);
+      });
     }
 
     this.getLabelData();
@@ -90,8 +84,8 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getLabelData() {
-    this.subs.sink = this.assetService.getLabels(this.selectedCollection).subscribe((labels: any) => {
-      this.labelList = labels || [];
+    this.subs.sink = this.assetService.getLabels(this.selectedCollection()).subscribe((labels: any) => {
+      this.labelList.set(labels || []);
     });
   }
 
@@ -110,7 +104,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
     this.subs.sink = this.assetService.getAssetLabels(asset.assetId).subscribe(
       (assetLabels: any) => {
-        this.assetLabels = assetLabels || [];
+        this.assetLabels.set(assetLabels || []);
       },
       (error) => {
         this.messageService.add({
@@ -137,12 +131,12 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       isNew: true
     };
 
-    this.assetLabels = [newLabel, ...this.assetLabels];
+    this.assetLabels.update((current) => [newLabel, ...current]);
   }
 
   onLabelChange(label: any, rowIndex: number) {
     if (label.labelId) {
-      const selectedLabel = this.labelList.find((l: any) => l.labelId === label.labelId);
+      const selectedLabel = this.labelList().find((l: any) => l.labelId === label.labelId);
 
       if (selectedLabel) {
         label.labelName = selectedLabel.labelName;
@@ -150,7 +144,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
         this.confirmLabelCreate(label);
       }
     } else {
-      this.assetLabels.splice(rowIndex, 1);
+      this.assetLabels.update((current) => current.filter((_, index) => index !== rowIndex));
     }
   }
 
@@ -158,8 +152,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     const asset = this.asset();
 
     if (asset.assetId === 'ADDASSET') {
-      this.assetLabels.splice(index, 1);
-      this.assetLabels = [...this.assetLabels];
+      this.assetLabels.update((current) => current.filter((_, i) => i !== index));
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
@@ -168,8 +161,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     } else if (label.labelId) {
       this.assetService.deleteAssetLabel(asset.assetId, label.labelId).subscribe(
         () => {
-          this.assetLabels.splice(index, 1);
-          this.assetLabels = [...this.assetLabels];
+          this.assetLabels.update((current) => current.filter((_, i) => i !== index));
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
@@ -196,7 +188,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       const assetLabel = {
         assetId: +asset.assetId,
         labelId: +newLabel.labelId,
-        collectionId: this.selectedCollection
+        collectionId: this.selectedCollection()
       };
 
       this.assetService.postAssetLabel(assetLabel).subscribe(
@@ -232,7 +224,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getLabelName(labelId: number): string {
-    const label = this.labelList.find((label: any) => label.labelId === labelId);
+    const label = this.labelList().find((label: any) => label.labelId === labelId);
 
     return label ? label.labelName : '';
   }
@@ -245,7 +237,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       assetId: assetValue.assetId == 'ADDASSET' || !assetValue.assetId ? 0 : +assetValue.assetId,
       assetName: this.asset().assetName,
       description: this.asset().description,
-      collectionId: this.selectedCollection,
+      collectionId: this.selectedCollection(),
       fullyQualifiedDomainName: this.asset().fullyQualifiedDomainName,
       ipAddress: this.asset().ipAddress,
       macAddress: this.asset().macAddress
@@ -346,6 +338,5 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.subs.unsubscribe();
-    this.subscriptions.unsubscribe();
   }
 }

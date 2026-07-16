@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { Injectable, NgZone, inject } from '@angular/core';
+import { Injectable, NgZone, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, Subscription, fromEvent, merge, interval } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
@@ -30,8 +30,8 @@ export class InactivityService {
   private readonly CHECK_INTERVAL = 10000;
 
   private destroy$ = new Subject<void>();
-  private readonly showWarning$ = new Subject<{ show: boolean; countdown?: number }>();
-  public warningState$ = this.showWarning$.asObservable();
+  private readonly _warningState = signal<{ show: boolean; countdown?: number }>({ show: false });
+  public readonly warningState = this._warningState.asReadonly();
 
   private checkSubscription?: Subscription;
   private countdownSubscription?: Subscription;
@@ -111,7 +111,7 @@ export class InactivityService {
     this.warningShown = true;
     let countdown = this.COUNTDOWN_DURATION;
 
-    this.showWarning$.next({ show: true, countdown });
+    this._warningState.set({ show: true, countdown });
 
     this.ngZone.runOutsideAngular(() => {
       this.countdownSubscription = interval(1000)
@@ -122,7 +122,7 @@ export class InactivityService {
             if (countdown <= 0) {
               this.performLogout();
             } else {
-              this.showWarning$.next({ show: true, countdown });
+              this._warningState.set({ show: true, countdown });
             }
           });
         });
@@ -132,13 +132,13 @@ export class InactivityService {
   dismissWarning(): void {
     this.warningShown = false;
     this.countdownSubscription?.unsubscribe();
-    this.showWarning$.next({ show: false });
+    this._warningState.set({ show: false });
     this.lastActivity = Date.now();
   }
 
   private performLogout(): void {
     this.stopMonitoring();
-    this.showWarning$.next({ show: false });
+    this._warningState.set({ show: false });
 
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/401']),

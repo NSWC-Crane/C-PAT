@@ -86,9 +86,9 @@
             <th scope="col" (click)="onStatusHeaderClick($event)" [pTooltip]="getCurrentStatusSortName()" tooltipPosition="top" class="cursor-pointer">
               <div class="flex items-center">
                 POAM Status
-                <p-columnfilter type="text" field="status" [type]="'text'" [showOperator]="false" [showMatchModes]="true" [showAddButton]="false" [showButtons]="true" display="menu">
+                <p-columnfilter type="text" field="status" [type]="'text'" [showOperator]="false" [showMatchModes]="true" [showAddButton]="false" display="menu">
                   <ng-template #filter let-value let-filter="filterCallback">
-                    <p-select [ngModel]="value" [options]="poamStatusOptions()" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full" />
+                    <p-select [ngModel]="value" [options]="poamStatusOptions()" (onChange)="filter($event.value)" placeholder="Select Status..." [showClear]="true" class="w-full" />
                   </ng-template>
                 </p-columnfilter>
                 @if (getCurrentStatusSortIcon()) {

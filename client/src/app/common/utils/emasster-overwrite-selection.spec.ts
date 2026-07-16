@@ -52,16 +52,16 @@ describe('EMASSOverwriteSelectionComponent', () => {
     it('partitions fields into selected and unselected based on the selected flag', () => {
       createComponent();
 
-      expect(component.selectedFields.every((f) => f.selected)).toBe(true);
-      expect(component.unselectedFields.every((f) => !f.selected)).toBe(true);
-      expect(component.selectedFields.length + component.unselectedFields.length).toBe(component.allFields.length);
+      expect(component.selectedFields().every((f) => f.selected)).toBe(true);
+      expect(component.unselectedFields().every((f) => !f.selected)).toBe(true);
+      expect(component.selectedFields().length + component.unselectedFields().length).toBe(component.allFields.length);
     });
 
     it('has no overlap between selected and unselected fields', () => {
       createComponent();
 
-      const selectedColumns = component.selectedFields.map((f) => f.column);
-      const unselectedColumns = component.unselectedFields.map((f) => f.column);
+      const selectedColumns = component.selectedFields().map((f) => f.column);
+      const unselectedColumns = component.unselectedFields().map((f) => f.column);
 
       expect(selectedColumns.some((c) => unselectedColumns.includes(c))).toBe(false);
     });
@@ -106,7 +106,7 @@ describe('EMASSOverwriteSelectionComponent', () => {
     it('closes the dialog with the selected column letters', () => {
       createComponent();
 
-      const expectedColumns = component.selectedFields.map((f) => f.column);
+      const expectedColumns = component.selectedFields().map((f) => f.column);
 
       component.confirm();
 
@@ -116,10 +116,10 @@ describe('EMASSOverwriteSelectionComponent', () => {
     it('reflects user changes to the selected fields when confirming', () => {
       createComponent();
 
-      component.selectedFields = [
+      component.selectedFields.set([
         { column: 'C', description: 'Description', selected: true },
         { column: 'V', description: 'Devices Affected', selected: true }
-      ];
+      ]);
 
       component.confirm();
 
@@ -129,7 +129,7 @@ describe('EMASSOverwriteSelectionComponent', () => {
     it('can close with an empty selection', () => {
       createComponent();
 
-      component.selectedFields = [];
+      component.selectedFields.set([]);
 
       component.confirm();
 

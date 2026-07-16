@@ -11,8 +11,8 @@
 <div class="scrollable-collections overflow-hidden">
   <p-treetable
     #dt
-    [value]="collectionTreeData"
-    [columns]="cols"
+    [value]="collectionTreeData()"
+    [columns]="cols()"
     [filterDelay]="0"
     [rows]="100"
     [rowsPerPageOptions]="[25, 50, 100]"
@@ -103,13 +103,13 @@
         <p-select
           id="originCollectionId"
           name="originCollectionId"
-          [options]="originCollectionOptions"
+          [options]="originCollectionOptions()"
           [ngModel]="editingCollection.originCollectionId"
           (onChange)="onOriginCollectionIdChange($event.value)"
           optionLabel="label"
           optionValue="value"
           [filter]="true"
-          [loading]="loadingOriginCollections"
+          [loading]="loadingOriginCollections()"
           [placeholder]="'Select ' + editingCollection.collectionType + ' Collection...'"
           class="w-full"
           appendTo="body"
@@ -121,9 +121,9 @@
       <p-autocomplete
         [(ngModel)]="editingCollection.aaPackage"
         [dropdown]="true"
-        [suggestions]="filteredAAPackages"
+        [suggestions]="filteredAAPackages()"
         (completeMethod)="filterAAPackages($event)"
-        placeholder="Select an A&A Package..."
+        placeholder="Select A&A Package..."
         name="aaPackage"
         id="aaPackage"
         class="w-full"
@@ -236,7 +236,7 @@
     </div>
   }
   <p-listbox
-    [options]="bulkImportAvailable"
+    [options]="bulkImportAvailable()"
     [(ngModel)]="selectedBulkImports"
     optionLabel="label"
     optionValue="value"
@@ -245,13 +245,13 @@
     [filter]="true"
     filterPlaceHolder="Search..."
     [listStyle]="{ 'max-height': '300px' }"
-    [emptyMessage]="loadingBulkImports ? 'Loading...' : 'No collections available to import.'"
+    [emptyMessage]="loadingBulkImports() ? 'Loading...' : 'No collections available to import.'"
     class="w-full mb-4 mt-4"
   />
   <ng-template #footer>
     <div class="flex w-full items-center justify-between">
       <button pButton (click)="hideBulkImportDialog()" variant="outlined" severity="secondary"><span pButtonLabel>Cancel</span></button>
-      <button pButton (click)="executeBulkImport()" variant="outlined" [loading]="bulkImporting" [disabled]="!selectedBulkImports.length"><i class="pi pi-cloud-download" pButtonIcon></i><span pButtonLabel>Import</span></button>
+      <button pButton (click)="executeBulkImport()" variant="outlined" [loading]="bulkImporting()" [disabled]="!selectedBulkImports().length"><i class="pi pi-cloud-download" pButtonIcon></i><span pButtonLabel>Import</span></button>
     </div>
   </ng-template>
 </p-dialog>
@@ -259,7 +259,7 @@
 <p-dialog [(visible)]="displayExportDialog" styleClass="w-[40vw] overflow-hidden" [modal]="true" header="Export Collections">
   <p class="mt-0 mb-4 text-sm text-gray-400">POAMs from all selected collections will be combined into a single Excel file export.</p>
   <p-listbox
-    [options]="selectableCollections"
+    [options]="selectableCollections()"
     [(ngModel)]="selectedExportCollections"
     optionLabel="label"
     optionValue="value"
@@ -273,7 +273,7 @@
   <ng-template #footer>
     <div class="flex w-full items-center justify-between">
       <button pButton (click)="hideExportDialog()" variant="outlined" severity="secondary"><span pButtonLabel>Cancel</span></button>
-      <button pButton (click)="exportMultipleCollections()" variant="outlined" [loading]="exporting" [disabled]="!selectedExportCollections.length"><i class="pi pi-download" pButtonIcon></i><span pButtonLabel>Export</span></button>
+      <button pButton (click)="exportMultipleCollections()" variant="outlined" [loading]="exporting()" [disabled]="!selectedExportCollections().length"><i class="pi pi-download" pButtonIcon></i><span pButtonLabel>Export</span></button>
     </div>
   </ng-template>
 </p-dialog>

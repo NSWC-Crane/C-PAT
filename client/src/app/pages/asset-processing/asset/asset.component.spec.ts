@@ -103,19 +103,11 @@ describe('AssetComponent', () => {
 
   describe('initial state', () => {
     it('should initialize assetLabels as empty array', () => {
-      expect(component.assetLabels).toEqual([]);
+      expect(component.assetLabels()).toEqual([]);
     });
 
-    it('should initialize labelOptions as empty array', () => {
-      expect(component.labelOptions).toEqual([]);
-    });
-
-    it('should initialize invalidDataMessage as empty string', () => {
-      expect(component.invalidDataMessage).toBe('');
-    });
-
-    it('should initialize clonedLabels as empty object', () => {
-      expect(component.clonedLabels).toEqual({});
+    it('should initialize labelList as empty array', () => {
+      expect(component.labelList()).toEqual([]);
     });
   });
 
@@ -128,7 +120,7 @@ describe('AssetComponent', () => {
 
     it('should subscribe to accessLevel$ and set accessLevel', () => {
       component.ngOnInit();
-      expect((component as any).accessLevel).toBe(2);
+      expect((component as any).accessLevel()).toBe(2);
     });
 
     it('should call getData when payload is present', () => {
@@ -178,15 +170,15 @@ describe('AssetComponent', () => {
 
   describe('getData', () => {
     it('should subscribe to selectedCollection when not already set', () => {
-      component.selectedCollection = null;
+      component.selectedCollection.set(null);
       component.getData();
-      expect(component.selectedCollection).toBe(1);
+      expect(component.selectedCollection()).toBe(1);
     });
 
     it('should not re-subscribe to selectedCollection when already set', () => {
-      component.selectedCollection = 5;
+      component.selectedCollection.set(5);
       component.getData();
-      expect(component.selectedCollection).toBe(5);
+      expect(component.selectedCollection()).toBe(5);
     });
 
     it('should call getLabelData', () => {
@@ -215,20 +207,20 @@ describe('AssetComponent', () => {
 
   describe('getLabelData', () => {
     it('should call assetService.getLabels with selectedCollection', () => {
-      component.selectedCollection = 1;
+      component.selectedCollection.set(1);
       component.getLabelData();
       expect(mockAssetService.getLabels).toHaveBeenCalledWith(1);
     });
 
     it('should set labelList from response', () => {
       component.getLabelData();
-      expect(component.labelList).toEqual(mockLabels);
+      expect(component.labelList()).toEqual(mockLabels);
     });
 
     it('should set labelList to empty array when response is null', () => {
       mockAssetService.getLabels.mockReturnValue(of(null));
       component.getLabelData();
-      expect(component.labelList).toEqual([]);
+      expect(component.labelList()).toEqual([]);
     });
   });
 
@@ -252,13 +244,13 @@ describe('AssetComponent', () => {
 
     it('should set assetLabels from response', () => {
       component.getAssetLabels();
-      expect(component.assetLabels).toEqual(mockAssetLabels);
+      expect(component.assetLabels()).toEqual(mockAssetLabels);
     });
 
     it('should set assetLabels to empty array when response is null', () => {
       mockAssetService.getAssetLabels.mockReturnValue(of(null));
       component.getAssetLabels();
-      expect(component.assetLabels).toEqual([]);
+      expect(component.assetLabels()).toEqual([]);
     });
 
     it('should show error message on service failure', () => {
@@ -286,35 +278,35 @@ describe('AssetComponent', () => {
 
   describe('addNewRow', () => {
     it('should prepend a new label row to assetLabels', () => {
-      component.assetLabels = [...mockAssetLabels];
+      component.assetLabels.set([...mockAssetLabels]);
       component.addNewRow();
-      expect(component.assetLabels.length).toBe(3);
-      expect(component.assetLabels[0].isNew).toBe(true);
+      expect(component.assetLabels().length).toBe(3);
+      expect(component.assetLabels()[0].isNew).toBe(true);
     });
 
     it('should set assetId on new row from asset.assetId', () => {
-      component.assetLabels = [];
+      component.assetLabels.set([]);
       component.addNewRow();
-      expect(component.assetLabels[0].assetId).toBe(5);
+      expect(component.assetLabels()[0].assetId).toBe(5);
     });
 
     it('should set labelId and labelName as null on new row', () => {
-      component.assetLabels = [];
+      component.assetLabels.set([]);
       component.addNewRow();
-      expect(component.assetLabels[0].labelId).toBeNull();
-      expect(component.assetLabels[0].labelName).toBeNull();
+      expect(component.assetLabels()[0].labelId).toBeNull();
+      expect(component.assetLabels()[0].labelName).toBeNull();
     });
   });
 
   describe('onLabelChange', () => {
     beforeEach(() => {
-      component.labelList = mockLabels;
+      component.labelList.set(mockLabels);
     });
 
     it('should set labelName and call confirmLabelCreate when label is found', () => {
       const label = { labelId: 10, labelName: null, isNew: true };
 
-      component.assetLabels = [label];
+      component.assetLabels.set([label]);
       component.onLabelChange(label, 0);
       expect(label.labelName).toBe('Critical');
       expect(label.isNew).toBe(false);
@@ -323,7 +315,7 @@ describe('AssetComponent', () => {
     it('should call postAssetLabel when real asset and label is selected', () => {
       const label = { assetId: 5, labelId: 10, labelName: null, isNew: true };
 
-      component.assetLabels = [label];
+      component.assetLabels.set([label]);
       component.onLabelChange(label, 0);
       expect(mockAssetService.postAssetLabel).toHaveBeenCalled();
     });
@@ -331,21 +323,21 @@ describe('AssetComponent', () => {
     it('should splice row when label.labelId is falsy', () => {
       const label = { labelId: null, labelName: null, isNew: true };
 
-      component.assetLabels = [label];
+      component.assetLabels.set([label]);
       component.onLabelChange(label, 0);
-      expect(component.assetLabels.length).toBe(0);
+      expect(component.assetLabels().length).toBe(0);
     });
   });
 
   describe('deleteAssetLabel', () => {
     beforeEach(() => {
-      component.assetLabels = [...mockAssetLabels];
+      component.assetLabels.set([...mockAssetLabels]);
     });
 
     it('should splice and show success message for ADDASSET', () => {
       component.asset.set({ ...mockAsset, assetId: 'ADDASSET' });
       component.deleteAssetLabel(mockAssetLabels[0], 0);
-      expect(component.assetLabels.length).toBe(1);
+      expect(component.assetLabels().length).toBe(1);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
     });
 
@@ -356,7 +348,7 @@ describe('AssetComponent', () => {
 
     it('should splice label and show success on successful delete', () => {
       component.deleteAssetLabel(mockAssetLabels[0], 0);
-      expect(component.assetLabels.length).toBe(1);
+      expect(component.assetLabels().length).toBe(1);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
     });
 
@@ -369,7 +361,7 @@ describe('AssetComponent', () => {
 
   describe('confirmLabelCreate', () => {
     beforeEach(() => {
-      component.labelList = mockLabels;
+      component.labelList.set(mockLabels);
     });
 
     it('should call postAssetLabel for real asset with valid labelId', () => {
@@ -420,7 +412,7 @@ describe('AssetComponent', () => {
 
   describe('getLabelName', () => {
     beforeEach(() => {
-      component.labelList = mockLabels;
+      component.labelList.set(mockLabels);
     });
 
     it('should return labelName for matching labelId', () => {
@@ -487,7 +479,7 @@ describe('AssetComponent', () => {
         macAddress: ''
       });
       fixture.componentRef.setInput('assets', []);
-      component.selectedCollection = 1;
+      component.selectedCollection.set(1);
     });
 
     it('should return early when validData returns false', () => {
@@ -587,13 +579,6 @@ describe('AssetComponent', () => {
   describe('ngOnDestroy', () => {
     it('should unsubscribe from subs', () => {
       const spy = vi.spyOn((component as any).subs, 'unsubscribe');
-
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
-    });
-
-    it('should unsubscribe from subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
 
       component.ngOnDestroy();
       expect(spy).toHaveBeenCalled();

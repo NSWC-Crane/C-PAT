@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { TenableSelectedVulnerabilitiesComponent } from './tenableSelectedVulnerabilities.component';
@@ -157,7 +157,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should default isLoading to false', () => {
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should default tenableTool to sumid', () => {
@@ -165,7 +165,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should default totalRecords to 0', () => {
-      expect(component.totalRecords).toBe(0);
+      expect(component.totalRecords()).toBe(0);
     });
 
     it('should default filterValue to empty string', () => {
@@ -173,11 +173,11 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should default displayDialog to false', () => {
-      expect(component.displayDialog).toBe(false);
+      expect(component.displayDialog()).toBe(false);
     });
 
     it('should default applicableVulnerabilities to empty array', () => {
-      expect(component.applicableVulnerabilities).toEqual([]);
+      expect(component.applicableVulnerabilities()).toEqual([]);
     });
 
     it('should default selectedSeverities to all four levels', () => {
@@ -308,47 +308,47 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should set 21 columns for iav preset', () => {
-      expect(component.cols.length).toBe(21);
+      expect(component.cols().length).toBe(21);
     });
 
     it('should include poam column', () => {
-      expect(component.cols.map((c: any) => c.field)).toContain('poam');
+      expect(component.cols().map((c: any) => c.field)).toContain('poam');
     });
 
     it('should include pluginID column', () => {
-      expect(component.cols.map((c: any) => c.field)).toContain('pluginID');
+      expect(component.cols().map((c: any) => c.field)).toContain('pluginID');
     });
 
     it('should NOT include taskOrderNumber column for iav preset', () => {
-      expect(component.cols.map((c: any) => c.field)).not.toContain('taskOrderNumber');
+      expect(component.cols().map((c: any) => c.field)).not.toContain('taskOrderNumber');
     });
 
     it('should include navyComplyDate column', () => {
-      expect(component.cols.map((c: any) => c.field)).toContain('navyComplyDate');
+      expect(component.cols().map((c: any) => c.field)).toContain('navyComplyDate');
     });
 
     it('should include severity column', () => {
-      expect(component.cols.map((c: any) => c.field)).toContain('severity');
+      expect(component.cols().map((c: any) => c.field)).toContain('severity');
     });
 
     it('should include iav column', () => {
-      expect(component.cols.map((c: any) => c.field)).toContain('iav');
+      expect(component.cols().map((c: any) => c.field)).toContain('iav');
     });
 
     it('should include supersededBy column', () => {
-      expect(component.cols.map((c: any) => c.field)).toContain('supersededBy');
+      expect(component.cols().map((c: any) => c.field)).toContain('supersededBy');
     });
 
     it('should set 22 columns for taskOrder preset', () => {
       (component as any).currentPreset = () => 'taskOrder';
       component.initColumnsAndFilters();
-      expect(component.cols.length).toBe(22);
+      expect(component.cols().length).toBe(22);
     });
 
     it('should include taskOrderNumber column for taskOrder preset', () => {
       (component as any).currentPreset = () => 'taskOrder';
       component.initColumnsAndFilters();
-      expect(component.cols.map((c: any) => c.field)).toContain('taskOrderNumber');
+      expect(component.cols().map((c: any) => c.field)).toContain('taskOrderNumber');
     });
 
     it('should set exportColumns matching cols length', () => {
@@ -356,19 +356,19 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should set 14 navyComplyDateFilters', () => {
-      expect(component.navyComplyDateFilters.length).toBe(14);
+      expect(component.navyComplyDateFilters().length).toBe(14);
     });
 
     it('should include All IAVs option in navyComplyDateFilters', () => {
-      expect(component.navyComplyDateFilters.map((f: any) => f.label)).toContain('All IAVs');
+      expect(component.navyComplyDateFilters().map((f: any) => f.label)).toContain('All IAVs');
     });
 
     it('should include All Overdue option in navyComplyDateFilters', () => {
-      expect(component.navyComplyDateFilters.map((f: any) => f.label)).toContain('All Overdue');
+      expect(component.navyComplyDateFilters().map((f: any) => f.label)).toContain('All Overdue');
     });
 
     it('should include Due Within 90 Days option in navyComplyDateFilters', () => {
-      expect(component.navyComplyDateFilters.map((f: any) => f.label)).toContain('Due Within 90 Days');
+      expect(component.navyComplyDateFilters().map((f: any) => f.label)).toContain('Due Within 90 Days');
     });
 
     it('should call resetColumnSelections', () => {
@@ -447,7 +447,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     it('should set isLoading false when no data returned', () => {
       mockImportService.getVulnerabilityIdsWithTaskOrderByCollection.mockReturnValue(of([]));
       component.getTaskOrderVulnerabilityIds();
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should emit 0 totalRecords when no data returned', () => {
@@ -495,62 +495,62 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should populate applicableVulnerabilities from results', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities.length).toBe(1);
+      expect(component.applicableVulnerabilities().length).toBe(1);
     });
 
     it('should parse numeric pluginID', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].pluginID).toBe(12345);
+      expect(component.applicableVulnerabilities()[0].pluginID).toBe(12345);
     });
 
     it('should parse plugin name from name field', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].pluginName).toBe('Test Plugin');
+      expect(component.applicableVulnerabilities()[0].pluginName).toBe('Test Plugin');
     });
 
     it('should parse family name', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].family).toBe('Windows');
+      expect(component.applicableVulnerabilities()[0].family).toBe('Windows');
     });
 
     it('should parse severity name', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].severity).toBe('High');
+      expect(component.applicableVulnerabilities()[0].severity).toBe('High');
     });
 
     it('should parse float vprScore', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].vprScore).toBe(7.5);
+      expect(component.applicableVulnerabilities()[0].vprScore).toBe(7.5);
     });
 
     it('should parse integer total', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].total).toBe(5);
+      expect(component.applicableVulnerabilities()[0].total).toBe(5);
     });
 
     it('should merge iav info from iavInfoMap', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].iav).toBe('IAVA-2023-A-0001');
+      expect(component.applicableVulnerabilities()[0].iav).toBe('IAVA-2023-A-0001');
     });
 
     it('should set supersededBy from iavInfo', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].supersededBy).toBe('N/A');
+      expect(component.applicableVulnerabilities()[0].supersededBy).toBe('N/A');
     });
 
     it('should set navyComplyDate as Date object', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].navyComplyDate).toBeInstanceOf(Date);
+      expect(component.applicableVulnerabilities()[0].navyComplyDate).toBeInstanceOf(Date);
     });
 
     it('should set poamStatus to No Existing POAM when no association', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].poamStatus).toBe('No Existing POAM');
+      expect(component.applicableVulnerabilities()[0].poamStatus).toBe('No Existing POAM');
     });
 
     it('should set totalRecords to results length', () => {
       component.getApplicableFindings('12345');
-      expect(component.totalRecords).toBe(1);
+      expect(component.totalRecords()).toBe(1);
     });
 
     it('should emit totalRecordsChange with count', () => {
@@ -562,21 +562,21 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should set isLoading false on completion', () => {
       component.getApplicableFindings('12345');
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should show error and complete when postTenableAnalysis fails', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('fail')));
       component.getApplicableFindings('12345');
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should add taskOrderNumber to vulnerability when preset is taskOrder', () => {
       (component as any).currentPreset = () => 'taskOrder';
       component.taskOrderMap = { '12345': 'TO-001' };
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities[0].taskOrderNumber).toBe('TO-001');
+      expect(component.applicableVulnerabilities()[0].taskOrderNumber).toBe('TO-001');
     });
   });
 
@@ -644,12 +644,12 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should clear applicableVulnerabilities before loading', () => {
-      component.applicableVulnerabilities = [{ pluginID: 1 }];
+      component.applicableVulnerabilities.set([{ pluginID: 1 }]);
       vi.spyOn(component, 'loadVulnList').mockImplementation(() => {});
       const event = { stopPropagation: vi.fn() } as any;
 
       component.onRowClick({ pluginID: 12345 }, event);
-      expect(component.applicableVulnerabilities).toEqual([]);
+      expect(component.applicableVulnerabilities()).toEqual([]);
     });
 
     it('should set pluginID filter', () => {
@@ -750,24 +750,24 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should set pluginData from response', async () => {
       await component.showDetails({ pluginID: 12345 });
-      expect(component.pluginData).toBeDefined();
+      expect(component.pluginData()).toBeDefined();
     });
 
     it('should set selectedVulnerability', async () => {
       const vuln = { pluginID: 12345, name: 'Test' };
 
       await component.showDetails(vuln);
-      expect(component.selectedVulnerability).toEqual(vuln);
+      expect(component.selectedVulnerability()).toEqual(vuln);
     });
 
     it('should set displayDialog to true when createPoam is false', async () => {
       await component.showDetails({ pluginID: 12345 }, false);
-      expect(component.displayDialog).toBe(true);
+      expect(component.displayDialog()).toBe(true);
     });
 
     it('should NOT set displayDialog when createPoam is true', async () => {
       await component.showDetails({ pluginID: 12345 }, true);
-      expect(component.displayDialog).toBe(false);
+      expect(component.displayDialog()).toBe(false);
     });
 
     it('should reject when getTenablePlugin returns no response', async () => {
@@ -825,30 +825,30 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
   describe('parseVprContext', () => {
     it('should set parsedVprContext from delegate call', () => {
       component.parseVprContext('[]');
-      expect(Array.isArray(component.parsedVprContext)).toBe(true);
+      expect(Array.isArray(component.parsedVprContext())).toBe(true);
     });
   });
 
   describe('parseReferences', () => {
     it('should parse CVE references', () => {
       component.parseReferences('CVE:CVE-2023-1234 IAVB:2023-B-0001');
-      expect(component.cveReferences.length).toBeGreaterThan(0);
+      expect(component.cveReferences().length).toBeGreaterThan(0);
     });
 
     it('should parse IAV references', () => {
       component.parseReferences('IAVA:2023-A-0001');
-      expect(component.iavReferences.length).toBeGreaterThan(0);
+      expect(component.iavReferences().length).toBeGreaterThan(0);
     });
 
     it('should parse other references', () => {
       component.parseReferences('XREF:some-ref-123');
-      expect(component.otherReferences.length).toBeGreaterThan(0);
+      expect(component.otherReferences().length).toBeGreaterThan(0);
     });
 
     it('should clear all reference arrays for empty input', () => {
-      component.cveReferences = [{ type: 'CVE', value: 'old' }];
+      component.cveReferences.set([{ type: 'CVE', value: 'old' }]);
       component.parseReferences('');
-      expect(component.cveReferences).toEqual([]);
+      expect(component.cveReferences()).toEqual([]);
     });
   });
 
@@ -897,7 +897,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should clear col filterValue when value is null', () => {
-      const col = component.cols.find((c: any) => c.field === 'navyComplyDate');
+      const col = component.cols().find((c: any) => c.field === 'navyComplyDate');
 
       col.filterValue = 'existing';
       component.onNavyComplyDateFilterChange({ value: null });
@@ -1006,14 +1006,14 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should update col filterValue for range filter', () => {
       component.onNavyComplyDateFilterChange({ value: 'overdue30To90' });
-      const col = component.cols.find((c: any) => c.field === 'navyComplyDate');
+      const col = component.cols().find((c: any) => c.field === 'navyComplyDate');
 
       expect(col.filterValue).toBeTruthy();
     });
 
     it('should update col filterValue with Before prefix for alloverdue', () => {
       component.onNavyComplyDateFilterChange({ value: 'alloverdue' });
-      const col = component.cols.find((c: any) => c.field === 'navyComplyDate');
+      const col = component.cols().find((c: any) => c.field === 'navyComplyDate');
 
       expect(col.filterValue).toContain('Before');
     });
@@ -1083,7 +1083,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should set selectedColumns with default fields for iav', () => {
       component.resetColumnSelections();
-      const fields = component.selectedColumns.map((c: any) => c.field);
+      const fields = component.selectedColumns().map((c: any) => c.field);
 
       expect(fields).toContain('poam');
       expect(fields).toContain('pluginID');
@@ -1094,7 +1094,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should not include taskOrderNumber for iav preset', () => {
       component.resetColumnSelections();
-      const fields = component.selectedColumns.map((c: any) => c.field);
+      const fields = component.selectedColumns().map((c: any) => c.field);
 
       expect(fields).not.toContain('taskOrderNumber');
     });
@@ -1103,14 +1103,14 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       (component as any).currentPreset = () => 'taskOrder';
       component.initColumnsAndFilters();
       component.resetColumnSelections();
-      const fields = component.selectedColumns.map((c: any) => c.field);
+      const fields = component.selectedColumns().map((c: any) => c.field);
 
       expect(fields).toContain('taskOrderNumber');
     });
 
     it('should set 11 columns for iav preset', () => {
       component.resetColumnSelections();
-      expect(component.selectedColumns.length).toBe(11);
+      expect(component.selectedColumns().length).toBe(11);
     });
   });
 
@@ -1122,31 +1122,31 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should include ips column', () => {
       component.expandColumnSelections();
-      const fields = component.selectedColumns.map((c: any) => c.field);
+      const fields = component.selectedColumns().map((c: any) => c.field);
 
       expect(fields).toContain('ips');
     });
 
     it('should include netbiosName column', () => {
       component.expandColumnSelections();
-      const fields = component.selectedColumns.map((c: any) => c.field);
+      const fields = component.selectedColumns().map((c: any) => c.field);
 
       expect(fields).toContain('netbiosName');
     });
 
     it('should include macAddress column', () => {
       component.expandColumnSelections();
-      const fields = component.selectedColumns.map((c: any) => c.field);
+      const fields = component.selectedColumns().map((c: any) => c.field);
 
       expect(fields).toContain('macAddress');
     });
 
     it('should have more columns than reset selection', () => {
       component.resetColumnSelections();
-      const resetCount = component.selectedColumns.length;
+      const resetCount = component.selectedColumns().length;
 
       component.expandColumnSelections();
-      expect(component.selectedColumns.length).toBeGreaterThan(resetCount);
+      expect(component.selectedColumns().length).toBeGreaterThan(resetCount);
     });
   });
 
@@ -1154,21 +1154,21 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     beforeEach(() => {
       fixture.componentRef.setInput('currentPreset', 'iav');
       component.initColumnsAndFilters();
-      component.applicableVulnerabilities = [{ pluginID: 1 }, { pluginID: 2 }];
+      component.applicableVulnerabilities.set([{ pluginID: 1 }, { pluginID: 2 }]);
     });
 
     it('should update totalRecords from filteredValue', () => {
       mockTable.filteredValue = [{ pluginID: 1 }];
       mockTable.filters = { severity: [{ value: ['High', 'Critical'] }] };
       component.onFilter({});
-      expect(component.totalRecords).toBe(1);
+      expect(component.totalRecords()).toBe(1);
     });
 
     it('should use applicableVulnerabilities length when filteredValue is null', () => {
       mockTable.filteredValue = null;
       mockTable.filters = { severity: [{ value: ['High'] }] };
       component.onFilter({});
-      expect(component.totalRecords).toBe(2);
+      expect(component.totalRecords()).toBe(2);
     });
 
     it('should emit totalRecordsChange', () => {
@@ -1235,12 +1235,23 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('stops applying analysis results after destroy (takeUntilDestroyed)', () => {
+      const analysisSubject = new Subject<any>();
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      mockImportService.postTenableAnalysis.mockReturnValue(analysisSubject.asObservable());
+      component.tenableRepoId = '42';
+      component.initColumnsAndFilters();
+      component.getApplicableFindings('12345');
+      expect(component.applicableVulnerabilities()).toEqual([]);
+      fixture.destroy();
+      analysisSubject.next(mockAnalysisResponse);
+      expect(component.applicableVulnerabilities()).toEqual([]);
+    });
+
+    it('does not throw on destroy', () => {
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

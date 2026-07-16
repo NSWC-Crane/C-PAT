@@ -97,22 +97,32 @@ describe('PoamResourceService', () => {
   });
 
   describe('syncTeamResources', () => {
-    it('should do nothing for null poamAssignedTeams', () => {
+    it('should emit empty changes for null poamAssignedTeams', () => {
       const poam = { poamId: 123 };
       const teamResources: any[] = [];
 
-      service.syncTeamResources(poam, null as any, teamResources);
+      let emitted: any;
 
+      service.syncTeamResources(poam, null as any, teamResources).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(mockPoamService.postPoamTeamResource).not.toHaveBeenCalled();
       expect(mockPoamService.updatePoamTeamResourceStatus).not.toHaveBeenCalled();
     });
 
-    it('should do nothing for empty poamAssignedTeams', () => {
+    it('should emit empty changes for empty poamAssignedTeams', () => {
       const poam = { poamId: 123 };
       const teamResources: any[] = [];
 
-      service.syncTeamResources(poam, [], teamResources);
+      let emitted: any;
 
+      service.syncTeamResources(poam, [], teamResources).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(mockPoamService.postPoamTeamResource).not.toHaveBeenCalled();
       expect(mockPoamService.updatePoamTeamResourceStatus).not.toHaveBeenCalled();
     });
@@ -124,7 +134,7 @@ describe('PoamResourceService', () => {
 
       mockPoamService.postPoamTeamResource.mockReturnValue(of({ resourceId: 100 }));
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe();
 
       expect(mockPoamService.postPoamTeamResource).toHaveBeenCalledWith({
         poamId: 123,
@@ -134,7 +144,7 @@ describe('PoamResourceService', () => {
       });
     });
 
-    it('should add created resource to array and sort', () => {
+    it('should emit add changes for created resources without mutating the input array', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [
         { assignedTeamId: 2, assignedTeamName: 'Zebra Team' },
@@ -144,9 +154,17 @@ describe('PoamResourceService', () => {
 
       mockPoamService.postPoamTeamResource.mockReturnValueOnce(of({ resourceId: 100 })).mockReturnValueOnce(of({ resourceId: 101 }));
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      let emitted: any;
 
-      expect(teamResources.length).toBe(2);
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([
+        { type: 'add', record: { resourceId: 100, assignedTeamId: 2, assignedTeamName: 'Zebra Team', resourceText: '', isActive: true } },
+        { type: 'add', record: { resourceId: 101, assignedTeamId: 1, assignedTeamName: 'Alpha Team', resourceText: '', isActive: true } }
+      ]);
+      expect(teamResources).toHaveLength(0);
     });
 
     it('should reactivate inactive existing resource', () => {
@@ -156,21 +174,26 @@ describe('PoamResourceService', () => {
 
       mockPoamService.updatePoamTeamResourceStatus.mockReturnValue(of({}));
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe();
 
       expect(mockPoamService.updatePoamTeamResourceStatus).toHaveBeenCalledWith(123, 1, true);
     });
 
-    it('should set isActive to true after reactivation', () => {
+    it('should emit setActive true change without mutating the input array', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamResources = [{ resourceId: 1, assignedTeamId: 1, isActive: false }];
 
       mockPoamService.updatePoamTeamResourceStatus.mockReturnValue(of({}));
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      let emitted: any;
 
-      expect(teamResources[0].isActive).toBe(true);
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([{ type: 'setActive', assignedTeamId: 1, isActive: true }]);
+      expect(teamResources[0].isActive).toBe(false);
     });
 
     it('should deactivate resource for removed team', () => {
@@ -183,12 +206,12 @@ describe('PoamResourceService', () => {
 
       mockPoamService.updatePoamTeamResourceStatus.mockReturnValue(of({}));
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe();
 
       expect(mockPoamService.updatePoamTeamResourceStatus).toHaveBeenCalledWith(123, 1, false);
     });
 
-    it('should set isActive to false after deactivation', () => {
+    it('should emit setActive false change without mutating the input array', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 2, assignedTeamName: 'Team B' }];
       const teamResources = [
@@ -198,9 +221,14 @@ describe('PoamResourceService', () => {
 
       mockPoamService.updatePoamTeamResourceStatus.mockReturnValue(of({}));
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      let emitted: any;
 
-      expect(teamResources[0].isActive).toBe(false);
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([{ type: 'setActive', assignedTeamId: 1, isActive: false }]);
+      expect(teamResources[0].isActive).toBe(true);
     });
 
     it('should not deactivate already inactive resource', () => {
@@ -208,44 +236,78 @@ describe('PoamResourceService', () => {
       const poamAssignedTeams: any[] = [];
       const teamResources = [{ resourceId: 1, assignedTeamId: 1, isActive: false }];
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe();
 
       expect(mockPoamService.updatePoamTeamResourceStatus).not.toHaveBeenCalled();
     });
 
-    it('should not modify active existing resource', () => {
+    it('should emit empty changes for active existing resource', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamResources = [{ resourceId: 1, assignedTeamId: 1, isActive: true }];
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      let emitted: any;
 
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(mockPoamService.postPoamTeamResource).not.toHaveBeenCalled();
       expect(mockPoamService.updatePoamTeamResourceStatus).not.toHaveBeenCalled();
     });
 
-    it('should handle error when creating resource', () => {
+    it('should exclude failed create from emitted changes and log the error', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamResources: any[] = [];
 
       mockPoamService.postPoamTeamResource.mockReturnValue(throwError(() => new Error('Create failed')));
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      let emitted: any;
 
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(console.error).toHaveBeenCalledWith('Error adding team resource:', expect.any(Error));
     });
 
-    it('should handle error when updating resource status', () => {
+    it('should exclude failed status update from emitted changes and log the error', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamResources = [{ resourceId: 1, assignedTeamId: 1, isActive: false }];
 
       mockPoamService.updatePoamTeamResourceStatus.mockReturnValue(throwError(() => new Error('Update failed')));
 
-      service.syncTeamResources(poam, poamAssignedTeams, teamResources);
+      let emitted: any;
 
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(console.error).toHaveBeenCalledWith('Error updating team resource status:', expect.any(Error));
+    });
+
+    it('should still emit successful changes when a sibling op fails', () => {
+      const poam = { poamId: 123 };
+      const poamAssignedTeams = [
+        { assignedTeamId: 1, assignedTeamName: 'Team A' },
+        { assignedTeamId: 2, assignedTeamName: 'Team B' }
+      ];
+      const teamResources: any[] = [];
+
+      mockPoamService.postPoamTeamResource.mockReturnValueOnce(throwError(() => new Error('Create failed'))).mockReturnValueOnce(of({ resourceId: 101 }));
+
+      let emitted: any;
+
+      service.syncTeamResources(poam, poamAssignedTeams, teamResources).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([{ type: 'add', record: { resourceId: 101, assignedTeamId: 2, assignedTeamName: 'Team B', resourceText: '', isActive: true } }]);
     });
   });
 

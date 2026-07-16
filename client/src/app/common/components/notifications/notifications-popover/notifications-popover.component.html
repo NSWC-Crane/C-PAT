@@ -10,8 +10,8 @@
 
 <div class="notifications-popover">
   <div class="p-card-body">
-    @if (notifications.length > 0) {
-      <p-listbox [options]="notifications" optionLabel="title" scrollHeight="40vh">
+    @if (notifications().length > 0) {
+      <p-listbox [options]="notifications()" optionLabel="title" scrollHeight="40vh">
         <ng-template let-notification #item>
           <div class="notification-content" (click)="onNotificationClick($event)">
             <div class="notification-header">

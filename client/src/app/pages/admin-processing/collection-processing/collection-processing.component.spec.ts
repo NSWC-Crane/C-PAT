@@ -146,7 +146,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should initialize cols as empty array', () => {
-      expect(component.cols).toEqual([]);
+      expect(component.cols()).toEqual([]);
     });
 
     it('should initialize aaPackages as empty array', () => {
@@ -154,23 +154,23 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should initialize filteredAAPackages as empty array', () => {
-      expect(component.filteredAAPackages).toEqual([]);
+      expect(component.filteredAAPackages()).toEqual([]);
     });
 
     it('should initialize collectionTreeData as empty array', () => {
-      expect(component.collectionTreeData).toEqual([]);
+      expect(component.collectionTreeData()).toEqual([]);
     });
 
     it('should initialize displayCollectionDialog as false', () => {
-      expect(component.displayCollectionDialog).toBe(false);
+      expect(component.displayCollectionDialog()).toBe(false);
     });
 
     it('should initialize displayDeleteDialog as false', () => {
-      expect(component.displayDeleteDialog).toBe(false);
+      expect(component.displayDeleteDialog()).toBe(false);
     });
 
     it('should initialize displayExportDialog as false', () => {
-      expect(component.displayExportDialog).toBe(false);
+      expect(component.displayExportDialog()).toBe(false);
     });
 
     it('should initialize dialogMode as add', () => {
@@ -178,7 +178,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should initialize exporting as false', () => {
-      expect(component.exporting).toBe(false);
+      expect(component.exporting()).toBe(false);
     });
 
     it('should initialize collection with defaults', () => {
@@ -188,27 +188,27 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should initialize displayBulkImportDialog as false', () => {
-      expect(component.displayBulkImportDialog).toBe(false);
+      expect(component.displayBulkImportDialog()).toBe(false);
     });
 
     it('should initialize bulkImportSource to STIG Manager', () => {
-      expect(component.bulkImportSource).toBe('STIG Manager');
+      expect(component.bulkImportSource()).toBe('STIG Manager');
     });
 
     it('should initialize bulkImporting as false', () => {
-      expect(component.bulkImporting).toBe(false);
+      expect(component.bulkImporting()).toBe(false);
     });
 
     it('should initialize loadingBulkImports as false', () => {
-      expect(component.loadingBulkImports).toBe(false);
+      expect(component.loadingBulkImports()).toBe(false);
     });
 
     it('should initialize bulkImportAvailable as empty array', () => {
-      expect(component.bulkImportAvailable).toEqual([]);
+      expect(component.bulkImportAvailable()).toEqual([]);
     });
 
     it('should initialize selectedBulkImports as empty array', () => {
-      expect(component.selectedBulkImports).toEqual([]);
+      expect(component.selectedBulkImports()).toEqual([]);
     });
 
     it('should set tenableEnabled from CPAT.Env.features', () => {
@@ -237,25 +237,25 @@ describe('CollectionProcessingComponent', () => {
     it('should set 8 columns', () => {
       component.initColumnsAndFilters();
 
-      expect(component.cols).toHaveLength(8);
+      expect(component.cols()).toHaveLength(8);
     });
 
     it('should include Collection ID column', () => {
       component.initColumnsAndFilters();
 
-      expect(component.cols[0]).toEqual({ field: 'collectionId', header: 'Collection ID' });
+      expect(component.cols()[0]).toEqual({ field: 'collectionId', header: 'Collection ID' });
     });
 
     it('should include Name column', () => {
       component.initColumnsAndFilters();
 
-      expect(component.cols[1]).toEqual({ field: 'collectionName', header: 'Name' });
+      expect(component.cols()[1]).toEqual({ field: 'collectionName', header: 'Name' });
     });
 
     it('should include A&A Package column', () => {
       component.initColumnsAndFilters();
 
-      const aaPackageCol = component.cols.find((c: any) => c.field === 'aaPackage');
+      const aaPackageCol = component.cols().find((c: any) => c.field === 'aaPackage');
 
       expect(aaPackageCol).toBeDefined();
     });
@@ -364,31 +364,31 @@ describe('CollectionProcessingComponent', () => {
     it('should filter aaPackages by query', () => {
       component.filterAAPackages({ query: 'alpha' });
 
-      expect(component.filteredAAPackages).toEqual(['Package Alpha']);
+      expect(component.filteredAAPackages()).toEqual(['Package Alpha']);
     });
 
     it('should be case-insensitive', () => {
       component.filterAAPackages({ query: 'BETA' });
 
-      expect(component.filteredAAPackages).toEqual(['Package Beta']);
+      expect(component.filteredAAPackages()).toEqual(['Package Beta']);
     });
 
     it('should return multiple matches', () => {
       component.filterAAPackages({ query: 'package' });
 
-      expect(component.filteredAAPackages).toHaveLength(3);
+      expect(component.filteredAAPackages()).toHaveLength(3);
     });
 
     it('should return empty array when no match', () => {
       component.filterAAPackages({ query: 'zzznomatch' });
 
-      expect(component.filteredAAPackages).toEqual([]);
+      expect(component.filteredAAPackages()).toEqual([]);
     });
 
     it('should return names as strings, not objects', () => {
       component.filterAAPackages({ query: 'alpha' });
 
-      expect(typeof component.filteredAAPackages[0]).toBe('string');
+      expect(typeof component.filteredAAPackages()[0]).toBe('string');
     });
   });
 
@@ -400,59 +400,59 @@ describe('CollectionProcessingComponent', () => {
     it('should map collections to tree nodes', () => {
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData).toHaveLength(2);
+      expect(component.collectionTreeData()).toHaveLength(2);
     });
 
     it('should map collectionId to collectionId field', () => {
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data.collectionId).toBe(1);
+      expect(component.collectionTreeData()[0].data.collectionId).toBe(1);
     });
 
     it('should map collectionName to collectionName field', () => {
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data.collectionName).toBe('Collection Alpha');
+      expect(component.collectionTreeData()[0].data.collectionName).toBe('Collection Alpha');
     });
 
     it('should map description to description field', () => {
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data.description).toBe('Alpha description');
+      expect(component.collectionTreeData()[0].data.description).toBe('Alpha description');
     });
 
     it('should use empty string for null systemType', () => {
       component.data = [{ ...mockCollections[0], systemType: null }];
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data.systemType).toBe('');
+      expect(component.collectionTreeData()[0].data.systemType).toBe('');
     });
 
     it('should use empty string for null ccsafa', () => {
       component.data = [{ ...mockCollections[0], ccsafa: null }];
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data.ccsafa).toBe('');
+      expect(component.collectionTreeData()[0].data.ccsafa).toBe('');
     });
 
     it('should use 0 for null originCollectionId', () => {
       component.data = [{ ...mockCollections[0], originCollectionId: null }];
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data.originCollectionId).toBe(0);
+      expect(component.collectionTreeData()[0].data.originCollectionId).toBe(0);
     });
 
     it('should default manualCreationAllowed to true when not provided', () => {
       component.data = [{ ...mockCollections[0], manualCreationAllowed: undefined }];
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].data.manualCreationAllowed).toBe(true);
+      expect(component.collectionTreeData()[0].data.manualCreationAllowed).toBe(true);
     });
 
     it('should include empty children array on each node', () => {
       component.getCollectionsTreeData();
 
-      expect(component.collectionTreeData[0].children).toEqual([]);
+      expect(component.collectionTreeData()[0].children).toEqual([]);
     });
   });
 
@@ -467,7 +467,7 @@ describe('CollectionProcessingComponent', () => {
     it('should set displayCollectionDialog to true', () => {
       component.showAddCollectionDialog();
 
-      expect(component.displayCollectionDialog).toBe(true);
+      expect(component.displayCollectionDialog()).toBe(true);
     });
 
     it('should reset editingCollection', () => {
@@ -507,7 +507,7 @@ describe('CollectionProcessingComponent', () => {
     it('should set displayCollectionDialog to true', () => {
       component.showModifyCollectionDialog(rowData);
 
-      expect(component.displayCollectionDialog).toBe(true);
+      expect(component.displayCollectionDialog()).toBe(true);
     });
 
     it('should populate editingCollection from rowData', () => {
@@ -530,10 +530,10 @@ describe('CollectionProcessingComponent', () => {
 
   describe('hideCollectionDialog', () => {
     it('should set displayCollectionDialog to false', () => {
-      component.displayCollectionDialog = true;
+      component.displayCollectionDialog.set(true);
       component.hideCollectionDialog();
 
-      expect(component.displayCollectionDialog).toBe(false);
+      expect(component.displayCollectionDialog()).toBe(false);
     });
   });
 
@@ -598,10 +598,10 @@ describe('CollectionProcessingComponent', () => {
     it('should close dialog after saving', () => {
       component.dialogMode = 'add';
       component.editingCollection = { collectionName: 'New', collectionId: '' };
-      component.displayCollectionDialog = true;
+      component.displayCollectionDialog.set(true);
       component.saveCollection();
 
-      expect(component.displayCollectionDialog).toBe(false);
+      expect(component.displayCollectionDialog()).toBe(false);
     });
 
     it('should show error message on add failure', () => {
@@ -635,7 +635,7 @@ describe('CollectionProcessingComponent', () => {
     it('should set displayDeleteDialog to true', () => {
       component.confirmDeleteCollection({ collectionId: 3 });
 
-      expect(component.displayDeleteDialog).toBe(true);
+      expect(component.displayDeleteDialog()).toBe(true);
     });
   });
 
@@ -681,10 +681,10 @@ describe('CollectionProcessingComponent', () => {
 
   describe('hideDeleteDialog', () => {
     it('should set displayDeleteDialog to false', () => {
-      component.displayDeleteDialog = true;
+      component.displayDeleteDialog.set(true);
       component.hideDeleteDialog();
 
-      expect(component.displayDeleteDialog).toBe(false);
+      expect(component.displayDeleteDialog()).toBe(false);
     });
 
     it('should set collectionToDelete to null', () => {
@@ -703,64 +703,64 @@ describe('CollectionProcessingComponent', () => {
     it('should set displayExportDialog to true', () => {
       component.showExportDialog();
 
-      expect(component.displayExportDialog).toBe(true);
+      expect(component.displayExportDialog()).toBe(true);
     });
 
     it('should populate selectableCollections from data', () => {
       component.showExportDialog();
 
-      expect(component.selectableCollections).toHaveLength(2);
+      expect(component.selectableCollections()).toHaveLength(2);
     });
 
     it('should map collection to label/value shape', () => {
       component.showExportDialog();
 
-      expect(component.selectableCollections[0].label).toBe('Collection Alpha');
-      expect(component.selectableCollections[0].value.collectionId).toBe(1);
+      expect(component.selectableCollections()[0].label).toBe('Collection Alpha');
+      expect(component.selectableCollections()[0].value.collectionId).toBe(1);
     });
 
     it('should reset selectedExportCollections', () => {
-      component.selectedExportCollections = [{ collectionId: 1 }];
+      component.selectedExportCollections.set([{ collectionId: 1 }]);
       component.showExportDialog();
 
-      expect(component.selectedExportCollections).toEqual([]);
+      expect(component.selectedExportCollections()).toEqual([]);
     });
 
     it('should default empty strings for null optional fields', () => {
       component.data = [{ ...mockCollections[0], collectionType: null, systemType: null }];
       component.showExportDialog();
 
-      expect(component.selectableCollections[0].value.collectionType).toBe('');
-      expect(component.selectableCollections[0].value.systemType).toBe('');
+      expect(component.selectableCollections()[0].value.collectionType).toBe('');
+      expect(component.selectableCollections()[0].value.systemType).toBe('');
     });
   });
 
   describe('hideExportDialog', () => {
     it('should set displayExportDialog to false', () => {
-      component.displayExportDialog = true;
+      component.displayExportDialog.set(true);
       component.hideExportDialog();
 
-      expect(component.displayExportDialog).toBe(false);
+      expect(component.displayExportDialog()).toBe(false);
     });
 
     it('should reset selectedExportCollections', () => {
-      component.selectedExportCollections = [{ collectionId: 1 }];
+      component.selectedExportCollections.set([{ collectionId: 1 }]);
       component.hideExportDialog();
 
-      expect(component.selectedExportCollections).toEqual([]);
+      expect(component.selectedExportCollections()).toEqual([]);
     });
   });
 
   describe('exportMultipleCollections', () => {
     it('should show warning when no collections selected', () => {
-      component.selectedExportCollections = [];
+      component.selectedExportCollections.set([]);
       component.exportMultipleCollections();
 
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn', summary: 'No Selection' }));
     });
 
     it('should not proceed when selectedExportCollections is empty', () => {
-      component.selectedExportCollections = [];
+      component.selectedExportCollections.set([]);
       component.exportMultipleCollections();
 
       expect(mockCollectionsService.getPoamsByCollection).not.toHaveBeenCalled();
@@ -769,11 +769,11 @@ describe('CollectionProcessingComponent', () => {
     it('should set exporting to true during export', () => {
       const exportCol = { collectionId: 1, name: 'Col A', collectionType: 'C-PAT' };
 
-      component.selectedExportCollections = [exportCol];
+      component.selectedExportCollections.set([exportCol]);
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
       component.exportMultipleCollections();
 
-      expect(component.exporting).toBe(true);
+      expect(component.exporting()).toBe(true);
     });
 
     it('should call getPoamsByCollection for each selected collection', () => {
@@ -782,7 +782,7 @@ describe('CollectionProcessingComponent', () => {
         { collectionId: 2, name: 'Col B', collectionType: 'C-PAT' }
       ];
 
-      component.selectedExportCollections = exportCols;
+      component.selectedExportCollections.set(exportCols);
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
       component.exportMultipleCollections();
 
@@ -792,7 +792,7 @@ describe('CollectionProcessingComponent', () => {
     it('should show error when all collections are empty', () => {
       const exportCol = { collectionId: 1, name: 'Col A', collectionType: 'C-PAT' };
 
-      component.selectedExportCollections = [exportCol];
+      component.selectedExportCollections.set([exportCol]);
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
       component.exportMultipleCollections();
@@ -806,7 +806,7 @@ describe('CollectionProcessingComponent', () => {
         { collectionId: 2, name: 'Col B', collectionType: 'C-PAT' }
       ];
 
-      component.selectedExportCollections = exportCols;
+      component.selectedExportCollections.set(exportCols);
       mockCollectionsService.getPoamsByCollection.mockReturnValue(of(mockPoams));
       mockPoamService.getPoamAssetsByCollectionId.mockReturnValue(of([]));
       const convertSpy = vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
@@ -1185,20 +1185,22 @@ describe('CollectionProcessingComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subs', () => {
+  describe('cleanup', () => {
+    it('should stop updating user from payload subscription after destroy', () => {
       fixture.detectChanges();
-      const unsubSpy = vi.spyOn((component as any).subs, 'unsubscribe');
 
-      component.ngOnDestroy();
+      expect(component.user).toEqual({ userId: 1, userName: 'testuser' });
 
-      expect(unsubSpy).toHaveBeenCalled();
+      fixture.destroy();
+      userSubject.next({ userId: 2, userName: 'after' });
+
+      expect(component.user).toEqual({ userId: 1, userName: 'testuser' });
     });
 
-    it('should not throw when called', () => {
+    it('should not throw when destroyed', () => {
       fixture.detectChanges();
 
-      expect(() => component.ngOnDestroy()).not.toThrow();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 
@@ -1206,28 +1208,28 @@ describe('CollectionProcessingComponent', () => {
     it('should set displayBulkImportDialog to true', () => {
       component.showBulkImportDialog();
 
-      expect(component.displayBulkImportDialog).toBe(true);
+      expect(component.displayBulkImportDialog()).toBe(true);
     });
 
     it('should default bulkImportSource to STIG Manager', () => {
-      component.bulkImportSource = 'Tenable';
+      component.bulkImportSource.set('Tenable');
       component.showBulkImportDialog();
 
-      expect(component.bulkImportSource).toBe('STIG Manager');
+      expect(component.bulkImportSource()).toBe('STIG Manager');
     });
 
     it('should reset selectedBulkImports', () => {
-      component.selectedBulkImports = [{ collectionName: 'X' }];
+      component.selectedBulkImports.set([{ collectionName: 'X' }]);
       component.showBulkImportDialog();
 
-      expect(component.selectedBulkImports).toEqual([]);
+      expect(component.selectedBulkImports()).toEqual([]);
     });
 
     it('should reset bulkImportAvailable', () => {
-      component.bulkImportAvailable = [{ label: 'A', value: {} }];
+      component.bulkImportAvailable.set([{ label: 'A', value: {} }]);
       component.showBulkImportDialog();
 
-      expect(component.bulkImportAvailable).toEqual([]);
+      expect(component.bulkImportAvailable()).toEqual([]);
     });
 
     it('should trigger STIG Manager fetch by default', () => {
@@ -1239,45 +1241,45 @@ describe('CollectionProcessingComponent', () => {
 
   describe('hideBulkImportDialog', () => {
     it('should set displayBulkImportDialog to false', () => {
-      component.displayBulkImportDialog = true;
+      component.displayBulkImportDialog.set(true);
       component.hideBulkImportDialog();
 
-      expect(component.displayBulkImportDialog).toBe(false);
+      expect(component.displayBulkImportDialog()).toBe(false);
     });
 
     it('should reset selectedBulkImports', () => {
-      component.selectedBulkImports = [{ collectionName: 'X' }];
+      component.selectedBulkImports.set([{ collectionName: 'X' }]);
       component.hideBulkImportDialog();
 
-      expect(component.selectedBulkImports).toEqual([]);
+      expect(component.selectedBulkImports()).toEqual([]);
     });
 
     it('should reset bulkImportAvailable', () => {
-      component.bulkImportAvailable = [{ label: 'A', value: {} }];
+      component.bulkImportAvailable.set([{ label: 'A', value: {} }]);
       component.hideBulkImportDialog();
 
-      expect(component.bulkImportAvailable).toEqual([]);
+      expect(component.bulkImportAvailable()).toEqual([]);
     });
   });
 
   describe('onBulkImportSourceChange', () => {
     it('should reset selectedBulkImports', () => {
-      component.selectedBulkImports = [{ collectionName: 'X' }];
-      component.bulkImportSource = 'Tenable';
+      component.selectedBulkImports.set([{ collectionName: 'X' }]);
+      component.bulkImportSource.set('Tenable');
       component.onBulkImportSourceChange();
 
-      expect(component.selectedBulkImports).toEqual([]);
+      expect(component.selectedBulkImports()).toEqual([]);
     });
 
     it('should fetch Tenable repositories when source is Tenable', () => {
-      component.bulkImportSource = 'Tenable';
+      component.bulkImportSource.set('Tenable');
       component.onBulkImportSourceChange();
 
       expect(mockImportService.getTenableRepositories).toHaveBeenCalled();
     });
 
     it('should fetch STIG Manager collections when source is STIG Manager', () => {
-      component.bulkImportSource = 'STIG Manager';
+      component.bulkImportSource.set('STIG Manager');
       component.onBulkImportSourceChange();
 
       expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalled();
@@ -1293,25 +1295,25 @@ describe('CollectionProcessingComponent', () => {
         ])
       );
       component.data = [];
-      component.bulkImportSource = 'STIG Manager';
+      component.bulkImportSource.set('STIG Manager');
 
       (component as any).loadAvailableImports();
 
-      expect(component.bulkImportAvailable).toHaveLength(2);
-      expect(component.bulkImportAvailable[0].label).toBe('Coll One');
-      expect(component.bulkImportAvailable[0].value.collectionType).toBe('STIG Manager');
-      expect(component.bulkImportAvailable[0].value.originCollectionId).toBe(1);
-      expect(component.bulkImportAvailable[0].value.description).toBe('Desc One');
+      expect(component.bulkImportAvailable()).toHaveLength(2);
+      expect(component.bulkImportAvailable()[0].label).toBe('Coll One');
+      expect(component.bulkImportAvailable()[0].value.collectionType).toBe('STIG Manager');
+      expect(component.bulkImportAvailable()[0].value.originCollectionId).toBe(1);
+      expect(component.bulkImportAvailable()[0].value.description).toBe('Desc One');
     });
 
     it('should default missing description to empty string', () => {
       mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(of([{ collectionId: 1, name: 'NoDesc' }]));
       component.data = [];
-      component.bulkImportSource = 'STIG Manager';
+      component.bulkImportSource.set('STIG Manager');
 
       (component as any).loadAvailableImports();
 
-      expect(component.bulkImportAvailable[0].value.description).toBe('');
+      expect(component.bulkImportAvailable()[0].value.description).toBe('');
     });
 
     it('should filter STIG Manager collections already imported by originCollectionId', () => {
@@ -1322,12 +1324,12 @@ describe('CollectionProcessingComponent', () => {
         ])
       );
       component.data = [{ collectionType: 'STIG Manager', originCollectionId: 1 }];
-      component.bulkImportSource = 'STIG Manager';
+      component.bulkImportSource.set('STIG Manager');
 
       (component as any).loadAvailableImports();
 
-      expect(component.bulkImportAvailable).toHaveLength(1);
-      expect(component.bulkImportAvailable[0].label).toBe('New');
+      expect(component.bulkImportAvailable()).toHaveLength(1);
+      expect(component.bulkImportAvailable()[0].label).toBe('New');
     });
 
     it('should populate bulkImportAvailable from Tenable source', () => {
@@ -1340,13 +1342,13 @@ describe('CollectionProcessingComponent', () => {
         })
       );
       component.data = [];
-      component.bulkImportSource = 'Tenable';
+      component.bulkImportSource.set('Tenable');
 
       (component as any).loadAvailableImports();
 
-      expect(component.bulkImportAvailable).toHaveLength(2);
-      expect(component.bulkImportAvailable[0].value.collectionType).toBe('Tenable');
-      expect(component.bulkImportAvailable[0].value.originCollectionId).toBe(10);
+      expect(component.bulkImportAvailable()).toHaveLength(2);
+      expect(component.bulkImportAvailable()[0].value.collectionType).toBe('Tenable');
+      expect(component.bulkImportAvailable()[0].value.originCollectionId).toBe(10);
     });
 
     it('should filter Tenable repositories already imported by originCollectionId', () => {
@@ -1359,27 +1361,27 @@ describe('CollectionProcessingComponent', () => {
         })
       );
       component.data = [{ collectionType: 'Tenable', originCollectionId: 10 }];
-      component.bulkImportSource = 'Tenable';
+      component.bulkImportSource.set('Tenable');
 
       (component as any).loadAvailableImports();
 
-      expect(component.bulkImportAvailable).toHaveLength(1);
-      expect(component.bulkImportAvailable[0].label).toBe('New');
+      expect(component.bulkImportAvailable()).toHaveLength(1);
+      expect(component.bulkImportAvailable()[0].label).toBe('New');
     });
 
     it('should not filter Tenable when matching originIds belong to STIG Manager type', () => {
       mockImportService.getTenableRepositories.mockReturnValue(of({ response: [{ id: 10, name: 'Repo A' }] }));
       component.data = [{ collectionType: 'STIG Manager', originCollectionId: 10 }];
-      component.bulkImportSource = 'Tenable';
+      component.bulkImportSource.set('Tenable');
 
       (component as any).loadAvailableImports();
 
-      expect(component.bulkImportAvailable).toHaveLength(1);
+      expect(component.bulkImportAvailable()).toHaveLength(1);
     });
 
     it('should show error message when STIG Manager fetch fails', () => {
       mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(throwError(() => new Error('Boom')));
-      component.bulkImportSource = 'STIG Manager';
+      component.bulkImportSource.set('STIG Manager');
 
       (component as any).loadAvailableImports();
 
@@ -1388,52 +1390,52 @@ describe('CollectionProcessingComponent', () => {
 
     it('should set loadingBulkImports to false after success', () => {
       mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(of([]));
-      component.bulkImportSource = 'STIG Manager';
+      component.bulkImportSource.set('STIG Manager');
 
       (component as any).loadAvailableImports();
 
-      expect(component.loadingBulkImports).toBe(false);
+      expect(component.loadingBulkImports()).toBe(false);
     });
 
     it('should handle null STIG Manager response gracefully', () => {
       mockSharedService.getCollectionsFromSTIGMAN.mockReturnValue(of(null));
-      component.bulkImportSource = 'STIG Manager';
+      component.bulkImportSource.set('STIG Manager');
 
       (component as any).loadAvailableImports();
 
-      expect(component.bulkImportAvailable).toEqual([]);
+      expect(component.bulkImportAvailable()).toEqual([]);
     });
 
     it('should handle null Tenable response gracefully', () => {
       mockImportService.getTenableRepositories.mockReturnValue(of({ response: null }));
-      component.bulkImportSource = 'Tenable';
+      component.bulkImportSource.set('Tenable');
 
       (component as any).loadAvailableImports();
 
-      expect(component.bulkImportAvailable).toEqual([]);
+      expect(component.bulkImportAvailable()).toEqual([]);
     });
   });
 
   describe('executeBulkImport', () => {
     it('should show warning when no selection', () => {
-      component.selectedBulkImports = [];
+      component.selectedBulkImports.set([]);
       component.executeBulkImport();
 
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn', summary: 'No Selection' }));
     });
 
     it('should not call addCollection when no selection', () => {
-      component.selectedBulkImports = [];
+      component.selectedBulkImports.set([]);
       component.executeBulkImport();
 
       expect(mockCollectionsService.addCollection).not.toHaveBeenCalled();
     });
 
     it('should call addCollection for each selected entry', () => {
-      component.selectedBulkImports = [
+      component.selectedBulkImports.set([
         { collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 },
         { collectionName: 'B', description: '', collectionType: 'STIG Manager', originCollectionId: 2 }
-      ];
+      ]);
       component.executeBulkImport();
 
       expect(mockCollectionsService.addCollection).toHaveBeenCalledTimes(2);
@@ -1442,38 +1444,38 @@ describe('CollectionProcessingComponent', () => {
     it('should pass each selection payload to addCollection', () => {
       const payload = { collectionName: 'A', description: 'D', collectionType: 'Tenable', originCollectionId: 5 };
 
-      component.selectedBulkImports = [payload];
+      component.selectedBulkImports.set([payload]);
       component.executeBulkImport();
 
       expect(mockCollectionsService.addCollection).toHaveBeenCalledWith(payload);
     });
 
     it('should show success toast for each successful import', () => {
-      component.selectedBulkImports = [{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }];
+      component.selectedBulkImports.set([{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }]);
       component.executeBulkImport();
 
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: expect.stringContaining('A') }));
     });
 
     it('should set bulkImporting to false after completion', () => {
-      component.selectedBulkImports = [{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }];
+      component.selectedBulkImports.set([{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }]);
       component.executeBulkImport();
 
-      expect(component.bulkImporting).toBe(false);
+      expect(component.bulkImporting()).toBe(false);
     });
 
     it('should close dialog after successful import', () => {
-      component.displayBulkImportDialog = true;
-      component.selectedBulkImports = [{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }];
+      component.displayBulkImportDialog.set(true);
+      component.selectedBulkImports.set([{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }]);
       component.executeBulkImport();
 
-      expect(component.displayBulkImportDialog).toBe(false);
+      expect(component.displayBulkImportDialog()).toBe(false);
     });
 
     it('should refresh collection data after successful import', () => {
       const spy = vi.spyOn(component, 'getCollectionData');
 
-      component.selectedBulkImports = [{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }];
+      component.selectedBulkImports.set([{ collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 }]);
       component.executeBulkImport();
 
       expect(spy).toHaveBeenCalled();
@@ -1481,10 +1483,10 @@ describe('CollectionProcessingComponent', () => {
 
     it('should report individual failure but continue with the rest', () => {
       mockCollectionsService.addCollection.mockReturnValueOnce(throwError(() => new Error('Failed'))).mockReturnValueOnce(of({ collectionId: 2 }));
-      component.selectedBulkImports = [
+      component.selectedBulkImports.set([
         { collectionName: 'A', description: '', collectionType: 'STIG Manager', originCollectionId: 1 },
         { collectionName: 'B', description: '', collectionType: 'STIG Manager', originCollectionId: 2 }
-      ];
+      ]);
       component.executeBulkImport();
 
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('A') }));
@@ -1520,7 +1522,7 @@ describe('CollectionProcessingComponent', () => {
         manualCreationAllowed: false
       });
 
-      const ids = component.originCollectionOptions.map((o) => o.value);
+      const ids = component.originCollectionOptions().map((o) => o.value);
 
       expect(ids).toContain(200);
       expect(ids).toContain(300);
@@ -1574,7 +1576,7 @@ describe('CollectionProcessingComponent', () => {
         manualCreationAllowed: false
       });
 
-      const ids = component.originCollectionOptions.map((o) => o.value);
+      const ids = component.originCollectionOptions().map((o) => o.value);
 
       expect(ids).not.toContain(10);
       expect(ids).toContain(20);

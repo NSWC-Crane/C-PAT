@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { updateSurfacePalette } from '@primeuix/themes';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -16,7 +16,6 @@ import { CardModule } from 'primeng/card';
 import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DividerModule } from 'primeng/divider';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { ImageModule } from 'primeng/image';
 import { ToastModule } from 'primeng/toast';
 import { filter, forkJoin, switchMap, take } from 'rxjs';
@@ -40,7 +39,7 @@ interface Theme {
   templateUrl: './marketplace.component.html',
   styleUrls: ['./marketplace.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, CardModule, ChipModule, ConfirmDialogModule, DividerModule, ToastModule, ImageModule],
   providers: [ConfirmationService, MessageService]
 })
@@ -52,14 +51,23 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   private readonly configService = inject(AppConfigService);
   private readonly payloadService = inject(PayloadService);
 
-  userPoints = 0;
-  themes: Theme[] = [];
-  purchasedThemes: Theme[] = [];
-  user: any;
-  selectedTheme: Theme | null = null;
-  themeImageUrls: { [themeId: number]: string } = {};
+  readonly userPoints = signal(0);
+  readonly themes = signal<Theme[]>([]);
+  readonly purchasedThemes = signal<Theme[]>([]);
+  readonly user = signal<any>(undefined);
+  readonly themeImageUrls = computed(() => {
+    const imageUrls: { [themeId: number]: string } = {};
+
+    this.themes().forEach((theme) => {
+      imageUrls[theme.themeId] = this.getThemeImage(theme.themeId);
+    });
+    this.purchasedThemes().forEach((theme) => {
+      imageUrls[theme.themeId] = this.getThemeImage(theme.themeId);
+    });
+
+    return imageUrls;
+  });
   private readonly subs = new SubSink();
-  dialogRef: DynamicDialogRef | undefined;
 
   surfaces = [
     {
@@ -239,7 +247,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response: any) => {
           if (response?.userId) {
-            this.user = response;
+            this.user.set(response);
             this.loadUserPoints();
             this.loadThemes();
           }
@@ -257,7 +265,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   loadUserPoints() {
     this.subs.sink = this.marketplaceService.getUserPoints().subscribe({
       next: (response: any) => {
-        this.userPoints = response.points;
+        this.userPoints.set(response.points);
       },
       error: (error: Error) => {
         this.messageService.add({
@@ -272,9 +280,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   loadThemes() {
     this.subs.sink = forkJoin([this.marketplaceService.getThemes(), this.marketplaceService.getUserThemes()]).subscribe({
       next: ([allThemes, purchasedThemes]: [Theme[], Theme[]]) => {
-        this.themes = allThemes.filter((theme) => !purchasedThemes.find((p) => p.themeId === theme.themeId));
-        this.purchasedThemes = purchasedThemes;
-        this.updateThemeImageUrls();
+        this.themes.set(allThemes.filter((theme) => !purchasedThemes.find((p) => p.themeId === theme.themeId)));
+        this.purchasedThemes.set(purchasedThemes);
       },
       error: (error: Error) => {
         this.messageService.add({
@@ -286,17 +293,8 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateThemeImageUrls() {
-    this.themes.forEach((theme) => {
-      this.themeImageUrls[theme.themeId] = this.getThemeImage(theme.themeId);
-    });
-    this.purchasedThemes.forEach((theme) => {
-      this.themeImageUrls[theme.themeId] = this.getThemeImage(theme.themeId);
-    });
-  }
-
   purchaseTheme(theme: Theme) {
-    if (this.userPoints >= theme.cost) {
+    if (this.userPoints() >= theme.cost) {
       this.confirmationService.confirm({
         message: `Are you sure you want to purchase ${theme.themeName} for ${theme.cost} points?`,
         icon: 'pi pi-exclamation-triangle',
@@ -305,9 +303,9 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         acceptButtonStyleClass: 'p-button-outlined p-button-primary',
         rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
         accept: () => {
-          this.subs.sink = this.marketplaceService.purchaseTheme(this.user.userId, theme.themeId).subscribe({
+          this.subs.sink = this.marketplaceService.purchaseTheme(this.user().userId, theme.themeId).subscribe({
             next: () => {
-              this.userPoints -= theme.cost;
+              this.userPoints.update((points) => points - theme.cost);
               this.loadThemes();
               this.setTheme(theme.themeIdentifier);
               this.messageService.add({
@@ -402,10 +400,6 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.dialogRef) {
-      this.dialogRef.close();
-    }
-
     this.subs.unsubscribe();
   }
 }

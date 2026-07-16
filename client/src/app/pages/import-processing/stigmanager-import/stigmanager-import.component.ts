@@ -10,7 +10,8 @@
 
 import { NgClass, DatePipe, DecimalPipe } from '@angular/common';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, signal, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal, inject, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -27,7 +28,7 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { filter, Subscription, take } from 'rxjs';
+import { filter, take } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
@@ -35,6 +36,7 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
 import { STIGManagerControlsTableComponent } from './stigManagerControlsTable/stigManagerControlsTable.component';
+import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
 
 interface STIGManagerFinding {
   groupId: string;
@@ -55,7 +57,7 @@ interface STIGManagerFinding {
   templateUrl: './stigmanager-import.component.html',
   styleUrls: ['./stigmanager-import.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ButtonModule,
     CardModule,
@@ -71,6 +73,7 @@ interface STIGManagerFinding {
     STIGManagerReviewsTableComponent,
     InputIconModule,
     IconFieldModule,
+    MultiSelectDirective,
     ProgressBarModule,
     TagModule,
     TourPrimeNg,
@@ -79,13 +82,14 @@ interface STIGManagerFinding {
     NgClass
   ]
 })
-export class STIGManagerImportComponent implements OnInit, OnDestroy {
+export class STIGManagerImportComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly collectionsService = inject(CollectionsService);
   private readonly sharedService = inject(SharedService);
   private readonly payloadService = inject(PayloadService);
   private readonly messageService = inject(MessageService);
   private readonly poamService = inject(PoamService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly findingsTable = viewChild.required<Table>('stigFindingsTable');
   private readonly benchmarksTable = viewChild.required<Table>('stigBenchmarksTable');
@@ -133,18 +137,17 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     { field: 'assetCount', header: 'Asset Count', width: '15%', filterType: 'numeric' }
   ];
   private dataSource: STIGManagerFinding[] = [];
-  public displayDataSource: STIGManagerFinding[] = [];
+  readonly displayDataSource = signal<STIGManagerFinding[]>([]);
   public existingPoams: any[] = [];
-  loadingTableInfo: boolean = true;
+  readonly loadingTableInfo = signal<boolean>(true);
   loadingSkeletonData: any[] = new Array(15).fill({});
   multiSortMeta: any[] = [];
-  selectedCollection: any;
-  stigmanCollection: any;
+  readonly selectedCollection = signal<any>(null);
+  readonly stigmanCollection = signal<any>(null);
   user: any;
-  benchmarkSummaries: any[] = [];
+  readonly benchmarkSummaries = signal<any[]>([]);
   selectedBenchmark: any = null;
   viewMode: 'summary' | 'findings' = 'summary';
-  private readonly subscriptions = new Subscription();
   benchmarksCount = signal(0);
   findingsCount = signal(0);
   reviewsCount = signal(0);
@@ -172,11 +175,9 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
-      })
-    );
+    this.sharedService.selectedCollection.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((collectionId) => {
+      this.selectedCollection.set(collectionId);
+    });
     this.initializeComponent();
   }
 
@@ -184,7 +185,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
     this.payloadService.user$
       .pipe(
         filter((user) => user !== null),
-        take(1)
+        take(1),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (user) => {
@@ -225,102 +227,108 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   validateStigManagerCollection() {
-    this.collectionsService.getCollectionBasicList().subscribe({
-      next: (basicListData) => {
-        const selectedCollection = basicListData?.find((collection) => +collection.collectionId === +this.user.lastCollectionAccessedId);
+    this.collectionsService
+      .getCollectionBasicList()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (basicListData) => {
+          const selectedCollection = basicListData?.find((collection) => +collection.collectionId === +this.user.lastCollectionAccessedId);
 
-        if (!selectedCollection) {
-          this.showWarn('Unable to find the selected collection. Please try again.');
+          if (!selectedCollection) {
+            this.showWarn('Unable to find the selected collection. Please try again.');
 
-          return;
+            return;
+          }
+
+          if (selectedCollection.collectionType !== 'STIG Manager') {
+            this.showWarn('The current collection is not associated with STIG Manager.');
+
+            return;
+          }
+
+          this.stigmanCollection.set({
+            collectionId: selectedCollection.originCollectionId,
+            name: selectedCollection.collectionName
+          });
+
+          if (!this.stigmanCollection().collectionId) {
+            this.showWarn('Unable to determine the matching STIG Manager collection ID. Please try again.');
+
+            return;
+          }
+
+          this.loadBenchmarkSummaries(this.stigmanCollection().collectionId);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to validate STIG Manager collection: ${getErrorMessage(error)}`
+          });
         }
-
-        if (selectedCollection.collectionType !== 'STIG Manager') {
-          this.showWarn('The current collection is not associated with STIG Manager.');
-
-          return;
-        }
-
-        this.stigmanCollection = {
-          collectionId: selectedCollection.originCollectionId,
-          name: selectedCollection.collectionName
-        };
-
-        if (!this.stigmanCollection.collectionId) {
-          this.showWarn('Unable to determine the matching STIG Manager collection ID. Please try again.');
-
-          return;
-        }
-
-        this.loadBenchmarkSummaries(this.stigmanCollection.collectionId);
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to validate STIG Manager collection: ${getErrorMessage(error)}`
-        });
-      }
-    });
+      });
   }
 
   private loadBenchmarkSummaries(stigmanCollectionId: number) {
-    this.loadingTableInfo = true;
-    this.sharedService.getCollectionSTIGSummaryFromSTIGMAN(stigmanCollectionId).subscribe({
-      next: (data) => {
-        if (!data || data.length === 0) {
-          this.showWarn('No benchmark summaries found.');
-          this.loadingTableInfo = false;
+    this.loadingTableInfo.set(true);
+    this.sharedService
+      .getCollectionSTIGSummaryFromSTIGMAN(stigmanCollectionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          if (!data || data.length === 0) {
+            this.showWarn('No benchmark summaries found.');
+            this.loadingTableInfo.set(false);
 
-          return;
+            return;
+          }
+
+          this.benchmarkSummaries.set(this.processBenchmarkData(data));
+          this.benchmarksCount.set(this.benchmarkSummaries().length);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch benchmark summaries: ${getErrorMessage(error)}`
+          });
+        },
+        complete: () => {
+          this.loadingTableInfo.set(false);
         }
-
-        this.benchmarkSummaries = this.processBenchmarkData(data);
-        this.benchmarksCount.set(this.benchmarkSummaries.length);
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to fetch benchmark summaries: ${getErrorMessage(error)}`
-        });
-      },
-      complete: () => {
-        this.loadingTableInfo = false;
-      }
-    });
+      });
   }
 
   selectBenchmark(benchmark: any) {
     this.selectedBenchmark = benchmark;
     this.viewMode = 'findings';
-    this.getSTIGMANFindings(this.stigmanCollection.collectionId, benchmark.benchmarkId);
+    this.getSTIGMANFindings(this.stigmanCollection().collectionId, benchmark.benchmarkId);
   }
 
   getAllFindings() {
     this.viewMode = 'findings';
-    this.getSTIGMANFindings(this.stigmanCollection.collectionId);
+    this.getSTIGMANFindings(this.stigmanCollection().collectionId);
   }
 
   backToBenchmarkSummary() {
     this.viewMode = 'summary';
     this.selectedBenchmark = null;
     this.dataSource = [];
-    this.displayDataSource = [];
+    this.displayDataSource.set([]);
     this.findingsCount.set(0);
-    this.benchmarksCount.set(this.benchmarkSummaries.length);
+    this.benchmarksCount.set(this.benchmarkSummaries().length);
   }
 
   getSTIGMANFindings(stigmanCollectionId: number, benchmarkId?: string) {
-    this.loadingTableInfo = true;
+    this.loadingTableInfo.set(true);
 
     const apiCall = benchmarkId ? this.sharedService.getFindingsByBenchmarkFromSTIGMAN(stigmanCollectionId, benchmarkId) : this.sharedService.getFindingsFromSTIGMAN(stigmanCollectionId);
 
-    apiCall.subscribe({
+    apiCall.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         if (!data || data.length === 0) {
           this.showWarn('No affected assets found' + (benchmarkId ? ' for this benchmark.' : '.'));
-          this.loadingTableInfo = false;
+          this.loadingTableInfo.set(false);
 
           return;
         }
@@ -335,8 +343,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
           hasExistingPoam: false
         }));
 
-        this.displayDataSource = [...this.dataSource];
-        this.findingsCount.set(this.displayDataSource.length);
+        this.displayDataSource.set([...this.dataSource]);
+        this.findingsCount.set(this.displayDataSource().length);
         this.filterFindings();
       },
       error: (error) => {
@@ -347,7 +355,7 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
         });
       },
       complete: () => {
-        this.loadingTableInfo = false;
+        this.loadingTableInfo.set(false);
       }
     });
   }
@@ -370,19 +378,22 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
   }
 
   filterFindings() {
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(this.selectedCollection).subscribe({
-      next: (response: any) => {
-        this.existingPoams = response;
-        this.updateExistingPoams();
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching existing POAMs: ${getErrorMessage(error)}`
-        });
-      }
-    });
+    this.poamService
+      .getVulnerabilityIdsWithPoamByCollection(this.selectedCollection())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          this.existingPoams = response;
+          this.updateExistingPoams();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching existing POAMs: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   private updateExistingPoams() {
@@ -402,8 +413,8 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.displayDataSource = [...this.dataSource];
-    this.findingsCount.set(this.displayDataSource.length);
+    this.displayDataSource.set([...this.dataSource]);
+    this.findingsCount.set(this.displayDataSource().length);
   }
 
   getPoamStatusColor(status: string, parentStatus?: string): string {
@@ -473,21 +484,24 @@ export class STIGManagerImportComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId).subscribe({
-      next: (ruleData: any) => {
-        const ruleDataString = this.formatRuleData(ruleData);
-        const descriptionString = this.formatDescription(ruleData);
+    this.sharedService
+      .getRuleDataFromSTIGMAN(rowData.ruleId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (ruleData: any) => {
+          const ruleDataString = this.formatRuleData(ruleData);
+          const descriptionString = this.formatDescription(ruleData);
 
-        this.navigateToPoam(rowData, ruleDataString, descriptionString);
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching rule data: ${getErrorMessage(error)}`
-        });
-      }
-    });
+          this.navigateToPoam(rowData, ruleDataString, descriptionString);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching rule data: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   private formatRuleData(ruleData: any): string {
@@ -539,7 +553,7 @@ ${ruleData.detail.vulnDiscussion}`;
       if (findingsTable.filteredValue) {
         this.findingsCount.set(findingsTable.filteredValue.length);
       } else {
-        this.findingsCount.set(this.displayDataSource.length);
+        this.findingsCount.set(this.displayDataSource().length);
       }
     }
   }
@@ -551,7 +565,7 @@ ${ruleData.detail.vulnDiscussion}`;
       if (benchmarksTable.filteredValue) {
         this.benchmarksCount.set(benchmarksTable.filteredValue.length);
       } else {
-        this.benchmarksCount.set(this.benchmarkSummaries.length);
+        this.benchmarksCount.set(this.benchmarkSummaries().length);
       }
     }
   }
@@ -600,9 +614,5 @@ ${ruleData.detail.vulnDiscussion}`;
       summary: 'Error',
       detail: message
     });
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
   }
 }

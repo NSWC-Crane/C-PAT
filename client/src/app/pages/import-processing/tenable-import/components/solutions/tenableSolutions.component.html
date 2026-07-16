@@ -28,12 +28,12 @@
       <div class="scrollable-solutions">
         <p-table
           #dt
-          [value]="solutions"
+          [value]="solutions()"
           [columns]="cols"
           [paginator]="true"
           [rows]="100"
           [rowsPerPageOptions]="[25, 50, 100]"
-          [loading]="loadingSolutions"
+          [loading]="loadingSolutions()"
           [showCurrentPageReport]="true"
           [globalFilterFields]="['solution', 'scorePctg', 'hostTotal', 'total', 'vprScore', 'cvssV3BaseScore']"
           [filterDelay]="300"
@@ -123,7 +123,7 @@
           <div class="col-span-6">
             <i class="solutions-icon-desktop"></i>
             <div>
-              <h5>{{ solutions[0].hostTotal }}</h5>
+              <h5>{{ solutions()[0].hostTotal }}</h5>
             </div>
             <div style="width: 100%; opacity: 0.85"><span>HOSTS AFFECTED</span></div>
           </div>
@@ -131,7 +131,7 @@
           <div class="col-span-6">
             <i class="solutions-icon-vulnerabilities"></i>
             <div>
-              <h5>{{ solutions[0].total }}</h5>
+              <h5>{{ solutions()[0].total }}</h5>
             </div>
             <div style="width: 100%; opacity: 0.85"><span>VULNERABILITIES</span></div>
           </div>
@@ -141,7 +141,7 @@
           <div class="col-span-6">
             <i class="solutions-icon-sheild-vpr-high"></i>
             <div>
-              <h5>{{ solutions[0].vprScore }}</h5>
+              <h5>{{ solutions()[0].vprScore }}</h5>
             </div>
             <div style="width: 100%; opacity: 0.85">
               <span>VULNERABILITY PRIORITY RATING (VPR)</span>
@@ -151,15 +151,15 @@
           <div class="col-span-6">
             <i class="solutions-icon-vulnerabilities"></i>
             <div>
-              <h5>{{ solutions[0].cvssV3BaseScore }}</h5>
+              <h5>{{ solutions()[0].cvssV3BaseScore }}</h5>
             </div>
             <div style="width: 100%; opacity: 0.85"><span>CVSS V3</span></div>
           </div>
         </div>
-        @if (solutionVulnDetails.length > 0) {
+        @if (solutionVulnDetails().length > 0) {
           <div style="margin: 1rem 0 0.75rem">
             <span>
-              <b>Vulnerabilities Included ({{ solutionVulnDetails.length }})</b>
+              <b>Vulnerabilities Included ({{ solutionVulnDetails().length }})</b>
             </span>
           </div>
         }
@@ -168,10 +168,10 @@
             <div class="scrollable-solutionVulnDetails">
               <p-table
                 #vulnDetailsTable
-                [value]="solutionVulnDetails"
+                [value]="solutionVulnDetails()"
                 [paginator]="true"
                 [rows]="10"
-                [loading]="loadingVulnDetails"
+                [loading]="loadingVulnDetails()"
                 [showCurrentPageReport]="true"
                 [globalFilterFields]="['pluginID', 'vprScore', 'cvssV3BaseScore', 'hostTotal']"
                 [filterDelay]="0"
@@ -245,10 +245,10 @@
           <div class="scrollable-affectedHosts">
             <p-table
               #dialogTable
-              [value]="affectedHosts"
+              [value]="affectedHosts()"
               [paginator]="true"
               [rows]="10"
-              [loading]="loadingAffectedHosts"
+              [loading]="loadingAffectedHosts()"
               [showCurrentPageReport]="true"
               [globalFilterFields]="['ip', 'netbiosName', 'dnsName', 'osCPE', 'repository']"
               [filterDelay]="0"

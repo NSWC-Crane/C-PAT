@@ -74,28 +74,34 @@ describe('AuthService', () => {
   });
 
   describe('Initial State', () => {
-    it('should have null user initially', () =>
+    it('should have null user initially', () => {
+      expect(service.user()).toBeNull();
+    });
+
+    it('should have access level 0 initially', () => {
+      expect(service.accessLevel()).toBe(0);
+    });
+
+    it('should have both auth states false initially', () => {
+      expect(service.authState().isAuthenticatedStigman).toBe(false);
+      expect(service.authState().isAuthenticatedCpat).toBe(false);
+    });
+  });
+
+  describe('Observable bridges', () => {
+    it('user$/accessLevel$/authState$ mirror the underlying signals', () =>
       new Promise<void>((resolve) => {
         service.user$.pipe(take(1)).subscribe((user) => {
-          expect(user).toBeNull();
-          resolve();
-        });
-      }));
+          expect(user).toBe(service.user());
 
-    it('should have access level 0 initially', () =>
-      new Promise<void>((resolve) => {
-        service.accessLevel$.pipe(take(1)).subscribe((level) => {
-          expect(level).toBe(0);
-          resolve();
-        });
-      }));
+          service.accessLevel$.pipe(take(1)).subscribe((level) => {
+            expect(level).toBe(service.accessLevel());
 
-    it('should have both auth states false initially', () =>
-      new Promise<void>((resolve) => {
-        service.authState$.pipe(take(1)).subscribe((state) => {
-          expect(state.isAuthenticatedStigman).toBe(false);
-          expect(state.isAuthenticatedCpat).toBe(false);
-          resolve();
+            service.authState$.pipe(take(1)).subscribe((state) => {
+              expect(state).toEqual(service.authState());
+              resolve();
+            });
+          });
         });
       }));
   });
@@ -209,36 +215,24 @@ describe('AuthService', () => {
       });
     });
 
-    it('should reset auth state after logout', () =>
-      new Promise<void>((resolve) => {
-        service.logout().subscribe(() => {
-          service.authState$.pipe(take(1)).subscribe((state) => {
-            expect(state.isAuthenticatedStigman).toBe(false);
-            expect(state.isAuthenticatedCpat).toBe(false);
-            resolve();
-          });
-        });
-      }));
+    it('should reset auth state after logout', () => {
+      service.logout().subscribe(() => {
+        expect(service.authState().isAuthenticatedStigman).toBe(false);
+        expect(service.authState().isAuthenticatedCpat).toBe(false);
+      });
+    });
 
-    it('should reset user to null after logout', () =>
-      new Promise<void>((resolve) => {
-        service.logout().subscribe(() => {
-          service.user$.pipe(take(1)).subscribe((user) => {
-            expect(user).toBeNull();
-            resolve();
-          });
-        });
-      }));
+    it('should reset user to null after logout', () => {
+      service.logout().subscribe(() => {
+        expect(service.user()).toBeNull();
+      });
+    });
 
-    it('should reset access level to 0 after logout', () =>
-      new Promise<void>((resolve) => {
-        service.logout().subscribe(() => {
-          service.accessLevel$.pipe(take(1)).subscribe((level) => {
-            expect(level).toBe(0);
-            resolve();
-          });
-        });
-      }));
+    it('should reset access level to 0 after logout', () => {
+      service.logout().subscribe(() => {
+        expect(service.accessLevel()).toBe(0);
+      });
+    });
 
     it('should handle logout errors gracefully', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -422,12 +416,10 @@ describe('AuthService', () => {
         service = createService();
 
         setTimeout(() => {
-          service.authState$.pipe(take(1)).subscribe((state) => {
-            expect(state.isAuthenticatedStigman).toBe(false);
-            expect(state.isAuthenticatedCpat).toBe(false);
-            consoleSpy.mockRestore();
-            resolve();
-          });
+          expect(service.authState().isAuthenticatedStigman).toBe(false);
+          expect(service.authState().isAuthenticatedCpat).toBe(false);
+          consoleSpy.mockRestore();
+          resolve();
         }, 10);
       }));
   });

@@ -76,7 +76,7 @@ describe('AppConfigurationComponent', () => {
     });
 
     it('should default appConfiguration to empty array', () => {
-      expect(component.appConfiguration).toEqual([]);
+      expect(component.appConfiguration()).toEqual([]);
     });
 
     it('should default editingAppConfiguration to null', () => {
@@ -92,20 +92,20 @@ describe('AppConfigurationComponent', () => {
 
     it('should populate appConfiguration after init', () => {
       component.ngOnInit();
-      expect(component.appConfiguration).toEqual(mockConfigs);
+      expect(component.appConfiguration()).toEqual(mockConfigs);
     });
   });
 
   describe('loadAppConfiguration', () => {
     it('should set appConfiguration on success', () => {
       component.loadAppConfiguration();
-      expect(component.appConfiguration).toEqual(mockConfigs);
+      expect(component.appConfiguration()).toEqual(mockConfigs);
     });
 
     it('should set appConfiguration to empty array when response is null', () => {
       mockAppConfigurationService.getAppConfiguration.mockReturnValue(of(null));
       component.loadAppConfiguration();
-      expect(component.appConfiguration).toEqual([]);
+      expect(component.appConfiguration()).toEqual([]);
     });
 
     it('should show error message on failure', () => {
@@ -163,14 +163,14 @@ describe('AppConfigurationComponent', () => {
   describe('onRowEditCancel', () => {
     it('should restore original config at the given index', () => {
       component.editingAppConfiguration = { settingName: 'setting.one', settingValue: 'original' };
-      component.appConfiguration = [{ settingName: 'setting.one', settingValue: 'modified' }, ...mockConfigs.slice(1)];
+      component.appConfiguration.set([{ settingName: 'setting.one', settingValue: 'modified' }, ...mockConfigs.slice(1)]);
       component.onRowEditCancel(0);
-      expect(component.appConfiguration[0].settingValue).toBe('original');
+      expect(component.appConfiguration()[0].settingValue).toBe('original');
     });
 
     it('should clear editingAppConfiguration after cancel', () => {
       component.editingAppConfiguration = { settingName: 'setting.one', settingValue: 'original' };
-      component.appConfiguration = [...mockConfigs];
+      component.appConfiguration.set([...mockConfigs]);
       component.onRowEditCancel(0);
       expect(component.editingAppConfiguration).toBeNull();
     });

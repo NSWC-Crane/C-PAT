@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnInit, inject, output, signal, OnDestroy, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -21,7 +22,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../import.service';
 import { TenableFilter } from '../../../../../common/models/tenable.model';
-import { Subscription } from 'rxjs';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
 
 interface FilterOption {
@@ -38,13 +38,14 @@ interface FilterOption {
   templateUrl: './tenableFilters.component.html',
   styleUrls: ['./tenableFilters.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, AutoCompleteModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, ToastModule, TooltipModule]
 })
-export class TenableFiltersComponent implements OnInit, OnDestroy {
+export class TenableFiltersComponent implements OnInit {
   private readonly importService = inject(ImportService);
   private readonly messageService = inject(MessageService);
   private readonly setPayloadService = inject(PayloadService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly collectionId = input<number>(0);
   readonly activeFilters = input<any[]>([]);
@@ -52,8 +53,13 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
 
   readonly filterSaved = output<void>();
 
-  saveFilterDialog: boolean = false;
-  selectedFilter: FilterOption | string = '';
+  readonly saveFilterDialog = signal<boolean>(false);
+  readonly selectedFilter = signal<FilterOption | string>('');
+  readonly saveDisabled = computed(() => {
+    const selected = this.selectedFilter();
+
+    return !selected || (typeof selected === 'string' && !selected.trim());
+  });
   currentFilter: string = '';
   existingFilters: FilterOption[] = [];
   filteredFilters: FilterOption[] = [];
@@ -62,24 +68,15 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
   canUpdate: boolean = false;
   accessLevel = signal<number>(0);
   currentUser: any;
-  private readonly subscriptions = new Subscription();
 
   ngOnInit() {
-    this.subscriptions.add(
-      this.setPayloadService.accessLevel$.subscribe(async (level) => {
-        this.accessLevel.set(level);
-      })
-    );
+    this.setPayloadService.accessLevel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((level) => {
+      this.accessLevel.set(level);
+    });
 
-    this.subscriptions.add(
-      this.setPayloadService.user$.subscribe((user) => {
-        this.currentUser = user;
-      })
-    );
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
+    this.setPayloadService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
+      this.currentUser = user;
+    });
   }
 
   showSaveFilterDialog() {
@@ -92,12 +89,12 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
     };
 
     this.currentFilter = JSON.stringify(filterToSave, null, 2);
-    this.selectedFilter = '';
+    this.selectedFilter.set('');
     this.selectedFilterId = null;
     this.isUpdating = false;
     this.canUpdate = false;
     this.loadExistingFilters();
-    this.saveFilterDialog = true;
+    this.saveFilterDialog.set(true);
   }
 
   loadExistingFilters() {
@@ -139,7 +136,7 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
     if (event?.value && typeof event.value === 'object' && event.value.filterId) {
       if (event.value.disabled) {
         setTimeout(() => {
-          this.selectedFilter = '';
+          this.selectedFilter.set('');
         }, 0);
 
         this.messageService.add({
@@ -174,7 +171,8 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
   }
 
   saveCustomFilter() {
-    const filterName = typeof this.selectedFilter === 'string' ? this.selectedFilter : this.selectedFilter.label;
+    const selected = this.selectedFilter();
+    const filterName = typeof selected === 'string' ? selected : selected.label;
     const filterNameStr = String(filterName);
 
     if (!filterNameStr.trim()) {
@@ -228,7 +226,7 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
             summary: 'Success',
             detail: 'Filter updated successfully'
           });
-          this.saveFilterDialog = false;
+          this.saveFilterDialog.set(false);
           this.filterSaved.emit();
         },
         error: (error) => {
@@ -247,7 +245,7 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
             summary: 'Success',
             detail: 'Filter saved successfully'
           });
-          this.saveFilterDialog = false;
+          this.saveFilterDialog.set(false);
           this.filterSaved.emit();
         },
         error: (error) => {
@@ -262,8 +260,8 @@ export class TenableFiltersComponent implements OnInit, OnDestroy {
   }
 
   cancelSaveFilter() {
-    this.saveFilterDialog = false;
-    this.selectedFilter = '';
+    this.saveFilterDialog.set(false);
+    this.selectedFilter.set('');
     this.currentFilter = '';
     this.selectedFilterId = null;
     this.isUpdating = false;

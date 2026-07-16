@@ -11,8 +11,6 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { Classification } from './common/models/classification.model';
-import { SharedService } from './common/services/shared.service';
 import { AuthService } from './core/auth/services/auth.service';
 import { InactivityService } from './core/auth/services/inactivity.service';
 import { InactivityWarningComponent } from './common/components/inactivity-warning/inactivity-warning.component';
@@ -26,10 +24,8 @@ import { InactivityWarningComponent } from './common/components/inactivity-warni
 })
 export class AppComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
-  private readonly sharedService = inject(SharedService);
   private readonly inactivityService = inject(InactivityService);
 
-  classification: Classification | undefined;
   private authSubscription: Subscription | undefined;
 
   public ngOnInit() {
@@ -57,21 +53,6 @@ export class AppComponent implements OnInit, OnDestroy {
       if (this.inactivityService.shouldMonitor()) {
         this.inactivityService.startMonitoring();
       }
-
-      this.sharedService.getApiConfig().subscribe({
-        next: (apiConfig) => {
-          if (apiConfig && typeof apiConfig === 'object' && 'classification' in apiConfig) {
-            const apiClassification = (apiConfig as { classification: string }).classification;
-
-            this.classification = new Classification(apiClassification);
-          } else {
-            console.error('Invalid API configuration response');
-          }
-        },
-        error: (error) => {
-          console.error('Failed to fetch API config:', error);
-        }
-      });
     } catch (error) {
       console.error('Auth state handling error:', error);
     }

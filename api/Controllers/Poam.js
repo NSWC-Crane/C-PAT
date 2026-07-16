@@ -113,6 +113,8 @@ module.exports.postPoam = async function postPoam(req, res, next) {
         const poam = await poamService.postPoam(req, res, next);
         if (poam.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: poam.errors });
+        } else if (poam.status === 409) {
+            res.status(409).json({ error: 'Duplicate POAM', detail: poam.errors.vulnerabilityId });
         } else if (poam.error) {
             res.status(500).json({ error: 'Internal Server Error', detail: poam.error });
         } else {
@@ -128,8 +130,12 @@ module.exports.putPoam = async function putPoam(req, res, next) {
         const poam = await poamService.putPoam(req, res, next);
         if (poam.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: JSON.stringify(poam.errors) });
-        } else if (!poam) {
-            res.status(500).json({ error: 'Internal Server Error', detail: 'Failed to update POAM' });
+        } else if (poam.status === 404) {
+            res.status(404).json({ error: 'Not Found', detail: poam.errors.poamId });
+        } else if (poam.status === 409) {
+            res.status(409).json({ error: 'Duplicate POAM', detail: poam.errors.vulnerabilityId });
+        } else if (!poam || poam.error) {
+            res.status(500).json({ error: 'Internal Server Error', detail: poam?.error || 'Failed to update POAM' });
         } else {
             res.status(200).json(poam);
         }

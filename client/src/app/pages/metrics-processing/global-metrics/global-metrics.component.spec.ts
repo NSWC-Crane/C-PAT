@@ -250,10 +250,10 @@ describe('GlobalMetricsComponent', () => {
 
     const stale = new Date(2000, 0, 1);
 
-    component.now = stale;
+    component.now.set(stale);
     component.onSelectionChange([stigCollection]);
 
-    expect(component.now.getTime()).toBeGreaterThan(stale.getTime());
+    expect(component.now().getTime()).toBeGreaterThan(stale.getTime());
   });
 
   it('builds a compliance ring per CAT with both source percentages and a tooltip naming both', () => {

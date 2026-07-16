@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, viewChild, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { MessageService } from 'primeng/api';
@@ -21,10 +22,10 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription } from 'rxjs';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../import.service';
 import { TenableHostDialogComponent } from '../tenableHostDialog/tenableHostDialog.component';
+import { MultiSelectDirective } from '../../../../../common/directives/multi-select.directive';
 
 interface ExportColumn {
   title: string;
@@ -36,12 +37,13 @@ interface ExportColumn {
   templateUrl: './tenableHostAssetsTable.component.html',
   styleUrls: ['./tenableHostAssetsTable.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, SelectModule, ToastModule, TooltipModule, TagModule, TenableHostDialogComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, ToastModule, TooltipModule, TagModule, TenableHostDialogComponent]
 })
-export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
+export class TenableHostAssetsTableComponent implements OnInit {
   private readonly importService = inject(ImportService);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly tenableRepoId = input<number>(undefined);
   private readonly hostAssetTable = viewChild.required<Table>('hostAssetTable');
@@ -50,13 +52,12 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
   cols: any[];
   exportColumns!: ExportColumn[];
   selectedColumns: any[];
-  affectedAssets: any[] = [];
-  isLoading: boolean = true;
-  totalRecords: number = 0;
+  readonly affectedAssets = signal<any[]>([]);
+  readonly isLoading = signal<boolean>(true);
+  readonly totalRecords = signal<number>(0);
   filterValue: string = '';
   selectedHost = signal<any>(null);
   displayDialog = signal<boolean>(false);
-  private readonly subscriptions = new Subscription();
 
   ngOnInit() {
     this.initColumnsAndFilters();
@@ -92,7 +93,7 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
 
     if (!tenableRepoId) return;
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     const hostParams = {
       filters: {
         and: [
@@ -115,53 +116,58 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
       }
     };
 
-    this.importService.postTenableHostSearch(hostParams).subscribe({
-      next: (data) => {
-        this.affectedAssets = data.response.map((asset: any) => {
-          const formattedSystemType = asset.systemType
-            ? asset.systemType
-                .split(',')
-                .map((type: string) =>
-                  type
-                    .trim()
-                    .replace(/_/g, ' ')
-                    .replace(/\b\w/g, (char: string) => char.toUpperCase())
-                )
-                .join(', ')
-            : '';
+    this.importService
+      .postTenableHostSearch(hostParams)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.affectedAssets.set(
+            data.response.map((asset: any) => {
+              const formattedSystemType = asset.systemType
+                ? asset.systemType
+                    .split(',')
+                    .map((type: string) =>
+                      type
+                        .trim()
+                        .replace(/_/g, ' ')
+                        .replace(/\b\w/g, (char: string) => char.toUpperCase())
+                    )
+                    .join(', ')
+                : '';
 
-          return {
-            ...asset,
-            id: asset.id || '',
-            name: asset.name || '',
-            os: asset.os || '',
-            macAddress: asset.macAddress || '',
-            netBios: asset.netBios || '',
-            dns: asset.dns || '',
-            ipAddress: asset.ipAddress || '',
-            uuid: asset.uuid || '',
-            source: asset.source?.[0]?.type || '',
-            acr: asset.acr?.score || '',
-            acrLastEvaluatedTime: this.formatTimestamp(asset.acr?.lastEvaluatedTime),
-            aes: asset.aes?.score || '',
-            lastSeen: this.formatTimestamp(asset.lastSeen),
-            firstSeen: this.formatTimestamp(asset.firstSeen),
-            systemType: formattedSystemType || ''
-          };
-        });
+              return {
+                ...asset,
+                id: asset.id || '',
+                name: asset.name || '',
+                os: asset.os || '',
+                macAddress: asset.macAddress || '',
+                netBios: asset.netBios || '',
+                dns: asset.dns || '',
+                ipAddress: asset.ipAddress || '',
+                uuid: asset.uuid || '',
+                source: asset.source?.[0]?.type || '',
+                acr: asset.acr?.score || '',
+                acrLastEvaluatedTime: this.formatTimestamp(asset.acr?.lastEvaluatedTime),
+                aes: asset.aes?.score || '',
+                lastSeen: this.formatTimestamp(asset.lastSeen),
+                firstSeen: this.formatTimestamp(asset.firstSeen),
+                systemType: formattedSystemType || ''
+              };
+            })
+          );
 
-        this.totalRecords = data.response.totalRecords;
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching host assets: ${getErrorMessage(error)}`
-        });
-        this.isLoading = false;
-      }
-    });
+          this.totalRecords.set(data.response.totalRecords);
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching host assets: ${getErrorMessage(error)}`
+          });
+          this.isLoading.set(false);
+        }
+      });
   }
 
   formatTimestamp(timestamp: number | string | undefined): string {
@@ -238,9 +244,5 @@ export class TenableHostAssetsTableComponent implements OnInit, OnDestroy {
     } else {
       columnSelect.show();
     }
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 }

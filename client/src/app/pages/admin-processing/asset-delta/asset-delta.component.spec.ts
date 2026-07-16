@@ -16,7 +16,7 @@ import { HttpResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { signal } from '@angular/core';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
@@ -179,8 +179,8 @@ describe('AssetDeltaComponent', () => {
 
     it('should initialize cols array in ngOnInit', () => {
       component.ngOnInit();
-      expect(component.cols).toBeDefined();
-      expect(component.cols.length).toBe(5);
+      expect(component.cols()).toBeDefined();
+      expect(component.cols().length).toBe(5);
     });
   });
 
@@ -480,7 +480,7 @@ describe('AssetDeltaComponent', () => {
         )
       );
       component.selectedUploadCollections.set([10, 20]);
-      component.availableCollections = [...mockCollections];
+      component.availableCollections.set([...mockCollections]);
       const file = new File(['content'], 'test.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
       component.customUploadHandler({ files: [file] });
@@ -489,7 +489,7 @@ describe('AssetDeltaComponent', () => {
 
     it('should show error message when all collections fail', () => {
       mockAssetDeltaService.uploadToMultipleCollections.mockReturnValue(of(new HttpResponse({ body: { results: [{ collectionId: 10, success: false, error: 'Failed' }] } })));
-      component.availableCollections = [...mockCollections];
+      component.availableCollections.set([...mockCollections]);
       const file = new File(['content'], 'test.csv', { type: 'text/csv' });
 
       component.customUploadHandler({ files: [file] });
@@ -653,7 +653,7 @@ describe('AssetDeltaComponent', () => {
   describe('loadCollections', () => {
     it('should populate availableCollections on success', () => {
       component.loadCollections();
-      expect(component.availableCollections.length).toBe(2);
+      expect(component.availableCollections().length).toBe(2);
     });
 
     it('should show error when getCollectionBasicList fails', () => {
@@ -663,12 +663,22 @@ describe('AssetDeltaComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should complete the destroy$ subject', () => {
-      const completeSpy = vi.spyOn((component as any).destroy$, 'complete');
+  describe('cleanup', () => {
+    it('should stop applying getCollectionBasicList results after the component is destroyed', () => {
+      const collectionsSubject = new Subject<typeof mockCollections>();
 
-      component.ngOnDestroy();
-      expect(completeSpy).toHaveBeenCalled();
+      mockCollectionsService.getCollectionBasicList.mockReturnValue(collectionsSubject.asObservable());
+
+      component.loadCollections();
+      fixture.destroy();
+
+      collectionsSubject.next([...mockCollections]);
+
+      expect(component.availableCollections()).toEqual([]);
+    });
+
+    it('should not throw when destroyed with no pending subscriptions', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

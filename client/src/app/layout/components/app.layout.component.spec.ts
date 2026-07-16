@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from 'vitest';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
@@ -51,14 +52,16 @@ describe('AppLayoutComponent', () => {
   });
 
   beforeEach(async () => {
-    authUserSubject = new BehaviorSubject<any>({
+    const initialAuthUser = {
       userId: 1,
       accountStatus: 'ACTIVE',
       lastCollectionAccessedId: 1,
       isAdmin: false,
       name: 'Test User',
       email: 'test@example.com'
-    });
+    };
+
+    authUserSubject = new BehaviorSubject<any>(initialAuthUser);
     accessLevelSubject = new BehaviorSubject<any>(2);
 
     mockUserService = {
@@ -68,6 +71,7 @@ describe('AppLayoutComponent', () => {
     mockAuthService = {
       user$: authUserSubject.asObservable(),
       accessLevel$: accessLevelSubject.asObservable(),
+      user: signal<any>(initialAuthUser),
       logout: vi.fn().mockReturnValue(of(true))
     };
 
@@ -149,31 +153,31 @@ describe('AppLayoutComponent', () => {
       expect(component.userMenu()).toEqual([]);
     });
 
-    it('should expose the current user from authService.user$', () => {
+    it('should expose the current user from the auth service', () => {
       expect(component.user()).toEqual(expect.objectContaining({ userId: 1 }));
     });
   });
 
   describe('tooltipContent', () => {
     it('should return user name and email when user is set', () => {
-      authUserSubject.next({ name: 'Test User', email: 'test@example.com' });
+      mockAuthService.user.set({ name: 'Test User', email: 'test@example.com' });
       expect(component.tooltipContent()).toContain('Test User');
       expect(component.tooltipContent()).toContain('test@example.com');
     });
 
     it('should return default name when user is null', () => {
-      authUserSubject.next(null);
+      mockAuthService.user.set(null);
       expect(component.tooltipContent()).toContain('C-PAT User');
     });
 
     it('should return default name when user has no name', () => {
-      authUserSubject.next({ email: 'test@example.com' });
+      mockAuthService.user.set({ email: 'test@example.com' });
       expect(component.tooltipContent()).toContain('C-PAT User');
     });
   });
 
   describe('ngOnInit', () => {
-    it('should set user from authService.user$', () => {
+    it('should expose user from the auth service', () => {
       fixture.detectChanges();
       expect(component.user()).toEqual(expect.objectContaining({ userId: 1 }));
     });
@@ -414,7 +418,7 @@ describe('AppLayoutComponent', () => {
 
   describe('setMenuItems', () => {
     beforeEach(() => {
-      authUserSubject.next({ userId: 1, isAdmin: false });
+      mockAuthService.user.set({ userId: 1, isAdmin: false });
       component.accessLevel = 2;
       component.collectionType.set('C-PAT');
       component.manualCreationAllowed.set(true);
@@ -428,7 +432,7 @@ describe('AppLayoutComponent', () => {
     });
 
     it('should include Admin Portal when user is admin', () => {
-      authUserSubject.next({ userId: 1, isAdmin: true });
+      mockAuthService.user.set({ userId: 1, isAdmin: true });
       (component as any).setMenuItems();
       const adminItem = component.items().find((i) => i.label === 'Admin Portal');
 
@@ -436,7 +440,7 @@ describe('AppLayoutComponent', () => {
     });
 
     it('should not include Admin Portal when user is not admin', () => {
-      authUserSubject.next({ userId: 1, isAdmin: false });
+      mockAuthService.user.set({ userId: 1, isAdmin: false });
       (component as any).setMenuItems();
       const adminItem = component.items().find((i) => i.label === 'Admin Portal');
 
@@ -672,18 +676,19 @@ describe('AppLayoutComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should complete destroy$ subject', () => {
+  describe('cleanup', () => {
+    it('should stop the init pipeline after the component is destroyed', () => {
       fixture.detectChanges();
+      mockCollectionsService.getCollections.mockClear();
 
-      const destroySubject = (component as any).destroy$ as Subject<void>;
-      const completeSpy = vi.spyOn(destroySubject, 'complete');
-      const nextSpy = vi.spyOn(destroySubject, 'next');
+      fixture.destroy();
+      authUserSubject.next({ userId: 99, lastCollectionAccessedId: 2 });
 
-      component.ngOnDestroy();
+      expect(mockCollectionsService.getCollections).not.toHaveBeenCalled();
+    });
 
-      expect(nextSpy).toHaveBeenCalled();
-      expect(completeSpy).toHaveBeenCalled();
+    it('should not throw when destroyed', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

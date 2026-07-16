@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -27,7 +27,7 @@ import { AAPackageService } from './aaPackage-processing.service';
   templateUrl: './aaPackage-processing.component.html',
   styleUrls: ['./aaPackage-processing.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule, TooltipModule]
 })
 export class AAPackageProcessingComponent implements OnInit {
@@ -36,7 +36,7 @@ export class AAPackageProcessingComponent implements OnInit {
 
   private readonly table = viewChild.required<Table>('dt');
 
-  aaPackages: AAPackage[] = [];
+  readonly aaPackages = signal<AAPackage[]>([]);
   newAAPackage: AAPackage = { aaPackageId: 0, aaPackage: '' };
   editingAAPackage: AAPackage | null = null;
 
@@ -47,7 +47,7 @@ export class AAPackageProcessingComponent implements OnInit {
   loadAAPackages() {
     this.aaPackageService.getAAPackages().subscribe({
       next: (response) => {
-        this.aaPackages = response || [];
+        this.aaPackages.set(response || []);
       },
       error: (error) => {
         this.messageService.add({
@@ -61,7 +61,7 @@ export class AAPackageProcessingComponent implements OnInit {
 
   onAddNewClick() {
     this.newAAPackage = { aaPackageId: 0, aaPackage: '' };
-    this.aaPackages = [this.newAAPackage, ...this.aaPackages];
+    this.aaPackages.update((current) => [this.newAAPackage, ...current]);
 
     const table = this.table();
 
@@ -70,7 +70,7 @@ export class AAPackageProcessingComponent implements OnInit {
     }
 
     setTimeout(() => {
-      this.table().initRowEdit(this.aaPackages[0]);
+      this.table().initRowEdit(this.aaPackages()[0]);
     });
   }
 
@@ -84,9 +84,7 @@ export class AAPackageProcessingComponent implements OnInit {
     operation.subscribe({
       next: (response) => {
         if (aaPackage.aaPackageId === 0) {
-          const index = this.aaPackages.findIndex((p) => p.aaPackageId === 0);
-
-          this.aaPackages[index] = response;
+          this.aaPackages.update((current) => current.map((p) => (p.aaPackageId === 0 ? response : p)));
         }
 
         this.messageService.add({
@@ -108,9 +106,11 @@ export class AAPackageProcessingComponent implements OnInit {
 
   onRowEditCancel(aaPackage: AAPackage, index: number) {
     if (aaPackage.aaPackageId === 0) {
-      this.aaPackages = this.aaPackages.filter((p) => p.aaPackageId !== 0);
+      this.aaPackages.update((current) => current.filter((p) => p.aaPackageId !== 0));
     } else {
-      this.aaPackages[index] = this.editingAAPackage!;
+      const restored = this.editingAAPackage!;
+
+      this.aaPackages.update((current) => current.map((p, i) => (i === index ? restored : p)));
     }
 
     this.editingAAPackage = null;
@@ -119,7 +119,7 @@ export class AAPackageProcessingComponent implements OnInit {
   onRowDelete(aaPackage: AAPackage) {
     this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId).subscribe({
       next: () => {
-        this.aaPackages = this.aaPackages.filter((p) => p.aaPackageId !== aaPackage.aaPackageId);
+        this.aaPackages.update((current) => current.filter((p) => p.aaPackageId !== aaPackage.aaPackageId));
         this.messageService.add({
           severity: 'success',
           summary: 'Success',

@@ -11,7 +11,7 @@
 <div class="grid grid-cols-12 gap-4">
   <div class="col-span-12">
     <p-card class="pointsBalance">
-      <ng-template #header> User Points Balance: <p-chip [label]="userPoints + ' Points'" class="mr-2" /> </ng-template>
+      <ng-template #header> User Points Balance: <p-chip [label]="userPoints() + ' Points'" class="mr-2" /> </ng-template>
     </p-card>
   </div>
 
@@ -20,11 +20,11 @@
       <p-divider type="solid" class="mt-0 pt-0" />
       <p></p>
       <div class="p-grid">
-        @for (theme of themes; track theme) {
+        @for (theme of themes(); track theme) {
           <div class="theme-card">
             <p-card [header]="theme.themeName">
               <ng-template #header>
-                <p-image [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" [preview]="true" appendTo="body" />
+                <p-image [src]="themeImageUrls()[theme.themeId]" [alt]="theme.themeName" [preview]="true" appendTo="body" />
               </ng-template>
               <p>{{ theme.themeDescription }}</p>
               <p-chip [label]="theme.cost + ' Points'" class="mr-2" />
@@ -38,17 +38,17 @@
     </p-card>
   </div>
 
-  @if (purchasedThemes.length > 0) {
+  @if (purchasedThemes().length > 0) {
     <div class="col-span-12">
       <p-card header="Purchased Themes" class="mb-0 pb-0">
         <p-divider type="solid" class="mt-0 pt-0" />
         <p></p>
         <div class="p-grid">
-          @for (theme of purchasedThemes; track theme) {
+          @for (theme of purchasedThemes(); track theme) {
             <div class="theme-card">
               <p-card [header]="theme.themeName">
                 <ng-template #header>
-                  <p-image [src]="themeImageUrls[theme.themeId]" [alt]="theme.themeName" [preview]="true" appendTo="body" />
+                  <p-image [src]="themeImageUrls()[theme.themeId]" [alt]="theme.themeName" [preview]="true" appendTo="body" />
                 </ng-template>
                 <p>{{ theme.themeDescription }}</p>
                 <ng-template #footer>

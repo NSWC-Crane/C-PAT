@@ -40,14 +40,27 @@
           <button pButton class="mr-2" (click)="resetColumnSelections()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset column selections"><i class="pi pi-refresh" pButtonIcon></i></button>
           <button pButton (click)="toggleAddColumnOverlay()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-plus" pButtonIcon></i></button>
           <button pButton (click)="exportCSV()" severity="secondary" [rounded]="true" [text]="true"><i class="pi pi-external-link" pButtonIcon></i></button>
-          <p-select [multiple]="true" [checkmark]="true" [showClear]="true" #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceholder="Add columns..." />
+          <p-select
+            [multiple]="true"
+            [checkmark]="true"
+            [filter]="true"
+            [showClear]="true"
+            #ms
+            [options]="cols"
+            [(ngModel)]="selectedColumns"
+            optionLabel="header"
+            class="custom-multiselect"
+            appendTo="body"
+            name="columnSearch"
+            filterPlaceholder="Add columns..."
+          />
         </div>
       </div>
       <div class="scrollable-vulnerabilities">
         <p-tabs [(value)]="activeTab" lazy>
           <p-tablist>
             @if (!assetProcessing()) {
-              @for (tab of teamTabs; track tab.teamId) {
+              @for (tab of teamTabs(); track tab.teamId) {
                 <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>
               }
             } @else {
@@ -55,7 +68,7 @@
             }
           </p-tablist>
           <p-tabpanels>
-            @for (tab of teamTabs; track tab.teamId) {
+            @for (tab of teamTabs(); track tab.teamId) {
               <p-tabpanel [value]="tab.teamId">
                 <p-table
                   #dt
@@ -63,7 +76,7 @@
                   [columns]="selectedColumns"
                   [paginator]="true"
                   [rows]="100"
-                  [totalRecords]="assetProcessing() ? totalRecords : tab.assets.length"
+                  [totalRecords]="assetProcessing() ? totalRecords() : tab.assets.length"
                   [lazy]="assetProcessing()"
                   (onLazyLoad)="assetProcessing() ? lazyOrNot($event) : null"
                   [loading]="isLoading()"
@@ -135,15 +148,15 @@
 <p-dialog header="Plugin Details" styleClass="pluginDialog w-[50vw] overflow-hidden" [(visible)]="displayDialog" [modal]="true">
   <ng-template #content>
     <div class="p-grid">
-      <div class="p-col-12"><b>Plugin ID:</b> {{ selectedVulnerability.pluginID }}</div>
-      <div class="p-col-12"><b>Name:</b> {{ selectedVulnerability.name }}</div>
-      <div class="p-col-12"><b>Severity:</b> {{ selectedVulnerability.severity }}</div>
-      <div class="p-col-12"><b>VPR Score:</b> {{ selectedVulnerability.vprScore }}</div>
-      <div class="p-col-12"><b>Protocol:</b> {{ selectedVulnerability.protocol }}</div>
-      <div class="p-col-12"><b>Family:</b> {{ selectedVulnerability.family }}</div>
+      <div class="p-col-12"><b>Plugin ID:</b> {{ selectedVulnerability().pluginID }}</div>
+      <div class="p-col-12"><b>Name:</b> {{ selectedVulnerability().name }}</div>
+      <div class="p-col-12"><b>Severity:</b> {{ selectedVulnerability().severity }}</div>
+      <div class="p-col-12"><b>VPR Score:</b> {{ selectedVulnerability().vprScore }}</div>
+      <div class="p-col-12"><b>Protocol:</b> {{ selectedVulnerability().protocol }}</div>
+      <div class="p-col-12"><b>Family:</b> {{ selectedVulnerability().family }}</div>
       <br />
       <div class="p-col-12">
-        <p-table [value]="parsedVprContext" class="p-datatable-sm">
+        <p-table [value]="parsedVprContext()" class="p-datatable-sm">
           <ng-template #header>
             <tr>
               <th scope="col">Vulnerability Priority Rating (VPR) Key Drivers</th>
@@ -172,46 +185,46 @@
       <div class="p-col-12">
         <div class="description">
           <h6>Description</h6>
-          <div class="p-col-12" [innerHTML]="formattedDescription"></div>
+          <div class="p-col-12" [innerHTML]="formattedDescription()"></div>
           <h6>Solution</h6>
-          <div class="p-col-12">{{ pluginData.solution }}</div>
+          <div class="p-col-12">{{ pluginData().solution }}</div>
         </div>
-        <div class="p-col-12"><b>CVSS v2 Severity:</b> {{ pluginData.riskFactor }}</div>
-        <div class="p-col-12"><b>Vulnerability Priority Rating:</b> {{ pluginData.vprScore }}</div>
-        <div class="p-col-12"><b>CVSS Base Score:</b> {{ pluginData.baseScore }}</div>
-        <div class="p-col-12"><b>CVSS Temporal Score:</b> {{ pluginData.temporalScore }}</div>
-        <div class="p-col-12"><b>CVSS v3 Base Score:</b> {{ pluginData.cvssV3BaseScore }}</div>
-        <div class="p-col-12"><b>CVSS v3 Temporal Score:</b> {{ pluginData.cvssV3TemporalScore }}</div>
-        <div class="p-col-12"><b>CVSS v3 Vector:</b> {{ pluginData.cvssV3Vector }}</div>
-        <div class="p-col-12"><b>CPE:</b> {{ pluginData.cpe }}</div>
+        <div class="p-col-12"><b>CVSS v2 Severity:</b> {{ pluginData().riskFactor }}</div>
+        <div class="p-col-12"><b>Vulnerability Priority Rating:</b> {{ pluginData().vprScore }}</div>
+        <div class="p-col-12"><b>CVSS Base Score:</b> {{ pluginData().baseScore }}</div>
+        <div class="p-col-12"><b>CVSS Temporal Score:</b> {{ pluginData().temporalScore }}</div>
+        <div class="p-col-12"><b>CVSS v3 Base Score:</b> {{ pluginData().cvssV3BaseScore }}</div>
+        <div class="p-col-12"><b>CVSS v3 Temporal Score:</b> {{ pluginData().cvssV3TemporalScore }}</div>
+        <div class="p-col-12"><b>CVSS v3 Vector:</b> {{ pluginData().cvssV3Vector }}</div>
+        <div class="p-col-12"><b>CPE:</b> {{ pluginData().cpe }}</div>
         <div class="p-col-12">
           <b>Vulnerability Publication Date: </b
           >{{
-            pluginData.vulnPubDate * 1000
+            pluginData().vulnPubDate * 1000
               | date
                 : 'MMMM d,
           yyyy'
           }}
         </div>
-        <div class="p-col-12"><b>Patch Publication Date: </b>{{ pluginData.patchPubDate * 1000 | date: 'MMMM d, yyyy' }}</div>
-        <div class="p-col-12"><b>Plugin Publish Date:</b> {{ pluginData.pluginPubDate * 1000 | date: 'MMMM d, yyyy' }}</div>
+        <div class="p-col-12"><b>Patch Publication Date: </b>{{ pluginData().patchPubDate * 1000 | date: 'MMMM d, yyyy' }}</div>
+        <div class="p-col-12"><b>Plugin Publish Date:</b> {{ pluginData().pluginPubDate * 1000 | date: 'MMMM d, yyyy' }}</div>
         <div class="p-col-12">
           <b>Plugin Last Modification Date:</b>
           {{
-            pluginData.pluginModDate * 1000
+            pluginData().pluginModDate * 1000
               | date
                 : 'MMMM d,
           yyyy'
           }}
         </div>
-        <div class="p-col-12"><b>Source File:</b> {{ pluginData.sourceFile }}</div>
-        <div class="p-col-12"><b>Version:</b> {{ pluginData.version }}</div>
+        <div class="p-col-12"><b>Source File:</b> {{ pluginData().sourceFile }}</div>
+        <div class="p-col-12"><b>Version:</b> {{ pluginData().version }}</div>
       </div>
       <br />
       <div class="p-col-12">
         <h6>IAV References</h6>
         <ul>
-          @for (ref of iavReferences; track ref) {
+          @for (ref of iavReferences(); track ref) {
             <li>
               <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener" style="cursor: pointer; color: var(--p-primary-color)">{{ ref.value }}</a>
             </li>
@@ -219,17 +232,17 @@
         </ul>
         <h6>CVE References</h6>
         <ul>
-          @for (ref of cveReferences; track ref) {
+          @for (ref of cveReferences(); track ref) {
             <li>
               <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener" style="cursor: pointer; color: var(--p-primary-color)">{{ ref.value }}</a>
             </li>
           }
         </ul>
-        @if (otherReferences.length > 0) {
+        @if (otherReferences().length > 0) {
           <h6>Cross-References</h6>
         }
         <ul>
-          @for (ref of otherReferences; track ref) {
+          @for (ref of otherReferences(); track ref) {
             <li>{{ ref.type }}:{{ ref.value }}</li>
           }
         </ul>

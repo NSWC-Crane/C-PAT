@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -22,7 +23,8 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { EMPTY, Subscription, catchError, firstValueFrom } from 'rxjs';
+import { EMPTY, catchError, firstValueFrom } from 'rxjs';
+import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { Permission } from '../../../common/models/permission.model';
 import { SharedService } from '../../../common/services/shared.service';
@@ -43,43 +45,41 @@ interface AssignedTeam {
   templateUrl: './assignedTeam-processing.component.html',
   styleUrls: ['./assignedTeam-processing.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, PickListModule, TableModule, TagModule, ToastModule, TooltipModule]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, MultiSelectDirective, PickListModule, TableModule, TagModule, ToastModule, TooltipModule]
 })
-export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
+export class AssignedTeamProcessingComponent implements OnInit {
   private readonly assetDeltaService = inject(AssetDeltaService);
   private readonly assignedTeamService = inject(AssignedTeamService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly messageService = inject(MessageService);
   private readonly sharedService = inject(SharedService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly table = viewChild.required<Table>('dt');
   private allCollections: CollectionsBasicList[] = [];
-  assignedTeams: AssignedTeam[] = [];
+  readonly assignedTeams = signal<AssignedTeam[]>([]);
   uniqueTeams: any;
-  filteredTeams: string[] = [];
+  readonly filteredTeams = signal<string[]>([]);
   availableCollections: CollectionsBasicList[] = [];
   assignedCollections: any[] = [];
-  editingAssignedTeam: AssignedTeam | null = null;
-  teamDialog: boolean = false;
+  readonly editingAssignedTeam = signal<AssignedTeam | null>(null);
+  readonly teamDialog = signal(false);
   dialogMode: 'new' | 'edit' = 'new';
-  selectedAdTeams: string[] = [];
-  private readonly subscriptions = new Subscription();
+  readonly selectedAdTeams = signal<string[]>([]);
 
   ngOnInit() {
     this.loadAssetDeltaList();
     this.loadCollections();
 
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe(() => {
-        this.loadAssignedTeams();
-      })
-    );
+    this.sharedService.selectedCollection.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.loadAssignedTeams();
+    });
   }
 
   loadAssignedTeams() {
     this.assignedTeamService.getAssignedTeams().subscribe({
-      next: (response) => (this.assignedTeams = response || []),
+      next: (response) => this.assignedTeams.set(response || []),
       error: (error) =>
         this.messageService.add({
           severity: 'error',
@@ -93,7 +93,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
     this.assetDeltaService.getAssetDeltaTeams().subscribe({
       next: (response: string[]) => {
         this.uniqueTeams = response;
-        this.filteredTeams = [...this.uniqueTeams];
+        this.filteredTeams.set([...this.uniqueTeams]);
       },
       error: (error) =>
         this.messageService.add({
@@ -107,7 +107,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   filterTeams(event: any) {
     const query = event.filter ? event.filter.toLowerCase() : '';
 
-    this.filteredTeams = this.uniqueTeams.filter((team) => team.toLowerCase().includes(query));
+    this.filteredTeams.set(this.uniqueTeams.filter((team) => team.toLowerCase().includes(query)));
   }
 
   loadCollections() {
@@ -126,24 +126,26 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   }
 
   editTeam(assignedTeam: AssignedTeam) {
-    this.editingAssignedTeam = { ...assignedTeam };
+    const editing: AssignedTeam = { ...assignedTeam };
 
-    if (this.editingAssignedTeam.adTeam) {
-      this.selectedAdTeams = this.editingAssignedTeam.adTeam
+    if (editing.adTeam) {
+      const parsed = editing.adTeam
         .split(',')
         .map((team) => team.trim())
         .filter((team) => team.length > 0);
 
-      const missingTeams = this.selectedAdTeams.filter((team) => !this.uniqueTeams.includes(team));
+      this.selectedAdTeams.set(parsed);
+
+      const missingTeams = parsed.filter((team) => !this.uniqueTeams.includes(team));
 
       if (missingTeams.length > 0) {
-        this.filteredTeams = [...this.uniqueTeams, ...missingTeams];
+        this.filteredTeams.set([...this.uniqueTeams, ...missingTeams]);
       } else {
-        this.filteredTeams = [...this.uniqueTeams];
+        this.filteredTeams.set([...this.uniqueTeams]);
       }
     } else {
-      this.selectedAdTeams = [];
-      this.filteredTeams = [...this.uniqueTeams];
+      this.selectedAdTeams.set([]);
+      this.filteredTeams.set([...this.uniqueTeams]);
     }
 
     this.assignedCollections =
@@ -155,22 +157,23 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
     this.availableCollections = this.allCollections.filter((collection) => !this.assignedCollections.some((assigned) => assigned.collectionId === collection.collectionId));
 
     this.dialogMode = 'edit';
-    this.teamDialog = true;
+    this.editingAssignedTeam.set(editing);
+    this.teamDialog.set(true);
   }
 
   openNew() {
-    this.editingAssignedTeam = { assignedTeamId: 0, assignedTeamName: '', adTeam: null, permissions: [] };
-    this.selectedAdTeams = [];
+    this.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: '', adTeam: null, permissions: [] });
+    this.selectedAdTeams.set([]);
     this.availableCollections = [...this.allCollections];
     this.assignedCollections = [];
     this.dialogMode = 'new';
-    this.teamDialog = true;
+    this.teamDialog.set(true);
   }
 
   onMoveToTarget(event: any) {
     const collections = Array.isArray(event.items) ? event.items : [event.items];
 
-    if (!this.editingAssignedTeam || !collections.length) return;
+    if (!this.editingAssignedTeam() || !collections.length) return;
 
     if (this.dialogMode === 'new') {
       collections.forEach((collection) => {
@@ -188,7 +191,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   onMoveToSource(event: any) {
     const collections = Array.isArray(event.items) ? event.items : [event.items];
 
-    if (!this.editingAssignedTeam || !collections.length) return;
+    if (!this.editingAssignedTeam() || !collections.length) return;
 
     if (this.dialogMode === 'new') {
       collections.forEach((collection) => {
@@ -206,6 +209,10 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   }
 
   private addPermissionsToExistingTeam(collections: any[]) {
+    const editing = this.editingAssignedTeam();
+
+    if (!editing) return;
+
     let successCount = 0;
     let errorCount = 0;
     let completedCount = 0;
@@ -213,7 +220,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
     collections.forEach((collection) => {
       this.assignedTeamService
         .postAssignedTeamPermission({
-          assignedTeamId: this.editingAssignedTeam!.assignedTeamId,
+          assignedTeamId: editing.assignedTeamId,
           collectionId: collection.collectionId
         })
         .pipe(
@@ -243,11 +250,11 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
           successCount++;
           completedCount++;
 
-          if (!this.editingAssignedTeam!.permissions) {
-            this.editingAssignedTeam!.permissions = [];
+          if (!editing.permissions) {
+            editing.permissions = [];
           }
 
-          this.editingAssignedTeam!.permissions.push({
+          editing.permissions.push({
             collectionId: collection.collectionId,
             collectionName: collection.collectionName
           });
@@ -260,13 +267,17 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   }
 
   private removePermissionsFromExistingTeam(collections: any[]) {
+    const editing = this.editingAssignedTeam();
+
+    if (!editing) return;
+
     let successCount = 0;
     let errorCount = 0;
     let completedCount = 0;
 
     collections.forEach((collection) => {
       this.assignedTeamService
-        .deleteAssignedTeamPermission(this.editingAssignedTeam!.assignedTeamId, collection.collectionId)
+        .deleteAssignedTeamPermission(editing.assignedTeamId, collection.collectionId)
         .pipe(
           catchError((error) => {
             errorCount++;
@@ -294,8 +305,8 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
           successCount++;
           completedCount++;
 
-          if (this.editingAssignedTeam!.permissions) {
-            this.editingAssignedTeam!.permissions = this.editingAssignedTeam!.permissions.filter((p) => p.collectionId !== collection.collectionId);
+          if (editing.permissions) {
+            editing.permissions = editing.permissions.filter((p) => p.collectionId !== collection.collectionId);
           }
 
           if (completedCount === collections.length) {
@@ -324,11 +335,13 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   }
 
   saveTeam() {
-    if (!this.editingAssignedTeam) return;
+    const editing = this.editingAssignedTeam();
 
-    this.editingAssignedTeam.adTeam = this.selectedAdTeams?.length > 0 ? this.selectedAdTeams.join(', ') : null;
+    if (!editing) return;
+
+    editing.adTeam = this.selectedAdTeams().length > 0 ? this.selectedAdTeams().join(', ') : null;
     const pendingPermissions = this.dialogMode === 'new' ? [...this.assignedCollections] : [];
-    const saveOperation = this.dialogMode === 'new' ? this.assignedTeamService.postAssignedTeam(this.editingAssignedTeam) : this.assignedTeamService.putAssignedTeam(this.editingAssignedTeam);
+    const saveOperation = this.dialogMode === 'new' ? this.assignedTeamService.postAssignedTeam(editing) : this.assignedTeamService.putAssignedTeam(editing);
 
     saveOperation
       .pipe(
@@ -355,7 +368,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
     if (pendingPermissions.length > 0) {
       await this.addPermissionsToNewTeam(newTeam, pendingPermissions);
     } else {
-      this.assignedTeams = [...this.assignedTeams, newTeam];
+      this.assignedTeams.update((teams) => [...teams, newTeam]);
       this.messageService.add({
         severity: 'success',
         summary: 'Success',
@@ -366,12 +379,9 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   }
 
   private handleExistingTeamUpdated() {
-    const index = this.assignedTeams.findIndex((team) => team.assignedTeamId === this.editingAssignedTeam?.assignedTeamId);
+    const editing = this.editingAssignedTeam();
 
-    if (index !== -1) {
-      this.assignedTeams[index] = this.editingAssignedTeam!;
-      this.assignedTeams = [...this.assignedTeams];
-    }
+    this.assignedTeams.update((teams) => teams.map((team) => (team.assignedTeamId === editing?.assignedTeamId ? editing! : team)));
 
     this.messageService.add({
       severity: 'success',
@@ -407,7 +417,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.assignedTeams = [...this.assignedTeams, newTeam];
+    this.assignedTeams.update((teams) => [...teams, newTeam]);
 
     if (successCount > 0) {
       this.messageService.add({
@@ -456,7 +466,7 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe(() => {
-        this.assignedTeams = this.assignedTeams.filter((p) => p.assignedTeamId !== assignedTeam.assignedTeamId);
+        this.assignedTeams.update((teams) => teams.filter((p) => p.assignedTeamId !== assignedTeam.assignedTeamId));
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
@@ -466,24 +476,20 @@ export class AssignedTeamProcessingComponent implements OnInit, OnDestroy {
   }
 
   hideDialog(): void {
-    this.teamDialog = false;
+    this.teamDialog.set(false);
   }
 
   onDialogHide(): void {
-    this.editingAssignedTeam = null;
-    this.selectedAdTeams = [];
+    this.editingAssignedTeam.set(null);
+    this.selectedAdTeams.set([]);
     this.assignedCollections = [];
     this.availableCollections = [...this.allCollections];
-    this.filteredTeams = [...this.uniqueTeams];
+    this.filteredTeams.set([...this.uniqueTeams]);
   }
 
   filterGlobal(event: Event) {
     const inputValue = (event.target as HTMLInputElement)?.value || '';
 
     this.table().filterGlobal(inputValue, 'contains');
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
   }
 }

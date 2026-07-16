@@ -97,22 +97,32 @@ describe('PoamMitigationService', () => {
   });
 
   describe('syncTeamMitigations', () => {
-    it('should do nothing for null poamAssignedTeams', () => {
+    it('should emit empty changes for null poamAssignedTeams', () => {
       const poam = { poamId: 123 };
       const teamMitigations: any[] = [];
 
-      service.syncTeamMitigations(poam, null as any, teamMitigations);
+      let emitted: any;
 
+      service.syncTeamMitigations(poam, null as any, teamMitigations).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(mockPoamService.postPoamTeamMitigation).not.toHaveBeenCalled();
       expect(mockPoamService.updatePoamTeamMitigationStatus).not.toHaveBeenCalled();
     });
 
-    it('should do nothing for empty poamAssignedTeams', () => {
+    it('should emit empty changes for empty poamAssignedTeams', () => {
       const poam = { poamId: 123 };
       const teamMitigations: any[] = [];
 
-      service.syncTeamMitigations(poam, [], teamMitigations);
+      let emitted: any;
 
+      service.syncTeamMitigations(poam, [], teamMitigations).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(mockPoamService.postPoamTeamMitigation).not.toHaveBeenCalled();
       expect(mockPoamService.updatePoamTeamMitigationStatus).not.toHaveBeenCalled();
     });
@@ -124,7 +134,7 @@ describe('PoamMitigationService', () => {
 
       mockPoamService.postPoamTeamMitigation.mockReturnValue(of({ mitigationId: 100 }));
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe();
 
       expect(mockPoamService.postPoamTeamMitigation).toHaveBeenCalledWith({
         poamId: 123,
@@ -134,7 +144,7 @@ describe('PoamMitigationService', () => {
       });
     });
 
-    it('should add created mitigation to array and sort', () => {
+    it('should emit add changes for created mitigations without mutating the input array', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [
         { assignedTeamId: 2, assignedTeamName: 'Zebra Team' },
@@ -144,9 +154,17 @@ describe('PoamMitigationService', () => {
 
       mockPoamService.postPoamTeamMitigation.mockReturnValueOnce(of({ mitigationId: 100 })).mockReturnValueOnce(of({ mitigationId: 101 }));
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      let emitted: any;
 
-      expect(teamMitigations.length).toBe(2);
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([
+        { type: 'add', record: { mitigationId: 100, assignedTeamId: 2, assignedTeamName: 'Zebra Team', mitigationText: '', isActive: true } },
+        { type: 'add', record: { mitigationId: 101, assignedTeamId: 1, assignedTeamName: 'Alpha Team', mitigationText: '', isActive: true } }
+      ]);
+      expect(teamMitigations).toHaveLength(0);
     });
 
     it('should reactivate inactive existing mitigation', () => {
@@ -156,21 +174,26 @@ describe('PoamMitigationService', () => {
 
       mockPoamService.updatePoamTeamMitigationStatus.mockReturnValue(of({}));
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe();
 
       expect(mockPoamService.updatePoamTeamMitigationStatus).toHaveBeenCalledWith(123, 1, true);
     });
 
-    it('should set isActive to true after reactivation', () => {
+    it('should emit setActive true change without mutating the input array', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, isActive: false }];
 
       mockPoamService.updatePoamTeamMitigationStatus.mockReturnValue(of({}));
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      let emitted: any;
 
-      expect(teamMitigations[0].isActive).toBe(true);
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([{ type: 'setActive', assignedTeamId: 1, isActive: true }]);
+      expect(teamMitigations[0].isActive).toBe(false);
     });
 
     it('should deactivate mitigation for removed team', () => {
@@ -183,12 +206,12 @@ describe('PoamMitigationService', () => {
 
       mockPoamService.updatePoamTeamMitigationStatus.mockReturnValue(of({}));
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe();
 
       expect(mockPoamService.updatePoamTeamMitigationStatus).toHaveBeenCalledWith(123, 1, false);
     });
 
-    it('should set isActive to false after deactivation', () => {
+    it('should emit setActive false change without mutating the input array', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 2, assignedTeamName: 'Team B' }];
       const teamMitigations = [
@@ -198,9 +221,14 @@ describe('PoamMitigationService', () => {
 
       mockPoamService.updatePoamTeamMitigationStatus.mockReturnValue(of({}));
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      let emitted: any;
 
-      expect(teamMitigations[0].isActive).toBe(false);
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([{ type: 'setActive', assignedTeamId: 1, isActive: false }]);
+      expect(teamMitigations[0].isActive).toBe(true);
     });
 
     it('should not deactivate already inactive mitigation', () => {
@@ -208,44 +236,78 @@ describe('PoamMitigationService', () => {
       const poamAssignedTeams: any[] = [];
       const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, isActive: false }];
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe();
 
       expect(mockPoamService.updatePoamTeamMitigationStatus).not.toHaveBeenCalled();
     });
 
-    it('should not modify active existing mitigation', () => {
+    it('should emit empty changes for active existing mitigation', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, isActive: true }];
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      let emitted: any;
 
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(mockPoamService.postPoamTeamMitigation).not.toHaveBeenCalled();
       expect(mockPoamService.updatePoamTeamMitigationStatus).not.toHaveBeenCalled();
     });
 
-    it('should handle error when creating mitigation', () => {
+    it('should exclude failed create from emitted changes and log the error', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamMitigations: any[] = [];
 
       mockPoamService.postPoamTeamMitigation.mockReturnValue(throwError(() => new Error('Create failed')));
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      let emitted: any;
 
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(console.error).toHaveBeenCalledWith('Error adding team mitigation:', expect.any(Error));
     });
 
-    it('should handle error when updating mitigation status', () => {
+    it('should exclude failed status update from emitted changes and log the error', () => {
       const poam = { poamId: 123 };
       const poamAssignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
       const teamMitigations = [{ mitigationId: 1, assignedTeamId: 1, isActive: false }];
 
       mockPoamService.updatePoamTeamMitigationStatus.mockReturnValue(throwError(() => new Error('Update failed')));
 
-      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations);
+      let emitted: any;
 
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([]);
       expect(console.error).toHaveBeenCalledWith('Error updating team mitigation status:', expect.any(Error));
+    });
+
+    it('should still emit successful changes when a sibling op fails', () => {
+      const poam = { poamId: 123 };
+      const poamAssignedTeams = [
+        { assignedTeamId: 1, assignedTeamName: 'Team A' },
+        { assignedTeamId: 2, assignedTeamName: 'Team B' }
+      ];
+      const teamMitigations: any[] = [];
+
+      mockPoamService.postPoamTeamMitigation.mockReturnValueOnce(throwError(() => new Error('Create failed'))).mockReturnValueOnce(of({ mitigationId: 101 }));
+
+      let emitted: any;
+
+      service.syncTeamMitigations(poam, poamAssignedTeams, teamMitigations).subscribe((changes) => {
+        emitted = changes;
+      });
+
+      expect(emitted).toEqual([{ type: 'add', record: { mitigationId: 101, assignedTeamId: 2, assignedTeamName: 'Team B', mitigationText: '', isActive: true } }]);
     });
   });
 

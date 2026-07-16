@@ -9,7 +9,8 @@
 */
 
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, viewChild, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, OnInit, SimpleChanges, inject, input, output, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -23,10 +24,10 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription } from 'rxjs';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { PoamService } from '../../../poam-processing/poams.service';
+import { MultiSelectDirective } from '../../../../common/directives/multi-select.directive';
 
 interface ControlSummary {
   control: string;
@@ -95,10 +96,10 @@ interface RawCciFinding {
   templateUrl: './stigManagerControlsTable.component.html',
   styleUrls: ['./stigManagerControlsTable.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, ProgressBarModule, SkeletonModule, TableModule, TagModule, TooltipModule, NgClass]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectDirective, SelectModule, ProgressBarModule, SkeletonModule, TableModule, TagModule, TooltipModule, NgClass]
 })
-export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnDestroy {
+export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
   readonly stigmanCollectionId = input.required<number>();
   readonly selectedCollection = input.required<number>();
   readonly controlsCountChange = output<number>();
@@ -107,18 +108,19 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   private readonly sharedService = inject(SharedService);
   private readonly messageService = inject(MessageService);
   private readonly poamService = inject(PoamService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly controlsTable = viewChild<Table>('controlsTable');
   private readonly findingsTable = viewChild<Table>('controlFindingsTable');
 
-  controlSummaries: ControlSummary[] = [];
-  controlFindings: ControlFinding[] = [];
+  readonly controlSummaries = signal<ControlSummary[]>([]);
+  readonly controlFindings = signal<ControlFinding[]>([]);
   existingPoams: any[] = [];
 
   selectedControl: ControlSummary | null = null;
   viewMode: 'summary' | 'findings' = 'summary';
 
-  loadingControls: boolean = true;
+  readonly loadingControls = signal<boolean>(true);
   loadingFindings: boolean = false;
   loadingSkeletonData: any[] = Array(15).fill({});
 
@@ -126,7 +128,6 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   findingsCount: number = 0;
 
   private rawFindings: RawCciFinding[] = [];
-  private readonly subscriptions = new Subscription();
 
   controlColumns = [
     { field: 'control', header: 'Control', width: '14%', filterType: 'text' },
@@ -192,31 +193,34 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
   }
 
   private loadControlsData() {
-    this.loadingControls = true;
+    this.loadingControls.set(true);
     this.rawFindings = [];
-    this.controlSummaries = [];
+    this.controlSummaries.set([]);
 
-    this.sharedService.getFindingsByCCIFromSTIGMAN(this.stigmanCollectionId()).subscribe({
-      next: (data: RawCciFinding[]) => {
-        if (!data || data.length === 0) {
-          this.showWarn('No control findings found.');
-          this.loadingControls = false;
+    this.sharedService
+      .getFindingsByCCIFromSTIGMAN(this.stigmanCollectionId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data: RawCciFinding[]) => {
+          if (!data || data.length === 0) {
+            this.showWarn('No control findings found.');
+            this.loadingControls.set(false);
 
-          return;
+            return;
+          }
+
+          this.rawFindings = data;
+          this.processControlSummaries(data);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch control data: ${getErrorMessage(error)}`
+          });
+          this.loadingControls.set(false);
         }
-
-        this.rawFindings = data;
-        this.processControlSummaries(data);
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to fetch control data: ${getErrorMessage(error)}`
-        });
-        this.loadingControls = false;
-      }
-    });
+      });
   }
 
   private processControlSummaries(findings: RawCciFinding[]) {
@@ -272,9 +276,9 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
       summary.assetCount += finding.assetCount || 0;
     });
 
-    this.controlSummaries = Array.from(controlMap.values()).sort((a, b) => a.control.localeCompare(b.control, undefined, { numeric: true }));
+    this.controlSummaries.set(Array.from(controlMap.values()).sort((a, b) => a.control.localeCompare(b.control, undefined, { numeric: true })));
 
-    this.controlsCount = this.controlSummaries.length;
+    this.controlsCount = this.controlSummaries().length;
     this.controlsCountChange.emit(this.controlsCount);
 
     this.updateControlPoamPercentages();
@@ -284,41 +288,44 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
     const selectedCollection = this.selectedCollection();
 
     if (!selectedCollection) {
-      this.loadingControls = false;
+      this.loadingControls.set(false);
 
       return;
     }
 
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(selectedCollection).subscribe({
-      next: (response: any) => {
-        this.existingPoams = response;
+    this.poamService
+      .getVulnerabilityIdsWithPoamByCollection(selectedCollection)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          this.existingPoams = response;
 
-        const excludedStatuses = new Set(['draft', 'rejected']);
-        const validPoams = response.filter((p: any) => {
-          const effectiveStatus = p.status === 'Associated' ? p.parentStatus : p.status;
+          const excludedStatuses = new Set(['draft', 'rejected']);
+          const validPoams = response.filter((p: any) => {
+            const effectiveStatus = p.status === 'Associated' ? p.parentStatus : p.status;
 
-          return effectiveStatus && !excludedStatuses.has(effectiveStatus.toLowerCase());
-        });
+            return effectiveStatus && !excludedStatuses.has(effectiveStatus.toLowerCase());
+          });
 
-        const poamVulnIds = new Set(validPoams.map((p: any) => p.vulnerabilityId));
+          const poamVulnIds = new Set(validPoams.map((p: any) => p.vulnerabilityId));
 
-        this.controlSummaries.forEach((summary) => {
-          summary.poamCount = summary.groupIds.filter((gid) => poamVulnIds.has(gid)).length;
-          summary.poamPercentage = summary.findingCount > 0 ? Math.round((summary.poamCount / summary.findingCount) * 100) : 0;
-        });
+          this.controlSummaries().forEach((summary) => {
+            summary.poamCount = summary.groupIds.filter((gid) => poamVulnIds.has(gid)).length;
+            summary.poamPercentage = summary.findingCount > 0 ? Math.round((summary.poamCount / summary.findingCount) * 100) : 0;
+          });
 
-        this.controlSummaries = [...this.controlSummaries];
-        this.loadingControls = false;
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching POAM data: ${getErrorMessage(error)}`
-        });
-        this.loadingControls = false;
-      }
-    });
+          this.controlSummaries.set([...this.controlSummaries()]);
+          this.loadingControls.set(false);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching POAM data: ${getErrorMessage(error)}`
+          });
+          this.loadingControls.set(false);
+        }
+      });
   }
 
   selectControl(control: ControlSummary) {
@@ -329,7 +336,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
 
   private loadFindingsForControl(control: ControlSummary) {
     this.loadingFindings = true;
-    this.controlFindings = [];
+    this.controlFindings.set([]);
 
     const controlCcis = new Set(control.ccis);
     const findings: ControlFinding[] = [];
@@ -367,7 +374,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
       });
     });
 
-    this.controlFindings = findings;
+    this.controlFindings.set(findings);
     this.findingsCount = findings.length;
     this.loadingFindings = false;
 
@@ -381,42 +388,45 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
       return;
     }
 
-    this.poamService.getVulnerabilityIdsWithPoamByCollection(selectedCollection).subscribe({
-      next: (response: any) => {
-        this.existingPoams = response;
+    this.poamService
+      .getVulnerabilityIdsWithPoamByCollection(selectedCollection)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          this.existingPoams = response;
 
-        this.controlFindings.forEach((item) => {
-          const existingPoam = this.existingPoams.find((poam: any) => poam.vulnerabilityId === item.groupId);
+          this.controlFindings().forEach((item) => {
+            const existingPoam = this.existingPoams.find((poam: any) => poam.vulnerabilityId === item.groupId);
 
-          item.hasExistingPoam = !!existingPoam;
+            item.hasExistingPoam = !!existingPoam;
 
-          if (existingPoam) {
-            item.poamStatus = existingPoam.status;
-            item.isAssociated = existingPoam.status === 'Associated';
-            item.parentStatus = existingPoam.parentStatus;
-            item.parentPoamId = existingPoam.parentPoamId;
-          } else {
-            item.poamStatus = 'No Existing POAM';
-            item.isAssociated = false;
-          }
-        });
+            if (existingPoam) {
+              item.poamStatus = existingPoam.status;
+              item.isAssociated = existingPoam.status === 'Associated';
+              item.parentStatus = existingPoam.parentStatus;
+              item.parentPoamId = existingPoam.parentPoamId;
+            } else {
+              item.poamStatus = 'No Existing POAM';
+              item.isAssociated = false;
+            }
+          });
 
-        this.controlFindings = [...this.controlFindings];
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching existing POAMs: ${getErrorMessage(error)}`
-        });
-      }
-    });
+          this.controlFindings.set([...this.controlFindings()]);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching existing POAMs: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   backToControlSummary() {
     this.viewMode = 'summary';
     this.selectedControl = null;
-    this.controlFindings = [];
+    this.controlFindings.set([]);
     this.findingsCount = 0;
   }
 
@@ -513,21 +523,24 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges, OnD
       return;
     }
 
-    this.sharedService.getRuleDataFromSTIGMAN(rowData.ruleId).subscribe({
-      next: (ruleData: any) => {
-        const ruleDataString = this.formatRuleData(ruleData);
-        const descriptionString = this.formatDescription(ruleData);
+    this.sharedService
+      .getRuleDataFromSTIGMAN(rowData.ruleId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (ruleData: any) => {
+          const ruleDataString = this.formatRuleData(ruleData);
+          const descriptionString = this.formatDescription(ruleData);
 
-        this.navigateToPoam(rowData, ruleDataString, descriptionString);
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching rule data: ${getErrorMessage(error)}`
-        });
-      }
-    });
+          this.navigateToPoam(rowData, ruleDataString, descriptionString);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching rule data: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   private formatRuleData(ruleData: any): string {
@@ -588,7 +601,7 @@ ${ruleData.detail.vulnDiscussion}`;
     const table = this.controlsTable();
 
     if (table) {
-      this.controlsCount = table.filteredValue ? table.filteredValue.length : this.controlSummaries.length;
+      this.controlsCount = table.filteredValue ? table.filteredValue.length : this.controlSummaries().length;
       this.controlsCountChange.emit(this.controlsCount);
     }
   }
@@ -597,7 +610,7 @@ ${ruleData.detail.vulnDiscussion}`;
     const table = this.findingsTable();
 
     if (table) {
-      this.findingsCount = table.filteredValue ? table.filteredValue.length : this.controlFindings.length;
+      this.findingsCount = table.filteredValue ? table.filteredValue.length : this.controlFindings().length;
     }
   }
 
@@ -631,9 +644,5 @@ ${ruleData.detail.vulnDiscussion}`;
       summary: 'Error',
       detail: message
     });
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
   }
 }

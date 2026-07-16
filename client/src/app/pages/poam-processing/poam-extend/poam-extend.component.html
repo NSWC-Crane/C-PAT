@@ -57,7 +57,7 @@
                 [filter]="true"
                 filterBy="label"
                 class="w-full"
-                [disabled]="accessLevel < 2"
+                [disabled]="accessLevel() < 2"
               />
               <button
                 pButton
@@ -66,7 +66,7 @@
                 [text]="true"
                 severity="danger"
                 pTooltip="Remove the current extension: this must be done to request an updated extension with the same duration as an existing extension."
-                [disabled]="accessLevel < 2"
+                [disabled]="accessLevel() < 2"
               >
                 <i class="pi pi-times" pButtonIcon></i>
               </button>
@@ -78,8 +78,8 @@
           <div class="p-field">
             <label for="extensionDeadline">Deadline With Extension:</label>
             <div class="flex items-center gap-3">
-              <input type="text" pInputText [value]="completionDateWithExtension" name="extensionDeadline" disabled class="w-full" />
-              @if (extensionHistory?.length) {
+              <input type="text" pInputText [value]="completionDateWithExtension()" name="extensionDeadline" disabled class="w-full" />
+              @if (extensionHistory()?.length) {
                 <i
                   class="pi pi-history flex shrink-0 cursor-help items-center"
                   style="color: var(--p-surface-400); font-size: 1.25rem; line-height: 1.1; padding: 0.5rem"
@@ -103,7 +103,7 @@
               (completeMethod)="filterJustifications($event)"
               [placeholder]="extensionJustificationPlaceholder"
               class="w-full"
-              [disabled]="accessLevel < 2"
+              [disabled]="accessLevel() < 2"
             />
           </div>
         </div>
@@ -122,7 +122,7 @@
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <p-table [value]="poamMilestones" dataKey="milestoneId" editMode="row" #dt>
+                  <p-table [value]="poamMilestones()" dataKey="milestoneId" editMode="row" #dt>
                     <ng-template #header>
                       <tr>
                         <th scope="col">Milestone Comments</th>
@@ -133,7 +133,7 @@
                         <th scope="col">Milestone Teams</th>
                         <th scope="col"></th>
                         <th scope="col">
-                          <button pButton (click)="onAddNewMilestone()" variant="text" [disabled]="accessLevel < 2"><i class="pi pi-plus" pButtonIcon></i></button>
+                          <button pButton (click)="onAddNewMilestone()" variant="text" [disabled]="accessLevel() < 2"><i class="pi pi-plus" pButtonIcon></i></button>
                         </th>
                       </tr>
                     </ng-template>
@@ -169,7 +169,7 @@
                                 rows="5"
                                 [(ngModel)]="milestone.milestoneChangeComments"
                                 [invalid]="milestone.milestoneChangeDate && !milestone.milestoneChangeComments?.trim()"
-                                [disabled]="accessLevel < 2"
+                                [disabled]="accessLevel() < 2"
                               ></textarea>
                             </ng-template>
                             <ng-template #output>
@@ -180,7 +180,7 @@
                         <td>
                           <p-celleditor>
                             <ng-template #input>
-                              <p-datepicker [(ngModel)]="milestone.milestoneChangeDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" [disabled]="accessLevel < 2" />
+                              <p-datepicker [(ngModel)]="milestone.milestoneChangeDate" dateFormat="yy-mm-dd" [showIcon]="true" appendTo="body" [disabled]="accessLevel() < 2" />
                             </ng-template>
                             <ng-template #output>
                               {{ milestone.milestoneChangeDate | date: 'yyyy-MM-dd' }}
@@ -190,7 +190,7 @@
                         <td>
                           <p-celleditor>
                             <ng-template #input>
-                              <p-select [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" class="w-full" appendTo="body" [disabled]="accessLevel < 2" />
+                              <p-select [options]="milestoneStatusOptions" [(ngModel)]="milestone.milestoneStatus" class="w-full" appendTo="body" [disabled]="accessLevel() < 2" />
                             </ng-template>
                             <ng-template #output>
                               {{ milestone.milestoneStatus }}
@@ -204,7 +204,7 @@
                                 [multiple]="true"
                                 [checkmark]="true"
                                 [showClear]="true"
-                                [options]="assignedTeamOptions"
+                                [options]="assignedTeamOptions()"
                                 placeholder="Select Teams..."
                                 [(ngModel)]="milestone.assignedTeamIds"
                                 [filter]="true"
@@ -213,7 +213,7 @@
                                 optionValue="assignedTeamId"
                                 class="w-full"
                                 appendTo="body"
-                                [disabled]="accessLevel < 2"
+                                [disabled]="accessLevel() < 2"
                               />
                             </ng-template>
                             <ng-template #output>
@@ -229,11 +229,11 @@
                         <td style="text-align: center">
                           @if (editing) {
                             <div class="flex justify-center items-center gap-2">
-                              <button pButton (click)="$event.stopPropagation(); onRowEditSave(milestone)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel < 2"><i class="pi pi-check" pButtonIcon></i></button>
-                              <button pButton (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel < 2"><i class="pi pi-times" pButtonIcon></i></button>
+                              <button pButton (click)="$event.stopPropagation(); onRowEditSave(milestone)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel() < 2"><i class="pi pi-check" pButtonIcon></i></button>
+                              <button pButton (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-times" pButtonIcon></i></button>
                             </div>
                           } @else {
-                            <button pButton (click)="$event.stopPropagation(); onRowEditInit(milestone)" pInitEditableRow [rounded]="true" variant="text" [disabled]="accessLevel < 2"><i class="pi pi-pencil" pButtonIcon></i></button>
+                            <button pButton (click)="$event.stopPropagation(); onRowEditInit(milestone)" pInitEditableRow [rounded]="true" variant="text" [disabled]="accessLevel() < 2"><i class="pi pi-pencil" pButtonIcon></i></button>
                           }
                         </td>
                       </tr>
@@ -267,12 +267,12 @@
                       </div>
                       @if (
                         ((aiEnabled && poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) || (aiEnabled && poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData)) &&
-                        (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0))
+                        (poam.isGlobalFinding || (poamAssignedTeams() && poamAssignedTeams().length > 0))
                       ) {
                         <cpat-poam-mitigation-generator
                           class="w-full"
                           [poam]="poam"
-                          [team]="!poam.isGlobalFinding && activeTabIndex >= 0 && activeTabIndex < teamMitigations.length ? teamMitigations[activeTabIndex] : null"
+                          [team]="!poam.isGlobalFinding && activeTabIndex() >= 0 && activeTabIndex() < teamMitigations().length ? teamMitigations()[activeTabIndex()] : null"
                           (mitigationGenerated)="onMitigationGenerated($event)"
                         />
                       }
@@ -280,11 +280,11 @@
                   </div>
 
                   <div class="team-mitigations-container">
-                    @if (mitigationSaving) {
+                    @if (mitigationSaving()) {
                       <p-progressbar mode="indeterminate" [style]="{ height: '4px' }" />
                     }
 
-                    @if (!poam.isGlobalFinding && (!poamAssignedTeams || poamAssignedTeams.length === 0)) {
+                    @if (!poam.isGlobalFinding && (!poamAssignedTeams() || poamAssignedTeams().length === 0)) {
                       <div class="card p-4 text-center justify-items-center">
                         <div class="mb-4">
                           <i class="pi pi-info-circle text-4xl text-blue-500"></i>
@@ -294,7 +294,7 @@
                       </div>
                     }
 
-                    @if (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0)) {
+                    @if (poam.isGlobalFinding || (poamAssignedTeams() && poamAssignedTeams().length > 0)) {
                       <p-tabs [(value)]="activeTabIndex" lazy>
                         <p-tablist>
                           @if (poam.isGlobalFinding) {
@@ -302,7 +302,7 @@
                           }
 
                           @if (!poam.isGlobalFinding) {
-                            @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
+                            @for (teamMitigation of teamMitigations(); track teamMitigation.assignedTeamId; let i = $index) {
                               <p-tab [value]="i" [class]="teamMitigation.isActive ? '' : 'inactive-tab'">
                                 <span [class]="{ 'inactive-tab': !teamMitigation.isActive }">{{ teamMitigation.assignedTeamName }}</span>
                                 @if (teamMitigation.isActive && isExtensionInvalid('teamMitigation:' + teamMitigation.assignedTeamId)) {
@@ -326,13 +326,13 @@
                                 rows="16"
                                 maxlength="10000"
                                 placeholder="Global POAM Mitigations..."
-                                [disabled]="accessLevel < 2"
+                                [disabled]="accessLevel() < 2"
                               ></textarea>
                             </p-tabpanel>
                           }
 
                           @if (!poam.isGlobalFinding) {
-                            @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
+                            @for (teamMitigation of teamMitigations(); track teamMitigation.assignedTeamId; let i = $index) {
                               <p-tabpanel [value]="i">
                                 <div [class]="{ 'opacity-70': !teamMitigation.isActive }">
                                   @if (!teamMitigation.isActive) {
@@ -349,7 +349,7 @@
                                     rows="16"
                                     maxlength="10000"
                                     placeholder="Team-specific mitigations..."
-                                    [disabled]="!teamMitigation.isActive && accessLevel < 3"
+                                    [disabled]="!teamMitigation.isActive && accessLevel() < 3"
                                   ></textarea>
                                 </div>
                               </p-tabpanel>
@@ -373,7 +373,7 @@
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <textarea pTextarea class="w-full" [(ngModel)]="poam.requiredResources" name="requiredResources" rows="16" maxlength="2000" placeholder="Required Resources..." [disabled]="accessLevel < 2"></textarea>
+                  <textarea pTextarea class="w-full" [(ngModel)]="poam.requiredResources" name="requiredResources" rows="16" maxlength="2000" placeholder="Required Resources..." [disabled]="accessLevel() < 2"></textarea>
                 </div>
                 <div class="stepper-buttons">
                   <button pButton (click)="activateCallback(2)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
@@ -400,13 +400,13 @@
                       optionValue="value"
                       appendTo="body"
                       class="w-full"
-                      [disabled]="accessLevel < 2"
+                      [disabled]="accessLevel() < 2"
                     />
                   </div>
 
                   <div class="form-group">
                     <label for="impactDescription">Impact Description: </label>
-                    <textarea pTextarea class="w-full" [(ngModel)]="poam.impactDescription" name="impactDescription" rows="16" placeholder="Impact Description..." [disabled]="accessLevel < 2"></textarea>
+                    <textarea pTextarea class="w-full" [(ngModel)]="poam.impactDescription" name="impactDescription" rows="16" placeholder="Impact Description..." [disabled]="accessLevel() < 2"></textarea>
                   </div>
 
                   <div class="form-group">
@@ -433,8 +433,8 @@
     <div class="m-2 flex w-full items-center justify-between">
       <button pButton class="ml-4" (click)="cancelExtension()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
       <div>
-        @if (accessLevel >= 3) {
-          <button pButton (click)="approveExtension()" [outlined]="true" severity="success" pTooltip="Approving a POAM extension will automatically update the POAM status to 'Approved'" [disabled]="accessLevel < 3">
+        @if (accessLevel() >= 3) {
+          <button pButton (click)="approveExtension()" [outlined]="true" severity="success" pTooltip="Approving a POAM extension will automatically update the POAM status to 'Approved'" [disabled]="accessLevel() < 3">
             <span pButtonLabel>Approve</span>
           </button>
           <p-splitbutton
@@ -445,7 +445,7 @@
             label="Reject"
             pTooltip="Rejecting a POAM extension will automatically update the POAM status to 'Rejected'"
             (onClick)="rejectExtension()"
-            [disabled]="accessLevel < 3"
+            [disabled]="accessLevel() < 3"
             menuStyleClass="extension-splitbutton-menu"
           />
         }
@@ -455,7 +455,7 @@
           (click)="submitPoamExtension()"
           [outlined]="true"
           pTooltip="Saving an extension where 'Extension Time Requested' is provided will automatically update the POAM status to 'Extension Requested' and notify an Approver for review."
-          [disabled]="accessLevel < 2"
+          [disabled]="accessLevel() < 2"
         >
           <span pButtonLabel>Save</span>
         </button>

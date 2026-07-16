@@ -8,9 +8,10 @@
 !##########################################################################
 */
 
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
 import { Router } from '@angular/router';
@@ -28,16 +29,20 @@ export class AuthService {
   private readonly usersService = inject(UsersService);
   private readonly router = inject(Router);
 
-  private readonly currentUser = new BehaviorSubject<any>(null);
-  private readonly accessLevel = new BehaviorSubject<number>(0);
-  private readonly authState = new BehaviorSubject<AuthState>({
+  private readonly _currentUser = signal<any>(null);
+  private readonly _accessLevel = signal<number>(0);
+  private readonly _authState = signal<AuthState>({
     isAuthenticatedStigman: false,
     isAuthenticatedCpat: false
   });
 
-  accessLevel$ = this.accessLevel.asObservable();
-  user$ = this.currentUser.asObservable();
-  authState$ = this.authState.asObservable();
+  readonly user = this._currentUser.asReadonly();
+  readonly accessLevel = this._accessLevel.asReadonly();
+  readonly authState = this._authState.asReadonly();
+
+  accessLevel$ = toObservable(this._accessLevel);
+  user$ = toObservable(this._currentUser);
+  authState$ = toObservable(this._authState);
 
   constructor() {
     this.initializeAuth();
@@ -58,8 +63,8 @@ export class AuthService {
           if (isAuthenticatedCpat) {
             return this.getUserData().pipe(
               tap((userData) => {
-                this.currentUser.next(userData);
-                this.accessLevel.next(this.calculateAccessLevel(userData));
+                this._currentUser.set(userData);
+                this._accessLevel.set(this.calculateAccessLevel(userData));
               })
             );
           }
@@ -67,7 +72,7 @@ export class AuthService {
           return of(null);
         }),
         tap(() => {
-          const { isAuthenticatedStigman, isAuthenticatedCpat } = this.authState.getValue();
+          const { isAuthenticatedStigman, isAuthenticatedCpat } = this._authState();
           const redirectUrl = sessionStorage.getItem('auth-redirect-url');
 
           if (redirectUrl && isAuthenticatedStigman && isAuthenticatedCpat) {
@@ -77,7 +82,7 @@ export class AuthService {
         }),
         catchError((error) => {
           console.error('Auth initialization error:', error);
-          this.authState.next({
+          this._authState.set({
             isAuthenticatedStigman: false,
             isAuthenticatedCpat: false
           });
@@ -94,7 +99,7 @@ export class AuthService {
     const isAuthenticatedStigman = authResults?.find((auth) => auth.configId === 'stigman')?.isAuthenticated ?? false;
     const isAuthenticatedCpat = authResults?.find((auth) => auth.configId === 'cpat')?.isAuthenticated ?? false;
 
-    this.authState.next({ isAuthenticatedStigman, isAuthenticatedCpat });
+    this._authState.set({ isAuthenticatedStigman, isAuthenticatedCpat });
   }
 
   handleAuthFlow(): void {
@@ -102,7 +107,7 @@ export class AuthService {
       return;
     }
 
-    const { isAuthenticatedStigman, isAuthenticatedCpat } = this.authState.getValue();
+    const { isAuthenticatedStigman, isAuthenticatedCpat } = this._authState();
 
     if (!isAuthenticatedStigman) {
       this.login('stigman');
@@ -140,15 +145,15 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.oidcSecurityService.logoff('stigman', undefined).pipe(
-      switchMap(() => this.oidcSecurityService.logoff('cpat', undefined)),
+    return this.oidcSecurityService.logoff('stigman').pipe(
+      switchMap(() => this.oidcSecurityService.logoff('cpat')),
       tap(() => {
-        this.authState.next({
+        this._authState.set({
           isAuthenticatedStigman: false,
           isAuthenticatedCpat: false
         });
-        this.currentUser.next(null);
-        this.accessLevel.next(0);
+        this._currentUser.set(null);
+        this._accessLevel.set(0);
       }),
       map(() => undefined),
       catchError((error) => {

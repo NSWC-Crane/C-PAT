@@ -9,14 +9,15 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ListboxModule } from 'primeng/listbox';
 import { Popover } from 'primeng/popover';
-import { Subscription, map } from 'rxjs';
+import { filter, map } from 'rxjs';
 import { PayloadService } from '../../../../common/services/setPayload.service';
 import { NotificationService } from '../notifications.service';
 
@@ -25,44 +26,32 @@ import { NotificationService } from '../notifications.service';
   templateUrl: './notifications-popover.component.html',
   styleUrls: ['./notifications-popover.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, FormsModule, ListboxModule, DatePipe]
 })
-export class NotificationsPanelComponent implements OnInit, OnDestroy {
+export class NotificationsPanelComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly setPayloadService = inject(PayloadService);
   private readonly router = inject(Router);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly overlayPanel = input<Popover>(undefined);
-  notifications: any[] = [];
-  public isLoggedIn = false;
-  protected accessLevel: any;
-  user: any;
-  payload: any;
-  poam: any;
-  private readonly payloadSubscription: Subscription[] = [];
+  readonly notifications = signal<any[]>([]);
 
   ngOnInit() {
     this.setPayload();
   }
 
   setPayload() {
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
-        this.user = user;
-      }),
-      this.setPayloadService.payload$.subscribe((payload) => {
-        this.payload = payload;
-      }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
-        this.accessLevel = level;
-
-        if (this.accessLevel > 0) {
-          this.fetchNotifications();
-        }
-      })
-    );
+    this.setPayloadService.accessLevel$
+      .pipe(
+        filter((level) => level > 0),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        this.fetchNotifications();
+      });
   }
 
   closeOverlay() {
@@ -86,7 +75,7 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (notifications) => {
-          this.notifications = notifications;
+          this.notifications.set(notifications);
         },
         error: (error) => {
           console.error('Failed to fetch notifications:', error);
@@ -111,7 +100,7 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   dismissNotification(notification: any) {
     this.notificationService.dismissNotification(notification.notificationId).subscribe({
       next: () => {
-        this.notifications = this.notifications.filter((n) => n.notificationId !== notification.notificationId);
+        this.notifications.update((current) => current.filter((n) => n.notificationId !== notification.notificationId));
       },
       error: (error) => {
         console.error('Failed to dismiss notification:', error);
@@ -122,7 +111,7 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
   dismissAllNotifications() {
     this.notificationService.dismissAllNotifications().subscribe({
       next: () => {
-        this.notifications = [];
+        this.notifications.set([]);
       },
       error: (error) => {
         console.error('Failed to dismiss all notifications:', error);
@@ -156,9 +145,5 @@ export class NotificationsPanelComponent implements OnInit, OnDestroy {
         this.navigateToPOAM(+poamId);
       }
     }
-  }
-
-  ngOnDestroy(): void {
-    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }

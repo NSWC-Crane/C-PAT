@@ -111,7 +111,7 @@
       </div>
       <p-table
         #hostFindingsTable
-        [value]="hostData"
+        [value]="hostData()"
         [columns]="hostDialogCols"
         [rows]="100"
         [rowsPerPageOptions]="[25, 50, 100]"
@@ -134,24 +134,25 @@
               <th scope="col" [pSortableColumn]="col.field" pResizableColumn>
                 {{ col.header }}
                 @if (col.field === 'poam') {
-                  <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                  <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
                     <ng-template #filter let-value let-filter="filterCallback">
                       <p-select
                         [multiple]="true"
+                        [filter]="true"
                         [checkmark]="true"
                         [showClear]="true"
                         [ngModel]="selectedPoamStatuses"
                         [options]="col.filterOptions"
                         (onChange)="filter($event.value); selectedPoamStatuses = $event.value"
                         (onClear)="filter([]); selectedPoamStatuses = []"
-                        placeholder="Select Status"
+                        placeholder="Select Status..."
                         class="w-full swap-button-order"
                       />
                     </ng-template>
                   </p-columnfilter>
                 }
                 @if (col.field === 'severity') {
-                  <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                  <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
                     <ng-template #filter let-value let-filter="filterCallback">
                       <p-select
                         [multiple]="true"
@@ -161,7 +162,7 @@
                         [options]="col.filterOptions"
                         (onChange)="filter($event.value); selectedSeverities = $event.value"
                         (onClear)="filter([]); selectedSeverities = []"
-                        placeholder="Select Severity"
+                        placeholder="Select Severity..."
                         class="w-full swap-button-order"
                       />
                     </ng-template>
@@ -233,229 +234,229 @@
         <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
       </div>
     }
-    @if (!isLoadingPluginDetails() && pluginDetailData) {
+    @if (!isLoadingPluginDetails() && pluginDetailData()) {
       <div class="card">
         <div class="p-col-12 mb-2">
           <h3>Plugin Information</h3>
         </div>
         <div class="p-col-12 mb-2" style="display: flex">
           <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN ID</div>
-          <div>{{ pluginDetailData.pluginID }}</div>
+          <div>{{ pluginDetailData().pluginID }}</div>
         </div>
         <div class="p-col-12 mb-2" style="display: flex">
           <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN NAME</div>
-          <div>{{ pluginDetailData.pluginName }}</div>
+          <div>{{ pluginDetailData().pluginName }}</div>
         </div>
-        @if (pluginDetailData.pluginPubDate) {
+        @if (pluginDetailData().pluginPubDate) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">PUBLISHED</div>
-            <div>{{ pluginDetailData.pluginPubDate }}</div>
+            <div>{{ pluginDetailData().pluginPubDate }}</div>
           </div>
         }
         <div class="p-col-12" style="display: flex">
           <div style="width: 250px; color: var(--text-secondary-color)">SEVERITY</div>
           <div>
-            <p-tag [value]="pluginDetailData.severity" [severity]="getSeverityStyling(pluginDetailData.severity)" [rounded]="false" />
+            <p-tag [value]="pluginDetailData().severity" [severity]="getSeverityStyling(pluginDetailData().severity)" [rounded]="false" />
           </div>
         </div>
-        @if (pluginDetailData.synopsis) {
+        @if (pluginDetailData().synopsis) {
           <div class="mt-4">
             <div class="p-col-12 mb-2">
               <h3>Synopsis</h3>
             </div>
-            <div class="p-col-12">{{ pluginDetailData.synopsis }}</div>
+            <div class="p-col-12">{{ pluginDetailData().synopsis }}</div>
           </div>
         }
-        @if (pluginDetailData.description) {
+        @if (pluginDetailData().description) {
           <div class="mt-4">
             <div class="p-col-12 mb-2">
               <h3>Description</h3>
             </div>
-            <div class="p-col-12">{{ pluginDetailData.description }}</div>
+            <div class="p-col-12">{{ pluginDetailData().description }}</div>
           </div>
         }
-        @if (pluginDetailData.solution) {
+        @if (pluginDetailData().solution) {
           <div class="mt-4">
             <div class="p-col-12 mb-2">
               <h3>Steps To Remediate</h3>
             </div>
-            <div class="p-col-12">{{ pluginDetailData.solution }}</div>
+            <div class="p-col-12">{{ pluginDetailData().solution }}</div>
           </div>
         }
-        @if (pluginDetailData.pluginText) {
+        @if (pluginDetailData().pluginText) {
           <div class="mt-4">
             <div class="p-col-12 mb-2">
               <h3>Output</h3>
             </div>
             <div class="card p-col-12 outputData">
-              <pre>{{ parsePluginOutput(pluginDetailData.pluginText) }}</pre>
+              <pre>{{ parsePluginOutput(pluginDetailData().pluginText) }}</pre>
             </div>
           </div>
         }
         <div class="p-col-12 mb-2 mt-4">
           <h3>Discovery</h3>
         </div>
-        @if (pluginDetailData.firstSeen) {
+        @if (pluginDetailData().firstSeen) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">FIRST OBSERVED</div>
-            <div>{{ pluginDetailData.firstSeen }}</div>
+            <div>{{ pluginDetailData().firstSeen }}</div>
           </div>
         }
-        @if (pluginDetailData.lastSeen) {
+        @if (pluginDetailData().lastSeen) {
           <div class="p-col-12" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">LAST OBSERVED</div>
-            <div>{{ pluginDetailData.lastSeen }}</div>
+            <div>{{ pluginDetailData().lastSeen }}</div>
           </div>
         }
-        @if (pluginDetailData.seolDate) {
+        @if (pluginDetailData().seolDate) {
           <div class="p-col-12" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">SEoL DATE</div>
-            <div>{{ pluginDetailData.seolDate }}</div>
+            <div>{{ pluginDetailData().seolDate }}</div>
           </div>
         }
         <div class="p-col-12 mb-2 mt-4">
           <h3>Host Information</h3>
         </div>
-        @if (pluginDetailData.ip) {
+        @if (pluginDetailData().ip) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">IP ADDRESS</div>
-            <div>{{ pluginDetailData.ip }}</div>
+            <div>{{ pluginDetailData().ip }}</div>
           </div>
         }
-        @if (pluginDetailData.uuid) {
+        @if (pluginDetailData().uuid) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">AGENT ID</div>
-            <div>{{ pluginDetailData.uuid }}</div>
+            <div>{{ pluginDetailData().uuid }}</div>
           </div>
         }
-        @if (pluginDetailData.dns) {
+        @if (pluginDetailData().dns) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">DNS</div>
-            <div>{{ pluginDetailData.dns }}</div>
+            <div>{{ pluginDetailData().dns }}</div>
           </div>
         }
-        @if (pluginDetailData.macAddress) {
+        @if (pluginDetailData().macAddress) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">MAC</div>
-            <div>{{ pluginDetailData.macAddress }}</div>
+            <div>{{ pluginDetailData().macAddress }}</div>
           </div>
         }
-        @if (pluginDetailData.recastRiskRuleComment) {
+        @if (pluginDetailData().recastRiskRuleComment) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">RECAST RISK COMMENT</div>
-            <div>{{ pluginDetailData.recastRiskRuleComment }}</div>
+            <div>{{ pluginDetailData().recastRiskRuleComment }}</div>
           </div>
         }
-        @if (pluginDetailData.acceptRiskRuleComment) {
+        @if (pluginDetailData().acceptRiskRuleComment) {
           <div class="p-col-12" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">ACCEPT RISK COMMENT</div>
-            <div>{{ pluginDetailData.acceptRiskRuleComment }}</div>
+            <div>{{ pluginDetailData().acceptRiskRuleComment }}</div>
           </div>
         }
-        @if (pluginDetailData.acrScore) {
+        @if (pluginDetailData().acrScore) {
           <div class="p-col-12 mb-2 mt-4">
             <h3>Asset Criticality Rating</h3>
           </div>
         }
-        @if (pluginDetailData.acrScore) {
+        @if (pluginDetailData().acrScore) {
           <div class="p-col-12" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">ACR</div>
-            <div>{{ pluginDetailData.acrScore }}</div>
+            <div>{{ pluginDetailData().acrScore }}</div>
           </div>
         }
-        @if (pluginDetailData.assetExposureScore) {
+        @if (pluginDetailData().assetExposureScore) {
           <div class="p-col-12 mb-2 mt-4">
             <h3>Asset Exposure Score</h3>
           </div>
         }
-        @if (pluginDetailData.assetExposureScore) {
+        @if (pluginDetailData().assetExposureScore) {
           <div class="p-col-12" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">AES</div>
-            <div>{{ pluginDetailData.assetExposureScore }}</div>
+            <div>{{ pluginDetailData().assetExposureScore }}</div>
           </div>
         }
         <div class="p-col-12 mb-2 mt-4">
           <h3>Risk Information</h3>
         </div>
-        @if (pluginDetailData.riskFactor) {
+        @if (pluginDetailData().riskFactor) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 SEVERITY</div>
-            <div>{{ pluginDetailData.riskFactor }}</div>
+            <div>{{ pluginDetailData().riskFactor }}</div>
           </div>
         }
-        @if (pluginDetailData.stigSeverity) {
+        @if (pluginDetailData().stigSeverity) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">STIG SEVERITY</div>
-            <div>{{ pluginDetailData.stigSeverity }}</div>
+            <div>{{ pluginDetailData().stigSeverity }}</div>
           </div>
         }
-        @if (pluginDetailData.vprScore) {
+        @if (pluginDetailData().vprScore) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">VULNERABILITY PRIORITY RATING</div>
-            <div>{{ pluginDetailData.vprScore }}</div>
+            <div>{{ pluginDetailData().vprScore }}</div>
           </div>
         }
-        @if (pluginDetailData.epssScore) {
+        @if (pluginDetailData().epssScore) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">EXPLOIT PREDICTION SCORING SYSTEM (%)</div>
-            <div>{{ pluginDetailData.epssScore }}%</div>
+            <div>{{ pluginDetailData().epssScore }}%</div>
           </div>
         }
-        @if (pluginDetailData.baseScore) {
+        @if (pluginDetailData().baseScore) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 BASE SCORE</div>
-            <div>{{ pluginDetailData.baseScore }}</div>
+            <div>{{ pluginDetailData().baseScore }}</div>
           </div>
         }
-        @if (pluginDetailData.temporalScore) {
+        @if (pluginDetailData().temporalScore) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 TEMPORAL SCORE</div>
-            <div>{{ pluginDetailData.temporalScore }}</div>
+            <div>{{ pluginDetailData().temporalScore }}</div>
           </div>
         }
-        @if (pluginDetailData.cvssVector) {
+        @if (pluginDetailData().cvssVector) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">CVSS V2 VECTOR</div>
-            <div>{{ pluginDetailData.cvssVector }}</div>
+            <div>{{ pluginDetailData().cvssVector }}</div>
           </div>
         }
-        @if (pluginDetailData.cvssV3BaseScore) {
+        @if (pluginDetailData().cvssV3BaseScore) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">CVSS V3 BASE SCORE</div>
-            <div>{{ pluginDetailData.cvssV3BaseScore }}</div>
+            <div>{{ pluginDetailData().cvssV3BaseScore }}</div>
           </div>
         }
-        @if (pluginDetailData.cvssV3TemporalScore) {
+        @if (pluginDetailData().cvssV3TemporalScore) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">CVSS V3 TEMPORAL SCORE</div>
-            <div>{{ pluginDetailData.cvssV3TemporalScore }}</div>
+            <div>{{ pluginDetailData().cvssV3TemporalScore }}</div>
           </div>
         }
-        @if (pluginDetailData.cvssV3Vector) {
+        @if (pluginDetailData().cvssV3Vector) {
           <div class="p-col-12" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">CVSS V3 VECTOR</div>
-            <div>{{ pluginDetailData.cvssV3Vector }}</div>
+            <div>{{ pluginDetailData().cvssV3Vector }}</div>
           </div>
         }
         <div class="p-col-12 mb-2 mt-4">
           <h3>Exploit Information</h3>
         </div>
-        @if (pluginDetailData.patchPubDate) {
+        @if (pluginDetailData().patchPubDate) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">PATCH PUBLISHED</div>
-            <div>{{ pluginDetailData.patchPubDate }}</div>
+            <div>{{ pluginDetailData().patchPubDate }}</div>
           </div>
         }
-        @if (pluginDetailData.exploitAvailable) {
+        @if (pluginDetailData().exploitAvailable) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">EXPLOIT AVAILABLE</div>
-            <div>{{ pluginDetailData.exploitAvailable }}</div>
+            <div>{{ pluginDetailData().exploitAvailable }}</div>
           </div>
         }
-        @if (pluginDetailData.exploitEase) {
+        @if (pluginDetailData().exploitEase) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">EXPLOITABILITY EASE</div>
-            <div>{{ pluginDetailData.exploitEase }}</div>
+            <div>{{ pluginDetailData().exploitEase }}</div>
           </div>
         }
         <div class="p-col-12 mb-2 mt-4">
@@ -463,44 +464,44 @@
         </div>
         <div class="p-col-12 mb-2" style="display: flex">
           <div style="width: 250px; color: var(--text-secondary-color)">PLUGIN ID</div>
-          <div>{{ pluginDetailData.pluginID }}</div>
+          <div>{{ pluginDetailData().pluginID }}</div>
         </div>
-        @if (pluginDetailData.patchPubDate) {
+        @if (pluginDetailData().patchPubDate) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">PUBLISHED</div>
-            <div>{{ pluginDetailData.patchPubDate }}</div>
+            <div>{{ pluginDetailData().patchPubDate }}</div>
           </div>
         }
-        @if (pluginDetailData.pluginModDate) {
+        @if (pluginDetailData().pluginModDate) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">LAST MODIFIED</div>
-            <div>{{ pluginDetailData.pluginModDate }}</div>
+            <div>{{ pluginDetailData().pluginModDate }}</div>
           </div>
         }
-        @if (pluginDetailData.family) {
+        @if (pluginDetailData().family) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">FAMILY</div>
-            <div>{{ pluginDetailData.family }}</div>
+            <div>{{ pluginDetailData().family }}</div>
           </div>
         }
-        @if (pluginDetailData.version) {
+        @if (pluginDetailData().version) {
           <div class="p-col-12 mb-2" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">VERSION</div>
-            <div>{{ pluginDetailData.version }}</div>
+            <div>{{ pluginDetailData().version }}</div>
           </div>
         }
-        @if (pluginDetailData.checkType) {
+        @if (pluginDetailData().checkType) {
           <div class="p-col-12" style="display: flex">
             <div style="width: 250px; color: var(--text-secondary-color)">TYPE</div>
-            <div>{{ pluginDetailData.checkType }}</div>
+            <div>{{ pluginDetailData().checkType }}</div>
           </div>
         }
-        @if (iavReferences.length > 0) {
+        @if (iavReferences().length > 0) {
           <div class="p-col-12 mb-2 mt-4">
             <div style="width: 250px; color: var(--text-secondary-color)">IAV REFERENCES</div>
             <div>
               <ul class="pl-4">
-                @for (ref of iavReferences; track ref) {
+                @for (ref of iavReferences(); track ref) {
                   <li>
                     <a [href]="getIavUrl(ref.value)" target="_blank" rel="noopener" style="cursor: pointer; color: var(--p-primary-color)">{{ ref.type }}:{{ ref.value }}</a>
                   </li>
@@ -509,12 +510,12 @@
             </div>
           </div>
         }
-        @if (cveReferences.length > 0) {
+        @if (cveReferences().length > 0) {
           <div class="p-col-12 mb-2 mt-4">
             <div style="width: 250px; color: var(--text-secondary-color)">CVE REFERENCES</div>
             <div>
               <ul class="pl-4">
-                @for (ref of cveReferences; track ref) {
+                @for (ref of cveReferences(); track ref) {
                   <li>
                     <a [href]="getCveUrl(ref.value)" target="_blank" rel="noopener" style="cursor: pointer; color: var(--p-primary-color)">{{ ref.type }}:{{ ref.value }}</a>
                   </li>
@@ -523,12 +524,12 @@
             </div>
           </div>
         }
-        @if (otherReferences.length > 0) {
+        @if (otherReferences().length > 0) {
           <div class="p-col-12 mb-2 mt-4">
             <div style="width: 250px; color: var(--text-secondary-color)">OTHER REFERENCES</div>
             <div>
               <ul class="pl-4">
-                @for (ref of otherReferences; track ref) {
+                @for (ref of otherReferences(); track ref) {
                   <li>{{ ref.type }}:{{ ref.value }}</li>
                 }
               </ul>

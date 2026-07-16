@@ -8,22 +8,13 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, DOCUMENT, ElementRef, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject, viewChild, input } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { MenuItem } from 'primeng/api';
-import { BadgeModule } from 'primeng/badge';
-import { ButtonModule } from 'primeng/button';
-import { MenuModule } from 'primeng/menu';
-import { TagModule } from 'primeng/tag';
-import { Subject, filter, take, takeUntil } from 'rxjs';
-import { SubSink } from 'subsink';
-import { NotificationService } from '../../common/components/notifications/notifications.service';
+import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, OnDestroy, OnInit, Renderer2, afterNextRender, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter, take } from 'rxjs';
 import { SharedService } from '../../common/services/shared.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
-import { AppConfigService } from '../services/appconfigservice';
 import { AppClassificationComponent } from './app.classification.component';
 import { AppFooterComponent } from './app.footer.component';
 import { AppLayoutComponent } from './app.layout.component';
@@ -40,57 +31,24 @@ import { AppTopBarComponent } from './app.topbar.component';
     </div>
   `,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [AppClassificationComponent, AppTopBarComponent, AppLayoutComponent, BadgeModule, ButtonModule, AppFooterComponent, MenuModule, TagModule, FormsModule]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [AppClassificationComponent, AppTopBarComponent, AppLayoutComponent, AppFooterComponent]
 })
 export class AppNavigationComponent implements OnInit, OnDestroy {
   private readonly document = inject<Document>(DOCUMENT);
   private readonly renderer = inject(Renderer2);
-  private readonly configService = inject(AppConfigService);
   private readonly authService = inject(AuthService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly sharedService = inject(SharedService);
   private readonly userService = inject(UsersService);
-  private readonly router = inject(Router);
-  private readonly notificationService = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
   el = inject(ElementRef);
-
-  readonly showConfigurator = input(true, { transform: booleanAttribute });
-
-  readonly showMenuButton = input(true, { transform: booleanAttribute });
 
   scrollListener: VoidFunction | null;
 
   private readonly window: Window;
 
-  collections: any = [];
-  user: any;
-  payload: any;
-  fullName: any;
-  userRole: any;
-  userMenu: MenuItem[] = [{ label: 'Log Out', icon: 'pi pi-sign-out' }];
-  notificationCount: any = null;
-  selectedCollection: any = null;
-  selectCollectionMsg: boolean = false;
-  collectionName: string = 'Select Collection';
-  private readonly subs = new SubSink();
-  timeout: any = null;
-  private readonly destroy$ = new Subject<void>();
-  readonly menuButton = viewChild.required<ElementRef>('menubutton');
-  readonly menuContainer = viewChild.required<ElementRef>('menuContainer');
-  readonly user$ = inject(AuthService).user$;
-
-  isNewsActive = computed(() => this.configService.newsActive());
-
-  isDarkMode = computed(() => this.configService.appState().darkTheme);
-
-  isMenuActive = computed(() => this.configService.appState().menuActive);
-
-  landingClass = computed(() => ({
-    'layout-dark': this.isDarkMode(),
-    'layout-light': !this.isDarkMode(),
-    'layout-news-active': this.isNewsActive()
-  }));
+  readonly user = signal<any>(null);
 
   constructor() {
     this.window = this.document.defaultView;
@@ -107,14 +65,9 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
         take(1)
       )
       .subscribe((user) => {
-        this.user = user;
-        this.getNotificationCount();
+        this.user.set(user);
         this.getCollections();
       });
-  }
-
-  toggleDarkMode() {
-    this.configService.appState.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
   }
 
   bindScrollListener() {
@@ -139,121 +92,33 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
   private getCollections() {
     this.collectionsService
       .getCollections()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (collections: any) => {
-          this.collections = collections;
+        next: () => {
+          const user = this.user();
 
-          if (this.user?.lastCollectionAccessedId) {
-            this.selectedCollection = collections.find((c: any) => c.collectionId === this.user.lastCollectionAccessedId);
-            this.resetWorkspace(this.user.lastCollectionAccessedId);
+          if (user?.lastCollectionAccessedId) {
+            this.resetWorkspace(user.lastCollectionAccessedId);
           }
         },
         error: (error) => console.error('Error loading collections:', error)
       });
   }
 
-  getTagColor(origin: string): 'secondary' | 'success' | 'warn' | 'danger' | 'info' | undefined {
-    switch (origin) {
-      case 'C-PAT':
-        return 'secondary';
-      case 'STIG Manager':
-        return 'success';
-      case 'Tenable':
-        return 'danger';
-      default:
-        return 'info';
-    }
-  }
-
-  getNotificationCount() {
-    this.notificationService
-      .getUnreadNotificationCount()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (result: any) => {
-          this.notificationCount = result > 0 ? result : null;
-        },
-        error: (error) => console.error('Error getting notification count:', error)
-      });
-  }
-
-  setMenuItems() {
-    const marketplaceDisabled = CPAT.Env.features.marketplaceDisabled ?? false;
-
-    if (marketplaceDisabled) {
-      this.userMenu = [
-        {
-          label: 'Log Out',
-          icon: 'pi pi-sign-out',
-          command: () => this.logout()
-        }
-      ];
-    } else {
-      this.userMenu = [
-        {
-          label: 'Marketplace',
-          icon: 'pi pi-shopping-cart',
-          command: () => this.goToMarketplace()
-        },
-        {
-          label: 'Log Out',
-          icon: 'pi pi-sign-out',
-          command: () => this.logout()
-        }
-      ];
-    }
-  }
-
-  setupUserMenuActions() {
-    this.userMenu.forEach((item) => {
-      if (item.label === 'Marketplace') {
-        item.command = () => this.goToMarketplace();
-      } else if (item.label === 'Log Out') {
-        item.command = () => this.logout();
-      }
-    });
-  }
-
-  goToMarketplace() {
-    this.router.navigate(['/marketplace']);
-  }
-
-  logout() {
-    this.authService.logout().subscribe({
-      next: () => {
-        this.router.navigate(['/login']);
-      },
-      error: (error) => {
-        console.error('Logout failed:', error);
-      }
-    });
-  }
-
-  onCollectionClick(event: any) {
-    if (event?.value?.collectionId) {
-      this.resetWorkspace(event.value.collectionId);
-    }
-  }
-
   resetWorkspace(selectedCollectionId: number) {
     this.sharedService.setSelectedCollection(selectedCollectionId);
 
-    const collection = this.collections.find((x: { collectionId: number }) => x.collectionId === selectedCollectionId);
+    const user = this.user();
 
-    if (collection) {
-      this.selectedCollection = collection;
-    }
-
-    if (this.user?.lastCollectionAccessedId !== selectedCollectionId) {
+    if (user?.lastCollectionAccessedId !== selectedCollectionId) {
       const userUpdate = {
-        userId: this.user.userId,
+        userId: user.userId,
         lastCollectionAccessedId: selectedCollectionId
       };
 
       this.userService
         .updateUserLastCollection(userUpdate)
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (result) => {
             if (result) {
@@ -267,8 +132,5 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.unbindScrollListener();
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.subs.unsubscribe();
   }
 }

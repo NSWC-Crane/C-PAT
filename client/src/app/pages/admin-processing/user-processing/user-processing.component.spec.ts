@@ -443,18 +443,9 @@ describe('UserProcessingComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe all payloadSubscriptions', () => {
-      const mockSub = { unsubscribe: vi.fn() };
-
-      (component as any).payloadSubscription = [mockSub, mockSub];
-      component.ngOnDestroy();
-
-      expect(mockSub.unsubscribe).toHaveBeenCalledTimes(2);
-    });
-
-    it('should not throw when called', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
+  describe('cleanup', () => {
+    it('should not throw when destroyed', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

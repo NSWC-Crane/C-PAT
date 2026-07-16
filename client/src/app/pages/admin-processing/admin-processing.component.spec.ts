@@ -118,11 +118,7 @@ describe('AdminProcessingComponent', () => {
     });
 
     it('should initialize value to 0', () => {
-      expect(component.value).toBe(0);
-    });
-
-    it('should initialize user as undefined', () => {
-      expect(component.user).toBeUndefined();
+      expect(component.value()).toBe(0);
     });
 
     it('should set tenableEnabled from CPAT.Env', () => {
@@ -187,7 +183,7 @@ describe('AdminProcessingComponent', () => {
     it('should set value to 4', () => {
       component.switchToPluginMapping();
 
-      expect(component.value).toBe(4);
+      expect(component.value()).toBe(4);
     });
 
     it('should call updatePluginIds on nessusPluginMappingComponent after timeout', async () => {
@@ -226,24 +222,22 @@ describe('AdminProcessingComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
+  describe('cleanup', () => {
     it('should unsubscribe from isAdmin$ on destroy', () => {
       isAdminSubject.next(true);
       fixture.detectChanges();
 
-      component.ngOnDestroy();
+      fixture.destroy();
+      mockRouter.navigate.mockClear();
 
       isAdminSubject.next(false);
       expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
 
-    it('should not throw when called multiple times', () => {
+    it('should not throw when destroyed', () => {
       fixture.detectChanges();
 
-      expect(() => {
-        component.ngOnDestroy();
-        component.ngOnDestroy();
-      }).not.toThrow();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 

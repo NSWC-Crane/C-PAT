@@ -9,8 +9,8 @@
 */
 
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
@@ -24,7 +24,7 @@ import { RippleModule } from 'primeng/ripple';
 import { Tag } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subject, combineLatest, distinctUntilChanged, filter, forkJoin, map, switchMap, take, takeUntil } from 'rxjs';
+import { combineLatest, distinctUntilChanged, filter, forkJoin, map, switchMap, take } from 'rxjs';
 import { IStepOption, TourPrimeNg, TourService } from 'ngx-ui-tour-primeng';
 import { StatusMessageComponent } from '../../common/components/status-message/status-message.component';
 import { SharedService } from '../../common/services/shared.service';
@@ -255,13 +255,14 @@ import { CardModule } from 'primeng/card';
     `
   ]
 })
-export class AppLayoutComponent implements OnInit, OnDestroy {
+export class AppLayoutComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly router = inject(Router);
   private readonly sharedService = inject(SharedService);
   private readonly tourService = inject(TourService);
   private readonly userService = inject(UsersService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly items = signal<MenuItem[]>([]);
   metricsMenuItems: MenuItem[] = [
@@ -284,12 +285,11 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
   readonly confirmPopupVisible = signal<boolean>(false);
   readonly userMenu = signal<MenuItem[]>([]);
   accessLevel: number;
-  private readonly destroy$ = new Subject<void>();
 
   private readonly user$ = this.authService.user$;
   private readonly accessLevel$ = this.authService.accessLevel$;
 
-  readonly user = toSignal(this.authService.user$);
+  readonly user = this.authService.user;
 
   protected readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -305,7 +305,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
     combineLatest([this.user$.pipe(filter((user) => !!user)), this.accessLevel$.pipe(filter((level) => level != null))])
       .pipe(
         distinctUntilChanged(([prevUser, prevLevel], [nextUser, nextLevel]) => prevUser.userId === nextUser.userId && prevUser.lastCollectionAccessedId === nextUser.lastCollectionAccessedId && prevLevel === nextLevel),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: ([user, accessLevel]) => {
@@ -315,7 +315,7 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         },
         error: (error) => console.error('Error in initialization:', error)
       });
-    this.sharedService.startTour$.pipe(takeUntil(this.destroy$)).subscribe(() => this.initTour());
+    this.sharedService.startTour$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.initTour());
 
     const fg = document.getElementById('particles-foreground');
     const bg = document.getElementById('particles-background');
@@ -807,10 +807,5 @@ export class AppLayoutComponent implements OnInit, OnDestroy {
         closeOnOutsideClick: true
       }
     ];
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }

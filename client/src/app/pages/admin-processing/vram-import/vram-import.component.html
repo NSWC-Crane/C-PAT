@@ -12,7 +12,7 @@
 <div class="card overflow-auto">
   <div class="mb-6 flex flex-col">
     <b>VRAM IAV Data Updated:</b>
-    <span class="mt-2">{{ vramUpdatedDate }}</span>
+    <span class="mt-2">{{ vramUpdatedDate() }}</span>
   </div>
 
   <cpat-vram-popup class="mb-6" />
@@ -49,8 +49,8 @@
           </button>
           <button pButton (click)="clearCallback()" [rounded]="true" [outlined]="true" severity="danger" [disabled]="!files || files.length === 0" pTooltip="Clear Selection" tooltipPosition="bottom"><i class="pi pi-times" pButtonIcon></i></button>
         </div>
-        <p-progressbar [value]="totalSizePercent" [showValue]="false" class="h-4 w-full md:ml-auto md:w-80" [class]="{ 'exceeded-progress-bar': totalSizePercent > 100 }">
-          <span class="whitespace-nowrap">{{ totalSize }}B / 10Mb</span>
+        <p-progressbar [value]="totalSizePercent()" [showValue]="false" class="h-4 w-full md:ml-auto md:w-80" [class]="{ 'exceeded-progress-bar': totalSizePercent() > 100 }">
+          <span class="whitespace-nowrap">{{ totalSize() }}B / 10Mb</span>
         </p-progressbar>
       </div>
     </ng-template>

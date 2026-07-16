@@ -9,7 +9,8 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, signal, inject, OnChanges, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, signal, inject, OnChanges, input, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ButtonGroupModule } from 'primeng/buttongroup';
@@ -89,6 +90,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   private readonly tenableData = inject(TenableMetricsDataService);
   private readonly messageService = inject(MessageService);
   private readonly metricsExportService = inject(MetricsExportService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly collection = input<any>(undefined);
   readonly componentInit = output<TenableMetricsComponent>();
@@ -103,7 +105,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   lastObservedTimeRange = signal<'7' | '30' | '90' | 'all'>('30');
   loadedRanges = signal<Set<'7' | '30' | '90' | 'all'>>(new Set());
   hostTimeRange = signal<'7' | '30' | '90' | 'all'>('30');
-  now = new Date();
+  now = signal(new Date());
 
   private cachedVulnerabilityData = signal<CachedVulnerabilityData | null>(null);
   private cachedHosts = signal<any[]>([]);
@@ -234,7 +236,8 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
           this.isLoading.set(false);
 
           return EMPTY;
-        })
+        }),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
   }
@@ -291,7 +294,8 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
           this.isLoading.set(false);
 
           return EMPTY;
-        })
+        }),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe();
   }
@@ -626,7 +630,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   refreshMetrics() {
     this.clearCache();
     this.loadAllData();
-    this.now = new Date();
+    this.now.set(new Date());
   }
 
   exportGlobalMetrics() {
@@ -639,23 +643,26 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       detail: 'Compiling metrics for all collections. This may take a moment...'
     });
 
-    this.metricsExportService.exportGlobalMetrics().subscribe({
-      next: () => {
-        this.isGlobalExporting.set(false);
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Export Complete',
-          detail: 'Global metrics export downloaded successfully.'
-        });
-      },
-      error: (error) => {
-        this.isGlobalExporting.set(false);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Export Failed',
-          detail: `Error exporting global metrics: ${getErrorMessage(error)}`
-        });
-      }
-    });
+    this.metricsExportService
+      .exportGlobalMetrics()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isGlobalExporting.set(false);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Export Complete',
+            detail: 'Global metrics export downloaded successfully.'
+          });
+        },
+        error: (error) => {
+          this.isGlobalExporting.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Export Failed',
+            detail: `Error exporting global metrics: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 }

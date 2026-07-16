@@ -36,11 +36,11 @@ describe('AppClassificationComponent', () => {
     });
 
     it('should have classification as undefined initially', () => {
-      expect(component.classification).toBeUndefined();
+      expect(component.classification()).toBeUndefined();
     });
 
     it('should have isClassificationActive as false initially', () => {
-      expect(component.isClassificationActive).toBe(false);
+      expect(component.isClassificationActive()).toBe(false);
     });
   });
 
@@ -54,83 +54,83 @@ describe('AppClassificationComponent', () => {
       setupComponent(of({ classification: 'U' }));
       fixture.detectChanges();
 
-      expect(component.classification).toBeDefined();
-      expect(component.classification).toBeInstanceOf(Classification);
-      expect(component.classification!.classificationText).toBe('UNCLASSIFIED');
-      expect(component.classification!.classificationColorCode).toBe('#007a33');
+      expect(component.classification()).toBeDefined();
+      expect(component.classification()).toBeInstanceOf(Classification);
+      expect(component.classification()!.classificationText).toBe('UNCLASSIFIED');
+      expect(component.classification()!.classificationColorCode).toBe('#007a33');
     });
 
     it('should set isClassificationActive to true for valid classification', () => {
       setupComponent(of({ classification: 'U' }));
       fixture.detectChanges();
 
-      expect(component.isClassificationActive).toBe(true);
+      expect(component.isClassificationActive()).toBe(true);
     });
 
     it('should set classification for CUI response', () => {
       setupComponent(of({ classification: 'CUI' }));
       fixture.detectChanges();
 
-      expect(component.classification!.classificationText).toBe('CUI');
-      expect(component.classification!.classificationColorCode).toBe('#502b85');
+      expect(component.classification()!.classificationText).toBe('CUI');
+      expect(component.classification()!.classificationColorCode).toBe('#502b85');
     });
 
     it('should set classification for FOUO response', () => {
       setupComponent(of({ classification: 'FOUO' }));
       fixture.detectChanges();
 
-      expect(component.classification!.classificationText).toBe('CUI');
-      expect(component.classification!.classificationColorCode).toBe('#502b85');
+      expect(component.classification()!.classificationText).toBe('CUI');
+      expect(component.classification()!.classificationColorCode).toBe('#502b85');
     });
 
     it('should set classification for CONFIDENTIAL response', () => {
       setupComponent(of({ classification: 'C' }));
       fixture.detectChanges();
 
-      expect(component.classification!.classificationText).toBe('CONFIDENTIAL');
-      expect(component.classification!.classificationColorCode).toBe('#0033a0');
+      expect(component.classification()!.classificationText).toBe('CONFIDENTIAL');
+      expect(component.classification()!.classificationColorCode).toBe('#0033a0');
     });
 
     it('should set classification for SECRET response', () => {
       setupComponent(of({ classification: 'S' }));
       fixture.detectChanges();
 
-      expect(component.classification!.classificationText).toBe('SECRET');
-      expect(component.classification!.classificationColorCode).toBe('#c8102e');
+      expect(component.classification()!.classificationText).toBe('SECRET');
+      expect(component.classification()!.classificationColorCode).toBe('#c8102e');
     });
 
     it('should set classification for TOP SECRET response', () => {
       setupComponent(of({ classification: 'TS' }));
       fixture.detectChanges();
 
-      expect(component.classification!.classificationText).toBe('TOP SECRET');
-      expect(component.classification!.classificationColorCode).toBe('#ff8c00');
+      expect(component.classification()!.classificationText).toBe('TOP SECRET');
+      expect(component.classification()!.classificationColorCode).toBe('#ff8c00');
     });
 
     it('should set classification for SCI response', () => {
       setupComponent(of({ classification: 'SCI' }));
       fixture.detectChanges();
 
-      expect(component.classification!.classificationText).toBe('TOP SECRET // SCI');
-      expect(component.classification!.classificationColorCode).toBe('#fce83a');
+      expect(component.classification()!.classificationText).toBe('TOP SECRET // SCI');
+      expect(component.classification()!.classificationColorCode).toBe('#fce83a');
     });
 
     it('should handle NONE classification with showBanner false', () => {
       setupComponent(of({ classification: 'NONE' }));
       fixture.detectChanges();
 
-      expect(component.classification).toBeDefined();
-      expect(component.classification!.showBanner).toBe(false);
-      expect(component.isClassificationActive).toBe(true);
+      expect(component.classification()).toBeDefined();
+      expect(component.classification()!.showBanner).toBe(false);
+      expect(component.isClassificationActive()).toBe(true);
     });
 
     it('should handle unknown classification with showBanner false', () => {
       setupComponent(of({ classification: 'UNKNOWN' }));
       fixture.detectChanges();
 
-      expect(component.classification).toBeDefined();
-      expect(component.classification!.showBanner).toBe(false);
-      expect(component.isClassificationActive).toBe(true);
+      expect(component.classification()).toBeDefined();
+      expect(component.classification()!.showBanner).toBe(false);
+      expect(component.isClassificationActive()).toBe(true);
     });
   });
 
@@ -142,8 +142,8 @@ describe('AppClassificationComponent', () => {
       fixture.detectChanges();
 
       expect(consoleSpy).toHaveBeenCalledWith('Invalid API configuration response');
-      expect(component.isClassificationActive).toBe(false);
-      expect(component.classification).toBeUndefined();
+      expect(component.isClassificationActive()).toBe(false);
+      expect(component.classification()).toBeUndefined();
       consoleSpy.mockRestore();
     });
 
@@ -154,7 +154,7 @@ describe('AppClassificationComponent', () => {
       fixture.detectChanges();
 
       expect(consoleSpy).toHaveBeenCalledWith('Invalid API configuration response');
-      expect(component.isClassificationActive).toBe(false);
+      expect(component.isClassificationActive()).toBe(false);
       consoleSpy.mockRestore();
     });
 
@@ -165,7 +165,7 @@ describe('AppClassificationComponent', () => {
       fixture.detectChanges();
 
       expect(consoleSpy).toHaveBeenCalledWith('Invalid API configuration response');
-      expect(component.isClassificationActive).toBe(false);
+      expect(component.isClassificationActive()).toBe(false);
       consoleSpy.mockRestore();
     });
 
@@ -176,7 +176,7 @@ describe('AppClassificationComponent', () => {
       fixture.detectChanges();
 
       expect(consoleSpy).toHaveBeenCalledWith('Invalid API configuration response');
-      expect(component.isClassificationActive).toBe(false);
+      expect(component.isClassificationActive()).toBe(false);
       consoleSpy.mockRestore();
     });
 
@@ -187,7 +187,7 @@ describe('AppClassificationComponent', () => {
       fixture.detectChanges();
 
       expect(consoleSpy).toHaveBeenCalledWith('Invalid API configuration response');
-      expect(component.isClassificationActive).toBe(false);
+      expect(component.isClassificationActive()).toBe(false);
       consoleSpy.mockRestore();
     });
   });
@@ -201,8 +201,8 @@ describe('AppClassificationComponent', () => {
       fixture.detectChanges();
 
       expect(consoleSpy).toHaveBeenCalledWith('Error retrieving API configuration:', testError);
-      expect(component.isClassificationActive).toBe(false);
-      expect(component.classification).toBeUndefined();
+      expect(component.isClassificationActive()).toBe(false);
+      expect(component.classification()).toBeUndefined();
       consoleSpy.mockRestore();
     });
 
@@ -212,8 +212,8 @@ describe('AppClassificationComponent', () => {
       setupComponent(throwError(() => new Error('Server error')));
       fixture.detectChanges();
 
-      expect(component.classification).toBeUndefined();
-      expect(component.isClassificationActive).toBe(false);
+      expect(component.classification()).toBeUndefined();
+      expect(component.isClassificationActive()).toBe(false);
       consoleSpy.mockRestore();
     });
   });
@@ -223,7 +223,7 @@ describe('AppClassificationComponent', () => {
       setupComponent(of(null));
       fixture.detectChanges();
 
-      expect(component.isClassificationActive).toBe(false);
+      expect(component.isClassificationActive()).toBe(false);
       const banner = fixture.nativeElement.querySelector('.layout-classification');
 
       expect(banner).toBeFalsy();
@@ -288,7 +288,7 @@ describe('AppClassificationComponent', () => {
 
       expect(banner).toBeTruthy();
 
-      expect(component.classification!.showBanner).toBe(false);
+      expect(component.classification()!.showBanner).toBe(false);
     });
   });
 
@@ -298,7 +298,7 @@ describe('AppClassificationComponent', () => {
       fixture.detectChanges();
 
       expect(mockSharedService.getApiConfig).toHaveBeenCalledTimes(1);
-      expect(component.classification).toBeDefined();
+      expect(component.classification()).toBeDefined();
     });
   });
 });

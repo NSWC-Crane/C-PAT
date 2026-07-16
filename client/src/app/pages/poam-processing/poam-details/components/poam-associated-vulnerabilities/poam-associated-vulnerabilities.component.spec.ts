@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SimpleChange } from '@angular/core';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 import { PoamAssociatedVulnerabilitiesComponent } from './poam-associated-vulnerabilities.component';
@@ -104,7 +104,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should have empty displayVulnerabilities array', () => {
-      expect(component.displayVulnerabilities).toEqual([]);
+      expect(component.displayVulnerabilities()).toEqual([]);
     });
 
     it('should have empty filteredSuggestions array', () => {
@@ -135,17 +135,17 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345', 'V-12346'], false)
       });
 
-      expect(component.displayVulnerabilities).toHaveLength(2);
+      expect(component.displayVulnerabilities()).toHaveLength(2);
     });
 
     it('should not initialize when other inputs change', () => {
-      const initialDisplay = [...component.displayVulnerabilities];
+      const initialDisplay = [...component.displayVulnerabilities()];
 
       component.ngOnChanges({
         accessLevel: new SimpleChange(2, 4, false)
       });
 
-      expect(component.displayVulnerabilities).toEqual(initialDisplay);
+      expect(component.displayVulnerabilities()).toEqual(initialDisplay);
     });
 
     it('should handle null poamAssociatedVulnerabilities gracefully', () => {
@@ -155,7 +155,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         poamAssociatedVulnerabilities: new SimpleChange([], null, false)
       });
 
-      expect(component.displayVulnerabilities).toEqual([]);
+      expect(component.displayVulnerabilities()).toEqual([]);
     });
 
     it('should filter out falsy entries', () => {
@@ -165,7 +165,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345', null, '', undefined], false)
       });
 
-      expect(component.displayVulnerabilities).toHaveLength(1);
+      expect(component.displayVulnerabilities()).toHaveLength(1);
     });
 
     it('should handle object-style vulnerabilities', () => {
@@ -175,8 +175,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         poamAssociatedVulnerabilities: new SimpleChange([], [{ associatedVulnerability: 'V-12345' }], false)
       });
 
-      expect(component.displayVulnerabilities).toHaveLength(1);
-      expect(component.displayVulnerabilities[0].associatedVulnerability).toBe('V-12345');
+      expect(component.displayVulnerabilities()).toHaveLength(1);
+      expect(component.displayVulnerabilities()[0].associatedVulnerability).toBe('V-12345');
     });
 
     it('should filter out objects with no vulnId', () => {
@@ -186,7 +186,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         poamAssociatedVulnerabilities: new SimpleChange([], [{ associatedVulnerability: '' }, { associatedVulnerability: 'V-12345' }], false)
       });
 
-      expect(component.displayVulnerabilities).toHaveLength(1);
+      expect(component.displayVulnerabilities()).toHaveLength(1);
     });
 
     it('should mark existing vulnerabilities as not new', () => {
@@ -196,7 +196,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345'], false)
       });
 
-      expect(component.displayVulnerabilities[0].isNew).toBe(false);
+      expect(component.displayVulnerabilities()[0].isNew).toBe(false);
     });
   });
 
@@ -261,7 +261,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].titleText).toBe('Ensure password complexity');
+      expect(component.displayVulnerabilities()[0].titleText).toBe('Ensure password complexity');
     });
 
     it('should handle groups with no rules', () => {
@@ -272,7 +272,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].titleText).toBe('');
+      expect(component.displayVulnerabilities()[0].titleText).toBe('');
     });
 
     it('should set severity from STIG response', () => {
@@ -283,8 +283,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].severity).toBe('high');
-      expect(component.displayVulnerabilities[0].severityCategory).toBe('CAT I - High');
+      expect(component.displayVulnerabilities()[0].severity).toBe('high');
+      expect(component.displayVulnerabilities()[0].severityCategory).toBe('CAT I - High');
     });
 
     it('should show error on STIG Manager failure', () => {
@@ -315,8 +315,8 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].titleText).toBe('SSL Certificate Expired');
-      expect(component.displayVulnerabilities[0].severity).toBe('critical');
+      expect(component.displayVulnerabilities()[0].titleText).toBe('SSL Certificate Expired');
+      expect(component.displayVulnerabilities()[0].severity).toBe('critical');
     });
 
     it('should include repository filter with collection id', () => {
@@ -351,7 +351,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].titleText).toBe('');
+      expect(component.displayVulnerabilities()[0].titleText).toBe('');
     });
 
     it('should handle missing severity name gracefully', () => {
@@ -370,7 +370,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].severity).toBe('unknown');
+      expect(component.displayVulnerabilities()[0].severity).toBe('unknown');
     });
 
     it('should show error on Tenable API failure', () => {
@@ -397,7 +397,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       });
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].tagSeverity).toBe('danger');
+      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('danger');
     });
 
     it('should return danger for high', () => {
@@ -409,7 +409,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       });
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].tagSeverity).toBe('danger');
+      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('danger');
     });
 
     it('should return warn for medium', () => {
@@ -421,7 +421,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       });
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].tagSeverity).toBe('warn');
+      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('warn');
     });
 
     it('should return info for low', () => {
@@ -433,7 +433,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       });
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].tagSeverity).toBe('info');
+      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('info');
     });
 
     it('should return info for informational', () => {
@@ -445,7 +445,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       });
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].tagSeverity).toBe('info');
+      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('info');
     });
 
     it('should return secondary for unknown severity', () => {
@@ -456,7 +456,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         poamAssociatedVulnerabilities: new SimpleChange([], ['UNKNOWN-1'], false)
       });
 
-      expect(component.displayVulnerabilities[0].tagSeverity).toBe('secondary');
+      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('secondary');
     });
   });
 
@@ -693,18 +693,18 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('addAssociatedVulnerability', () => {
     it('should prepend a new vulnerability row', () => {
-      component.displayVulnerabilities = [];
+      component.displayVulnerabilities.set([]);
 
       component.addAssociatedVulnerability();
 
-      expect(component.displayVulnerabilities).toHaveLength(1);
-      expect(component.displayVulnerabilities[0].isNew).toBe(true);
+      expect(component.displayVulnerabilities()).toHaveLength(1);
+      expect(component.displayVulnerabilities()[0].isNew).toBe(true);
     });
 
     it('should have empty defaults for new row', () => {
       component.addAssociatedVulnerability();
 
-      const newRow = component.displayVulnerabilities[0];
+      const newRow = component.displayVulnerabilities()[0];
 
       expect(newRow.associatedVulnerability).toBe('');
       expect(newRow.severity).toBe('');
@@ -715,13 +715,13 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should prepend before existing vulnerabilities', () => {
-      component.displayVulnerabilities = [{ associatedVulnerability: 'V-12345', isNew: false } as any];
+      component.displayVulnerabilities.set([{ associatedVulnerability: 'V-12345', isNew: false } as any]);
 
       component.addAssociatedVulnerability();
 
-      expect(component.displayVulnerabilities).toHaveLength(2);
-      expect(component.displayVulnerabilities[0].isNew).toBe(true);
-      expect(component.displayVulnerabilities[1].associatedVulnerability).toBe('V-12345');
+      expect(component.displayVulnerabilities()).toHaveLength(2);
+      expect(component.displayVulnerabilities()[0].isNew).toBe(true);
+      expect(component.displayVulnerabilities()[1].associatedVulnerability).toBe('V-12345');
     });
   });
 
@@ -765,7 +765,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     it('should warn about duplicate vulnerabilities', () => {
       const rowData = { isNew: true, selectedVulnerabilities: ['V-99999'] } as any;
 
-      component.displayVulnerabilities = [rowData];
+      component.displayVulnerabilities.set([rowData]);
 
       component.onAssociatedVulnerabilityChange(rowData, 0);
 
@@ -782,11 +782,11 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of([]));
       const rowData = { isNew: true, selectedVulnerabilities: ['v-12345'] } as any;
 
-      component.displayVulnerabilities = [rowData];
+      component.displayVulnerabilities.set([rowData]);
 
       component.onAssociatedVulnerabilityChange(rowData, 0);
 
-      const addedVuln = component.displayVulnerabilities.find((v) => v.associatedVulnerability === 'V-12345' && !v.isNew);
+      const addedVuln = component.displayVulnerabilities().find((v) => v.associatedVulnerability === 'V-12345' && !v.isNew);
 
       expect(addedVuln).toBeTruthy();
     });
@@ -795,11 +795,11 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of([]));
       const rowData = { isNew: true, selectedVulnerabilities: ['V-12345', 'V-12346'] } as any;
 
-      component.displayVulnerabilities = [rowData];
+      component.displayVulnerabilities.set([rowData]);
 
       component.onAssociatedVulnerabilityChange(rowData, 0);
 
-      const nonNew = component.displayVulnerabilities.filter((v) => !v.isNew);
+      const nonNew = component.displayVulnerabilities().filter((v) => !v.isNew);
 
       expect(nonNew.length).toBeGreaterThanOrEqual(2);
     });
@@ -808,11 +808,11 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of([]));
       const rowData = { isNew: true, selectedVulnerabilities: ['V-12345'] } as any;
 
-      component.displayVulnerabilities = [rowData];
+      component.displayVulnerabilities.set([rowData]);
 
       component.onAssociatedVulnerabilityChange(rowData, 0);
 
-      const newRows = component.displayVulnerabilities.filter((v) => v.associatedVulnerability === '' && v.isNew);
+      const newRows = component.displayVulnerabilities().filter((v) => v.associatedVulnerability === '' && v.isNew);
 
       expect(newRows.length).toBeLessThanOrEqual(1);
     });
@@ -821,11 +821,11 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of([]));
       const rowData = { isNew: true, selectedVulnerabilities: ['V-12345'] } as any;
 
-      component.displayVulnerabilities = [rowData];
+      component.displayVulnerabilities.set([rowData]);
 
       component.onAssociatedVulnerabilityChange(rowData, 0);
 
-      const hasNewRow = component.displayVulnerabilities.some((v) => v.isNew);
+      const hasNewRow = component.displayVulnerabilities().some((v) => v.isNew);
 
       expect(hasNewRow).toBe(true);
     });
@@ -838,7 +838,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       const rowData = { isNew: true, selectedVulnerabilities: ['V-12345'] } as any;
 
-      component.displayVulnerabilities = [rowData];
+      component.displayVulnerabilities.set([rowData]);
 
       component.onAssociatedVulnerabilityChange(rowData, 0);
 
@@ -863,12 +863,12 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
   describe('deleteAssociatedVulnerability', () => {
     it('should remove vulnerability at the given index', () => {
-      component.displayVulnerabilities = [{ associatedVulnerability: 'V-111', isNew: false } as any, { associatedVulnerability: 'V-222', isNew: false } as any, { associatedVulnerability: 'V-333', isNew: false } as any];
+      component.displayVulnerabilities.set([{ associatedVulnerability: 'V-111', isNew: false } as any, { associatedVulnerability: 'V-222', isNew: false } as any, { associatedVulnerability: 'V-333', isNew: false } as any]);
 
-      component.deleteAssociatedVulnerability(component.displayVulnerabilities[1], 1);
+      component.deleteAssociatedVulnerability(component.displayVulnerabilities()[1], 1);
 
-      expect(component.displayVulnerabilities).toHaveLength(2);
-      expect(component.displayVulnerabilities.map((v) => v.associatedVulnerability)).toEqual(['V-111', 'V-333']);
+      expect(component.displayVulnerabilities()).toHaveLength(2);
+      expect(component.displayVulnerabilities().map((v) => v.associatedVulnerability)).toEqual(['V-111', 'V-333']);
     });
 
     it('should emit vulnerability changes after deletion', () => {
@@ -876,19 +876,19 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.vulnerabilitiesChanged.subscribe(emitSpy);
 
-      component.displayVulnerabilities = [{ associatedVulnerability: 'V-111', isNew: false } as any];
+      component.displayVulnerabilities.set([{ associatedVulnerability: 'V-111', isNew: false } as any]);
 
-      component.deleteAssociatedVulnerability(component.displayVulnerabilities[0], 0);
+      component.deleteAssociatedVulnerability(component.displayVulnerabilities()[0], 0);
 
       expect(emitSpy).toHaveBeenCalledWith([]);
     });
 
     it('should update displayVulnerabilities after deletion', () => {
-      component.displayVulnerabilities = [{ associatedVulnerability: 'V-111', isNew: false } as any, { associatedVulnerability: 'V-222', isNew: false } as any];
+      component.displayVulnerabilities.set([{ associatedVulnerability: 'V-111', isNew: false } as any, { associatedVulnerability: 'V-222', isNew: false } as any]);
 
-      component.deleteAssociatedVulnerability(component.displayVulnerabilities[0], 0);
+      component.deleteAssociatedVulnerability(component.displayVulnerabilities()[0], 0);
 
-      expect(component.displayVulnerabilities.map((v) => v.associatedVulnerability)).toEqual(['V-222']);
+      expect(component.displayVulnerabilities().map((v) => v.associatedVulnerability)).toEqual(['V-222']);
     });
   });
 
@@ -898,14 +898,14 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.vulnerabilitiesChanged.subscribe(emitSpy);
 
-      component.displayVulnerabilities = [
+      component.displayVulnerabilities.set([
         { associatedVulnerability: '', isNew: true } as any,
         { associatedVulnerability: 'V-111', isNew: false } as any,
         { associatedVulnerability: '', isNew: false } as any,
         { associatedVulnerability: 'V-222', isNew: false } as any
-      ];
+      ]);
 
-      component.deleteAssociatedVulnerability(component.displayVulnerabilities[2], 2);
+      component.deleteAssociatedVulnerability(component.displayVulnerabilities()[2], 2);
 
       expect(emitSpy).toHaveBeenCalledWith(['V-111', 'V-222']);
     });
@@ -915,9 +915,9 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.vulnerabilitiesChanged.subscribe(emitSpy);
 
-      component.displayVulnerabilities = [{ associatedVulnerability: 'V-111', isNew: false } as any];
+      component.displayVulnerabilities.set([{ associatedVulnerability: 'V-111', isNew: false } as any]);
 
-      component.deleteAssociatedVulnerability(component.displayVulnerabilities[0], 0);
+      component.deleteAssociatedVulnerability(component.displayVulnerabilities()[0], 0);
 
       expect(emitSpy).toHaveBeenCalledWith([]);
     });
@@ -937,7 +937,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].severityCategory).toBe('CAT I - Critical');
+      expect(component.displayVulnerabilities()[0].severityCategory).toBe('CAT I - Critical');
     });
 
     it('should map medium to CAT II - Medium', () => {
@@ -948,7 +948,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].severityCategory).toBe('CAT II - Medium');
+      expect(component.displayVulnerabilities()[0].severityCategory).toBe('CAT II - Medium');
     });
 
     it('should map low to CAT III - Low', () => {
@@ -959,7 +959,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].severityCategory).toBe('CAT III - Low');
+      expect(component.displayVulnerabilities()[0].severityCategory).toBe('CAT III - Low');
     });
 
     it('should return Unknown for unrecognized severity', () => {
@@ -971,7 +971,28 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities[0].severityCategory).toBe('Unknown');
+      expect(component.displayVulnerabilities()[0].severityCategory).toBe('Unknown');
+    });
+  });
+
+  describe('cleanup', () => {
+    it('stops applying vulnerability changes after destroy (takeUntilDestroyed)', () => {
+      const ids$ = new Subject<any[]>();
+
+      mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(ids$.asObservable());
+      const rowData = { isNew: true, selectedVulnerabilities: ['V-12345'] } as any;
+
+      component.displayVulnerabilities.set([rowData]);
+      component.onAssociatedVulnerabilityChange(rowData, 0);
+
+      fixture.destroy();
+      ids$.next([]);
+
+      expect(component.displayVulnerabilities()).toEqual([rowData]);
+    });
+
+    it('does not throw on destroy', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

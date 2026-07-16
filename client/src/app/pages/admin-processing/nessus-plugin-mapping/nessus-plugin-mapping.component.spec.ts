@@ -131,11 +131,11 @@ describe('NessusPluginMappingComponent', () => {
     });
 
     it('should default tableData to empty array', () => {
-      expect(component.tableData).toEqual([]);
+      expect(component.tableData()).toEqual([]);
     });
 
     it('should default loading to true', () => {
-      expect(component.loading).toBe(true);
+      expect(component.loading()).toBe(true);
     });
 
     it('should default totalRecords to 0', () => {
@@ -143,19 +143,19 @@ describe('NessusPluginMappingComponent', () => {
     });
 
     it('should default searchValue to empty string', () => {
-      expect(component.searchValue).toBe('');
+      expect(component.searchValue()).toBe('');
     });
 
     it('should default isUpdating to false', () => {
-      expect(component.isUpdating).toBe(false);
+      expect(component.isUpdating()).toBe(false);
     });
 
     it('should default updateProgress to 0', () => {
-      expect(component.updateProgress).toBe(0);
+      expect(component.updateProgress()).toBe(0);
     });
 
     it('should default nessusPluginsMapped to null', () => {
-      expect(component.nessusPluginsMapped).toBeNull();
+      expect(component.nessusPluginsMapped()).toBeNull();
     });
   });
 
@@ -193,7 +193,7 @@ describe('NessusPluginMappingComponent', () => {
   describe('getIAVTableData', () => {
     it('should set tableData from response', () => {
       component.getIAVTableData();
-      expect(component.tableData.length).toBe(2);
+      expect(component.tableData().length).toBe(2);
     });
 
     it('should set totalRecords from tableData length', () => {
@@ -203,37 +203,37 @@ describe('NessusPluginMappingComponent', () => {
 
     it('should set nessusPluginsMapped from response', () => {
       component.getIAVTableData();
-      expect(component.nessusPluginsMapped).toBe('2024-01-15T10:00:00Z');
+      expect(component.nessusPluginsMapped()).toBe('2024-01-15T10:00:00Z');
     });
 
     it('should set loading to false on complete', () => {
       component.getIAVTableData();
-      expect(component.loading).toBe(false);
+      expect(component.loading()).toBe(false);
     });
 
     it('should trim date strings at T character for navyComplyDate', () => {
       component.getIAVTableData();
-      expect(component.tableData[0].navyComplyDate).toBe('2023-06-15');
+      expect(component.tableData()[0].navyComplyDate).toBe('2023-06-15');
     });
 
     it('should trim date strings at T character for releaseDate', () => {
       component.getIAVTableData();
-      expect(component.tableData[0].releaseDate).toBe('2023-01-01');
+      expect(component.tableData()[0].releaseDate).toBe('2023-01-01');
     });
 
     it('should set empty string for null navyComplyDate', () => {
       component.getIAVTableData();
-      expect(component.tableData[1].navyComplyDate).toBe('');
+      expect(component.tableData()[1].navyComplyDate).toBe('');
     });
 
     it('should split pluginID string into array', () => {
       component.getIAVTableData();
-      expect(component.tableData[0].pluginID).toEqual(['12345', '67890']);
+      expect(component.tableData()[0].pluginID).toEqual(['12345', '67890']);
     });
 
     it('should set pluginID to empty array when null', () => {
       component.getIAVTableData();
-      expect(component.tableData[1].pluginID).toEqual([]);
+      expect(component.tableData()[1].pluginID).toEqual([]);
     });
 
     it('should show error when service throws', () => {
@@ -261,10 +261,10 @@ describe('NessusPluginMappingComponent', () => {
     });
 
     it('should reset estimatedTimeRemaining to empty string on complete', () => {
-      component.estimatedTimeRemaining = '5m 0s';
+      component.estimatedTimeRemaining.set('5m 0s');
       component.updatePluginIds();
       vi.runAllTimers();
-      expect(component.estimatedTimeRemaining).toBe('');
+      expect(component.estimatedTimeRemaining()).toBe('');
     });
 
     it('should call postTenableAnalysis with correct query shape', () => {
@@ -286,13 +286,13 @@ describe('NessusPluginMappingComponent', () => {
     it('should set isUpdating to false on complete', () => {
       component.updatePluginIds();
       vi.runAllTimers();
-      expect(component.isUpdating).toBe(false);
+      expect(component.isUpdating()).toBe(false);
     });
 
     it('should set updateProgress to 100 on complete', () => {
       component.updatePluginIds();
       vi.runAllTimers();
-      expect(component.updateProgress).toBe(100);
+      expect(component.updateProgress()).toBe(100);
     });
 
     it('should show success message on complete', () => {
@@ -366,20 +366,17 @@ describe('NessusPluginMappingComponent', () => {
     });
 
     it('should reset searchValue to empty string', () => {
-      component.searchValue = 'test search';
+      component.searchValue.set('test search');
       const mockTable = { clear: vi.fn() } as any;
 
       component.clear(mockTable);
-      expect(component.searchValue).toBe('');
+      expect(component.searchValue()).toBe('');
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should complete the destroy$ subject', () => {
-      const completeSpy = vi.spyOn((component as any).destroy$, 'complete');
-
-      component.ngOnDestroy();
-      expect(completeSpy).toHaveBeenCalled();
+  describe('cleanup', () => {
+    it('should not throw when destroyed', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

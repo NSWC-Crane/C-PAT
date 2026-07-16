@@ -14,7 +14,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SimpleChange } from '@angular/core';
 import { Router } from '@angular/router';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { STIGManagerControlsTableComponent } from './stigManagerControlsTable.component';
 import { SharedService } from '../../../../common/services/shared.service';
@@ -118,11 +118,11 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should default controlSummaries to empty array', () => {
-      expect(component.controlSummaries).toEqual([]);
+      expect(component.controlSummaries()).toEqual([]);
     });
 
     it('should default controlFindings to empty array', () => {
-      expect(component.controlFindings).toEqual([]);
+      expect(component.controlFindings()).toEqual([]);
     });
 
     it('should default existingPoams to empty array', () => {
@@ -138,7 +138,7 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should default loadingControls to true', () => {
-      expect(component.loadingControls).toBe(true);
+      expect(component.loadingControls()).toBe(true);
     });
 
     it('should default loadingFindings to false', () => {
@@ -180,7 +180,7 @@ describe('STIGManagerControlsTableComponent', () => {
 
     it('should populate controlSummaries after init', () => {
       component.ngOnInit();
-      expect(component.controlSummaries.length).toBeGreaterThan(0);
+      expect(component.controlSummaries().length).toBeGreaterThan(0);
     });
   });
 
@@ -234,7 +234,7 @@ describe('STIGManagerControlsTableComponent', () => {
     it('should set loadingControls to false when no findings', () => {
       mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValue(of([]));
       component.ngOnInit();
-      expect(component.loadingControls).toBe(false);
+      expect(component.loadingControls()).toBe(false);
     });
 
     it('should show error message on service failure', () => {
@@ -246,7 +246,7 @@ describe('STIGManagerControlsTableComponent', () => {
     it('should set loadingControls to false on error', () => {
       mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValue(throwError(() => new Error('Network')));
       component.ngOnInit();
-      expect(component.loadingControls).toBe(false);
+      expect(component.loadingControls()).toBe(false);
     });
   });
 
@@ -256,36 +256,36 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should create one summary per unique control', () => {
-      expect(component.controlSummaries.length).toBe(2);
+      expect(component.controlSummaries().length).toBe(2);
     });
 
     it('should set control field on each summary', () => {
-      const controls = component.controlSummaries.map((s) => s.control);
+      const controls = component.controlSummaries().map((s) => s.control);
 
       expect(controls).toContain('AC-1');
       expect(controls).toContain('CM-1');
     });
 
     it('should count findingCount correctly', () => {
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1');
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1');
 
       expect(ac1?.findingCount).toBe(1);
     });
 
     it('should count highCount correctly', () => {
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1');
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1');
 
       expect(ac1?.highCount).toBe(1);
     });
 
     it('should count mediumCount correctly', () => {
-      const cm1 = component.controlSummaries.find((s) => s.control === 'CM-1');
+      const cm1 = component.controlSummaries().find((s) => s.control === 'CM-1');
 
       expect(cm1?.mediumCount).toBe(1);
     });
 
     it('should sum assetCount from findings', () => {
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1');
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1');
 
       expect(ac1?.assetCount).toBe(5);
     });
@@ -302,7 +302,7 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should sort summaries by control name', () => {
-      const controls = component.controlSummaries.map((s) => s.control);
+      const controls = component.controlSummaries().map((s) => s.control);
 
       expect(controls[0]).toBe('AC-1');
       expect(controls[1]).toBe('CM-1');
@@ -323,12 +323,12 @@ describe('STIGManagerControlsTableComponent', () => {
 
     it('should set loadingControls to false after success', () => {
       component.ngOnInit();
-      expect(component.loadingControls).toBe(false);
+      expect(component.loadingControls()).toBe(false);
     });
 
     it('should calculate poamPercentage for summaries with matching groupIds', () => {
       component.ngOnInit();
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1');
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1');
 
       expect(ac1?.poamPercentage).toBeGreaterThanOrEqual(0);
     });
@@ -342,7 +342,7 @@ describe('STIGManagerControlsTableComponent', () => {
     it('should set loadingControls to false on poam service error', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(throwError(() => new Error('POAM error')));
       component.ngOnInit();
-      expect(component.loadingControls).toBe(false);
+      expect(component.loadingControls()).toBe(false);
     });
 
     it('should exclude draft/rejected poams from percentage calculation', () => {
@@ -353,7 +353,7 @@ describe('STIGManagerControlsTableComponent', () => {
 
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of(poamsWithDraft));
       component.ngOnInit();
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1');
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1');
 
       expect(ac1?.poamPercentage).toBe(0);
     });
@@ -365,24 +365,24 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should set selectedControl', () => {
-      const control = component.controlSummaries[0];
+      const control = component.controlSummaries()[0];
 
       component.selectControl(control);
       expect(component.selectedControl).toBe(control);
     });
 
     it('should set viewMode to "findings"', () => {
-      component.selectControl(component.controlSummaries[0]);
+      component.selectControl(component.controlSummaries()[0]);
       expect(component.viewMode).toBe('findings');
     });
 
     it('should load findings for the selected control', () => {
-      component.selectControl(component.controlSummaries[0]);
-      expect(component.controlFindings.length).toBeGreaterThan(0);
+      component.selectControl(component.controlSummaries()[0]);
+      expect(component.controlFindings().length).toBeGreaterThan(0);
     });
 
     it('should set findingsCount after selecting control', () => {
-      component.selectControl(component.controlSummaries[0]);
+      component.selectControl(component.controlSummaries()[0]);
       expect(component.findingsCount).toBeGreaterThan(0);
     });
   });
@@ -393,28 +393,28 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should populate controlFindings with matching raw findings', () => {
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1')!;
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1')!;
 
       component.selectControl(ac1);
-      expect(component.controlFindings.length).toBeGreaterThan(0);
+      expect(component.controlFindings().length).toBeGreaterThan(0);
     });
 
     it('should map severity using mapSeverity', () => {
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1')!;
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1')!;
 
       component.selectControl(ac1);
-      const finding = component.controlFindings[0];
+      const finding = component.controlFindings()[0];
 
       expect(finding.severity).toBe('CAT I - High');
     });
 
     it('should set loadingFindings to false after load', () => {
-      component.selectControl(component.controlSummaries[0]);
+      component.selectControl(component.controlSummaries()[0]);
       expect(component.loadingFindings).toBe(false);
     });
 
     it('should call updateExistingPoams via getVulnerabilityIdsWithPoamByCollection', () => {
-      component.selectControl(component.controlSummaries[0]);
+      component.selectControl(component.controlSummaries()[0]);
       expect(mockPoamService.getVulnerabilityIdsWithPoamByCollection).toHaveBeenCalled();
     });
   });
@@ -426,30 +426,30 @@ describe('STIGManagerControlsTableComponent', () => {
 
     it('should set hasExistingPoam to true for matching vulnerability', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of([{ vulnerabilityId: 'V-001', poamId: 10, status: 'Approved', parentStatus: null }]));
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1')!;
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1')!;
 
       component.selectControl(ac1);
-      const finding = component.controlFindings.find((f) => f.groupId === 'V-001');
+      const finding = component.controlFindings().find((f) => f.groupId === 'V-001');
 
       expect(finding?.hasExistingPoam).toBe(true);
     });
 
     it('should set poamStatus to "No Existing POAM" when no match', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of([]));
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1')!;
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1')!;
 
       component.selectControl(ac1);
-      const finding = component.controlFindings[0];
+      const finding = component.controlFindings()[0];
 
       expect(finding?.poamStatus).toBe('No Existing POAM');
     });
 
     it('should set isAssociated when status is "Associated"', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of([{ vulnerabilityId: 'V-001', poamId: 20, status: 'Associated', parentStatus: 'Draft', parentPoamId: 5 }]));
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1')!;
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1')!;
 
       component.selectControl(ac1);
-      const finding = component.controlFindings.find((f) => f.groupId === 'V-001');
+      const finding = component.controlFindings().find((f) => f.groupId === 'V-001');
 
       expect(finding?.isAssociated).toBe(true);
     });
@@ -457,7 +457,7 @@ describe('STIGManagerControlsTableComponent', () => {
     it('should not call poamService when selectedCollection is 0', () => {
       (component as any).selectedCollection = () => 0;
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockClear();
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1')!;
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1')!;
 
       component.selectControl(ac1);
       expect(mockPoamService.getVulnerabilityIdsWithPoamByCollection).not.toHaveBeenCalled();
@@ -465,7 +465,7 @@ describe('STIGManagerControlsTableComponent', () => {
 
     it('should show error when getVulnerabilityIdsWithPoamByCollection fails during updateExistingPoams', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(throwError(() => new Error('Error')));
-      const ac1 = component.controlSummaries.find((s) => s.control === 'AC-1')!;
+      const ac1 = component.controlSummaries().find((s) => s.control === 'AC-1')!;
 
       component.selectControl(ac1);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
@@ -475,7 +475,7 @@ describe('STIGManagerControlsTableComponent', () => {
   describe('backToControlSummary', () => {
     beforeEach(() => {
       component.ngOnInit();
-      component.selectControl(component.controlSummaries[0]);
+      component.selectControl(component.controlSummaries()[0]);
     });
 
     it('should set viewMode back to "summary"', () => {
@@ -490,7 +490,7 @@ describe('STIGManagerControlsTableComponent', () => {
 
     it('should clear controlFindings', () => {
       component.backToControlSummary();
-      expect(component.controlFindings).toEqual([]);
+      expect(component.controlFindings()).toEqual([]);
     });
 
     it('should reset findingsCount to 0', () => {
@@ -683,7 +683,7 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should use controlSummaries.length when filteredValue is null', () => {
-      component.controlSummaries = [{ control: 'AC-1' } as any, { control: 'CM-1' } as any];
+      component.controlSummaries.set([{ control: 'AC-1' } as any, { control: 'CM-1' } as any]);
       mockControlsTable.filteredValue = null;
       component.onControlsFilter({});
       expect(component.controlsCount).toBe(2);
@@ -705,7 +705,7 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should use controlFindings.length when filteredValue is null', () => {
-      component.controlFindings = [{ groupId: 'V-001' } as any];
+      component.controlFindings.set([{ groupId: 'V-001' } as any]);
       mockFindingsTable.filteredValue = null;
       component.onFindingsFilter({});
       expect(component.findingsCount).toBe(1);
@@ -740,12 +740,22 @@ describe('STIGManagerControlsTableComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('stops processing STIGMAN findings after destroy (takeUntilDestroyed)', () => {
+      const findingsSubject = new Subject<any[]>();
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValue(findingsSubject.asObservable());
+      component.ngOnInit();
+      findingsSubject.next([...mockRawFindings]);
+      expect(component.controlSummaries().length).toBe(2);
+      fixture.destroy();
+      findingsSubject.next([mockRawFindings[0]]);
+      expect(component.controlSummaries().length).toBe(2);
+    });
+
+    it('does not throw on destroy', () => {
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

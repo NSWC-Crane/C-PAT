@@ -9,7 +9,7 @@
 */
 
 import { Injectable, inject } from '@angular/core';
-import { format, isAfter, isBefore, parse } from 'date-fns';
+import { format, isAfter, isBefore, parse, startOfDay } from 'date-fns';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';
 
 @Injectable({
@@ -351,6 +351,14 @@ export class PoamValidationService {
     });
   }
 
+  private toLocalDate(value: string | Date): Date {
+    if (value instanceof Date) {
+      return value;
+    }
+
+    return parse(String(value).split('T')[0], 'yyyy-MM-dd', new Date());
+  }
+
   validateMilestoneDates(poam: any, milestones: any[]): { valid: boolean; message?: string } {
     if (!milestones || milestones.length === 0) {
       return { valid: true };
@@ -360,7 +368,7 @@ export class PoamValidationService {
       return { valid: true };
     }
 
-    const scheduledCompletionDate = parse(poam.scheduledCompletionDate.split('T')[0], 'yyyy-MM-dd', new Date());
+    const scheduledCompletionDate = this.toLocalDate(poam.scheduledCompletionDate);
     const extensionDays = poam.extensionDays || 0;
 
     for (const milestone of milestones) {
@@ -368,8 +376,7 @@ export class PoamValidationService {
         continue;
       }
 
-      const milestoneDate = new Date(milestone.milestoneDate);
-      const extensionDeadline = new Date(poam.extensionDeadline);
+      const milestoneDate = this.toLocalDate(milestone.milestoneDate);
 
       if (extensionDays === 0) {
         if (isAfter(milestoneDate, scheduledCompletionDate)) {
@@ -378,7 +385,7 @@ export class PoamValidationService {
             message: 'The Milestone date provided exceeds the POAM scheduled completion date.'
           };
         }
-      } else if (isAfter(milestoneDate, extensionDeadline)) {
+      } else if (poam.extensionDeadline && isAfter(milestoneDate, this.toLocalDate(poam.extensionDeadline))) {
         return {
           valid: false,
           message: 'The Milestone date provided exceeds the POAM scheduled completion date and the allowed extension time.'
@@ -422,10 +429,12 @@ export class PoamValidationService {
       }
 
       if (milestone.milestoneStatus !== 'Completed' && milestone.milestoneStatus !== 'Archived' && milestone.milestoneDate) {
-        if (isBefore(milestone.milestoneDate, currentDate)) {
+        const milestoneDay = startOfDay(this.toLocalDate(milestone.milestoneDate));
+
+        if (isBefore(milestoneDay, startOfDay(currentDate))) {
           return {
             valid: false,
-            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has an active status ("${milestone.milestoneStatus}") but its due date (${format(milestone.milestoneDate, 'yyyy-MM-dd')}) is in the past. Please update either the status or the due date.`
+            message: `Milestone ID: ${milestone.milestoneId || 'Unknown'} has an active status ("${milestone.milestoneStatus}") but its due date (${format(milestoneDay, 'yyyy-MM-dd')}) is in the past. Please update either the status or the due date.`
           };
         }
       }

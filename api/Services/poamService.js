@@ -452,6 +452,20 @@ exports.postPoam = async function postPoam(req) {
 
     try {
         return await withConnection(async connection => {
+            if (req.body.vulnerabilityId && String(req.body.vulnerabilityId).trim() !== '') {
+                let duplicateSql = `SELECT poamId FROM ${config.database.schema}.poam WHERE collectionId = ? AND TRIM(vulnerabilityId) = TRIM(?) LIMIT 1`;
+                let [existingPoams] = await connection.query(duplicateSql, [req.body.collectionId, req.body.vulnerabilityId]);
+
+                if (existingPoams.length > 0) {
+                    return {
+                        status: 409,
+                        errors: {
+                            vulnerabilityId: `POAM ${existingPoams[0].poamId} already exists for vulnerability ID "${String(req.body.vulnerabilityId).trim()}" in this collection.`,
+                        },
+                    };
+                }
+            }
+
             await connection.beginTransaction();
 
             try {
@@ -638,6 +652,26 @@ exports.postPoam = async function postPoam(req) {
                     }
                 }
 
+                if (Array.isArray(req?.body?.teamResources)) {
+                    for (let resource of req.body.teamResources) {
+                        if (!resource.assignedTeamId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { 'teamResources.assignedTeamId': 'is required' } };
+                        }
+
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamteamresources
+                            (poamId, assignedTeamId, resourceText, isActive)
+                            VALUES (?, ?, ?, ?)`;
+
+                        await connection.query(sql_query, [
+                            poam.poamId,
+                            resource.assignedTeamId,
+                            resource.resourceText || '',
+                            resource.isActive !== undefined ? resource.isActive : true,
+                        ]);
+                    }
+                }
+
                 let action = `POAM Created. POAM Status: ${req.body.status}.`;
                 let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
                 await connection.query(logSql, [poam.poamId, action, req.userObject.userId]);
@@ -699,6 +733,7 @@ exports.putPoam = async function putPoam(req, res, next) {
         labels: 'Labels',
         milestones: 'Milestones',
         teamMitigations: 'Team Mitigations',
+        teamResources: 'Team Resources',
     };
 
     try {
@@ -712,6 +747,21 @@ exports.putPoam = async function putPoam(req, res, next) {
                 if (!existingPoam) {
                     await connection.rollback();
                     return { status: 404, errors: { poamId: 'POAM not found' } };
+                }
+
+                if (req.body.vulnerabilityId && String(req.body.vulnerabilityId).trim() !== '') {
+                    let duplicateSql = `SELECT poamId FROM ${config.database.schema}.poam WHERE collectionId = ? AND TRIM(vulnerabilityId) = TRIM(?) AND poamId != ? LIMIT 1`;
+                    let [duplicatePoams] = await connection.query(duplicateSql, [req.body.collectionId, req.body.vulnerabilityId, req.body.poamId]);
+
+                    if (duplicatePoams.length > 0) {
+                        await connection.rollback();
+                        return {
+                            status: 409,
+                            errors: {
+                                vulnerabilityId: `POAM ${duplicatePoams[0].poamId} already exists for vulnerability ID "${String(req.body.vulnerabilityId).trim()}" in this collection.`,
+                            },
+                        };
+                    }
                 }
 
                 const ownerId = req.body.ownerId || null;
@@ -799,6 +849,7 @@ exports.putPoam = async function putPoam(req, res, next) {
                             'labels',
                             'milestones',
                             'teamMitigations',
+                            'teamResources',
                             'assets',
                         ].includes(field)
                     ) {
@@ -977,6 +1028,29 @@ exports.putPoam = async function putPoam(req, res, next) {
                             mitigation.assignedTeamId,
                             mitigation.mitigationText || '',
                             mitigation.isActive !== undefined ? mitigation.isActive : true,
+                        ]);
+                    }
+                }
+
+                if (Array.isArray(req?.body?.teamResources)) {
+                    let sqlDeleteTeamResources = `DELETE FROM ${config.database.schema}.poamteamresources WHERE poamId = ?`;
+                    await connection.query(sqlDeleteTeamResources, [req.body.poamId]);
+
+                    for (let resource of req.body.teamResources) {
+                        if (!resource.assignedTeamId) {
+                            await connection.rollback();
+                            return { status: 400, errors: { 'teamResources.assignedTeamId': 'is required' } };
+                        }
+
+                        let sql_query = `INSERT INTO ${config.database.schema}.poamteamresources
+                            (poamId, assignedTeamId, resourceText, isActive)
+                            VALUES (?, ?, ?, ?)`;
+
+                        await connection.query(sql_query, [
+                            updatedPoam.poamId,
+                            resource.assignedTeamId,
+                            resource.resourceText || '',
+                            resource.isActive !== undefined ? resource.isActive : true,
                         ]);
                     }
                 }

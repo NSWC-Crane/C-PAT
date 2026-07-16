@@ -25,7 +25,20 @@
           <button pButton class="mr-2" (click)="resetColumnSelections()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset column selections"><i class="pi pi-refresh" pButtonIcon></i></button>
           <button pButton (click)="toggleAddColumnOverlay()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-plus" pButtonIcon></i></button>
           <button pButton (click)="exportCSV()" severity="secondary" [rounded]="true" [text]="true"><i class="pi pi-external-link" pButtonIcon></i></button>
-          <p-select [multiple]="true" [checkmark]="true" [showClear]="true" #ms [options]="cols" [(ngModel)]="selectedColumns" optionLabel="header" class="custom-multiselect" appendTo="body" name="columnSearch" filterPlaceholder="Add columns..." />
+          <p-select
+            [multiple]="true"
+            [filter]="true"
+            [checkmark]="true"
+            [showClear]="true"
+            #ms
+            [options]="cols"
+            [(ngModel)]="selectedColumns"
+            optionLabel="header"
+            class="custom-multiselect"
+            appendTo="body"
+            name="columnSearch"
+            filterPlaceholder="Add columns..."
+          />
         </div>
       </div>
       <div class="scrollable-assets">

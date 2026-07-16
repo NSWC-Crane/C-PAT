@@ -93,27 +93,23 @@ describe('MarketplaceComponent', () => {
 
   describe('initial state', () => {
     it('should initialize userPoints as 0', () => {
-      expect(component.userPoints).toBe(0);
+      expect(component.userPoints()).toBe(0);
     });
 
     it('should initialize themes as empty array', () => {
-      expect(component.themes).toEqual([]);
+      expect(component.themes()).toEqual([]);
     });
 
     it('should initialize purchasedThemes as empty array', () => {
-      expect(component.purchasedThemes).toEqual([]);
+      expect(component.purchasedThemes()).toEqual([]);
     });
 
     it('should initialize user as undefined', () => {
-      expect(component.user).toBeUndefined();
-    });
-
-    it('should initialize selectedTheme as null', () => {
-      expect(component.selectedTheme).toBeNull();
+      expect(component.user()).toBeUndefined();
     });
 
     it('should initialize themeImageUrls as empty object', () => {
-      expect(component.themeImageUrls).toEqual({});
+      expect(component.themeImageUrls()).toEqual({});
     });
 
     it('should have 9 surfaces defined', () => {
@@ -137,7 +133,7 @@ describe('MarketplaceComponent', () => {
   describe('loadUserData', () => {
     it('should set user from user$ response', () => {
       component.loadUserData();
-      expect(component.user).toEqual({ userId: 1, userName: 'testuser' });
+      expect(component.user()).toEqual({ userId: 1, userName: 'testuser' });
     });
 
     it('should call loadUserPoints when userId present', () => {
@@ -158,14 +154,14 @@ describe('MarketplaceComponent', () => {
       userSubject = new BehaviorSubject<any>({ userName: 'noId' });
       mockPayloadService.user$ = userSubject.asObservable();
       component.loadUserData();
-      expect(component.user).toBeUndefined();
+      expect(component.user()).toBeUndefined();
     });
 
     it('should skip null user emissions', () => {
       userSubject = new BehaviorSubject<any>(null);
       mockPayloadService.user$ = userSubject.asObservable();
       component.loadUserData();
-      expect(component.user).toBeUndefined();
+      expect(component.user()).toBeUndefined();
     });
   });
 
@@ -177,7 +173,7 @@ describe('MarketplaceComponent', () => {
 
     it('should set userPoints from response', () => {
       component.loadUserPoints();
-      expect(component.userPoints).toBe(500);
+      expect(component.userPoints()).toBe(500);
     });
 
     it('should show error message on failure', () => {
@@ -208,24 +204,22 @@ describe('MarketplaceComponent', () => {
 
     it('should set purchasedThemes', () => {
       component.loadThemes();
-      expect(component.purchasedThemes).toEqual(mockPurchasedThemes);
+      expect(component.purchasedThemes()).toEqual(mockPurchasedThemes);
     });
 
     it('should filter out purchased themes from themes list', () => {
       component.loadThemes();
-      expect(component.themes.every((t) => t.themeId !== 3)).toBe(true);
+      expect(component.themes().every((t) => t.themeId !== 3)).toBe(true);
     });
 
     it('should set themes to unpurchased themes only', () => {
       component.loadThemes();
-      expect(component.themes.length).toBe(2);
+      expect(component.themes().length).toBe(2);
     });
 
-    it('should call updateThemeImageUrls after loading', () => {
-      const spy = vi.spyOn(component, 'updateThemeImageUrls');
-
+    it('should derive themeImageUrls after loading', () => {
       component.loadThemes();
-      expect(spy).toHaveBeenCalled();
+      expect(component.themeImageUrls()[3]).toBe('assets/theme-previews/theme-3.png');
     });
 
     it('should show error on forkJoin failure', () => {
@@ -243,21 +237,19 @@ describe('MarketplaceComponent', () => {
     });
   });
 
-  describe('updateThemeImageUrls', () => {
+  describe('themeImageUrls', () => {
     it('should populate themeImageUrls for all themes', () => {
-      component.themes = mockThemes;
-      component.purchasedThemes = mockPurchasedThemes;
-      component.updateThemeImageUrls();
-      expect(component.themeImageUrls[1]).toBeDefined();
-      expect(component.themeImageUrls[2]).toBeDefined();
-      expect(component.themeImageUrls[3]).toBeDefined();
+      component.themes.set(mockThemes);
+      component.purchasedThemes.set(mockPurchasedThemes);
+      expect(component.themeImageUrls()[1]).toBeDefined();
+      expect(component.themeImageUrls()[2]).toBeDefined();
+      expect(component.themeImageUrls()[3]).toBeDefined();
     });
 
     it('should use getThemeImage for each theme', () => {
-      component.themes = [mockThemes[0]];
-      component.purchasedThemes = [];
-      component.updateThemeImageUrls();
-      expect(component.themeImageUrls[1]).toBe('assets/theme-previews/theme-1.png');
+      component.themes.set([mockThemes[0]]);
+      component.purchasedThemes.set([]);
+      expect(component.themeImageUrls()[1]).toBe('assets/theme-previews/theme-1.png');
     });
   });
 
@@ -266,13 +258,13 @@ describe('MarketplaceComponent', () => {
     const cheapTheme = { themeId: 6, themeIdentifier: 'mauve', themeName: 'Mauve', themeDescription: 'Purple', cost: 50 };
 
     it('should call confirmationService.confirm when user has enough points', () => {
-      component.userPoints = 500;
+      component.userPoints.set(500);
       component.purchaseTheme(cheapTheme);
       expect(mockConfirmationService.confirm).toHaveBeenCalled();
     });
 
     it('should call showInsufficientPointsPopup when not enough points', () => {
-      component.userPoints = 100;
+      component.userPoints.set(100);
       const spy = vi.spyOn(component, 'showInsufficientPointsPopup');
 
       component.purchaseTheme(expensiveTheme);
@@ -280,7 +272,7 @@ describe('MarketplaceComponent', () => {
     });
 
     it('should include theme name in confirmation message', () => {
-      component.userPoints = 500;
+      component.userPoints.set(500);
       component.purchaseTheme(cheapTheme);
       const callArg = mockConfirmationService.confirm.mock.calls[0][0];
 
@@ -288,7 +280,7 @@ describe('MarketplaceComponent', () => {
     });
 
     it('should include cost in confirmation message', () => {
-      component.userPoints = 500;
+      component.userPoints.set(500);
       component.purchaseTheme(cheapTheme);
       const callArg = mockConfirmationService.confirm.mock.calls[0][0];
 
@@ -296,32 +288,32 @@ describe('MarketplaceComponent', () => {
     });
 
     it('should call marketplaceService.purchaseTheme when confirmed', () => {
-      component.userPoints = 500;
-      component.user = { userId: 1 };
+      component.userPoints.set(500);
+      component.user.set({ userId: 1 });
       mockConfirmationService.confirm.mockImplementation(({ accept }) => accept());
       component.purchaseTheme(cheapTheme);
       expect(mockMarketplaceService.purchaseTheme).toHaveBeenCalledWith(1, 6);
     });
 
     it('should deduct cost from userPoints on success', () => {
-      component.userPoints = 500;
-      component.user = { userId: 1 };
+      component.userPoints.set(500);
+      component.user.set({ userId: 1 });
       mockConfirmationService.confirm.mockImplementation(({ accept }) => accept());
       component.purchaseTheme(cheapTheme);
-      expect(component.userPoints).toBe(450);
+      expect(component.userPoints()).toBe(450);
     });
 
     it('should show success message after purchase', () => {
-      component.userPoints = 500;
-      component.user = { userId: 1 };
+      component.userPoints.set(500);
+      component.user.set({ userId: 1 });
       mockConfirmationService.confirm.mockImplementation(({ accept }) => accept());
       component.purchaseTheme(cheapTheme);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', summary: 'Success' }));
     });
 
     it('should show error on purchase failure', () => {
-      component.userPoints = 500;
-      component.user = { userId: 1 };
+      component.userPoints.set(500);
+      component.user.set({ userId: 1 });
       mockMarketplaceService.purchaseTheme.mockReturnValue(throwError(() => new Error('fail')));
       mockConfirmationService.confirm.mockImplementation(({ accept }) => accept());
       component.purchaseTheme(cheapTheme);
@@ -395,19 +387,6 @@ describe('MarketplaceComponent', () => {
   });
 
   describe('ngOnDestroy', () => {
-    it('should close dialogRef if set', () => {
-      const mockRef = { close: vi.fn() };
-
-      component.dialogRef = mockRef as any;
-      component.ngOnDestroy();
-      expect(mockRef.close).toHaveBeenCalled();
-    });
-
-    it('should not throw when dialogRef is undefined', () => {
-      component.dialogRef = undefined;
-      expect(() => component.ngOnDestroy()).not.toThrow();
-    });
-
     it('should unsubscribe from subs', () => {
       const spy = vi.spyOn((component as any).subs, 'unsubscribe');
 

@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, TemplateRef, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, OnInit, TemplateRef, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -22,7 +23,7 @@ import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import { SubSink } from 'subsink';
 import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../common/components/confirmation-dialog/confirmation-dialog.component';
 import { Label } from '../../common/models/label.model';
@@ -37,7 +38,7 @@ import { LabelComponent } from './label/label.component';
   templateUrl: './label-processing.component.html',
   styleUrls: ['./label-processing.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonModule, CardModule, DialogModule, SelectModule, InputTextModule, InputIconModule, IconFieldModule, TableModule, ToastModule, TooltipModule, LabelComponent]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
@@ -46,29 +47,22 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   private readonly setPayloadService = inject(PayloadService);
   private readonly sharedService = inject(SharedService);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly labelPopup = viewChild.required<TemplateRef<any>>('labelPopup');
   private readonly labelTable = viewChild.required<Table>('labelTable');
-  labelDialogVisible: boolean = false;
+  readonly labelDialogVisible = signal(false);
   customColumn = 'label';
   defaultColumns = ['Name', 'Description'];
   allColumns = [this.customColumn, ...this.defaultColumns];
-  data: Label[] = [];
-  filterValue: string = '';
-  users: any;
-  public isLoggedIn = false;
-  labels: Label[] = [];
-  label: Label = { labelId: '', labelName: '', description: '' };
-  allowSelectLabels = true;
-  selected: any;
-  selectedRole: string = 'admin';
-  selectedCollection: any;
-  selectedLabels: Label[] = [];
-  protected accessLevel: any;
-  user: any;
-  payload: any;
-  private readonly payloadSubscription: Subscription[] = [];
-  private readonly subscriptions = new Subscription();
+  readonly data = signal<Label[]>([]);
+  readonly filterValue = signal('');
+  readonly labels = signal<Label[]>([]);
+  readonly label = signal<Label>({ labelId: '', labelName: '', description: '' });
+  readonly selectedCollection = signal<any>(undefined);
+  readonly selectedLabels = signal<Label[]>([]);
+  protected readonly accessLevel = signal<any>(undefined);
+  readonly payload = this.setPayloadService.payload;
   private readonly subs = new SubSink();
 
   onSubmit() {
@@ -76,43 +70,35 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
-      })
-    );
+    this.sharedService.selectedCollection.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((collectionId) => {
+      this.selectedCollection.set(collectionId);
+    });
     this.setPayload();
   }
 
   setPayload() {
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
-        this.user = user;
-      }),
-      this.setPayloadService.payload$.subscribe((payload) => {
-        this.payload = payload;
-      }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
-        this.accessLevel = level;
+    this.setPayloadService.accessLevel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((level) => {
+      this.accessLevel.set(level);
 
-        if (this.accessLevel > 0) {
-          this.getLabelData();
-        }
-      })
-    );
+      if (level > 0) {
+        this.getLabelData();
+      }
+    });
   }
 
   getLabelData() {
-    this.labels = [];
-    this.subs.sink = this.labelService.getLabels(this.selectedCollection).subscribe(
+    this.labels.set([]);
+    this.subs.sink = this.labelService.getLabels(this.selectedCollection()).subscribe(
       (result: any) => {
-        this.data = (result as Label[])
+        const sorted = (result as Label[])
           .map((label) => ({
             ...label,
             labelId: Number(label.labelId)
           }))
           .sort((a, b) => a.labelId - b.labelId);
-        this.labels = this.data;
+
+        this.data.set(sorted);
+        this.labels.set(sorted);
       },
       (error) => {
         this.messageService.add({
@@ -125,18 +111,18 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   setLabel(labelId: number) {
-    const selectedData = this.data.find((label) => label.labelId === labelId);
+    const selectedData = this.data().find((label) => label.labelId === labelId);
 
     if (selectedData) {
-      this.label = { ...selectedData };
-      this.labelDialogVisible = true;
+      this.label.set({ ...selectedData });
+      this.labelDialogVisible.set(true);
     } else {
-      this.label = { labelId: '', labelName: '', description: '' };
+      this.label.set({ labelId: '', labelName: '', description: '' });
     }
   }
 
   openLabelPopup() {
-    this.labelDialogVisible = true;
+    this.labelDialogVisible.set(true);
   }
 
   applyFilter(event: Event) {
@@ -150,7 +136,7 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
   }
 
   clear() {
-    this.filterValue = '';
+    this.filterValue.set('');
 
     const labelTable = this.labelTable();
 
@@ -158,34 +144,30 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
       labelTable.clear();
     }
 
-    this.data = [...this.labels];
+    this.data.set([...this.labels()]);
   }
 
   resetData() {
-    this.label = { labelId: '', labelName: '', description: '' };
     this.getLabelData();
-    this.label.labelId = 'ADDLABEL';
-    this.allowSelectLabels = true;
+    this.label.set({ labelId: 'ADDLABEL', labelName: '', description: '' });
   }
 
   addLabel() {
-    this.label = { labelId: 'ADDLABEL', labelName: '', description: '' };
-    this.labelDialogVisible = true;
+    this.label.set({ labelId: 'ADDLABEL', labelName: '', description: '' });
+    this.labelDialogVisible.set(true);
   }
 
   closeLabelPopup() {
-    this.labelDialogVisible = false;
+    this.labelDialogVisible.set(false);
   }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 
   confirm = (dialogOptions: ConfirmationDialogOptions): Observable<boolean> =>
     this.dialogService.open(ConfirmationDialogComponent, {
-      data: {
+      inputValues: {
         options: dialogOptions
       }
     }).onClose;

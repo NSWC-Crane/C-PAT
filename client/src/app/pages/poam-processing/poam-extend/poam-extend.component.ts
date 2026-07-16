@@ -9,7 +9,8 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DoCheck, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addDays, format, isAfter, parseISO, startOfDay } from 'date-fns';
@@ -30,7 +31,8 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, forkJoin } from 'rxjs';
+import { forkJoin } from 'rxjs';
+import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -38,6 +40,7 @@ import { AssignedTeamService } from '../../admin-processing/assignedTeam-process
 import { LabelService } from '../../label-processing/label.service';
 import { PoamMitigationGeneratorComponent } from '../poam-details/components/poam-mitigation-generator/poam-mitigation-generator.component';
 import { PoamMitigationService } from '../poam-details/services/poam-mitigation.service';
+import { applyTeamSyncChanges } from '../poam-details/services/team-sync-changes';
 import { PoamExtensionService } from '../poam-extend/poam-extend.service';
 import { PoamService } from '../poams.service';
 
@@ -46,7 +49,7 @@ import { PoamService } from '../poams.service';
   templateUrl: './poam-extend.component.html',
   styleUrls: ['./poam-extend.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     AutoCompleteModule,
@@ -55,6 +58,7 @@ import { PoamService } from '../poams.service';
     DialogModule,
     ProgressBarModule,
     SelectModule,
+    MultiSelectDirective,
     SplitButtonModule,
     InputTextModule,
     TabsModule,
@@ -70,7 +74,7 @@ import { PoamService } from '../poams.service';
   ],
   providers: [ConfirmationService, MessageService]
 })
-export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
+export class PoamExtendComponent implements OnInit {
   readonly table = viewChild.required<Table>('dt');
   private readonly assignedTeamService = inject(AssignedTeamService);
   private readonly router = inject(Router);
@@ -83,30 +87,25 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
   private readonly messageService = inject(MessageService);
   private readonly poamMitigationService = inject(PoamMitigationService);
   private readonly setPayloadService = inject(PayloadService);
-
-  private readonly subscriptions = new Subscription();
-  private readonly payloadSubscription: Subscription[] = [];
+  private readonly destroyRef = inject(DestroyRef);
 
   selectedCollection: any;
   user: any;
   payload: any;
-  accessLevel: any;
-  completionDate: any;
-  completionDateWithExtension: any;
+  readonly accessLevel = signal<number>(0);
+  readonly completionDateWithExtension = signal<any>(undefined);
   labelList: any;
-  assignedTeamOptions: any;
-  poamAssignedTeams: any[] = [];
-  teamMitigations: any[] = [];
-  invalidExtensionFields = new Set<string>();
-  activeTabIndex: number = 0;
-  mitigationSaving: boolean = false;
+  readonly assignedTeamOptions = signal<any>(undefined);
+  readonly poamAssignedTeams = signal<any[]>([]);
+  readonly teamMitigations = signal<any[]>([]);
+  readonly activeTabIndex = signal<number>(0);
+  readonly mitigationSaving = signal<boolean>(false);
   aiEnabled: boolean = CPAT.Env.features.aiEnabled;
-  displayExtensionDialog: boolean = false;
-  dates: any = {};
+  readonly displayExtensionDialog = signal<boolean>(false);
   poam: any;
   poamId: any;
   poamLabels: [{ poamId: number; labelId: number; labelName: string }] | undefined;
-  poamMilestones: any[] = [];
+  readonly poamMilestones = signal<any[]>([]);
   clonedMilestones: { [s: string]: any } = {};
   milestoneStatusOptions = [
     { label: 'Open', value: 'Open' },
@@ -115,8 +114,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
     { label: 'Completed', value: 'Completed' },
     { label: 'Archived', value: 'Archived' }
   ];
-  extensionHistory: any[] = [];
-  extensionJustification: string = '';
+  readonly extensionHistory = signal<any[]>([]);
+  readonly extensionJustification = signal<string>('');
   extensionJustificationPlaceholder: string = 'Select from the available options, modify a provided option, or provide a custom justification';
   justifications: string[] = [
     'Security Vulnerability Remediation - More Time Required',
@@ -157,12 +156,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
     { label: 'Very High', value: 'Very High' }
   ];
 
-  ngDoCheck(): void {
-    this.invalidExtensionFields = this.computeInvalidExtensionFields();
-  }
-
   isExtensionInvalid(field: string): boolean {
-    return this.invalidExtensionFields.has(field);
+    return this.computeInvalidExtensionFields().has(field);
   }
 
   private computeInvalidExtensionFields(): Set<string> {
@@ -176,7 +171,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       invalid.add('extensionDays');
     }
 
-    if (!this.extensionJustification) {
+    if (!this.extensionJustification()) {
       invalid.add('extensionJustification');
     }
 
@@ -184,8 +179,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       if (!this.poam.mitigations) {
         invalid.add('mitigations');
       }
-    } else if (this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
-      this.teamMitigations
+    } else if (this.poamAssignedTeams() && this.poamAssignedTeams().length > 0) {
+      this.teamMitigations()
         .filter((m) => m.isActive)
         .forEach((m) => {
           if (!m.mitigationText?.trim()) {
@@ -201,58 +196,55 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
 
   ngOnInit() {
     this.openModal();
-    this.subscriptions.add(
-      this.route.params.subscribe(async (params) => {
-        this.poamId = params['poamId'];
-      })
-    );
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
-      })
-    );
+    this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.poamId = params['poamId'];
+    });
+    this.sharedService.selectedCollection.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((collectionId) => {
+      this.selectedCollection = collectionId;
+    });
     this.setPayload();
   }
 
   setPayload() {
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
-        this.user = user;
-      }),
-      this.setPayloadService.payload$.subscribe((payload) => {
-        this.payload = payload;
-      }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
-        this.accessLevel = level;
+    this.setPayloadService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
+      this.user = user;
+    });
+    this.setPayloadService.payload$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((payload) => {
+      this.payload = payload;
+    });
+    this.setPayloadService.accessLevel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((level) => {
+      this.accessLevel.set(level);
 
-        if (this.accessLevel > 0) {
-          this.getData();
-        }
-      })
-    );
+      if (this.accessLevel() > 0) {
+        this.getData();
+      }
+    });
   }
 
   getData() {
-    this.subscriptions.add(
-      forkJoin([
-        this.poamService.getPoam(this.poamId),
-        this.poamExtensionService.getPoamExtension(this.poamId),
-        this.poamService.getPoamMilestones(this.poamId),
-        this.assignedTeamService.getAssignedTeams(),
-        this.poamService.getPoamAssignedTeams(this.poamId)
-      ]).subscribe({
+    forkJoin([
+      this.poamService.getPoam(this.poamId),
+      this.poamExtensionService.getPoamExtension(this.poamId),
+      this.poamService.getPoamMilestones(this.poamId),
+      this.assignedTeamService.getAssignedTeams(),
+      this.poamService.getPoamAssignedTeams(this.poamId)
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
         next: ([poamData, extension, poamMilestones, assignedTeamOptions, poamAssignedTeams]: any) => {
           const extensionDataset = extension;
 
-          this.poamMilestones = poamMilestones.map((milestone: any) => ({
-            ...milestone,
-            milestoneDate: milestone.milestoneDate ? milestone.milestoneDate.split('T')[0] : null,
-            milestoneChangeDate: milestone.milestoneChangeDate ? milestone.milestoneChangeDate.split('T')[0] : null,
-            assignedTeamIds: milestone.assignedTeamIds || milestone.assignedTeams?.map((t: any) => t.assignedTeamId) || []
-          }));
+          this.poamMilestones.set(
+            poamMilestones.map((milestone: any) => ({
+              ...milestone,
+              milestoneDate: milestone.milestoneDate ? milestone.milestoneDate.split('T')[0] : null,
+              milestoneChangeDate: milestone.milestoneChangeDate ? milestone.milestoneChangeDate.split('T')[0] : null,
+              assignedTeamIds: milestone.assignedTeamIds || milestone.assignedTeams?.map((t: any) => t.assignedTeamId) || []
+            }))
+          );
 
-          this.assignedTeamOptions = assignedTeamOptions;
-          this.poamAssignedTeams = poamAssignedTeams || [];
+          this.assignedTeamOptions.set(assignedTeamOptions);
+          this.poamAssignedTeams.set(poamAssignedTeams || []);
 
           if (extensionDataset.length > 0) {
             const extensionData = extensionDataset[0];
@@ -282,13 +274,13 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
               scheduledCompletionDate: extensionData.scheduledCompletionDate ? extensionData.scheduledCompletionDate.split('T')[0] : ''
             };
 
-            this.extensionHistory = extensionData.extensionHistory || [];
-            this.extensionJustification = this.poam.extensionJustification;
+            this.extensionHistory.set(extensionData.extensionHistory || []);
+            this.extensionJustification.set(this.poam.extensionJustification);
 
             if (this.poam.scheduledCompletionDate) {
               this.computeDeadlineWithExtension();
             } else {
-              this.completionDateWithExtension = '';
+              this.completionDateWithExtension.set('');
             }
           } else {
             this.poam = {
@@ -315,16 +307,15 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
               impactDescription: poamData.impactDescription || ''
             };
 
-            this.extensionHistory = [];
-            this.extensionJustification = '';
-            this.completionDateWithExtension = '';
+            this.extensionHistory.set([]);
+            this.extensionJustification.set('');
+            this.completionDateWithExtension.set('');
           }
 
           this.loadTeamMitigations();
           this.getPoamLabels();
         }
-      })
-    );
+      });
   }
 
   onAddNewMilestone() {
@@ -340,7 +331,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       editing: true
     };
 
-    this.poamMilestones = [newMilestone, ...this.poamMilestones];
+    this.poamMilestones.set([newMilestone, ...this.poamMilestones()]);
     this.onRowEditInit(newMilestone);
   }
 
@@ -369,6 +360,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
   private finalizeRowEdit(milestone: any) {
     milestone.editing = false;
     delete this.clonedMilestones[milestone.milestoneId];
+    this.poamMilestones.set([...this.poamMilestones()]);
 
     const table = this.table();
 
@@ -458,7 +450,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
 
           return false;
         }
-      } else if (isAfter(milestoneDate, this.completionDateWithExtension)) {
+      } else if (isAfter(milestoneDate, this.completionDateWithExtension())) {
         this.messageService.add({
           severity: 'warn',
           summary: 'Information',
@@ -483,29 +475,32 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
         assignedTeamIds: milestone.assignedTeamIds || []
       };
 
-      this.poamService.addPoamMilestone(this.poam.poamId, newMilestone).subscribe({
-        next: (res: any) => {
-          if (res.null) {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Information',
-              detail: 'Unable to insert row, please validate entry and try again.'
-            });
-            reject(new Error('Failed to add milestone'));
-          } else {
-            milestone.milestoneId = res.milestoneId;
-            milestone.isNew = false;
+      this.poamService
+        .addPoamMilestone(this.poam.poamId, newMilestone)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res: any) => {
+            if (res.null) {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Information',
+                detail: 'Unable to insert row, please validate entry and try again.'
+              });
+              reject(new Error('Failed to add milestone'));
+            } else {
+              milestone.milestoneId = res.milestoneId;
+              milestone.isNew = false;
 
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: 'Milestone added successfully'
-            });
-            resolve();
-          }
-        },
-        error: (error) => reject(error)
-      });
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Milestone added successfully'
+              });
+              resolve();
+            }
+          },
+          error: (error) => reject(error)
+        });
     });
   }
 
@@ -530,33 +525,36 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
         assignedTeamIds: milestone.assignedTeamIds || []
       };
 
-      this.poamService.updatePoamMilestone(this.poam.poamId, milestone.milestoneId, milestoneUpdate).subscribe({
-        next: () => {
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Success',
-            detail: 'Milestone updated successfully'
-          });
-          resolve();
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Failed to update milestone: ${getErrorMessage(error)}`
-          });
-          reject(error);
-        }
-      });
+      this.poamService
+        .updatePoamMilestone(this.poam.poamId, milestone.milestoneId, milestoneUpdate)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: 'Milestone updated successfully'
+            });
+            resolve();
+          },
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to update milestone: ${getErrorMessage(error)}`
+            });
+            reject(error);
+          }
+        });
     });
   }
 
   getTeamNames(teamIds: number[]): string {
-    if (!teamIds?.length || !this.assignedTeamOptions) return '';
+    if (!teamIds?.length || !this.assignedTeamOptions()) return '';
 
     return teamIds
       .map((id) => {
-        const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === id);
+        const team = this.assignedTeamOptions().find((t) => t.assignedTeamId === id);
 
         return team ? team.assignedTeamName : '';
       })
@@ -565,11 +563,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   getTeamNameList(teamIds: number[]): string[] {
-    if (!teamIds?.length || !this.assignedTeamOptions) return [];
+    if (!teamIds?.length || !this.assignedTeamOptions()) return [];
 
     return teamIds
       .map((id) => {
-        const team = this.assignedTeamOptions.find((t) => t.assignedTeamId === id);
+        const team = this.assignedTeamOptions().find((t) => t.assignedTeamId === id);
 
         return team ? team.assignedTeamName : '';
       })
@@ -578,9 +576,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
 
   onRowEditCancel(milestone: any, index: number) {
     if (milestone.isNew) {
-      this.poamMilestones.splice(index, 1);
+      this.poamMilestones.set(this.poamMilestones().filter((_m, i) => i !== index));
     } else if (this.clonedMilestones[milestone.milestoneId]) {
-      this.poamMilestones[index] = this.clonedMilestones[milestone.milestoneId];
+      const cloned = this.clonedMilestones[milestone.milestoneId];
+
+      this.poamMilestones.set(this.poamMilestones().map((m, i) => (i === index ? cloned : m)));
       delete this.clonedMilestones[milestone.milestoneId];
     }
 
@@ -595,7 +595,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
 
   deleteMilestone(milestone: any, index: number) {
     if (!milestone.milestoneId) {
-      this.poamMilestones.splice(index, 1);
+      this.poamMilestones.set(this.poamMilestones().filter((_m, i) => i !== index));
 
       return;
     }
@@ -609,19 +609,23 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       acceptButtonStyleClass: 'p-button-outlined p-button-primary',
       rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
       accept: () => {
-        this.poamService.deletePoamMilestone(this.poam.poamId, milestone.milestoneId, false).subscribe(() => {
-          this.poamMilestones.splice(index, 1);
-        });
+        this.poamService
+          .deletePoamMilestone(this.poam.poamId, milestone.milestoneId, false)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.poamMilestones.set(this.poamMilestones().filter((_m, i) => i !== index));
+          });
       }
     });
   }
 
   getPoamLabels() {
-    this.subscriptions.add(
-      this.poamService.getPoamLabelsByPoam(this.poamId).subscribe((poamLabels: any) => {
+    this.poamService
+      .getPoamLabelsByPoam(this.poamId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((poamLabels: any) => {
         this.poamLabels = poamLabels;
-      })
-    );
+      });
   }
 
   loadTeamMitigations() {
@@ -631,35 +635,49 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
 
-    this.poamMitigationService.loadTeamMitigations(this.poam.poamId).subscribe({
-      next: async (mitigations) => {
-        this.teamMitigations = mitigations || [];
-        this._ensureUniqueTeamMitigations();
+    this.poamMitigationService
+      .loadTeamMitigations(this.poam.poamId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: async (mitigations) => {
+          this.teamMitigations.set(mitigations || []);
+          this._ensureUniqueTeamMitigations();
 
-        const needsInitialization = this.teamMitigations.length === 0 && this.poamAssignedTeams?.length > 0;
-        const needsSync = this.teamMitigations.length > 0 && this.poamAssignedTeams?.length > 0;
+          const needsInitialization = this.teamMitigations().length === 0 && this.poamAssignedTeams()?.length > 0;
+          const needsSync = this.teamMitigations().length > 0 && this.poamAssignedTeams()?.length > 0;
 
-        if (needsInitialization) {
-          this.teamMitigations = await this.poamMitigationService.initializeTeamMitigations(this.poam, this.poamAssignedTeams, this.teamMitigations);
-        } else if (needsSync) {
-          this.poamMitigationService.syncTeamMitigations(this.poam, this.poamAssignedTeams, this.teamMitigations);
+          if (needsInitialization) {
+            this.teamMitigations.set(await this.poamMitigationService.initializeTeamMitigations(this.poam, this.poamAssignedTeams(), this.teamMitigations()));
+          } else if (needsSync) {
+            this.poamMitigationService
+              .syncTeamMitigations(this.poam, this.poamAssignedTeams(), this.teamMitigations())
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe((changes) => {
+                if (changes.length > 0) {
+                  this.teamMitigations.update((current) => applyTeamSyncChanges(current, changes));
+
+                  if (this.activeTabIndex() > 0 && this.activeTabIndex() > this.teamMitigations().length) {
+                    this.activeTabIndex.set(0);
+                  }
+                }
+              });
+          }
+
+          this._ensureUniqueTeamMitigations();
+
+          if (this.activeTabIndex() > 0 && this.activeTabIndex() > this.teamMitigations().length) {
+            this.activeTabIndex.set(0);
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load team mitigations: ${getErrorMessage(error)}`
+          });
+          this._ensureUniqueTeamMitigations();
         }
-
-        this._ensureUniqueTeamMitigations();
-
-        if (this.activeTabIndex > 0 && this.activeTabIndex > this.teamMitigations.length) {
-          this.activeTabIndex = 0;
-        }
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to load team mitigations: ${getErrorMessage(error)}`
-        });
-        this._ensureUniqueTeamMitigations();
-      }
-    });
+      });
   }
 
   saveTeamMitigation(teamMitigation: any) {
@@ -669,25 +687,28 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
 
-    this.mitigationSaving = true;
-    this.poamMitigationService.saveTeamMitigation(this.poam, teamMitigation).subscribe({
-      next: () => {
-        this.mitigationSaving = false;
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `Mitigation for ${teamMitigation.assignedTeamName} saved successfully`
-        });
-      },
-      error: (error) => {
-        this.mitigationSaving = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to save team mitigation: ${getErrorMessage(error)}`
-        });
-      }
-    });
+    this.mitigationSaving.set(true);
+    this.poamMitigationService
+      .saveTeamMitigation(this.poam, teamMitigation)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.mitigationSaving.set(false);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `Mitigation for ${teamMitigation.assignedTeamName} saved successfully`
+          });
+        },
+        error: (error) => {
+          this.mitigationSaving.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to save team mitigation: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   onMitigationGenerated(event: { mitigation: string; teamId?: number }) {
@@ -699,7 +720,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
         detail: 'Mitigation added'
       });
     } else {
-      const teamMitigation = this.teamMitigations.find((m) => m.assignedTeamId === event.teamId);
+      const teamMitigation = this.teamMitigations().find((m) => m.assignedTeamId === event.teamId);
 
       if (teamMitigation) {
         teamMitigation.mitigationText = event.mitigation;
@@ -715,28 +736,28 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   private _ensureUniqueTeamMitigations(): void {
-    if (Array.isArray(this.teamMitigations)) {
-      this.teamMitigations = this.teamMitigations.filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId));
+    if (Array.isArray(this.teamMitigations())) {
+      this.teamMitigations.set(this.teamMitigations().filter((mitigation, index, self) => index === self.findIndex((m) => m.assignedTeamId === mitigation.assignedTeamId)));
     } else {
-      this.teamMitigations = [];
+      this.teamMitigations.set([]);
     }
   }
 
   computeDeadlineWithExtension() {
     if (this.poam.extensionDays === 0 || this.poam.extensionDays == null) {
       if (!this.poam.scheduledCompletionDate) {
-        this.completionDateWithExtension = '';
+        this.completionDateWithExtension.set('');
 
         return;
       }
 
       const scheduledDate = typeof this.poam.scheduledCompletionDate === 'string' ? parseISO(this.poam.scheduledCompletionDate) : this.poam.scheduledCompletionDate;
 
-      this.completionDateWithExtension = format(scheduledDate, 'EEE MMM dd yyyy');
+      this.completionDateWithExtension.set(format(scheduledDate, 'EEE MMM dd yyyy'));
     } else {
       const extendedDate = addDays(new Date(), this.poam.extensionDays);
 
-      this.completionDateWithExtension = format(extendedDate, 'EEE MMM dd yyyy');
+      this.completionDateWithExtension.set(format(extendedDate, 'EEE MMM dd yyyy'));
     }
   }
 
@@ -749,11 +770,11 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   openModal() {
-    this.displayExtensionDialog = true;
+    this.displayExtensionDialog.set(true);
   }
 
   cancelExtension() {
-    this.displayExtensionDialog = false;
+    this.displayExtensionDialog.set(false);
     this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
   }
 
@@ -768,29 +789,32 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       acceptButtonStyleClass: 'p-button-outlined p-button-danger',
       rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
       accept: () => {
-        this.poamExtensionService.deletePoamExtension(this.poamId).subscribe({
-          next: () => {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: 'POAM extension deleted successfully.'
-            });
-            this.getData();
-          },
-          error: (error) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Failed to delete POAM extension: ${getErrorMessage(error)}`
-            });
-          }
-        });
+        this.poamExtensionService
+          .deletePoamExtension(this.poamId)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'POAM extension deleted successfully.'
+              });
+              this.getData();
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Failed to delete POAM extension: ${getErrorMessage(error)}`
+              });
+            }
+          });
       }
     });
   }
 
   async submitPoamExtension() {
-    const hasUnsavedMilestones = this.poamMilestones.some((milestone) => milestone.editing || milestone.isNew);
+    const hasUnsavedMilestones = this.poamMilestones().some((milestone) => milestone.editing || milestone.isNew);
 
     if (hasUnsavedMilestones) {
       this.messageService.add({
@@ -812,7 +836,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
 
-    if (!this.extensionJustification) {
+    if (!this.extensionJustification()) {
       this.messageService.add({
         severity: 'error',
         summary: 'Validation Error',
@@ -822,8 +846,8 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
 
-    if (!this.poam.isGlobalFinding && this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
-      const activeTeamMitigations = this.teamMitigations.filter((m) => m.isActive);
+    if (!this.poam.isGlobalFinding && this.poamAssignedTeams() && this.poamAssignedTeams().length > 0) {
+      const activeTeamMitigations = this.teamMitigations().filter((m) => m.isActive);
       const teamsMissingMitigation = activeTeamMitigations.filter((m) => !m.mitigationText?.trim());
 
       if (activeTeamMitigations.length === 0 || teamsMissingMitigation.length > 0) {
@@ -848,7 +872,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     if (this.poam.extensionDays > 0) {
-      const milestoneWithChangeDateButNoComment = this.poamMilestones.some((milestone) => milestone.milestoneChangeDate && !milestone.milestoneChangeComments);
+      const milestoneWithChangeDateButNoComment = this.poamMilestones().some((milestone) => milestone.milestoneChangeDate && !milestone.milestoneChangeComments);
 
       if (milestoneWithChangeDateButNoComment) {
         this.messageService.add({
@@ -861,7 +885,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       }
 
       const today = startOfDay(new Date());
-      const pastDueMilestonesWithoutChanges = this.poamMilestones.some((milestone) => {
+      const pastDueMilestonesWithoutChanges = this.poamMilestones().some((milestone) => {
         if (!milestone.milestoneDate) return false;
 
         const milestoneDate = typeof milestone.milestoneDate === 'string' ? startOfDay(parseISO(milestone.milestoneDate)) : startOfDay(milestone.milestoneDate);
@@ -879,7 +903,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
         return;
       }
 
-      const hasChangedMilestone = this.poamMilestones.some((milestone) => milestone.milestoneChangeComments && milestone.milestoneChangeDate);
+      const hasChangedMilestone = this.poamMilestones().some((milestone) => milestone.milestoneChangeComments && milestone.milestoneChangeDate);
 
       if (!hasChangedMilestone) {
         this.messageService.add({
@@ -891,9 +915,9 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
         return;
       }
 
-      if (!this.poam.isGlobalFinding && this.poamAssignedTeams && this.poamAssignedTeams.length > 0) {
-        const teamsWithoutOpenMilestone = this.poamAssignedTeams.filter((team) => {
-          const teamMilestones = this.poamMilestones.filter((milestone) => milestone.assignedTeamIds?.includes(team.assignedTeamId));
+      if (!this.poam.isGlobalFinding && this.poamAssignedTeams() && this.poamAssignedTeams().length > 0) {
+        const teamsWithoutOpenMilestone = this.poamAssignedTeams().filter((team) => {
+          const teamMilestones = this.poamMilestones().filter((milestone) => milestone.assignedTeamIds?.includes(team.assignedTeamId));
 
           return !teamMilestones.some((milestone) => milestone.milestoneStatus !== 'Completed');
         });
@@ -916,7 +940,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   approveExtension() {
-    const hasUnsavedMilestones = this.poamMilestones.some((milestone) => milestone.editing || milestone.isNew);
+    const hasUnsavedMilestones = this.poamMilestones().some((milestone) => milestone.editing || milestone.isNew);
 
     if (hasUnsavedMilestones) {
       this.messageService.add({
@@ -932,7 +956,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
   }
 
   rejectExtension() {
-    const hasUnsavedMilestones = this.poamMilestones.some((milestone) => milestone.editing || milestone.isNew);
+    const hasUnsavedMilestones = this.poamMilestones().some((milestone) => milestone.editing || milestone.isNew);
 
     if (hasUnsavedMilestones) {
       this.messageService.add({
@@ -951,7 +975,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
     const extensionData = {
       poamId: Number.parseInt(this.poamId, 10),
       extensionDays: this.poam.extensionDays,
-      extensionJustification: this.extensionJustification,
+      extensionJustification: this.extensionJustification(),
       status: status,
       mitigations: this.poam.mitigations,
       requiredResources: this.poam.requiredResources,
@@ -970,55 +994,58 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
     }
 
     try {
-      this.poamExtensionService.putPoamExtension(extensionData).subscribe({
-        next: (res: any) => {
-          if (res.null || res.null == 'null') {
+      this.poamExtensionService
+        .putPoamExtension(extensionData)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res: any) => {
+            if (res.null || res.null == 'null') {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Information',
+                detail: 'Unexpected error adding POAM Extension'
+              });
+            } else if (status === 'Approved') {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `Extension Approved for POAM: ${res.poamId}`
+              });
+            } else if (status === 'Rejected') {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `Extension Rejected for POAM: ${res.poamId}`
+              });
+            } else {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: `Extension requested for POAM: ${res.poamId}`
+              });
+            }
+
+            if (status !== 'Rejected' && extensionData.extensionDays > 0) {
+              this.poamService.updatePoamStatus(this.poamId, extensionData).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+            }
+
+            if (!this.poam.isGlobalFinding && this.teamMitigations().length > 0) {
+              this.poamMitigationService.saveAllTeamMitigations(this.poam, this.teamMitigations());
+            }
+
+            setTimeout(() => {
+              this.displayExtensionDialog.set(false);
+              this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+            }, 1000);
+          },
+          error: (error) => {
             this.messageService.add({
               severity: 'error',
-              summary: 'Information',
-              detail: 'Unexpected error adding POAM Extension'
-            });
-          } else if (status === 'Approved') {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: `Extension Approved for POAM: ${res.poamId}`
-            });
-          } else if (status === 'Rejected') {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: `Extension Rejected for POAM: ${res.poamId}`
-            });
-          } else {
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: `Extension requested for POAM: ${res.poamId}`
+              summary: 'Error',
+              detail: `Unexpected error adding POAM Extension: ${getErrorMessage(error)}`
             });
           }
-
-          if (status !== 'Rejected' && extensionData.extensionDays > 0) {
-            this.poamService.updatePoamStatus(this.poamId, extensionData).subscribe();
-          }
-
-          if (!this.poam.isGlobalFinding && this.teamMitigations.length > 0) {
-            this.poamMitigationService.saveAllTeamMitigations(this.poam, this.teamMitigations);
-          }
-
-          setTimeout(() => {
-            this.displayExtensionDialog = false;
-            this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
-          }, 1000);
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Unexpected error adding POAM Extension: ${getErrorMessage(error)}`
-          });
-        }
-      });
+        });
     } catch (error) {
       this.messageService.add({
         severity: 'error',
@@ -1035,8 +1062,10 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
       return;
     }
 
-    this.subscriptions.add(
-      this.poamService.getLabels(this.selectedCollection).subscribe((labels: any) => {
+    this.poamService
+      .getLabels(this.selectedCollection)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((labels: any) => {
         this.labelList = labels;
 
         if (this.labelList) {
@@ -1048,7 +1077,7 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
               labelId: +extendedLabel.labelId
             };
 
-            this.poamService.postPoamLabel(extendedPoamLabel).subscribe();
+            this.poamService.postPoamLabel(extendedPoamLabel).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
           }
         } else {
           const extendLabel = {
@@ -1057,20 +1086,20 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
             description: 'POAM has been extended'
           };
 
-          this.subscriptions.add(
-            this.labelService.addLabel(this.selectedCollection, extendLabel).subscribe(() => {
+          this.labelService
+            .addLabel(this.selectedCollection, extendLabel)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
               this.findOrCreateExtendedLabel();
-            })
-          );
+            });
         }
-      })
-    );
+      });
   }
 
   get extensionHistoryTooltip(): string {
-    if (!this.extensionHistory?.length) return '';
+    if (!this.extensionHistory()?.length) return '';
 
-    return this.extensionHistory
+    return this.extensionHistory()
       .map((e, i) => {
         const dateStr = e.extensionRequestedDate ? e.extensionRequestedDate.split('T')[0] : '';
         const date = dateStr ? new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US') : 'N/A';
@@ -1084,10 +1113,5 @@ export class PoamExtendComponent implements OnInit, OnDestroy, DoCheck {
     const query = event.query;
 
     this.filteredJustifications = this.justifications.filter((justification) => justification.toLowerCase().includes(query.toLowerCase()));
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }

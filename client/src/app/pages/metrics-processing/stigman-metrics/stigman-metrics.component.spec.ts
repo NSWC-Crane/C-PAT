@@ -444,10 +444,10 @@ describe('STIGManagerMetricsComponent', () => {
 
   describe('refreshMetrics', () => {
     it('should update now date', () => {
-      const before = component.now;
+      const before = component.now();
 
       component.refreshMetrics();
-      expect(component.now).not.toBe(before);
+      expect(component.now()).not.toBe(before);
     });
 
     it('should call loadMetrics (no collection → no service calls)', () => {
@@ -520,6 +520,26 @@ describe('STIGManagerMetricsComponent', () => {
       component.exportGlobalMetrics();
 
       expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('cleanup', () => {
+    it('stops applying export results after destroy (takeUntilDestroyed)', () => {
+      const exportSubject = new Subject<void>();
+
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(exportSubject.asObservable());
+      component.exportGlobalMetrics();
+      expect(component.isGlobalExporting()).toBe(true);
+
+      fixture.destroy();
+      exportSubject.next();
+      exportSubject.complete();
+
+      expect(component.isGlobalExporting()).toBe(true);
+    });
+
+    it('does not throw on destroy', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

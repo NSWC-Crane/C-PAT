@@ -9,12 +9,12 @@
 */
 
 import { Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Event, NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
-import { Subject } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'cpat-breadcrumb',
@@ -32,10 +32,10 @@ import { filter, takeUntil } from 'rxjs/operators';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppBreadcrumbComponent implements OnInit, OnDestroy {
+export class AppBreadcrumbComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly location = inject(Location);
-  private readonly destroy$ = new Subject<void>();
+  private readonly destroyRef = inject(DestroyRef);
 
   items = signal<MenuItem[]>([]);
   home: MenuItem = { icon: 'pi pi-home', routerLink: '/home' };
@@ -44,18 +44,13 @@ export class AppBreadcrumbComponent implements OnInit, OnDestroy {
     this.router.events
       .pipe(
         filter((event: Event): event is NavigationEnd => event instanceof NavigationEnd),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
         this.updateBreadcrumbs();
       });
 
     this.updateBreadcrumbs();
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private updateBreadcrumbs() {

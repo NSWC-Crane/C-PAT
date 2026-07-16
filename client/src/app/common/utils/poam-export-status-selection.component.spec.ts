@@ -84,47 +84,47 @@ describe('PoamExportStatusSelectionComponent', () => {
 
   describe('constructor default selection', () => {
     it('should pre-select 8 statuses (all except draft and closed)', () => {
-      expect(component.selectedStatuses).toHaveLength(8);
+      expect(component.selectedStatuses()).toHaveLength(8);
     });
 
     it('should not include draft in selectedStatuses', () => {
-      expect(component.selectedStatuses).not.toContain('draft');
+      expect(component.selectedStatuses()).not.toContain('draft');
     });
 
     it('should not include closed in selectedStatuses', () => {
-      expect(component.selectedStatuses).not.toContain('closed');
+      expect(component.selectedStatuses()).not.toContain('closed');
     });
 
     it('should include approved in selectedStatuses', () => {
-      expect(component.selectedStatuses).toContain('approved');
+      expect(component.selectedStatuses()).toContain('approved');
     });
 
     it('should include associated in selectedStatuses', () => {
-      expect(component.selectedStatuses).toContain('associated');
+      expect(component.selectedStatuses()).toContain('associated');
     });
 
     it('should include expired in selectedStatuses', () => {
-      expect(component.selectedStatuses).toContain('expired');
+      expect(component.selectedStatuses()).toContain('expired');
     });
 
     it('should include extension requested in selectedStatuses', () => {
-      expect(component.selectedStatuses).toContain('extension requested');
+      expect(component.selectedStatuses()).toContain('extension requested');
     });
 
     it('should include false-positive in selectedStatuses', () => {
-      expect(component.selectedStatuses).toContain('false-positive');
+      expect(component.selectedStatuses()).toContain('false-positive');
     });
 
     it('should include pending cat-i approval in selectedStatuses', () => {
-      expect(component.selectedStatuses).toContain('pending cat-i approval');
+      expect(component.selectedStatuses()).toContain('pending cat-i approval');
     });
 
     it('should include rejected in selectedStatuses', () => {
-      expect(component.selectedStatuses).toContain('rejected');
+      expect(component.selectedStatuses()).toContain('rejected');
     });
 
     it('should include submitted in selectedStatuses', () => {
-      expect(component.selectedStatuses).toContain('submitted');
+      expect(component.selectedStatuses()).toContain('submitted');
     });
   });
 
@@ -143,17 +143,17 @@ describe('PoamExportStatusSelectionComponent', () => {
   describe('confirm', () => {
     it('should call ref.close with selectedStatuses', () => {
       component.confirm();
-      expect(mockDialogRef.close).toHaveBeenCalledWith(component.selectedStatuses);
+      expect(mockDialogRef.close).toHaveBeenCalledWith(component.selectedStatuses());
     });
 
     it('should pass the current selectedStatuses array to ref.close', () => {
-      component.selectedStatuses = ['approved', 'draft'];
+      component.selectedStatuses.set(['approved', 'draft']);
       component.confirm();
       expect(mockDialogRef.close).toHaveBeenCalledWith(['approved', 'draft']);
     });
 
     it('should pass empty array when no statuses are selected', () => {
-      component.selectedStatuses = [];
+      component.selectedStatuses.set([]);
       component.confirm();
       expect(mockDialogRef.close).toHaveBeenCalledWith([]);
     });

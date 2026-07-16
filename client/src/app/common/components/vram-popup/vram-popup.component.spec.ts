@@ -51,15 +51,19 @@ describe('VramPopupComponent', () => {
     });
 
     it('should have isPopupOpen as false initially', () => {
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
     });
 
     it('should have checkInterval as undefined initially', () => {
       expect(component.checkInterval).toBeUndefined();
     });
 
-    it('should inject NgZone', () => {
-      expect(component['ngZone']).toBeTruthy();
+    it('should expose isPopupOpen as a writable signal', () => {
+      component.isPopupOpen.set(true);
+      expect(component.isPopupOpen()).toBe(true);
+
+      component.isPopupOpen.set(false);
+      expect(component.isPopupOpen()).toBe(false);
     });
   });
 
@@ -76,7 +80,7 @@ describe('VramPopupComponent', () => {
 
     it('should set isPopupOpen to true when window opens successfully', () => {
       component.openVRAM();
-      expect(component.isPopupOpen).toBe(true);
+      expect(component.isPopupOpen()).toBe(true);
     });
 
     it('should start checking window when opened successfully', () => {
@@ -89,7 +93,7 @@ describe('VramPopupComponent', () => {
     it('should not set isPopupOpen if globalThis.open returns null', () => {
       windowOpenSpy.mockReturnValue(null);
       component.openVRAM();
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
     });
 
     it('should not start checking if globalThis.open returns null', () => {
@@ -111,20 +115,20 @@ describe('VramPopupComponent', () => {
     it('should set isPopupOpen to false when window is closed', () => {
       vi.useFakeTimers();
       component.authWindow = mockWindow as unknown as Window;
-      component.isPopupOpen = true;
+      component.isPopupOpen.set(true);
       component.startCheckingWindow();
 
       mockWindow.closed = true;
       vi.advanceTimersByTime(1000);
 
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
       vi.useRealTimers();
     });
 
     it('should clear interval when window is closed', () => {
       vi.useFakeTimers();
       component.authWindow = mockWindow as unknown as Window;
-      component.isPopupOpen = true;
+      component.isPopupOpen.set(true);
       component.startCheckingWindow();
 
       const intervalId = component.checkInterval;
@@ -140,18 +144,18 @@ describe('VramPopupComponent', () => {
     it('should keep checking while window is open', () => {
       vi.useFakeTimers();
       component.authWindow = mockWindow as unknown as Window;
-      component.isPopupOpen = true;
+      component.isPopupOpen.set(true);
       component.startCheckingWindow();
 
       vi.advanceTimersByTime(1000);
-      expect(component.isPopupOpen).toBe(true);
+      expect(component.isPopupOpen()).toBe(true);
 
       vi.advanceTimersByTime(1000);
-      expect(component.isPopupOpen).toBe(true);
+      expect(component.isPopupOpen()).toBe(true);
 
       mockWindow.closed = true;
       vi.advanceTimersByTime(1000);
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
       vi.useRealTimers();
     });
   });
@@ -218,21 +222,21 @@ describe('VramPopupComponent', () => {
 
   describe('isPopupOpen state changes', () => {
     it('should show stepper content when isPopupOpen is true', () => {
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
 
       component.openVRAM();
-      expect(component.isPopupOpen).toBe(true);
+      expect(component.isPopupOpen()).toBe(true);
     });
 
     it('should hide stepper content when window closes', () => {
       vi.useFakeTimers();
       component.openVRAM();
-      expect(component.isPopupOpen).toBe(true);
+      expect(component.isPopupOpen()).toBe(true);
 
       mockWindow.closed = true;
       vi.advanceTimersByTime(1000);
 
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
       vi.useRealTimers();
     });
   });
@@ -252,23 +256,23 @@ describe('VramPopupComponent', () => {
 
       button.triggerEventHandler('click', null);
 
-      expect(component.isPopupOpen).toBe(true);
+      expect(component.isPopupOpen()).toBe(true);
     });
   });
 
   describe('full workflow', () => {
     it('should complete open and close workflow', () => {
       vi.useFakeTimers();
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
 
       component.openVRAM();
-      expect(component.isPopupOpen).toBe(true);
+      expect(component.isPopupOpen()).toBe(true);
       expect(component.authWindow).toBe(mockWindow);
 
       mockWindow.closed = true;
       vi.advanceTimersByTime(1000);
 
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
       vi.useRealTimers();
     });
 
@@ -277,7 +281,7 @@ describe('VramPopupComponent', () => {
 
       component.openVRAM();
 
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
       expect(component.authWindow).toBeNull();
       expect(component.checkInterval).toBeUndefined();
     });
@@ -299,21 +303,21 @@ describe('VramPopupComponent', () => {
 
       vi.advanceTimersByTime(1000);
 
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
       vi.useRealTimers();
     });
 
     it('should maintain isPopupOpen state until interval fires', () => {
       vi.useFakeTimers();
       component.openVRAM();
-      expect(component.isPopupOpen).toBe(true);
+      expect(component.isPopupOpen()).toBe(true);
 
       mockWindow.closed = true;
       vi.advanceTimersByTime(500);
-      expect(component.isPopupOpen).toBe(true);
+      expect(component.isPopupOpen()).toBe(true);
 
       vi.advanceTimersByTime(500);
-      expect(component.isPopupOpen).toBe(false);
+      expect(component.isPopupOpen()).toBe(false);
       vi.useRealTimers();
     });
   });

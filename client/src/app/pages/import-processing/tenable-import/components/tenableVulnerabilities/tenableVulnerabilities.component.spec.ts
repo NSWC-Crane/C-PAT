@@ -132,15 +132,15 @@ describe('TenableVulnerabilitiesComponent', () => {
     });
 
     it('should default allVulnerabilities to empty array', () => {
-      expect(component.allVulnerabilities).toEqual([]);
+      expect(component.allVulnerabilities()).toEqual([]);
     });
 
     it('should default isLoading to false', () => {
-      expect(component.isLoading).toBe(false);
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should default totalRecords to 0', () => {
-      expect(component.totalRecords).toBe(0);
+      expect(component.totalRecords()).toBe(0);
     });
 
     it('should default rows to 100', () => {
@@ -375,33 +375,33 @@ describe('TenableVulnerabilitiesComponent', () => {
     it('should return all items when filterSearch is empty', () => {
       component.filterSearch = '';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems.length).toBe(3);
+      expect(component.filteredAccordionItems().length).toBe(3);
     });
 
     it('should filter by search term case-insensitively', () => {
       component.filterSearch = 'sev';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems.length).toBe(1);
-      expect(component.filteredAccordionItems[0].header).toBe('Severity');
+      expect(component.filteredAccordionItems().length).toBe(1);
+      expect(component.filteredAccordionItems()[0].header).toBe('Severity');
     });
 
     it('should return empty array when no items match', () => {
       component.filterSearch = 'zzznomatch';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems.length).toBe(0);
+      expect(component.filteredAccordionItems().length).toBe(0);
     });
 
     it('should sort active filters first', () => {
       component.filterSearch = '';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems[0].identifier).toBe('severity');
+      expect(component.filteredAccordionItems()[0].identifier).toBe('severity');
     });
 
     it('should sort by value for items with same active status', () => {
       component.filterSearch = '';
       component.tempFilters['severity'] = [];
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems[0].identifier).toBe('asset');
+      expect(component.filteredAccordionItems()[0].identifier).toBe('asset');
     });
   });
 
@@ -837,12 +837,12 @@ describe('TenableVulnerabilitiesComponent', () => {
   describe('onTableFilter', () => {
     it('should update totalRecords from filteredValue length', () => {
       component.onTableFilter({ filteredValue: [1, 2, 3] });
-      expect(component.totalRecords).toBe(3);
+      expect(component.totalRecords()).toBe(3);
     });
 
     it('should set totalRecords to 0 when filteredValue is null', () => {
       component.onTableFilter({ filteredValue: null });
-      expect(component.totalRecords).toBe(0);
+      expect(component.totalRecords()).toBe(0);
     });
 
     it('should emit totalRecordsChange', () => {
@@ -872,7 +872,7 @@ describe('TenableVulnerabilitiesComponent', () => {
 
     it('resetColumnSelections should set selectedColumns to summary fields', () => {
       component.resetColumnSelections();
-      const fields = component.selectedColumns.map((c: any) => c.field);
+      const fields = component.selectedColumns().map((c: any) => c.field);
 
       expect(fields).toContain('pluginID');
       expect(fields).toContain('severity');
@@ -882,7 +882,7 @@ describe('TenableVulnerabilitiesComponent', () => {
 
     it('expandColumnSelections should include network detail fields', () => {
       component.expandColumnSelections();
-      const fields = component.selectedColumns.map((c: any) => c.field);
+      const fields = component.selectedColumns().map((c: any) => c.field);
 
       expect(fields).toContain('ips');
       expect(fields).toContain('netbiosName');
@@ -891,7 +891,7 @@ describe('TenableVulnerabilitiesComponent', () => {
 
     it('expandColumnSelections should not include total/hostTotal', () => {
       component.expandColumnSelections();
-      const fields = component.selectedColumns.map((c: any) => c.field);
+      const fields = component.selectedColumns().map((c: any) => c.field);
 
       expect(fields).not.toContain('total');
       expect(fields).not.toContain('hostTotal');
@@ -1000,37 +1000,37 @@ describe('TenableVulnerabilitiesComponent', () => {
   describe('parseReferences', () => {
     it('should parse CVE references', () => {
       component.parseReferences('CVE:CVE-2023-1234, IAVB:2023-B-0001');
-      expect(component.cveReferences.length).toBeGreaterThan(0);
+      expect(component.cveReferences().length).toBeGreaterThan(0);
     });
 
     it('should parse IAV references', () => {
       component.parseReferences('IAVB:2023-B-0001');
-      expect(component.iavReferences.length).toBeGreaterThan(0);
+      expect(component.iavReferences().length).toBeGreaterThan(0);
     });
   });
 
   describe('loadSavedFilters', () => {
     it('should call getTenableFilters with selectedCollection', () => {
-      component.selectedCollection = 7;
+      component.selectedCollection.set(7);
       component.loadSavedFilters();
       expect(mockImportService.getTenableFilters).toHaveBeenCalledWith(7);
     });
 
     it('should not call service when selectedCollection is null', () => {
-      component.selectedCollection = null;
+      component.selectedCollection.set(null);
       component.loadSavedFilters();
       expect(mockImportService.getTenableFilters).not.toHaveBeenCalled();
     });
 
     it('should build premadeFilterOptions with premade and saved groups', () => {
-      component.selectedCollection = 7;
+      component.selectedCollection.set(7);
       mockImportService.getTenableFilters.mockReturnValue(of([{ filterId: 1, filterName: 'My Filter', filter: '{}', createdBy: 'jdoe' }]));
       component.loadSavedFilters();
-      expect(component.premadeFilterOptions.length).toBe(2);
+      expect(component.premadeFilterOptions().length).toBe(2);
     });
 
     it('should show error on service failure', () => {
-      component.selectedCollection = 7;
+      component.selectedCollection.set(7);
       mockImportService.getTenableFilters.mockReturnValue(throwError(() => new Error('fail')));
       component.loadSavedFilters();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
@@ -1072,7 +1072,7 @@ describe('TenableVulnerabilitiesComponent', () => {
 
   describe('confirmDeleteFilter', () => {
     it('should call deleteTenableFilter with collectionId and filterId', () => {
-      component.selectedCollection = 7;
+      component.selectedCollection.set(7);
       component.confirmDeleteFilter(5);
       expect(mockImportService.deleteTenableFilter).toHaveBeenCalledWith(7, 5);
     });
@@ -1080,21 +1080,21 @@ describe('TenableVulnerabilitiesComponent', () => {
     it('should call loadSavedFilters on success', () => {
       const spy = vi.spyOn(component, 'loadSavedFilters').mockImplementation(() => {});
 
-      component.selectedCollection = 7;
+      component.selectedCollection.set(7);
       component.confirmDeleteFilter(5);
       expect(spy).toHaveBeenCalled();
     });
 
     it('should clear selectedPremadeFilter when it matches deleted filter', () => {
-      component.selectedCollection = 7;
-      component.selectedPremadeFilter = 'saved_5';
+      component.selectedCollection.set(7);
+      component.selectedPremadeFilter.set('saved_5');
       component.confirmDeleteFilter(5);
-      expect(component.selectedPremadeFilter).toBeNull();
+      expect(component.selectedPremadeFilter()).toBeNull();
     });
 
     it('should show error message on failure', () => {
       mockImportService.deleteTenableFilter.mockReturnValue(throwError(() => new Error('fail')));
-      component.selectedCollection = 7;
+      component.selectedCollection.set(7);
       component.confirmDeleteFilter(5);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
@@ -1117,7 +1117,7 @@ describe('TenableVulnerabilitiesComponent', () => {
   describe('loadFamilyOptions', () => {
     it('should set familyOptions from service response', () => {
       component.loadFamilyOptions().subscribe(() => {
-        expect(component.familyOptions).toEqual([{ value: '3', label: 'Family C' }]);
+        expect(component.familyOptions()).toEqual([{ value: '3', label: 'Family C' }]);
       });
     });
   });
@@ -1133,7 +1133,7 @@ describe('TenableVulnerabilitiesComponent', () => {
   describe('loadPoamAssociations', () => {
     it('should build existingPoamPluginIDs map from service', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of([]));
-      component.selectedCollection = 7;
+      component.selectedCollection.set(7);
       component.loadPoamAssociations().subscribe(() => {
         expect(component.existingPoamPluginIDs).toBeDefined();
       });
@@ -1141,7 +1141,7 @@ describe('TenableVulnerabilitiesComponent', () => {
 
     it('should show error on non-array response', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of({ bad: 'data' }));
-      component.selectedCollection = 7;
+      component.selectedCollection.set(7);
       component.loadPoamAssociations().subscribe({ error: () => {} });
     });
   });
@@ -1240,12 +1240,21 @@ describe('TenableVulnerabilitiesComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('stops applying plugin details after destroy (takeUntilDestroyed)', () => {
+      const pluginSubject = new Subject<any>();
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      mockImportService.getTenablePlugin.mockReturnValue(pluginSubject.asObservable());
+      component.showDetails({ pluginID: 12345 });
+      expect(component.displayDialog()).toBe(false);
+      fixture.destroy();
+      pluginSubject.next({ response: { id: 12345, description: 'Test plugin' } });
+      expect(component.displayDialog()).toBe(false);
+    });
+
+    it('does not throw on destroy', () => {
+      component.ngOnInit();
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

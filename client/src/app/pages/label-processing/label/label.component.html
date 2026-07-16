@@ -25,7 +25,7 @@
     @if (label().labelId && label().labelId !== 'ADDLABEL') {
       <h3 class="mt-8 mb-4">Associated POAMs</h3>
       <div style="min-height: 300px; overflow: visible">
-        <p-table [value]="displayPoams" [loading]="loadingPoams" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" class="w-full">
+        <p-table [value]="displayPoams()" [loading]="loadingPoams()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" class="w-full">
           <ng-template #header>
             <tr>
               <th pSortableColumn="poamId">POAM ID</th>
@@ -33,12 +33,12 @@
               <th pSortableColumn="vulnerabilityTitle">Vulnerability Title</th>
               <th pSortableColumn="rawSeverity">Severity</th>
               <th style="width: 8rem">
-                @if (accessLevel >= 2) {
-                  <button pButton (click)="addPoamRow()" [rounded]="true" [text]="true" pTooltip="Add POAM to label" tooltipPosition="top"><i class="pi pi-plus" pButtonIcon></i></button>
+                @if (accessLevel() >= 2) {
+                  <button pButton type="button" (click)="addPoamRow()" [rounded]="true" [text]="true" pTooltip="Add POAM to label" tooltipPosition="top"><i class="pi pi-plus" pButtonIcon></i></button>
                 }
-                @if (accessLevel < 2) {
+                @if (accessLevel() < 2) {
                   <span pTooltip="Adding POAMs requires elevated access" tooltipPosition="top">
-                    <button pButton [rounded]="true" [text]="true" [disabled]="true"><i class="pi pi-plus" pButtonIcon></i></button>
+                    <button pButton type="button" [rounded]="true" [text]="true" [disabled]="true"><i class="pi pi-plus" pButtonIcon></i></button>
                   </span>
                 }
               </th>
@@ -65,14 +65,14 @@
                       class="w-full"
                       [(ngModel)]="poam.selectedPoams"
                       [ngModelOptions]="{ standalone: true }"
-                      [suggestions]="poamSuggestions"
+                      [suggestions]="poamSuggestions()"
                       [multiple]="true"
                       [typeahead]="true"
                       [forceSelection]="false"
                       [dropdown]="true"
                       (completeMethod)="searchPoams($event)"
                       (paste)="onPasteVulnerabilityIds($event, poam)"
-                      [disabled]="accessLevel < 2"
+                      [disabled]="accessLevel() < 2"
                       optionLabel="poamId"
                       placeholder="Search by POAM ID, Vulnerability ID, or Title... (Paste comma-separated IDs to bulk add)"
                     >
@@ -91,9 +91,11 @@
               }
               <td>
                 @if (poam.isNew) {
-                  <button pButton (click)="onPoamAdd(poam, rowIndex)" [rounded]="true" [text]="true" severity="success" [disabled]="accessLevel < 2" pTooltip="Add selected POAMs" tooltipPosition="top"><i class="pi pi-check" pButtonIcon></i></button>
+                  <button pButton type="button" (click)="onPoamAdd(poam, rowIndex)" [rounded]="true" [text]="true" severity="success" [disabled]="accessLevel() < 2" pTooltip="Add selected POAMs" tooltipPosition="top">
+                    <i class="pi pi-check" pButtonIcon></i>
+                  </button>
                 }
-                <button pButton (click)="deletePoamFromLabel(poam, rowIndex)" [rounded]="true" [text]="true" severity="danger" [disabled]="accessLevel < 2" pTooltip="Remove POAM from label" tooltipPosition="top">
+                <button pButton type="button" (click)="deletePoamFromLabel(poam, rowIndex)" [rounded]="true" [text]="true" severity="danger" [disabled]="accessLevel() < 2" pTooltip="Remove POAM from label" tooltipPosition="top">
                   <i class="pi pi-trash" pButtonIcon></i>
                 </button>
               </td>
@@ -111,11 +113,11 @@
 
     <div class="mt-8 flex w-full items-center justify-between">
       <div class="flex gap-4">
-        <button pButton (click)="resetData()" variant="outlined" severity="secondary"><span pButtonLabel>Cancel</span></button>
+        <button pButton type="button" (click)="resetData()" variant="outlined" severity="secondary"><span pButtonLabel>Cancel</span></button>
         <button pButton type="submit" variant="outlined" [disabled]="!form.valid"><span pButtonLabel>Submit</span></button>
       </div>
       @if (label().labelId && label().labelId !== 'ADDLABEL') {
-        <button pButton (click)="deleteLabel(label())" variant="outlined" severity="danger" [disabled]="accessLevel < 2"><span pButtonLabel>Delete Label</span></button>
+        <button pButton type="button" (click)="deleteLabel(label())" variant="outlined" severity="danger" [disabled]="accessLevel() < 2"><span pButtonLabel>Delete Label</span></button>
       }
     </div>
   </form>

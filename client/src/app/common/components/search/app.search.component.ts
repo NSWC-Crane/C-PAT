@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AutoCompleteModule } from 'primeng/autocomplete';
@@ -27,7 +27,7 @@ interface SearchItem {
       id="appSearch"
       name="appSearch"
       [(ngModel)]="query"
-      [suggestions]="filteredItems"
+      [suggestions]="filteredItems()"
       (completeMethod)="search($event)"
       (onSelect)="navigateTo($event)"
       [placeholder]="placeholder"
@@ -56,8 +56,8 @@ interface SearchItem {
 export class AppSearchComponent {
   private readonly router = inject(Router);
 
-  public filteredItems: SearchItem[] = [];
-  public query: string = '';
+  readonly filteredItems = signal<SearchItem[]>([]);
+  readonly query = signal('');
   public placeholder: string = 'Search...';
   private searchItems: SearchItem[] = [];
 
@@ -83,7 +83,7 @@ export class AppSearchComponent {
   }
 
   search(event: { query: string }) {
-    this.filteredItems = this.searchItems.filter((item) => item.title.toLowerCase().includes(event.query.toLowerCase()));
+    this.filteredItems.set(this.searchItems.filter((item) => item.title.toLowerCase().includes(event.query.toLowerCase())));
   }
 
   navigateTo(event: { value: SearchItem }) {
@@ -91,7 +91,7 @@ export class AppSearchComponent {
 
     if (item?.path) {
       this.router.navigate([item.path]);
-      this.query = '';
+      this.query.set('');
     }
   }
 }

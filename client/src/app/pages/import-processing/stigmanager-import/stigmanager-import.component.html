@@ -40,7 +40,7 @@
             </div>
             <p-table
               #stigBenchmarksTable
-              [value]="loadingTableInfo ? loadingSkeletonData : benchmarkSummaries"
+              [value]="loadingTableInfo() ? loadingSkeletonData : benchmarkSummaries()"
               selectionMode="single"
               [paginator]="true"
               [rows]="100"
@@ -169,7 +169,7 @@
             <div class="table-container">
               <p-table
                 #stigFindingsTable
-                [value]="loadingTableInfo ? loadingSkeletonData : displayDataSource"
+                [value]="loadingTableInfo() ? loadingSkeletonData : displayDataSource()"
                 selectionMode="single"
                 [columns]="allColumns"
                 [globalFilterFields]="['groupId', 'ruleTitle', 'severity']"
@@ -188,16 +188,26 @@
                       <th scope="col" [pSortableColumn]="col.field" [style.width]="col.width">
                         {{ col.header }}
                         @if (col.field === 'poam') {
-                          <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                          <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
                             <ng-template #filter let-value let-filter="filterCallback">
-                              <p-select [multiple]="true" [checkmark]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full swap-button-order" />
+                              <p-select
+                                [multiple]="true"
+                                [filter]="true"
+                                [checkmark]="true"
+                                [ngModel]="value"
+                                [options]="col.filterOptions"
+                                (onChange)="filter($event.value)"
+                                placeholder="Select Status..."
+                                [showClear]="true"
+                                class="w-full swap-button-order"
+                              />
                             </ng-template>
                           </p-columnfilter>
                         }
                         @if (col.field === 'severity') {
-                          <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                          <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
                             <ng-template #filter let-value let-filter="filterCallback">
-                              <p-select [multiple]="true" [checkmark]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Severity" [showClear]="true" class="w-full swap-button-order" />
+                              <p-select [multiple]="true" [checkmark]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Severity..." [showClear]="true" class="w-full swap-button-order" />
                             </ng-template>
                           </p-columnfilter>
                         }
@@ -212,7 +222,7 @@
                   <tr>
                     @for (col of allColumns; track col) {
                       <td>
-                        @if (loadingTableInfo) {
+                        @if (loadingTableInfo()) {
                           <p-skeleton height="2rem" />
                         } @else {
                           @switch (col.field) {
@@ -251,14 +261,14 @@
           </div>
         }
       </p-tabpanel>
-      @if (this.stigmanCollection?.collectionId) {
+      @if (this.stigmanCollection()?.collectionId) {
         <p-tabpanel value="1">
-          <cpat-stigmanager-reviews-table [stigmanCollectionId]="this.stigmanCollection?.collectionId" (reviewsCountChange)="onReviewsCountChange($event)" />
+          <cpat-stigmanager-reviews-table [stigmanCollectionId]="this.stigmanCollection()?.collectionId" (reviewsCountChange)="onReviewsCountChange($event)" />
         </p-tabpanel>
       }
-      @if (this.stigmanCollection?.collectionId) {
+      @if (this.stigmanCollection()?.collectionId) {
         <p-tabpanel value="2">
-          <cpat-stigmanager-controls-table [stigmanCollectionId]="this.stigmanCollection?.collectionId" [selectedCollection]="selectedCollection" (controlsCountChange)="onControlsCountChange($event)" />
+          <cpat-stigmanager-controls-table [stigmanCollectionId]="this.stigmanCollection()?.collectionId" [selectedCollection]="selectedCollection()" (controlsCountChange)="onControlsCountChange($event)" />
         </p-tabpanel>
       }
     </p-tabpanels>

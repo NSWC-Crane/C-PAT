@@ -18,12 +18,16 @@ import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { PickListModule } from 'primeng/picklist';
+import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing.component';
 import { AssignedTeamService } from './assignedTeam-processing.service';
 import { CollectionsService } from '../collection-processing/collections.service';
@@ -104,7 +108,7 @@ describe('AssignedTeamProcessingComponent', () => {
     })
       .overrideComponent(AssignedTeamProcessingComponent, {
         set: {
-          imports: [ButtonModule, CommonModule, DialogModule, FormsModule, InputTextModule, MultiSelectModule, PickListModule, TableModule, TagModule, ToastModule]
+          imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, SelectModule, TableModule, TagModule, ToastModule, TooltipModule]
         }
       })
       .compileComponents();
@@ -119,7 +123,7 @@ describe('AssignedTeamProcessingComponent', () => {
     });
 
     it('should default teamDialog to false', () => {
-      expect(component.teamDialog).toBe(false);
+      expect(component.teamDialog()).toBe(false);
     });
 
     it('should default dialogMode to new', () => {
@@ -127,11 +131,11 @@ describe('AssignedTeamProcessingComponent', () => {
     });
 
     it('should default editingAssignedTeam to null', () => {
-      expect(component.editingAssignedTeam).toBeNull();
+      expect(component.editingAssignedTeam()).toBeNull();
     });
 
     it('should default assignedTeams to empty array', () => {
-      expect(component.assignedTeams).toEqual([]);
+      expect(component.assignedTeams()).toEqual([]);
     });
   });
 
@@ -156,13 +160,13 @@ describe('AssignedTeamProcessingComponent', () => {
   describe('loadAssignedTeams', () => {
     it('should set assignedTeams on success', () => {
       component.loadAssignedTeams();
-      expect(component.assignedTeams).toEqual(mockTeams);
+      expect(component.assignedTeams()).toEqual(mockTeams);
     });
 
     it('should set assignedTeams to empty array when response is null', () => {
       mockAssignedTeamService.getAssignedTeams.mockReturnValue(of(null));
       component.loadAssignedTeams();
-      expect(component.assignedTeams).toEqual([]);
+      expect(component.assignedTeams()).toEqual([]);
     });
 
     it('should show error message on failure', () => {
@@ -176,7 +180,7 @@ describe('AssignedTeamProcessingComponent', () => {
     it('should set uniqueTeams and filteredTeams on success', () => {
       component.loadAssetDeltaList();
       expect(component.uniqueTeams).toEqual(mockAdTeams);
-      expect(component.filteredTeams).toEqual(mockAdTeams);
+      expect(component.filteredTeams()).toEqual(mockAdTeams);
     });
 
     it('should show error message on failure', () => {
@@ -193,22 +197,22 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should filter teams by query', () => {
       component.filterTeams({ filter: 'ad' });
-      expect(component.filteredTeams).toEqual(['AD-ALPHA', 'AD-BETA']);
+      expect(component.filteredTeams()).toEqual(['AD-ALPHA', 'AD-BETA']);
     });
 
     it('should return all teams on empty query', () => {
       component.filterTeams({ filter: '' });
-      expect(component.filteredTeams).toEqual(component.uniqueTeams);
+      expect(component.filteredTeams()).toEqual(component.uniqueTeams);
     });
 
     it('should return all teams when filter is null', () => {
       component.filterTeams({ filter: null });
-      expect(component.filteredTeams).toEqual(component.uniqueTeams);
+      expect(component.filteredTeams()).toEqual(component.uniqueTeams);
     });
 
     it('should be case-insensitive', () => {
       component.filterTeams({ filter: 'GAMMA' });
-      expect(component.filteredTeams).toEqual(['GAMMA-TEAM']);
+      expect(component.filteredTeams()).toEqual(['GAMMA-TEAM']);
     });
   });
 
@@ -241,8 +245,8 @@ describe('AssignedTeamProcessingComponent', () => {
       const team = mockTeams[0];
 
       component.editTeam(team);
-      expect(component.editingAssignedTeam).toEqual(team);
-      expect(component.editingAssignedTeam).not.toBe(team);
+      expect(component.editingAssignedTeam()).toEqual(team);
+      expect(component.editingAssignedTeam()).not.toBe(team);
     });
 
     it('should set dialogMode to edit', () => {
@@ -252,26 +256,26 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should set teamDialog to true', () => {
       component.editTeam(mockTeams[0]);
-      expect(component.teamDialog).toBe(true);
+      expect(component.teamDialog()).toBe(true);
     });
 
     it('should parse adTeam string into selectedAdTeams', () => {
       const team = { assignedTeamId: 1, assignedTeamName: 'T', adTeam: 'AD-ALPHA, AD-BETA', permissions: [] };
 
       component.editTeam(team);
-      expect(component.selectedAdTeams).toEqual(['AD-ALPHA', 'AD-BETA']);
+      expect(component.selectedAdTeams()).toEqual(['AD-ALPHA', 'AD-BETA']);
     });
 
     it('should set selectedAdTeams to empty when adTeam is null', () => {
       component.editTeam(mockTeams[1]);
-      expect(component.selectedAdTeams).toEqual([]);
+      expect(component.selectedAdTeams()).toEqual([]);
     });
 
     it('should add missing AD teams to filteredTeams', () => {
       const team = { assignedTeamId: 1, assignedTeamName: 'T', adTeam: 'AD-ALPHA, AD-MISSING', permissions: [] };
 
       component.editTeam(team);
-      expect(component.filteredTeams).toContain('AD-MISSING');
+      expect(component.filteredTeams()).toContain('AD-MISSING');
     });
 
     it('should map assignedCollections from permissions', () => {
@@ -297,7 +301,7 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should set editingAssignedTeam with default values', () => {
       component.openNew();
-      expect(component.editingAssignedTeam).toEqual({ assignedTeamId: 0, assignedTeamName: '', adTeam: null, permissions: [] });
+      expect(component.editingAssignedTeam()).toEqual({ assignedTeamId: 0, assignedTeamName: '', adTeam: null, permissions: [] });
     });
 
     it('should set dialogMode to new', () => {
@@ -307,13 +311,13 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should set teamDialog to true', () => {
       component.openNew();
-      expect(component.teamDialog).toBe(true);
+      expect(component.teamDialog()).toBe(true);
     });
 
     it('should reset selectedAdTeams to empty', () => {
-      component.selectedAdTeams = ['AD-ALPHA'];
+      component.selectedAdTeams.set(['AD-ALPHA']);
       component.openNew();
-      expect(component.selectedAdTeams).toEqual([]);
+      expect(component.selectedAdTeams()).toEqual([]);
     });
 
     it('should reset assignedCollections to empty', () => {
@@ -330,7 +334,7 @@ describe('AssignedTeamProcessingComponent', () => {
 
   describe('onMoveToTarget', () => {
     beforeEach(() => {
-      component.editingAssignedTeam = { assignedTeamId: 1, assignedTeamName: 'T', permissions: [] };
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
       component.assignedCollections = [];
     });
 
@@ -360,7 +364,7 @@ describe('AssignedTeamProcessingComponent', () => {
     });
 
     it('should do nothing when editingAssignedTeam is null', () => {
-      component.editingAssignedTeam = null;
+      component.editingAssignedTeam.set(null);
       component.dialogMode = 'new';
       component.onMoveToTarget({ items: [{ collectionId: 2 }] });
       expect(component.assignedCollections.length).toBe(0);
@@ -375,7 +379,7 @@ describe('AssignedTeamProcessingComponent', () => {
 
   describe('onMoveToSource', () => {
     beforeEach(() => {
-      component.editingAssignedTeam = { assignedTeamId: 1, assignedTeamName: 'T', permissions: [] };
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
       component.assignedCollections = [{ collectionId: 1, collectionName: 'Col A' }];
     });
 
@@ -388,7 +392,7 @@ describe('AssignedTeamProcessingComponent', () => {
     });
 
     it('should do nothing when editingAssignedTeam is null', () => {
-      component.editingAssignedTeam = null;
+      component.editingAssignedTeam.set(null);
       component.dialogMode = 'new';
       component.onMoveToSource({ items: [{ collectionId: 1 }] });
       expect(component.assignedCollections.length).toBe(1);
@@ -403,7 +407,7 @@ describe('AssignedTeamProcessingComponent', () => {
 
   describe('addPermissionsToExistingTeam (via onMoveToTarget in edit mode)', () => {
     beforeEach(() => {
-      component.editingAssignedTeam = { assignedTeamId: 1, assignedTeamName: 'T', permissions: [] };
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
       component.dialogMode = 'edit';
       component.assignedCollections = [];
       component.availableCollections = [...mockCollections];
@@ -418,7 +422,7 @@ describe('AssignedTeamProcessingComponent', () => {
       const col = { collectionId: 2, collectionName: 'Col B' };
 
       component.onMoveToTarget({ items: [col] });
-      expect(component.editingAssignedTeam!.permissions).toContainEqual(expect.objectContaining({ collectionId: 2 }));
+      expect(component.editingAssignedTeam()!.permissions).toContainEqual(expect.objectContaining({ collectionId: 2 }));
     });
 
     it('should show error and revert on failure', () => {
@@ -433,11 +437,11 @@ describe('AssignedTeamProcessingComponent', () => {
 
   describe('removePermissionsFromExistingTeam (via onMoveToSource in edit mode)', () => {
     beforeEach(() => {
-      component.editingAssignedTeam = {
+      component.editingAssignedTeam.set({
         assignedTeamId: 1,
         assignedTeamName: 'T',
         permissions: [{ collectionId: 1, collectionName: 'Col A' }]
-      };
+      });
       component.dialogMode = 'edit';
       component.assignedCollections = [{ collectionId: 1, collectionName: 'Col A' }];
       component.availableCollections = [];
@@ -450,7 +454,7 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should remove permission from editingAssignedTeam.permissions', () => {
       component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
-      expect(component.editingAssignedTeam!.permissions!.length).toBe(0);
+      expect(component.editingAssignedTeam()!.permissions!.length).toBe(0);
     });
 
     it('should show error and revert on failure', () => {
@@ -463,7 +467,7 @@ describe('AssignedTeamProcessingComponent', () => {
 
   describe('saveTeam', () => {
     it('should do nothing when editingAssignedTeam is null', () => {
-      component.editingAssignedTeam = null;
+      component.editingAssignedTeam.set(null);
       component.saveTeam();
       expect(mockAssignedTeamService.postAssignedTeam).not.toHaveBeenCalled();
       expect(mockAssignedTeamService.putAssignedTeam).not.toHaveBeenCalled();
@@ -471,8 +475,8 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should call postAssignedTeam in new mode', () => {
       component.dialogMode = 'new';
-      component.editingAssignedTeam = { assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] };
-      component.selectedAdTeams = [];
+      component.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
       component.assignedCollections = [];
       component.saveTeam();
       expect(mockAssignedTeamService.postAssignedTeam).toHaveBeenCalled();
@@ -480,64 +484,64 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should call putAssignedTeam in edit mode', () => {
       component.dialogMode = 'edit';
-      component.editingAssignedTeam = { assignedTeamId: 1, assignedTeamName: 'Updated', adTeam: null, permissions: [] };
-      component.selectedAdTeams = [];
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'Updated', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
       component.saveTeam();
       expect(mockAssignedTeamService.putAssignedTeam).toHaveBeenCalled();
     });
 
     it('should join selectedAdTeams into adTeam string', () => {
       component.dialogMode = 'edit';
-      component.editingAssignedTeam = { assignedTeamId: 1, assignedTeamName: 'T', adTeam: null, permissions: [] };
-      component.selectedAdTeams = ['AD-ALPHA', 'AD-BETA'];
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set(['AD-ALPHA', 'AD-BETA']);
       component.saveTeam();
-      expect(component.editingAssignedTeam.adTeam).toBe('AD-ALPHA, AD-BETA');
+      expect(component.editingAssignedTeam().adTeam).toBe('AD-ALPHA, AD-BETA');
     });
 
     it('should set adTeam to null when selectedAdTeams is empty', () => {
       component.dialogMode = 'edit';
-      component.editingAssignedTeam = { assignedTeamId: 1, assignedTeamName: 'T', adTeam: 'old', permissions: [] };
-      component.selectedAdTeams = [];
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', adTeam: 'old', permissions: [] });
+      component.selectedAdTeams.set([]);
       component.saveTeam();
-      expect(component.editingAssignedTeam.adTeam).toBeNull();
+      expect(component.editingAssignedTeam().adTeam).toBeNull();
     });
 
     it('should show error when save fails', () => {
       mockAssignedTeamService.putAssignedTeam.mockReturnValue(throwError(() => new Error('Error')));
       component.dialogMode = 'edit';
-      component.editingAssignedTeam = { assignedTeamId: 1, assignedTeamName: 'T', adTeam: null, permissions: [] };
-      component.selectedAdTeams = [];
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
       component.saveTeam();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
 
     it('should show success and hide dialog after edit save', () => {
       component.dialogMode = 'edit';
-      component.assignedTeams = [{ assignedTeamId: 1, assignedTeamName: 'Old', adTeam: null }];
-      component.editingAssignedTeam = { assignedTeamId: 1, assignedTeamName: 'Updated', adTeam: null, permissions: [] };
-      component.selectedAdTeams = [];
+      component.assignedTeams.set([{ assignedTeamId: 1, assignedTeamName: 'Old', adTeam: null }]);
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'Updated', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
       component.saveTeam();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: 'Assigned Team Updated' }));
-      expect(component.teamDialog).toBe(false);
+      expect(component.teamDialog()).toBe(false);
     });
 
     it('should add new team to list and hide dialog when no pending permissions', async () => {
       component.dialogMode = 'new';
-      component.assignedTeams = [];
-      component.editingAssignedTeam = { assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] };
-      component.selectedAdTeams = [];
+      component.assignedTeams.set([]);
+      component.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
       component.assignedCollections = [];
       component.saveTeam();
       await new Promise((r) => setTimeout(r, 0));
-      expect(component.assignedTeams.length).toBe(1);
-      expect(component.teamDialog).toBe(false);
+      expect(component.assignedTeams().length).toBe(1);
+      expect(component.teamDialog()).toBe(false);
     });
 
     it('should call postAssignedTeamPermission for each pending permission on new team', async () => {
       component.dialogMode = 'new';
-      component.assignedTeams = [];
-      component.editingAssignedTeam = { assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] };
-      component.selectedAdTeams = [];
+      component.assignedTeams.set([]);
+      component.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
       component.assignedCollections = [
         { collectionId: 1, collectionName: 'Col A' },
         { collectionId: 2, collectionName: 'Col B' }
@@ -581,7 +585,7 @@ describe('AssignedTeamProcessingComponent', () => {
   describe('onRowDelete', () => {
     it('should call deleteAssignedTeam when confirmed', () => {
       vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
-      component.assignedTeams = [...mockTeams];
+      component.assignedTeams.set([...mockTeams]);
       component.onRowDelete(mockTeams[0]);
       expect(mockAssignedTeamService.deleteAssignedTeam).toHaveBeenCalledWith(1);
       vi.unstubAllGlobals();
@@ -596,15 +600,15 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should remove team from assignedTeams on success', () => {
       vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
-      component.assignedTeams = [...mockTeams];
+      component.assignedTeams.set([...mockTeams]);
       component.onRowDelete(mockTeams[0]);
-      expect(component.assignedTeams.some((t) => t.assignedTeamId === 1)).toBe(false);
+      expect(component.assignedTeams().some((t) => t.assignedTeamId === 1)).toBe(false);
       vi.unstubAllGlobals();
     });
 
     it('should show success message on delete', () => {
       vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
-      component.assignedTeams = [...mockTeams];
+      component.assignedTeams.set([...mockTeams]);
       component.onRowDelete(mockTeams[0]);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: 'Assigned Team Deleted' }));
       vi.unstubAllGlobals();
@@ -613,7 +617,7 @@ describe('AssignedTeamProcessingComponent', () => {
     it('should show error message when delete fails', () => {
       vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
       mockAssignedTeamService.deleteAssignedTeam.mockReturnValue(throwError(() => new Error('Error')));
-      component.assignedTeams = [...mockTeams];
+      component.assignedTeams.set([...mockTeams]);
       component.onRowDelete(mockTeams[0]);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
       vi.unstubAllGlobals();
@@ -622,9 +626,9 @@ describe('AssignedTeamProcessingComponent', () => {
 
   describe('hideDialog', () => {
     it('should set teamDialog to false', () => {
-      component.teamDialog = true;
+      component.teamDialog.set(true);
       component.hideDialog();
-      expect(component.teamDialog).toBe(false);
+      expect(component.teamDialog()).toBe(false);
     });
   });
 
@@ -635,15 +639,15 @@ describe('AssignedTeamProcessingComponent', () => {
     });
 
     it('should reset editingAssignedTeam to null', () => {
-      component.editingAssignedTeam = mockTeams[0];
+      component.editingAssignedTeam.set(mockTeams[0]);
       component.onDialogHide();
-      expect(component.editingAssignedTeam).toBeNull();
+      expect(component.editingAssignedTeam()).toBeNull();
     });
 
     it('should reset selectedAdTeams to empty', () => {
-      component.selectedAdTeams = ['AD-ALPHA'];
+      component.selectedAdTeams.set(['AD-ALPHA']);
       component.onDialogHide();
-      expect(component.selectedAdTeams).toEqual([]);
+      expect(component.selectedAdTeams()).toEqual([]);
     });
 
     it('should reset assignedCollections to empty', () => {
@@ -659,9 +663,9 @@ describe('AssignedTeamProcessingComponent', () => {
     });
 
     it('should restore filteredTeams from uniqueTeams', () => {
-      component.filteredTeams = [];
+      component.filteredTeams.set([]);
       component.onDialogHide();
-      expect(component.filteredTeams).toEqual(mockAdTeams);
+      expect(component.filteredTeams()).toEqual(mockAdTeams);
     });
   });
 
@@ -683,12 +687,21 @@ describe('AssignedTeamProcessingComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
-      const unsubSpy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('should stop reacting to selectedCollection after destroy', () => {
+      component.ngOnInit();
+      mockAssignedTeamService.getAssignedTeams.mockClear();
 
-      component.ngOnDestroy();
-      expect(unsubSpy).toHaveBeenCalled();
+      fixture.destroy();
+      selectedCollectionSubject.next({});
+
+      expect(mockAssignedTeamService.getAssignedTeams).not.toHaveBeenCalled();
+    });
+
+    it('should not throw when destroyed', () => {
+      fixture.detectChanges();
+
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

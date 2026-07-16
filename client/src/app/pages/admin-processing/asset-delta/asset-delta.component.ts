@@ -10,7 +10,8 @@
 
 import { DatePipe } from '@angular/common';
 import { HttpEvent, HttpResponse } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, effect, signal, OnDestroy, inject, viewChild, output } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, OnInit, effect, signal, inject, viewChild, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { BadgeModule } from 'primeng/badge';
@@ -28,7 +29,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { EMPTY, Observable, Subject, catchError, filter, finalize, forkJoin, map, of, switchMap, take, takeUntil } from 'rxjs';
+import { EMPTY, Observable, catchError, filter, finalize, forkJoin, map, of, switchMap, take } from 'rxjs';
+import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -87,6 +89,7 @@ interface ChartData {
     InputIcon,
     ProgressBarModule,
     SelectModule,
+    MultiSelectDirective,
     TableModule,
     ToastModule,
     TooltipModule,
@@ -94,22 +97,22 @@ interface ChartData {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
+export class AssetDeltaComponent implements OnInit, AfterViewInit {
   private readonly importService = inject(ImportService);
   private readonly messageService = inject(MessageService);
   private readonly assetDeltaService = inject(AssetDeltaService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly sharedService = inject(SharedService);
   private readonly configService = inject(AppConfigService);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly payloadService = inject(PayloadService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly assetDeltaTable = viewChild<any>('assetDeltaTable');
   private readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
   readonly navigateToPluginMapping = output<void>();
-  cols!: Column[];
+  readonly cols = signal<Column[]>([]);
   exportColumns!: Column[];
-  availableCollections: CollectionsBasicList[] = [];
+  readonly availableCollections = signal<CollectionsBasicList[]>([]);
   selectedCollection = signal<number | null>(null);
   selectedUploadCollections = signal<number[]>([]);
   assetDeltaUpdated = signal<string | null>(null);
@@ -133,8 +136,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   filteredTotal = signal<number>(0);
   themeInitialized = signal<boolean>(false);
   chartInitialized = signal<boolean>(false);
-
-  private readonly destroy$ = new Subject<void>();
 
   constructor() {
     effect(() => {
@@ -215,7 +216,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(
         filter((user) => user !== null),
         take(1),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
         catchError((error) => {
           this.messageService.add({
             severity: 'error',
@@ -231,16 +232,16 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.collectionsService
           .getCollectionBasicList()
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (response) => {
-              this.availableCollections = response || [];
+              this.availableCollections.set(response || []);
 
-              if (this.availableCollections.length > 0) {
+              if (this.availableCollections().length > 0) {
                 let collectionToUse = null;
 
                 if (this.user?.lastCollectionAccessedId) {
-                  const userCollection = this.availableCollections.find((c) => c.collectionId === this.user.lastCollectionAccessedId);
+                  const userCollection = this.availableCollections().find((c) => c.collectionId === this.user.lastCollectionAccessedId);
 
                   if (userCollection) {
                     collectionToUse = userCollection.collectionId;
@@ -248,7 +249,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
 
                 if (collectionToUse === null) {
-                  collectionToUse = this.availableCollections[0].collectionId;
+                  collectionToUse = this.availableCollections()[0].collectionId;
                 }
 
                 this.selectedCollection.set(collectionToUse);
@@ -285,15 +286,15 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initializeColumns() {
-    this.cols = [
+    this.cols.set([
       { field: 'key', header: 'Asset', customExportHeader: 'Asset' },
       { field: 'value', header: 'Team', customExportHeader: 'Team' },
       { field: 'eMASS', header: 'eMASS', customExportHeader: 'eMASS' },
       { field: 'existsInTenable', header: 'Tenable', customExportHeader: 'Tenable' },
       { field: 'existsInStigManager', header: 'STIG Manager', customExportHeader: 'STIG Manager' }
-    ];
+    ]);
 
-    this.exportColumns = this.cols.map((col) => ({
+    this.exportColumns = this.cols().map((col) => ({
       field: col.field,
       header: col.customExportHeader || col.header
     }));
@@ -302,14 +303,14 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
   loadCollections() {
     this.collectionsService
       .getCollectionBasicList()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          this.availableCollections = response || [];
+          this.availableCollections.set(response || []);
 
-          if (this.availableCollections.length > 0) {
+          if (this.availableCollections().length > 0) {
             const lastCollection = this.user;
-            const initialCollection = lastCollection && this.availableCollections.some((c) => c.collectionId === lastCollection) ? lastCollection : this.availableCollections[0].collectionId;
+            const initialCollection = lastCollection && this.availableCollections().some((c) => c.collectionId === lastCollection) ? lastCollection : this.availableCollections()[0].collectionId;
 
             this.onCollectionChange(initialCollection);
           }
@@ -369,7 +370,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.assetDeltaService
       .uploadToMultipleCollections(file, collectionIds)
       .pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false))
       )
       .subscribe({
@@ -401,7 +402,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
             }
 
             response.results.forEach((result: any) => {
-              const collection = this.availableCollections.find((c) => c.collectionId === result.collectionId);
+              const collection = this.availableCollections().find((c) => c.collectionId === result.collectionId);
 
               if (!result.success) {
                 this.messageService.add({
@@ -469,7 +470,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.assetDeltaService
       .getAssetDeltaListByCollection(collectionId)
       .pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false))
       )
       .subscribe({
@@ -594,7 +595,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     const tenableCheck = this.checkTenableStatus(this.assets().map((a) => a.key)).pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
       catchError((error) => {
         this.messageService.add({
           severity: 'error',
@@ -607,7 +608,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
     );
 
     const stigManagerCheck = this.checkStigManagerStatus().pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
       catchError((error) => {
         this.messageService.add({
           severity: 'error',
@@ -621,7 +622,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     forkJoin([tenableCheck, stigManagerCheck])
       .pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
         finalize(() => {
           this.loading.set(false);
         })
@@ -652,7 +653,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
 
           this.filteredAssets.set(this.assets());
           this.updateChartData();
-          this.cdr.detectChanges();
 
           if (tenableResponse && stigManagerAssets) {
             this.messageService.add({
@@ -688,7 +688,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
             summary: 'Error',
             detail: `Status checks failed: ${getErrorMessage(error)}`
           });
-          this.cdr.detectChanges();
         }
       });
   }
@@ -1137,10 +1136,5 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.filteredAssets.set(this.assets());
     this.filteredTotal.set(this.assets().length);
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }
