@@ -23,7 +23,7 @@
         filterBy="collectionName"
         optionLabel="collectionName"
         optionValue="collectionId"
-        placeholder="Select a Collection"
+        placeholder="Select Collection..."
         class="w-full"
         [disabled]="loading()"
       />
@@ -162,7 +162,7 @@
                     { label: 'No', value: false }
                   ]"
                   (onChange)="filter($event.value)"
-                  placeholder="Select"
+                  placeholder="Select..."
                   class="w-full"
                   appendTo="body"
                 />
@@ -181,7 +181,7 @@
                     { label: 'No', value: false }
                   ]"
                   (onChange)="filter($event.value)"
-                  placeholder="Select"
+                  placeholder="Select..."
                   class="w-full"
                   appendTo="body"
                 />
@@ -200,7 +200,7 @@
                     { label: 'No', value: false }
                   ]"
                   (onChange)="filter($event.value)"
-                  placeholder="Select"
+                  placeholder="Select..."
                   class="w-full"
                   appendTo="body"
                 />
@@ -261,7 +261,7 @@
         (ngModelChange)="selectedUploadCollections.set($event)"
         optionLabel="collectionName"
         optionValue="collectionId"
-        placeholder="Select Collection(s)"
+        placeholder="Select Collections..."
         class="w-full"
         [disabled]="loading()"
         [showClear]="true"
