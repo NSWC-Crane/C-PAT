@@ -23,6 +23,7 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { MultiSelectDirective } from '../../../../../common/directives/multi-select.directive';
 
 export interface Milestone {
   milestoneId: string;
@@ -43,7 +44,7 @@ export interface Milestone {
   styleUrls: ['./poam-milestones.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, DatePicker, SelectModule, TableModule, TagModule, ToastModule, DialogModule, ConfirmDialogModule, TextareaModule, TooltipModule, DatePipe],
+  imports: [FormsModule, ButtonModule, DatePicker, SelectModule, MultiSelectDirective, TableModule, TagModule, ToastModule, DialogModule, ConfirmDialogModule, TextareaModule, TooltipModule, DatePipe],
   providers: [DatePipe, ConfirmationService, MessageService]
 })
 export class PoamMilestonesComponent implements OnInit {
