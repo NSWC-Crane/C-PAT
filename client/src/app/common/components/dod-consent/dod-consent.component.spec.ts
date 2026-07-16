@@ -39,12 +39,12 @@ describe('DoDConsentComponent', () => {
     });
 
     it('should have visible set to false initially', () => {
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
     });
 
     it('should set visible to true on ngOnInit', () => {
       component.ngOnInit();
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
     });
 
     it('should inject Router', () => {
@@ -59,9 +59,9 @@ describe('DoDConsentComponent', () => {
     });
 
     it('should set visible to false', () => {
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
       component.consentOk();
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
     });
 
     it('should navigate to /home', () => {
@@ -182,7 +182,7 @@ describe('DoDConsentComponent', () => {
     });
 
     it('should bind visible property to dialog', () => {
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
       const dialog = fixture.debugElement.query(By.css('p-dialog'));
       const dialogComponent = dialog.componentInstance;
 
@@ -192,24 +192,24 @@ describe('DoDConsentComponent', () => {
 
   describe('visibility state changes', () => {
     it('should toggle visibility correctly', () => {
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
 
       component.ngOnInit();
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
 
       component.consentOk();
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
     });
 
     it('should reflect visibility state in component', () => {
       component.ngOnInit();
       fixture.detectChanges();
 
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
 
       component.consentOk();
 
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
     });
   });
 
@@ -246,22 +246,22 @@ describe('DoDConsentComponent', () => {
     });
 
     it('should show dialog immediately on init', () => {
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
       fixture.detectChanges();
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
     });
   });
 
   describe('user interaction flow', () => {
     it('should complete full consent flow: init -> display -> accept -> navigate', () => {
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
       expect(mockRouter.navigate).not.toHaveBeenCalled();
 
       component.ngOnInit();
-      expect(component.visible).toBe(true);
+      expect(component.visible()).toBe(true);
 
       component.consentOk();
-      expect(component.visible).toBe(false);
+      expect(component.visible()).toBe(false);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/home']);
     });
 
@@ -271,7 +271,7 @@ describe('DoDConsentComponent', () => {
       component.consentOk();
       expect(mockRouter.navigate).toHaveBeenCalledTimes(1);
 
-      component.visible = true;
+      component.visible.set(true);
       component.consentOk();
       expect(mockRouter.navigate).toHaveBeenCalledTimes(2);
     });
