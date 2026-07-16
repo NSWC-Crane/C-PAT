@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 import { PoamChatComponent } from './poam-chat.component';
@@ -99,15 +99,15 @@ describe('PoamChatComponent', () => {
     });
 
     it('should have empty messages array', () => {
-      expect(component.messages).toEqual([]);
+      expect(component.messages()).toEqual([]);
     });
 
     it('should have empty groupedMessages array', () => {
-      expect(component.groupedMessages).toEqual([]);
+      expect(component.groupedMessages()).toEqual([]);
     });
 
     it('should have empty textContent', () => {
-      expect(component.textContent).toBe('');
+      expect(component.textContent()).toBe('');
     });
 
     it('should have emojis array populated', () => {
@@ -154,15 +154,15 @@ describe('PoamChatComponent', () => {
     it('should format and store messages', () => {
       component.loadMessages();
 
-      expect(component.messages).toHaveLength(3);
-      expect(component.messages[0].ownerId).toBe(10);
-      expect(component.messages[0].text).toBe('Hello team');
+      expect(component.messages()).toHaveLength(3);
+      expect(component.messages()[0].ownerId).toBe(10);
+      expect(component.messages()[0].text).toBe('Hello team');
     });
 
     it('should group messages after loading', () => {
       component.loadMessages();
 
-      expect(component.groupedMessages.length).toBeGreaterThan(0);
+      expect(component.groupedMessages().length).toBeGreaterThan(0);
     });
 
     it('should scroll chat window to bottom after loading', () => {
@@ -235,37 +235,37 @@ describe('PoamChatComponent', () => {
 
   describe('groupMessages', () => {
     it('should group messages by date', () => {
-      component.messages = [
+      component.messages.set([
         { messageId: 1, ownerId: 10, text: 'msg1', createdAt: '2026-01-15T10:00:00Z' },
         { messageId: 2, ownerId: 20, text: 'msg2', createdAt: '2026-01-15T11:00:00Z' },
         { messageId: 3, ownerId: 10, text: 'msg3', createdAt: '2026-01-16T09:00:00Z' }
-      ];
+      ]);
 
       component.groupMessages();
 
-      expect(component.groupedMessages).toHaveLength(2);
-      expect(component.groupedMessages[0].messages).toHaveLength(2);
-      expect(component.groupedMessages[1].messages).toHaveLength(1);
+      expect(component.groupedMessages()).toHaveLength(2);
+      expect(component.groupedMessages()[0].messages).toHaveLength(2);
+      expect(component.groupedMessages()[1].messages).toHaveLength(1);
     });
 
     it('should handle empty messages', () => {
-      component.messages = [];
+      component.messages.set([]);
 
       component.groupMessages();
 
-      expect(component.groupedMessages).toEqual([]);
+      expect(component.groupedMessages()).toEqual([]);
     });
 
     it('should handle all messages on same date', () => {
-      component.messages = [
+      component.messages.set([
         { messageId: 1, createdAt: '2026-01-15T10:00:00Z' },
         { messageId: 2, createdAt: '2026-01-15T11:00:00Z' }
-      ];
+      ]);
 
       component.groupMessages();
 
-      expect(component.groupedMessages).toHaveLength(1);
-      expect(component.groupedMessages[0].messages).toHaveLength(2);
+      expect(component.groupedMessages()).toHaveLength(1);
+      expect(component.groupedMessages()[0].messages).toHaveLength(2);
     });
   });
 
@@ -421,7 +421,7 @@ describe('PoamChatComponent', () => {
 
   describe('sendMessage', () => {
     it('should not send if textContent is empty', () => {
-      component.textContent = '';
+      component.textContent.set('');
 
       component.sendMessage();
 
@@ -429,7 +429,7 @@ describe('PoamChatComponent', () => {
     });
 
     it('should not send if textContent is only whitespace', () => {
-      component.textContent = '   ';
+      component.textContent.set('   ');
 
       component.sendMessage();
 
@@ -437,7 +437,7 @@ describe('PoamChatComponent', () => {
     });
 
     it('should call createMessage with trimmed text', () => {
-      component.textContent = '  Hello world  ';
+      component.textContent.set('  Hello world  ');
 
       component.sendMessage();
 
@@ -445,20 +445,20 @@ describe('PoamChatComponent', () => {
     });
 
     it('should append new message to messages array', () => {
-      component.messages = [];
-      component.textContent = 'Hello';
+      component.messages.set([]);
+      component.textContent.set('Hello');
 
       component.sendMessage();
 
-      expect(component.messages).toHaveLength(1);
-      expect(component.messages[0].text).toBe('New message');
-      expect(component.messages[0].messageId).toBe(4);
+      expect(component.messages()).toHaveLength(1);
+      expect(component.messages()[0].text).toBe('New message');
+      expect(component.messages()[0].messageId).toBe(4);
     });
 
     it('should regroup messages after sending', () => {
       const groupSpy = vi.spyOn(component, 'groupMessages');
 
-      component.textContent = 'Hello';
+      component.textContent.set('Hello');
 
       component.sendMessage();
 
@@ -466,16 +466,16 @@ describe('PoamChatComponent', () => {
     });
 
     it('should clear textContent after sending', () => {
-      component.textContent = 'Hello';
+      component.textContent.set('Hello');
 
       component.sendMessage();
 
-      expect(component.textContent).toBe('');
+      expect(component.textContent()).toBe('');
     });
 
     it('should scroll chat window to bottom after sending', () => {
       vi.useFakeTimers();
-      component.textContent = 'Hello';
+      component.textContent.set('Hello');
 
       component.sendMessage();
       vi.runAllTimers();
@@ -491,7 +491,7 @@ describe('PoamChatComponent', () => {
         value: () => null,
         writable: true
       });
-      component.textContent = 'Hello';
+      component.textContent.set('Hello');
 
       expect(() => {
         component.sendMessage();
@@ -503,7 +503,7 @@ describe('PoamChatComponent', () => {
 
     it('should show error message on send failure', () => {
       mockPoamChatService.createMessage.mockReturnValue(throwError(() => ({ error: { detail: 'Send failed' } })));
-      component.textContent = 'Hello';
+      component.textContent.set('Hello');
 
       component.sendMessage();
 
@@ -517,38 +517,38 @@ describe('PoamChatComponent', () => {
 
     it('should not clear textContent on error', () => {
       mockPoamChatService.createMessage.mockReturnValue(throwError(() => ({ message: 'Error' })));
-      component.textContent = 'Hello';
+      component.textContent.set('Hello');
 
       component.sendMessage();
 
-      expect(component.textContent).toBe('Hello');
+      expect(component.textContent()).toBe('Hello');
     });
   });
 
   describe('onEmojiSelect', () => {
     it('should append emoji to textContent', () => {
-      component.textContent = 'Hello ';
+      component.textContent.set('Hello ');
 
       component.onEmojiSelect('😀');
 
-      expect(component.textContent).toBe('Hello 😀');
+      expect(component.textContent()).toBe('Hello 😀');
     });
 
     it('should append emoji to empty textContent', () => {
-      component.textContent = '';
+      component.textContent.set('');
 
       component.onEmojiSelect('😊');
 
-      expect(component.textContent).toBe('😊');
+      expect(component.textContent()).toBe('😊');
     });
 
     it('should support multiple emoji appends', () => {
-      component.textContent = '';
+      component.textContent.set('');
 
       component.onEmojiSelect('😀');
       component.onEmojiSelect('😎');
 
-      expect(component.textContent).toBe('😀😎');
+      expect(component.textContent()).toBe('😀😎');
     });
   });
 
@@ -570,6 +570,24 @@ describe('PoamChatComponent', () => {
       const result = component.parseDate('2025-06-01T00:00:00Z');
 
       expect(result).toBe('2025-06-01 00:00');
+    });
+  });
+
+  describe('cleanup', () => {
+    it('stops applying loaded messages after destroy (takeUntilDestroyed)', () => {
+      const messages$ = new Subject<any[]>();
+
+      mockPoamChatService.getMessagesByPoamId.mockReturnValue(messages$.asObservable());
+      component.loadMessages();
+
+      fixture.destroy();
+      messages$.next(mockMessagesData);
+
+      expect(component.messages()).toEqual([]);
+    });
+
+    it('does not throw on destroy', () => {
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });

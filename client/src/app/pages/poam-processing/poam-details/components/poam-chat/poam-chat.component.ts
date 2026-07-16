@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, ElementRef, OnInit, inject, viewChild, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, OnInit, inject, signal, viewChild, input } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -25,21 +26,22 @@ import { PoamChatService } from '../../services/poam-chat.service';
   templateUrl: './poam-chat.component.html',
   styleUrls: ['./poam-chat.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule, ToastModule]
 })
 export class PoamChatComponent implements OnInit {
   private readonly poamChatService = inject(PoamChatService);
   private readonly messageService = inject(MessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly poamId = input.required<number>();
   readonly userId = input.required<number>();
 
   private readonly chatWindow = viewChild.required<ElementRef>('chatWindow');
 
-  messages: any[] = [];
-  groupedMessages: { date: string; messages: any[] }[] = [];
-  textContent: string = '';
+  readonly messages = signal<any[]>([]);
+  readonly groupedMessages = signal<{ date: string; messages: any[] }[]>([]);
+  readonly textContent = signal<string>('');
 
   emojis = [
     '😀',
@@ -121,26 +123,29 @@ export class PoamChatComponent implements OnInit {
   }
 
   loadMessages() {
-    this.poamChatService.getMessagesByPoamId(this.poamId()).subscribe({
-      next: (data) => {
-        this.messages = this.formatMessages(data);
-        this.groupMessages();
-        setTimeout(() => {
-          const chatWindow = this.chatWindow();
+    this.poamChatService
+      .getMessagesByPoamId(this.poamId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          this.messages.set(this.formatMessages(data));
+          this.groupMessages();
+          setTimeout(() => {
+            const chatWindow = this.chatWindow();
 
-          if (chatWindow) {
-            chatWindow.nativeElement.scrollTop = chatWindow.nativeElement.scrollHeight;
-          }
-        });
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error loading chat messages: ${getErrorMessage(error)}`
-        });
-      }
-    });
+            if (chatWindow) {
+              chatWindow.nativeElement.scrollTop = chatWindow.nativeElement.scrollHeight;
+            }
+          });
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error loading chat messages: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   formatMessages(data: any[]) {
@@ -157,7 +162,7 @@ export class PoamChatComponent implements OnInit {
   groupMessages() {
     const groups: { [key: string]: any[] } = {};
 
-    this.messages.forEach((message) => {
+    this.messages().forEach((message) => {
       const date = this.getMessageDate(message.createdAt);
 
       if (!groups[date]) {
@@ -167,10 +172,12 @@ export class PoamChatComponent implements OnInit {
       groups[date].push(message);
     });
 
-    this.groupedMessages = Object.keys(groups).map((date) => ({
-      date: this.formatDateForHeader(date),
-      messages: groups[date]
-    }));
+    this.groupedMessages.set(
+      Object.keys(groups).map((date) => ({
+        date: this.formatDateForHeader(date),
+        messages: groups[date]
+      }))
+    );
   }
 
   getMessageDate(dateString: string): string {
@@ -239,45 +246,48 @@ export class PoamChatComponent implements OnInit {
   }
 
   sendMessage() {
-    if (!this.textContent || this.textContent.trim() === '') {
+    if (!this.textContent() || this.textContent().trim() === '') {
       return;
     }
 
-    this.poamChatService.createMessage(this.poamId(), this.textContent.trim()).subscribe({
-      next: (response) => {
-        const newMessage = {
-          messageId: response.messageId,
-          ownerId: response.userId,
-          poamId: response.poamId,
-          text: response.text,
-          createdAt: response.createdAt,
-          user: response.user
-        };
+    this.poamChatService
+      .createMessage(this.poamId(), this.textContent().trim())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const newMessage = {
+            messageId: response.messageId,
+            ownerId: response.userId,
+            poamId: response.poamId,
+            text: response.text,
+            createdAt: response.createdAt,
+            user: response.user
+          };
 
-        this.messages.push(newMessage);
-        this.groupMessages();
-        this.textContent = '';
+          this.messages.update((messages) => [...messages, newMessage]);
+          this.groupMessages();
+          this.textContent.set('');
 
-        setTimeout(() => {
-          const chatWindow = this.chatWindow();
+          setTimeout(() => {
+            const chatWindow = this.chatWindow();
 
-          if (chatWindow) {
-            chatWindow.nativeElement.scrollTop = chatWindow.nativeElement.scrollHeight;
-          }
-        });
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error sending message: ${getErrorMessage(error)}`
-        });
-      }
-    });
+            if (chatWindow) {
+              chatWindow.nativeElement.scrollTop = chatWindow.nativeElement.scrollHeight;
+            }
+          });
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error sending message: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   onEmojiSelect(emoji: string) {
-    this.textContent += emoji;
+    this.textContent.set(this.textContent() + emoji);
   }
 
   parseDate(dateString: string) {
