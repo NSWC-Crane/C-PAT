@@ -9,7 +9,8 @@
 */
 
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, SimpleChanges, inject, signal, viewChild, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, SimpleChanges, inject, input, linkedSignal, output, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
@@ -24,27 +25,29 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { forkJoin, of, Subscription } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { catchError, first } from 'rxjs/operators';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { ImportService } from '../../../import.service';
+import { MultiSelectDirective } from '../../../../../common/directives/multi-select.directive';
 
 @Component({
   selector: 'cpat-tenable-host-dialog',
   templateUrl: './tenableHostDialog.component.html',
   styleUrls: ['./tenableHostDialog.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, SelectModule, DialogModule, ToastModule, TooltipModule, TagModule, NgClass]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, DialogModule, ToastModule, TooltipModule, TagModule, NgClass]
 })
-export class TenableHostDialogComponent implements OnChanges, OnDestroy {
+export class TenableHostDialogComponent implements OnChanges {
   private readonly importService = inject(ImportService);
   private readonly messageService = inject(MessageService);
   private readonly poamService = inject(PoamService);
   private readonly sharedService = inject(SharedService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly host = input<any>(undefined);
   readonly tenableRepoId = input<number>(undefined);
@@ -53,9 +56,9 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
 
   private readonly hostFindingsTable = viewChild.required<Table>('hostFindingsTable');
 
-  visibleState: boolean = false;
+  readonly visibleState = linkedSignal(() => this.visible());
   hostDialogCols: any[];
-  hostData: any[] = [];
+  readonly hostData = signal<any[]>([]);
   isLoading = signal<boolean>(false);
   dialogFilterValue: string = '';
   selectedPoamStatuses: string[] = [];
@@ -63,15 +66,14 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
 
   pluginData: any;
   selectedPlugin: any;
-  pluginDetailData: any;
+  readonly pluginDetailData = signal<any>(null);
   displayPluginDialog = signal<boolean>(false);
   isLoadingPluginDetails = signal<boolean>(false);
-  cveReferences: any[] = [];
-  iavReferences: any[] = [];
-  otherReferences: any[] = [];
+  readonly cveReferences = signal<any[]>([]);
+  readonly iavReferences = signal<any[]>([]);
+  readonly otherReferences = signal<any[]>([]);
 
   private existingPoamPluginIDs: any;
-  private readonly subscriptions = new Subscription();
   private dataLoaded: boolean = false;
 
   get hostDns(): string {
@@ -99,10 +101,6 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     const visible = this.visible();
 
-    if (changes['visible']) {
-      this.visibleState = visible;
-    }
-
     if (changes['visible'] && visible && !this.dataLoaded) {
       this.loadData();
     }
@@ -110,10 +108,6 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
     if (changes['visible'] && !visible) {
       this.dataLoaded = false;
     }
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.unsubscribe();
   }
 
   private initColumns() {
@@ -202,55 +196,56 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
       type: 'vuln'
     };
 
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.pipe(first()).subscribe((collectionId) => {
-        const poamAssociations$ = collectionId
-          ? this.poamService.getVulnerabilityIdsWithPoamByCollection(collectionId).pipe(
-              catchError((error) => {
-                this.messageService.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: `Error loading POAM data: ${getErrorMessage(error)}`
-                });
+    this.sharedService.selectedCollection.pipe(first(), takeUntilDestroyed(this.destroyRef)).subscribe((collectionId) => {
+      const poamAssociations$ = collectionId
+        ? this.poamService.getVulnerabilityIdsWithPoamByCollection(collectionId).pipe(
+            catchError((error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error loading POAM data: ${getErrorMessage(error)}`
+              });
 
-                return of([]);
-              })
-            )
-          : of([]);
+              return of([]);
+            })
+          )
+        : of([]);
 
-        const hostFindings$ = this.importService.postTenableAnalysis(analysisParams);
+      const hostFindings$ = this.importService.postTenableAnalysis(analysisParams);
 
-        this.subscriptions.add(
-          forkJoin([poamAssociations$, hostFindings$]).subscribe({
-            next: ([poamData, findingsData]) => {
-              if (Array.isArray(poamData)) {
-                this.existingPoamPluginIDs = poamData.reduce(
-                  (
-                    acc: { [key: string]: { poamId: number; status: string; isAssociated?: boolean; parentStatus?: string; parentPoamId?: number } },
-                    item: { vulnerabilityId: string; status: string; poamId: number; parentPoamId?: number; parentStatus?: string }
-                  ) => {
-                    acc[item.vulnerabilityId] = {
-                      poamId: item.poamId,
-                      status: item.status,
-                      isAssociated: item.status === 'Associated',
-                      parentStatus: item.parentStatus,
-                      parentPoamId: item.parentPoamId
-                    };
+      forkJoin([poamAssociations$, hostFindings$])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: ([poamData, findingsData]) => {
+            if (Array.isArray(poamData)) {
+              this.existingPoamPluginIDs = poamData.reduce(
+                (
+                  acc: { [key: string]: { poamId: number; status: string; isAssociated?: boolean; parentStatus?: string; parentPoamId?: number } },
+                  item: { vulnerabilityId: string; status: string; poamId: number; parentPoamId?: number; parentStatus?: string }
+                ) => {
+                  acc[item.vulnerabilityId] = {
+                    poamId: item.poamId,
+                    status: item.status,
+                    isAssociated: item.status === 'Associated',
+                    parentStatus: item.parentStatus,
+                    parentPoamId: item.parentPoamId
+                  };
 
-                    return acc;
-                  },
-                  {}
-                );
-              }
+                  return acc;
+                },
+                {}
+              );
+            }
 
-              if (!findingsData?.response) {
-                this.isLoading.set(false);
-                this.showErrorMessage('Invalid response from Tenable');
+            if (!findingsData?.response) {
+              this.isLoading.set(false);
+              this.showErrorMessage('Invalid response from Tenable');
 
-                return;
-              }
+              return;
+            }
 
-              this.hostData = findingsData.response.results.map((item: any) => {
+            this.hostData.set(
+              findingsData.response.results.map((item: any) => {
                 const poamAssociation = this.existingPoamPluginIDs?.[item.pluginID];
 
                 return {
@@ -269,23 +264,22 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
                   parentStatus: poamAssociation?.parentStatus,
                   parentPoamId: poamAssociation?.parentPoamId
                 };
-              });
+              })
+            );
 
-              this.dataLoaded = true;
-              this.isLoading.set(false);
-            },
-            error: (error) => {
-              this.isLoading.set(false);
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: `Error fetching host findings: ${getErrorMessage(error)}`
-              });
-            }
-          })
-        );
-      })
-    );
+            this.dataLoaded = true;
+            this.isLoading.set(false);
+          },
+          error: (error) => {
+            this.isLoading.set(false);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching host findings: ${getErrorMessage(error)}`
+            });
+          }
+        });
+    });
   }
 
   onDialogHide() {
@@ -405,53 +399,56 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
     };
 
     return new Promise((resolve, reject) => {
-      this.importService.postTenableAnalysis(analysisParams).subscribe({
-        next: (data) => {
-          if (!data?.response?.results?.length) {
-            reject(new Error('Invalid response from postTenableAnalysis'));
+      this.importService
+        .postTenableAnalysis(analysisParams)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (data) => {
+            if (!data?.response?.results?.length) {
+              reject(new Error('Invalid response from postTenableAnalysis'));
+              this.isLoadingPluginDetails.set(false);
+
+              return;
+            }
+
+            const rawData = data.response.results[0];
+
+            this.pluginDetailData.set({
+              ...rawData,
+              firstSeen: this.formatTimestamp(rawData.firstSeen),
+              lastSeen: this.formatTimestamp(rawData.lastSeen),
+              pluginPubDate: this.formatTimestamp(rawData.pluginPubDate),
+              pluginModDate: this.formatTimestamp(rawData.pluginModDate),
+              vulnPubDate: this.formatTimestamp(rawData.vulnPubDate),
+              patchPubDate: this.formatTimestamp(rawData.patchPubDate),
+              seolDate: this.formatTimestamp(rawData.seolDate),
+              acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime),
+              family: rawData.family?.name || '',
+              severity: rawData.severity?.name || ''
+            });
+
+            if (this.pluginDetailData().xref) {
+              this.parseReferences(this.pluginDetailData().xref);
+            } else {
+              this.cveReferences.set([]);
+              this.iavReferences.set([]);
+              this.otherReferences.set([]);
+            }
+
+            this.displayPluginDialog.set(true);
             this.isLoadingPluginDetails.set(false);
-
-            return;
+            resolve();
+          },
+          error: (error) => {
+            this.isLoadingPluginDetails.set(false);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+            });
+            reject(error);
           }
-
-          const rawData = data.response.results[0];
-
-          this.pluginDetailData = {
-            ...rawData,
-            firstSeen: this.formatTimestamp(rawData.firstSeen),
-            lastSeen: this.formatTimestamp(rawData.lastSeen),
-            pluginPubDate: this.formatTimestamp(rawData.pluginPubDate),
-            pluginModDate: this.formatTimestamp(rawData.pluginModDate),
-            vulnPubDate: this.formatTimestamp(rawData.vulnPubDate),
-            patchPubDate: this.formatTimestamp(rawData.patchPubDate),
-            seolDate: this.formatTimestamp(rawData.seolDate),
-            acrLastEvaluatedTime: this.formatTimestamp(rawData.acrLastEvaluatedTime),
-            family: rawData.family?.name || '',
-            severity: rawData.severity?.name || ''
-          };
-
-          if (this.pluginDetailData.xref) {
-            this.parseReferences(this.pluginDetailData.xref);
-          } else {
-            this.cveReferences = [];
-            this.iavReferences = [];
-            this.otherReferences = [];
-          }
-
-          this.displayPluginDialog.set(true);
-          this.isLoadingPluginDetails.set(false);
-          resolve();
-        },
-        error: (error) => {
-          this.isLoadingPluginDetails.set(false);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-          });
-          reject(error);
-        }
-      });
+        });
     });
   }
 
@@ -500,26 +497,29 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
     }
 
     return new Promise((resolve, reject) => {
-      this.importService.getTenablePlugin(pluginID).subscribe({
-        next: (data) => {
-          if (!data?.response) {
-            reject(new Error('Invalid response from getTenablePlugin'));
+      this.importService
+        .getTenablePlugin(pluginID)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (data) => {
+            if (!data?.response) {
+              reject(new Error('Invalid response from getTenablePlugin'));
 
-            return;
+              return;
+            }
+
+            this.pluginData = data.response;
+            resolve();
+          },
+          error: (error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching plugin data: ${getErrorMessage(error)}`
+            });
+            reject(error);
           }
-
-          this.pluginData = data.response;
-          resolve();
-        },
-        error: (error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching plugin data: ${getErrorMessage(error)}`
-          });
-          reject(error);
-        }
-      });
+        });
     });
   }
 
@@ -614,18 +614,17 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
 
   parseReferences(xref: string) {
     if (!xref) {
-      this.cveReferences = [];
-      this.iavReferences = [];
-      this.otherReferences = [];
+      this.cveReferences.set([]);
+      this.iavReferences.set([]);
+      this.otherReferences.set([]);
 
       return;
     }
 
     const refs = xref.split(/,\s*/).filter(Boolean);
-
-    this.cveReferences = [];
-    this.iavReferences = [];
-    this.otherReferences = [];
+    const cve: any[] = [];
+    const iav: any[] = [];
+    const other: any[] = [];
 
     refs.forEach((ref: string) => {
       const [refType, ...valueParts] = ref.split('#');
@@ -633,14 +632,18 @@ export class TenableHostDialogComponent implements OnChanges, OnDestroy {
 
       if (refType && value) {
         if (refType.trim() === 'CVE') {
-          this.cveReferences.push({ type: refType.trim(), value });
+          cve.push({ type: refType.trim(), value });
         } else if (['IAVA', 'IAVB', 'IAVT'].includes(refType.trim())) {
-          this.iavReferences.push({ type: refType.trim(), value });
+          iav.push({ type: refType.trim(), value });
         } else {
-          this.otherReferences.push({ type: refType.trim(), value });
+          other.push({ type: refType.trim(), value });
         }
       }
     });
+
+    this.cveReferences.set(cve);
+    this.iavReferences.set(iav);
+    this.otherReferences.set(other);
   }
 
   parsePluginOutput(pluginText: string): string {

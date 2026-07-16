@@ -13,7 +13,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SimpleChange } from '@angular/core';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { of, throwError, BehaviorSubject } from 'rxjs';
+import { of, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableHostDialogComponent } from './tenableHostDialog.component';
 import { ImportService } from '../../../import.service';
@@ -98,7 +98,7 @@ describe('TenableHostDialogComponent', () => {
     });
 
     it('should default hostData to empty array', () => {
-      expect(component.hostData).toEqual([]);
+      expect(component.hostData()).toEqual([]);
     });
 
     it('should default isLoading signal to false', () => {
@@ -481,35 +481,35 @@ describe('TenableHostDialogComponent', () => {
   describe('parseReferences', () => {
     it('should handle empty string', () => {
       component.parseReferences('');
-      expect(component.cveReferences).toEqual([]);
+      expect(component.cveReferences()).toEqual([]);
     });
 
     it('should parse CVE references using # separator', () => {
       component.parseReferences('CVE#CVE-2023-1234');
-      expect(component.cveReferences).toEqual([{ type: 'CVE', value: 'CVE-2023-1234' }]);
+      expect(component.cveReferences()).toEqual([{ type: 'CVE', value: 'CVE-2023-1234' }]);
     });
 
     it('should parse IAVB references', () => {
       component.parseReferences('IAVB#2023-B-0001');
-      expect(component.iavReferences).toEqual([{ type: 'IAVB', value: '2023-B-0001' }]);
+      expect(component.iavReferences()).toEqual([{ type: 'IAVB', value: '2023-B-0001' }]);
     });
 
     it('should parse other references', () => {
       component.parseReferences('BID#12345');
-      expect(component.otherReferences).toEqual([{ type: 'BID', value: '12345' }]);
+      expect(component.otherReferences()).toEqual([{ type: 'BID', value: '12345' }]);
     });
 
     it('should handle comma-separated references', () => {
       component.parseReferences('CVE#CVE-2023-1234, IAVB#2023-B-0001');
-      expect(component.cveReferences.length).toBe(1);
-      expect(component.iavReferences.length).toBe(1);
+      expect(component.cveReferences().length).toBe(1);
+      expect(component.iavReferences().length).toBe(1);
     });
 
     it('should set all lists to empty for null/undefined xref', () => {
       component.parseReferences(null as any);
-      expect(component.cveReferences).toEqual([]);
-      expect(component.iavReferences).toEqual([]);
-      expect(component.otherReferences).toEqual([]);
+      expect(component.cveReferences()).toEqual([]);
+      expect(component.iavReferences()).toEqual([]);
+      expect(component.otherReferences()).toEqual([]);
     });
   });
 
@@ -555,12 +555,24 @@ describe('TenableHostDialogComponent', () => {
     });
   });
 
-  describe('ngOnDestroy', () => {
-    it('should unsubscribe from subscriptions', () => {
-      const spy = vi.spyOn((component as any).subscriptions, 'unsubscribe');
+  describe('cleanup', () => {
+    it('stops processing plugin details after destroy (takeUntilDestroyed)', () => {
+      const analysisSubject = new Subject<any>();
 
-      component.ngOnDestroy();
-      expect(spy).toHaveBeenCalled();
+      mockImportService.postTenableAnalysis.mockReturnValue(analysisSubject.asObservable());
+
+      component.showPluginDetails({ pluginID: '12345' });
+      expect(component.pluginDetailData()).toBeNull();
+
+      fixture.destroy();
+      analysisSubject.next({ response: { results: [{ xref: '' }] } });
+      expect(component.pluginDetailData()).toBeNull();
+    });
+
+    it('does not throw on destroy after loading data', () => {
+      (component as any).visible = () => true;
+      component.ngOnChanges({ visible: new SimpleChange(false, true, false) });
+      expect(() => fixture.destroy()).not.toThrow();
     });
   });
 });
