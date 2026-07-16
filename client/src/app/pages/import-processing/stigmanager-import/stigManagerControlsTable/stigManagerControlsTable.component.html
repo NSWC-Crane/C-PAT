@@ -27,7 +27,7 @@
 
     <p-table
       #controlsTable
-      [value]="loadingControls ? loadingSkeletonData : controlSummaries"
+      [value]="loadingControls() ? loadingSkeletonData : controlSummaries()"
       [columns]="controlColumns"
       [paginator]="true"
       [rows]="100"
@@ -61,7 +61,7 @@
 
       <ng-template #body let-control>
         <tr (click)="selectControl(control)" [style.cursor]="'pointer'">
-          @if (loadingControls) {
+          @if (loadingControls()) {
             @for (col of controlColumns; track col.field) {
               <td><p-skeleton height="2rem" /></td>
             }
@@ -146,7 +146,7 @@
 
     <p-table
       #controlFindingsTable
-      [value]="loadingFindings ? loadingSkeletonData : controlFindings"
+      [value]="loadingFindings ? loadingSkeletonData : controlFindings()"
       [columns]="findingColumns"
       [paginator]="true"
       [rows]="100"
@@ -164,14 +164,14 @@
             <th scope="col" [pSortableColumn]="col.field" [style.width]="col.width">
               {{ col.header }}
               @if (col.field === 'poam') {
-                <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
                   <ng-template #filter let-value let-filter="filterCallback">
-                    <p-select [multiple]="true" [checkmark]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full swap-button-order" />
+                    <p-select [multiple]="true" [filter]="true" [checkmark]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Status" [showClear]="true" class="w-full swap-button-order" />
                   </ng-template>
                 </p-columnfilter>
               }
               @if (col.field === 'severity') {
-                <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" [showButtons]="true" display="menu">
+                <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
                   <ng-template #filter let-value let-filter="filterCallback">
                     <p-select [multiple]="true" [checkmark]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Severity" [showClear]="true" class="w-full swap-button-order" />
                   </ng-template>
