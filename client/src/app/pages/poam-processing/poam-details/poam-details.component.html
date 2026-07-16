@@ -7,7 +7,7 @@
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 -->
-@if (poam) {
+@if (poam(); as poam) {
   <div class="row col-span-12">
     <p-card>
       <div class="status-container">
@@ -25,7 +25,7 @@
             UNSAVED DRAFT
           }
           <div class="team-badges-container ml-4">
-            @for (team of poamAssignedTeams; track $index) {
+            @for (team of poamAssignedTeams(); track $index) {
               <p-tag
                 [value]="team.assignedTeamName"
                 [rounded]="true"
@@ -68,13 +68,7 @@
         <div class="form-container">
           <div class="form-group" tourAnchor="poam-global-toggle">
             <div class="switch-container">
-              <p-toggleswitch
-                id="globalFinding"
-                name="globalFinding"
-                [(ngModel)]="poam.isGlobalFinding"
-                (onChange)="onGlobalFindingToggle()"
-                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
-              />
+              <p-toggleswitch id="globalFinding" name="globalFinding" [ngModel]="poam.isGlobalFinding" (ngModelChange)="patchPoam({ isGlobalFinding: $event }); onGlobalFindingToggle($event)" [disabled]="fieldDisabled()" />
               <label class="ml-2" for="globalFinding">Global Finding</label>
             </div>
           </div>
@@ -82,10 +76,10 @@
           @if (poam.stigCheckData?.length > 0) {
             <div class="form-group">
               <div class="switch-container">
-                <p-toggleswitch id="stigCheckData" name="stigCheckData" [(ngModel)]="showCheckData" />
+                <p-toggleswitch id="stigCheckData" name="stigCheckData" [(ngModel)]="showStigCheckData" />
                 <label for="stigCheckData">View STIG Manager Check Data</label>
               </div>
-              @if (showCheckData) {
+              @if (showStigCheckData()) {
                 <div class="card showCheckData mt-6">
                   <pre>{{ poam.stigCheckData }}</pre>
                 </div>
@@ -96,12 +90,12 @@
           @if (poam.tenablePluginData?.length > 0) {
             <div class="form-group">
               <div class="switch-container">
-                <p-toggleswitch id="tenablePluginData" name="tenablePluginData" [(ngModel)]="showCheckData" />
+                <p-toggleswitch id="tenablePluginData" name="tenablePluginData" [(ngModel)]="showTenablePluginData" />
                 <label for="tenablePluginData">View Tenable Plugin Data</label>
               </div>
-              @if (showCheckData) {
+              @if (showTenablePluginData()) {
                 <div class="card showCheckData mt-6">
-                  <pre>{{ tenablePluginData }}</pre>
+                  <pre>{{ tenablePluginData() }}</pre>
                 </div>
               }
             </div>
@@ -111,7 +105,7 @@
           @if (poam.submitterName) {
             <div class="form-group">
               <label for="submitterName">Created By: </label>
-              <input type="text" pInputText class="w-full" [(ngModel)]="poam.submitterName" id="submitterName" name="submitterName" disabled />
+              <input type="text" pInputText class="w-full" [ngModel]="poam.submitterName" id="submitterName" name="submitterName" disabled />
             </div>
           }
 
@@ -119,8 +113,9 @@
           <div class="form-group" tourAnchor="poam-owned-by">
             <label for="ownerId">Owned By: </label>
             <p-select
-              [options]="collectionUsers"
-              [(ngModel)]="poam.ownerId"
+              [options]="collectionUsers()"
+              [ngModel]="poam.ownerId"
+              (ngModelChange)="patchPoam({ ownerId: $event })"
               id="ownerId"
               name="ownerId"
               placeholder="POAM Owned By..."
@@ -136,7 +131,16 @@
           <!-- Status -->
           <div class="status form-group">
             <label for="status">POAM Status: </label>
-            <p-select [options]="filteredStatusOptions()" [(ngModel)]="poam.status" id="status" name="status" [placeholder]="poam.status ? poam.status : 'POAM Status...'" class="w-full" [disabled]="accessLevel() < 2" />
+            <p-select
+              [options]="filteredStatusOptions()"
+              [ngModel]="poam.status"
+              (ngModelChange)="patchPoam({ status: $event })"
+              id="status"
+              name="status"
+              [placeholder]="poam.status ? poam.status : 'POAM Status...'"
+              class="w-full"
+              [disabled]="accessLevel() < 2"
+            />
           </div>
 
           <!-- Description -->
@@ -153,13 +157,14 @@
               pTextarea
               class="w-full"
               rows="8"
-              [(ngModel)]="poam.description"
+              [ngModel]="poam.description"
+              (ngModelChange)="patchPoam({ description: $event })"
               [invalid]="isInvalid('description')"
               id="description"
               name="description"
               maxlength="10000"
               placeholder="Description..."
-              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              [disabled]="fieldDisabled()"
             ></textarea>
           </div>
 
@@ -167,14 +172,15 @@
           <div class="form-group" tourAnchor="poam-aapackage">
             <label for="aaPackage">A&A Package: </label>
             <p-select
-              [(ngModel)]="poam.aaPackage"
+              [ngModel]="poam.aaPackage"
+              (ngModelChange)="patchPoam({ aaPackage: $event })"
               [invalid]="isInvalid('aaPackage')"
-              [options]="aaPackages"
+              [options]="aaPackages()"
               [filter]="true"
               filterBy="aaPackage"
               optionLabel="aaPackage"
               optionValue="aaPackage"
-              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              [disabled]="fieldDisabled()"
               placeholder="Select A&A Package"
               id="aaPackage"
               name="aaPackage"
@@ -193,14 +199,15 @@
               Source Identifying Control Vulnerability:
             </label>
             <p-select
-              [(ngModel)]="poam.vulnerabilitySource"
+              [ngModel]="poam.vulnerabilitySource"
+              (ngModelChange)="patchPoam({ vulnerabilitySource: $event })"
               [invalid]="isInvalid('vulnerabilitySource')"
               [options]="vulnerabilitySources"
               placeholder="Select Vulnerability Source"
               id="vulnerabilitySource"
               name="vulnerabilitySource"
               class="w-full"
-              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              [disabled]="fieldDisabled()"
             />
           </div>
 
@@ -211,12 +218,13 @@
               type="text"
               pInputText
               class="w-full"
-              [(ngModel)]="poam.taskOrderNumber"
+              [ngModel]="poam.taskOrderNumber"
+              (ngModelChange)="patchPoam({ taskOrderNumber: $event })"
               maxlength="25"
               id="taskOrderNumber"
               name="taskOrderNumber"
               placeholder="Task Order #..."
-              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              [disabled]="fieldDisabled()"
             />
           </div>
 
@@ -232,7 +240,8 @@
                 >STIG Title:
               </label>
               <p-autocomplete
-                [(ngModel)]="poam.vulnerabilityTitle"
+                [ngModel]="poam.vulnerabilityTitle"
+                (ngModelChange)="patchPoam({ vulnerabilityTitle: $event })"
                 [suggestions]="filteredStigmanSTIGs"
                 (completeMethod)="searchStigTitles($event)"
                 (onSelect)="onStigSelected($event)"
@@ -241,7 +250,7 @@
                 placeholder="Select STIG..."
                 [dropdown]="true"
                 class="w-full"
-                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+                [disabled]="fieldDisabled()"
               />
             </div>
           }
@@ -265,12 +274,13 @@
                 type="text"
                 pInputText
                 class="w-full"
-                [(ngModel)]="poam.vulnerabilityId"
+                [ngModel]="poam.vulnerabilityId"
+                (ngModelChange)="patchPoam({ vulnerabilityId: $event })"
                 maxlength="255"
                 id="vulnerabilityId"
                 name="vulnerabilityId"
                 placeholder="Vulnerability ID..."
-                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+                [disabled]="fieldDisabled()"
               />
             </div>
           }
@@ -286,12 +296,13 @@
                 type="text"
                 pInputText
                 class="w-full"
-                [(ngModel)]="poam.vulnerabilityId"
+                [ngModel]="poam.vulnerabilityId"
+                (ngModelChange)="patchPoam({ vulnerabilityId: $event })"
                 maxlength="255"
                 id="vulnerabilityId"
                 name="vulnerabilityId"
                 placeholder="Vulnerability ID..."
-                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+                [disabled]="fieldDisabled()"
               />
             </div>
           }
@@ -301,16 +312,7 @@
             <div class="form-group">
               <label for="iavmNumber">IAVM #: </label>
               <p-inputgroup>
-                <input
-                  pInputText
-                  class="w-full"
-                  [(ngModel)]="poam.iavmNumber"
-                  maxlength="25"
-                  id="iavmNumber"
-                  name="iavmNumber"
-                  placeholder="IAVM #..."
-                  [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
-                />
+                <input pInputText class="w-full" [ngModel]="poam.iavmNumber" (ngModelChange)="patchPoam({ iavmNumber: $event })" maxlength="25" id="iavmNumber" name="iavmNumber" placeholder="IAVM #..." [disabled]="fieldDisabled()" />
                 <p-inputgroup-addon>
                   <button pButton (click)="openIavLink(poam.iavmNumber)" variant="text" pTooltip="View IAV Release Details" tooltipPosition="top" [disabled]="!poam.iavmNumber"><i class="pi pi-external-link" pButtonIcon></i></button>
                 </p-inputgroup-addon>
@@ -323,7 +325,8 @@
             <div class="form-group">
               <label for="iavComplyByDate">IAV Comply By Date: </label>
               <p-datepicker
-                [(ngModel)]="dates.iavComplyByDate"
+                [ngModel]="dates().iavComplyByDate"
+                (ngModelChange)="patchDates({ iavComplyByDate: $event })"
                 [invalid]="isInvalid('iavComplyByDate')"
                 dateFormat="yy-mm-dd"
                 id="iavComplyByDate"
@@ -331,7 +334,7 @@
                 placeholder="IAV Comply By Date..."
                 [showIcon]="true"
                 class="w-[25rem]"
-                [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+                [disabled]="fieldDisabled()"
               />
             </div>
           }
@@ -343,7 +346,8 @@
             </label>
             <p-select
               [options]="severityOptions"
-              [(ngModel)]="poam.rawSeverity"
+              [ngModel]="poam.rawSeverity"
+              (ngModelChange)="patchPoam({ rawSeverity: $event }); onAdjSeverityChange()"
               [invalid]="isInvalid('rawSeverity')"
               id="rawSeverity"
               name="rawSeverity"
@@ -351,8 +355,7 @@
               optionLabel="label"
               optionValue="value"
               class="w-[25rem]"
-              (onChange)="onAdjSeverityChange()"
-              [disabled]="accessLevel() < 4 && (this.collectionType !== 'C-PAT' || accessLevel() < 2)"
+              [disabled]="accessLevel() < 4 && (this.collectionType() !== 'C-PAT' || accessLevel() < 2)"
             />
           </div>
 
@@ -368,23 +371,23 @@
             </label>
             <p-select
               [options]="severityOptions"
-              [(ngModel)]="poam.adjSeverity"
+              [ngModel]="poam.adjSeverity"
+              (ngModelChange)="patchPoam({ adjSeverity: $event }); onAdjSeverityChange()"
               id="adjSeverity"
               name="adjSeverity"
               placeholder="Adjusted Severity..."
               optionLabel="label"
               optionValue="value"
-              [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              [disabled]="fieldDisabled()"
               class="w-[25rem]"
-              (onChange)="onAdjSeverityChange()"
             />
           </div>
 
           <!-- Deadline With Extension -->
-          @if (completionDateWithExtension) {
+          @if (completionDateWithExtension()) {
             <div class="form-group">
               <label for="extensionDeadline">Deadline With Extension:</label>
-              <input type="text" pInputText [value]="completionDateWithExtension" id="extensionDeadline" name="extensionDeadline" disabled class="w-[25rem]" />
+              <input type="text" pInputText [value]="completionDateWithExtension()" id="extensionDeadline" name="extensionDeadline" disabled class="w-[25rem]" />
             </div>
           }
 
@@ -399,7 +402,8 @@
               >Scheduled Completion Date:
             </label>
             <p-datepicker
-              [(ngModel)]="dates.scheduledCompletionDate"
+              [ngModel]="dates().scheduledCompletionDate"
+              (ngModelChange)="patchDates({ scheduledCompletionDate: $event })"
               [invalid]="isInvalid('scheduledCompletionDate')"
               dateFormat="yy-mm-dd"
               id="scheduledCompletionDate"
@@ -410,15 +414,15 @@
               (onClose)="validateScheduledCompletion()"
               [showIcon]="true"
               class="w-[25rem]"
-              [disabled]="poam.status !== 'Draft' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+              [disabled]="accessLevel() < 2 || (poam.status !== 'Draft' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3)"
             />
           </div>
 
           <!-- Submitted Date -->
-          @if (dates.submittedDate) {
+          @if (dates().submittedDate) {
             <div class="form-group">
               <label for="submittedDate">Submitted Date: </label>
-              <p-datepicker [(ngModel)]="dates.submittedDate" dateFormat="yy-mm-dd" id="submittedDate" name="submittedDate" placeholder="Submitted Date..." [showIcon]="true" class="w-[25rem]" disabled />
+              <p-datepicker [ngModel]="dates().submittedDate" dateFormat="yy-mm-dd" id="submittedDate" name="submittedDate" placeholder="Submitted Date..." [showIcon]="true" class="w-[25rem]" disabled />
             </div>
           }
         </div>
@@ -453,8 +457,8 @@
                           <cpat-poam-teams
                             [poam]="poam"
                             [accessLevel]="accessLevel()"
-                            [poamAssignedTeams]="poamAssignedTeams"
-                            [assignedTeamOptions]="assignedTeamOptions"
+                            [poamAssignedTeams]="poamAssignedTeams()"
+                            [assignedTeamOptions]="assignedTeamOptions()"
                             [loading]="loadingTeams()"
                             [poamService]="poamService"
                             (teamsChanged)="handleTeamsChanged($event)"
@@ -467,8 +471,8 @@
                           <cpat-poam-approvers
                             [poamId]="poam.poamId"
                             [accessLevel]="accessLevel()"
-                            [poamApprovers]="poamApprovers"
-                            [collectionApprovers]="collectionApprovers"
+                            [poamApprovers]="poamApprovers()"
+                            [collectionApprovers]="collectionApprovers()"
                             [poamService]="poamService"
                             (approversChanged)="handleApproversChanged($event)"
                           />
@@ -490,13 +494,13 @@
                   <cpat-poam-assets
                     [poam]="poam"
                     [accessLevel]="accessLevel()"
-                    [collectionType]="collectionType"
-                    [poamAssets]="poamAssets"
-                    [assetList]="assetList"
-                    [originCollectionId]="originCollectionId"
+                    [collectionType]="collectionType()"
+                    [poamAssets]="poamAssets()"
+                    [assetList]="assetList()"
+                    [originCollectionId]="originCollectionId()"
                     [poamService]="poamService"
-                    [poamAssignedTeams]="poamAssignedTeams"
-                    [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities"
+                    [poamAssignedTeams]="poamAssignedTeams()"
+                    [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities()"
                     (assetsChanged)="handleAssetsChanged($event)"
                   />
 
@@ -521,14 +525,15 @@
                     <textarea
                       pTextarea
                       class="w-full"
-                      [(ngModel)]="poam.predisposingConditions"
+                      [ngModel]="poam.predisposingConditions"
+                      (ngModelChange)="patchPoam({ predisposingConditions: $event })"
                       [invalid]="isInvalid('predisposingConditions')"
                       id="predisposingConditions"
                       name="predisposingConditions"
                       rows="16"
                       maxlength="2000"
                       placeholder="Predisposing conditions..."
-                      [disabled]="poam.status !== 'Draft' && poam.status !== 'Extension Requested' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3"
+                      [disabled]="fieldDisabled()"
                     ></textarea>
                   </div>
                   <div class="stepper-buttons">
@@ -554,12 +559,12 @@
                         </div>
                         @if (
                           ((aiEnabled && poam.vulnerabilitySource === 'STIG' && poam.stigCheckData) || (aiEnabled && poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' && poam.tenablePluginData)) &&
-                          (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0))
+                          (poam.isGlobalFinding || (poamAssignedTeams() && poamAssignedTeams().length > 0))
                         ) {
                           <cpat-poam-mitigation-generator
                             class="w-full"
                             [poam]="poam"
-                            [team]="!poam.isGlobalFinding && activeTabIndex >= 0 && activeTabIndex < teamMitigations.length ? teamMitigations[activeTabIndex] : null"
+                            [team]="!poam.isGlobalFinding && activeTabIndex() >= 0 && activeTabIndex() < teamMitigations().length ? teamMitigations()[activeTabIndex()] : null"
                             (mitigationGenerated)="onMitigationGenerated($event)"
                           />
                         }
@@ -567,11 +572,7 @@
                     </div>
 
                     <div class="team-mitigations-container">
-                      @if (mitigationSaving) {
-                        <p-progressbar mode="indeterminate" [style]="{ height: '4px' }" />
-                      }
-
-                      @if (!poam.isGlobalFinding && (!poamAssignedTeams || poamAssignedTeams.length === 0)) {
+                      @if (!poam.isGlobalFinding && (!poamAssignedTeams() || poamAssignedTeams().length === 0)) {
                         <div class="card p-4 text-center justify-items-center">
                           <div class="mb-4">
                             <i class="pi pi-info-circle text-4xl text-blue-500"></i>
@@ -581,15 +582,15 @@
                         </div>
                       }
 
-                      @if (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0)) {
-                        <p-tabs [(value)]="activeTabIndex" (onChange)="onTabChange($event)" lazy>
+                      @if (poam.isGlobalFinding || (poamAssignedTeams() && poamAssignedTeams().length > 0)) {
+                        <p-tabs [value]="activeTabIndex()" (valueChange)="onTabChange($event)" lazy>
                           <p-tablist>
                             @if (poam.isGlobalFinding) {
                               <p-tab [value]="0">Global Finding</p-tab>
                             }
 
                             @if (!poam.isGlobalFinding) {
-                              @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
+                              @for (teamMitigation of teamMitigations(); track teamMitigation.assignedTeamId; let i = $index) {
                                 <p-tab [value]="i" [class]="teamMitigation.isActive ? '' : 'inactive-tab'">
                                   <span [class]="{ 'inactive-tab': !teamMitigation.isActive }">{{ teamMitigation.assignedTeamName }}</span>
                                   @if (teamMitigation.isActive && isInvalid('teamMitigation:' + teamMitigation.assignedTeamId)) {
@@ -606,7 +607,8 @@
                                 <textarea
                                   pTextarea
                                   class="w-full"
-                                  [(ngModel)]="poam.mitigations"
+                                  [ngModel]="poam.mitigations"
+                                  (ngModelChange)="patchPoam({ mitigations: $event })"
                                   [invalid]="isInvalid('mitigations')"
                                   id="mitigations"
                                   name="mitigations"
@@ -619,7 +621,7 @@
                             }
 
                             @if (!poam.isGlobalFinding) {
-                              @for (teamMitigation of teamMitigations; track teamMitigation.assignedTeamId; let i = $index) {
+                              @for (teamMitigation of teamMitigations(); track teamMitigation.assignedTeamId; let i = $index) {
                                 <p-tabpanel [value]="i">
                                   <div [class]="{ 'opacity-70': !teamMitigation.isActive }">
                                     @if (!teamMitigation.isActive) {
@@ -631,12 +633,13 @@
                                     <textarea
                                       pTextarea
                                       class="w-full"
-                                      [(ngModel)]="teamMitigation.mitigationText"
+                                      [ngModel]="teamMitigation.mitigationText"
+                                      (ngModelChange)="patchTeamMitigation(teamMitigation.assignedTeamId, $event)"
                                       [invalid]="teamMitigation.isActive && isInvalid('teamMitigation:' + teamMitigation.assignedTeamId)"
                                       rows="16"
                                       maxlength="10000"
                                       placeholder="Team-specific mitigations..."
-                                      [disabled]="!teamMitigation.isActive && accessLevel() < 3"
+                                      [disabled]="accessLevel() < 2 || (!teamMitigation.isActive && accessLevel() < 3)"
                                     ></textarea>
                                   </div>
                                 </p-tabpanel>
@@ -669,11 +672,7 @@
                     </div>
 
                     <div class="team-resources-container">
-                      @if (resourceSaving) {
-                        <p-progressbar mode="indeterminate" [style]="{ height: '4px' }" />
-                      }
-
-                      @if (!poam.isGlobalFinding && (!poamAssignedTeams || poamAssignedTeams.length === 0)) {
+                      @if (!poam.isGlobalFinding && (!poamAssignedTeams() || poamAssignedTeams().length === 0)) {
                         <div class="card p-4 text-center justify-items-center">
                           <div class="mb-4">
                             <i class="pi pi-info-circle text-4xl text-blue-500"></i>
@@ -683,15 +682,15 @@
                         </div>
                       }
 
-                      @if (poam.isGlobalFinding || (poamAssignedTeams && poamAssignedTeams.length > 0)) {
-                        <p-tabs [(value)]="activeResourceTabIndex" (onChange)="onResourceTabChange($event)" lazy>
+                      @if (poam.isGlobalFinding || (poamAssignedTeams() && poamAssignedTeams().length > 0)) {
+                        <p-tabs [value]="activeResourceTabIndex()" (valueChange)="onResourceTabChange($event)" lazy>
                           <p-tablist>
                             @if (poam.isGlobalFinding) {
                               <p-tab [value]="0">Global Finding</p-tab>
                             }
 
                             @if (!poam.isGlobalFinding) {
-                              @for (teamResource of teamResources; track teamResource.assignedTeamId; let i = $index) {
+                              @for (teamResource of teamResources(); track teamResource.assignedTeamId; let i = $index) {
                                 <p-tab [value]="i" [class]="teamResource.isActive ? '' : 'inactive-tab'">
                                   <span [class]="{ 'inactive-tab': !teamResource.isActive }">{{ teamResource.assignedTeamName }}</span>
                                   @if (teamResource.isActive && isInvalid('teamResource:' + teamResource.assignedTeamId)) {
@@ -708,7 +707,8 @@
                                 <textarea
                                   pTextarea
                                   class="w-full"
-                                  [(ngModel)]="poam.requiredResources"
+                                  [ngModel]="poam.requiredResources"
+                                  (ngModelChange)="patchPoam({ requiredResources: $event })"
                                   [invalid]="isInvalid('requiredResources')"
                                   id="requiredResources"
                                   name="requiredResources"
@@ -721,7 +721,7 @@
                             }
 
                             @if (!poam.isGlobalFinding) {
-                              @for (teamResource of teamResources; track teamResource.assignedTeamId; let i = $index) {
+                              @for (teamResource of teamResources(); track teamResource.assignedTeamId; let i = $index) {
                                 <p-tabpanel [value]="i">
                                   <div [class]="{ 'opacity-70': !teamResource.isActive }">
                                     @if (!teamResource.isActive) {
@@ -733,12 +733,13 @@
                                     <textarea
                                       pTextarea
                                       class="w-full"
-                                      [(ngModel)]="teamResource.resourceText"
+                                      [ngModel]="teamResource.resourceText"
+                                      (ngModelChange)="patchTeamResource(teamResource.assignedTeamId, $event)"
                                       [invalid]="teamResource.isActive && isInvalid('teamResource:' + teamResource.assignedTeamId)"
                                       rows="16"
                                       maxlength="10000"
                                       placeholder="Team-specific required resources..."
-                                      [disabled]="!teamResource.isActive && accessLevel() < 3"
+                                      [disabled]="accessLevel() < 2 || (!teamResource.isActive && accessLevel() < 3)"
                                     ></textarea>
                                   </div>
                                 </p-tabpanel>
@@ -764,7 +765,18 @@
                   <div class="stepper-content">
                     <div class="form-group">
                       <label for="localImpact">Local Impact:</label>
-                      <p-select [options]="ratingOptions" [(ngModel)]="poam.localImpact" [invalid]="isInvalid('localImpact')" id="localImpact" name="localImpact" placeholder="Local Impact..." optionLabel="label" optionValue="value" class="w-full" />
+                      <p-select
+                        [options]="ratingOptions"
+                        [ngModel]="poam.localImpact"
+                        (ngModelChange)="patchPoam({ localImpact: $event })"
+                        [invalid]="isInvalid('localImpact')"
+                        id="localImpact"
+                        name="localImpact"
+                        placeholder="Local Impact..."
+                        optionLabel="label"
+                        optionValue="value"
+                        class="w-full"
+                      />
                     </div>
 
                     <div class="form-group">
@@ -775,7 +787,8 @@
                       <textarea
                         pTextarea
                         class="w-full"
-                        [(ngModel)]="poam.impactDescription"
+                        [ngModel]="poam.impactDescription"
+                        (ngModelChange)="patchPoam({ impactDescription: $event })"
                         [invalid]="isInvalid('impactDescription')"
                         id="impactDescription"
                         name="impactDescription"
@@ -795,7 +808,7 @@
                         ></i
                         >Residual Risk:
                       </label>
-                      <p-select [options]="ratingOptions" [ngModel]="this.poam.residualRisk" id="residualRisk" name="residualRisk" placeholder="Residual Risk..." optionLabel="label" optionValue="value" class="w-full" [disabled]="true" />
+                      <p-select [options]="ratingOptions" [ngModel]="poam.residualRisk" id="residualRisk" name="residualRisk" placeholder="Residual Risk..." optionLabel="label" optionValue="value" class="w-full" [disabled]="true" />
                     </div>
 
                     <div class="form-group">
@@ -807,7 +820,7 @@
                         ></i
                         >Likelihood:
                       </label>
-                      <p-select [options]="ratingOptions" [ngModel]="this.poam.likelihood" id="likelihood" name="likelihood" placeholder="Likelihood..." optionLabel="label" optionValue="value" class="w-full" [disabled]="true" />
+                      <p-select [options]="ratingOptions" [ngModel]="poam.likelihood" id="likelihood" name="likelihood" placeholder="Likelihood..." optionLabel="label" optionValue="value" class="w-full" [disabled]="true" />
                     </div>
                   </div>
                   <div class="stepper-buttons">
@@ -823,7 +836,7 @@
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
                   <div class="stepper-content" tourAnchor="poam-milestones">
-                    <cpat-poam-milestones [poam]="poam" [accessLevel]="accessLevel()" [poamMilestones]="poamMilestones" [assignedTeamOptions]="milestoneTeamOptions" (milestonesChanged)="handleMilestonesChanged($event)" />
+                    <cpat-poam-milestones [poam]="poam" [accessLevel]="accessLevel()" [poamMilestones]="poamMilestones()" [assignedTeamOptions]="milestoneTeamOptions()" (milestonesChanged)="handleMilestonesChanged($event)" />
                   </div>
                   <div class="stepper-buttons">
                     <button pButton (click)="activateCallback(6)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
@@ -838,7 +851,7 @@
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
                   <div class="stepper-content">
-                    <cpat-poam-labels [poamId]="poam.poamId" [accessLevel]="accessLevel()" [poamLabels]="poamLabels" [labelList]="labelList" [poamService]="poamService" (labelsChanged)="handleLabelsChanged($event)" />
+                    <cpat-poam-labels [poamId]="poam.poamId" [accessLevel]="accessLevel()" [poamLabels]="poamLabels()" [labelList]="labelList()" [poamService]="poamService" (labelsChanged)="handleLabelsChanged($event)" />
                   </div>
                   <div class="stepper-buttons">
                     <button pButton (click)="activateCallback(7)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
@@ -856,8 +869,8 @@
                     <cpat-poam-associated-vulnerabilities
                       [poamId]="poam.poamId"
                       [accessLevel]="accessLevel()"
-                      [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities"
-                      [currentCollection]="collectionData"
+                      [poamAssociatedVulnerabilities]="poamAssociatedVulnerabilities()"
+                      [currentCollection]="collectionData()"
                       (vulnerabilitiesChanged)="handleAssociatedVulnerabilitiesChanged($event)"
                     />
                   </div>
@@ -918,8 +931,8 @@
 </p-dialog>
 
 <p-dialog styleClass="poam-chat w-[80vw] h-[80vh] max-h-[80vh] overflow-hidden" [(visible)]="showPoamNotes" [modal]="true" [closable]="true">
-  @if (poam?.poamId && poam.poamId !== 'ADDPOAM') {
-    <cpat-poam-chat class="w-full" [poamId]="poam.poamId" [userId]="user?.userId" />
+  @if (poam()?.poamId && poam().poamId !== 'ADDPOAM') {
+    <cpat-poam-chat class="w-full" [poamId]="poam().poamId" [userId]="user()?.userId" />
   }
 </p-dialog>
 
