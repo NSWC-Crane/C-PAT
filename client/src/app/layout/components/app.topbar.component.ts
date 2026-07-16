@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, DOCUMENT, ElementRef, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, OnDestroy, OnInit, Renderer2, afterNextRender, booleanAttribute, computed, inject, input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -17,7 +18,7 @@ import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { Popover } from 'primeng/popover';
 import { StyleClass } from 'primeng/styleclass';
 import { TooltipModule } from 'primeng/tooltip';
-import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, filter, map, merge, of, switchMap, take, takeUntil } from 'rxjs';
+import { Observable, catchError, debounceTime, distinctUntilChanged, filter, map, merge, of, switchMap, take } from 'rxjs';
 import { NotificationsPanelComponent } from '../../common/components/notifications/notifications-popover/notifications-popover.component';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { AppSearchComponent } from '../../common/components/search/app.search.component';
@@ -103,7 +104,7 @@ import { PayloadService } from '../../common/services/setPayload.service';
           </li>
         }
         <li>
-          <p-overlaybadge styleClass="!outline-0 opacity-80 !mr-px !mt-px" badgeSize="small" [value]="notificationCount > 0 ? notificationCount.toString() : '0'">
+          <p-overlaybadge styleClass="!outline-0 opacity-80 !mr-px !mt-px" badgeSize="small" [value]="notificationCount()! > 0 ? notificationCount()!.toString() : '0'">
             <button pButton class="topbar-item overflow-visible" [text]="true" (click)="op.toggle($event)" (keyup.enter)="op.toggle($event)"><i class="pi pi-bell" pButtonIcon></i></button>
           </p-overlaybadge>
           <p-popover #op class="overlay" [dismissable]="true">
@@ -121,7 +122,7 @@ import { PayloadService } from '../../common/services/setPayload.service';
     </div>
   </div>`,
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [BadgeModule, OverlayBadgeModule, AppSearchComponent, FormsModule, StyleClass, RouterModule, ButtonModule, AppConfiguratorComponent, Popover, TooltipModule, NotificationsPanelComponent]
 })
 export class AppTopBarComponent implements OnInit, OnDestroy {
@@ -133,13 +134,13 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
   private readonly payloadService = inject(PayloadService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly showConfigurator = input(true, { transform: booleanAttribute });
   scrollListener: VoidFunction | null = null;
   private readonly window: Window;
-  notificationCount: number | null = null;
+  readonly notificationCount = signal<number | null>(null);
   readonly docsDisabled: boolean;
-  private readonly destroy$ = new Subject<void>();
   readonly user$ = inject(AuthService).user$;
   readonly basePath: string;
   constructor() {
@@ -172,15 +173,15 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
             switchMap(() => this.fetchNotificationCount())
           )
         ),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (count) => {
-          this.notificationCount = count > 0 ? count : null;
+          this.notificationCount.set(count > 0 ? count : null);
         },
         error: (error) => {
           console.error('Error getting notification count:', error);
-          this.notificationCount = null;
+          this.notificationCount.set(null);
         }
       });
   }
@@ -264,7 +265,5 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.unbindScrollListener();
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from 'vitest';
 import { PLATFORM_ID, ElementRef, Renderer2, signal } from '@angular/core';
-import { Router, Event, ActivatedRoute } from '@angular/router';
+import { Router, Event, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { AppTopBarComponent } from './app.topbar.component';
 import { AppConfigService } from '../services/appconfigservice';
@@ -123,7 +123,7 @@ describe('AppTopBarComponent', () => {
     });
 
     it('should initialize notificationCount as null', () => {
-      expect(component.notificationCount).toBeNull();
+      expect(component.notificationCount()).toBeNull();
     });
 
     it('should initialize scrollListener as null', () => {
@@ -161,7 +161,7 @@ describe('AppTopBarComponent', () => {
 
       vi.advanceTimersByTime(500);
 
-      expect(component.notificationCount).toBe(5);
+      expect(component.notificationCount()).toBe(5);
       vi.useRealTimers();
     });
 
@@ -172,7 +172,7 @@ describe('AppTopBarComponent', () => {
 
       vi.advanceTimersByTime(500);
 
-      expect(component.notificationCount).toBeNull();
+      expect(component.notificationCount()).toBeNull();
       vi.useRealTimers();
     });
 
@@ -207,7 +207,7 @@ describe('AppTopBarComponent', () => {
 
       vi.advanceTimersByTime(500);
 
-      expect(component.notificationCount).toBeNull();
+      expect(component.notificationCount()).toBeNull();
       consoleSpy.mockRestore();
       vi.useRealTimers();
     });
@@ -221,7 +221,7 @@ describe('AppTopBarComponent', () => {
 
       vi.advanceTimersByTime(500);
 
-      expect(component.notificationCount).toBe(42);
+      expect(component.notificationCount()).toBe(42);
       vi.useRealTimers();
     });
 
@@ -232,7 +232,7 @@ describe('AppTopBarComponent', () => {
 
       vi.advanceTimersByTime(500);
 
-      expect(component.notificationCount).toBe(3);
+      expect(component.notificationCount()).toBe(3);
       vi.useRealTimers();
     });
 
@@ -243,7 +243,7 @@ describe('AppTopBarComponent', () => {
 
       vi.advanceTimersByTime(500);
 
-      expect(component.notificationCount).toBe(7);
+      expect(component.notificationCount()).toBe(7);
       vi.useRealTimers();
     });
 
@@ -254,7 +254,7 @@ describe('AppTopBarComponent', () => {
 
       vi.advanceTimersByTime(500);
 
-      expect(component.notificationCount).toBeNull();
+      expect(component.notificationCount()).toBeNull();
       vi.useRealTimers();
     });
 
@@ -265,7 +265,7 @@ describe('AppTopBarComponent', () => {
 
       vi.advanceTimersByTime(500);
 
-      expect(component.notificationCount).toBeNull();
+      expect(component.notificationCount()).toBeNull();
       vi.useRealTimers();
     });
   });
@@ -345,17 +345,19 @@ describe('AppTopBarComponent', () => {
   });
 
   describe('ngOnDestroy', () => {
-    it('should complete destroy$ subject', () => {
+    it('should stop the notification stream after destroy', () => {
+      vi.useFakeTimers();
       fixture.detectChanges();
+      vi.advanceTimersByTime(500);
+      mockNotificationService.getUnreadNotificationCount.mockClear();
 
-      const destroySubject = (component as any).destroy$ as Subject<void>;
-      const completeSpy = vi.spyOn(destroySubject, 'complete');
-      const nextSpy = vi.spyOn(destroySubject, 'next');
+      fixture.destroy();
 
-      component.ngOnDestroy();
+      routerEventsSubject.next(new NavigationEnd(1, '/a', '/a'));
+      vi.advanceTimersByTime(500);
 
-      expect(nextSpy).toHaveBeenCalled();
-      expect(completeSpy).toHaveBeenCalled();
+      expect(mockNotificationService.getUnreadNotificationCount).not.toHaveBeenCalled();
+      vi.useRealTimers();
     });
 
     it('should unbind scroll listener if bound', () => {
