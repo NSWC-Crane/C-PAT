@@ -9,7 +9,8 @@
 */
 
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -22,7 +23,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { EMPTY, Observable, Subject, catchError, map, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { EMPTY, Observable, catchError, map, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { ImportService } from '../../import-processing/import.service';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
@@ -32,28 +33,28 @@ import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
   templateUrl: './nessus-plugin-mapping.component.html',
   styleUrls: ['./nessus-plugin-mapping.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule, TooltipModule, DatePipe]
 })
-export class NessusPluginMappingComponent implements OnInit, OnDestroy {
+export class NessusPluginMappingComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly nessusPluginMappingService = inject(NessusPluginMappingService);
   private readonly importService = inject(ImportService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly dt = viewChild.required<Table>('dt');
-  tableData: any[] = [];
-  loading: boolean = true;
+  readonly tableData = signal<any[]>([]);
+  readonly loading = signal(true);
   totalRecords: number = 0;
   cols: any[] = [];
-  searchValue: string = '';
-  isUpdating: boolean = false;
-  updateProgress: number = 0;
-  nessusPluginsMapped: string | null = null;
-  estimatedTimeRemaining: string = '';
+  readonly searchValue = signal('');
+  readonly isUpdating = signal(false);
+  readonly updateProgress = signal(0);
+  readonly nessusPluginsMapped = signal<string | null>(null);
+  readonly estimatedTimeRemaining = signal('');
   private expectedTotalRecords: number = 20000;
   private readonly batchSize: number = 5000;
   private readonly estimatedRequestTime: number = 15000;
-  private readonly destroy$ = new Subject<void>();
 
   ngOnInit() {
     this.initColumns();
@@ -78,7 +79,7 @@ export class NessusPluginMappingComponent implements OnInit, OnDestroy {
   }
 
   getIAVTableData(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.nessusPluginMappingService
       .getIAVTableData()
       .pipe(
@@ -88,7 +89,7 @@ export class NessusPluginMappingComponent implements OnInit, OnDestroy {
           }
 
           if (response.nessusPluginsMapped !== undefined) {
-            this.nessusPluginsMapped = response.nessusPluginsMapped;
+            this.nessusPluginsMapped.set(response.nessusPluginsMapped);
           }
 
           return response.tableData.map((item) => ({
@@ -99,7 +100,7 @@ export class NessusPluginMappingComponent implements OnInit, OnDestroy {
           }));
         }),
         tap((data) => {
-          this.tableData = data;
+          this.tableData.set(data);
           this.totalRecords = data.length;
         }),
         catchError((error) => {
@@ -111,39 +112,39 @@ export class NessusPluginMappingComponent implements OnInit, OnDestroy {
 
           return EMPTY;
         }),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
-        complete: () => (this.loading = false)
+        complete: () => this.loading.set(false)
       });
   }
 
   updatePluginIds(): void {
-    this.isUpdating = true;
-    this.updateProgress = 0;
-    this.estimatedTimeRemaining = '';
+    this.isUpdating.set(true);
+    this.updateProgress.set(0);
+    this.estimatedTimeRemaining.set('');
     const startTime = Date.now();
 
     const batchProcess$ = this.processBatches().pipe(
       tap(() => {
         const actualProgress = Math.min(90, Math.round((Date.now() - startTime) / 1000));
 
-        this.updateProgress = actualProgress;
+        this.updateProgress.set(actualProgress);
         const estimatedTotal = this.estimatedRequestTime * (this.expectedTotalRecords / this.batchSize);
 
-        this.estimatedTimeRemaining = this.formatTime(estimatedTotal - (Date.now() - startTime));
+        this.estimatedTimeRemaining.set(this.formatTime(estimatedTotal - (Date.now() - startTime)));
       }),
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     );
 
     const progressUpdates$ = timer(0, 100).pipe(
       takeUntil(batchProcess$),
       tap(() => {
-        if (this.updateProgress < 90) {
-          this.updateProgress += 1;
+        if (this.updateProgress() < 90) {
+          this.updateProgress.update((value) => value + 1);
           const estimatedTotal = this.estimatedRequestTime * (this.expectedTotalRecords / this.batchSize);
 
-          this.estimatedTimeRemaining = this.formatTime((estimatedTotal * (90 - this.updateProgress)) / 90);
+          this.estimatedTimeRemaining.set(this.formatTime((estimatedTotal * (90 - this.updateProgress())) / 90));
         }
       })
     );
@@ -157,12 +158,12 @@ export class NessusPluginMappingComponent implements OnInit, OnDestroy {
           summary: 'Error',
           detail: `Failed to update plugin IDs: ${getErrorMessage(error)}`
         });
-        this.isUpdating = false;
+        this.isUpdating.set(false);
       },
       complete: () => {
-        this.isUpdating = false;
-        this.updateProgress = 100;
-        this.estimatedTimeRemaining = '';
+        this.isUpdating.set(false);
+        this.updateProgress.set(100);
+        this.estimatedTimeRemaining.set('');
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
@@ -288,7 +289,7 @@ export class NessusPluginMappingComponent implements OnInit, OnDestroy {
 
   clear(table: Table) {
     table.clear();
-    this.searchValue = '';
+    this.searchValue.set('');
   }
 
   private formatTime(milliseconds: number): string {
@@ -297,10 +298,5 @@ export class NessusPluginMappingComponent implements OnInit, OnDestroy {
     const remainingSeconds = seconds % 60;
 
     return `${minutes}m ${remainingSeconds}s`;
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }

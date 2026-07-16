@@ -8,17 +8,17 @@
 !##########################################################################
 -->
 
-@if (isUpdating) {
-  <p-progressbar [value]="updateProgress" />
+@if (isUpdating()) {
+  <p-progressbar [value]="updateProgress()" />
 }
 
-@if (isUpdating) {
+@if (isUpdating()) {
   <p-message severity="warn" class="mb-6 w-full">
     <div class="flex items-center justify-between">
       <span>
         Warning: Please do not close or reload the page while the update is in progress.
-        @if (estimatedTimeRemaining) {
-          <span> Estimated time remaining: {{ estimatedTimeRemaining }} </span>
+        @if (estimatedTimeRemaining()) {
+          <span> Estimated time remaining: {{ estimatedTimeRemaining() }} </span>
         }
       </span>
     </div>
@@ -29,11 +29,11 @@
   <p-table
     #dt
     [columns]="cols"
-    [value]="tableData"
+    [value]="tableData()"
     dataKey="iav"
     [rows]="100"
     [rowsPerPageOptions]="[25, 50, 100]"
-    [loading]="loading"
+    [loading]="loading()"
     [paginator]="true"
     [scrollable]="true"
     scrollHeight="flex"
@@ -47,11 +47,11 @@
           </p-inputicon>
           <input pInputText type="text" [(ngModel)]="searchValue" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Search..." />
         </p-iconfield>
-        <button pButton class="ml-4" (click)="updatePluginIds()" #mapButton [outlined]="true" [disabled]="isUpdating"><i class="pi pi-sync" pButtonIcon></i><span pButtonLabel>Map Plugins to IAV</span></button>
-        @if (nessusPluginsMapped) {
+        <button pButton class="ml-4" (click)="updatePluginIds()" #mapButton [outlined]="true" [disabled]="isUpdating()"><i class="pi pi-sync" pButtonIcon></i><span pButtonLabel>Map Plugins to IAV</span></button>
+        @if (nessusPluginsMapped()) {
           <div class="text-color-secondary ml-4 flex items-center gap-2 text-sm">
             <i class="pi pi-clock"></i>
-            <span>Nessus Plugins Mapped: {{ nessusPluginsMapped | date: 'medium' }}</span>
+            <span>Nessus Plugins Mapped: {{ nessusPluginsMapped() | date: 'medium' }}</span>
           </div>
         }
         <button pButton class="ml-auto" (click)="clear(dt)" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Clear filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
