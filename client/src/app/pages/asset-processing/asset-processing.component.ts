@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -23,7 +24,7 @@ import { Table, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, forkJoin } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { SubSink } from 'subsink';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { SharedService } from '../../common/services/shared.service';
@@ -53,7 +54,7 @@ interface AssetEntry {
   templateUrl: './asset-processing.component.html',
   styleUrls: ['./asset-processing.component.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AssetComponent,
     ButtonModule,
@@ -83,50 +84,47 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
 
   private readonly assetTable = viewChild.required<Table>('assetTable');
   public assetLabel: any[] = [];
-  chartData: any;
+  readonly chartData = signal<any>(undefined);
   chartOptions: any;
   cols!: Column[];
   exportColumns!: Column[];
-  data: AssetEntry[] = [];
-  filterValue: string = '';
-  assets: AssetEntry[] = [];
-  asset: AssetEntry = {
+  readonly data = signal<AssetEntry[]>([]);
+  readonly filterValue = signal('');
+  readonly assets = signal<AssetEntry[]>([]);
+  readonly asset = signal<AssetEntry>({
     assetId: '',
     assetName: '',
     description: '',
     ipAddress: '',
     macAddress: ''
-  };
-  selectedCollection: any;
-  assetDialogVisible: boolean = false;
-  selectedAssets: AssetEntry[] = [];
-  collectionType: string;
-  originCollectionId: number;
-  protected accessLevel: number;
-  user: any;
-  payload: any;
-  private readonly payloadSubscription: Subscription[] = [];
+  });
+  readonly selectedCollection = signal<any>(undefined);
+  readonly assetDialogVisible = signal(false);
+  readonly selectedAssets = signal<AssetEntry[]>([]);
+  readonly collectionType = signal<string>('');
+  readonly originCollectionId = signal<number | undefined>(undefined);
+  protected readonly accessLevel = signal<number>(0);
+  readonly user = this.setPayloadService.user;
+  readonly payload = this.setPayloadService.payload;
+  private readonly destroyRef = inject(DestroyRef);
   private readonly subs = new SubSink();
-  private readonly subscriptions = new Subscription();
 
   constructor() {
     this.initializeChartOptions();
   }
 
   ngOnInit() {
-    this.subscriptions.add(
-      this.sharedService.selectedCollection.subscribe((collectionId) => {
-        this.selectedCollection = collectionId;
-      })
-    );
+    this.sharedService.selectedCollection.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((collectionId) => {
+      this.selectedCollection.set(collectionId);
+    });
 
     this.collectionsService.getCollectionBasicList().subscribe({
       next: (data) => {
-        const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection);
+        const selectedCollectionData = data.find((collection: any) => collection.collectionId === this.selectedCollection());
 
         if (selectedCollectionData) {
-          this.collectionType = selectedCollectionData.collectionType;
-          this.originCollectionId = selectedCollectionData.originCollectionId;
+          this.collectionType.set(selectedCollectionData.collectionType);
+          this.originCollectionId.set(selectedCollectionData.originCollectionId);
         }
       },
       error: (error) => {
@@ -135,7 +133,7 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
           summary: 'Error',
           detail: `An error occurred: ${getErrorMessage(error)}`
         });
-        this.collectionType = '';
+        this.collectionType.set('');
       }
     });
 
@@ -174,27 +172,21 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   }
 
   setPayload() {
-    this.payloadSubscription.push(
-      this.setPayloadService.user$.subscribe((user) => {
-        this.user = user;
-      }),
-      this.setPayloadService.payload$.subscribe((payload) => {
-        this.payload = payload;
-      }),
-      this.setPayloadService.accessLevel$.subscribe((level) => {
-        this.accessLevel = level;
+    this.setPayloadService.accessLevel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((level) => {
+      this.accessLevel.set(level);
 
-        if (this.accessLevel > 0) {
-          this.getAssetData();
-        }
-      })
-    );
+      if (level > 0) {
+        this.getAssetData();
+      }
+    });
   }
 
   getAssetData() {
-    if (!this.payload) return;
+    const payload = this.payload();
 
-    this.subs.sink = forkJoin([this.assetService.getAssetsByCollection(this.user.lastCollectionAccessedId), this.assetService.getCollectionAssetLabel(this.payload.lastCollectionAccessedId)]).subscribe(
+    if (!payload) return;
+
+    this.subs.sink = forkJoin([this.assetService.getAssetsByCollection(this.user().lastCollectionAccessedId), this.assetService.getCollectionAssetLabel(payload.lastCollectionAccessedId)]).subscribe(
       ([assetData, assetLabelResponse]: any) => {
         if (!Array.isArray(assetData)) {
           console.error('Unexpected response format:', assetData);
@@ -211,13 +203,15 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
         this.assetLabel = assetLabelResponse.assetLabel;
         this.setLabelChartData(this.assetLabel);
 
-        this.data = (assetData as AssetEntry[])
+        const sorted = (assetData as AssetEntry[])
           .map((asset) => ({
             ...asset,
             assetId: Number(asset.assetId)
           }))
           .sort((a, b) => a.assetId - b.assetId);
-        this.assets = this.data;
+
+        this.data.set(sorted);
+        this.assets.set(sorted);
       },
       (error) => {
         this.messageService.add({
@@ -260,18 +254,18 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
       assetTable.clear();
     }
 
-    this.filterValue = '';
-    this.data = [...this.assets];
+    this.filterValue.set('');
+    this.data.set([...this.assets()]);
   }
 
   setLabelChartData(assetLabel: any[]) {
-    this.chartData = {
+    this.chartData.set({
       labels: ['Assets'],
       datasets: assetLabel.map((item) => ({
         label: item.label,
         data: [item.labelCount]
       }))
-    };
+    });
   }
 
   exportChart() {
@@ -287,51 +281,49 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
   }
 
   setAsset(assetId: number) {
-    const selectedData = this.data.find((asset) => asset.assetId === assetId);
+    const selectedData = this.data().find((asset) => asset.assetId === assetId);
 
     if (selectedData) {
-      this.asset = { ...selectedData };
-      this.assetDialogVisible = true;
+      this.asset.set({ ...selectedData });
+      this.assetDialogVisible.set(true);
     } else {
-      this.asset = {
+      this.asset.set({
         assetId: '',
         assetName: '',
         description: '',
         ipAddress: '',
         macAddress: ''
-      };
+      });
     }
   }
 
   addAsset() {
-    this.asset = {
+    this.asset.set({
       assetId: 'ADDASSET',
       assetName: '',
       description: '',
       ipAddress: '',
       macAddress: ''
-    };
-    this.assetDialogVisible = true;
+    });
+    this.assetDialogVisible.set(true);
   }
 
   resetData() {
-    this.asset = {
+    this.asset.set({
       assetId: '',
       assetName: '',
       description: '',
       ipAddress: '',
       macAddress: ''
-    };
+    });
     this.getAssetData();
   }
 
   closeAssetDialog() {
-    this.assetDialogVisible = false;
+    this.assetDialogVisible.set(false);
   }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
-    this.subscriptions.unsubscribe();
-    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
   }
 }
