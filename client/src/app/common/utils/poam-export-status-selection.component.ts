@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -36,7 +36,7 @@ interface StatusOption {
 
       <div class="flex justify-between mt-4">
         <button pButton severity="secondary" [outlined]="true" [rounded]="true" (click)="cancel()"><span pButtonLabel>Cancel</span></button>
-        <button pButton severity="primary" [rounded]="true" (click)="confirm()" [disabled]="selectedStatuses.length === 0"><span pButtonLabel>Confirm</span></button>
+        <button pButton severity="primary" [rounded]="true" (click)="confirm()" [disabled]="selectedStatuses().length === 0"><span pButtonLabel>Confirm</span></button>
       </div>
     </div>
   `,
@@ -59,12 +59,12 @@ export class PoamExportStatusSelectionComponent {
     { label: 'Submitted', value: 'submitted' }
   ];
 
-  selectedStatuses: string[] = [];
+  readonly selectedStatuses = signal<string[]>([]);
 
   constructor() {
     const defaultExcluded = ['draft', 'closed'];
 
-    this.selectedStatuses = this.allStatusOptions.filter((status) => !defaultExcluded.includes(status.value)).map((status) => status.value);
+    this.selectedStatuses.set(this.allStatusOptions.filter((status) => !defaultExcluded.includes(status.value)).map((status) => status.value));
   }
 
   cancel() {
@@ -72,6 +72,6 @@ export class PoamExportStatusSelectionComponent {
   }
 
   confirm() {
-    this.ref.close(this.selectedStatuses);
+    this.ref.close(this.selectedStatuses());
   }
 }
