@@ -14,11 +14,11 @@
     max-height: calc(100vh - 11rem);
     overflow: hidden;
   }
-}
 
-::ng-deep .p-dialog {
-  max-height: 85vh;
-  overflow-y: auto;
+  .p-dialog {
+    max-height: 85vh;
+    overflow-y: auto;
+  }
 }
 
 :host ::ng-deep {
@@ -39,6 +39,17 @@
       min-width: 200px;
       z-index: 1000;
     }
+  }
+
+  .custom-multiselect {
+    position: absolute !important;
+    visibility: hidden;
+    pointer-events: none;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    top: 3rem;
+    right: -1rem;
   }
 }
 
@@ -63,11 +74,8 @@
   margin-bottom: 1rem;
 
   .right-buttons {
+    position: relative;
     display: flex;
     gap: 0.5rem;
-  }
-
-  .right-buttons {
-    position: relative;
   }
 }
