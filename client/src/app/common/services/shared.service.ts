@@ -9,8 +9,9 @@
 */
 
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, throwError } from 'rxjs';
+import { Injectable, inject, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { Observable, Subject, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
@@ -19,8 +20,9 @@ export class SharedService {
 
   private readonly cpatApiBase = CPAT.Env.apiBase;
   private readonly STIGMANAGER_URL = CPAT.Env.stigman.apiUrl;
-  private readonly _selectedCollection = new BehaviorSubject<any>(null);
-  public readonly selectedCollection = this._selectedCollection.asObservable();
+  private readonly _selectedCollection = signal<any>(null);
+  public readonly selectedCollectionSig = this._selectedCollection.asReadonly();
+  public readonly selectedCollection = toObservable(this._selectedCollection);
   private readonly _startTour = new Subject<void>();
   public readonly startTour$ = this._startTour.asObservable();
 
@@ -39,7 +41,7 @@ export class SharedService {
   }
 
   public setSelectedCollection(collection: number): void {
-    this._selectedCollection.next(collection);
+    this._selectedCollection.set(collection);
   }
 
   public startTour(): void {

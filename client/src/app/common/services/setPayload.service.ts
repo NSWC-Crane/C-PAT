@@ -8,8 +8,9 @@
 !##########################################################################
 */
 
-import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, filter } from 'rxjs';
+import { Injectable, inject, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs';
 import { Permission } from '../../common/models/permission.model';
 import { Users } from '../../common/models/users.model';
 import { AuthService } from '../../core/auth/services/auth.service';
@@ -24,15 +25,20 @@ interface Payload extends Users {
 export class PayloadService {
   private readonly authService = inject(AuthService);
 
-  private readonly userSubject = new BehaviorSubject<any>(null);
-  private readonly payloadSubject = new BehaviorSubject<any>(null);
-  private readonly accessLevelSubject = new BehaviorSubject<number>(0);
-  private readonly isAdminSubject = new BehaviorSubject<boolean>(false);
+  private readonly _user = signal<any>(null);
+  private readonly _payload = signal<any>(null);
+  private readonly _accessLevel = signal<number>(0);
+  private readonly _isAdmin = signal<boolean>(false);
 
-  user$ = this.userSubject.asObservable();
-  payload$ = this.payloadSubject.asObservable();
-  accessLevel$ = this.accessLevelSubject.asObservable();
-  isAdmin$ = this.isAdminSubject.asObservable();
+  readonly user = this._user.asReadonly();
+  readonly payload = this._payload.asReadonly();
+  readonly accessLevel = this._accessLevel.asReadonly();
+  readonly isAdmin = this._isAdmin.asReadonly();
+
+  user$ = toObservable(this._user);
+  payload$ = toObservable(this._payload);
+  accessLevel$ = toObservable(this._accessLevel);
+  isAdmin$ = toObservable(this._isAdmin);
 
   constructor() {
     this.authService.user$.pipe(filter((user): user is Users => !!user?.userId)).subscribe({
@@ -57,10 +63,10 @@ export class PayloadService {
           }
         }
 
-        this.userSubject.next(user);
-        this.payloadSubject.next(payload);
-        this.accessLevelSubject.next(accessLevel);
-        this.isAdminSubject.next(user.isAdmin || false);
+        this._user.set(user);
+        this._payload.set(payload);
+        this._accessLevel.set(accessLevel);
+        this._isAdmin.set(user.isAdmin || false);
       },
       error: (error) => {
         console.error('An error occurred:', error);

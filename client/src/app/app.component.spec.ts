@@ -11,17 +11,15 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { Subject, of } from 'rxjs';
+import { Subject } from 'rxjs';
 import { AppComponent } from './app.component';
 import { AuthService } from './core/auth/services/auth.service';
-import { SharedService } from './common/services/shared.service';
 import { InactivityService } from './core/auth/services/inactivity.service';
 
 describe('AppComponent', () => {
   let component: AppComponent;
   let fixture: ComponentFixture<AppComponent>;
   let mockAuthService: any;
-  let mockSharedService: any;
   let mockInactivityService: any;
   let authStateSubject: Subject<{ isAuthenticatedStigman: boolean; isAuthenticatedCpat: boolean }>;
 
@@ -31,10 +29,6 @@ describe('AppComponent', () => {
     mockAuthService = {
       authState$: authStateSubject.asObservable(),
       handleAuthFlow: vi.fn()
-    };
-
-    mockSharedService = {
-      getApiConfig: vi.fn().mockReturnValue(of({ classification: 'U' }))
     };
 
     mockInactivityService = {
@@ -47,7 +41,6 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
-        { provide: SharedService, useValue: mockSharedService },
         { provide: InactivityService, useValue: mockInactivityService }
       ],
       schemas: [NO_ERRORS_SCHEMA]
@@ -61,23 +54,10 @@ describe('AppComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('initial state', () => {
-    it('should initialize classification as undefined', () => {
-      expect(component.classification).toBeUndefined();
-    });
-  });
-
   describe('ngOnInit', () => {
     it('should subscribe to authState$', async () => {
       component.ngOnInit();
       expect(component['authSubscription']).toBeDefined();
-    });
-
-    it('should call getApiConfig once fully authenticated', async () => {
-      component.ngOnInit();
-      authStateSubject.next({ isAuthenticatedStigman: true, isAuthenticatedCpat: true });
-      await Promise.resolve();
-      expect(mockSharedService.getApiConfig).toHaveBeenCalled();
     });
   });
 
@@ -121,46 +101,6 @@ describe('AppComponent', () => {
       authStateSubject.next(fullyAuthenticated);
       await Promise.resolve();
       expect(mockInactivityService.startMonitoring).not.toHaveBeenCalled();
-    });
-
-    it('should call sharedService.getApiConfig', async () => {
-      component.ngOnInit();
-      authStateSubject.next(fullyAuthenticated);
-      await Promise.resolve();
-      expect(mockSharedService.getApiConfig).toHaveBeenCalled();
-    });
-
-    it('should set classification from valid api config', async () => {
-      mockSharedService.getApiConfig.mockReturnValue(of({ classification: 'S' }));
-      component.ngOnInit();
-      authStateSubject.next(fullyAuthenticated);
-      await Promise.resolve();
-      expect(component.classification).toBeDefined();
-      expect(component.classification?.classificationText).toBe('SECRET');
-    });
-
-    it('should set classification to UNCLASSIFIED for U', async () => {
-      mockSharedService.getApiConfig.mockReturnValue(of({ classification: 'U' }));
-      component.ngOnInit();
-      authStateSubject.next(fullyAuthenticated);
-      await Promise.resolve();
-      expect(component.classification?.classificationText).toBe('UNCLASSIFIED');
-    });
-
-    it('should not set classification when api config lacks classification key', async () => {
-      mockSharedService.getApiConfig.mockReturnValue(of({ someOtherKey: 'value' }));
-      component.ngOnInit();
-      authStateSubject.next(fullyAuthenticated);
-      await Promise.resolve();
-      expect(component.classification).toBeUndefined();
-    });
-
-    it('should not set classification when api config is null', async () => {
-      mockSharedService.getApiConfig.mockReturnValue(of(null));
-      component.ngOnInit();
-      authStateSubject.next(fullyAuthenticated);
-      await Promise.resolve();
-      expect(component.classification).toBeUndefined();
     });
   });
 
