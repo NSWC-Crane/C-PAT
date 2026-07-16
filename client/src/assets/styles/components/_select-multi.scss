@@ -1,0 +1,129 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+$cpat-cb-width: var(--p-checkbox-width, 1.25rem);
+$cpat-cb-height: var(--p-checkbox-height, 1.25rem);
+$cpat-cb-icon-size: var(--p-checkbox-icon-size, 0.875rem);
+$cpat-cb-radius: var(--p-checkbox-border-radius, var(--p-content-border-radius, 4px));
+$cpat-cb-border: var(--p-checkbox-border-color, var(--p-form-field-border-color, var(--p-content-border-color)));
+$cpat-cb-bg: var(--p-checkbox-background, var(--p-form-field-background, transparent));
+$cpat-cb-hover-border: var(--p-checkbox-hover-border-color, var(--p-form-field-hover-border-color, var(--p-primary-color)));
+$cpat-cb-checked-bg: var(--p-checkbox-checked-background, var(--p-primary-color));
+$cpat-cb-checked-border: var(--p-checkbox-checked-border-color, var(--p-primary-color));
+$cpat-cb-check-color: var(--p-checkbox-icon-checked-color, var(--p-primary-contrast-color, #fff));
+$cpat-cb-inset: calc((#{$cpat-cb-width} - #{$cpat-cb-icon-size}) / 2);
+$cpat-cb-transition: var(--p-checkbox-transition-duration, 0.2s);
+
+.p-select-option:has(> .p-select-option-check-icon, > .p-select-option-blank-icon) {
+  > .p-select-option-check-icon,
+  > .p-select-option-blank-icon {
+    box-sizing: border-box;
+    width: $cpat-cb-width;
+    height: $cpat-cb-height;
+    padding: $cpat-cb-inset;
+    margin-inline-start: 0;
+    margin-inline-end: 0.5rem;
+    border: 1px solid $cpat-cb-border;
+    border-radius: $cpat-cb-radius;
+    background: $cpat-cb-bg;
+    color: $cpat-cb-check-color;
+    transition:
+      background $cpat-cb-transition,
+      border-color $cpat-cb-transition;
+  }
+
+  &[aria-selected='true'] > .p-select-option-check-icon {
+    border-color: $cpat-cb-checked-border;
+    background: $cpat-cb-checked-bg;
+  }
+
+  &:hover > .p-select-option-check-icon,
+  &:hover > .p-select-option-blank-icon {
+    border-color: $cpat-cb-hover-border;
+  }
+}
+
+.p-select-header:has(> .cpat-select-all) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  > *:not(.cpat-select-all) {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+.cpat-select-all {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+
+  &[data-disabled='true'] {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  &:hover .cpat-select-all-box {
+    border-color: $cpat-cb-hover-border;
+  }
+}
+
+.cpat-select-all-label {
+  font-size: var(--p-select-option-font-size, inherit);
+  font-weight: var(--p-select-option-font-weight, inherit);
+  color: var(--p-select-option-color, inherit);
+}
+
+.cpat-select-all-box {
+  position: relative;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: $cpat-cb-width;
+  height: $cpat-cb-height;
+  border: 1px solid $cpat-cb-border;
+  border-radius: $cpat-cb-radius;
+  background: $cpat-cb-bg;
+  transition:
+    background $cpat-cb-transition,
+    border-color $cpat-cb-transition;
+
+  &[data-state='checked'],
+  &[data-state='indeterminate'] {
+    border-color: $cpat-cb-checked-border;
+    background: $cpat-cb-checked-bg;
+  }
+
+  &[data-state='checked']::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.32rem;
+    height: 0.6rem;
+    border: solid $cpat-cb-check-color;
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -60%) rotate(45deg);
+  }
+
+  &[data-state='indeterminate']::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.6rem;
+    height: 2px;
+    background: $cpat-cb-check-color;
+    transform: translate(-50%, -50%);
+  }
+}
