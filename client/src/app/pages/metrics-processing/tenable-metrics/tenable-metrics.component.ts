@@ -24,8 +24,9 @@ import { EMPTY, catchError, forkJoin, tap } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { MetricData } from '../../../common/models/metrics.model';
 import { TenableHighRiskAssetsTableComponent } from '../../import-processing/tenable-import/components/tenableHighRiskAssetsTable/tenableHighRiskAssetsTable.component';
-import { MetricsExportService } from '../metrics-export.service';
 import { SeveritySummary, TenableMetricsDataService } from './tenable-metrics.data.service';
+
+type TimeRange = '7' | '30' | '90' | 'all';
 
 interface VulnerabilityMetrics {
   poamApprovalPercentage: number;
@@ -89,29 +90,27 @@ interface CachedVulnerabilityData {
 export class TenableMetricsComponent implements OnInit, OnChanges {
   private readonly tenableData = inject(TenableMetricsDataService);
   private readonly messageService = inject(MessageService);
-  private readonly metricsExportService = inject(MetricsExportService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly collection = input<any>(undefined);
   readonly componentInit = output<TenableMetricsComponent>();
 
+  private readonly cachedVulnerabilityData = signal<CachedVulnerabilityData | null>(null);
+  private readonly cachedHosts = signal<any[]>([]);
+  private readonly cachedPoamMetrics = signal<number>(0);
+  private readonly cachedPastDueIAVs = signal<number>(0);
+  private readonly cachedCredentialScanPercentage = signal<number>(0);
+
   isLoading = signal<boolean>(true);
-  isGlobalExporting = signal<boolean>(false);
   collectionName = signal<string>('');
   originCollectionId = signal<string>('');
   findingsChartData = signal<any>(null);
   allFindingsChartData = signal<any>(null);
   findingsChartOptions = signal<any>(null);
-  lastObservedTimeRange = signal<'7' | '30' | '90' | 'all'>('30');
-  loadedRanges = signal<Set<'7' | '30' | '90' | 'all'>>(new Set());
-  hostTimeRange = signal<'7' | '30' | '90' | 'all'>('30');
+  lastObservedTimeRange = signal<TimeRange>('30');
+  loadedRanges = signal<Set<TimeRange>>(new Set());
+  hostTimeRange = signal<TimeRange>('30');
   now = signal(new Date());
-
-  private cachedVulnerabilityData = signal<CachedVulnerabilityData | null>(null);
-  private cachedHosts = signal<any[]>([]);
-  private cachedPoamMetrics = signal<number>(0);
-  private cachedPastDueIAVs = signal<number>(0);
-  private cachedCredentialScanPercentage = signal<number>(0);
 
   totalFindings30Days = computed(() => {
     const m = this.tenableMetrics();
@@ -242,7 +241,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       .subscribe();
   }
 
-  private loadTimeRangeData(timeRange: '7' | '30' | '90' | 'all') {
+  private loadTimeRangeData(timeRange: TimeRange) {
     const loadedRanges = this.loadedRanges();
 
     if (loadedRanges.has(timeRange)) {
@@ -344,11 +343,11 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     this.prepareChartsData();
   }
 
-  onLastObservedRangeChange(range: '7' | '30' | '90' | 'all') {
+  onLastObservedRangeChange(range: TimeRange) {
     this.loadTimeRangeData(range);
   }
 
-  onHostTimeRangeChange(range: '7' | '30' | '90' | 'all') {
+  onHostTimeRangeChange(range: TimeRange) {
     this.hostTimeRange.set(range);
     this.updateVPHOnly();
   }
@@ -378,7 +377,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     }));
   }
 
-  private getFilteredHostCount(timeRange: '7' | '30' | '90' | 'all'): number {
+  private getFilteredHostCount(timeRange: TimeRange): number {
     return this.tenableData.filterHostCount(this.cachedHosts(), timeRange);
   }
 
@@ -411,7 +410,14 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
 
     if (range === 'all') return '';
 
-    return range === '7' ? 'within 7 days' : range === '30' ? 'within 30 days' : 'within 90 days';
+    switch (range) {
+      case '7':
+        return 'within 7 days';
+      case '30':
+        return 'within 30 days';
+      default:
+        return 'within 90 days';
+    }
   }
 
   private prepareChartsData() {
@@ -566,7 +572,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     }
 
     const collectionName = this.collectionName();
-    const exportedDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const exportedDate = new Date().toISOString().split('T')[0].replaceAll('-', '');
     const rows = [];
     const opensLabel = selectedRange === 'all' ? 'Opens (Unique)' : `Opens (Unique - ${selectedRange} Days)`;
     const timeRangeNote = selectedRange === 'all' ? '' : ` (${selectedRange} days)`;
@@ -606,7 +612,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
             const cellStr = String(cell || '');
 
             if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
-              return `"${cellStr.replace(/"/g, '""')}"`;
+              return `"${cellStr.replaceAll('"', '""')}"`;
             }
 
             return cellStr;
@@ -631,38 +637,5 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     this.clearCache();
     this.loadAllData();
     this.now.set(new Date());
-  }
-
-  exportGlobalMetrics() {
-    if (this.isGlobalExporting()) return;
-
-    this.isGlobalExporting.set(true);
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Exporting',
-      detail: 'Compiling metrics for all collections. This may take a moment...'
-    });
-
-    this.metricsExportService
-      .exportGlobalMetrics()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.isGlobalExporting.set(false);
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Export Complete',
-            detail: 'Global metrics export downloaded successfully.'
-          });
-        },
-        error: (error) => {
-          this.isGlobalExporting.set(false);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Export Failed',
-            detail: `Error exporting global metrics: ${getErrorMessage(error)}`
-          });
-        }
-      });
   }
 }

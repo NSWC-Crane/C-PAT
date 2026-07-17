@@ -9,18 +9,19 @@
 */
 
 import { Injectable, inject } from '@angular/core';
-import { Observable, combineLatest, from, of } from 'rxjs';
+import { Observable, forkJoin, from, of } from 'rxjs';
 import { catchError, map, mergeMap, switchMap, toArray } from 'rxjs/operators';
-import { CollectionsBasicList } from '../../common/models/collections-basic.model';
-import { SharedService } from '../../common/services/shared.service';
-import { applyClassificationBanner } from '../../common/utils/classification-export.util';
-import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
-import { computeStigManagerMetrics } from './stigman-metrics/stigman-metrics.compute';
-import { TenableMetricsDataService } from './tenable-metrics/tenable-metrics.data.service';
+import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
+import { SharedService } from '../../../common/services/shared.service';
+import { applyClassificationBanner } from '../../../common/utils/classification-export.util';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { computeStigManagerMetrics } from '../stigman-metrics/stigman-metrics.compute';
+import { TenableMetricsDataService } from '../tenable-metrics/tenable-metrics.data.service';
 
 const FETCH_CONCURRENCY = 3;
 
 const METRICS_HEADERS: string[] = [
+  'Collection',
   'Year',
   'Month',
   'eMass H/W List - # of Total Assets',
@@ -30,23 +31,25 @@ const METRICS_HEADERS: string[] = [
   'eMass H/W List - # of Configuration Control Assets',
   'eMass H/W List - # of Long-Term Test Assets',
   'eMASS H/W List - # of Deep Storage Assets',
+  'Collection Type',
+  'Asset Quantity',
   'Inventory - ACAS Asset Coverage %',
   'Inventory - STIGMAN Asset Coverage %',
-  'Collection Type',
-  'Collection',
+  'ACAS Vulnerability Per Host (VPH) Score',
+  'ACAS Security End of Life Software Findings',
+  'STIG Compliance CORA Risk Score',
   'POAM Coverage (ACAS) % CAT I 30+ Days',
   'POAM Coverage (ACAS) % CAT II 30+ Days',
   'POAM Coverage (ACAS) % CAT III 30+ Days',
+  'POAM Coverage (ACAS) % CAT I 90+ Days',
+  'POAM Coverage (ACAS) % CAT II 90+ Days',
+  'POAM Coverage (ACAS) % CAT III 90+ Days',
   'POAM Coverage (STIGs) % CAT I (High/Criticals)',
   'POAM Coverage (STIGs) % CAT II (Mediums)',
-  'POAM Coverage (STIGs) % CAT III (Lows)',
-  'STIG Compliance CORA Risk Score',
-  'ACAS Security End of Life Software Findings',
-  'ACAS Vulnerability Per Host (VPH) Score',
-  'Asset Quantity'
+  'POAM Coverage (STIGs) % CAT III (Lows)'
 ];
 
-const COLUMN_LETTERS: string[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'];
+const COLUMN_LETTERS: string[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
 interface MetricsExportRow {
   year: number;
@@ -72,14 +75,14 @@ export class MetricsExportService {
   private readonly tenableData = inject(TenableMetricsDataService);
 
   exportGlobalMetrics(): Observable<void> {
-    return this.collectionsService.getCollectionBasicList().pipe(
+    return this.collectionsService.getCollections().pipe(
       switchMap((collections) => {
-        const indexed = collections.map((collection, index) => ({ collection, index }));
+        const indexed = collections.filter((c): c is CollectionsBasicList => !!c.collectionId).map((collection, index) => ({ collection, index }));
 
         return from(indexed).pipe(
           mergeMap(({ collection, index }) => this.buildRow(collection).pipe(map((row) => ({ row, index }))), FETCH_CONCURRENCY),
           toArray(),
-          map((results) => results.sort((a, b) => a.index - b.index).map((r) => r.row)),
+          map((results) => results.toSorted((a, b) => a.index - b.index).map((r) => r.row)),
           switchMap((rows) => from(this.writeWorkbook(rows)))
         );
       })
@@ -103,7 +106,7 @@ export class MetricsExportService {
   private buildStigRow(collection: CollectionsBasicList, base: MetricsExportRow): Observable<MetricsExportRow> {
     const originCollectionId = Number(collection.originCollectionId);
 
-    return combineLatest([
+    return forkJoin([
       this.sharedService.getCollectionSTIGSummaryFromSTIGMAN(originCollectionId),
       this.sharedService.getFindingsMetricsFromSTIGMAN(originCollectionId),
       this.sharedService.getCollectionMetricsSummaryFromSTIGMAN(originCollectionId),
@@ -181,7 +184,7 @@ export class MetricsExportService {
       const cell = headerRow.getCell(columnIndex + 1);
 
       cell.value = header;
-      cell.font = { bold: true };
+      cell.font = { ...cell.font, bold: true };
     });
     headerRow.commit();
 
@@ -196,36 +199,39 @@ export class MetricsExportService {
     const blob = new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     });
-    const exportedDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const exportedDate = new Date().toISOString().split('T')[0].replaceAll('-', '');
 
     this.downloadBlob(blob, `CPAT_GLOBAL_Metrics_${exportedDate}.xlsx`);
   }
 
   private setRowValues(excelRow: any, row: MetricsExportRow): void {
-    const values: (string | number | '')[] = [
-      row.year, // A
-      row.month, // B
-      '', // C eMASS Total Assets
-      '', // D eMASS Active Assets
-      '', // E eMASS Non-Compatible OS Assets
-      '', // F eMASS Vendor Locked Assets
-      '', // G eMASS Configuration Control Assets
-      '', // H eMASS Long-Term Test Assets
-      '', // I eMASS Deep Storage Assets
-      '', // J ACAS Asset Coverage %
-      '', // K STIGMAN Asset Coverage %
-      row.collectionType, // L
-      row.collectionName, // M
-      this.round(row.acasCatICompliance), // N
-      this.round(row.acasCatIICompliance), // O
-      this.round(row.acasCatIIICompliance), // P
-      this.round(row.stigCatICompliance), // Q
-      this.round(row.stigCatIICompliance), // R
-      this.round(row.stigCatIIICompliance), // S
-      this.round(row.coraRiskScore), // T
-      row.acasSeol, // U
-      this.round(row.vphScore), // V
-      row.assetQuantity // W
+    const values: (string | number)[] = [
+      row.collectionName, // A
+      row.year, // B
+      row.month, // C
+      '', // D eMASS Total Assets
+      '', // E eMASS Active Assets
+      '', // F eMASS Non-Compatible OS Assets
+      '', // G eMASS Vendor Locked Assets
+      '', // H eMASS Configuration Control Assets
+      '', // I eMASS Long-Term Test Assets
+      '', // J eMASS Deep Storage Assets
+      row.collectionType, // K
+      row.assetQuantity, // L
+      '', // M ACAS Asset Coverage %
+      '', // N STIGMAN Asset Coverage %
+      this.round(row.vphScore), // O
+      row.acasSeol, // P
+      this.round(row.coraRiskScore), // Q
+      this.round(row.acasCatICompliance), // R
+      this.round(row.acasCatIICompliance), // S
+      this.round(row.acasCatIIICompliance), // T
+      '', // U ACAS CAT I 90+ Days
+      '', // V ACAS CAT II 90+ Days
+      '', // W ACAS CAT III 90+ Days
+      this.round(row.stigCatICompliance), // X
+      this.round(row.stigCatIICompliance), // Y
+      this.round(row.stigCatIIICompliance) // Z
     ];
 
     values.forEach((value, columnIndex) => {

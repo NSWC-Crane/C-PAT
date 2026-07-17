@@ -32,7 +32,6 @@
     <div class="relative flex gap-1">
       <button pButton (click)="refreshMetrics()" [rounded]="true" [text]="true" severity="secondary" [disabled]="isLoading()" pTooltip="Refresh metrics" tooltipPosition="left"><i class="pi pi-refresh" pButtonIcon></i></button>
       <button pButton (click)="exportMetrics()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics" tooltipPosition="left" [disabled]="isLoading()"><i class="pi pi-external-link" pButtonIcon></i></button>
-      <button pButton (click)="exportGlobalMetrics()" [rounded]="true" pTooltip="Export Metrics (GLOBAL)" tooltipPosition="left" [loading]="isGlobalExporting()" [disabled]="isGlobalExporting()"><i class="pi pi-database" pButtonIcon></i></button>
     </div>
   </div>
 </div>

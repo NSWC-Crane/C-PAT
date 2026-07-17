@@ -29,6 +29,7 @@ import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { GlobalMetricsResult, GlobalMetricsService } from './global-metrics.service';
+import { MetricsExportService } from './metrics-export.service';
 
 const RING_OUTER_RADIUS = 62;
 const RING_INNER_RADIUS = 40;
@@ -43,6 +44,8 @@ const SEVERITY_COLORS: Record<string, string> = {
 
 const SOURCE_ORDER = ['STIG Manager', 'Tenable'];
 
+type FindingSeverity = 'high' | 'medium' | 'low';
+
 interface ComplianceRing {
   numeral: string;
   catLabel: string;
@@ -53,7 +56,7 @@ interface ComplianceRing {
 
 interface FindingCard {
   label: string;
-  severity: 'high' | 'medium' | 'low';
+  severity: FindingSeverity;
   stig: number | null;
   tenable: number | null;
   total: number;
@@ -74,6 +77,7 @@ export class GlobalMetricsComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);
   private readonly sharedService = inject(SharedService);
   private readonly globalMetricsService = inject(GlobalMetricsService);
+  private readonly metricsExportService = inject(MetricsExportService);
   private readonly messageService = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly load$ = new Subject<CollectionsBasicList[]>();
@@ -81,6 +85,7 @@ export class GlobalMetricsComponent implements OnInit {
   collections = signal<CollectionsBasicList[]>([]);
   selectedCollections = signal<CollectionsBasicList[]>([]);
   isLoading = signal<boolean>(false);
+  isGlobalExporting = signal<boolean>(false);
   progress = signal<{ loaded: number; total: number }>({ loaded: 0, total: 0 });
   result = signal<GlobalMetricsResult | null>(null);
   now = signal(new Date());
@@ -179,7 +184,7 @@ export class GlobalMetricsComponent implements OnInit {
 
     if (!stig && !tenable) return [];
 
-    const build = (label: string, severity: 'high' | 'medium' | 'low', catKey: 'catI' | 'catII' | 'catIII'): FindingCard => {
+    const build = (label: string, severity: FindingSeverity, catKey: 'catI' | 'catII' | 'catIII'): FindingCard => {
       const stigCount = stig ? stig.openFindings[catKey] : null;
       const tenableCount = tenable ? tenable.openFindings[catKey] : null;
       const total = (stigCount ?? 0) + (tenableCount ?? 0);
@@ -204,7 +209,16 @@ export class GlobalMetricsComponent implements OnInit {
     if (!stig) return [];
 
     const techPct = stig.techAssessed.total === 0 ? 0 : (stig.techAssessed.fully / stig.techAssessed.total) * 100;
-    const techSeverity: 'high' | 'medium' | 'low' = techPct <= 25 ? 'high' : techPct <= 75 ? 'medium' : 'low';
+
+    let techSeverity: FindingSeverity;
+
+    if (techPct <= 25) {
+      techSeverity = 'high';
+    } else if (techPct <= 75) {
+      techSeverity = 'medium';
+    } else {
+      techSeverity = 'low';
+    }
 
     return [
       {
@@ -294,7 +308,7 @@ export class GlobalMetricsComponent implements OnInit {
       return new Date(year, month - 1, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
     };
 
-    const seriesKeys = [...new Set(mttr.trend.map((item) => `${item.source}::${item.severity}`))].sort();
+    const seriesKeys = [...new Set(mttr.trend.map((item) => `${item.source}::${item.severity}`))].sort((a, b) => a.localeCompare(b));
     const lookup = new Map<string, number>();
 
     mttr.trend.forEach((item) => lookup.set(`${item.source}::${item.severity}::${periodLabel(item.period)}`, item.avgDays));
@@ -358,11 +372,13 @@ export class GlobalMetricsComponent implements OnInit {
       });
 
     this.collectionsService
-      .getCollectionBasicList()
+      .getCollections()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (collections) => {
-          const metricsCollections = (collections || []).filter((c) => !!c.originCollectionId && (c.collectionType === 'STIG Manager' || c.collectionType === 'Tenable'));
+          const metricsCollections: CollectionsBasicList[] = (collections || [])
+            .filter((c) => !!c.collectionId && !!c.originCollectionId && (c.collectionType === 'STIG Manager' || c.collectionType === 'Tenable'))
+            .map((c) => ({ ...c, collectionId: c.collectionId!, collectionName: c.collectionName ?? '' }));
 
           this.collections.set(metricsCollections);
           this.initializeDefaultSelection(metricsCollections);
@@ -403,6 +419,39 @@ export class GlobalMetricsComponent implements OnInit {
 
   refreshMetrics() {
     this.loadMetrics();
+  }
+
+  exportGlobalMetrics() {
+    if (this.isGlobalExporting()) return;
+
+    this.isGlobalExporting.set(true);
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Exporting',
+      detail: 'Compiling metrics for all collections. This may take a moment...'
+    });
+
+    this.metricsExportService
+      .exportGlobalMetrics()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isGlobalExporting.set(false);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Export Complete',
+            detail: 'Global metrics export downloaded successfully.'
+          });
+        },
+        error: (error) => {
+          this.isGlobalExporting.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Export Failed',
+            detail: `Error exporting global metrics: ${getErrorMessage(error)}`
+          });
+        }
+      });
   }
 
   getTagColor(collectionType: string | undefined): 'secondary' | 'success' | 'warn' | 'danger' | 'info' | undefined {

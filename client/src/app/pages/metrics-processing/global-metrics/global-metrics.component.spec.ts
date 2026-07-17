@@ -11,12 +11,13 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BehaviorSubject, Subject, of } from 'rxjs';
+import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { SharedService } from '../../../common/services/shared.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { GlobalMetricsResult, GlobalMetricsService, StigBreakdown, TenableBreakdown } from './global-metrics.service';
+import { MetricsExportService } from './metrics-export.service';
 import { GlobalMetricsComponent } from './global-metrics.component';
 
 beforeAll(() => {
@@ -81,6 +82,7 @@ describe('GlobalMetricsComponent', () => {
   let mockSharedService: any;
   let mockGlobalMetricsService: any;
   let mockMessageService: any;
+  let mockMetricsExportService: any;
   let progress$: Subject<{ loaded: number; total: number }>;
 
   const configure = (selectedCollectionId: number) => {
@@ -92,7 +94,8 @@ describe('GlobalMetricsComponent', () => {
         { provide: CollectionsService, useValue: mockCollectionsService },
         { provide: SharedService, useValue: mockSharedService },
         { provide: GlobalMetricsService, useValue: mockGlobalMetricsService },
-        { provide: MessageService, useValue: mockMessageService }
+        { provide: MessageService, useValue: mockMessageService },
+        { provide: MetricsExportService, useValue: mockMetricsExportService }
       ],
       schemas: [NO_ERRORS_SCHEMA]
     });
@@ -106,13 +109,16 @@ describe('GlobalMetricsComponent', () => {
   beforeEach(() => {
     progress$ = new Subject();
     mockCollectionsService = {
-      getCollectionBasicList: vi.fn().mockReturnValue(of([stigCollection, tenableCollection, cpatCollection, noOriginCollection]))
+      getCollections: vi.fn().mockReturnValue(of([stigCollection, tenableCollection, cpatCollection, noOriginCollection]))
     };
     mockGlobalMetricsService = {
       loadGlobalMetrics: vi.fn().mockReturnValue(of(fullResult)),
       progress$
     };
     mockMessageService = createMockMessageService();
+    mockMetricsExportService = {
+      exportGlobalMetrics: vi.fn().mockReturnValue(of(undefined))
+    };
   });
 
   it('should create', () => {
@@ -408,5 +414,56 @@ describe('GlobalMetricsComponent', () => {
     progress$.next({ loaded: 1, total: 2 });
     expect(component.progress()).toEqual({ loaded: 1, total: 2 });
     expect(component.progressPercent()).toBe(50);
+  });
+
+  describe('exportGlobalMetrics', () => {
+    it('delegates to the metrics export service and sets the exporting flag during the call', () => {
+      let exportingDuringCall = false;
+
+      mockMetricsExportService.exportGlobalMetrics.mockImplementation(() => {
+        exportingDuringCall = component.isGlobalExporting();
+
+        return of(undefined);
+      });
+      configure(999);
+      fixture.detectChanges();
+
+      component.exportGlobalMetrics();
+
+      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalled();
+      expect(exportingDuringCall).toBe(true);
+    });
+
+    it('clears the exporting flag and shows a success toast on completion', () => {
+      configure(999);
+      fixture.detectChanges();
+
+      component.exportGlobalMetrics();
+
+      expect(component.isGlobalExporting()).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('clears the exporting flag and shows an error toast on failure', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(throwError(() => new Error('export failed')));
+      configure(999);
+      fixture.detectChanges();
+
+      component.exportGlobalMetrics();
+
+      expect(component.isGlobalExporting()).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+
+    it('does not start a second export while one is in progress', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
+      configure(999);
+      fixture.detectChanges();
+
+      component.exportGlobalMetrics();
+      component.exportGlobalMetrics();
+
+      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalledTimes(1);
+    });
   });
 });

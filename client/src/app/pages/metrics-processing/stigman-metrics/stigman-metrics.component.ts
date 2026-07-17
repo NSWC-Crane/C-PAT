@@ -25,7 +25,6 @@ import { CpatChartComponent } from '../../../common/components/chart/chart.compo
 import { DividerModule } from 'primeng/divider';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 import { MetricData } from '../../../common/models/metrics.model';
-import { MetricsExportService } from '../metrics-export.service';
 import { STIGManagerMetrics, computeStigManagerMetrics, getEmptySTIGManagerMetrics } from './stigman-metrics.compute';
 
 @Component({
@@ -40,14 +39,12 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   private readonly sharedService = inject(SharedService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly messageService = inject(MessageService);
-  private readonly metricsExportService = inject(MetricsExportService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly collection = input<any>(undefined);
   readonly componentInit = output<STIGManagerMetricsComponent>();
 
   isLoading = signal<boolean>(true);
-  isGlobalExporting = signal<boolean>(false);
   collectionName = signal<string>('');
   originCollectionId = signal<string>('');
   findingsChartData = signal<any>(null);
@@ -392,7 +389,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
     const unassessedCount = metrics.totalAssessments - metrics.assessedCount;
     const assessedOnly = metrics.assessedCount - metrics.submittedCount - metrics.acceptedCount - metrics.rejectedCount;
     const collectionName = this.collectionName();
-    const exportedDate = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const exportedDate = new Date().toISOString().split('T')[0].replaceAll('-', '');
     const rows = [];
     const stigsAssessedPercentage = metrics.totalSTIGsCount > 0 ? ((metrics.fullyAssessedSTIGsCount / metrics.totalSTIGsCount) * 100).toFixed(1) : '0.0';
 
@@ -426,7 +423,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
             const cellStr = String(cell || '');
 
             if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
-              return `"${cellStr.replace(/"/g, '""')}"`;
+              return `"${cellStr.replaceAll('"', '""')}"`;
             }
 
             return cellStr;
@@ -450,38 +447,5 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
   refreshMetrics() {
     this.loadMetrics();
     this.now.set(new Date());
-  }
-
-  exportGlobalMetrics() {
-    if (this.isGlobalExporting()) return;
-
-    this.isGlobalExporting.set(true);
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Exporting',
-      detail: 'Compiling metrics for all collections. This may take a moment...'
-    });
-
-    this.metricsExportService
-      .exportGlobalMetrics()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.isGlobalExporting.set(false);
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Export Complete',
-            detail: 'Global metrics export downloaded successfully.'
-          });
-        },
-        error: (error) => {
-          this.isGlobalExporting.set(false);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Export Failed',
-            detail: `Error exporting global metrics: ${getErrorMessage(error)}`
-          });
-        }
-      });
   }
 }
