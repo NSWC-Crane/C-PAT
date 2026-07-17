@@ -9,7 +9,7 @@
 */
 
 import { JsonPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnChanges, OnDestroy, OnInit, inject, viewChild, output, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, viewChild, output, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -83,7 +83,7 @@ interface PermissionChangeSummary {
   imports: [AutoCompleteModule, ButtonModule, CardModule, ConfirmDialogModule, SelectModule, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, StepperModule, TableModule, ToastModule, TooltipModule, JsonPipe],
   providers: [ConfirmationService, MessageService]
 })
-export class UserComponent implements OnInit, OnChanges, OnDestroy {
+export class UserComponent implements OnInit, OnDestroy {
   private readonly assignedTeamService = inject(AssignedTeamService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly userService = inject(UsersService);
@@ -170,10 +170,6 @@ export class UserComponent implements OnInit, OnChanges, OnDestroy {
           }
         });
     }
-  }
-
-  ngOnChanges() {
-    this.getData();
   }
 
   private loadUserData(userId: number, preserveFormData: boolean = false) {
