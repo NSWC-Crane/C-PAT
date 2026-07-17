@@ -51,6 +51,7 @@ exports.getCollections = async function getCollections(elevate, req) {
                     collectionName: collection.collectionName,
                     description: collection.description,
                     collectionType: collection.collectionType,
+                    originCollectionId: collection.originCollectionId,
                     systemType: collection.systemType,
                     systemName: collection.systemName,
                     ccsafa: collection.ccsafa,

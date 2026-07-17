@@ -85,23 +85,6 @@ $color-tenable: rgba(235, 70, 100, 0.85);
   }
 }
 
-.bar-segment {
-  &.stig {
-    background: $color-stig;
-  }
-  &.tenable {
-    background: $color-tenable;
-  }
-
-  &.no-findings {
-    width: 100%;
-    background: #4b5563;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
 .metric-card {
   &::before {
     content: '';

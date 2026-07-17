@@ -11,13 +11,12 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { of, Subject, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { STIGManagerMetricsComponent } from './stigman-metrics.component';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
-import { MetricsExportService } from '../metrics-export.service';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 beforeAll(() => {
@@ -67,7 +66,6 @@ describe('STIGManagerMetricsComponent', () => {
   let mockSharedService: any;
   let mockCollectionsService: any;
   let mockMessageService: any;
-  let mockMetricsExportService: any;
 
   beforeEach(async () => {
     mockSharedService = {
@@ -82,19 +80,9 @@ describe('STIGManagerMetricsComponent', () => {
 
     mockMessageService = createMockMessageService();
 
-    mockMetricsExportService = {
-      exportGlobalMetrics: vi.fn().mockReturnValue(of(undefined))
-    };
-
     await TestBed.configureTestingModule({
       imports: [STIGManagerMetricsComponent],
-      providers: [
-        { provide: SharedService, useValue: mockSharedService },
-        { provide: CollectionsService, useValue: mockCollectionsService },
-        { provide: MessageService, useValue: mockMessageService },
-        { provide: MetricsExportService, useValue: mockMetricsExportService },
-        provideUiTour()
-      ],
+      providers: [{ provide: SharedService, useValue: mockSharedService }, { provide: CollectionsService, useValue: mockCollectionsService }, { provide: MessageService, useValue: mockMessageService }, provideUiTour()],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
@@ -481,63 +469,7 @@ describe('STIGManagerMetricsComponent', () => {
     });
   });
 
-  describe('exportGlobalMetrics', () => {
-    it('delegates to the metrics export service and sets the exporting flag during the call', () => {
-      let exportingDuringCall = false;
-
-      mockMetricsExportService.exportGlobalMetrics.mockImplementation(() => {
-        exportingDuringCall = component.isGlobalExporting();
-
-        return of(undefined);
-      });
-
-      component.exportGlobalMetrics();
-
-      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalled();
-      expect(exportingDuringCall).toBe(true);
-    });
-
-    it('clears the exporting flag and shows a success toast on completion', () => {
-      component.exportGlobalMetrics();
-
-      expect(component.isGlobalExporting()).toBe(false);
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
-    });
-
-    it('clears the exporting flag and shows an error toast on failure', () => {
-      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(throwError(() => new Error('export failed')));
-
-      component.exportGlobalMetrics();
-
-      expect(component.isGlobalExporting()).toBe(false);
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
-    });
-
-    it('does not start a second export while one is in progress', () => {
-      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
-
-      component.exportGlobalMetrics();
-      component.exportGlobalMetrics();
-
-      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('cleanup', () => {
-    it('stops applying export results after destroy (takeUntilDestroyed)', () => {
-      const exportSubject = new Subject<void>();
-
-      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(exportSubject.asObservable());
-      component.exportGlobalMetrics();
-      expect(component.isGlobalExporting()).toBe(true);
-
-      fixture.destroy();
-      exportSubject.next();
-      exportSubject.complete();
-
-      expect(component.isGlobalExporting()).toBe(true);
-    });
-
     it('does not throw on destroy', () => {
       expect(() => fixture.destroy()).not.toThrow();
     });

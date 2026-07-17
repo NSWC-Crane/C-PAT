@@ -37,6 +37,9 @@
         </ng-template>
       </p-select>
       <button pButton (click)="refreshMetrics()" [rounded]="true" [text]="true" severity="secondary" [disabled]="isLoading() || !hasSelection()" pTooltip="Refresh metrics" tooltipPosition="left"><i class="pi pi-refresh" pButtonIcon></i></button>
+      <button pButton (click)="exportGlobalMetrics()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics" tooltipPosition="left" [loading]="isGlobalExporting()" [disabled]="isGlobalExporting()">
+        <i class="pi pi-external-link" pButtonIcon></i>
+      </button>
     </div>
   </div>
 
@@ -65,21 +68,6 @@
   @if (result(); as result) {
     @if (result.stig || result.tenable) {
       <div class="mt-4" [class.opacity-50]="isLoading()">
-        <div class="flex flex-wrap items-center gap-4 mb-3 ml-1">
-          @if (result.stig; as stig) {
-            <div class="flex items-center gap-2">
-              <p-tag value="STIG Manager" severity="success" />
-              <span class="font-medium opacity-70">{{ stig.collectionCount }} {{ stig.collectionCount === 1 ? 'collection' : 'collections' }}</span>
-            </div>
-          }
-          @if (result.tenable; as tenable) {
-            <div class="flex items-center gap-2">
-              <p-tag value="Tenable" severity="danger" />
-              <span class="font-medium opacity-70">{{ tenable.collectionCount }} {{ tenable.collectionCount === 1 ? 'collection' : 'collections' }}</span>
-            </div>
-          }
-        </div>
-
         <div class="card flex flex-col lg:flex-row gap-4 mt-0">
           <div class="lg:basis-2/5">
             <h3 class="text-base font-semibold text-[var(--text-color)]">Mean Time to Remediate (MTTR)</h3>
@@ -246,18 +234,16 @@
                   </div>
                 </div>
                 <div class="mt-1 text-[0.9rem] text-[var(--text-secondary-color)] font-semibold leading-tight">{{ card.label }}</div>
-                <div class="flex h-6 rounded-[14px] overflow-hidden mt-3 w-full">
+                <div class="flex items-center justify-center gap-2 mt-3 w-full">
                   @if (card.total > 0) {
                     @if (card.stig !== null) {
-                      <div class="bar-segment stig" [style.width.%]="card.stigPct" [pTooltip]="'STIG Manager: ' + card.stig" tooltipPosition="top"></div>
+                      <p-tag value="STIG Manager" severity="success" [pTooltip]="'STIG Manager: ' + card.stig" tooltipPosition="top" />
                     }
                     @if (card.tenable !== null) {
-                      <div class="bar-segment tenable" [style.width.%]="card.tenablePct" [pTooltip]="'Tenable: ' + card.tenable" tooltipPosition="top"></div>
+                      <p-tag value="Tenable" severity="danger" [pTooltip]="'Tenable: ' + card.tenable" tooltipPosition="top" />
                     }
                   } @else {
-                    <div class="bar-segment no-findings">
-                      <span class="text-xs text-gray-400">No Findings</span>
-                    </div>
+                    <span class="text-xs text-gray-400">No Findings</span>
                   }
                 </div>
               </div>
