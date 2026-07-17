@@ -14,7 +14,7 @@
       <div class="col-12">
         <p-card>
           <div class="m-[-1rem] flex" style="position: relative">
-            <button pButton class="absolute top-0 right-0" (click)="goBack()" [rounded]="true" variant="text"><i class="pi pi-times" pButtonIcon></i></button>
+            <button pButton style="position: absolute; top: 0; right: 0" (click)="goBack()" [rounded]="true" variant="text"><i class="pi pi-times" pButtonIcon></i></button>
           </div>
           <div class="mb-3 mt-8 flex flex-wrap gap-3">
             <div><strong>App Version:</strong> {{ appInfo()?.version }}</div>
