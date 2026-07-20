@@ -9,42 +9,22 @@
 */
 
 const appConfigurationService = require('../Services/appConfigurationService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getAppConfiguration = async function getAppConfiguration(req, res, next) {
+module.exports.getAppConfiguration = async function getAppConfiguration(_req, res) {
     try {
-        const appConfiguration = await appConfigurationService.getAppConfiguration(req, res, next);
+        const appConfiguration = await appConfigurationService.getAppConfiguration();
         res.status(200).json(appConfiguration);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.postAppConfiguration = async function postAppConfiguration(req, res, next) {
+module.exports.putAppConfiguration = async function putAppConfiguration(req, res) {
     try {
-        const appConfiguration = await appConfigurationService.postAppConfiguration(req, res, next);
-        res.status(201).json(appConfiguration);
-    } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
-    }
-};
-
-module.exports.putAppConfiguration = async function putAppConfiguration(req, res, next) {
-    try {
-        const appConfiguration = await appConfigurationService.putAppConfiguration(req, res, next);
+        const appConfiguration = await appConfigurationService.putAppConfiguration(req);
         res.status(200).json(appConfiguration);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
