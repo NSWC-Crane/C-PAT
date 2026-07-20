@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,188 +22,80 @@ async function withConnection(callback) {
     }
 }
 
-exports.getTenableFilters = async function getTenableFilters(req, _res, next) {
-    if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    }
+exports.getTenableFilters = async function getTenableFilters(req) {
+    return await withConnection(async connection => {
+        let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE collectionId = ? ORDER BY filterName;`;
+        let [rowTenableFilters] = await connection.query(sql, [req.params.collectionId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE collectionId = ? ORDER BY filterName;`;
-            let [rowTenableFilters] = await connection.query(sql, [req.params.collectionId]);
+        const tenableFilters = rowTenableFilters.map(row => ({
+            filterId: row.filterId,
+            collectionId: row.collectionId,
+            filterName: row.filterName,
+            filter: row.filter,
+            createdBy: row.createdBy,
+        }));
 
-            const tenableFilters = rowTenableFilters.map(row => ({
-                filterId: row.filterId,
-                collectionId: row.collectionId,
-                filterName: row.filterName,
-                filter: row.filter,
-                createdBy: row.createdBy,
-            }));
-
-            return tenableFilters;
-        });
-    } catch (error) {
-        next(error);
-    }
+        return tenableFilters;
+    });
 };
 
-exports.getTenableFilter = async function getTenableFilter(req, _res, next) {
-    if (!req.params.filterId) {
-        return next({
-            status: 400,
-            errors: {
-                filterId: 'is required',
-            },
-        });
-    } else if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    }
+exports.getTenableFilter = async function getTenableFilter(req) {
+    return await withConnection(async connection => {
+        let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE filterId = ? AND collectionId = ?`;
+        let [rowTenableFilter] = await connection.query(sql, [req.params.tenableFilterId, req.params.collectionId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE filterId = ? AND collectionId = ?`;
-            let [rowTenableFilter] = await connection.query(sql, [req.params.filterId, req.params.collectionId]);
+        if (rowTenableFilter.length === 0) {
+            throw new SmError.NotFoundError('Tenable Filter not found');
+        }
 
-            const tenableFilter = rowTenableFilter.length > 0 ? [rowTenableFilter[0]] : [];
-
-            return { tenableFilter };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        const row = rowTenableFilter[0];
+        return {
+            filterId: row.filterId,
+            collectionId: row.collectionId,
+            filterName: row.filterName,
+            filter: row.filter,
+            createdBy: row.createdBy,
+        };
+    });
 };
 
-exports.postTenableFilter = async function postTenableFilter(req, _res, next) {
-    if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    } else if (!req.body.filterName) {
-        return next({
-            status: 400,
-            errors: {
-                filterName: 'is required',
-            },
-        });
-    } else if (!req.body.filter) {
-        return next({
-            status: 400,
-            errors: {
-                filter: 'is required',
-            },
-        });
-    }
+exports.postTenableFilter = async function postTenableFilter(req) {
+    return await withConnection(async connection => {
+        let sql_query = `INSERT INTO ${config.database.schema}.tenablefilters (filterName, filter, collectionId, createdBy) VALUES (?, ?, ?, ?)`;
+        await connection.query(sql_query, [req.body.filterName, req.body.filter, req.params.collectionId, req.userObject.userName]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql_query = `INSERT INTO ${config.database.schema}.tenablefilters (filterName, filter, collectionId, createdBy) VALUES (?, ?, ?, ?)`;
-            await connection.query(sql_query, [req.body.filterName, req.body.filter, req.params.collectionId, req.userObject.userName]);
+        let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE filterName = ? AND collectionId = ?`;
+        let [rowTenableFilter] = await connection.query(sql, [req.body.filterName, req.params.collectionId]);
 
-            let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE filterName = ? AND collectionId = ?`;
-            let [rowTenableFilter] = await connection.query(sql, [req.body.filterName, req.params.collectionId]);
-
-            const message = {
-                filterId: rowTenableFilter[0].filterId,
-                filterName: rowTenableFilter[0].filterName,
-                filter: rowTenableFilter[0].filter,
-                collectionId: rowTenableFilter[0].collectionId,
-                createdBy: rowTenableFilter[0].createdBy,
-            };
-            return message;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        const message = {
+            filterId: rowTenableFilter[0].filterId,
+            filterName: rowTenableFilter[0].filterName,
+            filter: rowTenableFilter[0].filter,
+            collectionId: rowTenableFilter[0].collectionId,
+            createdBy: rowTenableFilter[0].createdBy,
+        };
+        return message;
+    });
 };
 
-exports.putTenableFilter = async function putTenableFilter(req, _res, next) {
-    if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    } else if (!req.body.filterId) {
-        return next({
-            status: 400,
-            errors: {
-                filterId: 'is required',
-            },
-        });
-    } else if (!req.body.filterName) {
-        return next({
-            status: 400,
-            errors: {
-                filterName: 'is required',
-            },
-        });
-    } else if (!req.body.filter) {
-        return next({
-            status: 400,
-            errors: {
-                filter: 'is required',
-            },
-        });
-    }
+exports.putTenableFilter = async function putTenableFilter(req) {
+    return await withConnection(async connection => {
+        let sql_query = `UPDATE ${config.database.schema}.tenablefilters SET filterName = ?, filter = ? WHERE filterId = ? AND collectionId = ?`;
+        await connection.query(sql_query, [req.body.filterName, req.body.filter, req.body.filterId, req.params.collectionId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql_query = `UPDATE ${config.database.schema}.tenablefilters SET filterName = ?, filter = ? WHERE filterId = ? AND collectionId = ?`;
-            await connection.query(sql_query, [req.body.filterName, req.body.filter, req.body.filterId, req.params.collectionId]);
-
-            const message = {
-                filterId: req.body.filterId,
-                collectionId: req.params.collectionId,
-                filterName: req.body.filterName,
-                filter: req.body.filter,
-            };
-            return message;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        const message = {
+            filterId: req.body.filterId,
+            collectionId: req.params.collectionId,
+            filterName: req.body.filterName,
+            filter: req.body.filter,
+        };
+        return message;
+    });
 };
 
 exports.deleteTenableFilter = async function deleteTenableFilter(req) {
-    const { tenableFilterId, collectionId } = req.params;
-
-    if (!tenableFilterId) {
-        throw {
-            status: 400,
-            errors: { tenableFilterId: 'is required' },
-        };
-    }
-
-    if (!collectionId) {
-        throw {
-            status: 400,
-            errors: { collectionId: 'is required' },
-        };
-    }
-
-    try {
-        await withConnection(async connection => {
-            const sql = `DELETE FROM ${config.database.schema}.tenablefilters WHERE filterId = ? AND collectionId = ?`;
-            await connection.query(sql, [tenableFilterId, collectionId]);
-        });
-    } catch (error) {
-        throw {
-            status: 500,
-            errors: { database: error.message },
-        };
-    }
+    await withConnection(async connection => {
+        const sql = `DELETE FROM ${config.database.schema}.tenablefilters WHERE filterId = ? AND collectionId = ?`;
+        await connection.query(sql, [req.params.tenableFilterId, req.params.collectionId]);
+    });
 };

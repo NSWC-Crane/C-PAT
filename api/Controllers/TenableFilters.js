@@ -9,56 +9,41 @@
 */
 
 const tenableFilterService = require('../Services/tenableFilterService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getTenableFilters = async function getTenableFilters(req, res, next) {
+module.exports.getTenableFilters = async function getTenableFilters(req, res) {
     try {
-        const tenableFilters = await tenableFilterService.getTenableFilters(req, res, next);
+        const tenableFilters = await tenableFilterService.getTenableFilters(req);
         res.status(200).json(tenableFilters);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getTenableFilter = async function getTenableFilter(req, res, next) {
+module.exports.getTenableFilter = async function getTenableFilter(req, res) {
     try {
-        const tenableFilter = await tenableFilterService.getTenableFilter(req, res, next);
+        const tenableFilter = await tenableFilterService.getTenableFilter(req);
         res.status(200).json(tenableFilter);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.postTenableFilter = async function postTenableFilter(req, res, next) {
+module.exports.postTenableFilter = async function postTenableFilter(req, res) {
     try {
-        const tenableFilter = await tenableFilterService.postTenableFilter(req, res, next);
+        const tenableFilter = await tenableFilterService.postTenableFilter(req);
         res.status(201).json(tenableFilter);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.putTenableFilter = async function putTenableFilter(req, res, next) {
+module.exports.putTenableFilter = async function putTenableFilter(req, res) {
     try {
-        const tenableFilter = await tenableFilterService.putTenableFilter(req, res, next);
+        const tenableFilter = await tenableFilterService.putTenableFilter(req);
         res.status(200).json(tenableFilter);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
@@ -67,10 +52,6 @@ module.exports.deleteTenableFilter = async function deleteTenableFilter(req, res
         await tenableFilterService.deleteTenableFilter(req);
         res.status(204).send();
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.errors || error.message });
-        }
+        sendError(res, error);
     }
 };

@@ -9,170 +9,114 @@
 */
 
 const poamService = require('../Services/poamService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getAvailablePoams = async function getAvailablePoams(req, res, next) {
+module.exports.getAvailablePoams = async function getAvailablePoams(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const poams = await poamService.getAvailablePoams(userId, req, res, next);
+        const poams = await poamService.getAvailablePoams(req.userObject.userId, req);
+
         res.status(200).json(poams);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getPoam = async function getPoam(req, res, next) {
+module.exports.getPoam = async function getPoam(req, res) {
     try {
-        const poam = await poamService.getPoam(req, res, next);
+        const poam = await poamService.getPoam(req);
+
         res.status(200).json(poam);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else if (error.status) {
-            res.status(error.status).json({ error: error.message, detail: error.detail });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res, next) {
+module.exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res) {
     try {
-        const poams = await poamService.getPoamsByCollectionId(req, res, next);
+        const poams = await poamService.getPoamsByCollectionId(req);
+
         res.status(200).json(poams);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else if (error.status) {
-            res.status(error.status).json({ error: error.message, detail: error.detail });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next) {
+module.exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res) {
     try {
-        const poams = await poamService.getPoamsByOwnership(req, res, next);
+        const poams = await poamService.getPoamsByOwnership(req);
+
         res.status(200).json(poams);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else if (error.status) {
-            res.status(error.status).json({ error: error.message, detail: error.detail });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam(_req, res) {
     try {
         const vulnerabilityIds = await poamService.getVulnerabilityIdsWithPoam();
+
         res.status(200).json(vulnerabilityIds);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilityIdsWithPoamByCollection(req, res) {
     try {
         const vulnerabilityIds = await poamService.getVulnerabilityIdsWithPoamByCollection(req);
+
         res.status(200).json(vulnerabilityIds);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnerabilityIdsWithTaskOrderByCollection(req, res) {
     try {
         const vulnerabilityIds = await poamService.getVulnerabilityIdsWithTaskOrderByCollection(req);
+
         res.status(200).json(vulnerabilityIds);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.postPoam = async function postPoam(req, res) {
     try {
         const poam = await poamService.postPoam(req);
-        if (poam.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: poam.errors });
-        } else if (poam.status === 409) {
-            res.status(409).json({ error: 'Duplicate POAM', detail: poam.errors.vulnerabilityId });
-        } else if (poam.error) {
-            res.status(500).json({ error: 'Internal Server Error', detail: poam.error });
-        } else {
-            res.status(201).json(poam);
-        }
+
+        res.status(201).json(poam);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
 module.exports.putPoam = async function putPoam(req, res) {
     try {
         const poam = await poamService.putPoam(req);
-        if (poam.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: JSON.stringify(poam.errors) });
-        } else if (poam.status === 404) {
-            res.status(404).json({ error: 'Not Found', detail: poam.errors.poamId });
-        } else if (poam.status === 409) {
-            res.status(409).json({ error: 'Duplicate POAM', detail: poam.errors.vulnerabilityId });
-        } else if (!poam || poam.error) {
-            res.status(500).json({ error: 'Internal Server Error', detail: poam?.error || 'Failed to update POAM' });
-        } else {
-            res.status(200).json(poam);
-        }
+
+        res.status(200).json(poam);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
+module.exports.updatePoamStatus = async function updatePoamStatus(req, res) {
     try {
-        const poam = await poamService.updatePoamStatus(req, res, next);
-        if (poam.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: poam.errors });
-        } else if (!poam) {
-            res.status(500).json({ error: 'Internal Server Error', detail: 'Failed to update POAM' });
-        } else {
-            res.status(200).json(poam);
-        }
+        const poam = await poamService.updatePoamStatus(req);
+
+        res.status(200).json(poam);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
 module.exports.deletePoam = async function deletePoam(req, res) {
     try {
-        const result = await poamService.deletePoam(req);
+        await poamService.deletePoam(req);
 
-        if (result.status) {
-            return res.status(result.status).json({ error: result.errors });
-        }
-
-        if (result.success) {
-            return res.status(204).send();
-        }
-
-        return res.status(500).json({ error: 'Unknown error occurred' });
+        res.status(204).send();
     } catch (error) {
-        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };

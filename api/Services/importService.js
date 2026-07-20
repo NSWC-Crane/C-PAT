@@ -12,6 +12,7 @@ const fastcsv = require('fast-csv');
 const config = require('../utils/config');
 const db = require('../utils/sequelize');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 const { isAfter, parse, format } = require('date-fns');
 const logger = require('../utils/logger');
 
@@ -61,20 +62,20 @@ async function loadWorkbook(file) {
         await workbook.xlsx.load(file.buffer);
         return workbook;
     } catch (error) {
-        throw new Error(`Failed to load Excel file: ${error.message}`, { cause: error });
+        throw new SmError.ClientError(`Failed to load Excel file: ${error.message}`, { cause: error });
     }
 }
 
 function getFirstWorksheet(workbook) {
     if (workbook.worksheets.length === 0) {
-        throw new Error('No worksheets found in the workbook');
+        throw new SmError.ClientError('No worksheets found in the workbook');
     }
     return workbook.worksheets[0];
 }
 
 exports.importVRAMExcel = async function importVRAMExcel(file) {
     if (!file) {
-        throw new Error('Please upload an Excel file!');
+        throw new SmError.ClientError('Please upload an Excel file!');
     }
 
     const workbook = await loadWorkbook(file);
@@ -115,20 +116,20 @@ function validateVRAMWorksheetHeaders(worksheet) {
         'Known DoD Incidents',
         'Nessus Plugins',
     ];
-    const actualHeaders = worksheet.getRow(2).values.slice(1);
+    const actualHeaders = new Set(worksheet.getRow(2).values.slice(1));
 
-    const missingHeaders = requiredHeaders.filter(header => !actualHeaders.includes(header));
+    const missingHeaders = requiredHeaders.filter(header => !actualHeaders.has(header));
 
     if (missingHeaders.length > 0) {
-        throw new Error(`Invalid file format: Missing required headers: ${missingHeaders.join(', ')}`);
+        throw new SmError.ClientError(`Invalid file format: Missing required headers: ${missingHeaders.join(', ')}`);
     }
 }
 
 function extractVRAMFileDate(worksheet) {
     const dateCell = worksheet.getCell('A1');
-    const dateMatch = dateCell.value.match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
+    const dateMatch = /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/.exec(dateCell.value);
     if (!dateMatch) {
-        throw new Error('Unable to extract date from the file. This may not be a valid VRAM file.');
+        throw new SmError.ClientError('Unable to extract date from the file. This may not be a valid VRAM file.');
     }
     return parse(dateMatch[1], 'yyyy-MM-dd HH:mm:ss', new Date());
 }
@@ -219,7 +220,7 @@ function processCellDate(value) {
     if (value instanceof Date) {
         return format(value, 'yyyy-MM-dd');
     } else if (typeof value === 'string') {
-        if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        if (/^\d{4}-\d{2}-\d{2}$/.exec(value)) {
             return value;
         }
         const parsedDate = parse(value, 'yyyy-MM-dd', new Date());
@@ -269,11 +270,11 @@ async function updateVRAMConfigEntry(configEntry, fileDate, transaction) {
 
 exports.importAssetListFile = async function importAssetListFile(file, collectionId) {
     if (!file) {
-        throw new Error('Please upload an Excel or CSV file!');
+        throw new SmError.ClientError('Please upload an Excel or CSV file!');
     }
 
     if (!collectionId) {
-        throw new Error('Collection ID is required');
+        throw new SmError.ClientError('Collection ID is required');
     }
 
     const isCSV = file.mimetype === 'text/csv' || file.mimetype === 'application/csv';
@@ -296,11 +297,11 @@ exports.importAssetListFile = async function importAssetListFile(file, collectio
 
 exports.importMultipleAssetListFiles = async function importMultipleAssetListFiles(file, collectionIds) {
     if (!file) {
-        throw new Error('Please upload an Excel or CSV file!');
+        throw new SmError.ClientError('Please upload an Excel or CSV file!');
     }
 
     if (!collectionIds || !Array.isArray(collectionIds) || collectionIds.length === 0) {
-        throw new Error('Collection IDs array is required');
+        throw new SmError.ClientError('Collection IDs array is required');
     }
 
     const results = {
@@ -366,7 +367,7 @@ async function processCSVAssetListForCollection(file, collectionId) {
                 }
             })
             .on('error', error => {
-                reject(new Error(`Error parsing CSV file: ${error.message}`));
+                reject(new SmError.ClientError(`Error parsing CSV file: ${error.message}`));
             })
             .on('end', async totalRowCount => {
                 try {
@@ -376,14 +377,18 @@ async function processCSVAssetListForCollection(file, collectionId) {
                     }));
 
                     if (assetData.length === 0) {
-                        reject(new Error('No valid data found in the CSV file'));
+                        reject(new SmError.ClientError('No valid data found in the CSV file'));
                         return;
                     }
 
                     const result = await updateAssetListForCollection(assetData, collectionId, totalRowCount - 1 - assetMap.size);
                     resolve(result);
                 } catch (error) {
-                    reject(new Error(`Failed to process CSV asset list for collection ${collectionId}: ${error.message}`));
+                    reject(
+                        error instanceof SmError.SmError
+                            ? error
+                            : new Error(`Failed to process CSV asset list for collection ${collectionId}: ${error.message}`)
+                    );
                 }
             });
     });
@@ -412,7 +417,7 @@ async function processRegularAssetListForCollection(worksheet, collectionId) {
     }));
 
     if (assetData.length === 0) {
-        throw new Error('No valid data found in the Excel file');
+        throw new SmError.ClientError('No valid data found in the Excel file');
     }
 
     return await updateAssetListForCollection(assetData, collectionId, worksheet.rowCount - 1 - assetMap.size);
@@ -422,7 +427,7 @@ async function processEMassHardwareListForCollection(workbook, collectionId) {
     const worksheet = workbook.worksheets.find(sheet => sheet.name === 'Hardware');
 
     if (!worksheet) {
-        throw new Error('Hardware sheet not found in the eMASS file');
+        throw new SmError.ClientError('Hardware sheet not found in the eMASS file');
     }
 
     let emassDate = null;
@@ -435,12 +440,12 @@ async function processEMassHardwareListForCollection(workbook, collectionId) {
                 emassDate = format(parsedDate, 'yyyy-MM-dd');
             }
         } catch (e) {
-            logger.warn(`Could not parse eMASS date "${dateValue}" from cell C2: ${e.message}`);
+            logger.writeWarn('importService', 'emassDate', { message: `Could not parse eMASS date "${dateValue}" from cell C2: ${e.message}` });
         }
     }
 
     if (!emassDate) {
-        logger.warn('eMASS date not found in cell C2, using current date instead');
+        logger.writeWarn('importService', 'emassDate', { message: 'eMASS date not found in cell C2, using current date instead' });
         emassDate = format(new Date(), 'yyyy-MM-dd');
     }
 
@@ -455,7 +460,7 @@ async function processEMassHardwareListForCollection(workbook, collectionId) {
     });
 
     if (!assetNameColIndex) {
-        throw new Error('Asset Name column not found in the Hardware sheet');
+        throw new SmError.ClientError('Asset Name column not found in the Hardware sheet');
     }
 
     const assetNamesSet = new Set();
@@ -474,7 +479,7 @@ async function processEMassHardwareListForCollection(workbook, collectionId) {
     const assetNames = Array.from(assetNamesSet);
 
     if (assetNames.length === 0) {
-        throw new Error('No asset names found in the Hardware sheet');
+        throw new SmError.ClientError('No asset names found in the Hardware sheet');
     }
 
     return await updateEMassAssetsForCollection(assetNames, collectionId, emassDate);
@@ -528,9 +533,9 @@ async function updateEMassAssetsForCollection(assetNames, collectionId, emassDat
                 const [allAssets] = await connection.query(`SELECT \`key\` FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [
                     collectionId,
                 ]);
-                const existingLowercaseKeys = allAssets.map(row => row.key.toLowerCase());
+                const existingLowercaseKeys = new Set(allAssets.map(row => row.key.toLowerCase()));
 
-                const matchingAssets = assetNames.filter(name => existingLowercaseKeys.includes(name));
+                const matchingAssets = assetNames.filter(name => existingLowercaseKeys.has(name));
 
                 if (matchingAssets.length > 0) {
                     for (const lowercaseName of matchingAssets) {
@@ -565,7 +570,7 @@ async function processEMassHardwareList(workbook, collectionId) {
     const worksheet = workbook.worksheets.find(sheet => sheet.name === 'Hardware');
 
     if (!worksheet) {
-        throw new Error('Hardware sheet not found in the eMASS file');
+        throw new SmError.ClientError('Hardware sheet not found in the eMASS file');
     }
 
     let emassDate = null;
@@ -578,12 +583,12 @@ async function processEMassHardwareList(workbook, collectionId) {
                 emassDate = format(parsedDate, 'yyyy-MM-dd');
             }
         } catch (e) {
-            logger.warn(`Could not parse eMASS date "${dateValue}" from cell C2: ${e.message}`);
+            logger.writeWarn('importService', 'emassDate', { message: `Could not parse eMASS date "${dateValue}" from cell C2: ${e.message}` });
         }
     }
 
     if (!emassDate) {
-        logger.warn('eMASS date not found in cell C2, using current date instead');
+        logger.writeWarn('importService', 'emassDate', { message: 'eMASS date not found in cell C2, using current date instead' });
         emassDate = format(new Date(), 'yyyy-MM-dd');
     }
 
@@ -598,7 +603,7 @@ async function processEMassHardwareList(workbook, collectionId) {
     });
 
     if (!assetNameColIndex) {
-        throw new Error('Asset Name column not found in the Hardware sheet');
+        throw new SmError.ClientError('Asset Name column not found in the Hardware sheet');
     }
 
     const assetNamesSet = new Set();
@@ -617,7 +622,7 @@ async function processEMassHardwareList(workbook, collectionId) {
     const assetNames = Array.from(assetNamesSet);
 
     if (assetNames.length === 0) {
-        throw new Error('No asset names found in the Hardware sheet');
+        throw new SmError.ClientError('No asset names found in the Hardware sheet');
     }
 
     try {
@@ -631,9 +636,9 @@ async function processEMassHardwareList(workbook, collectionId) {
                     const [allAssets] = await connection.query(`SELECT \`key\` FROM ${config.database.schema}.assetdeltalist WHERE collectionId = ?`, [
                         collectionId,
                     ]);
-                    const existingLowercaseKeys = allAssets.map(row => row.key.toLowerCase());
+                    const existingLowercaseKeys = new Set(allAssets.map(row => row.key.toLowerCase()));
 
-                    const matchingAssets = assetNames.filter(name => existingLowercaseKeys.includes(name));
+                    const matchingAssets = assetNames.filter(name => existingLowercaseKeys.has(name));
 
                     if (matchingAssets.length > 0) {
                         for (const lowercaseName of matchingAssets) {
@@ -662,13 +667,17 @@ async function processEMassHardwareList(workbook, collectionId) {
             }
         });
     } catch (error) {
+        if (error instanceof SmError.SmError) {
+            throw error;
+        }
+
         throw new Error(`Failed to process eMASS hardware list: ${error.message}`, { cause: error });
     }
 }
 
 async function processCSVAssetList(file, collectionId) {
     try {
-        return new Promise((resolve, reject) => {
+        return await new Promise((resolve, reject) => {
             const assetMap = new Map();
             const csvString = file.buffer.toString('utf8');
             let rowNumber = 0;
@@ -685,7 +694,7 @@ async function processCSVAssetList(file, collectionId) {
                     }
                 })
                 .on('error', error => {
-                    reject(new Error(`Error parsing CSV file: ${error.message}`));
+                    reject(new SmError.ClientError(`Error parsing CSV file: ${error.message}`));
                 })
                 .on('end', async totalRowCount => {
                     try {
@@ -694,7 +703,7 @@ async function processCSVAssetList(file, collectionId) {
                             value: data.value,
                         }));
                         if (assetData.length === 0) {
-                            reject(new Error('No valid data found in the CSV file'));
+                            reject(new SmError.ClientError('No valid data found in the CSV file'));
                             return;
                         }
                         const result = await withConnection(async connection => {
@@ -730,11 +739,15 @@ async function processCSVAssetList(file, collectionId) {
                         });
                         resolve(result);
                     } catch (error) {
-                        reject(new Error(`Failed to process CSV asset list: ${error.message}`));
+                        reject(error instanceof SmError.SmError ? error : new Error(`Failed to process CSV asset list: ${error.message}`));
                     }
                 });
         });
     } catch (error) {
+        if (error instanceof SmError.SmError) {
+            throw error;
+        }
+
         throw new Error(`Failed to process CSV file: ${error.message}`, { cause: error });
     }
 }
@@ -762,7 +775,7 @@ async function processRegularAssetList(worksheet, collectionId) {
     }));
 
     if (assetData.length === 0) {
-        throw new Error('No valid data found in the Excel file');
+        throw new SmError.ClientError('No valid data found in the Excel file');
     }
 
     try {
@@ -801,6 +814,10 @@ async function processRegularAssetList(worksheet, collectionId) {
             }
         });
     } catch (error) {
+        if (error instanceof SmError.SmError) {
+            throw error;
+        }
+
         throw new Error(`Failed to process asset list: ${error.message}`, { cause: error });
     }
 }
@@ -808,7 +825,7 @@ async function processRegularAssetList(worksheet, collectionId) {
 function validateAssetListHeaders(worksheet) {
     const firstRow = worksheet.getRow(1).values.slice(1);
     if (firstRow.length !== 2) {
-        throw new Error('Invalid file format: Excel file must contain exactly two columns');
+        throw new SmError.ClientError('Invalid file format: Excel file must contain exactly two columns');
     }
 }
 

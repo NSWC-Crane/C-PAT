@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -35,9 +36,12 @@ exports.getPoamExtension = async function (poamId) {
 };
 
 exports.putPoamExtension = async function (req) {
+    if (!req.body.poamId) {
+        throw new SmError.ClientError('poamId is required');
+    }
+
     return withConnection(async connection => {
-        try {
-            let sql = `UPDATE ${config.database.schema}.poam SET
+        let sql = `UPDATE ${config.database.schema}.poam SET
                 extensionDays = ?,
                 extensionJustification = ?,
                 mitigations = ?,
@@ -49,39 +53,39 @@ exports.putPoamExtension = async function (req) {
                 status = ?
                 WHERE poamId = ?`;
 
-            const params = [
-                req.body.extensionDays,
-                req.body.extensionJustification,
-                req.body.mitigations,
-                req.body.requiredResources,
-                req.body.residualRisk,
-                req.body.likelihood,
-                req.body.localImpact,
-                req.body.impactDescription,
-                req.body.status,
-                req.body.poamId,
-            ];
-            await connection.query(sql, params);
+        const params = [
+            req.body.extensionDays,
+            req.body.extensionJustification,
+            req.body.mitigations,
+            req.body.requiredResources,
+            req.body.residualRisk,
+            req.body.likelihood,
+            req.body.localImpact,
+            req.body.impactDescription,
+            req.body.status,
+            req.body.poamId,
+        ];
+        await connection.query(sql, params);
 
-            if (req.body.status === 'Extension Requested' && req.body.extensionDays > 0) {
-                let historySql = `INSERT INTO ${config.database.schema}.poamextensionhistory (poamId, extensionRequestedDate, extensionDays) VALUES (?, CURDATE(), ?)`;
-                await connection.query(historySql, [req.body.poamId, req.body.extensionDays]);
+        if (req.body.status === 'Extension Requested' && req.body.extensionDays > 0) {
+            let historySql = `INSERT INTO ${config.database.schema}.poamextensionhistory (poamId, extensionRequestedDate, extensionDays) VALUES (?, CURDATE(), ?)`;
+            await connection.query(historySql, [req.body.poamId, req.body.extensionDays]);
+        }
+
+        let action = `POAM Updated. Status: ${req.body.status}`;
+        if (req.body.extensionDays > 0) {
+            let extensionDeadlineQuery = `SELECT extensionDeadline FROM ${config.database.schema}.poam WHERE poamId = ?`;
+            let [[extensionDeadlineResult]] = await connection.query(extensionDeadlineQuery, [req.body.poamId]);
+            if (extensionDeadlineResult) {
+                let extensionDeadline = new Date(extensionDeadlineResult.extensionDeadline);
+                let formattedDeadline = extensionDeadline.toLocaleDateString('en-US');
+                action += `<br>Extension time requested: ${req.body.extensionDays} days<br>Extension Justification: ${req.body.extensionJustification}<br>Deadline with Extension: ${formattedDeadline}`;
             }
+        }
+        let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+        await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
 
-            let action = `POAM Updated. Status: ${req.body.status}`;
-            if (req.body.extensionDays > 0) {
-                let extensionDeadlineQuery = `SELECT extensionDeadline FROM ${config.database.schema}.poam WHERE poamId = ?`;
-                let [[extensionDeadlineResult]] = await connection.query(extensionDeadlineQuery, [req.body.poamId]);
-                if (extensionDeadlineResult) {
-                    let extensionDeadline = new Date(extensionDeadlineResult.extensionDeadline);
-                    let formattedDeadline = extensionDeadline.toLocaleDateString('en-US');
-                    action += `<br>Extension time requested: ${req.body.extensionDays} days<br>Extension Justification: ${req.body.extensionJustification}<br>Deadline with Extension: ${formattedDeadline}`;
-                }
-            }
-            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
-
-            const selectSql = `SELECT 
+        const selectSql = `SELECT 
                 poamId,
                 extensionDays,
                 extensionJustification,
@@ -95,12 +99,13 @@ exports.putPoamExtension = async function (req) {
                 FROM ${config.database.schema}.poam 
                 WHERE poamId = ?`;
 
-            const [[updatedPoam]] = await connection.query(selectSql, [req.body.poamId]);
+        const [[updatedPoam]] = await connection.query(selectSql, [req.body.poamId]);
 
-            return updatedPoam;
-        } catch (error) {
-            return { error: error.message };
+        if (!updatedPoam) {
+            throw new SmError.NotFoundError('POAM not found');
         }
+
+        return updatedPoam;
     });
 };
 

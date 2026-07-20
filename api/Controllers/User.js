@@ -9,15 +9,14 @@
 */
 
 const userService = require('../Services/usersService');
-const SmError = require('../utils/error');
+const { sendError } = require('../utils/respond');
 
 module.exports.getUsers = async function getUsers(req, res) {
     try {
-        const elevate = req.query.elevate;
-        const users = await userService.getUsers(elevate, req);
+        const users = await userService.getUsers(req.query.elevate, req);
         res.status(200).json(users);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
@@ -26,126 +25,72 @@ module.exports.getCurrentUser = async function getCurrentUser(req, res) {
         const user = await userService.getCurrentUser(req);
         res.status(200).json(user);
     } catch (error) {
-        if (error.message === 'User not found') {
-            res.status(404).json({ error: 'User not found' });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.getUserByUserID = async function getUserByUserID(req, res) {
     try {
-        const elevate = req.query.elevate;
-        const user = await userService.getUserByUserID(req, elevate);
+        const user = await userService.getUserByUserID(req, req.query.elevate);
         res.status(200).json(user);
     } catch (error) {
-        if (error.message === 'User not found') {
-            res.status(404).json({ error: 'User not found' });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.createUser = async function createUser(req, res) {
     try {
-        const elevate = req.query.elevate;
-        const createdUser = await userService.createUser(elevate, req);
+        const createdUser = await userService.createUser(req.query.elevate, req);
         res.status(201).json(createdUser);
     } catch (error) {
-        if (error instanceof SmError.PrivilegeError) {
-            res.status(403).json({ error: error.message, detail: error.detail });
-        } else if (error instanceof SmError.ClientError) {
-            res.status(400).json({ error: error.message, detail: error.detail });
-        } else if (error instanceof SmError.UnprocessableError) {
-            res.status(422).json({ error: error.message, detail: error.detail });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.updateUser = async function updateUser(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const elevate = req.query.elevate;
-        const updatedUser = await userService.updateUser(userId, elevate, req);
+        const updatedUser = await userService.updateUser(req.userObject.userId, req.query.elevate, req);
         res.status(200).json(updatedUser);
     } catch (error) {
-        if (error.message === 'User update failed') {
-            res.status(400).json({ error: 'Bad Request', detail: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.updateUserTheme = async function updateUserTheme(req, res) {
     try {
-        const result = await userService.updateUserTheme(req);
-        if (result.success) {
-            res.status(200).json(result.message);
-        } else {
-            res.status(400).json(result.message);
-        }
+        await userService.updateUserTheme(req.userObject.userId, req.body.defaultTheme);
+        res.status(200).json({ message: 'Theme updated successfully' });
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
 module.exports.updateUserPoints = async function updateUserPoints(req, res) {
     try {
-        const elevate = req.query.elevate;
-        const result = await userService.updateUserPoints(elevate, req);
-        if (result.success) {
-            res.status(200).json(result.message);
-        } else {
-            res.status(400).json(result.message);
-        }
+        await userService.updateUserPoints(req.query.elevate, req);
+        res.status(200).json({ message: 'User points updated successfully' });
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
 module.exports.updateUserLastCollectionAccessed = async function updateUserLastCollectionAccessed(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const lastCollectionAccessedId = req.body.lastCollectionAccessedId;
-        const result = await userService.updateUserLastCollectionAccessed(userId, lastCollectionAccessedId);
-        if (result.success) {
-            res.status(200).json(result.message);
-        } else {
-            res.status(400).json(result.message);
-        }
+        await userService.updateUserLastCollectionAccessed(req.userObject.userId, req.body.lastCollectionAccessedId);
+        res.status(200).json({ message: 'User lastCollectionAccessedId updated successfully' });
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
 module.exports.disableUser = async function disableUser(req, res) {
     try {
-        const elevate = req.query.elevate;
-        const userId = Number.parseInt(req.params.userId);
-
-        const result = await userService.disableUser(elevate, userId);
-
+        await userService.disableUser(Number.parseInt(req.params.userId), req.query.elevate, req);
         res.status(200).json({
             success: true,
-            message: result.message,
+            message: 'User disabled successfully',
         });
     } catch (error) {
-        if (error instanceof SmError.PrivilegeError) {
-            res.status(400).json({
-                success: false,
-                error: error.message,
-            });
-        } else {
-            res.status(500).json({
-                success: false,
-                error: 'Internal Server Error',
-                detail: error.message,
-            });
-        }
+        sendError(res, error);
     }
 };

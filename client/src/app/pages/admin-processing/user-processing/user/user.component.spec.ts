@@ -884,6 +884,29 @@ describe('UserComponent', () => {
       component.onSubmit();
       expect(emitSpy).toHaveBeenCalled();
     });
+
+    it('should show error when disableUser fails', () => {
+      mockUserService.disableUser.mockReturnValue(throwError(() => new Error('fail')));
+      component.userState.set({ userId: 1, accountStatus: 'DISABLED', lastAccess: '2024-01-01T00:00:00' });
+      component.onSubmit(true);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Failed to disable user') }));
+    });
+
+    it('should show error when updateUser fails', () => {
+      mockUserService.updateUser.mockReturnValue(throwError(() => new Error('fail')));
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
+      component.onSubmit(true);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Failed to update user') }));
+    });
+
+    it('should not emit userChange when updateUser fails', () => {
+      mockUserService.updateUser.mockReturnValue(throwError(() => new Error('fail')));
+      component.userState.set({ userId: 1, accountStatus: 'ACTIVE', lastAccess: '2024-01-01T00:00:00', firstName: 'Test', lastName: 'User' });
+      const emitSpy = vi.spyOn(component.userChange, 'emit');
+
+      component.onSubmit(true);
+      expect(emitSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('resetData', () => {

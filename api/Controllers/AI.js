@@ -9,27 +9,14 @@
 */
 
 const aiService = require('../Services/aiService');
-const logger = require('../utils/logger');
+const { sendError } = require('../utils/respond');
 
-module.exports.generateMitigation = async function generateMitigation(req, res, next) {
+module.exports.generateMitigation = async function generateMitigation(req, res) {
     try {
-        const response = await aiService.generateMitigation(req, res, next);
+        const response = await aiService.generateMitigation(req);
 
-        if (!res.headersSent && response) {
-            res.status(200).json(response);
-        }
+        res.status(200).json(response);
     } catch (error) {
-        logger.writeError('AI', 'generateMitigation', {
-            error: error.message,
-            prompt: req.body,
-        });
-
-        if (!res.headersSent) {
-            if (error.status === 400) {
-                res.status(400).json({ error: 'Validation Error', detail: error.errors });
-            } else {
-                res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-            }
-        }
+        sendError(res, error);
     }
 };

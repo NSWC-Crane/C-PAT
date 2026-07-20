@@ -65,10 +65,10 @@ class UnprocessableError extends SmError {
 }
 
 class InternalError extends SmError {
-    constructor(error) {
-        super(error.message);
+    constructor(detail) {
+        super('Internal server error.');
         this.status = 500;
-        this.detail = { error };
+        this.detail = detail;
     }
 }
 

@@ -9,56 +9,49 @@
 */
 
 const poamApproverService = require('../Services/poamApproverService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
+module.exports.getPoamApprovers = async function getPoamApprovers(req, res) {
     try {
-        const poamApprovers = await poamApproverService.getPoamApprovers(req, res, next);
+        const poamApprovers = await poamApproverService.getPoamApprovers(req);
         res.status(200).json(poamApprovers);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req, res, next) {
+module.exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req, res) {
     try {
-        const poamApprovers = await poamApproverService.getPoamApproversByCollection(req, res, next);
+        const poamApprovers = await poamApproverService.getPoamApproversByCollection(req);
         res.status(200).json(poamApprovers);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.postPoamApprover = async function postPoamApprover(req, res, next) {
+module.exports.postPoamApprover = async function postPoamApprover(req, res) {
     try {
-        const poamApprover = await poamApproverService.postPoamApprover(req, res, next);
-        if (poamApprover === null) {
-            res.status(400).json({ error: 'Failed to create Poam Approver' });
-        } else {
-            res.status(201).json(poamApprover);
-        }
+        const poamApprover = await poamApproverService.postPoamApprover(req);
+        res.status(201).json(poamApprover);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.putPoamApprover = async function putPoamApprover(req, res, next) {
+module.exports.putPoamApprover = async function putPoamApprover(req, res) {
     try {
-        const poamApprover = await poamApproverService.putPoamApprover(req, res, next);
-        if (poamApprover === null) {
-            res.status(400).json({ error: 'Failed to update Poam Approver' });
-        } else {
-            res.status(200).json(poamApprover);
-        }
+        const poamApprover = await poamApproverService.putPoamApprover(req);
+        res.status(200).json(poamApprover);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
+module.exports.deletePoamApprover = async function deletePoamApprover(req, res) {
     try {
-        await poamApproverService.deletePoamApprover(req, res, next);
+        await poamApproverService.deletePoamApprover(req);
         res.status(204).send();
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };

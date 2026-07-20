@@ -297,7 +297,6 @@ describe('AppTopBarComponent', () => {
       component.saveUserPreferences();
 
       expect(mockUserService.updateUserTheme).toHaveBeenCalledWith({
-        userId: 42,
         defaultTheme: expect.any(String)
       });
     });

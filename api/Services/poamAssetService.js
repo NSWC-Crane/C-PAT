@@ -22,188 +22,85 @@ async function withConnection(callback) {
 }
 
 exports.getPoamAssets = async function getPoamAssets() {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT t1.assetId, t2.assetName, t1.poamId
-                FROM ${config.database.schema}.poamassets t1
-                INNER JOIN ${config.database.schema}.asset t2 ON t1.assetId = t2.assetId
-            `;
-            let [rowPoamAssets] = await connection.query(sql);
-            const poamAssets = rowPoamAssets.map(row => ({
-                assetId: row.assetId,
-                assetName: row.assetName,
-                poamId: row.poamId,
-            }));
-            return { poamAssets };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT t1.assetId, t2.assetName, t1.poamId
+            FROM ${config.database.schema}.poamassets t1
+            INNER JOIN ${config.database.schema}.asset t2 ON t1.assetId = t2.assetId
+        `;
+        let [rowPoamAssets] = await connection.query(sql);
+        const poamAssets = rowPoamAssets.map(row => ({
+            assetId: row.assetId,
+            assetName: row.assetName,
+            poamId: row.poamId,
+        }));
+        return poamAssets;
+    });
 };
 
-exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, _res, next) {
-    if (!req.params.poamId) {
-        return next({
-            status: 400,
-            errors: {
-                poamId: 'is required',
-            },
-        });
-    }
-
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT t1.assetId, assetName, t1.poamId
-                FROM ${config.database.schema}.poamassets t1
-                INNER JOIN ${config.database.schema}.asset t2 ON t1.assetId = t2.assetId
-                WHERE t1.poamId = ?
-            `;
-            let [rowPoamAssets] = await connection.query(sql, [req.params.poamId]);
-            const poamAssets = rowPoamAssets.map(row => ({
-                assetId: row.assetId,
-                assetName: row.assetName,
-                poamId: row.poamId,
-            }));
-            return poamAssets;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT t1.assetId, assetName, t1.poamId
+            FROM ${config.database.schema}.poamassets t1
+            INNER JOIN ${config.database.schema}.asset t2 ON t1.assetId = t2.assetId
+            WHERE t1.poamId = ?
+        `;
+        let [rowPoamAssets] = await connection.query(sql, [req.params.poamId]);
+        const poamAssets = rowPoamAssets.map(row => ({
+            assetId: row.assetId,
+            assetName: row.assetName,
+            poamId: row.poamId,
+        }));
+        return poamAssets;
+    });
 };
 
-exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req, _res, next) {
-    if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    }
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT DISTINCT pa.assetId, a.assetName, pa.poamId
-                FROM ${config.database.schema}.poamassets pa
-                INNER JOIN ${config.database.schema}.asset a ON pa.assetId = a.assetId
-                WHERE a.collectionId = ?
-            `;
-            let [rowPoamAssets] = await connection.query(sql, [req.params.collectionId]);
-            const poamAssets = rowPoamAssets.map(row => ({
-                assetId: row.assetId,
-                assetName: row.assetName,
-                poamId: row.poamId,
-            }));
-            return poamAssets;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT DISTINCT pa.assetId, a.assetName, pa.poamId
+            FROM ${config.database.schema}.poamassets pa
+            INNER JOIN ${config.database.schema}.asset a ON pa.assetId = a.assetId
+            WHERE a.collectionId = ?
+        `;
+        let [rowPoamAssets] = await connection.query(sql, [req.params.collectionId]);
+        const poamAssets = rowPoamAssets.map(row => ({
+            assetId: row.assetId,
+            assetName: row.assetName,
+            poamId: row.poamId,
+        }));
+        return poamAssets;
+    });
 };
 
-exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, _res, next) {
-    if (!req.params.poamId) {
-        return next({
-            status: 400,
-            errors: {
-                poamId: 'is required',
-            },
-        });
-    }
-
-    try {
-        return await withConnection(async connection => {
-            let sql = `DELETE FROM ${config.database.schema}.poamassets WHERE poamId = ?`;
-            await connection.query(sql, [req.params.poamId]);
-            return { poamAsset: [] };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req) {
+    return await withConnection(async connection => {
+        let sql = `DELETE FROM ${config.database.schema}.poamassets WHERE poamId = ?`;
+        await connection.query(sql, [req.params.poamId]);
+        return { poamAsset: [] };
+    });
 };
 
-exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, _res, next) {
-    if (!req.params.assetId) {
-        return next({
-            status: 400,
-            errors: {
-                assetId: 'is required',
-            },
-        });
-    }
-
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT t1.assetId, t2.assetName, t1.poamId
-                FROM ${config.database.schema}.poamassets t1
-                INNER JOIN ${config.database.schema}.asset t2 ON t1.assetId = t2.assetId
-                WHERE t1.assetId = ?
-            `;
-            let [rowPoamAssets] = await connection.query(sql, [req.params.assetId]);
-            const poamAssets = rowPoamAssets.map(row => ({
-                assetId: row.assetId,
-                assetName: row.assetName,
-                poamId: row.poamId,
-            }));
-            return { poamAssets };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT t1.assetId, t2.assetName, t1.poamId
+            FROM ${config.database.schema}.poamassets t1
+            INNER JOIN ${config.database.schema}.asset t2 ON t1.assetId = t2.assetId
+            WHERE t1.assetId = ?
+        `;
+        let [rowPoamAssets] = await connection.query(sql, [req.params.assetId]);
+        const poamAssets = rowPoamAssets.map(row => ({
+            assetId: row.assetId,
+            assetName: row.assetName,
+            poamId: row.poamId,
+        }));
+        return poamAssets;
+    });
 };
 
-exports.getAssetLabel = async function getAssetLabel(req, _res, next) {
-    if (!req.params.assetId) {
-        return next({
-            status: 400,
-            errors: {
-                assetId: 'is required',
-            },
-        });
-    }
-
-    if (!req.params.labelId) {
-        return next({
-            status: 400,
-            errors: {
-                labelId: 'is required',
-            },
-        });
-    }
-
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT t1.assetId, assetName, t1.labelId, labelName
-                FROM ${config.database.schema}.assetlabels t1
-                INNER JOIN ${config.database.schema}.asset t2 ON t1.assetId = t2.assetId
-                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
-                WHERE t1.assetId = ? AND t1.labelId = ?
-                ORDER BY t3.labelName
-            `;
-            let [rowAssetLabel] = await connection.query(sql, [req.params.assetId, req.params.labelId]);
-            const assetLabel = rowAssetLabel.length > 0 ? [rowAssetLabel[0]] : [];
-            return { assetLabel };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-};
-
-exports.postPoamAsset = async function postPoamAsset(req, _res, next) {
-    if (!req.body.assetId || !req.body.poamId) {
-        return next({
-            status: 400,
-            errors: {
-                assetId: 'is required',
-                poamId: 'is required',
-            },
-        });
-    }
-
+exports.postPoamAsset = async function postPoamAsset(req) {
     try {
         return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.poamassets (assetId, poamId) VALUES (?, ?)`;
@@ -230,47 +127,32 @@ exports.postPoamAsset = async function postPoamAsset(req, _res, next) {
             return poamAsset;
         });
     } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
-            return await withConnection(async connection => {
-                let fetchSql = `SELECT * FROM ${config.database.schema}.poamassets WHERE assetId = ? AND poamId = ?`;
-                const [existingAsset] = await connection.query(fetchSql, [req.body.assetId, req.body.poamId]);
-                return existingAsset[0];
-            });
-        } else {
-            return { error: error.message };
+        if (error.code !== 'ER_DUP_ENTRY') {
+            throw error;
         }
+        return await withConnection(async connection => {
+            let fetchSql = `SELECT * FROM ${config.database.schema}.poamassets WHERE assetId = ? AND poamId = ?`;
+            const [existingAsset] = await connection.query(fetchSql, [req.body.assetId, req.body.poamId]);
+            return existingAsset[0];
+        });
     }
 };
 
-exports.deletePoamAsset = async function deletePoamAsset(req, _res, next) {
-    if (!req.params.assetId || !req.params.poamId) {
-        return next({
-            status: 400,
-            errors: {
-                assetId: 'is required',
-                poamId: 'is required',
-            },
-        });
-    }
+exports.deletePoamAsset = async function deletePoamAsset(req) {
+    return await withConnection(async connection => {
+        let sql = `DELETE FROM ${config.database.schema}.poamassets WHERE assetId = ? AND poamId = ?`;
+        await connection.query(sql, [req.params.assetId, req.params.poamId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `DELETE FROM ${config.database.schema}.poamassets WHERE assetId = ? AND poamId = ?`;
-            await connection.query(sql, [req.params.assetId, req.params.poamId]);
+        let assetNameQuery = `SELECT assetName FROM ${config.database.schema}.asset WHERE assetId = ?`;
+        let [[assetNameResult]] = await connection.query(assetNameQuery, [req.params.assetId]);
+        let assetName = 'Unknown Asset';
+        if (assetNameResult) {
+            assetName = assetNameResult.assetName;
+        }
+        let action = `${assetName} was removed from the Asset List.`;
+        let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+        await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
 
-            let assetNameQuery = `SELECT assetName FROM ${config.database.schema}.asset WHERE assetId = ?`;
-            let [[assetNameResult]] = await connection.query(assetNameQuery, [req.params.assetId]);
-            let assetName = 'Unknown Asset';
-            if (assetNameResult) {
-                assetName = assetNameResult.assetName;
-            }
-            let action = `${assetName} was removed from the Asset List.`;
-            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
-
-            return { poamAsset: [] };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return { poamAsset: [] };
+    });
 };

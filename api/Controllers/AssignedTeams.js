@@ -9,96 +9,67 @@
 */
 
 const assignedTeamsService = require('../Services/assignedTeamsService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getAssignedTeams = async function getAssignedTeams(req, res, next) {
+module.exports.getAssignedTeams = async function getAssignedTeams(_req, res) {
     try {
-        const assignedTeams = await assignedTeamsService.getAssignedTeams(req, res, next);
+        const assignedTeams = await assignedTeamsService.getAssignedTeams();
         res.status(200).json(assignedTeams);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
+module.exports.getAssignedTeam = async function getAssignedTeam(req, res) {
     try {
-        const assignedTeam = await assignedTeamsService.getAssignedTeam(req, res, next);
+        const assignedTeam = await assignedTeamsService.getAssignedTeam(req);
         res.status(200).json(assignedTeam);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.postAssignedTeam = async function postAssignedTeam(req, res, next) {
+module.exports.postAssignedTeam = async function postAssignedTeam(req, res) {
     try {
-        const assignedTeam = await assignedTeamsService.postAssignedTeam(req, res, next);
+        const assignedTeam = await assignedTeamsService.postAssignedTeam(req);
         res.status(201).json(assignedTeam);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.putAssignedTeam = async function putAssignedTeam(req, res, next) {
+module.exports.putAssignedTeam = async function putAssignedTeam(req, res) {
     try {
-        const assignedTeam = await assignedTeamsService.putAssignedTeam(req, res, next);
+        const assignedTeam = await assignedTeamsService.putAssignedTeam(req);
         res.status(200).json(assignedTeam);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, next) {
+module.exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res) {
     try {
-        await assignedTeamsService.deleteAssignedTeam(req, res, next);
+        await assignedTeamsService.deleteAssignedTeam(req);
         res.status(204).send();
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req, res, next) {
+module.exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req, res) {
     try {
-        const permission = await assignedTeamsService.postAssignedTeamPermission(req, res, next);
+        const permission = await assignedTeamsService.postAssignedTeamPermission(req);
         res.status(201).json(permission);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req, res, next) {
+module.exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req, res) {
     try {
-        const result = await assignedTeamsService.deleteAssignedTeamPermission(req, res, next);
+        const result = await assignedTeamsService.deleteAssignedTeamPermission(req);
         res.status(200).json(result);
     } catch (error) {
-        if (error.status === 404) {
-            res.status(404).json({ error: 'Not Found', detail: error.message });
-        } else if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };

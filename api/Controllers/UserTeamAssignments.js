@@ -9,68 +9,40 @@
 */
 
 const userTeamAssignmentService = require('../Services/userTeamAssignmentService');
-const SmError = require('../utils/error');
+const { sendError } = require('../utils/respond');
 
-module.exports.getTeamAssignments = async function getTeamAssignments(req, res, next) {
+module.exports.getTeamAssignments = async function getTeamAssignments(req, res) {
     try {
-        const teamAssignments = await userTeamAssignmentService.getTeamAssignments(req, res, next);
+        const teamAssignments = await userTeamAssignmentService.getTeamAssignments(req);
         res.status(200).json(teamAssignments);
     } catch (error) {
-        if (error.message === 'assignedTeamId is required') {
-            res.status(400).json({ error: 'Validation Error', detail: 'assignedTeamId is required' });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.postTeamAssignment = async function postTeamAssignment(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const elevate = req.query.elevate;
-        const teamAssignment = await userTeamAssignmentService.postTeamAssignment(userId, elevate, req);
+        const teamAssignment = await userTeamAssignmentService.postTeamAssignment(req.userObject.userId, req.query.elevate, req);
         res.status(201).json(teamAssignment);
     } catch (error) {
-        if (error instanceof SmError.PrivilegeError) {
-            res.status(403).json({ error: error.message, detail: error.detail });
-        } else if (error instanceof SmError.ClientError) {
-            res.status(400).json({ error: error.message, detail: error.detail });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.putTeamAssignment = async function putTeamAssignment(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const elevate = req.query.elevate;
-        const teamAssignment = await userTeamAssignmentService.putTeamAssignment(userId, elevate, req);
+        const teamAssignment = await userTeamAssignmentService.putTeamAssignment(req.userObject.userId, req.query.elevate, req);
         res.status(200).json(teamAssignment);
     } catch (error) {
-        if (error instanceof SmError.PrivilegeError) {
-            res.status(403).json({ error: error.message, detail: error.detail });
-        } else if (error instanceof SmError.ClientError) {
-            res.status(400).json({ error: error.message, detail: error.detail });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
 module.exports.deleteTeamAssignment = async function deleteTeamAssignment(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const elevate = req.query.elevate;
-        await userTeamAssignmentService.deleteTeamAssignment(userId, elevate, req);
+        await userTeamAssignmentService.deleteTeamAssignment(req.userObject.userId, req.query.elevate, req);
         res.status(204).send();
     } catch (error) {
-        if (error instanceof SmError.PrivilegeError) {
-            res.status(403).json({ error: error.message, detail: error.detail });
-        } else if (error instanceof SmError.ClientError) {
-            res.status(400).json({ error: error.message, detail: error.detail });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };

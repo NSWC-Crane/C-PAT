@@ -73,11 +73,10 @@ describe('MarketplaceService', () => {
 
   describe('purchaseTheme', () => {
     it('should purchase a theme successfully', () => {
-      const userId = 1;
       const themeId = 2;
       const mockResponse = { success: true, message: 'Theme purchased successfully', pointsRemaining: 350 };
 
-      service.purchaseTheme(userId, themeId).subscribe((result) => {
+      service.purchaseTheme(themeId).subscribe((result) => {
         expect(result).toEqual(mockResponse);
         expect(result.success).toBe(true);
       });
@@ -85,16 +84,15 @@ describe('MarketplaceService', () => {
       const req = httpMock.expectOne(`${apiBase}/marketplace/purchase`);
 
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ userId, themeId });
+      expect(req.request.body).toEqual({ themeId });
       req.flush(mockResponse);
     });
 
     it('should handle insufficient points error', () => {
-      const userId = 1;
       const themeId = 5;
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      service.purchaseTheme(userId, themeId).subscribe({
+      service.purchaseTheme(themeId).subscribe({
         error: (error) => {
           expect(error.message).toBe('Something bad happened; please try again later.');
         }
@@ -108,11 +106,10 @@ describe('MarketplaceService', () => {
     });
 
     it('should handle already owned theme error', () => {
-      const userId = 1;
       const themeId = 1;
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      service.purchaseTheme(userId, themeId).subscribe({
+      service.purchaseTheme(themeId).subscribe({
         error: (error) => {
           expect(error.message).toBe('Something bad happened; please try again later.');
         }

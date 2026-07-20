@@ -28,8 +28,8 @@ bootstrapUtils.logAppConfig(config);
 process.on('uncaughtException', err => {
     logger.writeError('app', 'uncaught', serializeError(err));
 });
-process.on('unhandledRejection', (reason, promise) => {
-    logger.writeError('app', 'unhandled', { reason, promise });
+process.on('unhandledRejection', reason => {
+    logger.writeError('app', 'unhandled', serializeError(reason));
 });
 
 const app = express();

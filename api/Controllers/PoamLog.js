@@ -9,18 +9,14 @@
 */
 
 const poamLogService = require('../Services/poamLogService');
-const SmError = require('../utils/error');
+const { sendError } = require('../utils/respond');
 
 module.exports.getPoamLogByPoamId = async function getPoamLogByPoamId(req, res) {
     try {
-        const { poamId } = req.params;
-        const poamLog = await poamLogService.getPoamLogByPoamId(poamId);
+        const poamLog = await poamLogService.getPoamLogByPoamId(req.params.poamId);
+
         res.status(200).json(poamLog);
     } catch (error) {
-        if (error instanceof SmError.ClientError) {
-            res.status(400).json({ error: error.message, detail: error.detail });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };

@@ -36,8 +36,8 @@ export class MarketplaceService {
     return this.http.get<Theme[]>(`${this.cpatApiBase}/marketplace/themes`).pipe(catchError(this.handleError));
   }
 
-  purchaseTheme(userId: number, themeId: number): Observable<any> {
-    const purchaseData = { userId, themeId };
+  purchaseTheme(themeId: number): Observable<any> {
+    const purchaseData = { themeId };
 
     return this.http.post<any>(`${this.cpatApiBase}/marketplace/purchase`, purchaseData).pipe(catchError(this.handleError));
   }

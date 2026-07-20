@@ -38,7 +38,7 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collect
             labelCount: row.labelCount,
         }));
 
-        return { assetLabel };
+        return assetLabel;
     });
 };
 
@@ -57,7 +57,7 @@ exports.getCollectionPoamStatus = async function getCollectionPoamStatus(collect
             });
         }
 
-        return { poamStatus: poamStatus };
+        return poamStatus;
     });
 };
 
@@ -78,7 +78,7 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectio
             labelCount: row.labelCount,
         }));
 
-        return { poamLabel };
+        return poamLabel;
     });
 };
 
@@ -98,7 +98,7 @@ exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(col
             });
         }
 
-        return { poamSeverity: poamSeverity };
+        return poamSeverity;
     });
 };
 
@@ -139,7 +139,7 @@ exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamS
             scheduledCompletionCount: buckets[key],
         }));
 
-        return { poamScheduledCompletion };
+        return poamScheduledCompletion;
     });
 };
 
@@ -167,7 +167,7 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
             const collectionIds = permissionRows.map(row => row.collectionId);
 
             if (collectionIds.length === 0) {
-                return { assetLabel: [] };
+                return [];
             }
 
             sql += ' WHERE p.collectionId IN (?)';
@@ -183,7 +183,7 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
             labelCount: row.labelCount,
         }));
 
-        return { assetLabel };
+        return assetLabel;
     });
 };
 
@@ -205,7 +205,7 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
             const collectionIds = permissionRows.map(row => row.collectionId);
 
             if (collectionIds.length === 0) {
-                return { poamStatus: [] };
+                return [];
             }
 
             sql += ' WHERE collectionId IN (?)';
@@ -221,7 +221,7 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
             statusCount: row.statusCount,
         }));
 
-        return { poamStatus };
+        return poamStatus;
     });
 };
 
@@ -249,7 +249,7 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
             const collectionIds = permissionRows.map(row => row.collectionId);
 
             if (collectionIds.length === 0) {
-                return { poamLabel: [] };
+                return [];
             }
 
             sql += ' WHERE p.collectionId IN (?)';
@@ -265,7 +265,7 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
             labelCount: row.labelCount,
         }));
 
-        return { poamLabel };
+        return poamLabel;
     });
 };
 
@@ -287,7 +287,7 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) 
             const collectionIds = permissionRows.map(row => row.collectionId);
 
             if (collectionIds.length === 0) {
-                return { poamSeverity: [] };
+                return [];
             }
 
             sql += ' WHERE collectionId IN (?)';
@@ -303,7 +303,7 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) 
             severityCount: row.severityCount,
         }));
 
-        return { poamSeverity };
+        return poamSeverity;
     });
 };
 

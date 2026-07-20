@@ -16,6 +16,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { createMockRouter } from '../../../../testing/mocks/service-mocks';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
@@ -302,6 +303,16 @@ describe('UserProcessingComponent', () => {
       const bob = component.data().find((u: any) => u.userId === 2);
 
       expect(bob.lastAccessDate).toBe('');
+    });
+
+    it('should show error when getUsers fails', () => {
+      mockUsersService.getUsers.mockReturnValue(throwError(() => new Error('fail')));
+      const messageService = fixture.debugElement.injector.get(MessageService);
+      const addSpy = vi.spyOn(messageService, 'add');
+
+      component.getUserData();
+
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Failed to load users') }));
     });
   });
 

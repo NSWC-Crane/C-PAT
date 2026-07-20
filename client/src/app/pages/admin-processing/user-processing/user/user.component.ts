@@ -491,7 +491,7 @@ export class UserComponent implements OnInit, OnDestroy {
   async onSaveAssignedTeam(assignedTeam: AssignedTeam) {
     const teamData = this.assignedTeams().find((team: any) => team.assignedTeamId === assignedTeam.assignedTeamId);
 
-    if (!teamData || !teamData.permissions) {
+    if (!teamData?.permissions) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -768,10 +768,8 @@ export class UserComponent implements OnInit, OnDestroy {
     const filtered: string[] = [];
     const query = event.query.toLowerCase();
 
-    for (let i = 0; i < this.officeOrgOptions.length; i++) {
-      const officeOrg = this.officeOrgOptions[i];
-
-      if (officeOrg?.toLowerCase().indexOf(query) === 0) {
+    for (const officeOrg of this.officeOrgOptions) {
+      if (officeOrg?.toLowerCase().startsWith(query)) {
         filtered.push(officeOrg);
       }
     }
@@ -783,9 +781,18 @@ export class UserComponent implements OnInit, OnDestroy {
     const user = this.userState();
 
     if (user.accountStatus === 'DISABLED') {
-      this.userService.disableUser(user.userId).subscribe(() => {
-        if (final) {
-          this.userChange.emit();
+      this.userService.disableUser(user.userId).subscribe({
+        next: () => {
+          if (final) {
+            this.userChange.emit();
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to disable user: ${getErrorMessage(error)}`
+          });
         }
       });
     } else {
@@ -794,9 +801,18 @@ export class UserComponent implements OnInit, OnDestroy {
       user.lastAccess = formattedLastAccess;
       user.fullName = user.firstName + ' ' + user.lastName;
 
-      this.userService.updateUser(user).subscribe(() => {
-        if (final) {
-          this.userChange.emit();
+      this.userService.updateUser(user).subscribe({
+        next: () => {
+          if (final) {
+            this.userChange.emit();
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to update user: ${getErrorMessage(error)}`
+          });
         }
       });
     }

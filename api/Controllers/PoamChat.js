@@ -9,44 +9,31 @@
 */
 
 const poamChatService = require('../Services/poamChatService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getMessagesByPoamId = async function getMessagesByPoamId(req, res, next) {
+module.exports.getMessagesByPoamId = async function getMessagesByPoamId(req, res) {
     try {
-        const messages = await poamChatService.getMessagesByPoamId(req, res, next);
+        const messages = await poamChatService.getMessagesByPoamId(req);
         res.status(200).json(messages);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.createMessage = async function createMessage(req, res, next) {
+module.exports.createMessage = async function createMessage(req, res) {
     try {
-        const message = await poamChatService.createMessage(req, res, next);
+        const message = await poamChatService.createMessage(req);
         res.status(201).json(message);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.deleteMessage = async function deleteMessage(req, res, next) {
+module.exports.deleteMessage = async function deleteMessage(req, res) {
     try {
-        await poamChatService.deleteMessage(req, res, next);
+        await poamChatService.deleteMessage(req);
         res.status(204).send();
     } catch (error) {
-        if (error.status === 404) {
-            res.status(404).json({ error: 'Not Found', detail: 'Message not found' });
-        } else if (error.status === 403) {
-            res.status(403).json({ error: 'Forbidden', detail: 'Not authorized to delete this message' });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };

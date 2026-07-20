@@ -73,11 +73,11 @@ exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoam
 
 exports.postPoamTeamResource = async function postPoamTeamResource(req) {
     if (!req.body.assignedTeamId) {
-        throw new Error('postPoamTeamResource: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
 
     if (!req.body.poamId) {
-        throw new Error('postPoamTeamResource: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
 
     return await withConnection(async connection => {
@@ -134,7 +134,7 @@ exports.postPoamTeamResource = async function postPoamTeamResource(req) {
                     }
                 });
             } else {
-                return { error: error.message };
+                throw error;
             }
         }
     });
@@ -142,53 +142,49 @@ exports.postPoamTeamResource = async function postPoamTeamResource(req) {
 
 exports.updatePoamTeamResource = async function updatePoamTeamResource(req) {
     if (!req.params.assignedTeamId) {
-        throw new Error('updatePoamTeamResource: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
     if (!req.params.poamId) {
-        throw new Error('updatePoamTeamResource: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
     if (req.body.resourceText === undefined) {
-        throw new Error('updatePoamTeamResource: resourceText is required');
+        throw new SmError.ClientError('resourceText is required');
     }
 
     return await withConnection(async connection => {
-        try {
-            let updateSql = `UPDATE ${config.database.schema}.poamteamresources SET resourceText = ? WHERE assignedTeamId = ? AND poamId = ?`;
-            await connection.query(updateSql, [req.body.resourceText, req.params.assignedTeamId, req.params.poamId]);
+        let updateSql = `UPDATE ${config.database.schema}.poamteamresources SET resourceText = ? WHERE assignedTeamId = ? AND poamId = ?`;
+        await connection.query(updateSql, [req.body.resourceText, req.params.assignedTeamId, req.params.poamId]);
 
-            let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
-            const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
-            const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
+        let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
+        const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
+        const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
 
-            let action = `Team Resources was updated for ${teamName}.`;
-            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
+        let action = `Team Resources was updated for ${teamName}.`;
+        let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+        await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
 
-            let fetchSql = `SELECT resourceId, poamId, assignedTeamId, resourceText, isActive FROM ${config.database.schema}.poamteamresources WHERE assignedTeamId = ? AND poamId = ?`;
-            const [teamResource] = await connection.query(fetchSql, [req.params.assignedTeamId, req.params.poamId]);
+        let fetchSql = `SELECT resourceId, poamId, assignedTeamId, resourceText, isActive FROM ${config.database.schema}.poamteamresources WHERE assignedTeamId = ? AND poamId = ?`;
+        const [teamResource] = await connection.query(fetchSql, [req.params.assignedTeamId, req.params.poamId]);
 
-            if (teamResource.length > 0) {
-                const result = { ...teamResource[0] };
-                result.isActive = result.isActive == null ? null : Boolean(result.isActive);
-                return result;
-            } else {
-                throw new Error('Team Resource not found after update');
-            }
-        } catch (error) {
-            return { error: error.message };
+        if (teamResource.length === 0) {
+            throw new SmError.NotFoundError('Team resource not found');
         }
+
+        const result = { ...teamResource[0] };
+        result.isActive = result.isActive == null ? null : Boolean(result.isActive);
+        return result;
     });
 };
 
 exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStatus(req) {
     if (!req.params.assignedTeamId) {
-        throw new Error('updatePoamTeamResourceStatus: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
     if (!req.params.poamId) {
-        throw new Error('updatePoamTeamResourceStatus: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
     if (req.body.isActive === undefined) {
-        throw new Error('updatePoamTeamResourceStatus: isActive is required');
+        throw new SmError.ClientError('isActive is required');
     }
 
     return await withConnection(async connection => {
@@ -226,14 +222,14 @@ exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStat
 
                     await connection.commit();
 
-                    if (teamResource.length > 0) {
-                        const result = { ...teamResource[0] };
-                        result.isActive = result.isActive == null ? null : Boolean(result.isActive);
-                        result.assignedTeamName = teamName;
-                        return result;
-                    } else {
-                        throw new Error('Team Resource not found after status update');
+                    if (teamResource.length === 0) {
+                        throw new SmError.NotFoundError('Team resource not found');
                     }
+
+                    const result = { ...teamResource[0] };
+                    result.isActive = result.isActive == null ? null : Boolean(result.isActive);
+                    result.assignedTeamName = teamName;
+                    return result;
                 } catch (error) {
                     await connection.rollback();
                     throw error;
@@ -244,23 +240,20 @@ exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStat
                     await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 50));
                     continue;
                 }
-                if (error instanceof SmError.SmError) {
-                    throw error;
-                }
-                return { error: error.message };
+                throw error;
             }
         }
 
-        return { error: 'Failed after maximum retry attempts due to deadlock' };
+        throw new Error('Failed after maximum retry attempts due to deadlock');
     });
 };
 
 exports.deletePoamTeamResource = async function deletePoamTeamResource(req) {
     if (!req.params.assignedTeamId) {
-        throw new Error('deletePoamTeamResource: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
     if (!req.params.poamId) {
-        throw new Error('deletePoamTeamResource: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
 
     await withConnection(async connection => {

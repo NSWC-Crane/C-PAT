@@ -292,7 +292,7 @@ describe('MarketplaceComponent', () => {
       component.user.set({ userId: 1 });
       mockConfirmationService.confirm.mockImplementation(({ accept }) => accept());
       component.purchaseTheme(cheapTheme);
-      expect(mockMarketplaceService.purchaseTheme).toHaveBeenCalledWith(1, 6);
+      expect(mockMarketplaceService.purchaseTheme).toHaveBeenCalledWith(6);
     });
 
     it('should deduct cost from userPoints on success', () => {

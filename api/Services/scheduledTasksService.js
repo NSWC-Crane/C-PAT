@@ -107,7 +107,7 @@ exports.getScheduledTasksStatus = function getScheduledTasksStatus() {
     for (const [name, job] of Object.entries(jobs)) {
         status[name] = {
             nextRun: job?.nextInvocation()?.toISOString() || null,
-            running: job ? true : false,
+            running: !!job,
         };
     }
 
