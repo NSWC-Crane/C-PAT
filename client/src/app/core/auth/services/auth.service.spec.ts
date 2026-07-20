@@ -210,8 +210,8 @@ describe('AuthService', () => {
   describe('logout', () => {
     it('should logoff from stigman first then cpat', () => {
       service.logout().subscribe(() => {
-        expect(mockOidcSecurityService.logoff).toHaveBeenCalledWith('stigman', undefined);
-        expect(mockOidcSecurityService.logoff).toHaveBeenCalledWith('cpat', undefined);
+        expect(mockOidcSecurityService.logoff).toHaveBeenCalledWith('stigman');
+        expect(mockOidcSecurityService.logoff).toHaveBeenCalledWith('cpat');
       });
     });
 

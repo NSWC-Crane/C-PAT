@@ -176,13 +176,13 @@ export class PoamDetailsComponent implements OnInit {
   stigmanSTIGs: any;
   readonly tenablePluginData = signal<string>('');
   filteredStigmanSTIGs: string[] = [];
-  protected readonly selectedCollection = this.sharedService.selectedCollectionSig;
   readonly originCollectionId = signal<number | undefined>(undefined);
   readonly collectionData = signal<Collections | undefined>(undefined);
   readonly stateData = signal<any>(undefined);
   readonly submitDialogVisible = signal<boolean>(false);
   readonly user = this.setPayloadService.user;
   readonly payload = this.setPayloadService.payload;
+  protected readonly selectedCollection = computed<number | null>(() => this.sharedService.selectedCollectionSig() ?? this.payload()?.lastCollectionAccessedId ?? null);
   readonly teamMitigations = signal<any[]>([]);
   readonly teamResources = signal<any[]>([]);
   readonly milestoneTeamOptions = signal<any[]>([]);

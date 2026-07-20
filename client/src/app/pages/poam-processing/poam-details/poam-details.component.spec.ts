@@ -446,8 +446,19 @@ describe('PoamDetailsComponent', () => {
       expect(getLabelSpy).toHaveBeenCalled();
     });
 
-    it('should not call getLabelData when selectedCollection is falsy', () => {
+    it('should fall back to payload.lastCollectionAccessedId when the shared collection signal is unset', () => {
       mockSharedService.selectedCollectionSig.set(undefined);
+      mockPayloadService.payload.set({ lastCollectionAccessedId: 7 });
+      const getLabelSpy = vi.spyOn(component, 'getLabelData');
+
+      component.setPayload();
+      expect(component['selectedCollection']()).toBe(7);
+      expect(getLabelSpy).toHaveBeenCalled();
+    });
+
+    it('should not call getLabelData when no collection can be resolved', () => {
+      mockSharedService.selectedCollectionSig.set(undefined);
+      mockPayloadService.payload.set({});
       const getLabelSpy = vi.spyOn(component, 'getLabelData');
 
       component.setPayload();

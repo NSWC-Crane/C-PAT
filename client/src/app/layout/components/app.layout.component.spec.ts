@@ -255,6 +255,11 @@ describe('AppLayoutComponent', () => {
       expect(component.selectedCollection()).toEqual(mockCollections[0]);
     });
 
+    it('should seed sharedService.setSelectedCollection on load without a picker click', () => {
+      fixture.detectChanges();
+      expect(mockSharedService.setSelectedCollection).toHaveBeenCalledWith(1);
+    });
+
     it('should set collectionType from basic list data', () => {
       fixture.detectChanges();
       expect(component.collectionType()).toBe('C-PAT');

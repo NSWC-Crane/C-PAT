@@ -43,7 +43,7 @@ export class AssignedTeamService {
   }
 
   getAssignedTeam(assignedTeamId: number): Observable<AssignedTeam> {
-    return this.http.get<AssignedTeam>(`${this.cpatApiBase}/assignedTeams/${assignedTeamId}`).pipe(catchError(this.handleError));
+    return this.http.get<AssignedTeam>(`${this.cpatApiBase}/assignedTeam/${assignedTeamId}`).pipe(catchError(this.handleError));
   }
 
   postAssignedTeam(assignedTeam: AssignedTeam): Observable<AssignedTeam> {
