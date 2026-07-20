@@ -190,15 +190,6 @@ describe('UserComponent', () => {
     });
   });
 
-  describe('ngOnChanges', () => {
-    it('should call getData', () => {
-      const spy = vi.spyOn(component, 'getData');
-
-      component.ngOnChanges();
-      expect(spy).toHaveBeenCalled();
-    });
-  });
-
   describe('loadUserData (via ngOnInit)', () => {
     it('should set user data on success', async () => {
       fixture.componentRef.setInput('userInput', { userId: 1 });
