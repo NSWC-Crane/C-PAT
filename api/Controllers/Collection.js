@@ -10,16 +10,16 @@
 
 const collectionService = require('../Services/collectionService');
 
-module.exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
+module.exports.getCollectionBasicList = async function getCollectionBasicList(_req, res) {
     try {
-        const getCollection = await collectionService.getCollectionBasicList(req, res, next);
+        const getCollection = await collectionService.getCollectionBasicList();
         res.status(200).json(getCollection);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: 'An error occurred while fetching collection details.' });
+        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 
-module.exports.getCollections = async function getCollections(req, res, next) {
+module.exports.getCollections = async function getCollections(req, res) {
     try {
         const elevate = req.query.elevate;
         const getCollections = await collectionService.getCollections(elevate, req);
@@ -63,7 +63,7 @@ module.exports.putCollection = async function putCollection(req, res, next) {
     }
 };
 
-module.exports.deleteCollection = async function deleteCollection(req, res, next) {
+module.exports.deleteCollection = async function deleteCollection(req, res) {
     try {
         const result = await collectionService.deleteCollection(req);
         if (result.status) {

@@ -12,6 +12,7 @@
 
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -23,16 +24,11 @@ async function withConnection(callback) {
 }
 
 exports.getPoamLogByPoamId = async function getPoamLogByPoamId(poamId) {
-    try {
-        if (!poamId) {
-            return next({
-                status: 400,
-                errors: {
-                    poamId: 'is required',
-                },
-            });
-        }
+    if (!poamId) {
+        throw new SmError.ClientError('poamId is required');
+    }
 
+    try {
         return await withConnection(async connection => {
             const sql = `
         SELECT pl.timestamp, pl.action, u.fullName

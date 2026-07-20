@@ -69,9 +69,9 @@ module.exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res
     }
 };
 
-module.exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam(req, res, next) {
+module.exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam(_req, res) {
     try {
-        const vulnerabilityIds = await poamService.getVulnerabilityIdsWithPoam(req, res, next);
+        const vulnerabilityIds = await poamService.getVulnerabilityIdsWithPoam();
         res.status(200).json(vulnerabilityIds);
     } catch (error) {
         if (error.status === 400) {
@@ -82,9 +82,9 @@ module.exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsW
     }
 };
 
-module.exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilityIdsWithPoamByCollection(req, res, next) {
+module.exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilityIdsWithPoamByCollection(req, res) {
     try {
-        const vulnerabilityIds = await poamService.getVulnerabilityIdsWithPoamByCollection(req, res, next);
+        const vulnerabilityIds = await poamService.getVulnerabilityIdsWithPoamByCollection(req);
         res.status(200).json(vulnerabilityIds);
     } catch (error) {
         if (error.status === 400) {
@@ -95,9 +95,9 @@ module.exports.getVulnerabilityIdsWithPoamByCollection = async function getVulne
     }
 };
 
-module.exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnerabilityIdsWithTaskOrderByCollection(req, res, next) {
+module.exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnerabilityIdsWithTaskOrderByCollection(req, res) {
     try {
-        const vulnerabilityIds = await poamService.getVulnerabilityIdsWithTaskOrderByCollection(req, res, next);
+        const vulnerabilityIds = await poamService.getVulnerabilityIdsWithTaskOrderByCollection(req);
         res.status(200).json(vulnerabilityIds);
     } catch (error) {
         if (error.status === 400) {
@@ -108,9 +108,9 @@ module.exports.getVulnerabilityIdsWithTaskOrderByCollection = async function get
     }
 };
 
-module.exports.postPoam = async function postPoam(req, res, next) {
+module.exports.postPoam = async function postPoam(req, res) {
     try {
-        const poam = await poamService.postPoam(req, res, next);
+        const poam = await poamService.postPoam(req);
         if (poam.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: poam.errors });
         } else if (poam.status === 409) {
@@ -125,9 +125,9 @@ module.exports.postPoam = async function postPoam(req, res, next) {
     }
 };
 
-module.exports.putPoam = async function putPoam(req, res, next) {
+module.exports.putPoam = async function putPoam(req, res) {
     try {
-        const poam = await poamService.putPoam(req, res, next);
+        const poam = await poamService.putPoam(req);
         if (poam.status === 400) {
             res.status(400).json({ error: 'Validation Error', detail: JSON.stringify(poam.errors) });
         } else if (poam.status === 404) {
@@ -159,7 +159,7 @@ module.exports.updatePoamStatus = async function updatePoamStatus(req, res, next
     }
 };
 
-module.exports.deletePoam = async function deletePoam(req, res, next) {
+module.exports.deletePoam = async function deletePoam(req, res) {
     try {
         const result = await poamService.deletePoam(req);
 

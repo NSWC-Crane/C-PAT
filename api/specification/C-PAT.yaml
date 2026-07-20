@@ -153,7 +153,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/aaPackage_Object'
+              allOf:
+                - $ref: '#/components/schemas/aaPackage_Object'
+                - required:
+                    - aaPackageId
       responses:
         '200':
           description: A&A Package updated successfully
@@ -1841,7 +1844,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/label_Object'
+              allOf:
+                - $ref: '#/components/schemas/label_Object'
+                - required:
+                    - labelId
       responses:
         '200':
           description: Label updated successfully

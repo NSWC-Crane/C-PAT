@@ -48,6 +48,14 @@ class NotFoundError extends SmError {
     }
 }
 
+class ConflictError extends SmError {
+    constructor(detail) {
+        super('Resource conflict.');
+        this.status = 409;
+        this.detail = detail;
+    }
+}
+
 class UnprocessableError extends SmError {
     constructor(detail) {
         super('Unprocessable Entity.');
@@ -142,6 +150,7 @@ module.exports = {
     PrivilegeError,
     NotFoundError,
     ClientError,
+    ConflictError,
     UnprocessableError,
     OIDCProviderError,
     SigningKeyNotFoundError,

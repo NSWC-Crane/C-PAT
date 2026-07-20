@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAssetsByCollection = async function getAssetsByCollection(req, res, next) {
+exports.getAssetsByCollection = async function getAssetsByCollection(req, _res, next) {
     try {
         if (!req.params.collectionId) {
             return next({
@@ -50,7 +50,7 @@ exports.getAssetsByCollection = async function getAssetsByCollection(req, res, n
     }
 };
 
-exports.getAsset = async function getAsset(req, res, next) {
+exports.getAsset = async function getAsset(req, _res, next) {
     if (!req.params.assetId) {
         return next({
             status: 400,
@@ -81,7 +81,7 @@ exports.getAsset = async function getAsset(req, res, next) {
     }
 };
 
-exports.getAssetByName = async function getAssetByName(req, res, next) {
+exports.getAssetByName = async function getAssetByName(req, _res, next) {
     if (!req.params.assetName) {
         return next({
             status: 400,
@@ -112,7 +112,7 @@ exports.getAssetByName = async function getAssetByName(req, res, next) {
     }
 };
 
-exports.postAsset = async function postAsset(req, res, next) {
+exports.postAsset = async function postAsset(req, _res, next) {
     if (!req.body.assetName) {
         return next({
             status: 400,
@@ -171,7 +171,7 @@ exports.postAsset = async function postAsset(req, res, next) {
     }
 };
 
-exports.putAsset = async function putAsset(req, res, next) {
+exports.putAsset = async function putAsset(req, _res, next) {
     if (!req.body.assetId) {
         return next({
             status: 400,
@@ -242,7 +242,7 @@ exports.putAsset = async function putAsset(req, res, next) {
     }
 };
 
-exports.deleteAsset = async function deleteAsset(req, res, next) {
+exports.deleteAsset = async function deleteAsset(req, _res, next) {
     if (!req.params.assetId) {
         return next({
             status: 400,
@@ -262,7 +262,7 @@ exports.deleteAsset = async function deleteAsset(req, res, next) {
     }
 };
 
-exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, next) {
+exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, _res, next) {
     if (!req.params.poamId) {
         return next({
             status: 400,
@@ -288,7 +288,7 @@ exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, res, nex
     }
 };
 
-exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
+exports.getAssetDeltaList = async function getAssetDeltaList() {
     try {
         return await withConnection(async connection => {
             const assetsSql = `
@@ -340,7 +340,7 @@ exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
     }
 };
 
-exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollection(req, res, next, collectionId) {
+exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollection(_req, _res, _next, collectionId) {
     try {
         return await withConnection(async connection => {
             const assetsSql = `

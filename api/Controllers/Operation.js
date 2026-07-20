@@ -8,11 +8,12 @@
 !##########################################################################
 */
 
+const { JSONPath } = require('jsonpath-plus');
 const operationService = require('../Services/operationService');
 const config = require('../utils/config');
 const SmError = require('../utils/error.js');
 
-module.exports.getConfiguration = async function getConfiguration(req, res, next) {
+module.exports.getConfiguration = async function getConfiguration(_req, res, next) {
     try {
         let dbConfigs = await operationService.getConfiguration();
         let version = { version: config.version };

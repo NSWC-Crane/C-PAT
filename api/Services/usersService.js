@@ -50,7 +50,7 @@ exports.getUsers = async function getUsers(elevate, req) {
                         let isAdmin;
                         try {
                             isAdmin = privilegeGetter(user.lastClaims).includes('admin');
-                        } catch (e) {
+                        } catch {
                             isAdmin = false;
                         }
 
@@ -117,7 +117,7 @@ exports.getCurrentUser = async function getCurrentUser(req) {
             let isAdmin;
             try {
                 isAdmin = privilegeGetter(user.lastClaims).includes('admin');
-            } catch (e) {
+            } catch {
                 isAdmin = false;
             }
 
@@ -180,7 +180,7 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
                 let isAdmin;
                 try {
                     isAdmin = privilegeGetter(user.lastClaims).includes('admin');
-                } catch (e) {
+                } catch {
                     isAdmin = false;
                 }
 
@@ -235,7 +235,7 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
             let isAdmin;
             try {
                 isAdmin = privilegeGetter(user.lastClaims).includes('admin');
-            } catch (e) {
+            } catch {
                 isAdmin = false;
             }
 
@@ -266,7 +266,7 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
     }
 };
 
-exports.updateUser = async function updateUser(userId, elevate, req) {
+exports.updateUser = async function updateUser(_userId, elevate, req) {
     try {
         req.body.defaultTheme = req.body.defaultTheme || null;
         return await withConnection(async connection => {
@@ -301,7 +301,7 @@ exports.updateUser = async function updateUser(userId, elevate, req) {
     }
 };
 
-exports.updateUserTheme = async function updateUserTheme(req, res, next) {
+exports.updateUserTheme = async function updateUserTheme(req) {
     try {
         return await withConnection(async connection => {
             let sql = `UPDATE ${config.database.schema}.user SET defaultTheme = ? WHERE userId = ?`;
@@ -448,7 +448,7 @@ exports.createUser = async function createUser(elevate, req) {
         if (error instanceof SmError.SmError) {
             throw error;
         }
-        throw new Error(`Failed to create user: ${error.message}`);
+        throw new Error(`Failed to create user: ${error.message}`, { cause: error });
     }
 };
 
@@ -543,6 +543,6 @@ exports.disableUser = async function disableUser(elevate, userId) {
         if (error instanceof SmError.PrivilegeError) {
             throw error;
         }
-        throw new Error(`Failed to disable user: ${error.message}`);
+        throw new Error(`Failed to disable user: ${error.message}`, { cause: error });
     }
 };

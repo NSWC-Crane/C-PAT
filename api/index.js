@@ -25,7 +25,7 @@ const startServer = require('./bootstrap/server');
 signals.setupSignalHandlers();
 bootstrapUtils.logAppConfig(config);
 
-process.on('uncaughtException', (err, origin) => {
+process.on('uncaughtException', err => {
     logger.writeError('app', 'uncaught', serializeError(err));
 });
 process.on('unhandledRejection', (reason, promise) => {

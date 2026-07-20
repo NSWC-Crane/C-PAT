@@ -62,7 +62,7 @@ module.exports.putTenableFilter = async function putTenableFilter(req, res, next
     }
 };
 
-module.exports.deleteTenableFilter = async function deleteTenableFilter(req, res, next) {
+module.exports.deleteTenableFilter = async function deleteTenableFilter(req, res) {
     try {
         await tenableFilterService.deleteTenableFilter(req);
         res.status(204).send();

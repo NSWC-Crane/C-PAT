@@ -10,7 +10,7 @@
 
 const healthService = require('../Services/healthService');
 
-module.exports.getUptimeStatus = async function getUptimeStatus(req, res, next) {
+module.exports.getUptimeStatus = async function getUptimeStatus(_req, res) {
     try {
         const status = await healthService.getUptimeStatus();
         res.status(200).json(status);

@@ -129,7 +129,7 @@ async function getAIModel() {
     }
 }
 
-exports.generateMitigation = async function generateMitigation(req, res, next) {
+exports.generateMitigation = async function generateMitigation(req, _res, next) {
     if (!config.ai.enabled) {
         return next({
             status: 400,

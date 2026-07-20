@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const smErrors = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAssignedTeams = async function getAssignedTeams(req, res, next) {
+exports.getAssignedTeams = async function getAssignedTeams(_req, _res, next) {
     try {
         return await withConnection(async connection => {
             let sql = `
@@ -59,7 +60,7 @@ exports.getAssignedTeams = async function getAssignedTeams(req, res, next) {
     }
 };
 
-exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
+exports.getAssignedTeam = async function getAssignedTeam(req, _res, next) {
     if (!req.params.assignedTeamId) {
         return next({
             status: 400,
@@ -112,7 +113,7 @@ exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
     }
 };
 
-exports.postAssignedTeam = async function postAssignedTeam(req, res, next) {
+exports.postAssignedTeam = async function postAssignedTeam(req, _res, next) {
     if (!req.body.assignedTeamName) {
         return next({
             status: 400,
@@ -142,7 +143,7 @@ exports.postAssignedTeam = async function postAssignedTeam(req, res, next) {
     }
 };
 
-exports.putAssignedTeam = async function putAssignedTeam(req, res, next) {
+exports.putAssignedTeam = async function putAssignedTeam(req, _res, next) {
     if (!req.body.assignedTeamId) {
         return next({
             status: 400,
@@ -176,7 +177,7 @@ exports.putAssignedTeam = async function putAssignedTeam(req, res, next) {
     }
 };
 
-exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, next) {
+exports.deleteAssignedTeam = async function deleteAssignedTeam(req, _res, next) {
     if (!req.params.assignedTeamId) {
         return next({
             status: 400,
@@ -198,7 +199,7 @@ exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, next) {
     }
 };
 
-exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req, res, next) {
+exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req, _res, next) {
     try {
         return await withConnection(async connection => {
             const { assignedTeamId, collectionId } = req.body;
@@ -221,7 +222,7 @@ exports.postAssignedTeamPermission = async function postAssignedTeamPermission(r
     }
 };
 
-exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req, res, next) {
+exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req, _res, next) {
     try {
         return await withConnection(async connection => {
             const { assignedTeamId, collectionId } = req.params;
@@ -234,10 +235,7 @@ exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermissi
             const [result] = await connection.query(sql, [assignedTeamId, collectionId]);
 
             if (result.affectedRows === 0) {
-                throw {
-                    status: 404,
-                    message: 'Permission not found',
-                };
+                throw new smErrors.NotFoundError('Permission not found');
             }
 
             return { success: true };

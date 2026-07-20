@@ -9,6 +9,7 @@
 */
 
 const permissionService = require('../Services/permissionsService');
+const SmError = require('../utils/error');
 
 module.exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
     try {
@@ -23,45 +24,51 @@ module.exports.getCollectionPermissions = async function getCollectionPermission
     }
 };
 
-module.exports.postPermission = async function postPermission(req, res, next) {
+module.exports.postPermission = async function postPermission(req, res) {
     try {
         const userId = req.userObject.userId;
         const elevate = req.query.elevate;
         const permission = await permissionService.postPermission(userId, elevate, req);
         res.status(201).json(permission);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        if (error instanceof SmError.PrivilegeError) {
+            res.status(403).json({ error: error.message, detail: error.detail });
+        } else if (error instanceof SmError.ClientError) {
+            res.status(400).json({ error: error.message, detail: error.detail });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
 };
 
-module.exports.putPermission = async function putPermission(req, res, next) {
+module.exports.putPermission = async function putPermission(req, res) {
     try {
         const userId = req.userObject.userId;
         const elevate = req.query.elevate;
         const permission = await permissionService.putPermission(userId, elevate, req);
         res.status(200).json(permission);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        if (error instanceof SmError.PrivilegeError) {
+            res.status(403).json({ error: error.message, detail: error.detail });
+        } else if (error instanceof SmError.ClientError) {
+            res.status(400).json({ error: error.message, detail: error.detail });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
 };
 
-module.exports.deletePermission = async function deletePermission(req, res, next) {
+module.exports.deletePermission = async function deletePermission(req, res) {
     try {
         const userId = req.userObject.userId;
         const elevate = req.query.elevate;
         await permissionService.deletePermission(userId, elevate, req);
         res.status(204).send();
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
+        if (error instanceof SmError.PrivilegeError) {
+            res.status(403).json({ error: error.message, detail: error.detail });
+        } else if (error instanceof SmError.ClientError) {
+            res.status(400).json({ error: error.message, detail: error.detail });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }

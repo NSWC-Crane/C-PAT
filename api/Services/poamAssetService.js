@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamAssets = async function getPoamAssets(req, res, next) {
+exports.getPoamAssets = async function getPoamAssets() {
     try {
         return await withConnection(async connection => {
             let sql = `
@@ -42,7 +42,7 @@ exports.getPoamAssets = async function getPoamAssets(req, res, next) {
     }
 };
 
-exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, next) {
+exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, _res, next) {
     if (!req.params.poamId) {
         return next({
             status: 400,
@@ -73,7 +73,7 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, n
     }
 };
 
-exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req, res, next) {
+exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req, _res, next) {
     if (!req.params.collectionId) {
         return next({
             status: 400,
@@ -103,7 +103,7 @@ exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId
     }
 };
 
-exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res, next) {
+exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, _res, next) {
     if (!req.params.poamId) {
         return next({
             status: 400,
@@ -124,7 +124,7 @@ exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, re
     }
 };
 
-exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res, next) {
+exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, _res, next) {
     if (!req.params.assetId) {
         return next({
             status: 400,
@@ -155,7 +155,7 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res,
     }
 };
 
-exports.getAssetLabel = async function getAssetLabel(req, res, next) {
+exports.getAssetLabel = async function getAssetLabel(req, _res, next) {
     if (!req.params.assetId) {
         return next({
             status: 400,
@@ -193,7 +193,7 @@ exports.getAssetLabel = async function getAssetLabel(req, res, next) {
     }
 };
 
-exports.postPoamAsset = async function postPoamAsset(req, res, next) {
+exports.postPoamAsset = async function postPoamAsset(req, _res, next) {
     if (!req.body.assetId || !req.body.poamId) {
         return next({
             status: 400,
@@ -242,7 +242,7 @@ exports.postPoamAsset = async function postPoamAsset(req, res, next) {
     }
 };
 
-exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
+exports.deletePoamAsset = async function deletePoamAsset(req, _res, next) {
     if (!req.params.assetId || !req.params.poamId) {
         return next({
             status: 400,

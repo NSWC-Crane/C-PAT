@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -70,7 +71,7 @@ exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsBy
     });
 };
 
-exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res, next) {
+exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req) {
     if (!req.body.assignedTeamId) {
         throw new Error('postPoamTeamMitigation: assignedTeamId is required');
     }
@@ -139,7 +140,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
     });
 };
 
-exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, res, next) {
+exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req) {
     if (!req.params.assignedTeamId) {
         throw new Error('updatePoamTeamMitigation: assignedTeamId is required');
     }
@@ -179,7 +180,7 @@ exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, 
     });
 };
 
-exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req, res, next) {
+exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req) {
     if (!req.params.assignedTeamId) {
         throw new Error('updatePoamTeamMitigationStatus: assignedTeamId is required');
     }
@@ -205,7 +206,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
                     const [existingRecord] = await connection.query(lockSql, [req.params.assignedTeamId, req.params.poamId]);
 
                     if (existingRecord.length === 0) {
-                        throw new Error('Team Mitigation not found');
+                        throw new SmError.NotFoundError('Team mitigation not found');
                     }
 
                     let updateSql = `UPDATE ${config.database.schema}.poamteammitigations
@@ -243,6 +244,9 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
                     await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 50));
                     continue;
                 }
+                if (error instanceof SmError.SmError) {
+                    throw error;
+                }
                 return { error: error.message };
             }
         }
@@ -251,7 +255,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
     });
 };
 
-exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req, res, next) {
+exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req) {
     if (!req.params.assignedTeamId) {
         throw new Error('deletePoamTeamMitigation: assignedTeamId is required');
     }

@@ -10,7 +10,7 @@
 
 const marketplaceService = require('../Services/marketplaceService');
 
-module.exports.getAllThemes = async function getAllThemes(req, res, next) {
+module.exports.getAllThemes = async function getAllThemes(_req, res) {
     try {
         const themes = await marketplaceService.getAllThemes();
         res.status(200).json(themes);
@@ -19,7 +19,7 @@ module.exports.getAllThemes = async function getAllThemes(req, res, next) {
     }
 };
 
-module.exports.purchaseTheme = async function purchaseTheme(req, res, next) {
+module.exports.purchaseTheme = async function purchaseTheme(req, res) {
     try {
         const { userId, themeId } = req.body;
         const result = await marketplaceService.purchaseTheme(userId, themeId);
@@ -33,7 +33,7 @@ module.exports.purchaseTheme = async function purchaseTheme(req, res, next) {
     }
 };
 
-module.exports.getUserThemes = async function getUserThemes(req, res, next) {
+module.exports.getUserThemes = async function getUserThemes(req, res) {
     try {
         const userId = req.userObject.userId;
         const themes = await marketplaceService.getUserThemes(userId);
@@ -43,7 +43,7 @@ module.exports.getUserThemes = async function getUserThemes(req, res, next) {
     }
 };
 
-module.exports.getUserPoints = async function getUserPoints(req, res, next) {
+module.exports.getUserPoints = async function getUserPoints(req, res) {
     try {
         const userId = req.userObject.userId;
         const points = await marketplaceService.getUserPoints(userId);

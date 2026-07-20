@@ -10,9 +10,9 @@
 
 const poamAssetService = require('../Services/poamAssetService');
 
-module.exports.getPoamAssets = async function getPoamAssets(req, res, next) {
+module.exports.getPoamAssets = async function getPoamAssets(_req, res) {
     try {
-        const poamAssets = await poamAssetService.getPoamAssets(req, res, next);
+        const poamAssets = await poamAssetService.getPoamAssets();
         res.status(200).json(poamAssets);
     } catch (error) {
         res.status(400).json({ error: error.message });

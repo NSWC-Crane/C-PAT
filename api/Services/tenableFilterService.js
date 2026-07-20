@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getTenableFilters = async function getTenableFilters(req, res, next) {
+exports.getTenableFilters = async function getTenableFilters(req, _res, next) {
     if (!req.params.collectionId) {
         return next({
             status: 400,
@@ -51,7 +51,7 @@ exports.getTenableFilters = async function getTenableFilters(req, res, next) {
     }
 };
 
-exports.getTenableFilter = async function getTenableFilter(req, res, next) {
+exports.getTenableFilter = async function getTenableFilter(req, _res, next) {
     if (!req.params.filterId) {
         return next({
             status: 400,
@@ -82,7 +82,7 @@ exports.getTenableFilter = async function getTenableFilter(req, res, next) {
     }
 };
 
-exports.postTenableFilter = async function postTenableFilter(req, res, next) {
+exports.postTenableFilter = async function postTenableFilter(req, _res, next) {
     if (!req.params.collectionId) {
         return next({
             status: 400,
@@ -128,7 +128,7 @@ exports.postTenableFilter = async function postTenableFilter(req, res, next) {
     }
 };
 
-exports.putTenableFilter = async function putTenableFilter(req, res, next) {
+exports.putTenableFilter = async function putTenableFilter(req, _res, next) {
     if (!req.params.collectionId) {
         return next({
             status: 400,

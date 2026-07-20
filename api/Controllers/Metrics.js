@@ -10,7 +10,7 @@
 
 const metricsService = require('../Services/metricsService');
 
-module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res, next) {
+module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionAssetLabel(collectionId);
@@ -24,7 +24,7 @@ module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(
     }
 };
 
-module.exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res, next) {
+module.exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamLabel(collectionId);
@@ -38,7 +38,7 @@ module.exports.getCollectionPoamLabel = async function getCollectionPoamLabel(re
     }
 };
 
-module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(req, res, next) {
+module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamStatus(collectionId);
@@ -52,7 +52,7 @@ module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(
     }
 };
 
-module.exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(req, res, next) {
+module.exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamSeverity(collectionId);
@@ -66,7 +66,7 @@ module.exports.getCollectionPoamSeverity = async function getCollectionPoamSever
     }
 };
 
-module.exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(req, res, next) {
+module.exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamScheduledCompletion(collectionId);
@@ -80,7 +80,7 @@ module.exports.getCollectionPoamScheduledCompletion = async function getCollecti
     }
 };
 
-module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res, next) {
+module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res) {
     try {
         const getMetrics = await metricsService.getAvailableAssetLabel(req);
         if (getMetrics) {
@@ -93,7 +93,7 @@ module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(re
     }
 };
 
-module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res, next) {
+module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res) {
     try {
         const getMetrics = await metricsService.getAvailablePoamLabel(req);
         if (getMetrics) {
@@ -106,7 +106,7 @@ module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req,
     }
 };
 
-module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res, next) {
+module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res) {
     try {
         const getMetrics = await metricsService.getAvailablePoamStatus(req);
         if (getMetrics?.poamStatus) {
@@ -119,7 +119,7 @@ module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(re
     }
 };
 
-module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, res, next) {
+module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, res) {
     try {
         const getMetrics = await metricsService.getAvailablePoamSeverity(req);
         if (getMetrics?.poamSeverity) {
@@ -132,7 +132,7 @@ module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverit
     }
 };
 
-module.exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(req, res, next) {
+module.exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const months = Number.parseInt(req.query?.months, 10) || 12;
@@ -147,7 +147,7 @@ module.exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(req,
     }
 };
 
-module.exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req, res, next) {
+module.exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req, res) {
     try {
         const getMetrics = await metricsService.getAvailablePoamMTTR(req);
         if (getMetrics?.summary || getMetrics?.trend) {

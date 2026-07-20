@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -70,7 +71,7 @@ exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoam
     });
 };
 
-exports.postPoamTeamResource = async function postPoamTeamResource(req, res, next) {
+exports.postPoamTeamResource = async function postPoamTeamResource(req) {
     if (!req.body.assignedTeamId) {
         throw new Error('postPoamTeamResource: assignedTeamId is required');
     }
@@ -139,7 +140,7 @@ exports.postPoamTeamResource = async function postPoamTeamResource(req, res, nex
     });
 };
 
-exports.updatePoamTeamResource = async function updatePoamTeamResource(req, res, next) {
+exports.updatePoamTeamResource = async function updatePoamTeamResource(req) {
     if (!req.params.assignedTeamId) {
         throw new Error('updatePoamTeamResource: assignedTeamId is required');
     }
@@ -179,7 +180,7 @@ exports.updatePoamTeamResource = async function updatePoamTeamResource(req, res,
     });
 };
 
-exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStatus(req, res, next) {
+exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStatus(req) {
     if (!req.params.assignedTeamId) {
         throw new Error('updatePoamTeamResourceStatus: assignedTeamId is required');
     }
@@ -205,7 +206,7 @@ exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStat
                     const [existingRecord] = await connection.query(lockSql, [req.params.assignedTeamId, req.params.poamId]);
 
                     if (existingRecord.length === 0) {
-                        throw new Error('Team Resource not found');
+                        throw new SmError.NotFoundError('Team resource not found');
                     }
 
                     let updateSql = `UPDATE ${config.database.schema}.poamteamresources
@@ -243,6 +244,9 @@ exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStat
                     await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 50));
                     continue;
                 }
+                if (error instanceof SmError.SmError) {
+                    throw error;
+                }
                 return { error: error.message };
             }
         }
@@ -251,7 +255,7 @@ exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStat
     });
 };
 
-exports.deletePoamTeamResource = async function deletePoamTeamResource(req, res, next) {
+exports.deletePoamTeamResource = async function deletePoamTeamResource(req) {
     if (!req.params.assignedTeamId) {
         throw new Error('deletePoamTeamResource: assignedTeamId is required');
     }

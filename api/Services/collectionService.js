@@ -67,7 +67,7 @@ exports.getCollections = async function getCollections(elevate, req) {
     }
 };
 
-exports.getCollectionBasicList = async function getCollectionBasicList(req, res, next) {
+exports.getCollectionBasicList = async function getCollectionBasicList() {
     try {
         return await withConnection(async connection => {
             const sql = `SELECT collectionId, collectionName, collectionType, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions, manualCreationAllowed FROM ${config.database.schema}.collection`;
@@ -82,7 +82,7 @@ exports.getCollectionBasicList = async function getCollectionBasicList(req, res,
     }
 };
 
-exports.postCollection = async function postCollection(req, res, next) {
+exports.postCollection = async function postCollection(req, _res, next) {
     if (!req.body.collectionName) {
         return next({
             status: 400,
@@ -131,7 +131,7 @@ exports.postCollection = async function postCollection(req, res, next) {
     }
 };
 
-exports.putCollection = async function putCollection(req, res, next) {
+exports.putCollection = async function putCollection(req, _res, next) {
     if (!req.body.collectionId) {
         return next({
             status: 400,

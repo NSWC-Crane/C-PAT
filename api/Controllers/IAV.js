@@ -10,9 +10,9 @@
 
 const iavService = require('../Services/iavService');
 
-module.exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(req, res, next) {
+module.exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(_req, res) {
     try {
-        const vramUpdatedDate = await iavService.getVramDataUpdatedDate(req, res, next);
+        const vramUpdatedDate = await iavService.getVramDataUpdatedDate();
         res.status(200).json(vramUpdatedDate);
     } catch (error) {
         if (error.status === 400) {
@@ -23,9 +23,9 @@ module.exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(re
     }
 };
 
-module.exports.getIAVTableData = async function getIAVTableData(req, res, next) {
+module.exports.getIAVTableData = async function getIAVTableData(_req, res) {
     try {
-        const iavTableData = await iavService.getIAVTableData(req, res, next);
+        const iavTableData = await iavService.getIAVTableData();
         res.status(200).json(iavTableData);
     } catch (error) {
         if (error.status === 400) {
@@ -36,7 +36,7 @@ module.exports.getIAVTableData = async function getIAVTableData(req, res, next) 
     }
 };
 
-module.exports.mapIAVPluginIds = async function mapIAVPluginIds(req, res, next) {
+module.exports.mapIAVPluginIds = async function mapIAVPluginIds(req, res) {
     try {
         const updatedCount = await iavService.mapIAVPluginIds(req.body);
         res.status(200).json({ message: 'PluginIDs mapped updated successfully', updatedCount });
@@ -49,9 +49,9 @@ module.exports.mapIAVPluginIds = async function mapIAVPluginIds(req, res, next) 
     }
 };
 
-module.exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) {
+module.exports.getIAVPluginIds = async function getIAVPluginIds(_req, res) {
     try {
-        const iavPluginIDs = await iavService.getIAVPluginIds(req, res, next);
+        const iavPluginIDs = await iavService.getIAVPluginIds();
         res.status(200).json(iavPluginIDs);
     } catch (error) {
         if (error.status === 400) {
@@ -62,7 +62,7 @@ module.exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) 
     }
 };
 
-module.exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(req, res, next) {
+module.exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(req, res) {
     try {
         const pluginIDs = req.body.pluginIDs;
         const iavInfo = await iavService.getIAVInfoForPlugins(pluginIDs);

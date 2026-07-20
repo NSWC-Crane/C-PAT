@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getCollectionPermissions = async function getCollectionPermissions(req, res, next) {
+exports.getCollectionPermissions = async function getCollectionPermissions(req, _res, next) {
     if (!req.params.collectionId) {
         return next({
             status: 400,
@@ -52,32 +53,17 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req, 
     }
 };
 
-exports.postPermission = async function postPermission(userId, elevate, req) {
+exports.postPermission = async function postPermission(_userId, elevate, req) {
     if (!req.body.userId) {
-        return next({
-            status: 400,
-            errors: {
-                userId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('userId is required');
     }
 
     if (!req.body.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                oldCollectionId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('collectionId is required');
     }
 
     if (!req.body.accessLevel) {
-        return next({
-            status: 400,
-            errors: {
-                accessLevel: 'is required',
-            },
-        });
+        throw new SmError.ClientError('accessLevel is required');
     }
 
     try {
@@ -103,6 +89,8 @@ exports.postPermission = async function postPermission(userId, elevate, req) {
                 const [existingPermission] = await connection.query(fetchSql, [req.body.userId, req.body.collectionId]);
                 return existingPermission[0];
             });
+        } else if (error instanceof SmError.SmError) {
+            throw error;
         } else {
             return {
                 error: error.message,
@@ -111,32 +99,17 @@ exports.postPermission = async function postPermission(userId, elevate, req) {
     }
 };
 
-exports.putPermission = async function putPermission(userId, elevate, req) {
+exports.putPermission = async function putPermission(_userId, elevate, req) {
     if (!req.body.userId) {
-        return next({
-            status: 400,
-            errors: {
-                userId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('userId is required');
     }
 
     if (!req.body.oldCollectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('oldCollectionId is required');
     }
 
     if (!req.body.accessLevel) {
-        return next({
-            status: 400,
-            errors: {
-                accessLevel: 'is required',
-            },
-        });
+        throw new SmError.ClientError('accessLevel is required');
     }
 
     try {
@@ -156,29 +129,22 @@ exports.putPermission = async function putPermission(userId, elevate, req) {
             }
         });
     } catch (error) {
+        if (error instanceof SmError.SmError) {
+            throw error;
+        }
         return {
             error: error.message,
         };
     }
 };
 
-exports.deletePermission = async function deletePermission(userId, elevate, req) {
+exports.deletePermission = async function deletePermission(_userId, elevate, req) {
     if (!req.params.userId) {
-        return next({
-            status: 400,
-            errors: {
-                userId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('userId is required');
     }
 
     if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('collectionId is required');
     }
 
     try {
@@ -195,6 +161,9 @@ exports.deletePermission = async function deletePermission(userId, elevate, req)
             }
         });
     } catch (error) {
+        if (error instanceof SmError.SmError) {
+            throw error;
+        }
         return {
             error: error.message,
         };

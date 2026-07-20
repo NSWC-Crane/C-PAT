@@ -9,57 +9,61 @@
 */
 
 const poamTeamMitigationService = require('../Services/poamTeamMitigationService');
+const SmError = require('../utils/error');
 
-exports.getPoamTeamMitigations = async function getPoamTeamMitigations(req, res, next) {
+exports.getPoamTeamMitigations = async function getPoamTeamMitigations(_req, res) {
     try {
         const result = await poamTeamMitigationService.getPoamTeamMitigations();
         return res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while retrieving POAM team mitigations' });
+        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 
-exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsByPoamId(req, res, next) {
+exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsByPoamId(req, res) {
     try {
         const result = await poamTeamMitigationService.getPoamTeamMitigationsByPoamId(req.params.poamId);
         return res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while retrieving POAM team mitigations by poamId' });
+        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 
-exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res, next) {
+exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res) {
     try {
-        const teamMitigation = await poamTeamMitigationService.postPoamTeamMitigation(req, res, next);
+        const teamMitigation = await poamTeamMitigationService.postPoamTeamMitigation(req);
         return res.status(201).json(teamMitigation);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while entering the POAM team mitigation' });
+        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 
-exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, res, next) {
+exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, res) {
     try {
-        const teamMitigation = await poamTeamMitigationService.updatePoamTeamMitigation(req, res, next);
+        const teamMitigation = await poamTeamMitigationService.updatePoamTeamMitigation(req);
         return res.status(200).json(teamMitigation);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while updating the POAM team mitigation' });
+        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 
-exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req, res, next) {
+exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req, res) {
     try {
-        const teamMitigation = await poamTeamMitigationService.updatePoamTeamMitigationStatus(req, res, next);
+        const teamMitigation = await poamTeamMitigationService.updatePoamTeamMitigationStatus(req);
         return res.status(200).json(teamMitigation);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while updating the POAM team mitigation status' });
+        if (error instanceof SmError.NotFoundError) {
+            return res.status(404).json({ error: error.message, detail: error.detail });
+        }
+        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 
-exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req, res, next) {
+exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req, res) {
     try {
-        await poamTeamMitigationService.deletePoamTeamMitigation(req, res, next);
+        await poamTeamMitigationService.deletePoamTeamMitigation(req);
         return res.status(204).send();
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while deleting the POAM team mitigation' });
+        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };

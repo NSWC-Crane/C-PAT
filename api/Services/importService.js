@@ -24,7 +24,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.excelFilter = (req, file, cb) => {
+exports.excelFilter = (_req, file, cb) => {
     const validMimeTypes = [
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -38,7 +38,7 @@ exports.excelFilter = (req, file, cb) => {
     }
 };
 
-exports.excelAndCsvFilter = (req, file, cb) => {
+exports.excelAndCsvFilter = (_req, file, cb) => {
     const validMimeTypes = [
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -61,7 +61,7 @@ async function loadWorkbook(file) {
         await workbook.xlsx.load(file.buffer);
         return workbook;
     } catch (error) {
-        throw new Error(`Failed to load Excel file: ${error.message}`);
+        throw new Error(`Failed to load Excel file: ${error.message}`, { cause: error });
     }
 }
 
@@ -97,7 +97,7 @@ exports.importVRAMExcel = async function importVRAMExcel(file) {
             return { message: 'VRAM data updated successfully', rowsProcessed: vramData.length };
         });
     } catch (error) {
-        throw new Error(`Failed to update VRAM data in the database: ${error.message}`);
+        throw new Error(`Failed to update VRAM data in the database: ${error.message}`, { cause: error });
     }
 };
 
@@ -370,7 +370,7 @@ async function processCSVAssetListForCollection(file, collectionId) {
             })
             .on('end', async totalRowCount => {
                 try {
-                    const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
+                    const assetData = Array.from(assetMap).map(([, data]) => ({
                         key: data.originalKey,
                         value: data.value,
                     }));
@@ -406,7 +406,7 @@ async function processRegularAssetListForCollection(worksheet, collectionId) {
         }
     });
 
-    const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
+    const assetData = Array.from(assetMap).map(([, data]) => ({
         key: data.originalKey,
         value: data.value,
     }));
@@ -662,7 +662,7 @@ async function processEMassHardwareList(workbook, collectionId) {
             }
         });
     } catch (error) {
-        throw new Error(`Failed to process eMASS hardware list: ${error.message}`);
+        throw new Error(`Failed to process eMASS hardware list: ${error.message}`, { cause: error });
     }
 }
 
@@ -689,7 +689,7 @@ async function processCSVAssetList(file, collectionId) {
                 })
                 .on('end', async totalRowCount => {
                     try {
-                        const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
+                        const assetData = Array.from(assetMap).map(([, data]) => ({
                             key: data.originalKey,
                             value: data.value,
                         }));
@@ -735,7 +735,7 @@ async function processCSVAssetList(file, collectionId) {
                 });
         });
     } catch (error) {
-        throw new Error(`Failed to process CSV file: ${error.message}`);
+        throw new Error(`Failed to process CSV file: ${error.message}`, { cause: error });
     }
 }
 
@@ -756,7 +756,7 @@ async function processRegularAssetList(worksheet, collectionId) {
         }
     });
 
-    const assetData = Array.from(assetMap).map(([lowercaseKey, data]) => ({
+    const assetData = Array.from(assetMap).map(([, data]) => ({
         key: data.originalKey,
         value: data.value,
     }));
@@ -801,7 +801,7 @@ async function processRegularAssetList(worksheet, collectionId) {
             }
         });
     } catch (error) {
-        throw new Error(`Failed to process asset list: ${error.message}`);
+        throw new Error(`Failed to process asset list: ${error.message}`, { cause: error });
     }
 }
 

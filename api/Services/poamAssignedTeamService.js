@@ -101,7 +101,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
     });
 };
 
-exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, next) {
+exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req) {
     if (!req.body.assignedTeamId) {
         throw new Error('postPoamAssignedTeam: assignedTeamId is required');
     }
@@ -157,7 +157,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
     });
 };
 
-exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req, res, next) {
+exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req) {
     if (!req.params.assignedTeamId) {
         throw new Error('deletePoamAssignedTeam: assignedTeamId is required');
     }

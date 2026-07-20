@@ -102,9 +102,9 @@ module.exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req, r
     }
 };
 
-module.exports.getAssetDeltaList = async function getAssetDeltaList(req, res, next) {
+module.exports.getAssetDeltaList = async function getAssetDeltaList(_req, res) {
     try {
-        const response = await assetService.getAssetDeltaList(req, res, next);
+        const response = await assetService.getAssetDeltaList();
         res.status(200).json({
             assets: response.assets,
         });

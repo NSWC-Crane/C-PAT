@@ -10,7 +10,7 @@
 
 const poamLabelService = require('../Services/poamLabelService');
 
-module.exports.getPoamLabels = async function getPoamLabels(req, res, next) {
+module.exports.getPoamLabels = async function getPoamLabels(req, res) {
     try {
         const { collectionId } = req.params;
         const poamLabels = await poamLabelService.getPoamLabels(collectionId);
@@ -24,7 +24,7 @@ module.exports.getPoamLabels = async function getPoamLabels(req, res, next) {
     }
 };
 
-module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res, next) {
+module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res) {
     try {
         const poamLabels = await poamLabelService.getAvailablePoamLabels(req);
         res.status(200).json(poamLabels);
@@ -37,7 +37,7 @@ module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(re
     }
 };
 
-module.exports.getPoamsByLabel = async function getPoamsByLabel(req, res, next) {
+module.exports.getPoamsByLabel = async function getPoamsByLabel(req, res) {
     try {
         const { labelId } = req.params;
         const poams = await poamLabelService.getPoamsByLabel(labelId);
@@ -51,7 +51,7 @@ module.exports.getPoamsByLabel = async function getPoamsByLabel(req, res, next) 
     }
 };
 
-module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(req, res, next) {
+module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(req, res) {
     try {
         const { poamId } = req.params;
         const poamLabels = await poamLabelService.getPoamLabelsByPoam(poamId);
@@ -65,7 +65,7 @@ module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(req, res
     }
 };
 
-module.exports.getPoamLabelByLabel = async function getPoamLabelByLabel(req, res, next) {
+module.exports.getPoamLabelByLabel = async function getPoamLabelByLabel(req, res) {
     try {
         const { labelId } = req.params;
         const poamLabels = await poamLabelService.getPoamLabelsByLabel(labelId);
@@ -79,7 +79,7 @@ module.exports.getPoamLabelByLabel = async function getPoamLabelByLabel(req, res
     }
 };
 
-module.exports.getPoamLabel = async function getPoamLabel(req, res, next) {
+module.exports.getPoamLabel = async function getPoamLabel(req, res) {
     try {
         const { poamId, labelId } = req.params;
         const poamLabel = await poamLabelService.getPoamLabel(poamId, labelId);

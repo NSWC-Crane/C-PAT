@@ -18,6 +18,12 @@ const { serializeError } = require('../utils/serializeError');
 const state = require('../utils/state');
 const tenableTls = require('../utils/tenableTls');
 
+function stripTrailingSlashes(url) {
+    let end = url.length;
+    while (end > 0 && url.codePointAt(end - 1) === 47) end--;
+    return url.slice(0, end);
+}
+
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
     try {
@@ -182,8 +188,8 @@ exports.recordHealthCheck = async function recordHealthCheck() {
     const oidcUp = state.dependencyStatus.oidc ? 1 : 0;
     const systemUp = dbUp && oidcUp ? 1 : 0;
 
-    const stigmanBaseUrl = config.stigman.apiUrl.replace(/\/+$/, '');
-    const tenableBaseUrl = config.tenable.url.replace(/\/+$/, '');
+    const stigmanBaseUrl = stripTrailingSlashes(config.stigman.apiUrl);
+    const tenableBaseUrl = stripTrailingSlashes(config.tenable.url);
     const stigmanStatus = config.stigman.enabled ? await checkStigManager(`${stigmanBaseUrl}/op/configuration`) : null;
 
     const tenableStatus = config.tenable.enabled ? await checkTenable(`${tenableBaseUrl}/rest/system`) : null;
@@ -195,7 +201,9 @@ exports.recordHealthCheck = async function recordHealthCheck() {
                 [systemUp, response_ms, dbUp ? 1 : 0, oidcUp, stigmanStatus, tenableStatus]
             );
         });
-    } catch {}
+    } catch (err) {
+        logger.writeError('healthcheck', 'recordHealthCheckFailed', { error: serializeError(err) });
+    }
 };
 
 exports.backfillDowntime = async function backfillDowntime() {
@@ -235,7 +243,9 @@ exports.backfillDowntime = async function backfillDowntime() {
                 [values]
             );
         });
-    } catch {}
+    } catch (err) {
+        logger.writeError('healthcheck', 'backfillDowntimeFailed', { error: serializeError(err) });
+    }
 };
 
 exports.pruneOldHealthChecks = async function pruneOldHealthChecks() {
@@ -243,7 +253,9 @@ exports.pruneOldHealthChecks = async function pruneOldHealthChecks() {
         await withConnection(async connection => {
             await connection.query(`DELETE FROM ${config.database.schema}.healthcheck WHERE checked_at < UTC_TIMESTAMP(3) - INTERVAL 31 DAY`);
         });
-    } catch {}
+    } catch (err) {
+        logger.writeError('healthcheck', 'pruneOldHealthChecksFailed', { error: serializeError(err) });
+    }
 };
 
 exports.getUptimeStatus = async function getUptimeStatus() {

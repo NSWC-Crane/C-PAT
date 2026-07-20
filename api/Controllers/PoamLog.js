@@ -9,15 +9,16 @@
 */
 
 const poamLogService = require('../Services/poamLogService');
+const SmError = require('../utils/error');
 
-module.exports.getPoamLogByPoamId = async function getPoamLogByPoamId(req, res, next) {
+module.exports.getPoamLogByPoamId = async function getPoamLogByPoamId(req, res) {
     try {
         const { poamId } = req.params;
         const poamLog = await poamLogService.getPoamLogByPoamId(poamId);
         res.status(200).json(poamLog);
     } catch (error) {
-        if (error.message === 'POAM ID is required') {
-            res.status(400).json({ error: 'Validation Error', detail: error.message });
+        if (error instanceof SmError.ClientError) {
+            res.status(400).json({ error: error.message, detail: error.detail });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }

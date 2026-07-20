@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -28,16 +29,11 @@ function normalizeDate(date) {
 }
 
 exports.getPoamMilestones = async function getPoamMilestones(poamId) {
-    try {
-        if (!poamId) {
-            return next({
-                status: 400,
-                errors: {
-                    poamId: 'is required',
-                },
-            });
-        }
+    if (!poamId) {
+        throw new Error('POAM ID is required');
+    }
 
+    try {
         return await withConnection(async connection => {
             let sql = `SELECT pm.milestoneId, pm.poamId, pm.milestoneDate, pm.milestoneComments,
                               pm.milestoneStatus, pm.milestoneChangeComments, pm.milestoneChangeDate
@@ -77,16 +73,11 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
 };
 
 exports.postPoamMilestone = async function postPoamMilestone(poamId, req) {
-    try {
-        if (!poamId) {
-            return next({
-                status: 400,
-                errors: {
-                    poamId: 'is required',
-                },
-            });
-        }
+    if (!poamId) {
+        throw new SmError.ClientError('poamId is required');
+    }
 
+    try {
         if (req.body.milestoneDate) {
             req.body.milestoneDate = normalizeDate(req.body.milestoneDate);
         } else {
@@ -151,23 +142,13 @@ Milestone Comment: ${req.body.milestoneComments}`;
 };
 
 exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, req) {
-    try {
-        if (!poamId) {
-            return next({
-                status: 400,
-                errors: {
-                    poamId: 'is required',
-                },
-            });
-        } else if (!milestoneId) {
-            return next({
-                status: 400,
-                errors: {
-                    milestoneId: 'is required',
-                },
-            });
-        }
+    if (!poamId) {
+        throw new SmError.ClientError('poamId is required');
+    } else if (!milestoneId) {
+        throw new SmError.ClientError('milestoneId is required');
+    }
 
+    try {
         if (req.body.milestoneDate) {
             req.body.milestoneDate = normalizeDate(req.body.milestoneDate);
         } else {
@@ -243,24 +224,14 @@ New Milestone Status: ${req.body.milestoneStatus}`);
 };
 
 exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milestoneId, req) {
-    try {
-        if (!poamId) {
-            return next({
-                status: 400,
-                errors: {
-                    poamId: 'is required',
-                },
-            });
-        }
-        if (!milestoneId) {
-            return next({
-                status: 400,
-                errors: {
-                    milestoneId: 'is required',
-                },
-            });
-        }
+    if (!poamId) {
+        throw new SmError.ClientError('poamId is required');
+    }
+    if (!milestoneId) {
+        throw new SmError.ClientError('milestoneId is required');
+    }
 
+    try {
         return await withConnection(async connection => {
             const deleteSql = `DELETE FROM ${config.database.schema}.poammilestones WHERE poamId = ? AND milestoneId = ?`;
             await connection.query(deleteSql, [poamId, milestoneId]);

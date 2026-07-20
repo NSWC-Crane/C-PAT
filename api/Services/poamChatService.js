@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getMessagesByPoamId = async function getMessagesByPoamId(req, res, next) {
+exports.getMessagesByPoamId = async function getMessagesByPoamId(req, _res, next) {
     if (!req.params.poamId) {
         return next({
             status: 400,
@@ -61,7 +61,7 @@ exports.getMessagesByPoamId = async function getMessagesByPoamId(req, res, next)
     }
 };
 
-exports.createMessage = async function createMessage(req, res, next) {
+exports.createMessage = async function createMessage(req, _res, next) {
     if (!req.params.poamId) {
         return next({
             status: 400,
@@ -140,7 +140,7 @@ exports.createMessage = async function createMessage(req, res, next) {
     }
 };
 
-exports.deleteMessage = async function deleteMessage(req, res, next) {
+exports.deleteMessage = async function deleteMessage(req, _res, next) {
     if (!req.params.messageId) {
         return next({
             status: 400,

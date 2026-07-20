@@ -76,7 +76,7 @@ async function doMigrations() {
     const umzug = new Umzug({
         migrations: {
             glob: umzugGlobPattern,
-            resolve: ({ name, path: migrationPath, context }) => {
+            resolve: ({ name, path: migrationPath }) => {
                 const migration = require(migrationPath);
                 return {
                     name: name,
@@ -137,7 +137,7 @@ async function setupInitialSchema() {
         }
     } catch (e) {
         logger.writeError('mysql', 'schema', { status: 'error', files, message: e.message });
-        throw new Error(`failed to setup initial schema, ${e.message}`);
+        throw new Error(`failed to setup initial schema, ${e.message}`, { cause: e });
     }
     logger.writeInfo('mysql', 'schema', { message: 'schema setup complete.' });
 }
@@ -155,14 +155,14 @@ async function setupSchema() {
         const migrated = await doMigrations();
 
         if (migrated.length > 0) {
-            const lastName = migrated[migrated.length - 1].name;
+            const lastName = migrated.at(-1).name;
             config.lastMigration = Number.parseInt(lastName.replace('.js', '').substring(0, 4));
         } else {
             config.lastMigration = -1;
         }
     } catch (error) {
         logger.writeError('mysql', 'initalization', { message: error.message });
-        throw new Error('Failed during database initialization or migration.');
+        throw new Error('Failed during database initialization or migration.', { cause: error });
     }
 }
 

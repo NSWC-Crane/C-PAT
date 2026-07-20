@@ -69,7 +69,7 @@ function verifyToken(tokenJWT, signingKey) {
     }
 }
 
-const validateToken = async function (req, res, next) {
+const validateToken = async function (req, _res, next) {
     try {
         const tokenJWT = getBearerToken(req);
         if (tokenJWT) {
@@ -113,7 +113,7 @@ async function handlePointsUpdate(userId, lastAccess, hasPoints) {
     }
 }
 
-const setupUser = async function (req, res, next) {
+const setupUser = async function (req, _res, next) {
     try {
         if (req.access_token) {
             const tokenPayload = req.access_token;
@@ -208,13 +208,13 @@ const setupJwks = async function (jwksUri) {
         jwksUri,
         cacheMaxAge: (config.oauth.cacheMaxAge || 10) * 60 * 1000,
     });
-    jwksCache.on('cacheUpdate', cache => {
+    jwksCache.on('cacheUpdate', () => {
         logger.writeDebug('auth', 'jwksCacheEvent', { event: 'cacheUpdate', kids: jwksCache.getKidTypes() });
     });
     jwksCache.on('cacheStale', cache => {
         logger.writeDebug('auth', 'jwksCacheEvent', { event: 'cacheStale', message: cache });
         state.setOidcStatus(false);
-        jwksCache.once('cacheUpdate', cache => {
+        jwksCache.once('cacheUpdate', () => {
             state.setOidcStatus(true);
         });
     });

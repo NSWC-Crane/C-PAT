@@ -11,7 +11,7 @@
 const importService = require('../Services/importService');
 const SmError = require('../utils/error');
 
-module.exports.importVRAMExcel = async (req, res, next) => {
+module.exports.importVRAMExcel = async (req, res) => {
     const file = req.files[0];
 
     if (!file) {
@@ -38,7 +38,7 @@ module.exports.importVRAMExcel = async (req, res, next) => {
     });
 };
 
-module.exports.importAssetListFile = async (req, res, next) => {
+module.exports.importAssetListFile = async (req, res) => {
     const file = req.files[0];
     const collectionId = Number.parseInt(req.params.collectionId, 10);
 
@@ -69,7 +69,7 @@ module.exports.importAssetListFile = async (req, res, next) => {
     });
 };
 
-module.exports.importMultipleAssetListFiles = async (req, res, next) => {
+module.exports.importMultipleAssetListFiles = async (req, res) => {
     const file = req.files[0];
     const collectionIds = req.body.collectionIds ? JSON.parse(req.body.collectionIds) : [];
 

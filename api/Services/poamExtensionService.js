@@ -34,7 +34,7 @@ exports.getPoamExtension = async function (poamId) {
     });
 };
 
-exports.putPoamExtension = async function (req, res, next) {
+exports.putPoamExtension = async function (req) {
     return withConnection(async connection => {
         try {
             let sql = `UPDATE ${config.database.schema}.poam SET

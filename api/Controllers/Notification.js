@@ -10,7 +10,7 @@
 
 const notificationService = require('../Services/notificationService');
 
-module.exports.getAllNotifications = async function getAllNotifications(req, res, next) {
+module.exports.getAllNotifications = async function getAllNotifications(req, res) {
     try {
         const userId = req.userObject.userId;
         const notifications = await notificationService.getAllNotifications(userId);
@@ -21,7 +21,7 @@ module.exports.getAllNotifications = async function getAllNotifications(req, res
     }
 };
 
-module.exports.getUnreadNotifications = async function getUnreadNotifications(req, res, next) {
+module.exports.getUnreadNotifications = async function getUnreadNotifications(req, res) {
     try {
         const userId = req.userObject.userId;
         const notifications = await notificationService.getUnreadNotifications(userId);
@@ -32,7 +32,7 @@ module.exports.getUnreadNotifications = async function getUnreadNotifications(re
     }
 };
 
-module.exports.getUnreadNotificationCount = async function getUnreadNotificationCount(req, res, next) {
+module.exports.getUnreadNotificationCount = async function getUnreadNotificationCount(req, res) {
     try {
         const userId = req.userObject.userId;
         const notificationCount = await notificationService.getUnreadNotificationCount(userId);
@@ -43,7 +43,7 @@ module.exports.getUnreadNotificationCount = async function getUnreadNotification
     }
 };
 
-module.exports.dismissNotification = async function dismissNotification(req, res, next) {
+module.exports.dismissNotification = async function dismissNotification(req, res) {
     try {
         const userId = req.userObject.userId;
         const notificationId = req.params.notificationId;
@@ -59,7 +59,7 @@ module.exports.dismissNotification = async function dismissNotification(req, res
     }
 };
 
-module.exports.dismissAllNotifications = async function dismissAllNotifications(req, res, next) {
+module.exports.dismissAllNotifications = async function dismissAllNotifications(req, res) {
     try {
         const userId = req.userObject.userId;
         const dismissed = await notificationService.dismissAllNotifications(userId);
@@ -73,7 +73,7 @@ module.exports.dismissAllNotifications = async function dismissAllNotifications(
     }
 };
 
-module.exports.deleteNotification = async function deleteNotification(req, res, next) {
+module.exports.deleteNotification = async function deleteNotification(req, res) {
     try {
         const userId = req.userObject.userId;
         const notificationId = req.params.notificationId;
@@ -89,7 +89,7 @@ module.exports.deleteNotification = async function deleteNotification(req, res, 
     }
 };
 
-module.exports.deleteAllNotifications = async function deleteAllNotifications(req, res, next) {
+module.exports.deleteAllNotifications = async function deleteAllNotifications(req, res) {
     try {
         const userId = req.userObject.userId;
         const deleted = await notificationService.deleteAllNotifications(userId);

@@ -28,7 +28,7 @@ function normalizeBoolean(value) {
     return value === 1 || value === true;
 }
 
-exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
+exports.getPoamApprovers = async function getPoamApprovers(req, _res, next) {
     if (!req.params.poamId) {
         return next({
             status: 400,
@@ -58,7 +58,7 @@ exports.getPoamApprovers = async function getPoamApprovers(req, res, next) {
     }
 };
 
-exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req, res, next) {
+exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req, _res, next) {
     if (!req.params.collectionId) {
         return next({
             status: 400,
@@ -89,7 +89,7 @@ exports.getPoamApproversByCollection = async function getPoamApproversByCollecti
     }
 };
 
-exports.postPoamApprover = async function postPoamApprover(req, res, next) {
+exports.postPoamApprover = async function postPoamApprover(req, _res, next) {
     if (!req.body.poamId) {
         return next({
             status: 400,
@@ -156,7 +156,7 @@ exports.postPoamApprover = async function postPoamApprover(req, res, next) {
     }
 };
 
-exports.putPoamApprover = async function putPoamApprover(req, res, next) {
+exports.putPoamApprover = async function putPoamApprover(req, _res, next) {
     if (!req.body.poamId || !req.body.userId) {
         return next({
             status: 400,
@@ -354,7 +354,7 @@ exports.putPoamApprover = async function putPoamApprover(req, res, next) {
     }
 };
 
-exports.deletePoamApprover = async function deletePoamApprover(req, res, next) {
+exports.deletePoamApprover = async function deletePoamApprover(req, _res, next) {
     if (!req.params.poamId) {
         return next({
             status: 400,

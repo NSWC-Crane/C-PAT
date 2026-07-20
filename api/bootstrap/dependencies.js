@@ -19,7 +19,7 @@ async function initializeDependencies() {
         await Promise.all([auth.initializeAuth(), db.initializeDatabase()]);
         scheduledTasksService.initializeScheduledTasks();
     } catch (e) {
-        logger.writeError('dependencies', 'fail', { message: 'Unable to setup dependencies' });
+        logger.writeError('dependencies', 'fail', { message: 'Unable to setup dependencies: ' + e.message });
         state.setState('fail');
     }
 }

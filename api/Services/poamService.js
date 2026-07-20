@@ -134,9 +134,8 @@ exports.getPoam = async function getPoam(req, res, next) {
         });
     }
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `
+    return await withConnection(async connection => {
+        let sql = `
             SELECT T1.*,
                    T2.fullName AS submitterName,
                    T3.fullName AS ownerName
@@ -145,58 +144,55 @@ exports.getPoam = async function getPoam(req, res, next) {
             LEFT JOIN ${config.database.schema}.user T3 ON T1.ownerId = T3.userId
             WHERE poamId = ?;
                 `;
-            let [rowPoams] = await connection.query(sql, [req.params.poamId]);
-            const poam = rowPoams.map(row => ({
-                ...row,
-                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
-                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
-                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs == null ? null : Boolean(row.hqs),
-                isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
-            }))[0];
+        let [rowPoams] = await connection.query(sql, [req.params.poamId]);
+        const poam = rowPoams.map(row => ({
+            ...row,
+            scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+            submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+            closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+            iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+            hqs: row.hqs == null ? null : Boolean(row.hqs),
+            isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
+        }))[0];
 
-            if (!poam) {
-                return null;
-            }
+        if (!poam) {
+            return null;
+        }
 
-            if (!req.userObject.isAdmin) {
-                const [permissionRows] = await connection.query(
-                    `SELECT accessLevel FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`,
-                    [req.userObject.userId, poam.collectionId]
-                );
-                if (permissionRows.length === 0) {
-                    throw new SmError.PrivilegeError('User does not have permission to view this POAM.');
-                }
+        if (!req.userObject.isAdmin) {
+            const [permissionRows] = await connection.query(
+                `SELECT accessLevel FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`,
+                [req.userObject.userId, poam.collectionId]
+            );
+            if (permissionRows.length === 0) {
+                throw new SmError.PrivilegeError('User does not have permission to view this POAM.');
             }
+        }
 
-            if (req.query.approvers) {
-                poam.approvers = await poamApproverService.getPoamApprovers(req, res, next);
-            }
-            if (req.query.assets) {
-                poam.assets = await poamAssetService.getPoamAssetsByPoamId(req, res, next);
-            }
-            if (req.query.assignedTeams) {
-                poam.assignedTeams = await poamAssignedTeamService.getPoamAssignedTeamsByPoamId(req.params.poamId);
-            }
-            if (req.query.associatedVulnerabilities) {
-                poam.associatedVulnerabilities = await poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(req.params.poamId);
-            }
-            if (req.query.labels) {
-                poam.labels = await poamLabelService.getPoamLabelsByPoam(req.params.poamId);
-            }
-            if (req.query.milestones) {
-                poam.milestones = await poamMilestoneService.getPoamMilestones(req.params.poamId);
-            }
-            if (req.query.teamMitigations) {
-                poam.teamMitigations = await poamTeamMitigationService.getPoamTeamMitigationsByPoamId(req.params.poamId);
-            }
+        if (req.query.approvers) {
+            poam.approvers = await poamApproverService.getPoamApprovers(req, res, next);
+        }
+        if (req.query.assets) {
+            poam.assets = await poamAssetService.getPoamAssetsByPoamId(req, res, next);
+        }
+        if (req.query.assignedTeams) {
+            poam.assignedTeams = await poamAssignedTeamService.getPoamAssignedTeamsByPoamId(req.params.poamId);
+        }
+        if (req.query.associatedVulnerabilities) {
+            poam.associatedVulnerabilities = await poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(req.params.poamId);
+        }
+        if (req.query.labels) {
+            poam.labels = await poamLabelService.getPoamLabelsByPoam(req.params.poamId);
+        }
+        if (req.query.milestones) {
+            poam.milestones = await poamMilestoneService.getPoamMilestones(req.params.poamId);
+        }
+        if (req.query.teamMitigations) {
+            poam.teamMitigations = await poamTeamMitigationService.getPoamTeamMitigationsByPoamId(req.params.poamId);
+        }
 
-            return poam || null;
-        });
-    } catch (error) {
-        throw error;
-    }
+        return poam || null;
+    });
 };
 
 exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res, next) {
@@ -209,19 +205,18 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
         });
     }
 
-    try {
-        return await withConnection(async connection => {
-            if (!req.userObject.isAdmin) {
-                const [permissionRows] = await connection.query(
-                    `SELECT accessLevel FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`,
-                    [req.userObject.userId, req.params.collectionId]
-                );
-                if (permissionRows.length === 0) {
-                    throw new SmError.PrivilegeError('User does not have permission to view POAMs for this collection.');
-                }
+    return await withConnection(async connection => {
+        if (!req.userObject.isAdmin) {
+            const [permissionRows] = await connection.query(
+                `SELECT accessLevel FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`,
+                [req.userObject.userId, req.params.collectionId]
+            );
+            if (permissionRows.length === 0) {
+                throw new SmError.PrivilegeError('User does not have permission to view POAMs for this collection.');
             }
+        }
 
-            let sql = `
+        let sql = `
             SELECT T1.*,
                    T2.fullName AS submitterName,
                    T3.fullName AS ownerName
@@ -231,53 +226,50 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req, res,
             WHERE T1.collectionId = ?
             ORDER BY T1.poamId DESC;
             `;
-            let [rowPoams] = await connection.query(sql, [req.params.collectionId]);
-            const poams = rowPoams.map(row => ({
-                ...row,
-                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
-                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
-                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs == null ? null : Boolean(row.hqs),
-                isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
-            }));
+        let [rowPoams] = await connection.query(sql, [req.params.collectionId]);
+        const poams = rowPoams.map(row => ({
+            ...row,
+            scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+            submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+            closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+            iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+            hqs: row.hqs == null ? null : Boolean(row.hqs),
+            isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
+        }));
 
-            if (req.query.approvers) {
-                const approversData = await poamApproverService.getPoamApproversByCollection(req, res, next);
-                poams.forEach(poam => (poam.approvers = approversData.filter(approver => approver.poamId === poam.poamId)));
-            }
-            if (req.query.assets) {
-                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
-                poams.forEach((poam, index) => (poam.assets = assetsData[index] || []));
-            }
-            if (req.query.assignedTeams) {
-                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
-                poams.forEach((poam, index) => (poam.assignedTeams = assignedTeamsData[index] || []));
-            }
-            if (req.query.associatedVulnerabilities) {
-                const associatedVulnerabilitiesData = await Promise.all(
-                    poams.map(poam => poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(poam.poamId))
-                );
-                poams.forEach((poam, index) => (poam.associatedVulnerabilities = associatedVulnerabilitiesData[index] || []));
-            }
-            if (req.query.labels) {
-                const labelsData = await Promise.all(poams.map(poam => poamLabelService.getPoamLabelsByPoam(poam.poamId)));
-                poams.forEach((poam, index) => (poam.labels = labelsData[index] || []));
-            }
-            if (req.query.milestones) {
-                const milestoneData = await Promise.all(poams.map(poam => poamMilestoneService.getPoamMilestones(poam.poamId)));
-                poams.forEach((poam, index) => (poam.milestones = milestoneData[index] || []));
-            }
-            if (req.query.teamMitigations) {
-                const teamMitigationsData = await Promise.all(poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId)));
-                poams.forEach((poam, index) => (poam.teamMitigations = teamMitigationsData[index] || []));
-            }
+        if (req.query.approvers) {
+            const approversData = await poamApproverService.getPoamApproversByCollection(req, res, next);
+            poams.forEach(poam => (poam.approvers = approversData.filter(approver => approver.poamId === poam.poamId)));
+        }
+        if (req.query.assets) {
+            const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
+            poams.forEach((poam, index) => (poam.assets = assetsData[index] || []));
+        }
+        if (req.query.assignedTeams) {
+            const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
+            poams.forEach((poam, index) => (poam.assignedTeams = assignedTeamsData[index] || []));
+        }
+        if (req.query.associatedVulnerabilities) {
+            const associatedVulnerabilitiesData = await Promise.all(
+                poams.map(poam => poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(poam.poamId))
+            );
+            poams.forEach((poam, index) => (poam.associatedVulnerabilities = associatedVulnerabilitiesData[index] || []));
+        }
+        if (req.query.labels) {
+            const labelsData = await Promise.all(poams.map(poam => poamLabelService.getPoamLabelsByPoam(poam.poamId)));
+            poams.forEach((poam, index) => (poam.labels = labelsData[index] || []));
+        }
+        if (req.query.milestones) {
+            const milestoneData = await Promise.all(poams.map(poam => poamMilestoneService.getPoamMilestones(poam.poamId)));
+            poams.forEach((poam, index) => (poam.milestones = milestoneData[index] || []));
+        }
+        if (req.query.teamMitigations) {
+            const teamMitigationsData = await Promise.all(poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId)));
+            poams.forEach((poam, index) => (poam.teamMitigations = teamMitigationsData[index] || []));
+        }
 
-            return poams || null;
-        });
-    } catch (error) {
-        throw error;
-    }
+        return poams || null;
+    });
 };
 
 exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next) {
@@ -294,67 +286,61 @@ exports.getPoamsByOwnership = async function getPoamsByOwnership(req, res, next)
         throw new SmError.PrivilegeError("User does not have permission to view another user's POAMs.");
     }
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `
+    return await withConnection(async connection => {
+        let sql = `
             SELECT T1.*, T2.fullName AS submitterName
             FROM ${config.database.schema}.poam T1
             LEFT JOIN ${config.database.schema}.user T2 ON T1.submitterId = T2.userId
             WHERE T1.submitterId = ? OR T1.ownerId = ?
             ORDER BY T1.poamId DESC;
             `;
-            let [rowPoams] = await connection.query(sql, [req.params.userId, req.params.userId]);
-            const poams = rowPoams.map(row => ({
-                ...row,
-                scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
-                submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
-                closedDate: row.closedDate ? row.closedDate.toISOString() : null,
-                iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
-                hqs: row.hqs == null ? null : Boolean(row.hqs),
-                isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
-            }));
+        let [rowPoams] = await connection.query(sql, [req.params.userId, req.params.userId]);
+        const poams = rowPoams.map(row => ({
+            ...row,
+            scheduledCompletionDate: row.scheduledCompletionDate ? row.scheduledCompletionDate.toISOString() : null,
+            submittedDate: row.submittedDate ? row.submittedDate.toISOString() : null,
+            closedDate: row.closedDate ? row.closedDate.toISOString() : null,
+            iavComplyByDate: row.iavComplyByDate ? row.iavComplyByDate.toISOString() : null,
+            hqs: row.hqs == null ? null : Boolean(row.hqs),
+            isGlobalFinding: row.isGlobalFinding == null ? null : Boolean(row.isGlobalFinding),
+        }));
 
-            if (req.query.approvers) {
-                const approversData = await Promise.all(
-                    poams.map(poam => poamApproverService.getPoamApprovers({ params: { poamId: poam.poamId } }, res, next))
-                );
-                poams.forEach((poam, index) => (poam.approvers = approversData[index] || []));
-            }
-            if (req.query.assets) {
-                const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
-                poams.forEach((poam, index) => (poam.assets = assetsData[index] || []));
-            }
-            if (req.query.assignedTeams) {
-                const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
-                poams.forEach((poam, index) => (poam.assignedTeams = assignedTeamsData[index] || []));
-            }
-            if (req.query.associatedVulnerabilities) {
-                const associatedVulnerabilitiesData = await Promise.all(
-                    poams.map(poam => poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(poam.poamId))
-                );
-                poams.forEach((poam, index) => (poam.associatedVulnerabilities = associatedVulnerabilitiesData[index] || []));
-            }
-            if (req.query.labels) {
-                const labelsData = await Promise.all(poams.map(poam => poamLabelService.getPoamLabelsByPoam(poam.poamId)));
-                poams.forEach((poam, index) => (poam.labels = labelsData[index] || []));
-            }
-            if (req.query.milestones) {
-                const milestoneData = await Promise.all(poams.map(poam => poamMilestoneService.getPoamMilestones(poam.poamId)));
-                poams.forEach((poam, index) => (poam.milestones = milestoneData[index] || []));
-            }
-            if (req.query.teamMitigations) {
-                const teamMitigationsData = await Promise.all(poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId)));
-                poams.forEach((poam, index) => (poam.teamMitigations = teamMitigationsData[index] || []));
-            }
+        if (req.query.approvers) {
+            const approversData = await Promise.all(poams.map(poam => poamApproverService.getPoamApprovers({ params: { poamId: poam.poamId } }, res, next)));
+            poams.forEach((poam, index) => (poam.approvers = approversData[index] || []));
+        }
+        if (req.query.assets) {
+            const assetsData = await Promise.all(poams.map(poam => poamAssetService.getPoamAssetsByPoamId({ params: { poamId: poam.poamId } }, res, next)));
+            poams.forEach((poam, index) => (poam.assets = assetsData[index] || []));
+        }
+        if (req.query.assignedTeams) {
+            const assignedTeamsData = await Promise.all(poams.map(poam => poamAssignedTeamService.getPoamAssignedTeamsByPoamId(poam.poamId)));
+            poams.forEach((poam, index) => (poam.assignedTeams = assignedTeamsData[index] || []));
+        }
+        if (req.query.associatedVulnerabilities) {
+            const associatedVulnerabilitiesData = await Promise.all(
+                poams.map(poam => poamAssociatedVulnerabilityService.getRawAssociatedVulnsByPoam(poam.poamId))
+            );
+            poams.forEach((poam, index) => (poam.associatedVulnerabilities = associatedVulnerabilitiesData[index] || []));
+        }
+        if (req.query.labels) {
+            const labelsData = await Promise.all(poams.map(poam => poamLabelService.getPoamLabelsByPoam(poam.poamId)));
+            poams.forEach((poam, index) => (poam.labels = labelsData[index] || []));
+        }
+        if (req.query.milestones) {
+            const milestoneData = await Promise.all(poams.map(poam => poamMilestoneService.getPoamMilestones(poam.poamId)));
+            poams.forEach((poam, index) => (poam.milestones = milestoneData[index] || []));
+        }
+        if (req.query.teamMitigations) {
+            const teamMitigationsData = await Promise.all(poams.map(poam => poamTeamMitigationService.getPoamTeamMitigationsByPoamId(poam.poamId)));
+            poams.forEach((poam, index) => (poam.teamMitigations = teamMitigationsData[index] || []));
+        }
 
-            return poams || null;
-        });
-    } catch (error) {
-        throw error;
-    }
+        return poams || null;
+    });
 };
 
-exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam(req, res, next) {
+exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam() {
     try {
         return await withConnection(async connection => {
             let sql = `
@@ -378,7 +364,7 @@ exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam
     }
 };
 
-exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilityIdsWithPoamByCollection(req, res, next) {
+exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilityIdsWithPoamByCollection(req) {
     try {
         return await withConnection(async connection => {
             let sql = `
@@ -404,7 +390,7 @@ exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilit
     }
 };
 
-exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnerabilityIdsWithTaskOrderByCollection(req, res, next) {
+exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnerabilityIdsWithTaskOrderByCollection(req) {
     try {
         return await withConnection(async connection => {
             let sql = `
@@ -688,7 +674,7 @@ exports.postPoam = async function postPoam(req) {
     }
 };
 
-exports.putPoam = async function putPoam(req, res, next) {
+exports.putPoam = async function putPoam(req) {
     const requiredFields = ['poamId', 'collectionId', 'vulnerabilitySource', 'rawSeverity', 'submitterId'];
     let missingField = requiredFields.find(field => !req.body[field]);
     if (missingField) {
@@ -1163,7 +1149,7 @@ exports.updatePoamStatus = async function updatePoamStatus(req, res, next) {
             return updatedPoam;
         });
     } catch (error) {
-        return res.status(500).json({ errors: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Internal Server Error', detail: error.message });
     }
 };
 

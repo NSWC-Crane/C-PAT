@@ -22,16 +22,11 @@ async function withConnection(callback) {
 }
 
 exports.getPoamLabels = async function getPoamLabels(collectionId) {
-    try {
-        if (!collectionId) {
-            return next({
-                status: 400,
-                errors: {
-                    collectionId: 'is required',
-                },
-            });
-        }
+    if (!collectionId) {
+        throw new Error('Collection ID is required');
+    }
 
+    try {
         return await withConnection(async connection => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
@@ -103,20 +98,15 @@ exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
 };
 
 exports.getPoamsByLabel = async function getPoamsByLabel(labelId) {
-    try {
-        if (!labelId) {
-            return next({
-                status: 400,
-                errors: {
-                    labelId: 'is required',
-                },
-            });
-        }
+    if (!labelId) {
+        throw new Error('Label ID is required');
+    }
 
+    try {
         return await withConnection(async connection => {
             let sql = `
-                SELECT 
-                    t1.poamId, 
+                SELECT
+                    t1.poamId,
                     t1.labelId, 
                     t3.labelName,
                     t2.vulnerabilityId,
@@ -145,16 +135,11 @@ exports.getPoamsByLabel = async function getPoamsByLabel(labelId) {
 };
 
 exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
-    try {
-        if (!poamId) {
-            return next({
-                status: 400,
-                errors: {
-                    poamId: 'is required',
-                },
-            });
-        }
+    if (!poamId) {
+        throw new Error('POAM ID is required');
+    }
 
+    try {
         return await withConnection(async connection => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
@@ -178,16 +163,11 @@ exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
 };
 
 exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
-    try {
-        if (!labelId) {
-            return next({
-                status: 400,
-                errors: {
-                    labelId: 'is required',
-                },
-            });
-        }
+    if (!labelId) {
+        throw new Error('Label ID is required');
+    }
 
+    try {
         return await withConnection(async connection => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
@@ -211,23 +191,11 @@ exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
 };
 
 exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
-    try {
-        if (!poamId) {
-            return next({
-                status: 400,
-                errors: {
-                    poamId: 'is required',
-                },
-            });
-        } else if (!labelId) {
-            return next({
-                status: 400,
-                errors: {
-                    labelId: 'is required',
-                },
-            });
-        }
+    if (!poamId || !labelId) {
+        throw new Error('POAM ID and Label ID are required');
+    }
 
+    try {
         return await withConnection(async connection => {
             let sql = `
                 SELECT t1.poamId, t1.labelId, labelName
@@ -246,7 +214,7 @@ exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
     }
 };
 
-exports.postPoamLabel = async function postPoamLabel(req, res, next) {
+exports.postPoamLabel = async function postPoamLabel(req, _res, next) {
     if (!req.body.poamId) {
         return next({
             status: 400,
@@ -301,7 +269,7 @@ exports.postPoamLabel = async function postPoamLabel(req, res, next) {
     }
 };
 
-exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
+exports.deletePoamLabel = async function deletePoamLabel(req, _res, next) {
     if (!req.params.poamId) {
         return next({
             status: 400,

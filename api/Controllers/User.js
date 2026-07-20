@@ -11,7 +11,7 @@
 const userService = require('../Services/usersService');
 const SmError = require('../utils/error');
 
-module.exports.getUsers = async function getUsers(req, res, next) {
+module.exports.getUsers = async function getUsers(req, res) {
     try {
         const elevate = req.query.elevate;
         const users = await userService.getUsers(elevate, req);
@@ -21,7 +21,7 @@ module.exports.getUsers = async function getUsers(req, res, next) {
     }
 };
 
-module.exports.getCurrentUser = async function getCurrentUser(req, res, next) {
+module.exports.getCurrentUser = async function getCurrentUser(req, res) {
     try {
         const user = await userService.getCurrentUser(req);
         res.status(200).json(user);
@@ -34,21 +34,21 @@ module.exports.getCurrentUser = async function getCurrentUser(req, res, next) {
     }
 };
 
-module.exports.getUserByUserID = async function getUserByUserID(req, res, next) {
+module.exports.getUserByUserID = async function getUserByUserID(req, res) {
     try {
         const elevate = req.query.elevate;
         const user = await userService.getUserByUserID(req, elevate);
         res.status(200).json(user);
     } catch (error) {
         if (error.message === 'User not found') {
-            res.status(200).json(user);
+            res.status(404).json({ error: 'User not found' });
         } else {
             res.status(500).json({ error: 'Internal Server Error', detail: error.message });
         }
     }
 };
 
-module.exports.createUser = async function createUser(req, res, next) {
+module.exports.createUser = async function createUser(req, res) {
     try {
         const elevate = req.query.elevate;
         const createdUser = await userService.createUser(elevate, req);
@@ -66,7 +66,7 @@ module.exports.createUser = async function createUser(req, res, next) {
     }
 };
 
-module.exports.updateUser = async function updateUser(req, res, next) {
+module.exports.updateUser = async function updateUser(req, res) {
     try {
         const userId = req.userObject.userId;
         const elevate = req.query.elevate;
@@ -81,9 +81,9 @@ module.exports.updateUser = async function updateUser(req, res, next) {
     }
 };
 
-module.exports.updateUserTheme = async function updateUserTheme(req, res, next) {
+module.exports.updateUserTheme = async function updateUserTheme(req, res) {
     try {
-        const result = await userService.updateUserTheme(req, res, next);
+        const result = await userService.updateUserTheme(req);
         if (result.success) {
             res.status(200).json(result.message);
         } else {
@@ -94,7 +94,7 @@ module.exports.updateUserTheme = async function updateUserTheme(req, res, next) 
     }
 };
 
-module.exports.updateUserPoints = async function updateUserPoints(req, res, next) {
+module.exports.updateUserPoints = async function updateUserPoints(req, res) {
     try {
         const elevate = req.query.elevate;
         const result = await userService.updateUserPoints(elevate, req);
@@ -108,7 +108,7 @@ module.exports.updateUserPoints = async function updateUserPoints(req, res, next
     }
 };
 
-module.exports.updateUserLastCollectionAccessed = async function updateUserLastCollectionAccessed(req, res, next) {
+module.exports.updateUserLastCollectionAccessed = async function updateUserLastCollectionAccessed(req, res) {
     try {
         const userId = req.userObject.userId;
         const lastCollectionAccessedId = req.body.lastCollectionAccessedId;
@@ -123,7 +123,7 @@ module.exports.updateUserLastCollectionAccessed = async function updateUserLastC
     }
 };
 
-module.exports.disableUser = async function disableUser(req, res, next) {
+module.exports.disableUser = async function disableUser(req, res) {
     try {
         const elevate = req.query.elevate;
         const userId = Number.parseInt(req.params.userId);

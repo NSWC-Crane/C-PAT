@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getTeamAssignments = async function getTeamAssignments(req, res, next) {
+exports.getTeamAssignments = async function getTeamAssignments(req, _res, next) {
     if (!req.params.assignedTeamId) {
         return next({
             status: 400,
@@ -50,32 +51,17 @@ exports.getTeamAssignments = async function getTeamAssignments(req, res, next) {
     }
 };
 
-exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, req) {
+exports.postTeamAssignment = async function postTeamAssignment(_userId, elevate, req) {
     if (!req.body.userId) {
-        return next({
-            status: 400,
-            errors: {
-                userId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('userId is required');
     }
 
     if (!req.body.assignedTeamId) {
-        return next({
-            status: 400,
-            errors: {
-                oldAssignedTeamId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('assignedTeamId is required');
     }
 
     if (!req.body.accessLevel) {
-        return next({
-            status: 400,
-            errors: {
-                accessLevel: 'is required',
-            },
-        });
+        throw new SmError.ClientError('accessLevel is required');
     }
 
     try {
@@ -101,6 +87,8 @@ exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, 
                 const [existingAssignedTeam] = await connection.query(fetchSql, [req.body.userId, req.body.assignedTeamId]);
                 return existingAssignedTeam[0];
             });
+        } else if (error instanceof SmError.SmError) {
+            throw error;
         } else {
             return {
                 error: error.message,
@@ -109,32 +97,17 @@ exports.postTeamAssignment = async function postTeamAssignment(userId, elevate, 
     }
 };
 
-exports.putTeamAssignment = async function putTeamAssignment(userId, elevate, req) {
+exports.putTeamAssignment = async function putTeamAssignment(_userId, elevate, req) {
     if (!req.body.userId) {
-        return next({
-            status: 400,
-            errors: {
-                userId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('userId is required');
     }
 
     if (!req.body.oldAssignedTeamId) {
-        return next({
-            status: 400,
-            errors: {
-                assignedTeamId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('oldAssignedTeamId is required');
     }
 
     if (!req.body.accessLevel) {
-        return next({
-            status: 400,
-            errors: {
-                accessLevel: 'is required',
-            },
-        });
+        throw new SmError.ClientError('accessLevel is required');
     }
 
     try {
@@ -154,29 +127,22 @@ exports.putTeamAssignment = async function putTeamAssignment(userId, elevate, re
             }
         });
     } catch (error) {
+        if (error instanceof SmError.SmError) {
+            throw error;
+        }
         return {
             error: error.message,
         };
     }
 };
 
-exports.deleteTeamAssignment = async function deleteTeamAssignment(userId, elevate, req) {
+exports.deleteTeamAssignment = async function deleteTeamAssignment(_userId, elevate, req) {
     if (!req.params.userId) {
-        return next({
-            status: 400,
-            errors: {
-                userId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('userId is required');
     }
 
     if (!req.params.assignedTeamId) {
-        return next({
-            status: 400,
-            errors: {
-                assignedTeamId: 'is required',
-            },
-        });
+        throw new SmError.ClientError('assignedTeamId is required');
     }
 
     try {
@@ -193,6 +159,9 @@ exports.deleteTeamAssignment = async function deleteTeamAssignment(userId, eleva
             }
         });
     } catch (error) {
+        if (error instanceof SmError.SmError) {
+            throw error;
+        }
         return {
             error: error.message,
         };

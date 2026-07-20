@@ -24,7 +24,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamAttachmentsByPoamId = async function (req, res, next) {
+exports.getPoamAttachmentsByPoamId = async function (req, _res, next) {
     if (!req.params.poamId) {
         return next({
             status: 400,
@@ -57,7 +57,7 @@ exports.getPoamAttachmentsByPoamId = async function (req, res, next) {
     }
 };
 
-exports.downloadPoamAttachment = async function (req, res, next) {
+exports.downloadPoamAttachment = async function (req, _res, next) {
     if (!req.params.poamId || !req.params.attachmentId) {
         return next({
             status: 400,
@@ -215,7 +215,7 @@ async function validateFile(file) {
     return { isValid: true, hash };
 }
 
-exports.postPoamAttachment = async function (req, res, next, userId) {
+exports.postPoamAttachment = async function (req, _res, next, userId) {
     const file = req.files[0];
     if (!req.body.poamId) {
         return next({
@@ -268,7 +268,7 @@ exports.postPoamAttachment = async function (req, res, next, userId) {
     }
 };
 
-exports.deletePoamAttachment = async function (req, res, next, userId) {
+exports.deletePoamAttachment = async function (req, _res, next, userId) {
     if (!req.params.attachmentId || !req.params.poamId) {
         return next({
             status: 400,

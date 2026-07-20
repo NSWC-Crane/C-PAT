@@ -9,68 +9,49 @@
 */
 
 const labelService = require('../Services/labelService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getLabels = async function getLabels(req, res, next) {
+module.exports.getLabels = async function getLabels(req, res) {
     try {
-        const labels = await labelService.getLabels(req, res, next);
+        const labels = await labelService.getLabels(req);
         res.status(200).json(labels);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getLabel = async function getLabel(req, res, next) {
+module.exports.getLabel = async function getLabel(req, res) {
     try {
-        const label = await labelService.getLabel(req, res, next);
+        const label = await labelService.getLabel(req);
         res.status(200).json(label);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.postLabel = async function postLabel(req, res, next) {
+module.exports.postLabel = async function postLabel(req, res) {
     try {
-        const label = await labelService.postLabel(req, res, next);
+        const label = await labelService.postLabel(req);
         res.status(201).json(label);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.putLabel = async function putLabel(req, res, next) {
+module.exports.putLabel = async function putLabel(req, res) {
     try {
-        const label = await labelService.putLabel(req, res, next);
+        const label = await labelService.putLabel(req);
         res.status(200).json(label);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.deleteLabel = async function deleteLabel(req, res, next) {
+module.exports.deleteLabel = async function deleteLabel(req, res) {
     try {
-        await labelService.deleteLabel(req, res, next);
+        await labelService.deleteLabel(req);
         res.status(204).send();
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };

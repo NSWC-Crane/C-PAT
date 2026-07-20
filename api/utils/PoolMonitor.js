@@ -56,7 +56,7 @@ class PoolMonitor {
         try {
             await this.retryFn();
             this.state.setDbStatus(true);
-        } catch (error) {
+        } catch {
             this.retries++;
             this.timeoutId = setTimeout(this.callRetryFn.bind(this), this.retryInterval);
         }

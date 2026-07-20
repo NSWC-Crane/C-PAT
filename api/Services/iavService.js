@@ -24,7 +24,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(req, res, next) {
+exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate() {
     try {
         return await withConnection(async connection => {
             let sql = `SELECT value FROM ${config.database.schema}.config WHERE config.key = 'vramUpdate';`;
@@ -37,7 +37,7 @@ exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate(req, res,
     }
 };
 
-exports.getIAVTableData = async function getIAVTableData(req, res, next) {
+exports.getIAVTableData = async function getIAVTableData() {
     try {
         return await withConnection(async connection => {
             let sql = `
@@ -65,7 +65,6 @@ exports.getIAVTableData = async function getIAVTableData(req, res, next) {
     }
 };
 
-const validateIAV = iav => /^\d{4}-[A-Z]-\d{4}$/.test(iav);
 exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
     try {
         return await withConnection(async connection => {
@@ -123,7 +122,7 @@ exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
                 throw error;
             }
         });
-    } catch (error) {
+    } catch {
         throw new SmError.UnprocessableError('Error in mapIAVPluginIDs');
     }
 };
@@ -136,7 +135,7 @@ function validatePluginID(pluginID) {
     return null;
 }
 
-exports.getIAVPluginIds = async function getIAVPluginIds(req, res, next) {
+exports.getIAVPluginIds = async function getIAVPluginIds() {
     try {
         return await withConnection(async connection => {
             let sql = `SELECT DISTINCT pluginID FROM ${config.database.schema}.iav_plugin`;
@@ -187,6 +186,7 @@ exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
             return latestResults;
         });
     } catch (error) {
+        logger.writeError(`Error in getIAVInfoForPlugins: ${error.message}`);
         throw new SmError.UnprocessableError('Failed to fetch IAV info');
     }
 };
