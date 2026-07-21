@@ -9,9 +9,25 @@
 */
 
 require('dotenv').config();
+const fs = require('node:fs');
+const path = require('node:path');
 const cpatPackage = require('../package.json');
 
 const insecureKids = ['FJ86GcF3jTbNLOco4NvZkUCIUmfYCqoqtOQeMfbhNlE'];
+
+function readPrimengLicense() {
+    const fromEnv = process.env.CPAT_PRIMENG_LICENSE?.trim();
+
+    if (fromEnv) {
+        return fromEnv;
+    }
+
+    try {
+        return fs.readFileSync(path.join(__dirname, '..', '.primeng-license'), 'utf8').trim();
+    } catch {
+        return '';
+    }
+}
 
 let config = {
     version: cpatPackage.version,
@@ -128,7 +144,7 @@ let config = {
         aiBaseURL: process.env.CPAT_AI_BASE_URL,
     },
     primeng: {
-        license: process.env.CPAT_PRIMENG_LICENSE ?? '',
+        license: readPrimengLicense(),
     },
     log: {
         level: Number.parseInt(process.env.CPAT_LOG_LEVEL) || 3,

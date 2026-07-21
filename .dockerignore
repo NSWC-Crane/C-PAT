@@ -12,3 +12,5 @@
 client/dist
 client/.angular
 client/.nx
+client/src/development.html
+api/.primeng-license

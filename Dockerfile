@@ -18,6 +18,16 @@ RUN npm ci --omit=dev
 
 COPY --chown=node:node api/. .
 
+USER root
+RUN --mount=type=secret,id=primeng_license \
+    if [ -f /run/secrets/primeng_license ]; then \
+        tr -d '\r\n' < /run/secrets/primeng_license > ./.primeng-license && \
+        chown node:node ./.primeng-license && \
+        chmod 0444 ./.primeng-license && \
+        if [ ! -s ./.primeng-license ]; then rm -f ./.primeng-license; fi; \
+    fi
+USER node
+
 COPY --chown=node:node --from=build /app/client/dist/browser ../client/dist/browser
 
 RUN mkdir docs

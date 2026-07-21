@@ -30,52 +30,64 @@ function serveClient(app) {
     }
 }
 
+function jsString(value) {
+    return JSON.stringify(String(value ?? '')).replaceAll('<', String.raw`\u003c`);
+}
+
+function htmlAttr(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('"', '&quot;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+}
+
 function getClientEnv() {
     const basePath = config.settings.basePath || '';
     const envJS = `
 const CPAT = {
   Env: {
-    basePath: "${basePath}",
-    classification: "${config.settings.dodDeployment ? config.settings.setClassification : 'NONE'}",
-    dodBranch: "${config.settings.dodBranch}",
+    basePath: ${jsString(basePath)},
+    classification: ${jsString(config.settings.dodDeployment ? config.settings.setClassification : 'NONE')},
+    dodBranch: ${jsString(config.settings.dodBranch)},
     dodDeployment: ${config.settings.dodDeployment},
-    version: "${config.version}",
-    apiBase: "${config.client.apiBase}",
+    version: ${jsString(config.version)},
+    apiBase: ${jsString(config.client.apiBase)},
     adminInactivityTimeout: ${config.settings.adminInactivityTimeout},
     inactivityTimeout: ${config.settings.inactivityTimeout},
     client: {
-        authority:  "${config.client.authority}",
+        authority:  ${jsString(config.client.authority)},
     },
     oauth: {
-        authority:  "${config.oauth.authority}",
-        clientId: "${config.oauth.clientId}",
+        authority:  ${jsString(config.oauth.authority)},
+        clientId: ${jsString(config.oauth.clientId)},
         refreshToken: {
           disabled: ${config.client.refreshToken.disabled}
         },
-        extraScopes: "${config.client.extraScopes ?? ''}",
-        scopePrefix: "${config.client.scopePrefix ?? ''}",
+        extraScopes: ${jsString(config.client.extraScopes)},
+        scopePrefix: ${jsString(config.client.scopePrefix)},
         claims: {
-          scope: "${config.oauth.claims.scope}",
-          username: "${config.oauth.claims.username}",
-          servicename: "${config.oauth.claims.servicename}",
-          fullname: "${config.oauth.claims.fullname}",
-          firstname: "${config.oauth.claims.firstname}",
-          lastname: "${config.oauth.claims.lastname}",
-          privileges: "${config.oauth.claims.privilegesChain}",
-          email: "${config.oauth.claims.email}"
+          scope: ${jsString(config.oauth.claims.scope)},
+          username: ${jsString(config.oauth.claims.username)},
+          servicename: ${jsString(config.oauth.claims.servicename)},
+          fullname: ${jsString(config.oauth.claims.fullname)},
+          firstname: ${jsString(config.oauth.claims.firstname)},
+          lastname: ${jsString(config.oauth.claims.lastname)},
+          privileges: ${jsString(config.oauth.claims.privilegesChain)},
+          email: ${jsString(config.oauth.claims.email)}
         }
     },
     stigman: {
-        clientId: "${config.stigman.clientId}",
-        apiUrl: "${config.stigman.apiUrl}",
-        scopePrefix: "${config.stigman.scopePrefix ?? ''}",
-        extraScopes: "${config.stigman.extraScopes ?? ''}",
+        clientId: ${jsString(config.stigman.clientId)},
+        apiUrl: ${jsString(config.stigman.apiUrl)},
+        scopePrefix: ${jsString(config.stigman.scopePrefix)},
+        extraScopes: ${jsString(config.stigman.extraScopes)},
     },
     tenable: {
-        url: "${config.tenable.url}"
+        url: ${jsString(config.tenable.url)}
     },
     primeng: {
-        license: "${config.primeng.license}"
+        license: ${jsString(config.primeng.license)}
     },
     features: {
         marketplaceDisabled: ${config.client.features.marketplaceDisabled},
@@ -158,7 +170,9 @@ function setupAngularRoutes(app) {
                 baseHref = basePath.endsWith('/') ? basePath : basePath + '/';
             }
 
-            const modifiedHtml = data.replace(/<base\s+href="[^"]*">/i, `<base href="${baseHref}">`).replace('</head>', `<script>${envJS}</script>\n  </head>`);
+            const modifiedHtml = data
+                .replace(/<base\s+href="[^"]*">/i, () => `<base href="${htmlAttr(baseHref)}">`)
+                .replace('</head>', () => `<script>${envJS}</script>\n  </head>`);
 
             res.setHeader('Content-Type', 'text/html');
             res.send(modifiedHtml);
