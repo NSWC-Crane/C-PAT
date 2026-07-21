@@ -27,6 +27,7 @@ const { createXai } = require('@ai-sdk/xai');
 const { createOpenAICompatible } = require('@ai-sdk/openai-compatible');
 const config = require('../utils/config');
 const logger = require('../utils/logger');
+const SmError = require('../utils/error');
 
 const AI_BASE_URLS = {
     anthropic: 'https://api.anthropic.com/v1',
@@ -129,37 +130,25 @@ async function getAIModel() {
     }
 }
 
-exports.generateMitigation = async function generateMitigation(req, res, next) {
+module.exports.generateMitigation = async function generateMitigation(req) {
     if (!config.ai.enabled) {
-        return next({
-            status: 400,
-            errors: {
-                message: 'AI is disabled',
-            },
-        });
+        throw new SmError.ClientError('AI is disabled');
     }
+
     if (!req.body) {
         logger.writeError('aiService', 'generateMitigation', {
             error: 'Missing prompt',
         });
-        return next({
-            status: 400,
-            errors: {
-                message: 'Prompt is required',
-            },
-        });
+
+        throw new SmError.ClientError('Prompt is required');
     }
 
     if (!config.ai.provider) {
         logger.writeError('aiService', 'generateMitigation', {
             error: 'Missing AI provider configuration',
         });
-        return next({
-            status: 500,
-            errors: {
-                message: 'AI provider is not configured',
-            },
-        });
+
+        throw new Error('AI provider is not configured');
     }
 
     try {
@@ -190,12 +179,6 @@ exports.generateMitigation = async function generateMitigation(req, res, next) {
 
         const isAuthError = error.message.includes('API key') || error.message.includes('authentication');
 
-        return next({
-            status: 500,
-            errors: {
-                message: isAuthError ? 'AI service configuration error' : 'AI service error',
-                detail: error.message,
-            },
-        });
+        throw new SmError.InternalError(isAuthError ? 'AI service configuration error' : 'AI service error');
     }
 };

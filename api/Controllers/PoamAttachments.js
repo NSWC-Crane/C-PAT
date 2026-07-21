@@ -9,52 +9,43 @@
 */
 
 const poamAttachmentService = require('../Services/poamAttachmentService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getPoamAttachmentsByPoamId = async function getPoamAttachmentsByPoamId(req, res, next) {
+module.exports.getPoamAttachmentsByPoamId = async function getPoamAttachmentsByPoamId(req, res) {
     try {
-        const poamAttachments = await poamAttachmentService.getPoamAttachmentsByPoamId(req, res, next);
+        const poamAttachments = await poamAttachmentService.getPoamAttachmentsByPoamId(req);
         res.status(200).json(poamAttachments);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.downloadPoamAttachment = async function downloadPoamAttachment(req, res, next) {
+module.exports.downloadPoamAttachment = async function downloadPoamAttachment(req, res) {
     try {
-        const attachment = await poamAttachmentService.downloadPoamAttachment(req, res, next);
-        if (attachment) {
-            res.setHeader('Content-Type', attachment.mimeType);
-            res.setHeader('Content-Disposition', `attachment; filename="${attachment.filename}"`);
-            res.setHeader('Content-Length', attachment.fileSize);
-            res.status(200).send(attachment.fileContent);
-        } else {
-            res.status(404).json({ error: 'Attachment not found' });
-        }
+        const attachment = await poamAttachmentService.downloadPoamAttachment(req);
+        res.setHeader('Content-Type', attachment.mimeType);
+        res.setHeader('Content-Disposition', `attachment; filename="${attachment.filename}"`);
+        res.setHeader('Content-Length', attachment.fileSize);
+        res.status(200).send(attachment.fileContent);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.postPoamAttachment = async function postPoamAttachment(req, res, next) {
+module.exports.postPoamAttachment = async function postPoamAttachment(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const poamAttachments = await poamAttachmentService.postPoamAttachment(req, res, next, userId);
-        if (poamAttachments === null) {
-            res.status(400).json({ error: 'Failed to create poam Attachment' });
-        } else {
-            res.status(201).json(poamAttachments);
-        }
+        const poamAttachments = await poamAttachmentService.postPoamAttachment(req, req.userObject.userId);
+        res.status(201).json(poamAttachments);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.deletePoamAttachment = async function deletePoamAttachment(req, res, next) {
+module.exports.deletePoamAttachment = async function deletePoamAttachment(req, res) {
     try {
-        const userId = req.userObject.userId;
-        await poamAttachmentService.deletePoamAttachment(req, res, next, userId);
+        await poamAttachmentService.deletePoamAttachment(req, req.userObject.userId);
         res.status(204).send();
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };

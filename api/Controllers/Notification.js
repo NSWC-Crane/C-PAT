@@ -9,97 +9,67 @@
 */
 
 const notificationService = require('../Services/notificationService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getAllNotifications = async function getAllNotifications(req, res, next) {
+module.exports.getAllNotifications = async function getAllNotifications(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const notifications = await notificationService.getAllNotifications(userId);
-
+        const notifications = await notificationService.getAllNotifications(req.userObject.userId);
         res.status(200).json(notifications);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getUnreadNotifications = async function getUnreadNotifications(req, res, next) {
+module.exports.getUnreadNotifications = async function getUnreadNotifications(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const notifications = await notificationService.getUnreadNotifications(userId);
-
+        const notifications = await notificationService.getUnreadNotifications(req.userObject.userId);
         res.status(200).json(notifications);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getUnreadNotificationCount = async function getUnreadNotificationCount(req, res, next) {
+module.exports.getUnreadNotificationCount = async function getUnreadNotificationCount(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const notificationCount = await notificationService.getUnreadNotificationCount(userId);
-
+        const notificationCount = await notificationService.getUnreadNotificationCount(req.userObject.userId);
         res.status(200).json(notificationCount);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.dismissNotification = async function dismissNotification(req, res, next) {
+module.exports.dismissNotification = async function dismissNotification(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const notificationId = req.params.notificationId;
-        const unreadNotifications = await notificationService.dismissNotification(userId, notificationId);
-
-        if (unreadNotifications) {
-            res.status(200).json(unreadNotifications);
-        } else {
-            res.status(404).json({ error: 'Notification not found' });
-        }
+        const unreadNotifications = await notificationService.dismissNotification(req.userObject.userId, req.params.notificationId);
+        res.status(200).json(unreadNotifications);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.dismissAllNotifications = async function dismissAllNotifications(req, res, next) {
+module.exports.dismissAllNotifications = async function dismissAllNotifications(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const dismissed = await notificationService.dismissAllNotifications(userId);
-        if (dismissed) {
-            res.status(204).json();
-        } else {
-            res.status(404).json({ error: 'No notifications found for the user' });
-        }
+        await notificationService.dismissAllNotifications(req.userObject.userId);
+        res.status(204).send();
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.deleteNotification = async function deleteNotification(req, res, next) {
+module.exports.deleteNotification = async function deleteNotification(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const notificationId = req.params.notificationId;
-        const deleted = await notificationService.deleteNotification(userId, notificationId);
-
-        if (deleted) {
-            res.status(204).send();
-        } else {
-            res.status(404).json({ error: 'Notification not found' });
-        }
+        await notificationService.deleteNotification(req.userObject.userId, req.params.notificationId);
+        res.status(204).send();
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.deleteAllNotifications = async function deleteAllNotifications(req, res, next) {
+module.exports.deleteAllNotifications = async function deleteAllNotifications(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const deleted = await notificationService.deleteAllNotifications(userId);
-
-        if (deleted) {
-            res.status(204).send();
-        } else {
-            res.status(404).json({ error: 'Notification not found' });
-        }
+        await notificationService.deleteAllNotifications(req.userObject.userId);
+        res.status(204).send();
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };

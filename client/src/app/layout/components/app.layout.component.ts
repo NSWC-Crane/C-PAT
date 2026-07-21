@@ -333,6 +333,7 @@ export class AppLayoutComponent implements OnInit {
         this.collections.set(collections.map((c) => ({ ...c, label: c.collectionName })));
 
         if (user.lastCollectionAccessedId) {
+          this.sharedService.setSelectedCollection(user.lastCollectionAccessedId);
           this.selectedCollection.set(collections.find((c) => c.collectionId === user.lastCollectionAccessedId) ?? null);
           const selectedCollectionData = collectionData.find((c) => c.collectionId === +user.lastCollectionAccessedId);
 

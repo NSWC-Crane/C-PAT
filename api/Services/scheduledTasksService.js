@@ -16,7 +16,7 @@ const healthService = require('./healthService');
 
 const jobs = {};
 
-exports.initializeScheduledTasks = function initializeScheduledTasks() {
+module.exports.initializeScheduledTasks = function initializeScheduledTasks() {
     logger.writeInfo('scheduledTasks', 'init', { message: 'Initializing scheduled tasks' });
 
     healthService.backfillDowntime().catch(error => {
@@ -90,7 +90,7 @@ exports.initializeScheduledTasks = function initializeScheduledTasks() {
     });
 };
 
-exports.shutdownScheduledTasks = function shutdownScheduledTasks() {
+module.exports.shutdownScheduledTasks = function shutdownScheduledTasks() {
     logger.writeInfo('scheduledTasks', 'shutdown', { message: 'Shutting down scheduled tasks' });
 
     for (const [name, job] of Object.entries(jobs)) {
@@ -101,20 +101,20 @@ exports.shutdownScheduledTasks = function shutdownScheduledTasks() {
     }
 };
 
-exports.getScheduledTasksStatus = function getScheduledTasksStatus() {
+module.exports.getScheduledTasksStatus = function getScheduledTasksStatus() {
     const status = {};
 
     for (const [name, job] of Object.entries(jobs)) {
         status[name] = {
             nextRun: job?.nextInvocation()?.toISOString() || null,
-            running: job ? true : false,
+            running: !!job,
         };
     }
 
     return status;
 };
 
-exports.runPoamDeadlineNotificationsNow = async function runPoamDeadlineNotificationsNow() {
+module.exports.runPoamDeadlineNotificationsNow = async function runPoamDeadlineNotificationsNow() {
     logger.writeInfo('scheduledTasks', 'poamDeadlineNotifications', {
         message: 'Manually triggering POAM deadline notification check',
     });

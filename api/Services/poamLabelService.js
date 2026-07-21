@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,248 +22,160 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamLabels = async function getPoamLabels(collectionId) {
-    try {
-        if (!collectionId) {
-            return next({
-                status: 400,
-                errors: {
-                    collectionId: 'is required',
-                },
-            });
-        }
-
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT t1.poamId, t1.labelId, labelName
-                FROM ${config.database.schema}.poamlabels t1
-                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
-                WHERE t2.collectionId = ?
-                ORDER BY t3.labelName
-            `;
-            let [rowPoamLabels] = await connection.query(sql, [collectionId]);
-            const poamLabels = rowPoamLabels.map(row => ({
-                poamId: row.poamId,
-                labelId: row.labelId,
-                labelName: row.labelName,
-            }));
-            return poamLabels;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+module.exports.getPoamLabels = async function getPoamLabels(collectionId) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT t1.poamId, t1.labelId, labelName
+            FROM ${config.database.schema}.poamlabels t1
+            INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+            INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
+            WHERE t2.collectionId = ?
+            ORDER BY t3.labelName
+        `;
+        let [rowPoamLabels] = await connection.query(sql, [collectionId]);
+        const poamLabels = rowPoamLabels.map(row => ({
+            poamId: row.poamId,
+            labelId: row.labelId,
+            labelName: row.labelName,
+        }));
+        return poamLabels;
+    });
 };
 
-exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT t1.poamId, t1.labelId, labelName
-                FROM ${config.database.schema}.poamlabels t1
-                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
-            `;
-            let params = [];
+module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT t1.poamId, t1.labelId, labelName
+            FROM ${config.database.schema}.poamlabels t1
+            INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+            INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
+        `;
+        let params = [];
 
-            if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(
-                    `
-                    SELECT collectionId
-                    FROM ${config.database.schema}.collectionpermissions
-                    WHERE userId = ? AND accessLevel >= 2
-                `,
-                    [req.userObject.userId]
-                );
+        if (req.userObject.isAdmin !== true) {
+            const [permissionRows] = await connection.query(
+                `
+                SELECT collectionId
+                FROM ${config.database.schema}.collectionpermissions
+                WHERE userId = ? AND accessLevel >= 2
+            `,
+                [req.userObject.userId]
+            );
 
-                const collectionIds = permissionRows.map(row => row.collectionId);
+            const collectionIds = permissionRows.map(row => row.collectionId);
 
-                if (collectionIds.length === 0) {
-                    return [];
-                }
-
-                sql += ' WHERE t2.collectionId IN (?)';
-                params.push(collectionIds);
+            if (collectionIds.length === 0) {
+                return [];
             }
 
-            sql += ' ORDER BY t3.labelName';
-
-            const [rowPoamLabels] = await connection.query(sql, params);
-
-            const poamLabels = rowPoamLabels.map(row => ({
-                poamId: row.poamId,
-                labelId: row.labelId,
-                labelName: row.labelName,
-            }));
-
-            return poamLabels;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-};
-
-exports.getPoamsByLabel = async function getPoamsByLabel(labelId) {
-    try {
-        if (!labelId) {
-            return next({
-                status: 400,
-                errors: {
-                    labelId: 'is required',
-                },
-            });
+            sql += ' WHERE t2.collectionId IN (?)';
+            params.push(collectionIds);
         }
 
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT 
-                    t1.poamId, 
-                    t1.labelId, 
-                    t3.labelName,
-                    t2.vulnerabilityId,
-                    t2.vulnerabilityTitle,
-                    t2.rawSeverity
-                FROM poamlabels t1 
-                INNER JOIN poam t2 ON t1.poamId = t2.poamId 
-                INNER JOIN label t3 ON t1.labelId = t3.labelId 
-                WHERE t1.labelId = ?
-                ORDER BY t1.poamId
-            `;
-            let [rowPoams] = await connection.query(sql, [labelId]);
-            const poams = rowPoams.map(row => ({
-                poamId: row.poamId,
-                labelId: row.labelId,
-                labelName: row.labelName,
-                vulnerabilityId: row.vulnerabilityId,
-                vulnerabilityTitle: row.vulnerabilityTitle,
-                rawSeverity: row.rawSeverity,
-            }));
-            return poams;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        sql += ' ORDER BY t3.labelName';
+
+        const [rowPoamLabels] = await connection.query(sql, params);
+
+        const poamLabels = rowPoamLabels.map(row => ({
+            poamId: row.poamId,
+            labelId: row.labelId,
+            labelName: row.labelName,
+        }));
+
+        return poamLabels;
+    });
 };
 
-exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
-    try {
-        if (!poamId) {
-            return next({
-                status: 400,
-                errors: {
-                    poamId: 'is required',
-                },
-            });
+module.exports.getPoamsByLabel = async function getPoamsByLabel(labelId) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT
+                t1.poamId,
+                t1.labelId,
+                t3.labelName,
+                t2.vulnerabilityId,
+                t2.vulnerabilityTitle,
+                t2.rawSeverity
+            FROM poamlabels t1
+            INNER JOIN poam t2 ON t1.poamId = t2.poamId
+            INNER JOIN label t3 ON t1.labelId = t3.labelId
+            WHERE t1.labelId = ?
+            ORDER BY t1.poamId
+        `;
+        let [rowPoams] = await connection.query(sql, [labelId]);
+        const poams = rowPoams.map(row => ({
+            poamId: row.poamId,
+            labelId: row.labelId,
+            labelName: row.labelName,
+            vulnerabilityId: row.vulnerabilityId,
+            vulnerabilityTitle: row.vulnerabilityTitle,
+            rawSeverity: row.rawSeverity,
+        }));
+        return poams;
+    });
+};
+
+module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT t1.poamId, t1.labelId, labelName
+            FROM ${config.database.schema}.poamlabels t1
+            INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+            INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
+            WHERE t1.poamId = ?
+            ORDER BY t3.labelName
+        `;
+        let [rowPoamLabels] = await connection.query(sql, [poamId]);
+        const poamLabels = rowPoamLabels.map(row => ({
+            poamId: row.poamId,
+            labelId: row.labelId,
+            labelName: row.labelName,
+        }));
+        return poamLabels;
+    });
+};
+
+module.exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT t1.poamId, t1.labelId, labelName
+            FROM ${config.database.schema}.poamlabels t1
+            INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+            INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
+            WHERE t1.labelId = ?
+            ORDER BY t3.labelName
+        `;
+        let [rowPoamLabels] = await connection.query(sql, [labelId]);
+        const poamLabels = rowPoamLabels.map(row => ({
+            poamId: row.poamId,
+            labelId: row.labelId,
+            labelName: row.labelName,
+        }));
+        return poamLabels;
+    });
+};
+
+module.exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT t1.poamId, t1.labelId, labelName
+            FROM ${config.database.schema}.poamlabels t1
+            INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
+            INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
+            WHERE t1.poamId = ? AND t1.labelId = ?
+            ORDER BY t3.labelName
+        `;
+        let [rowPoamLabel] = await connection.query(sql, [poamId, labelId]);
+
+        if (rowPoamLabel.length === 0) {
+            throw new SmError.NotFoundError('Poam label not found');
         }
 
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT t1.poamId, t1.labelId, labelName
-                FROM ${config.database.schema}.poamlabels t1
-                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
-                WHERE t1.poamId = ?
-                ORDER BY t3.labelName
-            `;
-            let [rowPoamLabels] = await connection.query(sql, [poamId]);
-            const poamLabels = rowPoamLabels.map(row => ({
-                poamId: row.poamId,
-                labelId: row.labelId,
-                labelName: row.labelName,
-            }));
-            return poamLabels;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return rowPoamLabel[0];
+    });
 };
 
-exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
-    try {
-        if (!labelId) {
-            return next({
-                status: 400,
-                errors: {
-                    labelId: 'is required',
-                },
-            });
-        }
-
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT t1.poamId, t1.labelId, labelName
-                FROM ${config.database.schema}.poamlabels t1
-                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
-                WHERE t1.labelId = ?
-                ORDER BY t3.labelName
-            `;
-            let [rowPoamLabels] = await connection.query(sql, [labelId]);
-            const poamLabels = rowPoamLabels.map(row => ({
-                poamId: row.poamId,
-                labelId: row.labelId,
-                labelName: row.labelName,
-            }));
-            return { poamLabels };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-};
-
-exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
-    try {
-        if (!poamId) {
-            return next({
-                status: 400,
-                errors: {
-                    poamId: 'is required',
-                },
-            });
-        } else if (!labelId) {
-            return next({
-                status: 400,
-                errors: {
-                    labelId: 'is required',
-                },
-            });
-        }
-
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT t1.poamId, t1.labelId, labelName
-                FROM ${config.database.schema}.poamlabels t1
-                INNER JOIN ${config.database.schema}.poam t2 ON t1.poamId = t2.poamId
-                INNER JOIN ${config.database.schema}.label t3 ON t1.labelId = t3.labelId
-                WHERE t1.poamId = ? AND t1.labelId = ?
-                ORDER BY t3.labelName
-            `;
-            let [rowPoamLabel] = await connection.query(sql, [poamId, labelId]);
-            const poamLabel = rowPoamLabel.length > 0 ? rowPoamLabel[0] : {};
-            return { poamLabel };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-};
-
-exports.postPoamLabel = async function postPoamLabel(req, res, next) {
-    if (!req.body.poamId) {
-        return next({
-            status: 400,
-            errors: {
-                poamId: 'is required',
-            },
-        });
-    } else if (!req.body.labelId) {
-        return next({
-            status: 400,
-            errors: {
-                labelId: 'is required',
-            },
-        });
-    }
-
+module.exports.postPoamLabel = async function postPoamLabel(req) {
     try {
         return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.poamlabels (poamId, labelId) VALUES (?, ?)`;
@@ -289,51 +202,30 @@ exports.postPoamLabel = async function postPoamLabel(req, res, next) {
             return poamLabel;
         });
     } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
-            return await withConnection(async connection => {
-                let fetchSql = `SELECT * FROM ${config.database.schema}.poamlabels WHERE labelId = ? AND poamId = ?`;
-                const [existingLabel] = await connection.query(fetchSql, [req.body.labelId, req.body.poamId]);
-                return existingLabel[0];
-            });
-        } else {
-            return { error: error.message };
+        if (error.code !== 'ER_DUP_ENTRY') {
+            throw error;
         }
+        return await withConnection(async connection => {
+            let fetchSql = `SELECT * FROM ${config.database.schema}.poamlabels WHERE labelId = ? AND poamId = ?`;
+            const [existingLabel] = await connection.query(fetchSql, [req.body.labelId, req.body.poamId]);
+            return existingLabel[0];
+        });
     }
 };
 
-exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
-    if (!req.params.poamId) {
-        return next({
-            status: 400,
-            errors: {
-                poamId: 'is required',
-            },
-        });
-    } else if (!req.params.labelId) {
-        return next({
-            status: 400,
-            errors: {
-                labelId: 'is required',
-            },
-        });
-    }
+module.exports.deletePoamLabel = async function deletePoamLabel(req) {
+    return await withConnection(async connection => {
+        let sql = `DELETE FROM ${config.database.schema}.poamlabels WHERE poamId = ? AND labelId = ?`;
+        await connection.query(sql, [req.params.poamId, req.params.labelId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `DELETE FROM ${config.database.schema}.poamlabels WHERE poamId = ? AND labelId = ?`;
-            await connection.query(sql, [req.params.poamId, req.params.labelId]);
+        let labelSql = `SELECT labelName FROM ${config.database.schema}.label WHERE labelId = ?`;
+        const [label] = await connection.query(labelSql, [req.params.labelId]);
+        const labelName = label[0] ? label[0].labelName : 'Unknown Label';
 
-            let labelSql = `SELECT labelName FROM ${config.database.schema}.label WHERE labelId = ?`;
-            const [label] = await connection.query(labelSql, [req.params.labelId]);
-            const labelName = label[0] ? label[0].labelName : 'Unknown Label';
+        let action = `"${labelName}" label was removed from the POAM.`;
+        let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+        await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
 
-            let action = `"${labelName}" label was removed from the POAM.`;
-            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
-
-            return {};
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return {};
+    });
 };

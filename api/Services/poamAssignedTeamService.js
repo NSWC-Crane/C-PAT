@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
+module.exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.assignedTeamId, t2.assignedTeamName, t1.automated, t1.poamId, t3.status
@@ -42,7 +43,7 @@ exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
     });
 };
 
-exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoamId(poamId) {
+module.exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoamId(poamId) {
     if (!poamId) {
         throw new Error('getPoamAssignedTeamsByPoamId: poamId is required');
     }
@@ -101,13 +102,13 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
     });
 };
 
-exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, next) {
+module.exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req) {
     if (!req.body.assignedTeamId) {
-        throw new Error('postPoamAssignedTeam: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
 
     if (!req.body.poamId) {
-        throw new Error('postPoamAssignedTeam: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
 
     return await withConnection(async connection => {
@@ -151,18 +152,18 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, nex
                     return result;
                 });
             } else {
-                return { error: error.message };
+                throw error;
             }
         }
     });
 };
 
-exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req, res, next) {
+module.exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req) {
     if (!req.params.assignedTeamId) {
-        throw new Error('deletePoamAssignedTeam: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
     if (!req.params.poamId) {
-        throw new Error('deletePoamAssignedTeam: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
 
     await withConnection(async connection => {

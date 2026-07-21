@@ -10,7 +10,7 @@
 
 import { Injectable, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { Observable, catchError, forkJoin, map, of } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { AAPackageService } from '../../../admin-processing/aaPackage-processing/aaPackage-processing.service';
@@ -334,10 +334,16 @@ export class PoamDataService {
     );
   }
 
-  obtainCollectionData(selectedCollectionId: number, background: boolean = false): Observable<CollectionInfo> {
+  obtainCollectionData(selectedCollectionId: number | null | undefined, background: boolean = false): Observable<CollectionInfo> {
+    if (!selectedCollectionId) {
+      console.error('obtainCollectionData called without a collection id; unable to resolve collection type.');
+
+      return throwError(() => new Error('No collection selected.'));
+    }
+
     return this.collectionsService.getCollectionBasicList().pipe(
       map((basicListData) => {
-        const currentCollection = basicListData.find((collection) => +collection.collectionId === selectedCollectionId);
+        const currentCollection = basicListData.find((collection) => +collection.collectionId === +selectedCollectionId);
 
         if (!currentCollection) {
           if (!background) {

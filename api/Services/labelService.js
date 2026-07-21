@@ -21,173 +21,75 @@ async function withConnection(callback) {
     }
 }
 
-exports.getLabels = async function getLabels(req, res, next) {
-    if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    }
+module.exports.getLabels = async function getLabels(req) {
+    return await withConnection(async connection => {
+        let sql = `SELECT * FROM ${config.database.schema}.label WHERE collectionId = ? ORDER BY labelName;`;
+        let [rowLabels] = await connection.query(sql, [req.params.collectionId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `SELECT * FROM ${config.database.schema}.label WHERE collectionId = ? ORDER BY labelName;`;
-            let [rowLabels] = await connection.query(sql, [req.params.collectionId]);
+        const labels = rowLabels.map(row => ({
+            labelId: row.labelId,
+            labelName: row.labelName,
+            description: row.description,
+            collectionId: row.collectionId,
+        }));
 
-            const labels = rowLabels.map(row => ({
-                labelId: row.labelId,
-                labelName: row.labelName,
-                description: row.description,
-                collectionId: row.collectionId,
-            }));
-
-            return labels;
-        });
-    } catch (error) {
-        next(error);
-    }
+        return labels;
+    });
 };
 
-exports.getLabel = async function getLabel(req, res, next) {
-    if (!req.params.labelId) {
-        return next({
-            status: 400,
-            errors: {
-                labelId: 'is required',
-            },
-        });
-    } else if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    }
+module.exports.getLabel = async function getLabel(req) {
+    return await withConnection(async connection => {
+        let sql = `SELECT * FROM ${config.database.schema}.label WHERE labelId = ? AND collectionId = ?`;
+        let [rowLabel] = await connection.query(sql, [req.params.labelId, req.params.collectionId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `SELECT * FROM ${config.database.schema}.label WHERE labelId = ? AND collectionId = ?`;
-            let [rowLabel] = await connection.query(sql, [req.params.labelId, req.params.collectionId]);
+        const label = rowLabel.length > 0 ? [rowLabel[0]] : [];
 
-            const label = rowLabel.length > 0 ? [rowLabel[0]] : [];
-
-            return { label };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return { label };
+    });
 };
 
-exports.postLabel = async function postLabel(req, res, next) {
-    if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    } else if (!req.body.labelName) {
-        return next({
-            status: 400,
-            errors: {
-                labelName: 'is required',
-            },
-        });
-    }
+module.exports.postLabel = async function postLabel(req) {
+    return await withConnection(async connection => {
+        let sql_query = `INSERT INTO ${config.database.schema}.label (labelName, description, collectionId) VALUES (?, ?, ?)`;
+        await connection.query(sql_query, [req.body.labelName, req.body.description, req.params.collectionId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql_query = `INSERT INTO ${config.database.schema}.label (labelName, description, collectionId) VALUES (?, ?, ?)`;
-            await connection.query(sql_query, [req.body.labelName, req.body.description, req.params.collectionId]);
+        let sql = `SELECT * FROM ${config.database.schema}.label WHERE labelName = ? AND collectionId = ?`;
+        let [rowLabel] = await connection.query(sql, [req.body.labelName, req.params.collectionId]);
 
-            let sql = `SELECT * FROM ${config.database.schema}.label WHERE labelName = ? AND collectionId = ?`;
-            let [rowLabel] = await connection.query(sql, [req.body.labelName, req.params.collectionId]);
-
-            const message = {
-                labelId: rowLabel[0].labelId,
-                labelName: rowLabel[0].labelName,
-                description: rowLabel[0].description,
-                collectionId: rowLabel[0].collectionId,
-            };
-            return message;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        const message = {
+            labelId: rowLabel[0].labelId,
+            labelName: rowLabel[0].labelName,
+            description: rowLabel[0].description,
+            collectionId: rowLabel[0].collectionId,
+        };
+        return message;
+    });
 };
 
-exports.putLabel = async function putLabel(req, res, next) {
-    if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    } else if (!req.body.labelId) {
-        return next({
-            status: 400,
-            errors: {
-                labelId: 'is required',
-            },
-        });
-    } else if (!req.body.labelName) {
-        return next({
-            status: 400,
-            errors: {
-                labelName: 'is required',
-            },
-        });
-    } else if (!req.body.description) {
+module.exports.putLabel = async function putLabel(req) {
+    if (!req.body.description) {
         req.body.description = '';
     }
 
-    try {
-        return await withConnection(async connection => {
-            let sql_query = `UPDATE ${config.database.schema}.label SET labelName = ?, description = ? WHERE labelId = ? AND collectionId = ?`;
-            await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.labelId, req.params.collectionId]);
+    return await withConnection(async connection => {
+        let sql_query = `UPDATE ${config.database.schema}.label SET labelName = ?, description = ? WHERE labelId = ? AND collectionId = ?`;
+        await connection.query(sql_query, [req.body.labelName, req.body.description, req.body.labelId, req.params.collectionId]);
 
-            const message = {
-                labelId: req.body.labelId,
-                collectionId: req.params.collectionId,
-                labelName: req.body.labelName,
-                description: req.body.description,
-            };
-            return message;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        const message = {
+            labelId: req.body.labelId,
+            collectionId: req.params.collectionId,
+            labelName: req.body.labelName,
+            description: req.body.description,
+        };
+        return message;
+    });
 };
 
-exports.deleteLabel = async function deleteLabel(req, res, next) {
-    if (!req.params.labelId) {
-        return next({
-            status: 400,
-            errors: {
-                labelId: 'is required',
-            },
-        });
-    } else if (!req.params.collectionId) {
-        return next({
-            status: 400,
-            errors: {
-                collectionId: 'is required',
-            },
-        });
-    }
+module.exports.deleteLabel = async function deleteLabel(req) {
+    return await withConnection(async connection => {
+        let sql = `DELETE FROM ${config.database.schema}.label WHERE labelId = ? AND collectionId = ?`;
+        await connection.query(sql, [req.params.labelId, req.params.collectionId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `DELETE FROM ${config.database.schema}.label WHERE labelId = ? AND collectionId = ?`;
-            await connection.query(sql, [req.params.labelId, req.params.collectionId]);
-
-            return { label: [] };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return { label: [] };
+    });
 };

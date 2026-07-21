@@ -9,68 +9,49 @@
 */
 
 const aaPackageService = require('../Services/aaPackageService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getAAPackages = async function getAAPackages(req, res, next) {
+module.exports.getAAPackages = async function getAAPackages(_req, res) {
     try {
-        const aaPackages = await aaPackageService.getAAPackages(req, res, next);
+        const aaPackages = await aaPackageService.getAAPackages();
         res.status(200).json(aaPackages);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getAAPackage = async function getAAPackage(req, res, next) {
+module.exports.getAAPackage = async function getAAPackage(req, res) {
     try {
-        const aaPackage = await aaPackageService.getAAPackage(req, res, next);
+        const aaPackage = await aaPackageService.getAAPackage(req);
         res.status(200).json(aaPackage);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.postAAPackage = async function postAAPackage(req, res, next) {
+module.exports.postAAPackage = async function postAAPackage(req, res) {
     try {
-        const aaPackage = await aaPackageService.postAAPackage(req, res, next);
+        const aaPackage = await aaPackageService.postAAPackage(req);
         res.status(201).json(aaPackage);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.putAAPackage = async function putAAPackage(req, res, next) {
+module.exports.putAAPackage = async function putAAPackage(req, res) {
     try {
-        const aaPackage = await aaPackageService.putAAPackage(req, res, next);
+        const aaPackage = await aaPackageService.putAAPackage(req);
         res.status(200).json(aaPackage);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.deleteAAPackage = async function deleteAAPackage(req, res, next) {
+module.exports.deleteAAPackage = async function deleteAAPackage(req, res) {
     try {
-        await aaPackageService.deleteAAPackage(req, res, next);
+        await aaPackageService.deleteAAPackage(req);
         res.status(204).send();
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };

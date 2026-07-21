@@ -558,7 +558,7 @@ export class PoamExtendComponent implements OnInit {
 
         return team ? team.assignedTeamName : '';
       })
-      .filter((name) => name)
+      .filter(Boolean)
       .join(', ');
   }
 
@@ -571,7 +571,7 @@ export class PoamExtendComponent implements OnInit {
 
         return team ? team.assignedTeamName : '';
       })
-      .filter((name) => name);
+      .filter(Boolean);
   }
 
   onRowEditCancel(milestone: any, index: number) {
@@ -851,7 +851,7 @@ export class PoamExtendComponent implements OnInit {
       const teamsMissingMitigation = activeTeamMitigations.filter((m) => !m.mitigationText?.trim());
 
       if (activeTeamMitigations.length === 0 || teamsMissingMitigation.length > 0) {
-        const missingTeamNames = teamsMissingMitigation.map((m) => m.assignedTeamName).filter((name) => name);
+        const missingTeamNames = teamsMissingMitigation.map((m) => m.assignedTeamName).filter(Boolean);
 
         this.messageService.add({
           severity: 'error',
@@ -923,7 +923,7 @@ export class PoamExtendComponent implements OnInit {
         });
 
         if (teamsWithoutOpenMilestone.length > 0) {
-          const missingTeamNames = teamsWithoutOpenMilestone.map((team) => team.assignedTeamName).filter((name) => name);
+          const missingTeamNames = teamsWithoutOpenMilestone.map((team) => team.assignedTeamName).filter(Boolean);
 
           this.messageService.add({
             severity: 'error',
@@ -999,13 +999,7 @@ export class PoamExtendComponent implements OnInit {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (res: any) => {
-            if (res.null || res.null == 'null') {
-              this.messageService.add({
-                severity: 'error',
-                summary: 'Information',
-                detail: 'Unexpected error adding POAM Extension'
-              });
-            } else if (status === 'Approved') {
+            if (status === 'Approved') {
               this.messageService.add({
                 severity: 'success',
                 summary: 'Success',
@@ -1026,7 +1020,18 @@ export class PoamExtendComponent implements OnInit {
             }
 
             if (status !== 'Rejected' && extensionData.extensionDays > 0) {
-              this.poamService.updatePoamStatus(this.poamId, extensionData).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+              this.poamService
+                .updatePoamStatus(this.poamId, extensionData)
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe({
+                  error: (error) => {
+                    this.messageService.add({
+                      severity: 'error',
+                      summary: 'Error',
+                      detail: `Failed to update POAM status: ${getErrorMessage(error)}`
+                    });
+                  }
+                });
             }
 
             if (!this.poam.isGlobalFinding && this.teamMitigations().length > 0) {

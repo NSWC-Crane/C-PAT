@@ -1128,6 +1128,12 @@ describe('PoamExtendComponent', () => {
       expect(mockPoamService.updatePoamStatus).not.toHaveBeenCalled();
     });
 
+    it('should show error when updatePoamStatus fails', () => {
+      mockPoamService.updatePoamStatus.mockReturnValue(throwError(() => new Error('fail')));
+      (component as any).putPoamExtension('Approved');
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Failed to update POAM status') }));
+    });
+
     it('should save all team mitigations for non-global findings with mitigations', () => {
       component.poam.isGlobalFinding = false;
       component.teamMitigations.set([{ assignedTeamId: 10 }]);
@@ -1152,12 +1158,6 @@ describe('PoamExtendComponent', () => {
       (component as any).putPoamExtension('Approved');
       vi.advanceTimersByTime(1000);
       expect(component.displayExtensionDialog()).toBe(false);
-    });
-
-    it('should show error on null response', () => {
-      mockPoamExtensionService.putPoamExtension.mockReturnValue(of({ null: true }));
-      (component as any).putPoamExtension('Approved');
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Unexpected error') }));
     });
 
     it('should show error on service error', () => {

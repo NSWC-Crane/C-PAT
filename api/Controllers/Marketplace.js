@@ -9,46 +9,44 @@
 */
 
 const marketplaceService = require('../Services/marketplaceService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getAllThemes = async function getAllThemes(req, res, next) {
+module.exports.getAllThemes = async function getAllThemes(_req, res) {
     try {
         const themes = await marketplaceService.getAllThemes();
+
         res.status(200).json(themes);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.purchaseTheme = async function purchaseTheme(req, res, next) {
+module.exports.purchaseTheme = async function purchaseTheme(req, res) {
     try {
-        const { userId, themeId } = req.body;
-        const result = await marketplaceService.purchaseTheme(userId, themeId);
-        if (result.success) {
-            res.status(200).json(result.message);
-        } else {
-            res.status(400).json(result.message);
-        }
+        const result = await marketplaceService.purchaseTheme(req.userObject.userId, req.body.themeId);
+
+        res.status(200).json({ message: result.message });
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getUserThemes = async function getUserThemes(req, res, next) {
+module.exports.getUserThemes = async function getUserThemes(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const themes = await marketplaceService.getUserThemes(userId);
+        const themes = await marketplaceService.getUserThemes(req.userObject.userId);
+
         res.status(200).json(themes);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getUserPoints = async function getUserPoints(req, res, next) {
+module.exports.getUserPoints = async function getUserPoints(req, res) {
     try {
-        const userId = req.userObject.userId;
-        const points = await marketplaceService.getUserPoints(userId);
+        const points = await marketplaceService.getUserPoints(req.userObject.userId);
+
         res.status(200).json(points);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };

@@ -99,7 +99,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   private initializeDisplayVulnerabilities(): void {
     this.displayVulnerabilities.set(
       (this.poamAssociatedVulnerabilities() || [])
-        .filter((vuln) => vuln)
+        .filter(Boolean)
         .map((vuln) => {
           const vulnId = typeof vuln === 'string' ? vuln : vuln.associatedVulnerability;
 

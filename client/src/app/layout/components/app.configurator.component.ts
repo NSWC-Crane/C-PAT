@@ -572,7 +572,6 @@ export class AppConfiguratorComponent implements OnInit {
 
           const currentState = this.configService.appState();
           const preferences = {
-            userId: user.userId,
             defaultTheme: JSON.stringify({
               preset: currentState.preset,
               primary: currentState.primary,

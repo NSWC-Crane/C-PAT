@@ -9,112 +9,76 @@
 */
 
 const poamLabelService = require('../Services/poamLabelService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getPoamLabels = async function getPoamLabels(req, res, next) {
+module.exports.getPoamLabels = async function getPoamLabels(req, res) {
     try {
-        const { collectionId } = req.params;
-        const poamLabels = await poamLabelService.getPoamLabels(collectionId);
+        const poamLabels = await poamLabelService.getPoamLabels(req.params.collectionId);
         res.status(200).json(poamLabels);
     } catch (error) {
-        if (error.message === 'Collection ID is required') {
-            res.status(400).json({ error: 'Validation Error', detail: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res, next) {
+module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req, res) {
     try {
         const poamLabels = await poamLabelService.getAvailablePoamLabels(req);
         res.status(200).json(poamLabels);
     } catch (error) {
-        if (error.message === 'User ID is required') {
-            res.status(400).json({ error: 'Validation Error', detail: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamsByLabel = async function getPoamsByLabel(req, res, next) {
+module.exports.getPoamsByLabel = async function getPoamsByLabel(req, res) {
     try {
-        const { labelId } = req.params;
-        const poams = await poamLabelService.getPoamsByLabel(labelId);
+        const poams = await poamLabelService.getPoamsByLabel(req.params.labelId);
         res.status(200).json(poams);
     } catch (error) {
-        if (error.message === 'Label ID is required') {
-            res.status(400).json({ error: 'Validation Error', detail: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(req, res, next) {
+module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(req, res) {
     try {
-        const { poamId } = req.params;
-        const poamLabels = await poamLabelService.getPoamLabelsByPoam(poamId);
+        const poamLabels = await poamLabelService.getPoamLabelsByPoam(req.params.poamId);
         res.status(200).json(poamLabels);
     } catch (error) {
-        if (error.message === 'POAM ID is required') {
-            res.status(400).json({ error: 'Validation Error', detail: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamLabelByLabel = async function getPoamLabelByLabel(req, res, next) {
+module.exports.getPoamLabelByLabel = async function getPoamLabelByLabel(req, res) {
     try {
-        const { labelId } = req.params;
-        const poamLabels = await poamLabelService.getPoamLabelsByLabel(labelId);
+        const poamLabels = await poamLabelService.getPoamLabelsByLabel(req.params.labelId);
         res.status(200).json(poamLabels);
     } catch (error) {
-        if (error.message === 'Label ID is required') {
-            res.status(400).json({ error: 'Validation Error', detail: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamLabel = async function getPoamLabel(req, res, next) {
+module.exports.getPoamLabel = async function getPoamLabel(req, res) {
     try {
-        const { poamId, labelId } = req.params;
-        const poamLabel = await poamLabelService.getPoamLabel(poamId, labelId);
+        const poamLabel = await poamLabelService.getPoamLabel(req.params.poamId, req.params.labelId);
         res.status(200).json(poamLabel);
     } catch (error) {
-        if (error.message === 'POAM ID and Label ID are required') {
-            res.status(400).json({ error: 'Validation Error', detail: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.postPoamLabel = async function postPoamLabel(req, res, next) {
+module.exports.postPoamLabel = async function postPoamLabel(req, res) {
     try {
-        const poamLabel = await poamLabelService.postPoamLabel(req, res, next);
+        const poamLabel = await poamLabelService.postPoamLabel(req);
         res.status(201).json(poamLabel);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.deletePoamLabel = async function deletePoamLabel(req, res, next) {
+module.exports.deletePoamLabel = async function deletePoamLabel(req, res) {
     try {
-        await poamLabelService.deletePoamLabel(req, res, next);
+        await poamLabelService.deletePoamLabel(req);
         res.status(204).send();
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };

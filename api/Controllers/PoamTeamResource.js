@@ -9,57 +9,64 @@
 */
 
 const poamTeamResourceService = require('../Services/poamTeamResourceService');
+const { sendError } = require('../utils/respond');
 
-exports.getPoamTeamResources = async function getPoamTeamResources(req, res, next) {
+module.exports.getPoamTeamResources = async function getPoamTeamResources(_req, res) {
     try {
         const result = await poamTeamResourceService.getPoamTeamResources();
-        return res.status(200).json(result);
+
+        res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while retrieving POAM team resources' });
+        sendError(res, error);
     }
 };
 
-exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoamId(req, res, next) {
+module.exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoamId(req, res) {
     try {
         const result = await poamTeamResourceService.getPoamTeamResourcesByPoamId(req.params.poamId);
-        return res.status(200).json(result);
+
+        res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while retrieving POAM team resources by poamId' });
+        sendError(res, error);
     }
 };
 
-exports.postPoamTeamResource = async function postPoamTeamResource(req, res, next) {
+module.exports.postPoamTeamResource = async function postPoamTeamResource(req, res) {
     try {
-        const teamResource = await poamTeamResourceService.postPoamTeamResource(req, res, next);
-        return res.status(201).json(teamResource);
+        const teamResource = await poamTeamResourceService.postPoamTeamResource(req);
+
+        res.status(201).json(teamResource);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while entering the POAM team resource' });
+        sendError(res, error);
     }
 };
 
-exports.updatePoamTeamResource = async function updatePoamTeamResource(req, res, next) {
+module.exports.updatePoamTeamResource = async function updatePoamTeamResource(req, res) {
     try {
-        const teamResource = await poamTeamResourceService.updatePoamTeamResource(req, res, next);
-        return res.status(200).json(teamResource);
+        const teamResource = await poamTeamResourceService.updatePoamTeamResource(req);
+
+        res.status(200).json(teamResource);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while updating the POAM team resource' });
+        sendError(res, error);
     }
 };
 
-exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStatus(req, res, next) {
+module.exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStatus(req, res) {
     try {
-        const teamResource = await poamTeamResourceService.updatePoamTeamResourceStatus(req, res, next);
-        return res.status(200).json(teamResource);
+        const teamResource = await poamTeamResourceService.updatePoamTeamResourceStatus(req);
+
+        res.status(200).json(teamResource);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while updating the POAM team resource status' });
+        sendError(res, error);
     }
 };
 
-exports.deletePoamTeamResource = async function deletePoamTeamResource(req, res, next) {
+module.exports.deletePoamTeamResource = async function deletePoamTeamResource(req, res) {
     try {
-        await poamTeamResourceService.deletePoamTeamResource(req, res, next);
-        return res.status(204).send();
+        await poamTeamResourceService.deletePoamTeamResource(req);
+
+        res.status(204).send();
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while deleting the POAM team resource' });
+        sendError(res, error);
     }
 };

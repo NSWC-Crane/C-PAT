@@ -141,10 +141,10 @@ function configureTenableProxy(app) {
 
                     return proxyReqOpts;
                 },
-                userResDecorator: function (proxyRes, proxyResData, userReq, userRes) {
+                userResDecorator: function (_proxyRes, proxyResData) {
                     return proxyResData;
                 },
-                proxyErrorHandler: function (err, res, next) {
+                proxyErrorHandler: function (err, res) {
                     res.status(500).json({
                         error: 'Proxy error',
                         message: err.message,

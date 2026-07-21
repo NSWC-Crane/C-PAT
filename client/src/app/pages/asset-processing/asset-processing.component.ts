@@ -194,13 +194,13 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
           return;
         }
 
-        if (!Array.isArray(assetLabelResponse.assetLabel)) {
-          console.error('assetLabelResponse.assetLabel is not an array', assetLabelResponse.assetLabel);
+        if (!Array.isArray(assetLabelResponse)) {
+          console.error('assetLabelResponse is not an array', assetLabelResponse);
 
           return;
         }
 
-        this.assetLabel = assetLabelResponse.assetLabel;
+        this.assetLabel = assetLabelResponse;
         this.setLabelChartData(this.assetLabel);
 
         const sorted = (assetData as AssetEntry[])

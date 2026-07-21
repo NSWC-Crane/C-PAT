@@ -16,7 +16,7 @@ const path = require('node:path');
 function configureErrorHandlers(app) {
     const eovPath = path.dirname(require.resolve('express-openapi-validator'));
     const eovErrors = require(path.join(eovPath, 'framework', 'types.js'));
-    app.use((err, req, res, next) => {
+    app.use((err, req, res, _next) => {
         if (!(err instanceof smErrors.SmError) && !(err instanceof eovErrors.HttpError)) {
             logger.writeError('rest', 'error', {
                 request: logger.serializeRequest(req),
@@ -26,7 +26,7 @@ function configureErrorHandlers(app) {
 
         res.errorBody = { error: err.message, code: err.code, detail: err.detail };
         if (err.status === 500 || !err.status) res.errorBody.stack = err.stack;
-        if (!res._headerSent) {
+        if (!res.headersSent) {
             res.status(err.status || 500)
                 .header(err.headers)
                 .json(res.errorBody);

@@ -9,16 +9,13 @@
 */
 
 const adTeamsService = require('../Services/adTeamsService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getADTeamsList = async function getADTeamsList(req, res, next) {
+module.exports.getADTeamsList = async function getADTeamsList(_req, res) {
     try {
-        const adTeams = await adTeamsService.getADTeamsList(req, res, next);
+        const adTeams = await adTeamsService.getADTeamsList();
         res.status(200).json(adTeams);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };

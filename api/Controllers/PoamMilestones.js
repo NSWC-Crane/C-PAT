@@ -9,59 +9,44 @@
 */
 
 const poamMilestoneService = require('../Services/poamMilestoneService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getPoamMilestones = async function getPoamMilestones(req, res, next) {
+module.exports.getPoamMilestones = async function getPoamMilestones(req, res) {
     try {
-        const { poamId } = req.params;
-        const poamMilestones = await poamMilestoneService.getPoamMilestones(poamId);
+        const poamMilestones = await poamMilestoneService.getPoamMilestones(req.params.poamId);
+
         res.status(200).json(poamMilestones);
     } catch (error) {
-        if (error.message === 'POAM ID is required') {
-            res.status(400).json({ error: 'Validation Error', detail: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.postPoamMilestone = async function postPoamMilestone(req, res, next) {
+module.exports.postPoamMilestone = async function postPoamMilestone(req, res) {
     try {
-        const { poamId } = req.params;
-        const poamMilestone = await poamMilestoneService.postPoamMilestone(poamId, req);
+        const poamMilestone = await poamMilestoneService.postPoamMilestone(req.params.poamId, req);
+
         res.status(201).json(poamMilestone);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.putPoamMilestone = async function putPoamMilestone(req, res, next) {
+module.exports.putPoamMilestone = async function putPoamMilestone(req, res) {
     try {
-        const { poamId, milestoneId } = req.params;
-        const poamMilestone = await poamMilestoneService.putPoamMilestone(poamId, milestoneId, req);
+        const poamMilestone = await poamMilestoneService.putPoamMilestone(req.params.poamId, req.params.milestoneId, req);
+
         res.status(200).json(poamMilestone);
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };
 
-module.exports.deletePoamMilestone = async function deletePoamMilestone(req, res, next) {
+module.exports.deletePoamMilestone = async function deletePoamMilestone(req, res) {
     try {
-        const { poamId, milestoneId } = req.params;
-        await poamMilestoneService.deletePoamMilestone(poamId, milestoneId, req);
+        await poamMilestoneService.deletePoamMilestone(req.params.poamId, req.params.milestoneId, req);
+
         res.status(204).send();
     } catch (error) {
-        if (error.status === 400) {
-            res.status(400).json({ error: 'Validation Error', detail: error.errors });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error', detail: error.message });
-        }
+        sendError(res, error);
     }
 };

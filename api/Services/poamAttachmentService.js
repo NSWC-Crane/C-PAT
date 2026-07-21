@@ -24,73 +24,46 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamAttachmentsByPoamId = async function (req, res, next) {
-    if (!req.params.poamId) {
-        return next({
-            status: 400,
-            errors: {
-                poamId: 'is required',
-            },
-        });
-    }
-
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy
-                FROM ${config.database.schema}.poamattachments
-                WHERE poamId = ?
-            `;
-            let [rowPoamAttachments] = await connection.query(sql, [req.params.poamId]);
-            return rowPoamAttachments.map(row => ({
-                attachmentId: row.attachmentId,
-                poamId: row.poamId,
-                filename: row.filename,
-                fileSize: row.fileSize,
-                mimeType: row.mimeType,
-                uploadDate: row.uploadDate,
-                uploadedBy: row.uploadedBy,
-            }));
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+module.exports.getPoamAttachmentsByPoamId = async function (req) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy
+            FROM ${config.database.schema}.poamattachments
+            WHERE poamId = ?
+        `;
+        let [rowPoamAttachments] = await connection.query(sql, [req.params.poamId]);
+        return rowPoamAttachments.map(row => ({
+            attachmentId: row.attachmentId,
+            poamId: row.poamId,
+            filename: row.filename,
+            fileSize: row.fileSize,
+            mimeType: row.mimeType,
+            uploadDate: row.uploadDate,
+            uploadedBy: row.uploadedBy,
+        }));
+    });
 };
 
-exports.downloadPoamAttachment = async function (req, res, next) {
-    if (!req.params.poamId || !req.params.attachmentId) {
-        return next({
-            status: 400,
-            errors: {
-                poamId: 'is required',
-                attachmentId: 'is required',
-            },
-        });
-    }
+module.exports.downloadPoamAttachment = async function (req) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT filename, fileSize, mimeType, fileContent
+            FROM ${config.database.schema}.poamattachments
+            WHERE poamId = ? AND attachmentId = ?
+        `;
+        let [[attachment]] = await connection.query(sql, [req.params.poamId, req.params.attachmentId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT filename, fileSize, mimeType, fileContent
-                FROM ${config.database.schema}.poamattachments
-                WHERE poamId = ? AND attachmentId = ?
-            `;
-            let [[attachment]] = await connection.query(sql, [req.params.poamId, req.params.attachmentId]);
+        if (!attachment) {
+            throw new SmError.NotFoundError('Attachment not found');
+        }
 
-            if (!attachment) {
-                return null;
-            }
-
-            return {
-                filename: attachment.filename,
-                fileSize: attachment.fileSize,
-                mimeType: attachment.mimeType,
-                fileContent: attachment.fileContent,
-            };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return {
+            filename: attachment.filename,
+            fileSize: attachment.fileSize,
+            mimeType: attachment.mimeType,
+            fileContent: attachment.fileContent,
+        };
+    });
 };
 
 async function validateFile(file) {
@@ -215,90 +188,53 @@ async function validateFile(file) {
     return { isValid: true, hash };
 }
 
-exports.postPoamAttachment = async function (req, res, next, userId) {
+module.exports.postPoamAttachment = async function (req, userId) {
     const file = req.files[0];
-    if (!req.body.poamId) {
-        return next({
-            status: 400,
-            errors: {
-                poamId: 'is required',
-            },
-        });
-    }
-    if (!file) {
-        return next({
-            status: 400,
-            errors: {
-                file: 'is required',
-            },
-        });
-    }
+    const validationResult = await validateFile(file);
 
-    try {
-        const validationResult = await validateFile(file);
-        if (!validationResult.isValid) {
-            return { error: 'File validation failed' };
+    return await withConnection(async connection => {
+        const fileHash = validationResult.hash;
+
+        let sql = `INSERT INTO ${config.database.schema}.poamattachments
+            (poamId, filename, fileSize, mimeType, uploadedBy, fileContent, fileHash)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+        let [result] = await connection.query(sql, [req.body.poamId, file.originalname, file.size, file.mimetype, userId, file.buffer, fileHash]);
+
+        if (!result.insertId) {
+            throw new Error('Failed to create attachment');
         }
 
-        return await withConnection(async connection => {
-            const fileHash = validationResult.hash;
+        let fetchSql = `SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy
+                        FROM ${config.database.schema}.poamattachments
+                        WHERE attachmentId = ?`;
+        let [[newAttachment]] = await connection.query(fetchSql, [result.insertId]);
 
-            let sql = `INSERT INTO ${config.database.schema}.poamattachments
-                (poamId, filename, fileSize, mimeType, uploadedBy, fileContent, fileHash)
-                VALUES (?, ?, ?, ?, ?, ?, ?)`;
+        let action = `File "${file.originalname}" was attached to POAM.`;
+        let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+        await connection.query(logSql, [req.body.poamId, action, userId]);
 
-            let [result] = await connection.query(sql, [req.body.poamId, file.originalname, file.size, file.mimetype, userId, file.buffer, fileHash]);
-
-            if (result.insertId) {
-                let fetchSql = `SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy
-                                FROM ${config.database.schema}.poamattachments
-                                WHERE attachmentId = ?`;
-                let [[newAttachment]] = await connection.query(fetchSql, [result.insertId]);
-
-                let action = `File "${file.originalname}" was attached to POAM.`;
-                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [req.body.poamId, action, userId]);
-
-                return newAttachment;
-            }
-            return null;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return newAttachment;
+    });
 };
 
-exports.deletePoamAttachment = async function (req, res, next, userId) {
-    if (!req.params.attachmentId || !req.params.poamId) {
-        return next({
-            status: 400,
-            errors: {
-                attachmentId: 'is required',
-                poamId: 'is required',
-            },
-        });
-    }
+module.exports.deletePoamAttachment = async function (req, userId) {
+    return await withConnection(async connection => {
+        let fetchSql = `SELECT filename FROM ${config.database.schema}.poamattachments WHERE attachmentId = ? AND poamId = ?`;
+        let [[attachment]] = await connection.query(fetchSql, [req.params.attachmentId, req.params.poamId]);
 
-    try {
-        return await withConnection(async connection => {
-            let fetchSql = `SELECT filename FROM ${config.database.schema}.poamattachments WHERE attachmentId = ? AND poamId = ?`;
-            let [[attachment]] = await connection.query(fetchSql, [req.params.attachmentId, req.params.poamId]);
+        if (!attachment) {
+            throw new SmError.NotFoundError('Attachment not found');
+        }
 
-            if (!attachment) {
-                return { error: 'Attachment not found' };
-            }
+        let sql = `DELETE FROM ${config.database.schema}.poamattachments WHERE attachmentId = ? AND poamId = ?`;
+        await connection.query(sql, [req.params.attachmentId, req.params.poamId]);
 
-            let sql = `DELETE FROM ${config.database.schema}.poamattachments WHERE attachmentId = ? AND poamId = ?`;
-            await connection.query(sql, [req.params.attachmentId, req.params.poamId]);
-
-            if (userId) {
-                let action = `File "${attachment.filename}" was removed from POAM.`;
-                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-                await connection.query(logSql, [req.params.poamId, action, userId]);
-            }
-            return { message: 'Attachment deleted successfully' };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        if (userId) {
+            let action = `File "${attachment.filename}" was removed from POAM.`;
+            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+            await connection.query(logSql, [req.params.poamId, action, userId]);
+        }
+        return { message: 'Attachment deleted successfully' };
+    });
 };

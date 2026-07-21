@@ -88,6 +88,7 @@ sequelize
         logger.writeInfo('Sequelize connection to the database has been established.');
     })
     .catch(err => {
+        logger.writeError('sequelize', 'authenticate', { message: err.message, stack: err.stack });
         throw new SmError.UnprocessableError('Sequelize is unable to connect to the database');
     });
 

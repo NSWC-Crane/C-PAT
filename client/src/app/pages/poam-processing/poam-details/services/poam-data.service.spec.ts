@@ -499,6 +499,15 @@ describe('PoamDataService', () => {
       expect(result.originCollectionId).toBe(75);
     });
 
+    it('should error without fetching when no collection id is supplied', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      await expect(firstValueFrom(service.obtainCollectionData(null))).rejects.toThrow('No collection selected.');
+      expect(mockCollectionsService.getCollectionBasicList).not.toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
     it('should show warning when collection not found (non-background)', async () => {
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of([]));
 

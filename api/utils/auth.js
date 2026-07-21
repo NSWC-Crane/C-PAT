@@ -69,7 +69,7 @@ function verifyToken(tokenJWT, signingKey) {
     }
 }
 
-const validateToken = async function (req, res, next) {
+const validateToken = async function (req, _res, next) {
     try {
         const tokenJWT = getBearerToken(req);
         if (tokenJWT) {
@@ -105,15 +105,19 @@ async function handleUserDataRefresh(currentUserData, tokenPayload) {
 async function handlePointsUpdate(userId, lastAccess, hasPoints) {
     const now = new Date();
     if (!config.client.features.marketplaceDisabled && hasPoints) {
-        if (differenceInMinutes(now, lastAccess) >= 720) {
-            await UserService.dailyPoints(userId);
-        } else if (differenceInMinutes(now, lastAccess) >= 60) {
-            await UserService.hourlyPoints(userId);
+        try {
+            if (differenceInMinutes(now, lastAccess) >= 720) {
+                await UserService.dailyPoints(userId);
+            } else if (differenceInMinutes(now, lastAccess) >= 60) {
+                await UserService.hourlyPoints(userId);
+            }
+        } catch (error) {
+            logger.writeError('auth', 'handlePointsUpdate', { message: 'Failed to award login points', userId, error: error.message });
         }
     }
 }
 
-const setupUser = async function (req, res, next) {
+const setupUser = async function (req, _res, next) {
     try {
         if (req.access_token) {
             const tokenPayload = req.access_token;
@@ -170,12 +174,14 @@ const validateOauthSecurity = function (req, requiredScopes) {
 
     const tokenPayload = req.access_token;
 
-    const grantedScopes =
-        typeof tokenPayload[config.oauth.claims.scope] === 'string'
-            ? tokenPayload[config.oauth.claims.scope].split(' ')
-            : Array.isArray(tokenPayload[config.oauth.claims.scope])
-              ? tokenPayload[config.oauth.claims.scope]
-              : [];
+    const scopeClaim = tokenPayload[config.oauth.claims.scope];
+
+    let grantedScopes = [];
+    if (typeof scopeClaim === 'string') {
+        grantedScopes = scopeClaim.split(' ');
+    } else if (Array.isArray(scopeClaim)) {
+        grantedScopes = scopeClaim;
+    }
     const commonScopes = _.intersectionWith(grantedScopes, requiredScopes, function (gs, rs) {
         if (gs === rs) return gs;
         let gsTokens = gs.split(':').filter(i => i.length);
@@ -208,13 +214,13 @@ const setupJwks = async function (jwksUri) {
         jwksUri,
         cacheMaxAge: (config.oauth.cacheMaxAge || 10) * 60 * 1000,
     });
-    jwksCache.on('cacheUpdate', cache => {
+    jwksCache.on('cacheUpdate', () => {
         logger.writeDebug('auth', 'jwksCacheEvent', { event: 'cacheUpdate', kids: jwksCache.getKidTypes() });
     });
     jwksCache.on('cacheStale', cache => {
         logger.writeDebug('auth', 'jwksCacheEvent', { event: 'cacheStale', message: cache });
         state.setOidcStatus(false);
-        jwksCache.once('cacheUpdate', cache => {
+        jwksCache.once('cacheUpdate', () => {
             state.setOidcStatus(true);
         });
     });

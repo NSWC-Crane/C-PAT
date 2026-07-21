@@ -134,16 +134,25 @@ export class UserProcessingComponent implements OnInit {
     const usernameClaimKey = CPAT.Env.oauth.claims.username;
     const sortOrder = { PENDING: 0, ACTIVE: 1, DISABLED: 2 };
 
-    this.userService.getUsers().subscribe((userData: any) => {
-      this.data.set(
-        [...userData]
-          .sort((a, b) => (sortOrder[a.accountStatus as keyof typeof sortOrder] ?? 3) - (sortOrder[b.accountStatus as keyof typeof sortOrder] ?? 3))
-          .map((u: any) => ({
-            ...u,
-            displayUsername: u.userName || u.lastClaims?.[usernameClaimKey] || '',
-            lastAccessDate: u.lastAccess ? u.lastAccess.split('T')[0] : ''
-          }))
-      );
+    this.userService.getUsers().subscribe({
+      next: (userData: any) => {
+        this.data.set(
+          [...userData]
+            .sort((a, b) => (sortOrder[a.accountStatus as keyof typeof sortOrder] ?? 3) - (sortOrder[b.accountStatus as keyof typeof sortOrder] ?? 3))
+            .map((u: any) => ({
+              ...u,
+              displayUsername: u.userName || u.lastClaims?.[usernameClaimKey] || '',
+              lastAccessDate: u.lastAccess ? u.lastAccess.split('T')[0] : ''
+            }))
+        );
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load users: ${getErrorMessage(error)}`
+        });
+      }
     });
   }
 

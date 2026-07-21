@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.checkPoamDeadlineNotifications = async function checkPoamDeadlineNotifications() {
+module.exports.checkPoamDeadlineNotifications = async function checkPoamDeadlineNotifications() {
     try {
         return await withConnection(async connection => {
             const notificationsSent = {
@@ -103,7 +103,7 @@ async function process30DayNotifications(connection, notificationsSent) {
     const [poams] = await connection.query(sql);
 
     for (const poam of poams) {
-        const daysRemaining = Math.ceil((new Date(poam.effectiveDeadline) - new Date()) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.ceil((new Date(poam.effectiveDeadline) - Date.now()) / (1000 * 60 * 60 * 24));
         await sendNotificationToOwnerAndSubmitter(
             connection,
             poam,
@@ -133,7 +133,7 @@ async function process7DayNotifications(connection, notificationsSent) {
     const [poams] = await connection.query(sql);
 
     for (const poam of poams) {
-        const daysRemaining = Math.ceil((new Date(poam.effectiveDeadline) - new Date()) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.ceil((new Date(poam.effectiveDeadline) - Date.now()) / (1000 * 60 * 60 * 24));
         await sendNotificationToOwnerAndSubmitter(
             connection,
             poam,
@@ -163,7 +163,7 @@ async function process1DayNotifications(connection, notificationsSent) {
     const [poams] = await connection.query(sql);
 
     for (const poam of poams) {
-        const daysRemaining = Math.ceil((new Date(poam.effectiveDeadline) - new Date()) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.ceil((new Date(poam.effectiveDeadline) - Date.now()) / (1000 * 60 * 60 * 24));
         await sendNotificationToOwnerAndSubmitter(
             connection,
             poam,

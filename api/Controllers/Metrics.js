@@ -9,153 +9,110 @@
 */
 
 const metricsService = require('../Services/metricsService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res, next) {
+module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionAssetLabel(collectionId);
-        if (getMetrics) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res, next) {
+module.exports.getCollectionPoamLabel = async function getCollectionPoamLabel(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamLabel(collectionId);
-        if (getMetrics) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(req, res, next) {
+module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamStatus(collectionId);
-        if (getMetrics?.poamStatus) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(req, res, next) {
+module.exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamSeverity(collectionId);
-        if (getMetrics?.poamSeverity) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(req, res, next) {
+module.exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const getMetrics = await metricsService.getCollectionPoamScheduledCompletion(collectionId);
-        if (getMetrics?.poamScheduledCompletion) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res, next) {
+module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req, res) {
     try {
         const getMetrics = await metricsService.getAvailableAssetLabel(req);
-        if (getMetrics) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res, next) {
+module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req, res) {
     try {
         const getMetrics = await metricsService.getAvailablePoamLabel(req);
-        if (getMetrics) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res, next) {
+module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req, res) {
     try {
         const getMetrics = await metricsService.getAvailablePoamStatus(req);
-        if (getMetrics?.poamStatus) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, res, next) {
+module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req, res) {
     try {
         const getMetrics = await metricsService.getAvailablePoamSeverity(req);
-        if (getMetrics?.poamSeverity) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(req, res, next) {
+module.exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(req, res) {
     try {
         const collectionId = req.params.collectionId;
         const months = Number.parseInt(req.query?.months, 10) || 12;
         const getMetrics = await metricsService.getCollectionPoamMTTR(collectionId, months);
-        if (getMetrics?.summary || getMetrics?.trend) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req, res, next) {
+module.exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req, res) {
     try {
         const getMetrics = await metricsService.getAvailablePoamMTTR(req);
-        if (getMetrics?.summary || getMetrics?.trend) {
-            res.status(200).json(getMetrics);
-        } else {
-            res.status(204).send();
-        }
+        res.status(200).json(getMetrics);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        sendError(res, error);
     }
 };

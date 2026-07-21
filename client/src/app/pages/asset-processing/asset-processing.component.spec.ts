@@ -29,12 +29,10 @@ const mockAssets = [
   { assetId: '1', assetName: 'Asset A', description: 'Desc A', ipAddress: '10.0.0.1', macAddress: 'AA:AA' }
 ];
 
-const mockAssetLabelResponse = {
-  assetLabel: [
-    { label: 'Critical', labelCount: 5 },
-    { label: 'High', labelCount: 10 }
-  ]
-};
+const mockAssetLabelResponse = [
+  { label: 'Critical', labelCount: 5 },
+  { label: 'High', labelCount: 10 }
+];
 
 const mockCollections = [
   { collectionId: 1, collectionName: 'Col A', collectionType: 'Tenable', originCollectionId: 42 },
@@ -273,7 +271,7 @@ describe('AssetProcessingComponent', () => {
 
     it('should set assetLabel from response', () => {
       component.getAssetData();
-      expect(component.assetLabel).toEqual(mockAssetLabelResponse.assetLabel);
+      expect(component.assetLabel).toEqual(mockAssetLabelResponse);
     });
 
     it('should convert assetId to number and sort data by assetId', () => {
@@ -300,8 +298,8 @@ describe('AssetProcessingComponent', () => {
       expect(component.data()).toEqual([]);
     });
 
-    it('should show error message when assetLabelResponse.assetLabel is not array', () => {
-      mockAssetService.getCollectionAssetLabel.mockReturnValue(of({ assetLabel: 'bad' }));
+    it('should show error message when assetLabelResponse is not array', () => {
+      mockAssetService.getCollectionAssetLabel.mockReturnValue(of('bad'));
       component.getAssetData();
       expect(component.assetLabel).toEqual([]);
     });
@@ -320,7 +318,7 @@ describe('AssetProcessingComponent', () => {
     });
 
     it('should build datasets from assetLabel array', () => {
-      component.setLabelChartData(mockAssetLabelResponse.assetLabel);
+      component.setLabelChartData(mockAssetLabelResponse);
       expect(component.chartData().datasets).toHaveLength(2);
     });
 

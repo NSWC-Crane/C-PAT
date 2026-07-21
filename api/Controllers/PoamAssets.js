@@ -9,70 +9,67 @@
 */
 
 const poamAssetService = require('../Services/poamAssetService');
+const { sendError } = require('../utils/respond');
 
-module.exports.getPoamAssets = async function getPoamAssets(req, res, next) {
+module.exports.getPoamAssets = async function getPoamAssets(_req, res) {
     try {
-        const poamAssets = await poamAssetService.getPoamAssets(req, res, next);
+        const poamAssets = await poamAssetService.getPoamAssets();
         res.status(200).json(poamAssets);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res, next) {
+module.exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req, res) {
     try {
-        const poamAssets = await poamAssetService.getPoamAssetsByPoamId(req, res, next);
+        const poamAssets = await poamAssetService.getPoamAssetsByPoamId(req);
         res.status(200).json(poamAssets);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req, res, next) {
+module.exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req, res) {
     try {
-        const poamAssets = await poamAssetService.getPoamAssetsByCollectionId(req, res, next);
+        const poamAssets = await poamAssetService.getPoamAssetsByCollectionId(req);
         res.status(200).json(poamAssets);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res, next) {
+module.exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req, res) {
     try {
-        await poamAssetService.deletePoamAssetByPoamId(req, res, next);
+        await poamAssetService.deletePoamAssetByPoamId(req);
         res.status(204).send();
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res, next) {
+module.exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req, res) {
     try {
-        const poamAssets = await poamAssetService.getPoamAssetsByAssetId(req, res, next);
+        const poamAssets = await poamAssetService.getPoamAssetsByAssetId(req);
         res.status(200).json(poamAssets);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.postPoamAsset = async function postPoamAsset(req, res, next) {
+module.exports.postPoamAsset = async function postPoamAsset(req, res) {
     try {
-        const poamAsset = await poamAssetService.postPoamAsset(req, res, next);
-        if (poamAsset === null) {
-            res.status(400).json({ error: 'Failed to create PoamAsset' });
-        } else {
-            res.status(201).json(poamAsset);
-        }
+        const poamAsset = await poamAssetService.postPoamAsset(req);
+        res.status(201).json(poamAsset);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };
 
-module.exports.deletePoamAsset = async function deletePoamAsset(req, res, next) {
+module.exports.deletePoamAsset = async function deletePoamAsset(req, res) {
     try {
-        await poamAssetService.deletePoamAsset(req, res, next);
+        await poamAssetService.deletePoamAsset(req);
         res.status(204).send();
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        sendError(res, error);
     }
 };

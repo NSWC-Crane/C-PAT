@@ -8,81 +8,78 @@
 !##########################################################################
 */
 
+const { JSONPath } = require('jsonpath-plus');
 const operationService = require('../Services/operationService');
 const config = require('../utils/config');
 const SmError = require('../utils/error.js');
+const { sendError } = require('../utils/respond');
 
-module.exports.getConfiguration = async function getConfiguration(req, res, next) {
+module.exports.getConfiguration = async function getConfiguration(_req, res) {
     try {
-        let dbConfigs = await operationService.getConfiguration();
-        let version = { version: config.version };
-        let response = { ...version, ...dbConfigs };
-        res.json(response);
-    } catch (err) {
-        next(err);
+        const dbConfigs = await operationService.getConfiguration();
+
+        res.status(200).json({ version: config.version, ...dbConfigs });
+    } catch (error) {
+        sendError(res, error);
     }
 };
 
-module.exports.setConfigurationItem = async function setConfigurationItem(req, res, next) {
+module.exports.setConfigurationItem = async function setConfigurationItem(req, res) {
     try {
         if (!req.userObject.isAdmin) {
             throw new SmError.PrivilegeError('User has insufficient privilege to modify application configuration.');
         }
 
-        const { key, value } = req.body;
-        if (!key || !value) {
-            return res.status(400).json({ error: 'Key and value are required.' });
+        if (!req.body.key || !req.body.value) {
+            throw new SmError.ClientError('key and value are required.');
         }
 
-        await operationService.setConfigurationItem(key, value);
-        res.json({ message: 'Configuration item updated successfully.' });
-    } catch (err) {
-        next(err);
+        await operationService.setConfigurationItem(req.body.key, req.body.value);
+
+        res.status(200).json({ message: 'Configuration item updated successfully.' });
+    } catch (error) {
+        sendError(res, error);
     }
 };
 
-module.exports.deleteConfigurationItem = async function deleteConfigurationItem(req, res, next) {
+module.exports.deleteConfigurationItem = async function deleteConfigurationItem(req, res) {
     try {
         if (!req.userObject.isAdmin) {
             throw new SmError.PrivilegeError('User has insufficient privilege to delete application configuration.');
         }
 
-        const { key } = req.params;
-
-        if (!key) {
-            return res.status(400).json({ error: 'Key is required.' });
+        if (!req.query.key) {
+            throw new SmError.ClientError('key is required.');
         }
 
-        await operationService.deleteConfigurationItem(key);
-        res.json({ message: 'Configuration item deleted successfully.' });
-    } catch (err) {
-        next(err);
+        await operationService.deleteConfigurationItem(req.query.key);
+
+        res.status(200).json({ message: 'Configuration item deleted successfully.' });
+    } catch (error) {
+        sendError(res, error);
     }
 };
 
-module.exports.getDefinition = async function getDefinition(req, res, next) {
+module.exports.getDefinition = async function getDefinition(req, res) {
     try {
-        let jsonpath = req.query.jsonpath;
-        if (jsonpath) {
-            res.json(JSONPath(jsonpath, config.definition));
-        } else {
-            res.json(config.definition);
-        }
-    } catch (err) {
-        next(err);
+        const jsonpath = req.query.jsonpath;
+
+        res.status(200).json(jsonpath ? JSONPath(jsonpath, config.definition) : config.definition);
+    } catch (error) {
+        sendError(res, error);
     }
 };
 
-module.exports.getAppInfo = async function getAppInfo(req, res, next) {
+module.exports.getAppInfo = async function getAppInfo(req, res) {
     try {
-        let elevate = req.query.elevate;
-        if (elevate) {
-            const response = await operationService.getAppInfo();
-            res.json(response);
-        } else {
-            throw new SmError.PrivilegeError();
+        if (!req.query.elevate || req.userObject.isAdmin !== true) {
+            throw new SmError.PrivilegeError('User has insufficient privilege to retrieve application information.');
         }
-    } catch (err) {
-        next(err);
+
+        const response = await operationService.getAppInfo();
+
+        res.status(200).json(response);
+    } catch (error) {
+        sendError(res, error);
     }
 };

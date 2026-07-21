@@ -10,6 +10,7 @@
 
 const http = require('node:http');
 const config = require('./utils/config');
+const logger = require('./utils/logger');
 
 const options = {
     host: 'localhost',
@@ -28,7 +29,7 @@ const request = http.request(options, res => {
 });
 
 request.on('error', function (err) {
-    console.log('ERROR');
+    logger.writeError(`Error: ${err.message}`);
     process.exit(1);
 });
 

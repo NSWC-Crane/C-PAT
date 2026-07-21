@@ -303,7 +303,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
         acceptButtonStyleClass: 'p-button-outlined p-button-primary',
         rejectButtonStyleClass: 'p-button-outlined p-button-secondary',
         accept: () => {
-          this.subs.sink = this.marketplaceService.purchaseTheme(this.user().userId, theme.themeId).subscribe({
+          this.subs.sink = this.marketplaceService.purchaseTheme(theme.themeId).subscribe({
             next: () => {
               this.userPoints.update((points) => points - theme.cost);
               this.loadThemes();
@@ -361,10 +361,9 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
       .pipe(
         filter((user) => user !== null),
         take(1),
-        switchMap((user) => {
+        switchMap(() => {
           const currentState = this.configService.appState();
           const preferences = {
-            userId: user.userId,
             defaultTheme: JSON.stringify({
               preset: currentState.preset,
               primary: currentState.primary,

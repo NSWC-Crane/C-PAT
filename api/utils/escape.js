@@ -13,7 +13,7 @@
  * @param {string} value - The string to escape.
  * @returns {string} The escaped string.
  */
-module.exports.escapeForXml = function (name, value) {
+module.exports.escapeForXml = function (_name, value) {
     /**
      * Regex matches characters that need to be escaped in XML.
      * @type {RegExp}
@@ -68,7 +68,7 @@ module.exports.escapeFilename = function (value) {
     return value
         .toString()
         .replace(osReserved, match => osReserveReplace[match])
-        .replace(controlChars, match => `&#x${match.charCodeAt(0).toString().padStart(2, '0')};`)
+        .replace(controlChars, match => `&#x${match.codePointAt(0).toString().padStart(2, '0')};`)
         .substring(0, 255);
 };
 

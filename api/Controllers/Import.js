@@ -10,98 +10,91 @@
 
 const importService = require('../Services/importService');
 const SmError = require('../utils/error');
+const { sendError } = require('../utils/respond');
 
-module.exports.importVRAMExcel = async (req, res, next) => {
-    const file = req.files[0];
+function assertUploadedFile(req) {
+    const file = req.files?.[0];
 
     if (!file) {
-        return res.status(400).json({ message: 'No file uploaded' });
+        throw new SmError.ClientError('No file uploaded');
     }
 
-    importService.excelFilter(req, file, async err => {
-        if (err) {
-            return res.status(400).json({
-                message: err.message,
-            });
-        } else {
-            try {
-                const result = await importService.importVRAMExcel(file);
-                res.status(201).json(result);
-            } catch (error) {
-                res.status(500).json({
-                    message: 'Could not process the file',
-                    error: error.message,
-                });
-                throw new SmError.UnprocessableError('Error processing VRAM file.');
-            }
-        }
+    return file;
+}
+
+function assertFileType(filter, req, file) {
+    let filterError = null;
+
+    filter(req, file, err => {
+        filterError = err;
     });
+
+    if (filterError) {
+        throw new SmError.ClientError(filterError.message);
+    }
+}
+
+module.exports.importVRAMExcel = async function importVRAMExcel(req, res) {
+    try {
+        const file = assertUploadedFile(req);
+
+        assertFileType(importService.excelFilter, req, file);
+
+        const result = await importService.importVRAMExcel(file);
+
+        res.status(201).json(result);
+    } catch (error) {
+        sendError(res, error);
+    }
 };
 
-module.exports.importAssetListFile = async (req, res, next) => {
-    const file = req.files[0];
-    const collectionId = Number.parseInt(req.params.collectionId, 10);
+module.exports.importAssetListFile = async function importAssetListFile(req, res) {
+    try {
+        const file = assertUploadedFile(req);
+        const collectionId = Number.parseInt(req.params.collectionId, 10);
 
-    if (!file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-    }
-
-    if (Number.isNaN(collectionId)) {
-        return res.status(400).json({ message: 'Collection ID must be a valid number' });
-    }
-
-    importService.excelAndCsvFilter(req, file, async err => {
-        if (err) {
-            return res.status(400).json({
-                message: err.message,
-            });
-        } else {
-            try {
-                const result = await importService.importAssetListFile(file, collectionId);
-                res.status(201).json(result);
-            } catch (error) {
-                res.status(500).json({
-                    message: 'Could not process the file',
-                    error: error.message,
-                });
-            }
+        if (Number.isNaN(collectionId)) {
+            throw new SmError.ClientError('Collection ID must be a valid number');
         }
-    });
+
+        assertFileType(importService.excelAndCsvFilter, req, file);
+
+        const result = await importService.importAssetListFile(file, collectionId);
+
+        res.status(201).json(result);
+    } catch (error) {
+        sendError(res, error);
+    }
 };
 
-module.exports.importMultipleAssetListFiles = async (req, res, next) => {
-    const file = req.files[0];
-    const collectionIds = req.body.collectionIds ? JSON.parse(req.body.collectionIds) : [];
+module.exports.importMultipleAssetListFiles = async function importMultipleAssetListFiles(req, res) {
+    try {
+        const file = assertUploadedFile(req);
 
-    if (!file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-    }
+        let collectionIds;
 
-    if (!Array.isArray(collectionIds) || collectionIds.length === 0) {
-        return res.status(400).json({ message: 'Collection IDs not provided as an array' });
-    }
-
-    const validCollectionIds = collectionIds.filter(id => !Number.isNaN(Number.parseInt(id, 10))).map(id => Number.parseInt(id, 10));
-
-    if (validCollectionIds.length !== collectionIds.length) {
-        return res.status(400).json({ message: 'All collection IDs must be valid numbers' });
-    }
-
-    importService.excelAndCsvFilter(req, file, async err => {
-        if (err) {
-            return res.status(400).json({
-                message: err.message,
-            });
-        } else {
-            try {
-                const results = await importService.importMultipleAssetListFiles(file, validCollectionIds);
-                res.status(201).json(results);
-            } catch (error) {
-                res.status(500).json({
-                    message: 'Could not process the file',
-                    error: error.message,
-                });
-            }
+        try {
+            collectionIds = req.body.collectionIds ? JSON.parse(req.body.collectionIds) : [];
+        } catch {
+            throw new SmError.ClientError('collectionIds must be valid JSON');
         }
-    });
+
+        if (!Array.isArray(collectionIds) || collectionIds.length === 0) {
+            throw new SmError.ClientError('Collection IDs not provided as an array');
+        }
+
+        const validCollectionIds = collectionIds.filter(id => !Number.isNaN(Number.parseInt(id, 10))).map(id => Number.parseInt(id, 10));
+
+        if (validCollectionIds.length !== collectionIds.length) {
+            throw new SmError.ClientError('All collection IDs must be valid numbers');
+        }
+
+        assertFileType(importService.excelAndCsvFilter, req, file);
+
+        const results = await importService.importMultipleAssetListFiles(file, validCollectionIds);
+
+        res.status(201).json(results);
+    } catch (error) {
+        sendError(res, error);
+    }
 };

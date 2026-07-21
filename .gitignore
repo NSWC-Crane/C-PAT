@@ -180,6 +180,7 @@ cython_debug/
 /api/tls/server-cert.pem
 /api/tls/server-key.pem
 /client/.eslintcache
+/api/.eslintcache
 .prettierignore
 .serena
 client/out-tsc

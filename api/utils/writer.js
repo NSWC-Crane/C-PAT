@@ -15,11 +15,11 @@ let ResponsePayload = function (code, payload) {
     this.payload = payload;
 };
 
-exports.respondWithCode = function (code, payload) {
+module.exports.respondWithCode = function (code, payload) {
     return new ResponsePayload(code, payload);
 };
 
-let writeJson = (exports.writeJson = function (response, arg1, arg2) {
+let writeJson = (module.exports.writeJson = function (response, arg1, arg2) {
     let code;
     let payload;
 
@@ -33,9 +33,7 @@ let writeJson = (exports.writeJson = function (response, arg1, arg2) {
     } else if (arg1 && Number.isInteger(arg1)) {
         code = arg1;
     }
-    if (code && arg1) {
-        payload = arg1;
-    } else if (arg1) {
+    if (arg1) {
         payload = arg1;
     }
 
@@ -58,7 +56,7 @@ let writeJson = (exports.writeJson = function (response, arg1, arg2) {
     response.end(payload);
 });
 
-exports.writeInlineFile = function (response, payload, filename, contentType) {
+module.exports.writeInlineFile = function (response, payload, filename, contentType) {
     response.writeHead(200, {
         'Content-Type': contentType,
         'Content-Disposition': `inline; filename="${escape.escapeFilename(filename)}"`,
@@ -68,14 +66,14 @@ exports.writeInlineFile = function (response, payload, filename, contentType) {
     response.end();
 };
 
-exports.writeWithContentType = function (response, { payload, status = '200', contentType = 'application/json' }) {
+module.exports.writeWithContentType = function (response, { payload, status = '200', contentType = 'application/json' }) {
     response.writeHead(status, {
         'Content-Type': contentType,
     });
     response.end(payload);
 };
 
-exports.writeNoContent = function (response) {
+module.exports.writeNoContent = function (response) {
     response.writeHead(204);
     response.end();
 };

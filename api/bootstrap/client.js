@@ -142,7 +142,7 @@ function setupAngularRoutes(app) {
         '/poam-processing/poam-log/:poamId',
     ];
 
-    const serveIndexWithBaseHref = (req, res) => {
+    const serveIndexWithBaseHref = (_req, res) => {
         const indexPath = path.join(__dirname, '..', config.client.directory, 'index.html');
         const envJS = getClientEnv();
 

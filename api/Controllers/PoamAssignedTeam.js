@@ -9,39 +9,44 @@
 */
 
 const poamAssignedTeamService = require('../Services/poamAssignedTeamService');
+const { sendError } = require('../utils/respond');
 
-exports.getPoamAssignedTeams = async function getPoamAssignedTeams(req, res, next) {
+module.exports.getPoamAssignedTeams = async function getPoamAssignedTeams(_req, res) {
     try {
-        const result = await poamAssignedTeamService.getPoamAssignedTeam();
-        return res.status(200).json(result);
+        const result = await poamAssignedTeamService.getPoamAssignedTeams();
+
+        res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while retrieving POAM assigned teams' });
+        sendError(res, error);
     }
 };
 
-exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoamId(req, res, next) {
+module.exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoamId(req, res) {
     try {
         const result = await poamAssignedTeamService.getPoamAssignedTeamsByPoamId(req.params.poamId);
-        return res.status(200).json(result);
+
+        res.status(200).json(result);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while retrieving POAM assigned teams by poamId' });
+        sendError(res, error);
     }
 };
 
-exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res, next) {
+module.exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res) {
     try {
-        const assignedTeam = await poamAssignedTeamService.postPoamAssignedTeam(req, res, next);
-        return res.status(201).json(assignedTeam);
+        const assignedTeam = await poamAssignedTeamService.postPoamAssignedTeam(req);
+
+        res.status(201).json(assignedTeam);
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while entering the POAM assigned team' });
+        sendError(res, error);
     }
 };
 
-exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req, res, next) {
+module.exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req, res) {
     try {
-        await poamAssignedTeamService.deletePoamAssignedTeam(req, res, next);
-        return res.status(204).send();
+        await poamAssignedTeamService.deletePoamAssignedTeam(req);
+
+        res.status(204).send();
     } catch (error) {
-        return res.status(500).json({ error: 'An error occurred while deleting the POAM assigned team' });
+        sendError(res, error);
     }
 };

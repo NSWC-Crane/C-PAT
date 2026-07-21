@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
+module.exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
     return await withConnection(async connection => {
         let sql = `
             SELECT ptm.mitigationId, ptm.poamId, ptm.assignedTeamId, ptm.mitigationText, ptm.isActive,
@@ -43,7 +44,7 @@ exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
     });
 };
 
-exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsByPoamId(poamId) {
+module.exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsByPoamId(poamId) {
     if (!poamId) {
         throw new Error('getPoamTeamMitigationsByPoamId: poamId is required');
     }
@@ -70,13 +71,13 @@ exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsBy
     });
 };
 
-exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res, next) {
+module.exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req) {
     if (!req.body.assignedTeamId) {
-        throw new Error('postPoamTeamMitigation: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
 
     if (!req.body.poamId) {
-        throw new Error('postPoamTeamMitigation: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
 
     return await withConnection(async connection => {
@@ -133,61 +134,57 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res,
                     }
                 });
             } else {
-                return { error: error.message };
+                throw error;
             }
         }
     });
 };
 
-exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, res, next) {
+module.exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req) {
     if (!req.params.assignedTeamId) {
-        throw new Error('updatePoamTeamMitigation: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
     if (!req.params.poamId) {
-        throw new Error('updatePoamTeamMitigation: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
     if (req.body.mitigationText === undefined) {
-        throw new Error('updatePoamTeamMitigation: mitigationText is required');
+        throw new SmError.ClientError('mitigationText is required');
     }
 
     return await withConnection(async connection => {
-        try {
-            let updateSql = `UPDATE ${config.database.schema}.poamteammitigations SET mitigationText = ? WHERE assignedTeamId = ? AND poamId = ?`;
-            await connection.query(updateSql, [req.body.mitigationText, req.params.assignedTeamId, req.params.poamId]);
+        let updateSql = `UPDATE ${config.database.schema}.poamteammitigations SET mitigationText = ? WHERE assignedTeamId = ? AND poamId = ?`;
+        await connection.query(updateSql, [req.body.mitigationText, req.params.assignedTeamId, req.params.poamId]);
 
-            let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
-            const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
-            const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
+        let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
+        const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
+        const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
 
-            let action = `Team Mitigation was updated for ${teamName}.`;
-            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
+        let action = `Team Mitigation was updated for ${teamName}.`;
+        let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+        await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);
 
-            let fetchSql = `SELECT mitigationId, poamId, assignedTeamId, mitigationText, isActive FROM ${config.database.schema}.poamteammitigations WHERE assignedTeamId = ? AND poamId = ?`;
-            const [teamMitigation] = await connection.query(fetchSql, [req.params.assignedTeamId, req.params.poamId]);
+        let fetchSql = `SELECT mitigationId, poamId, assignedTeamId, mitigationText, isActive FROM ${config.database.schema}.poamteammitigations WHERE assignedTeamId = ? AND poamId = ?`;
+        const [teamMitigation] = await connection.query(fetchSql, [req.params.assignedTeamId, req.params.poamId]);
 
-            if (teamMitigation.length > 0) {
-                const result = { ...teamMitigation[0] };
-                result.isActive = result.isActive == null ? null : Boolean(result.isActive);
-                return result;
-            } else {
-                throw new Error('Team Mitigation not found after update');
-            }
-        } catch (error) {
-            return { error: error.message };
+        if (teamMitigation.length === 0) {
+            throw new SmError.NotFoundError('Team mitigation not found');
         }
+
+        const result = { ...teamMitigation[0] };
+        result.isActive = result.isActive == null ? null : Boolean(result.isActive);
+        return result;
     });
 };
 
-exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req, res, next) {
+module.exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req) {
     if (!req.params.assignedTeamId) {
-        throw new Error('updatePoamTeamMitigationStatus: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
     if (!req.params.poamId) {
-        throw new Error('updatePoamTeamMitigationStatus: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
     if (req.body.isActive === undefined) {
-        throw new Error('updatePoamTeamMitigationStatus: isActive is required');
+        throw new SmError.ClientError('isActive is required');
     }
 
     return await withConnection(async connection => {
@@ -205,7 +202,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
                     const [existingRecord] = await connection.query(lockSql, [req.params.assignedTeamId, req.params.poamId]);
 
                     if (existingRecord.length === 0) {
-                        throw new Error('Team Mitigation not found');
+                        throw new SmError.NotFoundError('Team mitigation not found');
                     }
 
                     let updateSql = `UPDATE ${config.database.schema}.poamteammitigations
@@ -225,14 +222,14 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
 
                     await connection.commit();
 
-                    if (teamMitigation.length > 0) {
-                        const result = { ...teamMitigation[0] };
-                        result.isActive = result.isActive == null ? null : Boolean(result.isActive);
-                        result.assignedTeamName = teamName;
-                        return result;
-                    } else {
-                        throw new Error('Team Mitigation not found after status update');
+                    if (teamMitigation.length === 0) {
+                        throw new SmError.NotFoundError('Team mitigation not found');
                     }
+
+                    const result = { ...teamMitigation[0] };
+                    result.isActive = result.isActive == null ? null : Boolean(result.isActive);
+                    result.assignedTeamName = teamName;
+                    return result;
                 } catch (error) {
                     await connection.rollback();
                     throw error;
@@ -243,20 +240,20 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
                     await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 50));
                     continue;
                 }
-                return { error: error.message };
+                throw error;
             }
         }
 
-        return { error: 'Failed after maximum retry attempts due to deadlock' };
+        throw new Error('Failed after maximum retry attempts due to deadlock');
     });
 };
 
-exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req, res, next) {
+module.exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req) {
     if (!req.params.assignedTeamId) {
-        throw new Error('deletePoamTeamMitigation: assignedTeamId is required');
+        throw new SmError.ClientError('assignedTeamId is required');
     }
     if (!req.params.poamId) {
-        throw new Error('deletePoamTeamMitigation: poamId is required');
+        throw new SmError.ClientError('poamId is required');
     }
 
     await withConnection(async connection => {

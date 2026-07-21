@@ -11,6 +11,7 @@
 'use strict';
 const config = require('../utils/config');
 const dbUtils = require('./utils');
+const SmError = require('../utils/error');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -21,228 +22,154 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAssignedTeams = async function getAssignedTeams(req, res, next) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT
-                    t.assignedTeamId,
-                    t.assignedTeamName,
-                    t.adTeam,
-                    GROUP_CONCAT(CONCAT(p.collectionId, ':', c.collectionName) SEPARATOR ',') as collectionData
-                FROM ${config.database.schema}.assignedteams t
-                LEFT JOIN ${config.database.schema}.assignedteampermissions p
-                    ON t.assignedTeamId = p.assignedTeamId
-                LEFT JOIN ${config.database.schema}.collection c
-                    ON p.collectionId = c.collectionId
-                GROUP BY t.assignedTeamId, t.assignedTeamName, t.adTeam
-            `;
-            let [rowAssignedTeams] = await connection.query(sql);
-            const assignedTeams = rowAssignedTeams.map(row => ({
-                assignedTeamId: row.assignedTeamId,
-                assignedTeamName: row.assignedTeamName,
-                adTeam: row.adTeam,
-                permissions: row.collectionData
-                    ? row.collectionData.split(',').map(data => {
-                          const [id, name] = data.split(':');
-                          return {
-                              collectionId: Number.parseInt(id),
-                              collectionName: name || '',
-                          };
-                      })
-                    : [],
-            }));
-            return assignedTeams;
-        });
-    } catch (error) {
-        next(error);
-    }
+module.exports.getAssignedTeams = async function getAssignedTeams() {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT
+                t.assignedTeamId,
+                t.assignedTeamName,
+                t.adTeam,
+                GROUP_CONCAT(CONCAT(p.collectionId, ':', c.collectionName) SEPARATOR ',') as collectionData
+            FROM ${config.database.schema}.assignedteams t
+            LEFT JOIN ${config.database.schema}.assignedteampermissions p
+                ON t.assignedTeamId = p.assignedTeamId
+            LEFT JOIN ${config.database.schema}.collection c
+                ON p.collectionId = c.collectionId
+            GROUP BY t.assignedTeamId, t.assignedTeamName, t.adTeam
+        `;
+        let [rowAssignedTeams] = await connection.query(sql);
+        const assignedTeams = rowAssignedTeams.map(row => ({
+            assignedTeamId: row.assignedTeamId,
+            assignedTeamName: row.assignedTeamName,
+            adTeam: row.adTeam,
+            permissions: row.collectionData
+                ? row.collectionData.split(',').map(data => {
+                      const [id, name] = data.split(':');
+                      return {
+                          collectionId: Number.parseInt(id),
+                          collectionName: name || '',
+                      };
+                  })
+                : [],
+        }));
+        return assignedTeams;
+    });
 };
 
-exports.getAssignedTeam = async function getAssignedTeam(req, res, next) {
-    if (!req.params.assignedTeamId) {
-        return next({
-            status: 400,
-            errors: {
-                assignedTeamId: 'is required',
-            },
-        });
-    }
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT
-                    t.assignedTeamId,
-                    t.assignedTeamName,
-                    t.adTeam,
-                    GROUP_CONCAT(CONCAT(p.collectionId, ':', c.collectionName) SEPARATOR ',') as collectionData
-                FROM ${config.database.schema}.assignedteams t
-                LEFT JOIN ${config.database.schema}.assignedteampermissions p
-                    ON t.assignedTeamId = p.assignedTeamId
-                LEFT JOIN ${config.database.schema}.collection c
-                    ON p.collectionId = c.collectionId
-                WHERE t.assignedTeamId = ?
-                GROUP BY t.assignedTeamId, t.assignedTeamName, t.adTeam
-            `;
-            let [rowAssignedTeam] = await connection.query(sql, [req.params.assignedTeamId]);
+module.exports.getAssignedTeam = async function getAssignedTeam(req) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT
+                t.assignedTeamId,
+                t.assignedTeamName,
+                t.adTeam,
+                GROUP_CONCAT(CONCAT(p.collectionId, ':', c.collectionName) SEPARATOR ',') as collectionData
+            FROM ${config.database.schema}.assignedteams t
+            LEFT JOIN ${config.database.schema}.assignedteampermissions p
+                ON t.assignedTeamId = p.assignedTeamId
+            LEFT JOIN ${config.database.schema}.collection c
+                ON p.collectionId = c.collectionId
+            WHERE t.assignedTeamId = ?
+            GROUP BY t.assignedTeamId, t.assignedTeamName, t.adTeam
+        `;
+        let [rowAssignedTeam] = await connection.query(sql, [req.params.assignedTeamId]);
 
-            const assignedTeam =
-                rowAssignedTeam.length === 0
-                    ? []
-                    : [
-                          {
-                              assignedTeamId: rowAssignedTeam[0].assignedTeamId,
-                              assignedTeamName: rowAssignedTeam[0].assignedTeamName,
-                              adTeam: rowAssignedTeam[0].adTeam,
-                              permissions: rowAssignedTeam[0].collectionData
-                                  ? rowAssignedTeam[0].collectionData.split(',').map(data => {
-                                        const [id, name] = data.split(':');
-                                        return {
-                                            collectionId: Number.parseInt(id),
-                                            collectionName: name || '',
-                                        };
-                                    })
-                                  : [],
-                          },
-                      ];
-            return { assignedTeam };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        if (rowAssignedTeam.length === 0) {
+            throw new SmError.NotFoundError('Assigned Team not found');
+        }
+
+        const row = rowAssignedTeam[0];
+        return {
+            assignedTeamId: row.assignedTeamId,
+            assignedTeamName: row.assignedTeamName,
+            adTeam: row.adTeam,
+            permissions: row.collectionData
+                ? row.collectionData.split(',').map(data => {
+                      const [id, name] = data.split(':');
+                      return {
+                          collectionId: Number.parseInt(id),
+                          collectionName: name || '',
+                      };
+                  })
+                : [],
+        };
+    });
 };
 
-exports.postAssignedTeam = async function postAssignedTeam(req, res, next) {
-    if (!req.body.assignedTeamName) {
-        return next({
-            status: 400,
-            errors: {
-                assignedTeamName: 'is required',
-            },
-        });
-    }
+module.exports.postAssignedTeam = async function postAssignedTeam(req) {
+    return await withConnection(async connection => {
+        let sql_query = `INSERT INTO ${config.database.schema}.assignedteams (assignedTeamName, adTeam) VALUES (?, ?)`;
+        await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql_query = `INSERT INTO ${config.database.schema}.assignedteams (assignedTeamName, adTeam) VALUES (?, ?)`;
-            await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam]);
+        let sql = `SELECT * FROM ${config.database.schema}.assignedteams WHERE assignedTeamName = ?`;
+        let [rowAssignedTeam] = await connection.query(sql, [req.body.assignedTeamName]);
 
-            let sql = `SELECT * FROM ${config.database.schema}.assignedteams WHERE assignedTeamName = ?`;
-            let [rowAssignedTeam] = await connection.query(sql, [req.body.assignedTeamName]);
-
-            const assignedTeam = {
-                assignedTeamId: rowAssignedTeam[0].assignedTeamId,
-                assignedTeamName: rowAssignedTeam[0].assignedTeamName,
-                adTeam: rowAssignedTeam[0].adTeam,
-            };
-            return assignedTeam;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        const assignedTeam = {
+            assignedTeamId: rowAssignedTeam[0].assignedTeamId,
+            assignedTeamName: rowAssignedTeam[0].assignedTeamName,
+            adTeam: rowAssignedTeam[0].adTeam,
+        };
+        return assignedTeam;
+    });
 };
 
-exports.putAssignedTeam = async function putAssignedTeam(req, res, next) {
-    if (!req.body.assignedTeamId) {
-        return next({
-            status: 400,
-            errors: {
-                assignedTeamId: 'is required',
-            },
-        });
-    } else if (!req.body.assignedTeamName) {
-        return next({
-            status: 400,
-            errors: {
-                assignedTeamName: 'is required',
-            },
-        });
-    }
+module.exports.putAssignedTeam = async function putAssignedTeam(req) {
+    return await withConnection(async connection => {
+        let sql_query = `UPDATE ${config.database.schema}.assignedteams SET assignedTeamName = ?, adTeam = ? WHERE assignedTeamId = ?`;
+        await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam, req.body.assignedTeamId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql_query = `UPDATE ${config.database.schema}.assignedteams SET assignedTeamName = ?, adTeam = ? WHERE assignedTeamId = ?`;
-            await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam, req.body.assignedTeamId]);
-
-            const assignedTeam = {
-                assignedTeamId: req.body.assignedTeamId,
-                assignedTeamName: req.body.assignedTeamName,
-                adTeam: req.body.adTeam,
-            };
-            return assignedTeam;
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        const assignedTeam = {
+            assignedTeamId: req.body.assignedTeamId,
+            assignedTeamName: req.body.assignedTeamName,
+            adTeam: req.body.adTeam,
+        };
+        return assignedTeam;
+    });
 };
 
-exports.deleteAssignedTeam = async function deleteAssignedTeam(req, res, next) {
-    if (!req.params.assignedTeamId) {
-        return next({
-            status: 400,
-            errors: {
-                assignedTeamId: 'is required',
-            },
-        });
-    }
+module.exports.deleteAssignedTeam = async function deleteAssignedTeam(req) {
+    return await withConnection(async connection => {
+        let sql = `DELETE FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
+        await connection.query(sql, [req.params.assignedTeamId]);
 
-    try {
-        return await withConnection(async connection => {
-            let sql = `DELETE FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
-            await connection.query(sql, [req.params.assignedTeamId]);
-
-            return { assignedTeam: [] };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return { assignedTeam: [] };
+    });
 };
 
-exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req, res, next) {
-    try {
-        return await withConnection(async connection => {
-            const { assignedTeamId, collectionId } = req.body;
+module.exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req) {
+    return await withConnection(async connection => {
+        const { assignedTeamId, collectionId } = req.body;
 
-            let sql = `
-                INSERT INTO ${config.database.schema}.assignedteampermissions
-                (assignedTeamId, collectionId)
-                VALUES (?, ?)
-            `;
+        let sql = `
+            INSERT INTO ${config.database.schema}.assignedteampermissions
+            (assignedTeamId, collectionId)
+            VALUES (?, ?)
+        `;
 
-            await connection.query(sql, [assignedTeamId, collectionId]);
+        await connection.query(sql, [assignedTeamId, collectionId]);
 
-            return {
-                assignedTeamId,
-                collectionId,
-            };
-        });
-    } catch (error) {
-        next(error);
-    }
+        return {
+            assignedTeamId,
+            collectionId,
+        };
+    });
 };
 
-exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req, res, next) {
-    try {
-        return await withConnection(async connection => {
-            const { assignedTeamId, collectionId } = req.params;
+module.exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req) {
+    return await withConnection(async connection => {
+        const { assignedTeamId, collectionId } = req.params;
 
-            let sql = `
-                DELETE FROM ${config.database.schema}.assignedteampermissions
-                WHERE assignedTeamId = ? AND collectionId = ?
-            `;
+        let sql = `
+            DELETE FROM ${config.database.schema}.assignedteampermissions
+            WHERE assignedTeamId = ? AND collectionId = ?
+        `;
 
-            const [result] = await connection.query(sql, [assignedTeamId, collectionId]);
+        const [result] = await connection.query(sql, [assignedTeamId, collectionId]);
 
-            if (result.affectedRows === 0) {
-                throw {
-                    status: 404,
-                    message: 'Permission not found',
-                };
-            }
+        if (result.affectedRows === 0) {
+            throw new SmError.NotFoundError('Permission not found');
+        }
 
-            return { success: true };
-        });
-    } catch (error) {
-        next(error);
-    }
+        return { success: true };
+    });
 };

@@ -78,7 +78,7 @@ function configureSwaggerUI(app, oasDoc) {
             },
         })
     );
-    app.get(['/swagger.json', '/openapi.json'], function (req, res) {
+    app.get(['/swagger.json', '/openapi.json'], function (_req, res) {
         res.json(oasDoc);
     });
     logger.writeDebug('configureSwaggerUI', 'client', { message: 'succeeded setting up swagger-ui' });

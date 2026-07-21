@@ -21,451 +21,405 @@ async function withConnection(callback) {
     }
 }
 
-exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collectionId) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM ${config.database.schema}.assetlabels pl
-                INNER JOIN ${config.database.schema}.asset p ON pl.assetId = p.assetId
-                INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
-                WHERE p.collectionId = ?
-                GROUP BY l.labelName;
-            `;
-            let [rows] = await connection.query(sql, [collectionId]);
+module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collectionId) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT l.labelName, COUNT(pl.labelId) AS labelCount
+            FROM ${config.database.schema}.assetlabels pl
+            INNER JOIN ${config.database.schema}.asset p ON pl.assetId = p.assetId
+            INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
+            WHERE p.collectionId = ?
+            GROUP BY l.labelName;
+        `;
+        let [rows] = await connection.query(sql, [collectionId]);
 
-            let assetLabel = rows.map(row => ({
-                label: row.labelName,
-                labelCount: row.labelCount,
-            }));
+        let assetLabel = rows.map(row => ({
+            label: row.labelName,
+            labelCount: row.labelCount,
+        }));
 
-            return { assetLabel };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return assetLabel;
+    });
 };
 
-exports.getCollectionPoamStatus = async function getCollectionPoamStatus(collectionId) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY status;`;
-            let [rows] = await connection.query(sql, [collectionId]);
+module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(collectionId) {
+    return await withConnection(async connection => {
+        let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY status;`;
+        let [rows] = await connection.query(sql, [collectionId]);
 
-            const size = Object.keys(rows).length;
+        const size = Object.keys(rows).length;
 
-            const poamStatus = [];
+        const poamStatus = [];
 
-            for (let counter = 0; counter < size; counter++) {
-                poamStatus.push({
-                    ...rows[counter],
-                });
-            }
-
-            return { poamStatus: poamStatus };
-        });
-    } catch (error) {
-        return { null: 'Undefined collection' };
-    }
-};
-
-exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectionId) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM ${config.database.schema}.poamlabels pl
-                INNER JOIN ${config.database.schema}.poam p ON pl.poamId = p.poamId
-                INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
-                WHERE p.collectionId = ?
-                GROUP BY l.labelName;
-            `;
-            let [rows] = await connection.query(sql, [collectionId]);
-
-            let poamLabel = rows.map(row => ({
-                label: row.labelName,
-                labelCount: row.labelCount,
-            }));
-
-            return { poamLabel };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
-};
-
-exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(collectionId) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY rawSeverity;`;
-            let [rows] = await connection.query(sql, [collectionId]);
-
-            const size = Object.keys(rows).length;
-
-            const poamSeverity = [];
-
-            for (let counter = 0; counter < size; counter++) {
-                poamSeverity.push({
-                    severity: rows[counter].rawSeverity,
-                    severityCount: rows[counter].severityCount,
-                });
-            }
-
-            return { poamSeverity: poamSeverity };
-        });
-    } catch (error) {
-        return { null: 'Undefined collection' };
-    }
-};
-
-exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(collectionId) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT scheduledCompletionDate,
-                FROM poam
-                WHERE collectionId = ?
-            `;
-
-            let [rows] = await connection.query(sql, [collectionId]);
-
-            let buckets = {
-                OVERDUE: 0,
-                '< 30 Days': 0,
-                '30-60 Days': 0,
-                '60-90 Days': 0,
-                '90-180 Days': 0,
-                '180-365 Days': 0,
-                '> 365 Days': 0,
-            };
-
-            rows.forEach(row => {
-                let days = row.scheduledCompletionDate;
-                if (days <= 0) buckets['OVERDUE']++;
-                else if (days <= 30) buckets['< 30 Days']++;
-                else if (days <= 60) buckets['30-60 Days']++;
-                else if (days <= 90) buckets['60-90 Days']++;
-                else if (days <= 180) buckets['90-180 Days']++;
-                else if (days <= 365) buckets['180-365 Days']++;
-                else if (days > 365) buckets['> 365 Days']++;
+        for (let counter = 0; counter < size; counter++) {
+            poamStatus.push({
+                ...rows[counter],
             });
+        }
 
-            let poamScheduledCompletion = Object.keys(buckets).map(key => ({
-                scheduledCompletion: key,
-                scheduledCompletionCount: buckets[key],
-            }));
-
-            return { poamScheduledCompletion };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return poamStatus;
+    });
 };
 
-exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM ${config.database.schema}.assetlabels pl
-                INNER JOIN ${config.database.schema}.asset p ON pl.assetId = p.assetId
-                INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
-            `;
+module.exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectionId) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT l.labelName, COUNT(pl.labelId) AS labelCount
+            FROM ${config.database.schema}.poamlabels pl
+            INNER JOIN ${config.database.schema}.poam p ON pl.poamId = p.poamId
+            INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
+            WHERE p.collectionId = ?
+            GROUP BY l.labelName;
+        `;
+        let [rows] = await connection.query(sql, [collectionId]);
 
-            let params = [];
+        let poamLabel = rows.map(row => ({
+            label: row.labelName,
+            labelCount: row.labelCount,
+        }));
 
-            if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(
-                    `
-                    SELECT collectionId
-                    FROM ${config.database.schema}.collectionpermissions
-                    WHERE userId = ? AND accessLevel >= 3
-                `,
-                    [req.userObject.userId]
-                );
+        return poamLabel;
+    });
+};
 
-                const collectionIds = permissionRows.map(row => row.collectionId);
+module.exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(collectionId) {
+    return await withConnection(async connection => {
+        let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY rawSeverity;`;
+        let [rows] = await connection.query(sql, [collectionId]);
 
-                if (collectionIds.length === 0) {
-                    return { assetLabel: [] };
-                }
+        const size = Object.keys(rows).length;
 
-                sql += ' WHERE p.collectionId IN (?)';
-                params.push(collectionIds);
+        const poamSeverity = [];
+
+        for (let counter = 0; counter < size; counter++) {
+            poamSeverity.push({
+                severity: rows[counter].rawSeverity,
+                severityCount: rows[counter].severityCount,
+            });
+        }
+
+        return poamSeverity;
+    });
+};
+
+module.exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(collectionId) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT DATEDIFF(scheduledCompletionDate, CURDATE()) AS daysUntilCompletion
+            FROM ${config.database.schema}.poam
+            WHERE collectionId = ?
+                AND scheduledCompletionDate IS NOT NULL
+        `;
+
+        let [rows] = await connection.query(sql, [collectionId]);
+
+        let buckets = {
+            OVERDUE: 0,
+            '< 30 Days': 0,
+            '30-60 Days': 0,
+            '60-90 Days': 0,
+            '90-180 Days': 0,
+            '180-365 Days': 0,
+            '> 365 Days': 0,
+        };
+
+        rows.forEach(row => {
+            let days = row.daysUntilCompletion;
+            if (days <= 0) buckets['OVERDUE']++;
+            else if (days <= 30) buckets['< 30 Days']++;
+            else if (days <= 60) buckets['30-60 Days']++;
+            else if (days <= 90) buckets['60-90 Days']++;
+            else if (days <= 180) buckets['90-180 Days']++;
+            else if (days <= 365) buckets['180-365 Days']++;
+            else if (days > 365) buckets['> 365 Days']++;
+        });
+
+        let poamScheduledCompletion = Object.keys(buckets).map(key => ({
+            scheduledCompletion: key,
+            scheduledCompletionCount: buckets[key],
+        }));
+
+        return poamScheduledCompletion;
+    });
+};
+
+module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT l.labelName, COUNT(pl.labelId) AS labelCount
+            FROM ${config.database.schema}.assetlabels pl
+            INNER JOIN ${config.database.schema}.asset p ON pl.assetId = p.assetId
+            INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
+        `;
+
+        let params = [];
+
+        if (req.userObject.isAdmin !== true) {
+            const [permissionRows] = await connection.query(
+                `
+                SELECT collectionId
+                FROM ${config.database.schema}.collectionpermissions
+                WHERE userId = ? AND accessLevel >= 3
+            `,
+                [req.userObject.userId]
+            );
+
+            const collectionIds = permissionRows.map(row => row.collectionId);
+
+            if (collectionIds.length === 0) {
+                return [];
             }
 
-            sql += ' GROUP BY l.labelName';
+            sql += ' WHERE p.collectionId IN (?)';
+            params.push(collectionIds);
+        }
 
-            const [rows] = await connection.query(sql, params);
+        sql += ' GROUP BY l.labelName';
 
-            const assetLabel = rows.map(row => ({
-                label: row.labelName,
-                labelCount: row.labelCount,
-            }));
+        const [rows] = await connection.query(sql, params);
 
-            return { assetLabel };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        const assetLabel = rows.map(row => ({
+            label: row.labelName,
+            labelCount: row.labelCount,
+        }));
+
+        return assetLabel;
+    });
 };
 
-exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam`;
-            let params = [];
+module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
+    return await withConnection(async connection => {
+        let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam`;
+        let params = [];
 
-            if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(
-                    `
-                    SELECT collectionId
-                    FROM ${config.database.schema}.collectionpermissions
-                    WHERE userId = ? AND accessLevel >= 3
-                `,
-                    [req.userObject.userId]
-                );
+        if (req.userObject.isAdmin !== true) {
+            const [permissionRows] = await connection.query(
+                `
+                SELECT collectionId
+                FROM ${config.database.schema}.collectionpermissions
+                WHERE userId = ? AND accessLevel >= 3
+            `,
+                [req.userObject.userId]
+            );
 
-                const collectionIds = permissionRows.map(row => row.collectionId);
+            const collectionIds = permissionRows.map(row => row.collectionId);
 
-                if (collectionIds.length === 0) {
-                    return { poamStatus: [] };
-                }
-
-                sql += ' WHERE collectionId IN (?)';
-                params.push(collectionIds);
+            if (collectionIds.length === 0) {
+                return [];
             }
 
-            sql += ' GROUP BY status';
+            sql += ' WHERE collectionId IN (?)';
+            params.push(collectionIds);
+        }
 
-            const [rows] = await connection.query(sql, params);
+        sql += ' GROUP BY status';
 
-            const poamStatus = rows.map(row => ({
-                status: row.status,
-                statusCount: row.statusCount,
-            }));
+        const [rows] = await connection.query(sql, params);
 
-            return { poamStatus };
-        });
-    } catch (error) {
-        return { null: 'Undefined collection' };
-    }
+        const poamStatus = rows.map(row => ({
+            status: row.status,
+            statusCount: row.statusCount,
+        }));
+
+        return poamStatus;
+    });
 };
 
-exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `
-                SELECT l.labelName, COUNT(pl.labelId) AS labelCount
-                FROM ${config.database.schema}.poamlabels pl
-                INNER JOIN ${config.database.schema}.poam p ON pl.poamId = p.poamId
-                INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
-            `;
+module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
+    return await withConnection(async connection => {
+        let sql = `
+            SELECT l.labelName, COUNT(pl.labelId) AS labelCount
+            FROM ${config.database.schema}.poamlabels pl
+            INNER JOIN ${config.database.schema}.poam p ON pl.poamId = p.poamId
+            INNER JOIN ${config.database.schema}.label l ON pl.labelId = l.labelId
+        `;
 
-            let params = [];
+        let params = [];
 
-            if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(
-                    `
-                    SELECT collectionId
-                    FROM ${config.database.schema}.collectionpermissions
-                    WHERE userId = ? AND accessLevel >= 3
-                `,
-                    [req.userObject.userId]
-                );
+        if (req.userObject.isAdmin !== true) {
+            const [permissionRows] = await connection.query(
+                `
+                SELECT collectionId
+                FROM ${config.database.schema}.collectionpermissions
+                WHERE userId = ? AND accessLevel >= 3
+            `,
+                [req.userObject.userId]
+            );
 
-                const collectionIds = permissionRows.map(row => row.collectionId);
+            const collectionIds = permissionRows.map(row => row.collectionId);
 
-                if (collectionIds.length === 0) {
-                    return { poamLabel: [] };
-                }
-
-                sql += ' WHERE p.collectionId IN (?)';
-                params.push(collectionIds);
+            if (collectionIds.length === 0) {
+                return [];
             }
 
-            sql += ' GROUP BY l.labelName';
+            sql += ' WHERE p.collectionId IN (?)';
+            params.push(collectionIds);
+        }
 
-            const [rows] = await connection.query(sql, params);
+        sql += ' GROUP BY l.labelName';
 
-            const poamLabel = rows.map(row => ({
-                label: row.labelName,
-                labelCount: row.labelCount,
-            }));
+        const [rows] = await connection.query(sql, params);
 
-            return { poamLabel };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        const poamLabel = rows.map(row => ({
+            label: row.labelName,
+            labelCount: row.labelCount,
+        }));
+
+        return poamLabel;
+    });
 };
 
-exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) {
-    try {
-        return await withConnection(async connection => {
-            let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam`;
-            let params = [];
+module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) {
+    return await withConnection(async connection => {
+        let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam`;
+        let params = [];
 
-            if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(
-                    `
-                    SELECT collectionId
-                    FROM ${config.database.schema}.collectionpermissions
-                    WHERE userId = ? AND accessLevel >= 3
-                `,
-                    [req.userObject.userId]
-                );
+        if (req.userObject.isAdmin !== true) {
+            const [permissionRows] = await connection.query(
+                `
+                SELECT collectionId
+                FROM ${config.database.schema}.collectionpermissions
+                WHERE userId = ? AND accessLevel >= 3
+            `,
+                [req.userObject.userId]
+            );
 
-                const collectionIds = permissionRows.map(row => row.collectionId);
+            const collectionIds = permissionRows.map(row => row.collectionId);
 
-                if (collectionIds.length === 0) {
-                    return { poamSeverity: [] };
-                }
-
-                sql += ' WHERE collectionId IN (?)';
-                params.push(collectionIds);
+            if (collectionIds.length === 0) {
+                return [];
             }
 
-            sql += ' GROUP BY rawSeverity';
+            sql += ' WHERE collectionId IN (?)';
+            params.push(collectionIds);
+        }
 
-            const [rows] = await connection.query(sql, params);
+        sql += ' GROUP BY rawSeverity';
 
-            const poamSeverity = rows.map(row => ({
-                severity: row.rawSeverity,
-                severityCount: row.severityCount,
-            }));
+        const [rows] = await connection.query(sql, params);
 
-            return { poamSeverity };
-        });
-    } catch (error) {
-        return { null: 'Undefined collection' };
-    }
+        const poamSeverity = rows.map(row => ({
+            severity: row.rawSeverity,
+            severityCount: row.severityCount,
+        }));
+
+        return poamSeverity;
+    });
 };
 
-exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(collectionId, months = 12) {
-    try {
-        return await withConnection(async connection => {
-            const summarySql = `
-                SELECT rawSeverity,
-                    ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
-                    MIN(DATEDIFF(closedDate, created)) AS minDays,
-                    MAX(DATEDIFF(closedDate, created)) AS maxDays,
-                    COUNT(*) AS count
-                FROM ${config.database.schema}.poam
-                WHERE collectionId = ?
-                    AND status = 'Closed'
-                    AND closedDate IS NOT NULL
-                    AND created IS NOT NULL
-                    AND created != '1900-01-01'
-                    AND DATEDIFF(closedDate, created) >= 0
-                GROUP BY rawSeverity
-            `;
+module.exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(collectionId, months = 12) {
+    return await withConnection(async connection => {
+        const summarySql = `
+            SELECT rawSeverity,
+                ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
+                MIN(DATEDIFF(closedDate, created)) AS minDays,
+                MAX(DATEDIFF(closedDate, created)) AS maxDays,
+                COUNT(*) AS count
+            FROM ${config.database.schema}.poam
+            WHERE collectionId = ?
+                AND status = 'Closed'
+                AND closedDate IS NOT NULL
+                AND created IS NOT NULL
+                AND created != '1900-01-01'
+                AND DATEDIFF(closedDate, created) >= 0
+            GROUP BY rawSeverity
+        `;
 
-            const trendSql = `
-                SELECT DATE_FORMAT(closedDate, '%Y-%m') AS period,
-                    rawSeverity,
-                    ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
-                    COUNT(*) AS count
-                FROM ${config.database.schema}.poam
-                WHERE collectionId = ?
-                    AND status = 'Closed'
-                    AND closedDate >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
-                    AND created IS NOT NULL
-                    AND created != '1900-01-01'
-                    AND DATEDIFF(closedDate, created) >= 0
-                GROUP BY period, rawSeverity
-                ORDER BY period ASC
-            `;
+        const trendSql = `
+            SELECT DATE_FORMAT(closedDate, '%Y-%m') AS period,
+                rawSeverity,
+                ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
+                COUNT(*) AS count
+            FROM ${config.database.schema}.poam
+            WHERE collectionId = ?
+                AND status = 'Closed'
+                AND closedDate >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+                AND created IS NOT NULL
+                AND created != '1900-01-01'
+                AND DATEDIFF(closedDate, created) >= 0
+            GROUP BY period, rawSeverity
+            ORDER BY period ASC
+        `;
 
-            const [[summaryRows], [trendRows]] = await Promise.all([
-                connection.query(summarySql, [collectionId]),
-                connection.query(trendSql, [collectionId, months]),
-            ]);
+        const [[summaryRows], [trendRows]] = await Promise.all([
+            connection.query(summarySql, [collectionId]),
+            connection.query(trendSql, [collectionId, months]),
+        ]);
 
-            return {
-                summary: summaryRows.map(row => ({
-                    rawSeverity: row.rawSeverity,
-                    avgDays: row.avgDays,
-                    minDays: row.minDays,
-                    maxDays: row.maxDays,
-                    count: row.count,
-                })),
-                trend: trendRows.map(row => ({ period: row.period, rawSeverity: row.rawSeverity, avgDays: row.avgDays, count: row.count })),
-            };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return {
+            summary: summaryRows.map(row => ({
+                rawSeverity: row.rawSeverity,
+                avgDays: row.avgDays,
+                minDays: row.minDays,
+                maxDays: row.maxDays,
+                count: row.count,
+            })),
+            trend: trendRows.map(row => ({ period: row.period, rawSeverity: row.rawSeverity, avgDays: row.avgDays, count: row.count })),
+        };
+    });
 };
 
-exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req) {
+module.exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req) {
     const months = Number.parseInt(req.query?.months, 10) || 12;
 
-    try {
-        return await withConnection(async connection => {
-            let collectionFilter = '';
-            let params = [];
+    return await withConnection(async connection => {
+        let collectionFilter = '';
+        let params = [];
 
-            if (req.userObject.isAdmin !== true) {
-                const [permissionRows] = await connection.query(
-                    `SELECT collectionId FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND accessLevel >= 3`,
-                    [req.userObject.userId]
-                );
-                const collectionIds = permissionRows.map(row => row.collectionId);
-                if (collectionIds.length === 0) return { summary: [], trend: [] };
-                collectionFilter = ' AND collectionId IN (?)';
-                params.push(collectionIds);
-            }
+        if (req.userObject.isAdmin !== true) {
+            const [permissionRows] = await connection.query(
+                `SELECT collectionId FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND accessLevel >= 3`,
+                [req.userObject.userId]
+            );
+            const collectionIds = permissionRows.map(row => row.collectionId);
+            if (collectionIds.length === 0) return { summary: [], trend: [] };
+            collectionFilter = ' AND collectionId IN (?)';
+            params.push(collectionIds);
+        }
 
-            const summarySql = `
-                SELECT rawSeverity,
-                    ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
-                    MIN(DATEDIFF(closedDate, created)) AS minDays,
-                    MAX(DATEDIFF(closedDate, created)) AS maxDays,
-                    COUNT(*) AS count
-                FROM ${config.database.schema}.poam
-                WHERE status = 'Closed'
-                    AND closedDate IS NOT NULL
-                    AND created IS NOT NULL
-                    AND created != '1900-01-01'
-                    AND DATEDIFF(closedDate, created) >= 0
-                    ${collectionFilter}
-                GROUP BY rawSeverity
-            `;
+        const summarySql = `
+            SELECT rawSeverity,
+                ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
+                MIN(DATEDIFF(closedDate, created)) AS minDays,
+                MAX(DATEDIFF(closedDate, created)) AS maxDays,
+                COUNT(*) AS count
+            FROM ${config.database.schema}.poam
+            WHERE status = 'Closed'
+                AND closedDate IS NOT NULL
+                AND created IS NOT NULL
+                AND created != '1900-01-01'
+                AND DATEDIFF(closedDate, created) >= 0
+                ${collectionFilter}
+            GROUP BY rawSeverity
+        `;
 
-            const trendSql = `
-                SELECT DATE_FORMAT(closedDate, '%Y-%m') AS period,
-                    rawSeverity,
-                    ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
-                    COUNT(*) AS count
-                FROM ${config.database.schema}.poam
-                WHERE status = 'Closed'
-                    AND closedDate >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
-                    AND created IS NOT NULL
-                    AND created != '1900-01-01'
-                    AND DATEDIFF(closedDate, created) >= 0
-                    ${collectionFilter}
-                GROUP BY period, rawSeverity
-                ORDER BY period ASC
-            `;
+        const trendSql = `
+            SELECT DATE_FORMAT(closedDate, '%Y-%m') AS period,
+                rawSeverity,
+                ROUND(AVG(DATEDIFF(closedDate, created))) AS avgDays,
+                COUNT(*) AS count
+            FROM ${config.database.schema}.poam
+            WHERE status = 'Closed'
+                AND closedDate >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
+                AND created IS NOT NULL
+                AND created != '1900-01-01'
+                AND DATEDIFF(closedDate, created) >= 0
+                ${collectionFilter}
+            GROUP BY period, rawSeverity
+            ORDER BY period ASC
+        `;
 
-            const [[summaryRows], [trendRows]] = await Promise.all([
-                connection.query(summarySql, [...params]),
-                connection.query(trendSql, [months, ...params]),
-            ]);
+        const [[summaryRows], [trendRows]] = await Promise.all([connection.query(summarySql, [...params]), connection.query(trendSql, [months, ...params])]);
 
-            return {
-                summary: summaryRows.map(row => ({
-                    rawSeverity: row.rawSeverity,
-                    avgDays: row.avgDays,
-                    minDays: row.minDays,
-                    maxDays: row.maxDays,
-                    count: row.count,
-                })),
-                trend: trendRows.map(row => ({ period: row.period, rawSeverity: row.rawSeverity, avgDays: row.avgDays, count: row.count })),
-            };
-        });
-    } catch (error) {
-        return { error: error.message };
-    }
+        return {
+            summary: summaryRows.map(row => ({
+                rawSeverity: row.rawSeverity,
+                avgDays: row.avgDays,
+                minDays: row.minDays,
+                maxDays: row.maxDays,
+                count: row.count,
+            })),
+            trend: trendRows.map(row => ({ period: row.period, rawSeverity: row.rawSeverity, avgDays: row.avgDays, count: row.count })),
+        };
+    });
 };

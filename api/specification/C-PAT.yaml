@@ -153,7 +153,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/aaPackage_Object'
+              allOf:
+                - $ref: '#/components/schemas/aaPackage_Object'
+                - required:
+                    - aaPackageId
       responses:
         '200':
           description: A&A Package updated successfully
@@ -620,7 +623,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetObject'
+              allOf:
+                - $ref: '#/components/schemas/AssetObject'
+                - required:
+                    - ipAddress
+                  properties:
+                    ipAddress:
+                      type: string
+                      minLength: 1
       responses:
         '201':
           description: Return the added asset response
@@ -653,7 +663,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetObject'
+              allOf:
+                - $ref: '#/components/schemas/AssetObject'
+                - required:
+                    - assetId
+                    - ipAddress
+                  properties:
+                    ipAddress:
+                      type: string
+                      minLength: 1
       responses:
         '200':
           description: Return the updated asset response
@@ -948,6 +966,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '404':
+          description: Assigned Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -1025,7 +1049,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/assignedTeam_Object'
+              allOf:
+                - $ref: '#/components/schemas/assignedTeam_Object'
+                - required:
+                    - assignedTeamId
       responses:
         '200':
           description: Assigned Team updated successfully
@@ -1841,7 +1868,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/label_Object'
+              allOf:
+                - $ref: '#/components/schemas/label_Object'
+                - required:
+                    - labelId
       responses:
         '200':
           description: Label updated successfully
@@ -1943,6 +1973,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2001,6 +2037,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2025,9 +2067,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/assetLabel'
-        '204':
-          description: No Content
+                type: array
+                items:
+                  $ref: '#/components/schemas/assetLabel'
         '400':
           description: Bad Request
           content:
@@ -2058,9 +2100,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamLabel'
-        '204':
-          description: No Content
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamLabel'
         '400':
           description: Bad Request
           content:
@@ -2091,9 +2133,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamStatus'
-        '204':
-          description: No Content
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamStatus'
         '400':
           description: Bad Request
           content:
@@ -2124,9 +2166,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamSeverity'
-        '204':
-          description: No Content
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamSeverity'
         '400':
           description: Bad Request
           content:
@@ -2157,9 +2199,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamScheduledCompletion'
-        '204':
-          description: No Content
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamScheduledCompletion'
         '400':
           description: Bad Request
           content:
@@ -2188,9 +2230,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/assetLabel'
-        '204':
-          description: No Content
+                type: array
+                items:
+                  $ref: '#/components/schemas/assetLabel'
         '400':
           description: Bad Request
           content:
@@ -2219,9 +2261,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamLabel'
-        '204':
-          description: No Content
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamLabel'
         '400':
           description: Bad Request
           content:
@@ -2250,9 +2292,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamStatus'
-        '204':
-          description: No Content
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamStatus'
         '400':
           description: Bad Request
           content:
@@ -2281,9 +2323,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/poamSeverity'
-        '204':
-          description: No Content
+                type: array
+                items:
+                  $ref: '#/components/schemas/poamSeverity'
         '400':
           description: Bad Request
           content:
@@ -2325,8 +2367,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamMTTR'
-        '204':
-          description: No Content
         '400':
           description: Bad Request
           content:
@@ -2366,8 +2406,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamMTTR'
-        '204':
-          description: No Content
         '400':
           description: Bad Request
           content:
@@ -2639,6 +2677,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
       security:
         - oauth:
             - 'c-pat:op'
@@ -2656,6 +2706,12 @@ paths:
                 $ref: '#/components/schemas/ApiConfiguration'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -2685,6 +2741,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
       tags:
         - Operation
       security:
@@ -2708,6 +2776,18 @@ paths:
                 $ref: '#/components/schemas/SuccessMessage'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -2741,6 +2821,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
 
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
   '/permissions/{collectionId}':
     parameters:
       - in: path
@@ -2803,6 +2889,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2840,6 +2932,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2871,6 +2969,12 @@ paths:
                 $ref: '#/components/schemas/user_Permissions'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
           content:
             application/json:
               schema:
@@ -3001,6 +3105,12 @@ paths:
     post:
       summary: Add a poamApprover
       operationId: postPoamApprover
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/poamApprover_Request'
       responses:
         '201':
           description: Poam Approver created
@@ -3028,6 +3138,12 @@ paths:
     put:
       summary: Updates a poamApprover
       operationId: putPoamApprover
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/poamApprover_Request'
       responses:
         '200':
           description: Poam Approver updated
@@ -3037,6 +3153,12 @@ paths:
                 $ref: '#/components/schemas/poamApprover_Object'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
           content:
             application/json:
               schema:
@@ -3617,9 +3739,11 @@ paths:
                   description: a file
                 poamId:
                   type: string
+                  minLength: 1
                   description: ID of the last POAM
               required:
                 - file
+                - poamId
       responses:
         '201':
           description: PoamAttachment created
@@ -3796,6 +3920,12 @@ paths:
                 $ref: '#/components/schemas/error'
         '403':
           $ref: '#/components/responses/forbidden'
+        '404':
+          description: POAM not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -3945,8 +4075,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/poamExtensionObject'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '403':
           $ref: '#/components/responses/forbidden'
+        '404':
+          description: POAM not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
           description: unexpected error
           content:
@@ -4157,6 +4305,12 @@ paths:
                 $ref: '#/components/schemas/poamLabel_Object'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Poam label not found
           content:
             application/json:
               schema:
@@ -4417,6 +4571,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -4545,6 +4705,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -4564,6 +4736,12 @@ paths:
           description: POAM deleted successfully
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
           content:
             application/json:
               schema:
@@ -4636,6 +4814,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -4700,6 +4884,12 @@ paths:
                   $ref: '#/components/schemas/poam_Object'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
           content:
             application/json:
               schema:
@@ -4965,6 +5155,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5101,6 +5297,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5171,6 +5373,12 @@ paths:
                 $ref: '#/components/schemas/poamTeamMitigation_Object'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
           content:
             application/json:
               schema:
@@ -5311,6 +5519,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5381,6 +5595,12 @@ paths:
                 $ref: '#/components/schemas/poamTeamResource_Object'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
           content:
             application/json:
               schema:
@@ -5462,6 +5682,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '404':
+          description: Tenable Filter not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5481,7 +5707,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/tenableFilter_Object'
+              allOf:
+                - $ref: '#/components/schemas/tenableFilter_Object'
+                - required:
+                    - filterId
+                    - filter
+                  properties:
+                    filter:
+                      type: string
+                      minLength: 1
       responses:
         '200':
           description: TenableFilter updated successfully
@@ -5545,7 +5779,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/tenableFilter_Object'
+              allOf:
+                - $ref: '#/components/schemas/tenableFilter_Object'
+                - required:
+                    - filter
+                  properties:
+                    filter:
+                      type: string
+                      minLength: 1
       responses:
         '201':
           description: TenableFilter created successfully
@@ -5628,6 +5869,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5659,6 +5912,12 @@ paths:
                 $ref: '#/components/schemas/user'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
           content:
             application/json:
               schema:
@@ -5736,6 +5995,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5807,6 +6072,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5845,6 +6116,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5877,6 +6154,18 @@ paths:
                 $ref: '#/components/schemas/user'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Resource not found
           content:
             application/json:
               schema:
@@ -5950,6 +6239,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -5987,6 +6282,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -6018,6 +6319,12 @@ paths:
                 $ref: '#/components/schemas/user_team_assignment'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
           content:
             application/json:
               schema:
@@ -6680,6 +6987,27 @@ components:
         hqs:
           type: [boolean, 'null']
 
+    poamApprover_Request:
+      type: object
+      required:
+        - poamId
+        - userId
+      additionalProperties: true
+      properties:
+        poamId:
+          type: integer
+        userId:
+          type: integer
+        approvalStatus:
+          type: string
+        approvedDate:
+          type: [string, 'null']
+          format: date
+        comments:
+          type: [string, 'null']
+        hqs:
+          type: [boolean, 'null']
+
     poamApprover_Response:
       type: object
       required:
@@ -7259,12 +7587,9 @@ components:
     PurchaseThemeRequest:
       type: object
       properties:
-        userId:
-          type: integer
         themeId:
           type: integer
       required:
-        - userId
         - themeId
 
     UserThemesResponse:
@@ -7358,12 +7683,9 @@ components:
     UpdateThemeRequest:
       type: object
       properties:
-        userId:
-          type: integer
         defaultTheme:
           type: string
       required:
-        - userId
         - defaultTheme
 
     UpdatePointsRequest:
