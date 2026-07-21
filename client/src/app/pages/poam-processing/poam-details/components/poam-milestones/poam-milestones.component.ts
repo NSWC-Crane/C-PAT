@@ -362,21 +362,17 @@ export class PoamMilestonesComponent implements OnInit {
 
       const effectiveDeadline = this.getEffectiveDeadline();
 
-      if (effectiveDeadline) {
-        const effectiveDeadlineDay = startOfDay(effectiveDeadline);
+      if (effectiveDeadline && isAfter(changeDate, startOfDay(effectiveDeadline))) {
+        const extensionDays = this.poam().extensionDays || 0;
+        const message = extensionDays > 0 ? 'The Milestone change date provided exceeds the POAM scheduled completion date and the allowed extension time.' : 'The Milestone change date provided exceeds the POAM scheduled completion date.';
 
-        if (isAfter(changeDate, effectiveDeadlineDay)) {
-          const extensionDays = this.poam().extensionDays || 0;
-          const message = extensionDays > 0 ? 'The Milestone change date provided exceeds the POAM scheduled completion date and the allowed extension time.' : 'The Milestone change date provided exceeds the POAM scheduled completion date.';
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Information',
+          detail: message
+        });
 
-          this.messageService.add({
-            severity: 'warn',
-            summary: 'Information',
-            detail: message
-          });
-
-          return false;
-        }
+        return false;
       }
     }
 
