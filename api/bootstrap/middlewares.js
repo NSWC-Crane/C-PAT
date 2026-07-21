@@ -127,7 +127,7 @@ function configureTenableProxy(app) {
                     if (!cleanHeaders['content-type']) {
                         cleanHeaders['content-type'] = 'application/json';
                     }
-                    cleanHeaders['user-agent'] = 'Integration/1.4.0 (NAVSEA; CPAT; Build/1.4.0)';
+                    cleanHeaders['user-agent'] = 'Integration/1.4.1 (NAVSEA; CPAT; Build/1.4.1)';
 
                     proxyReqOpts.headers = cleanHeaders;
                     proxyReqOpts.rejectUnauthorized = false;

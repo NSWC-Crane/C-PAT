@@ -4,8 +4,8 @@ import sphinx_rtd_theme
 project = 'C-PAT'
 copyright = '2026 U.S. Federal Government (in countries where recognized)'
 author = 'Christian Rodriguez'
-release = '1.4.0'
-version = '1.4.0'
+release = '1.4.1'
+version = '1.4.1'
 
 # Extensions
 extensions = [
