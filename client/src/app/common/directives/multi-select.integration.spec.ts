@@ -47,7 +47,17 @@ class UnfilteredHostComponent {
 @Component({
   standalone: true,
   imports: [FormsModule, SelectModule, MultiSelectDirective],
-  template: `<p-select [multiple]="true" [checkmark]="true" [maxSelectedLabels]="maxSelectedLabels" [selectedItemsLabel]="selectedItemsLabel" [options]="options" optionLabel="label" optionValue="value" placeholder="Choose" [(ngModel)]="value"></p-select>`
+  template: `<p-select
+    [multiple]="true"
+    [checkmark]="true"
+    [maxSelectedLabels]="maxSelectedLabels"
+    [selectedItemsLabel]="selectedItemsLabel"
+    [options]="options"
+    optionLabel="label"
+    optionValue="value"
+    placeholder="Choose"
+    [(ngModel)]="value"
+  ></p-select>`
 })
 class SummaryHostComponent {
   options = [

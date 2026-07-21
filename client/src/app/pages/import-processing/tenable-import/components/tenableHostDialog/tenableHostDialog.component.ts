@@ -60,9 +60,9 @@ export class TenableHostDialogComponent implements OnChanges {
   hostDialogCols: any[];
   readonly hostData = signal<any[]>([]);
   isLoading = signal<boolean>(false);
-  dialogFilterValue: string = '';
-  selectedPoamStatuses: string[] = [];
-  selectedSeverities: string[] = [];
+  readonly dialogFilterValue = signal<string>('');
+  readonly selectedPoamStatuses = signal<string[]>([]);
+  readonly selectedSeverities = signal<string[]>([]);
 
   pluginData: any;
   selectedPlugin: any;
@@ -161,9 +161,9 @@ export class TenableHostDialogComponent implements OnChanges {
     }
 
     this.isLoading.set(true);
-    this.selectedPoamStatuses = [];
-    this.selectedSeverities = [];
-    this.dialogFilterValue = '';
+    this.selectedPoamStatuses.set([]);
+    this.selectedSeverities.set([]);
+    this.dialogFilterValue.set('');
 
     const analysisParams = {
       query: {
@@ -299,9 +299,9 @@ export class TenableHostDialogComponent implements OnChanges {
       hostFindingsTable.clear();
     }
 
-    this.dialogFilterValue = '';
-    this.selectedPoamStatuses = [];
-    this.selectedSeverities = [];
+    this.dialogFilterValue.set('');
+    this.selectedPoamStatuses.set([]);
+    this.selectedSeverities.set([]);
   }
 
   exportHostFindingsTableCSV() {

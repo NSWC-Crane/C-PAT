@@ -106,7 +106,7 @@ describe('TenableHostDialogComponent', () => {
     });
 
     it('should default dialogFilterValue to empty string', () => {
-      expect(component.dialogFilterValue).toBe('');
+      expect(component.dialogFilterValue()).toBe('');
     });
 
     it('should default displayPluginDialog signal to false', () => {
@@ -118,11 +118,11 @@ describe('TenableHostDialogComponent', () => {
     });
 
     it('should default selectedPoamStatuses to empty array', () => {
-      expect(component.selectedPoamStatuses).toEqual([]);
+      expect(component.selectedPoamStatuses()).toEqual([]);
     });
 
     it('should default selectedSeverities to empty array', () => {
-      expect(component.selectedSeverities).toEqual([]);
+      expect(component.selectedSeverities()).toEqual([]);
     });
 
     it('should initialize hostDialogCols in constructor', () => {
@@ -244,21 +244,21 @@ describe('TenableHostDialogComponent', () => {
     });
 
     it('should reset dialogFilterValue', () => {
-      component.dialogFilterValue = 'some filter';
+      component.dialogFilterValue.set('some filter');
       component.clearHostFindingsTable();
-      expect(component.dialogFilterValue).toBe('');
+      expect(component.dialogFilterValue()).toBe('');
     });
 
     it('should reset selectedPoamStatuses', () => {
-      component.selectedPoamStatuses = ['Approved'];
+      component.selectedPoamStatuses.set(['Approved']);
       component.clearHostFindingsTable();
-      expect(component.selectedPoamStatuses).toEqual([]);
+      expect(component.selectedPoamStatuses()).toEqual([]);
     });
 
     it('should reset selectedSeverities', () => {
-      component.selectedSeverities = ['High'];
+      component.selectedSeverities.set(['High']);
       component.clearHostFindingsTable();
-      expect(component.selectedSeverities).toEqual([]);
+      expect(component.selectedSeverities()).toEqual([]);
     });
   });
 
