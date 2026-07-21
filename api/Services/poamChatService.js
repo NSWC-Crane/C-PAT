@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getMessagesByPoamId = async function getMessagesByPoamId(req) {
+module.exports.getMessagesByPoamId = async function getMessagesByPoamId(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT pc.messageId, pc.userId, pc.poamId, pc.text, pc.createdAt,
@@ -49,7 +49,7 @@ exports.getMessagesByPoamId = async function getMessagesByPoamId(req) {
     });
 };
 
-exports.createMessage = async function createMessage(req) {
+module.exports.createMessage = async function createMessage(req) {
     const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
 
     if (text === '') {
@@ -99,7 +99,7 @@ exports.createMessage = async function createMessage(req) {
     });
 };
 
-exports.deleteMessage = async function deleteMessage(req) {
+module.exports.deleteMessage = async function deleteMessage(req) {
     return await withConnection(async connection => {
         let checkSql = `SELECT userId FROM ${config.database.schema}.poamchat WHERE messageId = ?`;
         let [checkRows] = await connection.query(checkSql, [req.params.messageId]);

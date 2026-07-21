@@ -11,7 +11,7 @@
 const poamAssignedTeamService = require('../Services/poamAssignedTeamService');
 const { sendError } = require('../utils/respond');
 
-exports.getPoamAssignedTeams = async function getPoamAssignedTeams(_req, res) {
+module.exports.getPoamAssignedTeams = async function getPoamAssignedTeams(_req, res) {
     try {
         const result = await poamAssignedTeamService.getPoamAssignedTeams();
 
@@ -21,7 +21,7 @@ exports.getPoamAssignedTeams = async function getPoamAssignedTeams(_req, res) {
     }
 };
 
-exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoamId(req, res) {
+module.exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoamId(req, res) {
     try {
         const result = await poamAssignedTeamService.getPoamAssignedTeamsByPoamId(req.params.poamId);
 
@@ -31,7 +31,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
     }
 };
 
-exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res) {
+module.exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res) {
     try {
         const assignedTeam = await poamAssignedTeamService.postPoamAssignedTeam(req);
 
@@ -41,7 +41,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req, res) {
     }
 };
 
-exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req, res) {
+module.exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req, res) {
     try {
         await poamAssignedTeamService.deletePoamAssignedTeam(req);
 

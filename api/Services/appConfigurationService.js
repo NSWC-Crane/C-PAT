@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAppConfiguration = async function getAppConfiguration() {
+module.exports.getAppConfiguration = async function getAppConfiguration() {
     return await withConnection(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.appconfiguration;`;
         let [rowAppConfiguration] = await connection.query(sql);
@@ -35,7 +35,7 @@ exports.getAppConfiguration = async function getAppConfiguration() {
     });
 };
 
-exports.putAppConfiguration = async function putAppConfiguration(req) {
+module.exports.putAppConfiguration = async function putAppConfiguration(req) {
     return await withConnection(async connection => {
         let sql_query = `UPDATE ${config.database.schema}.appconfiguration SET settingValue = ? WHERE settingName = ?`;
         await connection.query(sql_query, [req.body.settingValue, req.body.settingName]);

@@ -23,7 +23,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamLogByPoamId = async function getPoamLogByPoamId(poamId) {
+module.exports.getPoamLogByPoamId = async function getPoamLogByPoamId(poamId) {
     if (!poamId) {
         throw new SmError.ClientError('poamId is required');
     }

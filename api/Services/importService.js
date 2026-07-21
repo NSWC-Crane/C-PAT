@@ -25,7 +25,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.excelFilter = (_req, file, cb) => {
+module.exports.excelFilter = (_req, file, cb) => {
     const validMimeTypes = [
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -39,7 +39,7 @@ exports.excelFilter = (_req, file, cb) => {
     }
 };
 
-exports.excelAndCsvFilter = (_req, file, cb) => {
+module.exports.excelAndCsvFilter = (_req, file, cb) => {
     const validMimeTypes = [
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -73,7 +73,7 @@ function getFirstWorksheet(workbook) {
     return workbook.worksheets[0];
 }
 
-exports.importVRAMExcel = async function importVRAMExcel(file) {
+module.exports.importVRAMExcel = async function importVRAMExcel(file) {
     if (!file) {
         throw new SmError.ClientError('Please upload an Excel file!');
     }
@@ -268,7 +268,7 @@ async function updateVRAMConfigEntry(configEntry, fileDate, transaction) {
     }
 }
 
-exports.importAssetListFile = async function importAssetListFile(file, collectionId) {
+module.exports.importAssetListFile = async function importAssetListFile(file, collectionId) {
     if (!file) {
         throw new SmError.ClientError('Please upload an Excel or CSV file!');
     }
@@ -295,7 +295,7 @@ exports.importAssetListFile = async function importAssetListFile(file, collectio
     }
 };
 
-exports.importMultipleAssetListFiles = async function importMultipleAssetListFiles(file, collectionIds) {
+module.exports.importMultipleAssetListFiles = async function importMultipleAssetListFiles(file, collectionIds) {
     if (!file) {
         throw new SmError.ClientError('Please upload an Excel or CSV file!');
     }
@@ -828,11 +828,3 @@ function validateAssetListHeaders(worksheet) {
         throw new SmError.ClientError('Invalid file format: Excel file must contain exactly two columns');
     }
 }
-
-module.exports = {
-    excelFilter: exports.excelFilter,
-    excelAndCsvFilter: exports.excelAndCsvFilter,
-    importVRAMExcel: exports.importVRAMExcel,
-    importAssetListFile: exports.importAssetListFile,
-    importMultipleAssetListFiles: exports.importMultipleAssetListFiles,
-};

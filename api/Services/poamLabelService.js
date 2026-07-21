@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamLabels = async function getPoamLabels(collectionId) {
+module.exports.getPoamLabels = async function getPoamLabels(collectionId) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.poamId, t1.labelId, labelName
@@ -42,7 +42,7 @@ exports.getPoamLabels = async function getPoamLabels(collectionId) {
     });
 };
 
-exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
+module.exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.poamId, t1.labelId, labelName
@@ -86,7 +86,7 @@ exports.getAvailablePoamLabels = async function getAvailablePoamLabels(req) {
     });
 };
 
-exports.getPoamsByLabel = async function getPoamsByLabel(labelId) {
+module.exports.getPoamsByLabel = async function getPoamsByLabel(labelId) {
     return await withConnection(async connection => {
         let sql = `
             SELECT
@@ -115,7 +115,7 @@ exports.getPoamsByLabel = async function getPoamsByLabel(labelId) {
     });
 };
 
-exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
+module.exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.poamId, t1.labelId, labelName
@@ -135,7 +135,7 @@ exports.getPoamLabelsByPoam = async function getPoamLabelsByPoam(poamId) {
     });
 };
 
-exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
+module.exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.poamId, t1.labelId, labelName
@@ -155,7 +155,7 @@ exports.getPoamLabelsByLabel = async function getPoamLabelsByLabel(labelId) {
     });
 };
 
-exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
+module.exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.poamId, t1.labelId, labelName
@@ -175,7 +175,7 @@ exports.getPoamLabel = async function getPoamLabel(poamId, labelId) {
     });
 };
 
-exports.postPoamLabel = async function postPoamLabel(req) {
+module.exports.postPoamLabel = async function postPoamLabel(req) {
     try {
         return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.poamlabels (poamId, labelId) VALUES (?, ?)`;
@@ -213,7 +213,7 @@ exports.postPoamLabel = async function postPoamLabel(req) {
     }
 };
 
-exports.deletePoamLabel = async function deletePoamLabel(req) {
+module.exports.deletePoamLabel = async function deletePoamLabel(req) {
     return await withConnection(async connection => {
         let sql = `DELETE FROM ${config.database.schema}.poamlabels WHERE poamId = ? AND labelId = ?`;
         await connection.query(sql, [req.params.poamId, req.params.labelId]);

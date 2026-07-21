@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
+module.exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
     return await withConnection(async connection => {
         let sql = `
             SELECT ptm.mitigationId, ptm.poamId, ptm.assignedTeamId, ptm.mitigationText, ptm.isActive,
@@ -44,7 +44,7 @@ exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
     });
 };
 
-exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsByPoamId(poamId) {
+module.exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsByPoamId(poamId) {
     if (!poamId) {
         throw new Error('getPoamTeamMitigationsByPoamId: poamId is required');
     }
@@ -71,7 +71,7 @@ exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsBy
     });
 };
 
-exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req) {
+module.exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req) {
     if (!req.body.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }
@@ -140,7 +140,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req) {
     });
 };
 
-exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req) {
+module.exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req) {
     if (!req.params.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }
@@ -176,7 +176,7 @@ exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req) 
     });
 };
 
-exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req) {
+module.exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req) {
     if (!req.params.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }
@@ -248,7 +248,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
     });
 };
 
-exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req) {
+module.exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req) {
     if (!req.params.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }

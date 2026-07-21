@@ -27,7 +27,7 @@ function normalizeBoolean(value) {
     return value === 1 || value === true;
 }
 
-exports.getPoamApprovers = async function getPoamApprovers(req) {
+module.exports.getPoamApprovers = async function getPoamApprovers(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
@@ -44,7 +44,7 @@ exports.getPoamApprovers = async function getPoamApprovers(req) {
     });
 };
 
-exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req) {
+module.exports.getPoamApproversByCollection = async function getPoamApproversByCollection(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT T1.*, T2.firstName, T2.lastName, T2.fullName, T2.email
@@ -62,7 +62,7 @@ exports.getPoamApproversByCollection = async function getPoamApproversByCollecti
     });
 };
 
-exports.postPoamApprover = async function postPoamApprover(req) {
+module.exports.postPoamApprover = async function postPoamApprover(req) {
     if (!req.body.approvalStatus) req.body.approvalStatus = 'Not Reviewed';
     if (!req.body.approvedDate) req.body.approvedDate = null;
     if (!req.body.comments) req.body.comments = null;
@@ -111,7 +111,7 @@ exports.postPoamApprover = async function postPoamApprover(req) {
     }
 };
 
-exports.putPoamApprover = async function putPoamApprover(req) {
+module.exports.putPoamApprover = async function putPoamApprover(req) {
     if (!req.body.approvalStatus) req.body.approvalStatus = 'Not Reviewed';
     if (!req.body.approvedDate) req.body.approvedDate = null;
     if (!req.body.comments) req.body.comments = null;
@@ -292,7 +292,7 @@ exports.putPoamApprover = async function putPoamApprover(req) {
     });
 };
 
-exports.deletePoamApprover = async function deletePoamApprover(req) {
+module.exports.deletePoamApprover = async function deletePoamApprover(req) {
     return await withConnection(async connection => {
         let sql = `DELETE FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId = ?`;
         await connection.query(sql, [req.params.poamId, req.params.userId]);

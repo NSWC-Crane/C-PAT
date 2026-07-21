@@ -23,7 +23,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate() {
+module.exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate() {
     return await withConnection(async connection => {
         let sql = `SELECT value FROM ${config.database.schema}.config WHERE config.key = 'vramUpdate';`;
         let [vramUpdate] = await connection.query(sql);
@@ -32,7 +32,7 @@ exports.getVramDataUpdatedDate = async function getVramDataUpdatedDate() {
     });
 };
 
-exports.getIAVTableData = async function getIAVTableData() {
+module.exports.getIAVTableData = async function getIAVTableData() {
     return await withConnection(async connection => {
         let sql = `
     SELECT i.*, GROUP_CONCAT(ip.pluginID) as pluginID
@@ -56,7 +56,7 @@ exports.getIAVTableData = async function getIAVTableData() {
     });
 };
 
-exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
+module.exports.mapIAVPluginIds = async function mapIAVPluginIds(mappedData) {
     return await withConnection(async connection => {
         let updatedCount = 0;
         let ignoredCount = 0;
@@ -122,7 +122,7 @@ function validatePluginID(pluginID) {
     return null;
 }
 
-exports.getIAVPluginIds = async function getIAVPluginIds() {
+module.exports.getIAVPluginIds = async function getIAVPluginIds() {
     return await withConnection(async connection => {
         let sql = `SELECT DISTINCT pluginID FROM ${config.database.schema}.iav_plugin`;
         let [pluginIDs] = await connection.query(sql);
@@ -134,7 +134,7 @@ exports.getIAVPluginIds = async function getIAVPluginIds() {
     });
 };
 
-exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
+module.exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(pluginIDs) {
     if (!Array.isArray(pluginIDs) || pluginIDs.length === 0) {
         logger.writeWarn('No valid plugin IDs provided');
         return [];

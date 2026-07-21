@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.checkPoamDeadlineNotifications = async function checkPoamDeadlineNotifications() {
+module.exports.checkPoamDeadlineNotifications = async function checkPoamDeadlineNotifications() {
     try {
         return await withConnection(async connection => {
             const notificationsSent = {

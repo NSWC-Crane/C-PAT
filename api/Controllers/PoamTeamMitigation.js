@@ -11,7 +11,7 @@
 const poamTeamMitigationService = require('../Services/poamTeamMitigationService');
 const { sendError } = require('../utils/respond');
 
-exports.getPoamTeamMitigations = async function getPoamTeamMitigations(_req, res) {
+module.exports.getPoamTeamMitigations = async function getPoamTeamMitigations(_req, res) {
     try {
         const result = await poamTeamMitigationService.getPoamTeamMitigations();
 
@@ -21,7 +21,7 @@ exports.getPoamTeamMitigations = async function getPoamTeamMitigations(_req, res
     }
 };
 
-exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsByPoamId(req, res) {
+module.exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsByPoamId(req, res) {
     try {
         const result = await poamTeamMitigationService.getPoamTeamMitigationsByPoamId(req.params.poamId);
 
@@ -31,7 +31,7 @@ exports.getPoamTeamMitigationsByPoamId = async function getPoamTeamMitigationsBy
     }
 };
 
-exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res) {
+module.exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res) {
     try {
         const teamMitigation = await poamTeamMitigationService.postPoamTeamMitigation(req);
 
@@ -41,7 +41,7 @@ exports.postPoamTeamMitigation = async function postPoamTeamMitigation(req, res)
     }
 };
 
-exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, res) {
+module.exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, res) {
     try {
         const teamMitigation = await poamTeamMitigationService.updatePoamTeamMitigation(req);
 
@@ -51,7 +51,7 @@ exports.updatePoamTeamMitigation = async function updatePoamTeamMitigation(req, 
     }
 };
 
-exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req, res) {
+module.exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req, res) {
     try {
         const teamMitigation = await poamTeamMitigationService.updatePoamTeamMitigationStatus(req);
 
@@ -61,7 +61,7 @@ exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigation
     }
 };
 
-exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req, res) {
+module.exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req, res) {
     try {
         await poamTeamMitigationService.deletePoamTeamMitigation(req);
 

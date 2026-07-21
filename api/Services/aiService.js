@@ -130,7 +130,7 @@ async function getAIModel() {
     }
 }
 
-exports.generateMitigation = async function generateMitigation(req) {
+module.exports.generateMitigation = async function generateMitigation(req) {
     if (!config.ai.enabled) {
         throw new SmError.ClientError('AI is disabled');
     }

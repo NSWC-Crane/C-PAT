@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collectionId) {
+module.exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collectionId) {
     return await withConnection(async connection => {
         let sql = `
             SELECT l.labelName, COUNT(pl.labelId) AS labelCount
@@ -42,7 +42,7 @@ exports.getCollectionAssetLabel = async function getCollectionAssetLabel(collect
     });
 };
 
-exports.getCollectionPoamStatus = async function getCollectionPoamStatus(collectionId) {
+module.exports.getCollectionPoamStatus = async function getCollectionPoamStatus(collectionId) {
     return await withConnection(async connection => {
         let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY status;`;
         let [rows] = await connection.query(sql, [collectionId]);
@@ -61,7 +61,7 @@ exports.getCollectionPoamStatus = async function getCollectionPoamStatus(collect
     });
 };
 
-exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectionId) {
+module.exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectionId) {
     return await withConnection(async connection => {
         let sql = `
             SELECT l.labelName, COUNT(pl.labelId) AS labelCount
@@ -82,7 +82,7 @@ exports.getCollectionPoamLabel = async function getCollectionPoamLabel(collectio
     });
 };
 
-exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(collectionId) {
+module.exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(collectionId) {
     return await withConnection(async connection => {
         let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam WHERE collectionId = ?  GROUP BY rawSeverity;`;
         let [rows] = await connection.query(sql, [collectionId]);
@@ -102,7 +102,7 @@ exports.getCollectionPoamSeverity = async function getCollectionPoamSeverity(col
     });
 };
 
-exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(collectionId) {
+module.exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamScheduledCompletion(collectionId) {
     return await withConnection(async connection => {
         let sql = `
             SELECT DATEDIFF(scheduledCompletionDate, CURDATE()) AS daysUntilCompletion
@@ -143,7 +143,7 @@ exports.getCollectionPoamScheduledCompletion = async function getCollectionPoamS
     });
 };
 
-exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
+module.exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT l.labelName, COUNT(pl.labelId) AS labelCount
@@ -187,7 +187,7 @@ exports.getAvailableAssetLabel = async function getAvailableAssetLabel(req) {
     });
 };
 
-exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
+module.exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
     return await withConnection(async connection => {
         let sql = `SELECT status, COUNT(*) AS statusCount FROM ${config.database.schema}.poam`;
         let params = [];
@@ -225,7 +225,7 @@ exports.getAvailablePoamStatus = async function getAvailablePoamStatus(req) {
     });
 };
 
-exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
+module.exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT l.labelName, COUNT(pl.labelId) AS labelCount
@@ -269,7 +269,7 @@ exports.getAvailablePoamLabel = async function getAvailablePoamLabel(req) {
     });
 };
 
-exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) {
+module.exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) {
     return await withConnection(async connection => {
         let sql = `SELECT rawSeverity, COUNT(*) AS severityCount FROM ${config.database.schema}.poam`;
         let params = [];
@@ -307,7 +307,7 @@ exports.getAvailablePoamSeverity = async function getAvailablePoamSeverity(req) 
     });
 };
 
-exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(collectionId, months = 12) {
+module.exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(collectionId, months = 12) {
     return await withConnection(async connection => {
         const summarySql = `
             SELECT rawSeverity,
@@ -359,7 +359,7 @@ exports.getCollectionPoamMTTR = async function getCollectionPoamMTTR(collectionI
     });
 };
 
-exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req) {
+module.exports.getAvailablePoamMTTR = async function getAvailablePoamMTTR(req) {
     const months = Number.parseInt(req.query?.months, 10) || 12;
 
     return await withConnection(async connection => {

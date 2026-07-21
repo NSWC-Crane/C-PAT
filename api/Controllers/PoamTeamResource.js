@@ -11,7 +11,7 @@
 const poamTeamResourceService = require('../Services/poamTeamResourceService');
 const { sendError } = require('../utils/respond');
 
-exports.getPoamTeamResources = async function getPoamTeamResources(_req, res) {
+module.exports.getPoamTeamResources = async function getPoamTeamResources(_req, res) {
     try {
         const result = await poamTeamResourceService.getPoamTeamResources();
 
@@ -21,7 +21,7 @@ exports.getPoamTeamResources = async function getPoamTeamResources(_req, res) {
     }
 };
 
-exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoamId(req, res) {
+module.exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoamId(req, res) {
     try {
         const result = await poamTeamResourceService.getPoamTeamResourcesByPoamId(req.params.poamId);
 
@@ -31,7 +31,7 @@ exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoam
     }
 };
 
-exports.postPoamTeamResource = async function postPoamTeamResource(req, res) {
+module.exports.postPoamTeamResource = async function postPoamTeamResource(req, res) {
     try {
         const teamResource = await poamTeamResourceService.postPoamTeamResource(req);
 
@@ -41,7 +41,7 @@ exports.postPoamTeamResource = async function postPoamTeamResource(req, res) {
     }
 };
 
-exports.updatePoamTeamResource = async function updatePoamTeamResource(req, res) {
+module.exports.updatePoamTeamResource = async function updatePoamTeamResource(req, res) {
     try {
         const teamResource = await poamTeamResourceService.updatePoamTeamResource(req);
 
@@ -51,7 +51,7 @@ exports.updatePoamTeamResource = async function updatePoamTeamResource(req, res)
     }
 };
 
-exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStatus(req, res) {
+module.exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStatus(req, res) {
     try {
         const teamResource = await poamTeamResourceService.updatePoamTeamResourceStatus(req);
 
@@ -61,7 +61,7 @@ exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStat
     }
 };
 
-exports.deletePoamTeamResource = async function deletePoamTeamResource(req, res) {
+module.exports.deletePoamTeamResource = async function deletePoamTeamResource(req, res) {
     try {
         await poamTeamResourceService.deletePoamTeamResource(req);
 

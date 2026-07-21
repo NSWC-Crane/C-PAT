@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamExtension = async function (poamId) {
+module.exports.getPoamExtension = async function (poamId) {
     return withConnection(async connection => {
         let sql = `SELECT poamId, extensionDays, extensionDeadline, extensionJustification, scheduledCompletionDate FROM ${config.database.schema}.poam WHERE poamId = ?`;
         let [poamExtensions] = await connection.query(sql, [poamId]);
@@ -35,7 +35,7 @@ exports.getPoamExtension = async function (poamId) {
     });
 };
 
-exports.putPoamExtension = async function (req) {
+module.exports.putPoamExtension = async function (req) {
     if (!req.body.poamId) {
         throw new SmError.ClientError('poamId is required');
     }
@@ -109,7 +109,7 @@ exports.putPoamExtension = async function (req) {
     });
 };
 
-exports.deletePoamExtension = async function (poamId) {
+module.exports.deletePoamExtension = async function (poamId) {
     return withConnection(async connection => {
         let sql = `UPDATE ${config.database.schema}.poam SET extensionDays = 0, extensionJustification = NULL WHERE poamId = ?`;
         await connection.query(sql, [poamId]);

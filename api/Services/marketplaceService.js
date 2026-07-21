@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAllThemes = async function getAllThemes() {
+module.exports.getAllThemes = async function getAllThemes() {
     return await withConnection(async connection => {
         const sql = `SELECT * FROM ${config.database.schema}.themes`;
         const [rows] = await connection.query(sql);
@@ -30,7 +30,7 @@ exports.getAllThemes = async function getAllThemes() {
     });
 };
 
-exports.purchaseTheme = async function purchaseTheme(userId, themeId) {
+module.exports.purchaseTheme = async function purchaseTheme(userId, themeId) {
     if (!themeId) {
         throw new SmError.ClientError('themeId is required');
     }
@@ -64,7 +64,7 @@ exports.purchaseTheme = async function purchaseTheme(userId, themeId) {
     });
 };
 
-exports.getUserThemes = async function getUserThemes(userId) {
+module.exports.getUserThemes = async function getUserThemes(userId) {
     return await withConnection(async connection => {
         const sql = `SELECT themes.* FROM ${config.database.schema}.themes
                      JOIN ${config.database.schema}.marketplace ON themes.themeId = marketplace.themeId
@@ -74,7 +74,7 @@ exports.getUserThemes = async function getUserThemes(userId) {
     });
 };
 
-exports.getUserPoints = async function getUserPoints(userId) {
+module.exports.getUserPoints = async function getUserPoints(userId) {
     return await withConnection(async connection => {
         const sql = `SELECT userId, points FROM ${config.database.schema}.user WHERE userId = ?`;
         const [row] = await connection.query(sql, [userId]);

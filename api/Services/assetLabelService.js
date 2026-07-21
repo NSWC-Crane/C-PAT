@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAssetLabels = async function getAssetLabels(req) {
+module.exports.getAssetLabels = async function getAssetLabels(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.assetId, assetName, t1.labelId, labelName, t2.collectionId
@@ -43,7 +43,7 @@ exports.getAssetLabels = async function getAssetLabels(req) {
     });
 };
 
-exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req) {
+module.exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.assetId, assetName, t1.labelId, labelName, t2.collectionId
@@ -65,7 +65,7 @@ exports.getAssetLabelsByAsset = async function getAssetLabelsByAsset(req) {
     });
 };
 
-exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req) {
+module.exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.assetId, assetName, t1.labelId, labelName, t2.collectionId
@@ -87,7 +87,7 @@ exports.getAssetLabelsByLabel = async function getAssetLabelsByLabel(req) {
     });
 };
 
-exports.getAssetLabel = async function getAssetLabel(req) {
+module.exports.getAssetLabel = async function getAssetLabel(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.assetId, assetName, t1.labelId, labelName, t2.collectionId
@@ -103,7 +103,7 @@ exports.getAssetLabel = async function getAssetLabel(req) {
     });
 };
 
-exports.postAssetLabel = async function postAssetLabel(req) {
+module.exports.postAssetLabel = async function postAssetLabel(req) {
     return await withConnection(async connection => {
         let sql_query = `
             INSERT INTO ${config.database.schema}.assetlabels (assetId, collectionId, labelId)
@@ -123,7 +123,7 @@ exports.postAssetLabel = async function postAssetLabel(req) {
     });
 };
 
-exports.deleteAssetLabel = async function deleteAssetLabel(req) {
+module.exports.deleteAssetLabel = async function deleteAssetLabel(req) {
     return await withConnection(async connection => {
         let sql = `
             DELETE FROM ${config.database.schema}.assetlabels

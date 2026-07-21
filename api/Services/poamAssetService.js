@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamAssets = async function getPoamAssets() {
+module.exports.getPoamAssets = async function getPoamAssets() {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.assetId, t2.assetName, t1.poamId
@@ -38,7 +38,7 @@ exports.getPoamAssets = async function getPoamAssets() {
     });
 };
 
-exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req) {
+module.exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.assetId, assetName, t1.poamId
@@ -56,7 +56,7 @@ exports.getPoamAssetsByPoamId = async function getPoamAssetsByPoamId(req) {
     });
 };
 
-exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req) {
+module.exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT DISTINCT pa.assetId, a.assetName, pa.poamId
@@ -74,7 +74,7 @@ exports.getPoamAssetsByCollectionId = async function getPoamAssetsByCollectionId
     });
 };
 
-exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req) {
+module.exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req) {
     return await withConnection(async connection => {
         let sql = `DELETE FROM ${config.database.schema}.poamassets WHERE poamId = ?`;
         await connection.query(sql, [req.params.poamId]);
@@ -82,7 +82,7 @@ exports.deletePoamAssetByPoamId = async function deletePoamAssetByPoamId(req) {
     });
 };
 
-exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req) {
+module.exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.assetId, t2.assetName, t1.poamId
@@ -100,7 +100,7 @@ exports.getPoamAssetsByAssetId = async function getPoamAssetsByAssetId(req) {
     });
 };
 
-exports.postPoamAsset = async function postPoamAsset(req) {
+module.exports.postPoamAsset = async function postPoamAsset(req) {
     try {
         return await withConnection(async connection => {
             let sql_query = `INSERT INTO ${config.database.schema}.poamassets (assetId, poamId) VALUES (?, ?)`;
@@ -138,7 +138,7 @@ exports.postPoamAsset = async function postPoamAsset(req) {
     }
 };
 
-exports.deletePoamAsset = async function deletePoamAsset(req) {
+module.exports.deletePoamAsset = async function deletePoamAsset(req) {
     return await withConnection(async connection => {
         let sql = `DELETE FROM ${config.database.schema}.poamassets WHERE assetId = ? AND poamId = ?`;
         await connection.query(sql, [req.params.assetId, req.params.poamId]);

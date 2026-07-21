@@ -24,7 +24,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamAttachmentsByPoamId = async function (req) {
+module.exports.getPoamAttachmentsByPoamId = async function (req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT attachmentId, poamId, filename, fileSize, mimeType, uploadDate, uploadedBy
@@ -44,7 +44,7 @@ exports.getPoamAttachmentsByPoamId = async function (req) {
     });
 };
 
-exports.downloadPoamAttachment = async function (req) {
+module.exports.downloadPoamAttachment = async function (req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT filename, fileSize, mimeType, fileContent
@@ -188,7 +188,7 @@ async function validateFile(file) {
     return { isValid: true, hash };
 }
 
-exports.postPoamAttachment = async function (req, userId) {
+module.exports.postPoamAttachment = async function (req, userId) {
     const file = req.files[0];
     const validationResult = await validateFile(file);
 
@@ -218,7 +218,7 @@ exports.postPoamAttachment = async function (req, userId) {
     });
 };
 
-exports.deletePoamAttachment = async function (req, userId) {
+module.exports.deletePoamAttachment = async function (req, userId) {
     return await withConnection(async connection => {
         let fetchSql = `SELECT filename FROM ${config.database.schema}.poamattachments WHERE attachmentId = ? AND poamId = ?`;
         let [[attachment]] = await connection.query(fetchSql, [req.params.attachmentId, req.params.poamId]);

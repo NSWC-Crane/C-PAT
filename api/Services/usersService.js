@@ -23,7 +23,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getUsers = async function getUsers(elevate, req) {
+module.exports.getUsers = async function getUsers(elevate, req) {
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
@@ -81,7 +81,7 @@ exports.getUsers = async function getUsers(elevate, req) {
     });
 };
 
-exports.getCurrentUser = async function getCurrentUser(req) {
+module.exports.getCurrentUser = async function getCurrentUser(req) {
     return await withConnection(async connection => {
         const sqlUser = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
         const [userRows] = await connection.query(sqlUser, [req.userObject.userId]);
@@ -138,7 +138,7 @@ exports.getCurrentUser = async function getCurrentUser(req) {
     });
 };
 
-exports.getUserByUserID = async function getUserByUserID(req, elevate) {
+module.exports.getUserByUserID = async function getUserByUserID(req, elevate) {
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
@@ -199,7 +199,7 @@ exports.getUserByUserID = async function getUserByUserID(req, elevate) {
     });
 };
 
-exports.getUserByUserName = async function getUserByUserName(userName) {
+module.exports.getUserByUserName = async function getUserByUserName(userName) {
     return await withConnection(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.user WHERE userName = ?`;
         const [userRows] = await connection.query(sql, [userName]);
@@ -247,7 +247,7 @@ exports.getUserByUserName = async function getUserByUserName(userName) {
     });
 };
 
-exports.updateUser = async function updateUser(_userId, elevate, req) {
+module.exports.updateUser = async function updateUser(_userId, elevate, req) {
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
@@ -283,7 +283,7 @@ exports.updateUser = async function updateUser(_userId, elevate, req) {
     });
 };
 
-exports.updateUserTheme = async function updateUserTheme(userId, defaultTheme) {
+module.exports.updateUserTheme = async function updateUserTheme(userId, defaultTheme) {
     return await withConnection(async connection => {
         let sql = `UPDATE ${config.database.schema}.user SET defaultTheme = ? WHERE userId = ?`;
 
@@ -291,7 +291,7 @@ exports.updateUserTheme = async function updateUserTheme(userId, defaultTheme) {
     });
 };
 
-exports.setUserPoints = async function setUserPoints(userId, points) {
+module.exports.setUserPoints = async function setUserPoints(userId, points) {
     return await withConnection(async connection => {
         let sql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
 
@@ -299,15 +299,15 @@ exports.setUserPoints = async function setUserPoints(userId, points) {
     });
 };
 
-exports.updateUserPoints = async function updateUserPoints(elevate, req) {
+module.exports.updateUserPoints = async function updateUserPoints(elevate, req) {
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
 
-    return await exports.setUserPoints(req.body.userId, req.body.points);
+    return await module.exports.setUserPoints(req.body.userId, req.body.points);
 };
 
-exports.hourlyPoints = async function hourlyPoints(userId) {
+module.exports.hourlyPoints = async function hourlyPoints(userId) {
     return await withConnection(async connection => {
         let findUserSql = `SELECT points from ${config.database.schema}.user WHERE userId = ?`;
         const [response] = await connection.query(findUserSql, [userId]);
@@ -321,7 +321,7 @@ exports.hourlyPoints = async function hourlyPoints(userId) {
     });
 };
 
-exports.dailyPoints = async function dailyPoints(userId) {
+module.exports.dailyPoints = async function dailyPoints(userId) {
     return await withConnection(async connection => {
         let findUserSql = `SELECT points from ${config.database.schema}.user WHERE userId = ?`;
         const [response] = await connection.query(findUserSql, [userId]);
@@ -335,14 +335,14 @@ exports.dailyPoints = async function dailyPoints(userId) {
     });
 };
 
-exports.updateUserLastCollectionAccessed = async function updateUserLastCollectionAccessed(userId, lastCollectionAccessedId) {
+module.exports.updateUserLastCollectionAccessed = async function updateUserLastCollectionAccessed(userId, lastCollectionAccessedId) {
     return await withConnection(async connection => {
         let sql = `UPDATE ${config.database.schema}.user SET lastCollectionAccessedId = ? WHERE userId = ?`;
         await connection.query(sql, [lastCollectionAccessedId, userId]);
     });
 };
 
-exports.createUser = async function createUser(elevate, req) {
+module.exports.createUser = async function createUser(elevate, req) {
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
@@ -409,7 +409,7 @@ exports.createUser = async function createUser(elevate, req) {
     });
 };
 
-exports.setUserData = async function setUserData(userObject, fields, newUser) {
+module.exports.setUserData = async function setUserData(userObject, fields, newUser) {
     return await withConnection(async connection => {
         let insertColumns = ['userName'];
         let updateColumns = ['userId = LAST_INSERT_ID(userId)'];
@@ -457,7 +457,7 @@ exports.setUserData = async function setUserData(userObject, fields, newUser) {
     });
 };
 
-exports.setLastAccess = async function (userId, timestamp) {
+module.exports.setLastAccess = async function (userId, timestamp) {
     return await withConnection(async connection => {
         let sql = `UPDATE ${config.database.schema}.user SET lastAccess = ? where userId = ?`;
         await connection.query(sql, [timestamp, userId]);
@@ -465,7 +465,7 @@ exports.setLastAccess = async function (userId, timestamp) {
     });
 };
 
-exports.disableUser = async function disableUser(userId, elevate, req) {
+module.exports.disableUser = async function disableUser(userId, elevate, req) {
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
@@ -488,5 +488,5 @@ exports.disableUser = async function disableUser(userId, elevate, req) {
         }
     });
 
-    await exports.updateUserLastCollectionAccessed(userId, 0);
+    await module.exports.updateUserLastCollectionAccessed(userId, 0);
 };

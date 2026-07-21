@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamTeamResources = async function getPoamTeamResources() {
+module.exports.getPoamTeamResources = async function getPoamTeamResources() {
     return await withConnection(async connection => {
         let sql = `
             SELECT ptr.resourceId, ptr.poamId, ptr.assignedTeamId, ptr.resourceText, ptr.isActive,
@@ -44,7 +44,7 @@ exports.getPoamTeamResources = async function getPoamTeamResources() {
     });
 };
 
-exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoamId(poamId) {
+module.exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoamId(poamId) {
     if (!poamId) {
         throw new Error('getPoamTeamResourcesByPoamId: poamId is required');
     }
@@ -71,7 +71,7 @@ exports.getPoamTeamResourcesByPoamId = async function getPoamTeamResourcesByPoam
     });
 };
 
-exports.postPoamTeamResource = async function postPoamTeamResource(req) {
+module.exports.postPoamTeamResource = async function postPoamTeamResource(req) {
     if (!req.body.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }
@@ -140,7 +140,7 @@ exports.postPoamTeamResource = async function postPoamTeamResource(req) {
     });
 };
 
-exports.updatePoamTeamResource = async function updatePoamTeamResource(req) {
+module.exports.updatePoamTeamResource = async function updatePoamTeamResource(req) {
     if (!req.params.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }
@@ -176,7 +176,7 @@ exports.updatePoamTeamResource = async function updatePoamTeamResource(req) {
     });
 };
 
-exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStatus(req) {
+module.exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStatus(req) {
     if (!req.params.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }
@@ -248,7 +248,7 @@ exports.updatePoamTeamResourceStatus = async function updatePoamTeamResourceStat
     });
 };
 
-exports.deletePoamTeamResource = async function deletePoamTeamResource(req) {
+module.exports.deletePoamTeamResource = async function deletePoamTeamResource(req) {
     if (!req.params.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }

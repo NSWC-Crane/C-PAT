@@ -23,5 +23,5 @@ if (config.tenable.tls.key_file) {
     clientKey = fs.readFileSync(path.join(__dirname, '..', 'tls', config.tenable.tls.key_file));
 }
 
-exports.clientCert = clientCert;
-exports.clientKey = clientKey;
+module.exports.clientCert = clientCert;
+module.exports.clientKey = clientKey;

@@ -35,7 +35,7 @@ function normalizeDate(date) {
     return d.toISOString().split('T')[0];
 }
 
-exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
+module.exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT p.*,
@@ -118,7 +118,7 @@ exports.getAvailablePoams = async function getAvailablePoams(userId, req) {
     });
 };
 
-exports.getPoam = async function getPoam(req) {
+module.exports.getPoam = async function getPoam(req) {
     if (!req.params.poamId) {
         throw new SmError.ClientError('poamId is required');
     }
@@ -184,7 +184,7 @@ exports.getPoam = async function getPoam(req) {
     });
 };
 
-exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req) {
+module.exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req) {
     if (!req.params.collectionId) {
         throw new SmError.ClientError('collectionId is required');
     }
@@ -256,7 +256,7 @@ exports.getPoamsByCollectionId = async function getPoamsByCollectionId(req) {
     });
 };
 
-exports.getPoamsByOwnership = async function getPoamsByOwnership(req) {
+module.exports.getPoamsByOwnership = async function getPoamsByOwnership(req) {
     if (!req.params.userId) {
         throw new SmError.ClientError('userId is required');
     }
@@ -319,7 +319,7 @@ exports.getPoamsByOwnership = async function getPoamsByOwnership(req) {
     });
 };
 
-exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam() {
+module.exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam() {
     return await withConnection(async connection => {
         let sql = `
                 SELECT poamId, status, vulnerabilityId
@@ -339,7 +339,7 @@ exports.getVulnerabilityIdsWithPoam = async function getVulnerabilityIdsWithPoam
     });
 };
 
-exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilityIdsWithPoamByCollection(req) {
+module.exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilityIdsWithPoamByCollection(req) {
     return await withConnection(async connection => {
         let sql = `
                 SELECT poamId, status, vulnerabilityId, vulnerabilityTitle, NULL as parentPoamId, NULL as parentStatus
@@ -361,7 +361,7 @@ exports.getVulnerabilityIdsWithPoamByCollection = async function getVulnerabilit
     });
 };
 
-exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnerabilityIdsWithTaskOrderByCollection(req) {
+module.exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnerabilityIdsWithTaskOrderByCollection(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT poamId, status, vulnerabilityId, taskOrderNumber
@@ -383,7 +383,7 @@ exports.getVulnerabilityIdsWithTaskOrderByCollection = async function getVulnera
     });
 };
 
-exports.postPoam = async function postPoam(req) {
+module.exports.postPoam = async function postPoam(req) {
     const requiredFields = ['collectionId', 'vulnerabilitySource', 'rawSeverity', 'submitterId'];
     for (let field of requiredFields) {
         if (!req.body[field]) {
@@ -629,7 +629,7 @@ exports.postPoam = async function postPoam(req) {
     });
 };
 
-exports.putPoam = async function putPoam(req) {
+module.exports.putPoam = async function putPoam(req) {
     const requiredFields = ['poamId', 'collectionId', 'vulnerabilitySource', 'rawSeverity', 'submitterId'];
     let missingField = requiredFields.find(field => !req.body[field]);
     if (missingField) {
@@ -1019,7 +1019,7 @@ exports.putPoam = async function putPoam(req) {
     });
 };
 
-exports.updatePoamStatus = async function updatePoamStatus(req) {
+module.exports.updatePoamStatus = async function updatePoamStatus(req) {
     if (!req.params.poamId) {
         throw new SmError.ClientError('poamId is required');
     }
@@ -1080,7 +1080,7 @@ exports.updatePoamStatus = async function updatePoamStatus(req) {
     });
 };
 
-exports.deletePoam = async function deletePoam(req) {
+module.exports.deletePoam = async function deletePoam(req) {
     if (!req.params.poamId) {
         throw new SmError.ClientError('poamId is required');
     }

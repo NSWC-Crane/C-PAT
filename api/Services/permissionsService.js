@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getCollectionPermissions = async function getCollectionPermissions(req) {
+module.exports.getCollectionPermissions = async function getCollectionPermissions(req) {
     if (!req.params.collectionId) {
         throw new SmError.ClientError('collectionId is required');
     }
@@ -40,7 +40,7 @@ exports.getCollectionPermissions = async function getCollectionPermissions(req) 
     });
 };
 
-exports.postPermission = async function postPermission(_userId, elevate, req) {
+module.exports.postPermission = async function postPermission(_userId, elevate, req) {
     if (!req.body.userId) {
         throw new SmError.ClientError('userId is required');
     }
@@ -81,7 +81,7 @@ exports.postPermission = async function postPermission(_userId, elevate, req) {
     }
 };
 
-exports.putPermission = async function putPermission(_userId, elevate, req) {
+module.exports.putPermission = async function putPermission(_userId, elevate, req) {
     if (!req.body.userId) {
         throw new SmError.ClientError('userId is required');
     }
@@ -110,7 +110,7 @@ exports.putPermission = async function putPermission(_userId, elevate, req) {
     });
 };
 
-exports.deletePermission = async function deletePermission(_userId, elevate, req) {
+module.exports.deletePermission = async function deletePermission(_userId, elevate, req) {
     if (!req.params.userId) {
         throw new SmError.ClientError('userId is required');
     }

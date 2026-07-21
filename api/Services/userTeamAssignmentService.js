@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getTeamAssignments = async function getTeamAssignments(req) {
+module.exports.getTeamAssignments = async function getTeamAssignments(req) {
     if (!req.params.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }
@@ -38,7 +38,7 @@ exports.getTeamAssignments = async function getTeamAssignments(req) {
     });
 };
 
-exports.postTeamAssignment = async function postTeamAssignment(_userId, elevate, req) {
+module.exports.postTeamAssignment = async function postTeamAssignment(_userId, elevate, req) {
     if (!req.body.userId) {
         throw new SmError.ClientError('userId is required');
     }
@@ -79,7 +79,7 @@ exports.postTeamAssignment = async function postTeamAssignment(_userId, elevate,
     }
 };
 
-exports.putTeamAssignment = async function putTeamAssignment(_userId, elevate, req) {
+module.exports.putTeamAssignment = async function putTeamAssignment(_userId, elevate, req) {
     if (!req.body.userId) {
         throw new SmError.ClientError('userId is required');
     }
@@ -108,7 +108,7 @@ exports.putTeamAssignment = async function putTeamAssignment(_userId, elevate, r
     });
 };
 
-exports.deleteTeamAssignment = async function deleteTeamAssignment(_userId, elevate, req) {
+module.exports.deleteTeamAssignment = async function deleteTeamAssignment(_userId, elevate, req) {
     if (!req.params.userId) {
         throw new SmError.ClientError('userId is required');
     }

@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAssignedTeams = async function getAssignedTeams() {
+module.exports.getAssignedTeams = async function getAssignedTeams() {
     return await withConnection(async connection => {
         let sql = `
             SELECT
@@ -56,7 +56,7 @@ exports.getAssignedTeams = async function getAssignedTeams() {
     });
 };
 
-exports.getAssignedTeam = async function getAssignedTeam(req) {
+module.exports.getAssignedTeam = async function getAssignedTeam(req) {
     return await withConnection(async connection => {
         let sql = `
             SELECT
@@ -96,7 +96,7 @@ exports.getAssignedTeam = async function getAssignedTeam(req) {
     });
 };
 
-exports.postAssignedTeam = async function postAssignedTeam(req) {
+module.exports.postAssignedTeam = async function postAssignedTeam(req) {
     return await withConnection(async connection => {
         let sql_query = `INSERT INTO ${config.database.schema}.assignedteams (assignedTeamName, adTeam) VALUES (?, ?)`;
         await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam]);
@@ -113,7 +113,7 @@ exports.postAssignedTeam = async function postAssignedTeam(req) {
     });
 };
 
-exports.putAssignedTeam = async function putAssignedTeam(req) {
+module.exports.putAssignedTeam = async function putAssignedTeam(req) {
     return await withConnection(async connection => {
         let sql_query = `UPDATE ${config.database.schema}.assignedteams SET assignedTeamName = ?, adTeam = ? WHERE assignedTeamId = ?`;
         await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam, req.body.assignedTeamId]);
@@ -127,7 +127,7 @@ exports.putAssignedTeam = async function putAssignedTeam(req) {
     });
 };
 
-exports.deleteAssignedTeam = async function deleteAssignedTeam(req) {
+module.exports.deleteAssignedTeam = async function deleteAssignedTeam(req) {
     return await withConnection(async connection => {
         let sql = `DELETE FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
         await connection.query(sql, [req.params.assignedTeamId]);
@@ -136,7 +136,7 @@ exports.deleteAssignedTeam = async function deleteAssignedTeam(req) {
     });
 };
 
-exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req) {
+module.exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req) {
     return await withConnection(async connection => {
         const { assignedTeamId, collectionId } = req.body;
 
@@ -155,7 +155,7 @@ exports.postAssignedTeamPermission = async function postAssignedTeamPermission(r
     });
 };
 
-exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req) {
+module.exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req) {
     return await withConnection(async connection => {
         const { assignedTeamId, collectionId } = req.params;
 

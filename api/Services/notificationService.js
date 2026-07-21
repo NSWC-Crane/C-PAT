@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAllNotifications = async function getAllNotifications(userId) {
+module.exports.getAllNotifications = async function getAllNotifications(userId) {
     return await withConnection(async connection => {
         const sql = `SELECT * FROM ${config.database.schema}.notification WHERE userId = ? ORDER BY timestamp DESC`;
         const [rows] = await connection.query(sql, [userId]);
@@ -30,7 +30,7 @@ exports.getAllNotifications = async function getAllNotifications(userId) {
     });
 };
 
-exports.getUnreadNotifications = async function getUnreadNotifications(userId) {
+module.exports.getUnreadNotifications = async function getUnreadNotifications(userId) {
     return await withConnection(async connection => {
         const sql = `SELECT * FROM ${config.database.schema}.notification WHERE notification.read = 0 AND userId = ? ORDER BY timestamp DESC`;
         const [rows] = await connection.query(sql, [userId]);
@@ -38,7 +38,7 @@ exports.getUnreadNotifications = async function getUnreadNotifications(userId) {
     });
 };
 
-exports.getUnreadNotificationCount = async function getUnreadNotificationCount(userId) {
+module.exports.getUnreadNotificationCount = async function getUnreadNotificationCount(userId) {
     return await withConnection(async connection => {
         const sql = `SELECT COUNT(userId) AS NotificationCount FROM ${config.database.schema}.notification WHERE notification.read = 0 AND userId = ?`;
         const [rows] = await connection.query(sql, [userId]);
@@ -46,7 +46,7 @@ exports.getUnreadNotificationCount = async function getUnreadNotificationCount(u
     });
 };
 
-exports.dismissNotification = async function dismissNotification(userId, notificationId) {
+module.exports.dismissNotification = async function dismissNotification(userId, notificationId) {
     return await withConnection(async connection => {
         const existsSql = `SELECT notificationId FROM ${config.database.schema}.notification WHERE notificationId = ? AND userId = ?`;
         const [existing] = await connection.query(existsSql, [notificationId, userId]);
@@ -65,7 +65,7 @@ exports.dismissNotification = async function dismissNotification(userId, notific
     });
 };
 
-exports.dismissAllNotifications = async function dismissAllNotifications(userId) {
+module.exports.dismissAllNotifications = async function dismissAllNotifications(userId) {
     return await withConnection(async connection => {
         const sql = `UPDATE ${config.database.schema}.notification SET notification.read = 1 WHERE userId = ?`;
         const [result] = await connection.query(sql, [userId]);
@@ -76,7 +76,7 @@ exports.dismissAllNotifications = async function dismissAllNotifications(userId)
     });
 };
 
-exports.deleteNotification = async function deleteNotification(userId, notificationId) {
+module.exports.deleteNotification = async function deleteNotification(userId, notificationId) {
     return await withConnection(async connection => {
         const sql = `DELETE FROM ${config.database.schema}.notification WHERE notificationId = ? AND userId = ?`;
         const [result] = await connection.query(sql, [notificationId, userId]);
@@ -87,7 +87,7 @@ exports.deleteNotification = async function deleteNotification(userId, notificat
     });
 };
 
-exports.deleteAllNotifications = async function deleteAllNotifications(userId) {
+module.exports.deleteAllNotifications = async function deleteAllNotifications(userId) {
     return await withConnection(async connection => {
         const sql = `DELETE FROM ${config.database.schema}.notification WHERE userId = ?`;
         const [result] = await connection.query(sql, [userId]);

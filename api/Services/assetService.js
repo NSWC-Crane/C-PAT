@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAssetsByCollection = async function getAssetsByCollection(req) {
+module.exports.getAssetsByCollection = async function getAssetsByCollection(req) {
     return await withConnection(async connection => {
         const sql = `SELECT * FROM ${config.database.schema}.asset WHERE collectionId = ? ORDER BY assetName;`;
         let [rowAssets] = await connection.query(sql, [req.params.collectionId]);
@@ -38,7 +38,7 @@ exports.getAssetsByCollection = async function getAssetsByCollection(req) {
     });
 };
 
-exports.getAsset = async function getAsset(req) {
+module.exports.getAsset = async function getAsset(req) {
     return await withConnection(async connection => {
         const sql = `SELECT * FROM  ${config.database.schema}.asset WHERE assetId = ?`;
         let [rowAssets] = await connection.execute(sql, [req.params.assetId]);
@@ -57,7 +57,7 @@ exports.getAsset = async function getAsset(req) {
     });
 };
 
-exports.getAssetByName = async function getAssetByName(req) {
+module.exports.getAssetByName = async function getAssetByName(req) {
     return await withConnection(async connection => {
         const sql = `SELECT * FROM ${config.database.schema}.asset WHERE assetName = ?`;
         let [rowAssets] = await connection.execute(sql, [req.params.assetName]);
@@ -76,7 +76,7 @@ exports.getAssetByName = async function getAssetByName(req) {
     });
 };
 
-exports.postAsset = async function postAsset(req) {
+module.exports.postAsset = async function postAsset(req) {
     return await withConnection(async connection => {
         let sql_query = `
             INSERT INTO ${config.database.schema}.asset (assetName, fullyQualifiedDomainName,
@@ -107,7 +107,7 @@ exports.postAsset = async function postAsset(req) {
     });
 };
 
-exports.putAsset = async function putAsset(req) {
+module.exports.putAsset = async function putAsset(req) {
     if (!req.body.description) req.body.description = '';
     if (!req.body.fullyQualifiedDomainName) req.body.fullyQualifiedDomainName = '';
     if (!req.body.macAddress) req.body.macAddress = '';
@@ -143,7 +143,7 @@ exports.putAsset = async function putAsset(req) {
     });
 };
 
-exports.deleteAsset = async function deleteAsset(req) {
+module.exports.deleteAsset = async function deleteAsset(req) {
     return await withConnection(async connection => {
         let sql = `DELETE FROM ${config.database.schema}.asset WHERE assetId = ?`;
         await connection.query(sql, [req.params.assetId]);
@@ -151,7 +151,7 @@ exports.deleteAsset = async function deleteAsset(req) {
     });
 };
 
-exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req) {
+module.exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req) {
     return await withConnection(async connection => {
         let findAssetSql = `SELECT * FROM ${config.database.schema}.poamassets WHERE poamId = ?`;
         const [rowAssets] = await connection.query(findAssetSql, [req.params.poamId]);
@@ -165,7 +165,7 @@ exports.deleteAssetsByPoamId = async function deleteAssetsByPoamId(req) {
     });
 };
 
-exports.getAssetDeltaList = async function getAssetDeltaList() {
+module.exports.getAssetDeltaList = async function getAssetDeltaList() {
     return await withConnection(async connection => {
         const assetsSql = `
             SELECT
@@ -213,7 +213,7 @@ exports.getAssetDeltaList = async function getAssetDeltaList() {
     });
 };
 
-exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollection(collectionId) {
+module.exports.getAssetDeltaListByCollection = async function getAssetDeltaListByCollection(collectionId) {
     return await withConnection(async connection => {
         const assetsSql = `
             SELECT

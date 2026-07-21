@@ -166,7 +166,7 @@ function checkTenable(url, timeoutMs = 30_000) {
     });
 }
 
-exports.recordHealthCheck = async function recordHealthCheck() {
+module.exports.recordHealthCheck = async function recordHealthCheck() {
     const start = Date.now();
     let dbUp = false;
     let response_ms = null;
@@ -183,7 +183,7 @@ exports.recordHealthCheck = async function recordHealthCheck() {
 
     if (!dbUp) return;
 
-    await exports.backfillDowntime();
+    await module.exports.backfillDowntime();
 
     const oidcUp = state.dependencyStatus.oidc ? 1 : 0;
     const systemUp = dbUp && oidcUp ? 1 : 0;
@@ -206,7 +206,7 @@ exports.recordHealthCheck = async function recordHealthCheck() {
     }
 };
 
-exports.backfillDowntime = async function backfillDowntime() {
+module.exports.backfillDowntime = async function backfillDowntime() {
     const INTERVAL_MS = 5 * 60 * 1000;
     const MAX_LOOKBACK_MS = 31 * 24 * 60 * 60 * 1000;
 
@@ -248,7 +248,7 @@ exports.backfillDowntime = async function backfillDowntime() {
     }
 };
 
-exports.pruneOldHealthChecks = async function pruneOldHealthChecks() {
+module.exports.pruneOldHealthChecks = async function pruneOldHealthChecks() {
     try {
         await withConnection(async connection => {
             await connection.query(`DELETE FROM ${config.database.schema}.healthcheck WHERE checked_at < UTC_TIMESTAMP(3) - INTERVAL 31 DAY`);
@@ -258,7 +258,7 @@ exports.pruneOldHealthChecks = async function pruneOldHealthChecks() {
     }
 };
 
-exports.getUptimeStatus = async function getUptimeStatus() {
+module.exports.getUptimeStatus = async function getUptimeStatus() {
     return await withConnection(async connection => {
         const [cpatRows] = await connection.query(`
             SELECT

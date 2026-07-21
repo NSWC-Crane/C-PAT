@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getCollections = async function getCollections(elevate, req) {
+module.exports.getCollections = async function getCollections(elevate, req) {
     return await withConnection(async connection => {
         if (elevate && req.userObject.isAdmin === true) {
             const user = {
@@ -64,7 +64,7 @@ exports.getCollections = async function getCollections(elevate, req) {
     });
 };
 
-exports.getCollectionBasicList = async function getCollectionBasicList() {
+module.exports.getCollectionBasicList = async function getCollectionBasicList() {
     return await withConnection(async connection => {
         const sql = `SELECT collectionId, collectionName, collectionType, originCollectionId, systemType, systemName, ccsafa, aaPackage, predisposingConditions, manualCreationAllowed FROM ${config.database.schema}.collection`;
         const [rows] = await connection.query(sql);
@@ -75,7 +75,7 @@ exports.getCollectionBasicList = async function getCollectionBasicList() {
     });
 };
 
-exports.postCollection = async function postCollection(req) {
+module.exports.postCollection = async function postCollection(req) {
     if (!req.body.collectionName) {
         throw new SmError.ClientError('collectionName is required');
     }
@@ -115,7 +115,7 @@ exports.postCollection = async function postCollection(req) {
     });
 };
 
-exports.putCollection = async function putCollection(req) {
+module.exports.putCollection = async function putCollection(req) {
     if (!req.body.collectionId) {
         throw new SmError.ClientError('collectionId is required');
     }
@@ -166,7 +166,7 @@ exports.putCollection = async function putCollection(req) {
     });
 };
 
-exports.deleteCollection = async function deleteCollection(req) {
+module.exports.deleteCollection = async function deleteCollection(req) {
     if (!req.params.collectionId) {
         throw new SmError.ClientError('collectionId is required');
     }

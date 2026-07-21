@@ -24,7 +24,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getConfiguration = async function () {
+module.exports.getConfiguration = async function () {
     return await withConnection(async connection => {
         let sql = `SELECT * from ${config.database.schema}.config`;
         let [rows] = await connection.query(sql);
@@ -36,7 +36,7 @@ exports.getConfiguration = async function () {
     });
 };
 
-exports.setConfigurationItem = async function (key, value) {
+module.exports.setConfigurationItem = async function (key, value) {
     return await withConnection(async connection => {
         let sql = `INSERT INTO ${config.database.schema}.config (\`key\`, \`value\`) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)`;
         await connection.query(sql, [key, value]);
@@ -44,7 +44,7 @@ exports.setConfigurationItem = async function (key, value) {
     });
 };
 
-exports.deleteConfigurationItem = async function (key) {
+module.exports.deleteConfigurationItem = async function (key) {
     return await withConnection(async connection => {
         let sql = `DELETE FROM ${config.database.schema}.config WHERE \`key\` = ?`;
         await connection.query(sql, [key]);
@@ -52,7 +52,7 @@ exports.deleteConfigurationItem = async function (key) {
     });
 };
 
-exports.getAppInfo = async function () {
+module.exports.getAppInfo = async function () {
     const schema = 'cpat-appinfo-v0.9';
     const sqlUserInfo = `
   select

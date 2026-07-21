@@ -28,7 +28,7 @@ function normalizeDate(date) {
     return d.toISOString().split('T')[0];
 }
 
-exports.getPoamMilestones = async function getPoamMilestones(poamId) {
+module.exports.getPoamMilestones = async function getPoamMilestones(poamId) {
     if (!poamId) {
         throw new SmError.ClientError('poamId is required');
     }
@@ -68,7 +68,7 @@ exports.getPoamMilestones = async function getPoamMilestones(poamId) {
     });
 };
 
-exports.postPoamMilestone = async function postPoamMilestone(poamId, req) {
+module.exports.postPoamMilestone = async function postPoamMilestone(poamId, req) {
     if (!poamId) {
         throw new SmError.ClientError('poamId is required');
     }
@@ -133,7 +133,7 @@ Milestone Comment: ${req.body.milestoneComments}`;
     });
 };
 
-exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, req) {
+module.exports.putPoamMilestone = async function putPoamMilestone(poamId, milestoneId, req) {
     if (!poamId) {
         throw new SmError.ClientError('poamId is required');
     } else if (!milestoneId) {
@@ -215,7 +215,7 @@ New Milestone Status: ${req.body.milestoneStatus}`);
     });
 };
 
-exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milestoneId, req) {
+module.exports.deletePoamMilestone = async function deletePoamMilestone(poamId, milestoneId, req) {
     if (!poamId) {
         throw new SmError.ClientError('poamId is required');
     }

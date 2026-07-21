@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getAAPackages = async function getAAPackages() {
+module.exports.getAAPackages = async function getAAPackages() {
     return await withConnection(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.aapackages;`;
         let [rowAAPackage] = await connection.query(sql);
@@ -35,7 +35,7 @@ exports.getAAPackages = async function getAAPackages() {
     });
 };
 
-exports.getAAPackage = async function getAAPackage(req) {
+module.exports.getAAPackage = async function getAAPackage(req) {
     return await withConnection(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.aapackages WHERE aaPackageId = ?`;
         let [rowAAPackage] = await connection.query(sql, [req.params.aaPackageId]);
@@ -46,7 +46,7 @@ exports.getAAPackage = async function getAAPackage(req) {
     });
 };
 
-exports.postAAPackage = async function postAAPackage(req) {
+module.exports.postAAPackage = async function postAAPackage(req) {
     return await withConnection(async connection => {
         let sql_query = `INSERT INTO ${config.database.schema}.aapackages (aapackage) VALUES (?)`;
         await connection.query(sql_query, [req.body.aaPackage]);
@@ -62,7 +62,7 @@ exports.postAAPackage = async function postAAPackage(req) {
     });
 };
 
-exports.putAAPackage = async function putAAPackage(req) {
+module.exports.putAAPackage = async function putAAPackage(req) {
     return await withConnection(async connection => {
         let sql_query = `UPDATE ${config.database.schema}.aapackages SET aaPackage = ? WHERE aaPackageId = ?`;
         await connection.query(sql_query, [req.body.aaPackage, req.body.aaPackageId]);
@@ -75,7 +75,7 @@ exports.putAAPackage = async function putAAPackage(req) {
     });
 };
 
-exports.deleteAAPackage = async function deleteAAPackage(req) {
+module.exports.deleteAAPackage = async function deleteAAPackage(req) {
     return await withConnection(async connection => {
         let sql = `DELETE FROM ${config.database.schema}.aapackages WHERE aaPackageId = ?`;
         await connection.query(sql, [req.params.aaPackageId]);

@@ -27,6 +27,7 @@ module.exports = [
                     varsIgnorePattern: '^_',
                 },
             ],
+            'n/exports-style': 'error',
         },
     },
     {

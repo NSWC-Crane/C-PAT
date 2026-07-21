@@ -11,7 +11,7 @@
 const poamExtensionService = require('../Services/poamExtensionService');
 const { sendError } = require('../utils/respond');
 
-exports.getPoamExtension = async function (req, res) {
+module.exports.getPoamExtension = async function (req, res) {
     try {
         const poamExtensions = await poamExtensionService.getPoamExtension(req.params.poamId);
 
@@ -21,7 +21,7 @@ exports.getPoamExtension = async function (req, res) {
     }
 };
 
-exports.putPoamExtension = async function (req, res) {
+module.exports.putPoamExtension = async function (req, res) {
     try {
         const updatedPoamExtension = await poamExtensionService.putPoamExtension(req);
 
@@ -31,7 +31,7 @@ exports.putPoamExtension = async function (req, res) {
     }
 };
 
-exports.deletePoamExtension = async function (req, res) {
+module.exports.deletePoamExtension = async function (req, res) {
     try {
         await poamExtensionService.deletePoamExtension(req.params.poamId);
 

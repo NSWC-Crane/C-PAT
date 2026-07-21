@@ -21,7 +21,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getLabels = async function getLabels(req) {
+module.exports.getLabels = async function getLabels(req) {
     return await withConnection(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.label WHERE collectionId = ? ORDER BY labelName;`;
         let [rowLabels] = await connection.query(sql, [req.params.collectionId]);
@@ -37,7 +37,7 @@ exports.getLabels = async function getLabels(req) {
     });
 };
 
-exports.getLabel = async function getLabel(req) {
+module.exports.getLabel = async function getLabel(req) {
     return await withConnection(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.label WHERE labelId = ? AND collectionId = ?`;
         let [rowLabel] = await connection.query(sql, [req.params.labelId, req.params.collectionId]);
@@ -48,7 +48,7 @@ exports.getLabel = async function getLabel(req) {
     });
 };
 
-exports.postLabel = async function postLabel(req) {
+module.exports.postLabel = async function postLabel(req) {
     return await withConnection(async connection => {
         let sql_query = `INSERT INTO ${config.database.schema}.label (labelName, description, collectionId) VALUES (?, ?, ?)`;
         await connection.query(sql_query, [req.body.labelName, req.body.description, req.params.collectionId]);
@@ -66,7 +66,7 @@ exports.postLabel = async function postLabel(req) {
     });
 };
 
-exports.putLabel = async function putLabel(req) {
+module.exports.putLabel = async function putLabel(req) {
     if (!req.body.description) {
         req.body.description = '';
     }
@@ -85,7 +85,7 @@ exports.putLabel = async function putLabel(req) {
     });
 };
 
-exports.deleteLabel = async function deleteLabel(req) {
+module.exports.deleteLabel = async function deleteLabel(req) {
     return await withConnection(async connection => {
         let sql = `DELETE FROM ${config.database.schema}.label WHERE labelId = ? AND collectionId = ?`;
         await connection.query(sql, [req.params.labelId, req.params.collectionId]);

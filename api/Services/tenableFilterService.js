@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getTenableFilters = async function getTenableFilters(req) {
+module.exports.getTenableFilters = async function getTenableFilters(req) {
     return await withConnection(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE collectionId = ? ORDER BY filterName;`;
         let [rowTenableFilters] = await connection.query(sql, [req.params.collectionId]);
@@ -39,7 +39,7 @@ exports.getTenableFilters = async function getTenableFilters(req) {
     });
 };
 
-exports.getTenableFilter = async function getTenableFilter(req) {
+module.exports.getTenableFilter = async function getTenableFilter(req) {
     return await withConnection(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.tenablefilters WHERE filterId = ? AND collectionId = ?`;
         let [rowTenableFilter] = await connection.query(sql, [req.params.tenableFilterId, req.params.collectionId]);
@@ -59,7 +59,7 @@ exports.getTenableFilter = async function getTenableFilter(req) {
     });
 };
 
-exports.postTenableFilter = async function postTenableFilter(req) {
+module.exports.postTenableFilter = async function postTenableFilter(req) {
     return await withConnection(async connection => {
         let sql_query = `INSERT INTO ${config.database.schema}.tenablefilters (filterName, filter, collectionId, createdBy) VALUES (?, ?, ?, ?)`;
         await connection.query(sql_query, [req.body.filterName, req.body.filter, req.params.collectionId, req.userObject.userName]);
@@ -78,7 +78,7 @@ exports.postTenableFilter = async function postTenableFilter(req) {
     });
 };
 
-exports.putTenableFilter = async function putTenableFilter(req) {
+module.exports.putTenableFilter = async function putTenableFilter(req) {
     return await withConnection(async connection => {
         let sql_query = `UPDATE ${config.database.schema}.tenablefilters SET filterName = ?, filter = ? WHERE filterId = ? AND collectionId = ?`;
         await connection.query(sql_query, [req.body.filterName, req.body.filter, req.body.filterId, req.params.collectionId]);
@@ -93,7 +93,7 @@ exports.putTenableFilter = async function putTenableFilter(req) {
     });
 };
 
-exports.deleteTenableFilter = async function deleteTenableFilter(req) {
+module.exports.deleteTenableFilter = async function deleteTenableFilter(req) {
     await withConnection(async connection => {
         const sql = `DELETE FROM ${config.database.schema}.tenablefilters WHERE filterId = ? AND collectionId = ?`;
         await connection.query(sql, [req.params.tenableFilterId, req.params.collectionId]);

@@ -22,7 +22,7 @@ async function withConnection(callback) {
     }
 }
 
-exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
+module.exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
     return await withConnection(async connection => {
         let sql = `
             SELECT t1.assignedTeamId, t2.assignedTeamName, t1.automated, t1.poamId, t3.status
@@ -43,7 +43,7 @@ exports.getPoamAssignedTeams = async function getPoamAssignedTeams() {
     });
 };
 
-exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoamId(poamId) {
+module.exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoamId(poamId) {
     if (!poamId) {
         throw new Error('getPoamAssignedTeamsByPoamId: poamId is required');
     }
@@ -102,7 +102,7 @@ exports.getPoamAssignedTeamsByPoamId = async function getPoamAssignedTeamsByPoam
     });
 };
 
-exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req) {
+module.exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req) {
     if (!req.body.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }
@@ -158,7 +158,7 @@ exports.postPoamAssignedTeam = async function postPoamAssignedTeam(req) {
     });
 };
 
-exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req) {
+module.exports.deletePoamAssignedTeam = async function deletePoamAssignedTeam(req) {
     if (!req.params.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
     }
