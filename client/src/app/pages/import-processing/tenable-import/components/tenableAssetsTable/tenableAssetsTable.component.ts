@@ -12,7 +12,6 @@ import { DatePipe } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, OnInit, effect, inject, input, signal, viewChild, viewChildren } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -56,7 +55,6 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   private readonly assetDeltaService = inject(AssetDeltaService);
   private readonly csvExportService = inject(CsvExportService);
   private readonly importService = inject(ImportService);
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly messageService = inject(MessageService);
   private readonly sharedService = inject(SharedService);
   private readonly destroyRef = inject(DestroyRef);
@@ -80,7 +78,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   readonly parsedVprContext = signal<any[]>([]);
   readonly isLoading = signal(true);
   readonly is30DayFilterActive = signal(false);
-  readonly formattedDescription = signal<SafeHtml>('');
+  readonly formattedDescription = signal<string>('');
   readonly pluginData = signal<any>(null);
   readonly totalRecords = signal<number>(0);
   filterValue: string = '';
@@ -629,7 +627,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
           const pluginData = data.response;
 
           this.pluginData.set(pluginData);
-          this.formattedDescription.set(pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(pluginData.description.replaceAll('\n\n', '<br>')) : '');
+          this.formattedDescription.set(pluginData.description?.replaceAll('\n\n', '<br>') ?? '');
 
           if (pluginData.xrefs && pluginData.xrefs.length > 0) {
             this.parseReferences(pluginData.xrefs);

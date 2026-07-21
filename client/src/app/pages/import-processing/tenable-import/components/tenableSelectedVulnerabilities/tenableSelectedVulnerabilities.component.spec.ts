@@ -181,7 +181,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should default selectedSeverities to all four levels', () => {
-      expect(component.selectedSeverities).toEqual(['Low', 'Medium', 'High', 'Critical']);
+      expect(component.selectedSeverities()).toEqual(['Low', 'Medium', 'High', 'Critical']);
     });
 
     it('should default filters with supersededBy and severity', () => {
@@ -278,6 +278,30 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       expect(component.filterValue).toBe('test');
       expect(component.tenableTool).toBe('listvuln');
       expect(component.selectedNavyComplyDateFilter).toEqual({ label: 'All Overdue', value: 'alloverdue' });
+    });
+
+    it('should preserve restored selectedSeverities after the deferred filter pass', () => {
+      vi.useFakeTimers();
+
+      try {
+        const savedState = {
+          currentPreset: 'iav',
+          filters: { severity: [{ value: ['High', 'Critical'], matchMode: 'in', operator: 'and' }] },
+          selectedSeverities: ['High', 'Critical'],
+          filterValue: '',
+          tenableTool: 'sumid'
+        };
+
+        sessionStorage.setItem('tenableSelectedVulnState', JSON.stringify(savedState));
+        (component as any).currentPreset = () => 'iav';
+        component.ngOnInit();
+        vi.runAllTimers();
+
+        expect(component.selectedSeverities()).toEqual(['High', 'Critical']);
+        expect(mockTable._filter).toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('should not restore state when presets do not match', () => {
@@ -1036,9 +1060,9 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should reset selectedSeverities to all levels', () => {
-      component.selectedSeverities = ['High'];
+      component.selectedSeverities.set(['High']);
       component.clear();
-      expect(component.selectedSeverities).toEqual(['Low', 'Medium', 'High', 'Critical']);
+      expect(component.selectedSeverities()).toEqual(['Low', 'Medium', 'High', 'Critical']);
     });
 
     it('should reset filterValue to empty string', () => {
@@ -1184,14 +1208,14 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       mockTable.filteredValue = null;
       mockTable.filters = { severity: [{ value: ['High', 'Critical'] }] };
       component.onFilter({});
-      expect(component.selectedSeverities).toEqual(['High', 'Critical']);
+      expect(component.selectedSeverities()).toEqual(['High', 'Critical']);
     });
 
     it('should set selectedSeverities to empty array when severity filter value is empty', () => {
       mockTable.filteredValue = null;
       mockTable.filters = { severity: [{ value: [] }] };
       component.onFilter({});
-      expect(component.selectedSeverities).toEqual([]);
+      expect(component.selectedSeverities()).toEqual([]);
     });
   });
 
