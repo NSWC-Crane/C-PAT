@@ -22,7 +22,6 @@ function serveClient(app) {
     }
     try {
         serveClientEnv(app);
-        setupAngularRoutes(app);
         serveStaticFiles(app);
         logger.writeDebug('serveClient', 'client', { message: 'succeeded setting up client' });
     } catch (err) {
@@ -120,6 +119,7 @@ function serveStaticFiles(app) {
     logger.writeDebug('serveStaticFiles', 'client', { client_static: staticPath });
 
     const expressStatic = express.static(staticPath, {
+        index: false,
         setHeaders: (res, path) => {
             if (path.endsWith('.js')) {
                 res.setHeader('Content-Type', 'application/javascript');
@@ -128,64 +128,87 @@ function serveStaticFiles(app) {
     });
 
     app.use('/', (req, res, next) => {
+        if (req.path === '/index.html') {
+            next();
+            return;
+        }
+
         req.component = 'static';
         expressStatic(req, res, next);
     });
 }
 
-function setupAngularRoutes(app) {
-    const angularRoutes = [
-        '/admin-processing',
-        '/admin-processing/app-info',
-        '/asset-processing',
-        '/consent',
-        '/home',
-        '/import-processing/stigmanager-import',
-        '/import-processing/tenable-import',
-        '/label-processing',
-        '/marketplace',
-        '/metrics',
-        '/notifications',
-        '/poam-processing',
-        '/poam-processing/poam-manage',
-        '/poam-processing/poam-approve/:poamId',
-        '/poam-processing/poam-details/:poamId',
-        '/poam-processing/poam-extend/:poamId',
-        '/poam-processing/poam-log/:poamId',
-    ];
+function serveIndexWithBaseHref(_req, res) {
+    const indexPath = path.join(__dirname, '..', config.client.directory, 'index.html');
+    const envJS = getClientEnv();
 
-    const serveIndexWithBaseHref = (_req, res) => {
-        const indexPath = path.join(__dirname, '..', config.client.directory, 'index.html');
-        const envJS = getClientEnv();
+    fs.readFile(indexPath, 'utf8', (err, data) => {
+        if (err) {
+            res.status(500).send('Error loading application');
+            return;
+        }
 
-        fs.readFile(indexPath, 'utf8', (err, data) => {
-            if (err) {
-                res.status(500).send('Error loading application');
-                return;
-            }
+        const basePath = config.settings.basePath || '';
+        let baseHref = '/';
+        if (basePath) {
+            baseHref = basePath.endsWith('/') ? basePath : basePath + '/';
+        }
 
-            const basePath = config.settings.basePath || '';
-            let baseHref = '/';
-            if (basePath) {
-                baseHref = basePath.endsWith('/') ? basePath : basePath + '/';
-            }
+        const modifiedHtml = data
+            .replace(/<base\s+href="[^"]*">/i, () => `<base href="${htmlAttr(baseHref)}">`)
+            .replace('</head>', () => `<script>${envJS}</script>\n  </head>`);
 
-            const modifiedHtml = data
-                .replace(/<base\s+href="[^"]*">/i, () => `<base href="${htmlAttr(baseHref)}">`)
-                .replace('</head>', () => `<script>${envJS}</script>\n  </head>`);
+        res.setHeader('Content-Type', 'text/html');
+        res.send(modifiedHtml);
+    });
+}
 
-            res.setHeader('Content-Type', 'text/html');
-            res.send(modifiedHtml);
-        });
-    };
+const nonClientPrefixes = ['/api', '/docs', '/api-docs', '/init'];
+const nonClientPaths = new Set(['/swagger.json', '/openapi.json']);
 
-    angularRoutes.forEach(route => {
-        app.get(route, serveIndexWithBaseHref);
+function isClientNavigation(req) {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+        return false;
+    }
+    if (!req.accepts('html')) {
+        return false;
+    }
+
+    const pathname = req.path;
+
+    if (nonClientPaths.has(pathname)) {
+        return false;
+    }
+    if (nonClientPrefixes.some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'))) {
+        return false;
+    }
+    if (pathname === '/index.html') {
+        return true;
+    }
+
+    return !path.extname(pathname);
+}
+
+function serveClientFallback(app) {
+    if (config.client.disabled) {
+        logger.writeDebug('serveClientFallback', 'client', { message: 'client disabled' });
+        return;
+    }
+
+    app.use((req, res, next) => {
+        if (!isClientNavigation(req)) {
+            next();
+            return;
+        }
+
+        req.component = 'static';
+        serveIndexWithBaseHref(req, res);
     });
 
-    app.get('/', serveIndexWithBaseHref);
+    logger.writeDebug('serveClientFallback', 'client', { message: 'client fallback registered' });
 }
 
 module.exports = {
     serveClient,
+    serveClientFallback,
 };
