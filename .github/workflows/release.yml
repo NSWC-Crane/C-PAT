@@ -207,12 +207,23 @@ jobs:
           docker run --rm -v $(pwd):/docs docs-builder sphinx-build -b html . _build/html
           cd ..
 
+      - name: Verify PrimeNG license is set
+        env:
+          PRIMENG_LICENSE: ${{ secrets.CPAT_PRIMENG_LICENSE }}
+        run: |
+          if [ -z "$(printf '%s' "$PRIMENG_LICENSE" | tr -d '[:space:]')" ]; then
+            echo "::error::CPAT_PRIMENG_LICENSE is unset or empty."
+            exit 1
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
           context: .
           push: true
           provenance: false
+          secrets: |
+            primeng_license=${{ secrets.CPAT_PRIMENG_LICENSE }}
           tags: |
             nswccrane/c-pat:${{ steps.version.outputs.new_version }}
             nswccrane/c-pat:latest

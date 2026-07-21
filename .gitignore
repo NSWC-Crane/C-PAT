@@ -17,6 +17,7 @@ client/.angular
 client/.nx
 /client/src/development.html
 /api/.env
+/api/.primeng-license
 
 
 ### JupyterNotebooks ###

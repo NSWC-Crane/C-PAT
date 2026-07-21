@@ -21,6 +21,11 @@ CPAT_CLIENT_DISABLED="false"
 CPAT_CLIENT_DIRECTORY="../client/dist/browser"
 CPAT_CLIENT_REFRESH_DISABLED="false"
 
+#PrimeNG license is only required when building your own image. The official
+#nswccrane/c-pat image ships with a key baked in; setting this to a non-empty value
+#overrides it, while leaving it empty or unset keeps the baked-in key.
+CPAT_PRIMENG_LICENSE=""
+
 #docs config
 CPAT_DOCS_DISABLED="false"
 CPAT_DOCS_DIRECTORY="../docs/_build/html"

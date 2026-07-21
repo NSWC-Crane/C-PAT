@@ -35,6 +35,8 @@
 | String used as a prefix for each scope when authenticating to the OIDC Provider. Some providers (Azure AD) expect scope requests in the format ``api://<application_id>/<scope>``, where ``api://<application_id>/`` is the required prefix.","Client"
 "CPAT_CLIENT_REFRESH_DISABLED","| **Default** ``false``
 | Whether the web client should use a provided refresh token to update the access token","Client"
+"CPAT_PRIMENG_LICENSE","| **No default**
+| The PrimeNG license key served to the web client. The official ``nswccrane/c-pat`` image ships with a key baked in at build time; setting this variable to a non-empty value overrides it, while leaving it empty or unset keeps the baked-in key.","Client"
 "CPAT_DB_HOST","| **Default** ``localhost``
 | The database hostname or IP from to the API server","API"
 "CPAT_DB_MAX_CONNECTIONS","| **Default** ``25``

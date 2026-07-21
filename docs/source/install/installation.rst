@@ -101,6 +101,23 @@ Procedure
       [START] Client is available at /
 
 
+.. _build-custom-image:
+
+Building a Custom Image
+-------------------------------------------------
+
+Most deployers should use the published ``nswccrane/c-pat`` image. If you build your own, note the following.
+
+**BuildKit is required.** The ``Dockerfile`` uses a build secret mount to bake in the PrimeNG license key. Docker 23 and later enable BuildKit by default, and Docker 20.10 supports it when enabled. On older versions, or if you have set ``DOCKER_BUILDKIT=0``, the build fails with ``the --mount option requires BuildKit``.
+
+**PrimeNG license key.** The published image ships with a key baked in at build time. A self-built image has no key unless you supply one, and without a key the web client displays a license notice. There are two ways to provide it:
+
+#. Set the :ref:`Environment Variables` value ``CPAT_PRIMENG_LICENSE`` at run time. This takes precedence and requires no rebuild.
+#. Bake it into the image at build time by passing it as a build secret. The key is written to ``api/.primeng-license`` inside the image and is not recorded in the image history or in any build layer metadata.
+
+**Overriding the base image.** ``BASE_IMAGE`` is a build argument defaulting to ``node:lts-alpine``. A replacement must provide a ``node`` user, but its numeric uid does not matter.
+
+
 .. _deploy-source:
 
 Deployment from Source Code
