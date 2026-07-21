@@ -43,6 +43,7 @@ function run() {
         client.serveClient(app);
         docs.serveDocs(app);
         docs.serveApiDocs(app);
+        client.serveClientFallback(app);
         startServer(app, startTime);
     } catch (err) {
         logger.writeError('app', 'fatal', { message: err.message, stack: err.stack });
