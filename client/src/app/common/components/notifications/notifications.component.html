@@ -29,10 +29,16 @@
         <tr>
           <td>
             <div class="mb-3">
-              <div class="notification-item flex w-full flex-col items-start rounded-lg p-4 md:flex-row" [class]="{ 'surface-hover': notification.read, 'surface-100': !notification.read }" (click)="onNotificationClick($event)">
+              <div class="notification-item flex w-full flex-col items-start rounded-lg p-4 md:flex-row" [class]="{ 'surface-hover': notification.read, 'surface-100': !notification.read }">
                 <div class="flex-1">
                   <h4 class="mb-2">{{ notification.title }}</h4>
-                  <p class="mb-2 mt-0 leading-normal" [innerHTML]="notification.formattedMessage"></p>
+                  <p class="mb-2 mt-0 leading-normal">
+                    <span>{{ notification.messageParts?.before }}</span>
+                    @if (notification.messageParts?.href; as href) {
+                      <a [href]="href" class="poam-link" (click)="onPoamLinkClick($event, notification.messageParts.poamId)">POAM {{ notification.messageParts.poamId }}</a>
+                    }
+                    <span>{{ notification.messageParts?.after }}</span>
+                  </p>
                   <span class="flex items-center">
                     <i class="pi pi-clock mr-2"></i>
                     <small>{{ notification.timestamp | date: 'short' }}</small>
