@@ -67,7 +67,7 @@ export class AppBreadcrumbComponent implements OnInit {
       return;
     }
 
-    const urlSegments = currentUrl.split('/').filter((segment) => segment);
+    const urlSegments = currentUrl.split('/').filter(Boolean);
     const breadcrumbs: MenuItem[] = [];
     let currentPath = '';
 

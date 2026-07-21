@@ -140,7 +140,7 @@ export class PoamMilestonesComponent implements OnInit {
     if (extensionDays > 0 && poam.extensionDeadline) {
       const extensionDeadline = new Date(poam.extensionDeadline);
 
-      if (!isNaN(extensionDeadline.getTime())) {
+      if (!Number.isNaN(extensionDeadline.getTime())) {
         effectiveDeadline = extensionDeadline;
       }
     }
@@ -283,7 +283,7 @@ export class PoamMilestonesComponent implements OnInit {
 
         return team ? team.assignedTeamName : '';
       })
-      .filter((name) => name)
+      .filter(Boolean)
       .join(', ');
   }
 
@@ -296,7 +296,7 @@ export class PoamMilestonesComponent implements OnInit {
 
         return team ? team.assignedTeamName : '';
       })
-      .filter((name) => name);
+      .filter(Boolean);
   }
 
   private validateMilestoneFields(milestone: Milestone): boolean {

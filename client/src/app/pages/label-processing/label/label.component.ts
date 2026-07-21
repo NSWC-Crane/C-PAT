@@ -162,7 +162,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     const vulnIds = pastedText
       .split(',')
       .map((id) => id.trim())
-      .filter((id) => id);
+      .filter(Boolean);
 
     const matchedPoams: any[] = [];
     const unmatchedIds: string[] = [];
@@ -412,7 +412,7 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     if (label.labelId == 'ADDLABEL') {
-      const exists = this.labels().find((e: { labelName: any }) => e.labelName === this.label().labelName);
+      const exists = this.labels().some((e: { labelName: any }) => e.labelName === this.label().labelName);
 
       if (exists) {
         this.invalidData('Label Already Exists');

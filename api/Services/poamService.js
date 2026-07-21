@@ -531,7 +531,7 @@ module.exports.postPoam = async function postPoam(req) {
                     vulnArray = req.body.associatedVulnerabilities
                         .split(',')
                         .map(v => v.trim())
-                        .filter(v => v);
+                        .filter(Boolean);
                 } else if (Array.isArray(req.body.associatedVulnerabilities)) {
                     vulnArray = req.body.associatedVulnerabilities;
                 }
@@ -887,7 +887,7 @@ module.exports.putPoam = async function putPoam(req) {
                     vulnArray = req.body.associatedVulnerabilities
                         .split(',')
                         .map(v => v.trim())
-                        .filter(v => v);
+                        .filter(Boolean);
                 } else if (Array.isArray(req.body.associatedVulnerabilities)) {
                     vulnArray = req.body.associatedVulnerabilities;
                 }
