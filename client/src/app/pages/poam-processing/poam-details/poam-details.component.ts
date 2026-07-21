@@ -637,25 +637,15 @@ export class PoamDetailsComponent implements OnInit {
 
     if (this.poam()?.poamId && this.poam().poamId !== 'ADDPOAM') {
       this.syncTeamMitigations();
-      this._ensureUniqueTeamMitigations();
+      this.syncTeamResources();
     } else if (this.poamAssignedTeams()?.length > 0) {
-      const teamMitigations = [...this.teamMitigations()];
-
-      this.poamAssignedTeams().forEach((team) => {
-        const existingMitigationIndex = teamMitigations.findIndex((m) => m.assignedTeamId === team.assignedTeamId);
-
-        if (existingMitigationIndex === -1) {
-          teamMitigations.push({
-            assignedTeamId: team.assignedTeamId,
-            assignedTeamName: team.assignedTeamName,
-            mitigationText: '',
-            isActive: true
-          });
-        }
-      });
-      this.teamMitigations.set(teamMitigations);
-      this._ensureUniqueTeamMitigations();
+      this.poamAssignedTeams()
+        .filter((team) => team.assignedTeamId)
+        .forEach((team) => this.activateTeamEntries(team));
     }
+
+    this._ensureUniqueTeamMitigations();
+    this._ensureUniqueTeamResources();
   }
 
   async createNewACASPoam(): Promise<void> {

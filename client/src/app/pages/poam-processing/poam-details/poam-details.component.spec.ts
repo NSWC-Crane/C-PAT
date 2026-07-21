@@ -1391,9 +1391,12 @@ describe('PoamDetailsComponent', () => {
       component.assetList.set([]);
       component.poamAssignedTeams.set([]);
       component.teamMitigations.set([]);
+      component.teamResources.set([]);
       vi.spyOn(component as any, 'updateMilestoneTeamOptions').mockImplementation(() => {});
       vi.spyOn(component as any, 'syncTeamMitigations').mockImplementation(() => {});
+      vi.spyOn(component as any, 'syncTeamResources').mockImplementation(() => {});
       vi.spyOn(component as any, '_ensureUniqueTeamMitigations').mockImplementation(() => {});
+      vi.spyOn(component as any, '_ensureUniqueTeamResources').mockImplementation(() => {});
     });
 
     it('should call assetTeamMappingService.compareAssetsAndAssignTeams with correct args', async () => {
@@ -1441,6 +1444,16 @@ describe('PoamDetailsComponent', () => {
       expect(component['_ensureUniqueTeamMitigations']).toHaveBeenCalled();
     });
 
+    it('should call syncTeamResources for existing POAM (non-ADDPOAM)', async () => {
+      component.poam.set({ poamId: 42 });
+      mockAssetTeamMappingService.compareAssetsAndAssignTeams = vi.fn().mockReturnValue([]);
+
+      await component.compareAssetsAndAssignTeams();
+
+      expect(component['syncTeamResources']).toHaveBeenCalled();
+      expect(component['_ensureUniqueTeamResources']).toHaveBeenCalled();
+    });
+
     it('should not call syncTeamMitigations for ADDPOAM', async () => {
       component.poam.set({ poamId: 'ADDPOAM' });
       mockAssetTeamMappingService.compareAssetsAndAssignTeams = vi.fn().mockReturnValue([]);
@@ -1448,6 +1461,15 @@ describe('PoamDetailsComponent', () => {
       await component.compareAssetsAndAssignTeams();
 
       expect(component['syncTeamMitigations']).not.toHaveBeenCalled();
+    });
+
+    it('should not call syncTeamResources for ADDPOAM', async () => {
+      component.poam.set({ poamId: 'ADDPOAM' });
+      mockAssetTeamMappingService.compareAssetsAndAssignTeams = vi.fn().mockReturnValue([]);
+
+      await component.compareAssetsAndAssignTeams();
+
+      expect(component['syncTeamResources']).not.toHaveBeenCalled();
     });
 
     it('should add new team mitigations for ADDPOAM with assigned teams', async () => {
@@ -1468,6 +1490,70 @@ describe('PoamDetailsComponent', () => {
         mitigationText: '',
         isActive: true
       });
+    });
+
+    it('should add new team resources for ADDPOAM with assigned teams', async () => {
+      component.poam.set({ poamId: 'ADDPOAM' });
+      const teams = [
+        { assignedTeamId: 1, assignedTeamName: 'Team A' },
+        { assignedTeamId: 2, assignedTeamName: 'Team B' }
+      ];
+
+      mockAssetTeamMappingService.compareAssetsAndAssignTeams = vi.fn().mockReturnValue(teams);
+
+      await component.compareAssetsAndAssignTeams();
+
+      expect(component.teamResources()).toHaveLength(2);
+      expect(component.teamResources()[0]).toEqual({
+        assignedTeamId: 1,
+        assignedTeamName: 'Team A',
+        resourceText: '',
+        isActive: true
+      });
+    });
+
+    it('should reactivate and rename existing inactive entries when a team is re-added for ADDPOAM', async () => {
+      component.poam.set({ poamId: 'ADDPOAM' });
+      component.teamMitigations.set([{ assignedTeamId: 1, assignedTeamName: 'Old Name', mitigationText: 'preserved mitigation', isActive: false }]);
+      component.teamResources.set([{ assignedTeamId: 1, assignedTeamName: 'Old Name', resourceText: 'preserved resource', isActive: false }]);
+      const teams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
+
+      mockAssetTeamMappingService.compareAssetsAndAssignTeams = vi.fn().mockReturnValue(teams);
+
+      await component.compareAssetsAndAssignTeams();
+
+      expect(component.teamMitigations()).toEqual([{ assignedTeamId: 1, assignedTeamName: 'Team A', mitigationText: 'preserved mitigation', isActive: true }]);
+      expect(component.teamResources()).toEqual([{ assignedTeamId: 1, assignedTeamName: 'Team A', resourceText: 'preserved resource', isActive: true }]);
+    });
+
+    it('should not seed entries for teams without an assignedTeamId for ADDPOAM', async () => {
+      component.poam.set({ poamId: 'ADDPOAM' });
+      const teams = [
+        { poamId: 0, assignedTeamId: null, assignedTeamName: '', isNew: true },
+        { assignedTeamId: 2, assignedTeamName: 'Team B' }
+      ];
+
+      mockAssetTeamMappingService.compareAssetsAndAssignTeams = vi.fn().mockReturnValue(teams);
+
+      await component.compareAssetsAndAssignTeams();
+
+      expect(component.teamMitigations()).toHaveLength(1);
+      expect(component.teamMitigations()[0].assignedTeamId).toBe(2);
+      expect(component.teamResources()).toHaveLength(1);
+      expect(component.teamResources()[0].assignedTeamId).toBe(2);
+    });
+
+    it('should not duplicate team resources for ADDPOAM if already existing', async () => {
+      component.poam.set({ poamId: 'ADDPOAM' });
+      component.teamResources.set([{ assignedTeamId: 1, resourceText: 'existing' }]);
+      const teams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
+
+      mockAssetTeamMappingService.compareAssetsAndAssignTeams = vi.fn().mockReturnValue(teams);
+
+      await component.compareAssetsAndAssignTeams();
+
+      expect(component.teamResources()).toHaveLength(1);
+      expect(component.teamResources()[0].resourceText).toBe('existing');
     });
 
     it('should not duplicate team mitigations for ADDPOAM if already existing', async () => {

@@ -47,7 +47,7 @@
     "subsink": "^1.0.2",
     "tailwindcss-primeui": "^0.6.1",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.64.0",
+    "typescript-eslint": "^8.65.0",
     "zone.js": "^0.16.2"
   },
   "devDependencies": {
@@ -65,7 +65,7 @@
     "@angular/service-worker": "^22.0.7",
     "@esbuild/linux-x64": "^0.28.1",
     "@eslint/js": "^10.0.1",
-    "@oxc-project/runtime": "^0.140.0",
+    "@oxc-project/runtime": "^0.141.0",
     "@rollup/rollup-linux-x64-gnu": "^4.62.2",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.1.1",
