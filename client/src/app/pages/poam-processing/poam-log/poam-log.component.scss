@@ -9,6 +9,14 @@
 */
 
 :host ::ng-deep {
+  .p-dialog-header {
+    padding-bottom: 0rem;
+  }
+
+  .p-dialog-content {
+    padding-top: 0rem;
+  }
+
   .header-content {
     display: flex;
     align-items: center;

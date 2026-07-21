@@ -45,6 +45,6 @@
   margin: 0;
 }
 
-::ng-deep .cpat-poam-approve .p-dialog .p-dialog-header {
-  padding: 0 !important;
+:host ::ng-deep .p-dialog-header {
+  display: none;
 }

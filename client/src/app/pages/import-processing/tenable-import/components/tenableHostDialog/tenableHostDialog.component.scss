@@ -26,8 +26,13 @@
   overflow-y: auto;
 }
 
-:host ::ng-deep .p-dialog-header {
-  padding: 0.25rem;
+:host ::ng-deep {
+  .p-dialog-header {
+    padding: 0.5rem;
+  }
+  .p-dialog-content {
+    padding-top: 0.5rem;
+  }
 }
 
 .outputData {
