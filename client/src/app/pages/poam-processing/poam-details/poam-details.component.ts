@@ -639,7 +639,9 @@ export class PoamDetailsComponent implements OnInit {
       this.syncTeamMitigations();
       this.syncTeamResources();
     } else if (this.poamAssignedTeams()?.length > 0) {
-      this.poamAssignedTeams().forEach((team) => this.activateTeamEntries(team));
+      this.poamAssignedTeams()
+        .filter((team) => team.assignedTeamId)
+        .forEach((team) => this.activateTeamEntries(team));
     }
 
     this._ensureUniqueTeamMitigations();

@@ -1512,6 +1512,37 @@ describe('PoamDetailsComponent', () => {
       });
     });
 
+    it('should reactivate and rename existing inactive entries when a team is re-added for ADDPOAM', async () => {
+      component.poam.set({ poamId: 'ADDPOAM' });
+      component.teamMitigations.set([{ assignedTeamId: 1, assignedTeamName: 'Old Name', mitigationText: 'preserved mitigation', isActive: false }]);
+      component.teamResources.set([{ assignedTeamId: 1, assignedTeamName: 'Old Name', resourceText: 'preserved resource', isActive: false }]);
+      const teams = [{ assignedTeamId: 1, assignedTeamName: 'Team A' }];
+
+      mockAssetTeamMappingService.compareAssetsAndAssignTeams = vi.fn().mockReturnValue(teams);
+
+      await component.compareAssetsAndAssignTeams();
+
+      expect(component.teamMitigations()).toEqual([{ assignedTeamId: 1, assignedTeamName: 'Team A', mitigationText: 'preserved mitigation', isActive: true }]);
+      expect(component.teamResources()).toEqual([{ assignedTeamId: 1, assignedTeamName: 'Team A', resourceText: 'preserved resource', isActive: true }]);
+    });
+
+    it('should not seed entries for teams without an assignedTeamId for ADDPOAM', async () => {
+      component.poam.set({ poamId: 'ADDPOAM' });
+      const teams = [
+        { poamId: 0, assignedTeamId: null, assignedTeamName: '', isNew: true },
+        { assignedTeamId: 2, assignedTeamName: 'Team B' }
+      ];
+
+      mockAssetTeamMappingService.compareAssetsAndAssignTeams = vi.fn().mockReturnValue(teams);
+
+      await component.compareAssetsAndAssignTeams();
+
+      expect(component.teamMitigations()).toHaveLength(1);
+      expect(component.teamMitigations()[0].assignedTeamId).toBe(2);
+      expect(component.teamResources()).toHaveLength(1);
+      expect(component.teamResources()[0].assignedTeamId).toBe(2);
+    });
+
     it('should not duplicate team resources for ADDPOAM if already existing', async () => {
       component.poam.set({ poamId: 'ADDPOAM' });
       component.teamResources.set([{ assignedTeamId: 1, resourceText: 'existing' }]);
