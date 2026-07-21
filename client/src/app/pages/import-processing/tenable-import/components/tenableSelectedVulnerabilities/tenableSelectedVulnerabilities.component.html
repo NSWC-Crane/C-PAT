@@ -115,10 +115,10 @@
                           [multiple]="true"
                           [checkmark]="true"
                           [showClear]="true"
-                          [ngModel]="selectedSeverities"
+                          [ngModel]="selectedSeverities()"
                           [options]="col.filterOptions"
-                          (onChange)="filter($event.value); selectedSeverities = $event.value"
-                          (onClear)="filter([]); selectedSeverities = []"
+                          (onChange)="filter($event.value); selectedSeverities.set($event.value)"
+                          (onClear)="filter([]); selectedSeverities.set([])"
                           placeholder="Select Severity..."
                           class="w-full swap-button-order"
                         />

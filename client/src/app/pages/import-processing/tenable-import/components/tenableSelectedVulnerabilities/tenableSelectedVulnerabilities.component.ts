@@ -12,7 +12,6 @@ import { NgClass, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, viewChild, output, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { format, parseISO, startOfDay } from 'date-fns';
 import { FilterMetadata, MessageService } from 'primeng/api';
@@ -42,6 +41,8 @@ interface NavyComplyDateFilter {
   value: string;
 }
 
+const DEFAULT_SEVERITIES = ['Low', 'Medium', 'High', 'Critical'];
+
 @Component({
   selector: 'cpat-tenable-selected-vulnerabilities',
   templateUrl: './tenableSelectedVulnerabilities.component.html',
@@ -52,7 +53,6 @@ interface NavyComplyDateFilter {
 })
 export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   private readonly importService = inject(ImportService);
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly messageService = inject(MessageService);
   private readonly poamService = inject(PoamService);
   private readonly collectionsService = inject(CollectionsService);
@@ -67,7 +67,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   private readonly columnSelect = viewChild.required<Select>('ms');
   filters: { [key: string]: FilterMetadata[] } = {
     supersededBy: [{ value: 'N/A', matchMode: 'contains', operator: 'and' }],
-    severity: [{ value: ['Low', 'Medium', 'High', 'Critical'], matchMode: 'in', operator: 'and' }]
+    severity: [{ value: [...DEFAULT_SEVERITIES], matchMode: 'in', operator: 'and' }]
   };
   readonly cols = signal<any[]>([]);
   exportColumns!: ExportColumn[];
@@ -84,7 +84,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   readonly displayDialog = signal<boolean>(false);
   readonly parsedVprContext = signal<any[]>([]);
   readonly isLoading = signal<boolean>(false);
-  readonly formattedDescription = signal<SafeHtml>('');
+  readonly formattedDescription = signal<string>('');
   readonly pluginData = signal<any>(null);
   readonly totalRecords = signal<number>(0);
   filterValue: string = '';
@@ -93,7 +93,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   selectedNavyComplyDateFilter: NavyComplyDateFilter | null = null;
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
-  selectedSeverities: string[] = ['Low', 'Medium', 'High', 'Critical'];
+  readonly selectedSeverities = signal<string[]>([...DEFAULT_SEVERITIES]);
 
   ngOnInit() {
     this.isLoading.set(true);
@@ -108,7 +108,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       if (savedState.currentPreset === this.currentPreset()) {
         shouldRestoreState = true;
         this.filters = savedState.filters || this.filters;
-        this.selectedSeverities = savedState.selectedSeverities || ['Low', 'Medium', 'High', 'Critical'];
+        this.selectedSeverities.set(savedState.selectedSeverities || [...DEFAULT_SEVERITIES]);
         this.selectedNavyComplyDateFilter = savedState.selectedNavyComplyDateFilter || null;
         this.filterValue = savedState.filterValue || '';
         this.tenableTool = savedState.tenableTool || 'sumid';
@@ -142,7 +142,6 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
 
               if (table) {
                 table.filters = { ...this.filters };
-                this.selectedSeverities = ['Low', 'Medium', 'High', 'Critical'];
                 table._filter();
               }
             });
@@ -632,7 +631,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   private processPluginData() {
     const pluginData = this.pluginData();
 
-    this.formattedDescription.set(pluginData.description ? this.sanitizer.bypassSecurityTrustHtml(pluginData.description.replaceAll('\n\n', '<br>')) : '');
+    this.formattedDescription.set(pluginData.description?.replaceAll('\n\n', '<br>') ?? '');
 
     if (pluginData?.xrefs?.length > 0) {
       this.parseReferences(pluginData.xrefs);
@@ -655,7 +654,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
     try {
       const returnState = {
         filters: this.filters,
-        selectedSeverities: this.selectedSeverities,
+        selectedSeverities: this.selectedSeverities(),
         selectedNavyComplyDateFilter: this.selectedNavyComplyDateFilter,
         filterValue: this.filterValue,
         tenableTool: this.tenableTool,
@@ -860,9 +859,9 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
 
   clear() {
     this.table().clear();
-    this.selectedSeverities = ['Low', 'Medium', 'High', 'Critical'];
+    this.selectedSeverities.set([...DEFAULT_SEVERITIES]);
     this.filters['supersededBy'] = [{ value: 'N/A', matchMode: 'contains', operator: 'and' }];
-    this.filters['severity'] = [{ value: ['Low', 'Medium', 'High', 'Critical'], matchMode: 'in', operator: 'and' }];
+    this.filters['severity'] = [{ value: [...DEFAULT_SEVERITIES], matchMode: 'in', operator: 'and' }];
 
     const table = this.table();
 
@@ -916,14 +915,10 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       this.totalRecords.set(filteredValue.length);
       this.totalRecordsChange.emit(this.totalRecords());
 
-      const severityFilter: any = table.filters['severity'][0];
+      const severityFilter: any = table.filters['severity']?.[0];
 
       if (severityFilter) {
-        if (!severityFilter.value || (Array.isArray(severityFilter.value) && severityFilter.value.length < 1)) {
-          this.selectedSeverities = [];
-        } else if (Array.isArray(severityFilter.value) && severityFilter.value.length >= 1) {
-          this.selectedSeverities = severityFilter.value;
-        }
+        this.selectedSeverities.set(Array.isArray(severityFilter.value) ? severityFilter.value : []);
       }
     }
   }

@@ -149,7 +149,7 @@ describe('NotificationsComponent', () => {
       component.fetchNotifications();
 
       expect(component.notifications().length).toBe(3);
-      expect(component.notifications()[0].formattedMessage).toBeTruthy();
+      expect(component.notifications()[0].messageParts).toBeTruthy();
     });
 
     it('should filter notifications after fetching', () => {
@@ -189,26 +189,59 @@ describe('NotificationsComponent', () => {
     });
   });
 
-  describe('formatMessage', () => {
-    it('should format message with POAM link', () => {
+  describe('parseMessage', () => {
+    it('should split message around the POAM link', () => {
       const message = 'This is a test message for POAM 123';
-      const result = component.formatMessage(message);
+      const result = component.parseMessage(message);
 
-      expect(result.toString()).toContain('POAM 123');
+      expect(result.before).toBe('This is a test message for ');
+      expect(result.poamId).toBe(123);
+      expect(result.after).toBe('');
     });
 
     it('should return plain message when no POAM reference', () => {
       const message = 'This is a plain message';
-      const result = component.formatMessage(message);
+      const result = component.parseMessage(message);
 
-      expect(result).toBe(message);
+      expect(result.before).toBe(message);
+      expect(result.poamId).toBeNull();
     });
 
     it('should handle multiple digit POAM numbers', () => {
       const message = 'Check POAM 12345 for details';
-      const result = component.formatMessage(message);
+      const result = component.parseMessage(message);
 
-      expect(result.toString()).toContain('12345');
+      expect(result.poamId).toBe(12345);
+      expect(result.after).toBe(' for details');
+    });
+
+    it('should build the POAM details href', () => {
+      const result = component.parseMessage('Check POAM 456');
+
+      expect(result.href).toContain('poam-processing/poam-details/456');
+    });
+  });
+
+  describe('message rendering', () => {
+    it.each(['You have been assigned as an approver for POAM 123.', 'POAM 123 has been rejected. Please review the comments.', 'A message with no reference at all', 'POAM 0 has expired.'])('should render %s verbatim', (message) => {
+      mockNotificationService.getAllNotifications.mockReturnValue(of([{ notificationId: 1, title: 'Test', message, read: 0, timestamp: new Date().toISOString() }]));
+
+      fixture.detectChanges();
+
+      const paragraph = fixture.debugElement.query(By.css('.notification-item p'));
+
+      expect(paragraph.nativeElement.textContent).toBe(message);
+    });
+
+    it('should render the POAM reference as a link', () => {
+      mockNotificationService.getAllNotifications.mockReturnValue(of([{ notificationId: 1, title: 'Test', message: 'Check POAM 123 now', read: 0, timestamp: new Date().toISOString() }]));
+
+      fixture.detectChanges();
+
+      const link = fixture.debugElement.query(By.css('.notification-item p a.poam-link'));
+
+      expect(link.nativeElement.textContent).toBe('POAM 123');
+      expect(link.nativeElement.getAttribute('href')).toBe('/poam-processing/poam-details/123');
     });
   });
 
@@ -217,7 +250,7 @@ describe('NotificationsComponent', () => {
       component.notifications.set(
         mockNotifications.map((n) => ({
           ...n,
-          formattedMessage: component.formatMessage(n.message)
+          messageParts: component.parseMessage(n.message)
         }))
       );
     });
@@ -243,7 +276,7 @@ describe('NotificationsComponent', () => {
       component.notifications.set(
         mockNotifications.map((n) => ({
           ...n,
-          formattedMessage: component.formatMessage(n.message)
+          messageParts: component.parseMessage(n.message)
         }))
       );
     });
@@ -268,7 +301,7 @@ describe('NotificationsComponent', () => {
       component.notifications.set(
         mockNotifications.map((n) => ({
           ...n,
-          formattedMessage: component.formatMessage(n.message)
+          messageParts: component.parseMessage(n.message)
         }))
       );
     });
@@ -310,7 +343,7 @@ describe('NotificationsComponent', () => {
       component.notifications.set(
         mockNotifications.map((n) => ({
           ...n,
-          formattedMessage: component.formatMessage(n.message)
+          messageParts: component.parseMessage(n.message)
         }))
       );
     });
@@ -352,7 +385,7 @@ describe('NotificationsComponent', () => {
       component.notifications.set(
         mockNotifications.map((n) => ({
           ...n,
-          formattedMessage: component.formatMessage(n.message)
+          messageParts: component.parseMessage(n.message)
         }))
       );
     });
@@ -409,42 +442,16 @@ describe('NotificationsComponent', () => {
     });
   });
 
-  describe('onNotificationClick', () => {
-    it('should navigate to POAM when clicking a poam-link', () => {
+  describe('onPoamLinkClick', () => {
+    it('should navigate to POAM instead of following the href', () => {
       const navigateSpy = vi.spyOn(component, 'navigateToPOAM').mockImplementation(() => Promise.resolve());
 
-      const mockEvent = {
-        target: {
-          classList: {
-            contains: vi.fn().mockReturnValue(true)
-          },
-          getAttribute: vi.fn().mockReturnValue('123')
-        },
-        preventDefault: vi.fn()
-      } as unknown as MouseEvent;
+      const mockEvent = { preventDefault: vi.fn() } as unknown as MouseEvent;
 
-      component.onNotificationClick(mockEvent);
+      component.onPoamLinkClick(mockEvent, 123);
 
       expect(mockEvent.preventDefault).toHaveBeenCalled();
       expect(navigateSpy).toHaveBeenCalledWith(123);
-    });
-
-    it('should not navigate when clicking non-poam-link element', () => {
-      const navigateSpy = vi.spyOn(component, 'navigateToPOAM').mockImplementation(() => Promise.resolve());
-
-      const mockEvent = {
-        target: {
-          classList: {
-            contains: vi.fn().mockReturnValue(false)
-          }
-        },
-        preventDefault: vi.fn()
-      } as unknown as MouseEvent;
-
-      component.onNotificationClick(mockEvent);
-
-      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
-      expect(navigateSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -466,7 +473,7 @@ describe('NotificationsComponent', () => {
       component.notifications.set(
         mockNotifications.map((n) => ({
           ...n,
-          formattedMessage: component.formatMessage(n.message)
+          messageParts: component.parseMessage(n.message)
         }))
       );
       fixture.detectChanges();

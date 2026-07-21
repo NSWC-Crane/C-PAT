@@ -12,7 +12,6 @@ import { NgClass, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal, inject, viewChild, output, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
 import { parseISO } from 'date-fns/fp';
@@ -93,7 +92,6 @@ import { MultiSelectDirective } from '../../../../../common/directives/multi-sel
 })
 export class TenableVulnerabilitiesComponent implements OnInit {
   private readonly importService = inject(ImportService);
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
   private readonly collectionsService = inject(CollectionsService);
   protected messageService = inject(MessageService);
@@ -118,7 +116,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
   displayDialog = signal<boolean>(false);
   parsedVprContext = signal<any[]>([]);
   isLoading = signal<boolean>(false);
-  formattedDescription = signal<SafeHtml>('');
+  formattedDescription = signal<string>('');
   totalRecords = signal<number>(0);
   rows: number = 100;
   cols = signal<any[]>([]);
@@ -2818,7 +2816,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
         .subscribe({
           next: (pluginData) => {
             this.pluginData.set(pluginData);
-            this.formattedDescription.set(this.pluginData().description ? this.sanitizer.bypassSecurityTrustHtml(this.pluginData().description.replaceAll('\n\n', '<br>')) : '');
+            this.formattedDescription.set(this.pluginData().description?.replaceAll('\n\n', '<br>') ?? '');
 
             if (this.pluginData().xrefs && this.pluginData().xrefs.length > 0) {
               this.parseReferences(this.pluginData().xrefs);

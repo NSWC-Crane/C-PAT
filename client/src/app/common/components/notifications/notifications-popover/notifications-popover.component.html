@@ -13,7 +13,7 @@
     @if (notifications().length > 0) {
       <p-listbox [options]="notifications()" optionLabel="title" scrollHeight="40vh">
         <ng-template let-notification #item>
-          <div class="notification-content" (click)="onNotificationClick($event)">
+          <div class="notification-content">
             <div class="notification-header">
               <div class="notification-icon">
                 <i [class]="notification.icon"></i>
@@ -23,7 +23,13 @@
                 <i class="dismiss-icon pi pi-times" (click)="dismissNotification(notification)"></i>
               }
             </div>
-            <p [innerHTML]="notification.formattedMessage"></p>
+            <p>
+              <span>{{ notification.messageParts?.before }}</span>
+              @if (notification.messageParts?.href; as href) {
+                <a [href]="href" class="poam-link" (click)="onPoamLinkClick($event, notification.messageParts.poamId)">POAM {{ notification.messageParts.poamId }}</a>
+              }
+              <span>{{ notification.messageParts?.after }}</span>
+            </p>
             <small>{{ notification.timestamp | date: 'short' }}</small>
           </div>
         </ng-template>

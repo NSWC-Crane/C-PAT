@@ -12,7 +12,6 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ListboxModule } from 'primeng/listbox';
@@ -33,7 +32,6 @@ export class NotificationsPanelComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);
   private readonly setPayloadService = inject(PayloadService);
   private readonly router = inject(Router);
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly overlayPanel = input<Popover>(undefined);
@@ -69,7 +67,7 @@ export class NotificationsPanelComponent implements OnInit {
         map((notifications) =>
           notifications.map((notification) => ({
             ...notification,
-            formattedMessage: this.formatMessage(notification.message)
+            messageParts: this.parseMessage(notification.message)
           }))
         )
       )
@@ -83,18 +81,21 @@ export class NotificationsPanelComponent implements OnInit {
       });
   }
 
-  formatMessage(message: string): SafeHtml {
-    const poamRegex = /POAM (\d+)/;
-    const match = message.match(poamRegex);
+  parseMessage(message: string): { before: string; poamId: number | null; href: string; after: string } {
+    const match = /POAM (\d+)/.exec(message);
 
-    if (match) {
-      const poamNumber = match[1];
-      const formattedMessage = message.replace(poamRegex, `<a href="${CPAT.Env.basePath ?? ''}poam-processing/poam-details/${poamNumber}" data-poam="${poamNumber}" class="poam-link">POAM ${poamNumber}</a>`);
-
-      return this.sanitizer.bypassSecurityTrustHtml(formattedMessage);
+    if (!match) {
+      return { before: message, poamId: null, href: '', after: '' };
     }
 
-    return message;
+    const poamId = +match[1];
+
+    return {
+      before: message.slice(0, match.index),
+      poamId,
+      href: `${CPAT.Env.basePath ?? ''}poam-processing/poam-details/${poamId}`,
+      after: message.slice(match.index + match[0].length)
+    };
   }
 
   dismissNotification(notification: any) {
@@ -134,16 +135,8 @@ export class NotificationsPanelComponent implements OnInit {
     this.closeOverlay();
   }
 
-  onNotificationClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-
-    if (target.classList.contains('poam-link')) {
-      event.preventDefault();
-      const poamId = target.getAttribute('data-poam');
-
-      if (poamId) {
-        this.navigateToPOAM(+poamId);
-      }
-    }
+  onPoamLinkClick(event: MouseEvent, poamId: number) {
+    event.preventDefault();
+    this.navigateToPOAM(poamId);
   }
 }
