@@ -9,6 +9,7 @@
 */
 
 import { format } from 'date-fns';
+import { firstValueFrom } from 'rxjs';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../pages/import-processing/import.service';
 import { PoamService } from '../../pages/poam-processing/poams.service';
@@ -257,10 +258,8 @@ export class PoamExportService {
 
   private static async processPoamsWithAssets(poams: Poam[], collectionId: number, collectionsService: CollectionsService, importService: ImportService, poamService: PoamService, sharedService: SharedService): Promise<Poam[]> {
     const processedPoams: Poam[] = [];
-    const collection = await collectionsService
-      .getCollectionBasicList()
-      .toPromise()
-      .then((collections) => collections.find((c) => c.collectionId === collectionId));
+    const collections = await firstValueFrom(collectionsService.getCollectionBasicList());
+    const collection = collections.find((c) => c.collectionId === collectionId);
 
     if (!collection) {
       throw new Error('Collection not found');
@@ -270,7 +269,7 @@ export class PoamExportService {
       let processedPoam = { ...poam };
 
       if (collection.collectionType === 'STIG Manager' && poam.vulnerabilityId && poam.stigBenchmarkId) {
-        const findings = await sharedService.getSTIGMANAffectedAssetsByPoam(collection.originCollectionId, poam.stigBenchmarkId).toPromise();
+        const findings = await firstValueFrom(sharedService.getSTIGMANAffectedAssetsByPoam(collection.originCollectionId, poam.stigBenchmarkId));
 
         const matchingFinding = findings.find((finding) => finding.groupId === poam.vulnerabilityId);
 
@@ -308,16 +307,12 @@ export class PoamExportService {
           type: 'vuln'
         };
 
-        const tenableAssets = await importService
-          .postTenableAnalysis(analysisParams)
-          .toPromise()
-          .then((data) =>
-            data.response.results.map((asset: any) => ({
-              pluginId: asset.pluginID,
-              dnsName: asset.dnsName ?? '',
-              netbiosName: asset.netbiosName ?? ''
-            }))
-          );
+        const analysisData = await firstValueFrom(importService.postTenableAnalysis(analysisParams));
+        const tenableAssets = analysisData.response.results.map((asset: any) => ({
+          pluginId: asset.pluginID,
+          dnsName: asset.dnsName ?? '',
+          netbiosName: asset.netbiosName ?? ''
+        }));
 
         const affectedDevices = tenableAssets
           .map((asset) => {
@@ -339,7 +334,7 @@ export class PoamExportService {
 
         processedPoam.devicesAffected = affectedDevices.join(' ');
       } else {
-        const assets = await poamService.getPoamAssetsByCollectionId(collection.collectionId).toPromise();
+        const assets = await firstValueFrom(poamService.getPoamAssetsByCollectionId(collection.collectionId));
 
         const poamAssets = assets
           .filter((asset: any) => asset.poamId === poam.poamId)

@@ -68,7 +68,13 @@
         <div class="form-container">
           <div class="form-group" tourAnchor="poam-global-toggle">
             <div class="switch-container">
-              <p-toggleswitch id="globalFinding" name="globalFinding" [ngModel]="poam.isGlobalFinding" (ngModelChange)="patchPoam({ isGlobalFinding: $event }); $event ? onGlobalFindingEnabled() : onGlobalFindingDisabled()" [disabled]="fieldDisabled()" />
+              <p-toggleswitch
+                id="globalFinding"
+                name="globalFinding"
+                [ngModel]="poam.isGlobalFinding"
+                (ngModelChange)="patchPoam({ isGlobalFinding: $event }); $event ? onGlobalFindingEnabled() : onGlobalFindingDisabled()"
+                [disabled]="fieldDisabled()"
+              />
               <label class="ml-2" for="globalFinding">Global Finding</label>
             </div>
           </div>

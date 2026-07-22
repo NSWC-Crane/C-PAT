@@ -145,7 +145,7 @@ export class PoamResourceService {
   saveAllTeamResources(poam: any, teamResources: any[]): void {
     const activeTeamResources = teamResources.filter((tr) => tr.isActive);
 
-    const savePromises = activeTeamResources.map((teamResource) => this.poamService.updatePoamTeamResource(poam.poamId, teamResource.assignedTeamId, teamResource.resourceText).toPromise());
+    const savePromises = activeTeamResources.map((teamResource) => firstValueFrom(this.poamService.updatePoamTeamResource(poam.poamId, teamResource.assignedTeamId, teamResource.resourceText)));
 
     Promise.all(savePromises)
       .then(() => {})
