@@ -182,7 +182,7 @@ export class PoamDetailsComponent implements OnInit {
   readonly submitDialogVisible = signal<boolean>(false);
   readonly user = this.setPayloadService.user;
   readonly payload = this.setPayloadService.payload;
-  protected readonly selectedCollection = computed<number | null>(() => this.sharedService.selectedCollectionSig() ?? this.payload()?.lastCollectionAccessedId ?? null);
+  readonly selectedCollection = computed<number | null>(() => this.sharedService.selectedCollectionSig() ?? this.payload()?.lastCollectionAccessedId ?? null);
   readonly teamMitigations = signal<any[]>([]);
   readonly teamResources = signal<any[]>([]);
   readonly milestoneTeamOptions = signal<any[]>([]);
@@ -1375,16 +1375,18 @@ export class PoamDetailsComponent implements OnInit {
     this.teamMitigations.set(await this.poamMitigationService.initializeTeamMitigations(this.poam(), this.poamAssignedTeams(), this.teamMitigations()));
   }
 
-  onGlobalFindingToggle(isGlobalFinding: boolean): void {
-    if (isGlobalFinding) {
-      this.activeTabIndex.set(0);
-      this.activeResourceTabIndex.set(0);
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Global Finding Mode',
-        detail: 'Team-specific mitigations are now hidden. Use the global mitigation section below.'
-      });
-    } else if (this.teamMitigations()?.length > 0) {
+  onGlobalFindingEnabled(): void {
+    this.activeTabIndex.set(0);
+    this.activeResourceTabIndex.set(0);
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Global Finding Mode',
+      detail: 'Team-specific mitigations are now hidden. Use the global mitigation section below.'
+    });
+  }
+
+  onGlobalFindingDisabled(): void {
+    if (this.teamMitigations()?.length > 0) {
       this.activeTabIndex.set(0);
       this.activeResourceTabIndex.set(0);
     } else {

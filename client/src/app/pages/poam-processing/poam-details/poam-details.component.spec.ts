@@ -2772,12 +2772,12 @@ describe('PoamDetailsComponent', () => {
     });
   });
 
-  describe('onGlobalFindingToggle', () => {
-    it('should reset activeTabIndex and show info when isGlobalFinding is true', () => {
+  describe('onGlobalFindingEnabled', () => {
+    it('should reset activeTabIndex and show info', () => {
       component.poam.set({ isGlobalFinding: true });
       component.activeTabIndex.set(2);
 
-      component.onGlobalFindingToggle(true);
+      component.onGlobalFindingEnabled();
 
       expect(component.activeTabIndex()).toBe(0);
       expect(mockMessageService.add).toHaveBeenCalledWith({
@@ -2786,23 +2786,25 @@ describe('PoamDetailsComponent', () => {
         detail: expect.stringContaining('Team-specific mitigations are now hidden')
       });
     });
+  });
 
-    it('should reset activeTabIndex when not global and mitigations exist', () => {
+  describe('onGlobalFindingDisabled', () => {
+    it('should reset activeTabIndex when mitigations exist', () => {
       component.poam.set({ isGlobalFinding: false });
       component.teamMitigations.set([{ assignedTeamId: 1 }]);
       component.activeTabIndex.set(2);
 
-      component.onGlobalFindingToggle(false);
+      component.onGlobalFindingDisabled();
 
       expect(component.activeTabIndex()).toBe(0);
       expect(mockMessageService.add).not.toHaveBeenCalled();
     });
 
-    it('should show team assignment required when not global and no mitigations', () => {
+    it('should show team assignment required when no mitigations', () => {
       component.poam.set({ isGlobalFinding: false });
       component.teamMitigations.set([]);
 
-      component.onGlobalFindingToggle(false);
+      component.onGlobalFindingDisabled();
 
       expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'info',
