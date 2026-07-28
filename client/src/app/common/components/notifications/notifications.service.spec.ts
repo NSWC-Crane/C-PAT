@@ -251,8 +251,14 @@ describe('NotificationService', () => {
       httpMock.expectNone(`${apiBase}/notifications/unread`);
 
       dateSpy.mockReturnValue(31000);
-      service.getUnreadNotifications().subscribe();
+
+      let result: any;
+
+      service.getUnreadNotifications().subscribe((data) => {
+        result = data;
+      });
       httpMock.expectOne(`${apiBase}/notifications/unread`).flush(mockUnread);
+      expect(result).toEqual(mockUnread);
 
       dateSpy.mockRestore();
     });
@@ -265,8 +271,14 @@ describe('NotificationService', () => {
       httpMock.expectOne(`${apiBase}/notifications/unread/count`).flush(mockCount);
 
       dateSpy.mockReturnValue(31000);
-      service.getUnreadNotificationCount().subscribe();
+
+      let result: any;
+
+      service.getUnreadNotificationCount().subscribe((data) => {
+        result = data;
+      });
       httpMock.expectOne(`${apiBase}/notifications/unread/count`).flush(mockCount);
+      expect(result).toEqual(mockCount);
 
       dateSpy.mockRestore();
     });
@@ -278,8 +290,13 @@ describe('NotificationService', () => {
       service.dismissNotification(1).subscribe();
       httpMock.expectOne(`${apiBase}/notifications/dismiss/1`).flush({ success: true });
 
-      service.getUnreadNotifications().subscribe();
+      let result: any;
+
+      service.getUnreadNotifications().subscribe((data) => {
+        result = data;
+      });
       httpMock.expectOne(`${apiBase}/notifications/unread`).flush(mockUnread);
+      expect(result).toEqual(mockUnread);
     });
 
     it('should invalidate cache after dismissAllNotifications', () => {
@@ -289,8 +306,13 @@ describe('NotificationService', () => {
       service.dismissAllNotifications().subscribe();
       httpMock.expectOne(`${apiBase}/notifications/all/dismiss`).flush({ success: true });
 
-      service.getUnreadNotificationCount().subscribe();
+      let result: any;
+
+      service.getUnreadNotificationCount().subscribe((data) => {
+        result = data;
+      });
       httpMock.expectOne(`${apiBase}/notifications/unread/count`).flush(mockCount);
+      expect(result).toEqual(mockCount);
     });
 
     it('should reset cache on HTTP error so next call retries', () => {
@@ -299,8 +321,13 @@ describe('NotificationService', () => {
       service.getUnreadNotifications().subscribe({ error: () => {} });
       httpMock.expectOne(`${apiBase}/notifications/unread`).flush('Error', { status: 500, statusText: 'Server Error' });
 
-      service.getUnreadNotifications().subscribe();
+      let result: any;
+
+      service.getUnreadNotifications().subscribe((data) => {
+        result = data;
+      });
       httpMock.expectOne(`${apiBase}/notifications/unread`).flush(mockUnread);
+      expect(result).toEqual(mockUnread);
 
       consoleSpy.mockRestore();
     });
