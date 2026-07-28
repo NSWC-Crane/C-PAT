@@ -105,7 +105,7 @@ export class TenableFiltersComponent implements OnInit {
         next: (filters: TenableFilter[]) => {
           this.existingFilters = filters.map((filter) => {
             const hasAccess = this.accessLevel() === 4;
-            const isCreator = this.currentUser && filter.createdBy === this.currentUser.userName;
+            const isCreator = !!this.currentUser?.userName && filter.createdBy === this.currentUser.userName;
             const canUpdateFilter = hasAccess || isCreator;
 
             return {
@@ -190,7 +190,7 @@ export class TenableFiltersComponent implements OnInit {
 
       if (existingFilter) {
         const hasAccess = this.accessLevel() === 4;
-        const isCreator = this.currentUser && existingFilter.createdBy === this.currentUser.userName;
+        const isCreator = !!this.currentUser?.userName && existingFilter.createdBy === this.currentUser.userName;
         const canUpdateExisting = hasAccess || isCreator;
 
         if (canUpdateExisting) {

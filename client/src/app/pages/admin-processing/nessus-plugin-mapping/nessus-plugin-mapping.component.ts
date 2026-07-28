@@ -84,7 +84,7 @@ export class NessusPluginMappingComponent implements OnInit {
       .getIAVTableData()
       .pipe(
         map((response) => {
-          if (!response || !response.tableData || !Array.isArray(response.tableData)) {
+          if (!response?.tableData || !Array.isArray(response.tableData)) {
             throw new Error('Invalid response format');
           }
 

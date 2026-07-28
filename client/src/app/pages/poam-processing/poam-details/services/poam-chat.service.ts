@@ -46,7 +46,7 @@ export class PoamChatService {
   }
 
   formatMessagesForUI(userId: number, messages: any[]): any {
-    if (!messages || !messages.length) return [];
+    if (!messages?.length) return [];
 
     return messages.map((message) => ({
       text: message.text,
