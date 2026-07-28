@@ -790,29 +790,25 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
           break;
 
         case 'dueWithin7':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
 
         case 'dueWithin14':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
 
         case 'dueWithin30':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
 
         case 'dueWithin90':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
