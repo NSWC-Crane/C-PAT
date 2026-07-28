@@ -43,16 +43,18 @@ interface AutocompleteSuggestion {
   templateUrl: './poam-associated-vulnerabilities.component.html',
   styles: [
     `
-      :host ::ng-deep .p-datatable {
-        overflow: visible;
-      }
+      :host ::ng-deep {
+        .p-datatable {
+          overflow: visible;
+        }
 
-      :host ::ng-deep .p-datatable-table-container {
-        overflow: visible !important;
-      }
+        .p-datatable-table-container {
+          overflow: visible !important;
+        }
 
-      :host ::ng-deep .p-datatable-table {
-        overflow: visible;
+        .p-datatable-table {
+          overflow: visible;
+        }
       }
     `
   ],
