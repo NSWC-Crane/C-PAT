@@ -13,10 +13,10 @@
   <p-table [value]="attachedFiles()" [tableStyle]="{ 'min-width': '50rem' }">
     <ng-template #header>
       <tr>
-        <th id="col">Filename</th>
-        <th id="col">Size</th>
-        <th id="col">Upload Date</th>
-        <th id="col">Actions</th>
+        <th scope="col">Filename</th>
+        <th scope="col">Size</th>
+        <th scope="col">Upload Date</th>
+        <th scope="col">Actions</th>
       </tr>
     </ng-template>
     <ng-template #body let-attachment>
