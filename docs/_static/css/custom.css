@@ -13,6 +13,8 @@ body {
 
 .wy-nav-content {
     background-color: #252525;
+    width: 100%;
+    max-width: 1200px !important;
 }
 
 .section {
@@ -391,7 +393,7 @@ footer {
     color: var(--dark-text-color);
 }
 
-.rst-content code.literal, .rst-content tt.literal {
+.rst-content code.literal {
     color: #f9bf26;
     white-space: normal;
 }
@@ -405,8 +407,7 @@ dl[class]:not(.option-list):not(.field-list):not(.footnote):not( .glossary ):not
     border-color: #282828;
 }
 
-.rst-content code,
-.rst-content tt {
+.rst-content code {
     color: var(--dark-text-color);
 }
 
@@ -428,16 +429,13 @@ dl:not(.field-list) > dt {
 }
 
 .rst-content code,
-.rst-content tt,
 code {
     background-color: #333333;
     border: none;
 }
 
     .rst-content code.xref,
-    .rst-content tt.xref,
-    a .rst-content code,
-    a .rst-content tt {
+    a .rst-content code {
         color: #cecece;
     }
 
@@ -695,11 +693,6 @@ figcaption {
 
 .tight-table td {
     white-space:normal !important;
-}
-
-.wy-nav-content {
-    width: 100%;
-    max-width: 1200px !important;
 }
 
 .document a:visited {
