@@ -28,11 +28,11 @@
         <p-table [value]="displayPoams()" [loading]="loadingPoams()" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" class="w-full">
           <ng-template #header>
             <tr>
-              <th pSortableColumn="poamId">POAM ID</th>
-              <th pSortableColumn="vulnerabilityId">Vulnerability ID</th>
-              <th pSortableColumn="vulnerabilityTitle">Vulnerability Title</th>
-              <th pSortableColumn="rawSeverity">Severity</th>
-              <th style="width: 8rem">
+              <th scope="col" pSortableColumn="poamId">POAM ID</th>
+              <th scope="col" pSortableColumn="vulnerabilityId">Vulnerability ID</th>
+              <th scope="col" pSortableColumn="vulnerabilityTitle">Vulnerability Title</th>
+              <th scope="col" pSortableColumn="rawSeverity">Severity</th>
+              <th scope="col" style="width: 8rem">
                 @if (accessLevel() >= 2) {
                   <button pButton type="button" (click)="addPoamRow()" [rounded]="true" [text]="true" pTooltip="Add POAM to label" tooltipPosition="top"><i class="pi pi-plus" pButtonIcon></i></button>
                 }
