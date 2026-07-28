@@ -34,7 +34,7 @@ describe('NotificationService', () => {
 
       service.getAllNotifications().subscribe((notifications) => {
         expect(notifications).toEqual(mockNotifications);
-        expect(notifications.length).toBe(2);
+        expect(notifications).toHaveLength(2);
       });
 
       const req = httpMock.expectOne(`${apiBase}/notifications/all`);

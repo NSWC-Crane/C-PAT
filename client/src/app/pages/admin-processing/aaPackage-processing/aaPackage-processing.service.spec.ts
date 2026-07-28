@@ -46,7 +46,7 @@ describe('AAPackageService', () => {
 
       service.getAAPackages().subscribe((data) => {
         expect(data).toEqual(mockPackages);
-        expect(data.length).toBe(3);
+        expect(data).toHaveLength(3);
       });
 
       const req = httpMock.expectOne(`${apiBase}/aaPackages`);

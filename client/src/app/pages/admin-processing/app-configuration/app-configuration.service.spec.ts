@@ -45,7 +45,7 @@ describe('AppConfigurationService', () => {
 
       service.getAppConfiguration().subscribe((data) => {
         expect(data).toEqual(mockConfig);
-        expect(data.length).toBe(3);
+        expect(data).toHaveLength(3);
       });
 
       const req = httpMock.expectOne(`${apiBase}/appConfig`);

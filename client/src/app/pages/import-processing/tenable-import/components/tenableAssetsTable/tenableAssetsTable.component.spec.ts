@@ -181,14 +181,14 @@ describe('TenableAssetsTableComponent', () => {
       (component as any).pluginID = () => undefined;
       (component as any).tenableRepoId = () => undefined;
       component.initColumnsAndFilters();
-      expect(component.cols.length).toBe(16);
+      expect(component.cols).toHaveLength(16);
     });
 
     it('should add 3 POAM columns when pluginID and tenableRepoId are set', () => {
       (component as any).pluginID = () => '12345';
       (component as any).tenableRepoId = () => 99;
       component.initColumnsAndFilters();
-      expect(component.cols.length).toBe(19);
+      expect(component.cols).toHaveLength(19);
     });
 
     it('should include firstSeen and lastSeen columns when pluginID is set', () => {
@@ -206,7 +206,7 @@ describe('TenableAssetsTableComponent', () => {
       (component as any).pluginID = () => undefined;
       (component as any).tenableRepoId = () => undefined;
       component.initColumnsAndFilters();
-      expect(component.exportColumns.length).toBe(component.cols.length);
+      expect(component.exportColumns).toHaveLength(component.cols.length);
     });
 
     it('should set selectedColumns to default subset', () => {
@@ -273,7 +273,7 @@ describe('TenableAssetsTableComponent', () => {
     it('should populate affectedAssets from results', () => {
       component.assetDeltaList = { assets: [] };
       component.getAffectedAssetsForAllPlugins();
-      expect(component.affectedAssets.length).toBe(2);
+      expect(component.affectedAssets).toHaveLength(2);
     });
 
     it('should set totalRecords to affectedAssets length', () => {
@@ -330,7 +330,7 @@ describe('TenableAssetsTableComponent', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(of(dupResult));
       component.assetDeltaList = { assets: [] };
       component.getAffectedAssetsForAllPlugins();
-      expect(component.affectedAssets.length).toBe(1);
+      expect(component.affectedAssets).toHaveLength(1);
     });
 
     it('should include 30-day filter when is30DayFilterActive is true', () => {
@@ -369,7 +369,7 @@ describe('TenableAssetsTableComponent', () => {
   describe('getAffectedAssetsByPluginId', () => {
     it('should return an Observable of mapped assets', () => {
       component.getAffectedAssetsByPluginId('12345', 99).subscribe((assets) => {
-        expect(assets.length).toBe(2);
+        expect(assets).toHaveLength(2);
         expect(assets[0].family).toBe('Web Servers');
       });
     });
@@ -453,7 +453,7 @@ describe('TenableAssetsTableComponent', () => {
         { netbiosName: 'HOST2', dnsName: 'd2.com', hostUUID: 'u2', macAddress: 'BB' }
       ];
       component.matchAssetsWithTeams();
-      expect(component.assetsByTeam['team1'].length).toBe(1);
+      expect(component.assetsByTeam['team1']).toHaveLength(1);
     });
   });
 
@@ -472,7 +472,7 @@ describe('TenableAssetsTableComponent', () => {
         team2: [{ assignedTeamName: 'Team Beta', hostUUID: 'u2' }]
       };
       component.createTeamTabs();
-      expect(component.teamTabs().length).toBe(3);
+      expect(component.teamTabs()).toHaveLength(3);
     });
 
     it('should use assignedTeamName from first asset in team', () => {
@@ -490,7 +490,7 @@ describe('TenableAssetsTableComponent', () => {
       component.affectedAssets = [];
       component.assetsByTeam = { team1: [] };
       component.createTeamTabs();
-      expect(component.teamTabs().length).toBe(1);
+      expect(component.teamTabs()).toHaveLength(1);
     });
   });
 
@@ -566,7 +566,7 @@ describe('TenableAssetsTableComponent', () => {
 
     it('should parse IAVA references', () => {
       component.parseReferences('IAVA:2023-A-0001');
-      expect(component.iavReferences().length).toBe(1);
+      expect(component.iavReferences()).toHaveLength(1);
     });
 
     it('should parse other references', () => {
@@ -576,9 +576,9 @@ describe('TenableAssetsTableComponent', () => {
 
     it('should handle multiple references', () => {
       component.parseReferences('CVE:CVE-2023-1234 IAVB:2023-B-0001 BID:99');
-      expect(component.cveReferences().length).toBe(1);
-      expect(component.iavReferences().length).toBe(1);
-      expect(component.otherReferences().length).toBe(1);
+      expect(component.cveReferences()).toHaveLength(1);
+      expect(component.iavReferences()).toHaveLength(1);
+      expect(component.otherReferences()).toHaveLength(1);
     });
 
     it('should strip trailing comma from reference value', () => {

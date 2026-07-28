@@ -132,7 +132,7 @@ describe('PoamMilestonesComponent', () => {
 
       component.onAddNewMilestone();
 
-      expect(component.poamMilestones().length).toBe(2);
+      expect(component.poamMilestones()).toHaveLength(2);
       expect(component.poamMilestones()[0].isNew).toBe(true);
       expect(component.poamMilestones()[1].milestoneId).toBe('existing-1');
     });
@@ -179,7 +179,7 @@ describe('PoamMilestonesComponent', () => {
       component.poamMilestones.set(null as any);
       component.onAddNewMilestone();
       expect(Array.isArray(component.poamMilestones())).toBe(true);
-      expect(component.poamMilestones().length).toBe(1);
+      expect(component.poamMilestones()).toHaveLength(1);
     });
 
     it('should call table.initRowEdit on setTimeout', () => {
@@ -813,7 +813,7 @@ describe('PoamMilestonesComponent', () => {
 
       component.onRowEditCancel(newMilestone, 0);
 
-      expect(component.poamMilestones().length).toBe(1);
+      expect(component.poamMilestones()).toHaveLength(1);
       expect(component.poamMilestones()[0].milestoneId).toBe('ms-2');
     });
 
@@ -906,7 +906,7 @@ describe('PoamMilestonesComponent', () => {
       mockConfirmationService.confirm.mockImplementation((config: any) => config.accept());
       component.deleteMilestone(milestone1, 0);
 
-      expect(component.poamMilestones().length).toBe(1);
+      expect(component.poamMilestones()).toHaveLength(1);
       expect(component.poamMilestones()[0].milestoneId).toBe('ms-2');
     });
 
@@ -944,7 +944,7 @@ describe('PoamMilestonesComponent', () => {
 
       component.deleteMilestone(milestone, 0);
 
-      expect(component.poamMilestones().length).toBe(1);
+      expect(component.poamMilestones()).toHaveLength(1);
     });
   });
 

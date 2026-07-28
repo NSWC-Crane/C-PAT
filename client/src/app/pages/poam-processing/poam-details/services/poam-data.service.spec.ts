@@ -134,7 +134,7 @@ describe('PoamDataService', () => {
         const result = await firstValueFrom(service.loadAssets('STIG Manager', 50, poam, 100));
 
         expect(result.externalAssets).toBeDefined();
-        expect(result.externalAssets!.length).toBe(1);
+        expect(result.externalAssets!).toHaveLength(1);
         expect(result.externalAssets![0].assetId).toBe(101);
         expect(result.externalAssets![0].assetName).toBe('Asset 1');
         expect(result.externalAssets![0].fqdn).toBe('asset1.example.com');
@@ -157,7 +157,7 @@ describe('PoamDataService', () => {
 
         const result = await firstValueFrom(service.loadAssets('STIG Manager', 50, poam, 100));
 
-        expect(result.externalAssets!.length).toBe(2);
+        expect(result.externalAssets!).toHaveLength(2);
       });
 
       it('should merge duplicate assets and combine sourceVulnIds', async () => {
@@ -173,7 +173,7 @@ describe('PoamDataService', () => {
 
         const result = await firstValueFrom(service.loadAssets('STIG Manager', 50, poam, 100));
 
-        expect(result.externalAssets!.length).toBe(1);
+        expect(result.externalAssets!).toHaveLength(1);
         expect(result.externalAssets![0].sourceVulnIds).toContain('V-12345');
         expect(result.externalAssets![0].sourceVulnIds).toContain('V-67890');
       });
@@ -232,7 +232,7 @@ describe('PoamDataService', () => {
         const result = await firstValueFrom(service.loadAssets('Tenable', 50, poam, 100));
 
         expect(result.externalAssets).toBeDefined();
-        expect(result.externalAssets!.length).toBe(1);
+        expect(result.externalAssets!).toHaveLength(1);
         expect(result.externalAssets![0].assetName).toBe('WORKSTATION1');
         expect(result.externalAssets![0].dnsName).toBe('workstation1.example.com');
         expect(result.externalAssets![0].source).toBe('Tenable');
@@ -253,7 +253,7 @@ describe('PoamDataService', () => {
 
         const result = await firstValueFrom(service.loadAssets('Tenable', 50, poam, 100));
 
-        expect(result.externalAssets!.length).toBe(2);
+        expect(result.externalAssets!).toHaveLength(2);
         const analysisCall = mockImportService.postTenableAnalysis.mock.calls[0][0];
         const pluginFilter = analysisCall.query.filters.find((f: any) => f.id === 'pluginID');
 
@@ -275,7 +275,7 @@ describe('PoamDataService', () => {
 
         const result = await firstValueFrom(service.loadAssets('Tenable', 50, poam, 100));
 
-        expect(result.externalAssets!.length).toBe(1);
+        expect(result.externalAssets!).toHaveLength(1);
         expect(result.externalAssets![0].sourcePluginIDs).toContain('12345');
         expect(result.externalAssets![0].sourcePluginIDs).toContain('67890');
       });
@@ -437,7 +437,7 @@ describe('PoamDataService', () => {
 
       const result = await firstValueFrom(service.loadSTIGsFromSTIGMAN());
 
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0].benchmarkId).toBe('Windows_Server_2019_STIG');
       expect(result[0].title).toContain('Windows Server 2019 STIG');
       expect(result[0].title).toContain('Version 2, Release: 5');
@@ -579,7 +579,7 @@ describe('PoamDataService', () => {
 
       const result = await firstValueFrom(service.loadAssets('STIG Manager', 50, poam, 100));
 
-      expect(result.externalAssets!.length).toBe(3);
+      expect(result.externalAssets!).toHaveLength(3);
     });
 
     it('should handle associatedVulnerabilities as array of objects', async () => {
@@ -595,7 +595,7 @@ describe('PoamDataService', () => {
 
       const result = await firstValueFrom(service.loadAssets('STIG Manager', 50, poam, 100));
 
-      expect(result.externalAssets!.length).toBe(3);
+      expect(result.externalAssets!).toHaveLength(3);
     });
 
     it('should filter out empty string associatedVulnerabilities', async () => {
@@ -610,7 +610,7 @@ describe('PoamDataService', () => {
 
       const result = await firstValueFrom(service.loadAssets('STIG Manager', 50, poam, 100));
 
-      expect(result.externalAssets!.length).toBe(2);
+      expect(result.externalAssets!).toHaveLength(2);
     });
   });
 });

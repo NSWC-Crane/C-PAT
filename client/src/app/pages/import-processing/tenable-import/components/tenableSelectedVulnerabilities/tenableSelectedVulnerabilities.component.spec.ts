@@ -332,7 +332,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should set 21 columns for iav preset', () => {
-      expect(component.cols().length).toBe(21);
+      expect(component.cols()).toHaveLength(21);
     });
 
     it('should include poam column', () => {
@@ -366,7 +366,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     it('should set 22 columns for taskOrder preset', () => {
       (component as any).currentPreset = () => 'taskOrder';
       component.initColumnsAndFilters();
-      expect(component.cols().length).toBe(22);
+      expect(component.cols()).toHaveLength(22);
     });
 
     it('should include taskOrderNumber column for taskOrder preset', () => {
@@ -376,11 +376,11 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should set exportColumns matching cols length', () => {
-      expect(component.exportColumns.length).toBe(21);
+      expect(component.exportColumns).toHaveLength(21);
     });
 
     it('should set 14 navyComplyDateFilters', () => {
-      expect(component.navyComplyDateFilters().length).toBe(14);
+      expect(component.navyComplyDateFilters()).toHaveLength(14);
     });
 
     it('should include All IAVs option in navyComplyDateFilters', () => {
@@ -519,7 +519,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should populate applicableVulnerabilities from results', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities().length).toBe(1);
+      expect(component.applicableVulnerabilities()).toHaveLength(1);
     });
 
     it('should parse numeric pluginID', () => {
@@ -932,7 +932,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.onNavyComplyDateFilterChange({ value: 'alloverdue' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(1);
+      expect(filters).toHaveLength(1);
       expect(filters[0].matchMode).toBe('dateBefore');
     });
 
@@ -940,7 +940,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.onNavyComplyDateFilterChange({ value: 'overdue90Plus' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(1);
+      expect(filters).toHaveLength(1);
       expect(filters[0].matchMode).toBe('dateBefore');
     });
 
@@ -948,7 +948,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.onNavyComplyDateFilterChange({ value: 'overdue30To90' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
       expect(filters.some((f: any) => f.matchMode === 'dateAfter')).toBe(true);
       expect(filters.some((f: any) => f.matchMode === 'dateBefore')).toBe(true);
     });
@@ -957,70 +957,70 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.onNavyComplyDateFilterChange({ value: 'overdue0To30' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should set dateAfter and dateBefore constraints for overdue0To14', () => {
       component.onNavyComplyDateFilterChange({ value: 'overdue0To14' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should set dateAfter and dateBefore constraints for overdue0To7', () => {
       component.onNavyComplyDateFilterChange({ value: 'overdue0To7' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should set dateAfter and dateBefore constraints for dueBetween714', () => {
       component.onNavyComplyDateFilterChange({ value: 'dueBetween714' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should set dateAfter and dateBefore constraints for dueBetween1430', () => {
       component.onNavyComplyDateFilterChange({ value: 'dueBetween1430' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should set dateAfter and dateBefore constraints for dueBetween3090', () => {
       component.onNavyComplyDateFilterChange({ value: 'dueBetween3090' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should set dateAfter and dateBefore constraints for dueWithin7', () => {
       component.onNavyComplyDateFilterChange({ value: 'dueWithin7' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should set dateAfter and dateBefore constraints for dueWithin14', () => {
       component.onNavyComplyDateFilterChange({ value: 'dueWithin14' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should set dateAfter and dateBefore constraints for dueWithin30', () => {
       component.onNavyComplyDateFilterChange({ value: 'dueWithin30' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should set dateAfter and dateBefore constraints for dueWithin90', () => {
       component.onNavyComplyDateFilterChange({ value: 'dueWithin90' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should call table._filter after setting constraints', () => {
@@ -1134,7 +1134,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should set 11 columns for iav preset', () => {
       component.resetColumnSelections();
-      expect(component.selectedColumns().length).toBe(11);
+      expect(component.selectedColumns()).toHaveLength(11);
     });
   });
 

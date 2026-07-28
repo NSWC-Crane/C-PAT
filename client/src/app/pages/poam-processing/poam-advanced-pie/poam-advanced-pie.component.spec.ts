@@ -192,7 +192,7 @@ describe('PoamAdvancedPieComponent', () => {
 
       const sorted = component.sortedPieChartData();
 
-      expect(sorted.length).toBe(1);
+      expect(sorted).toHaveLength(1);
       expect(sorted[0]).toEqual({ name: 'Approved', value: 10 });
     });
 
@@ -202,7 +202,7 @@ describe('PoamAdvancedPieComponent', () => {
 
       const sorted = component.sortedPieChartData();
 
-      expect(sorted.length).toBe(1);
+      expect(sorted).toHaveLength(1);
       expect(sorted[0].name).toBe('No Data');
     });
   });
@@ -323,7 +323,7 @@ describe('PoamAdvancedPieComponent', () => {
 
       const scheme = component.colorScheme();
 
-      expect(scheme.domain.length).toBe(3);
+      expect(scheme.domain).toHaveLength(3);
     });
 
     it('should map all known statuses to their correct colors', () => {
@@ -343,7 +343,7 @@ describe('PoamAdvancedPieComponent', () => {
 
       const scheme = component.colorScheme();
 
-      expect(scheme.domain.length).toBe(10);
+      expect(scheme.domain).toHaveLength(10);
       expect(scheme.domain.every((c: string) => c.startsWith('rgba('))).toBe(true);
       expect(scheme.domain).not.toContain('rgba(128, 128, 128, .7)');
     });

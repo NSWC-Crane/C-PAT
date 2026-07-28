@@ -171,7 +171,7 @@ describe('STIGManagerMetricsComponent', () => {
     });
 
     it('should include all 8 metric entries', () => {
-      expect(component.metricsDisplay().length).toBe(8);
+      expect(component.metricsDisplay()).toHaveLength(8);
     });
   });
 
@@ -285,7 +285,7 @@ describe('STIGManagerMetricsComponent', () => {
     it('should populate stigsAssessmentData', () => {
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
-      expect(component.stigsAssessmentData().length).toBe(1);
+      expect(component.stigsAssessmentData()).toHaveLength(1);
     });
 
     it('should set stigAssessmentData title from STIG summary', () => {
@@ -319,21 +319,21 @@ describe('STIGManagerMetricsComponent', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of(mockStigSummary));
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
-      expect(component.stigsAssessmentData().length).toBe(1);
+      expect(component.stigsAssessmentData()).toHaveLength(1);
     });
 
     it('should handle non-array stigSummary (single object)', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of(mockStigSummary[0]));
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
-      expect(component.stigsAssessmentData().length).toBe(1);
+      expect(component.stigsAssessmentData()).toHaveLength(1);
     });
 
     it('should handle null stigSummary', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of(null));
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
-      expect(component.stigsAssessmentData().length).toBe(0);
+      expect(component.stigsAssessmentData()).toHaveLength(0);
     });
   });
 

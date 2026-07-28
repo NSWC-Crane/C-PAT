@@ -170,7 +170,7 @@ describe('TenableMetricsComponent', () => {
     });
 
     it('should return 6 metric entries', () => {
-      expect(component.metricsDisplay().length).toBe(6);
+      expect(component.metricsDisplay()).toHaveLength(6);
     });
 
     it('should show "-" for exploitable findings when loading', () => {

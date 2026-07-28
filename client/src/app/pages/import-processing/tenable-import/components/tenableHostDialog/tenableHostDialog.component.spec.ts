@@ -131,7 +131,7 @@ describe('TenableHostDialogComponent', () => {
     });
 
     it('should have 9 columns initialized', () => {
-      expect(component.hostDialogCols.length).toBe(9);
+      expect(component.hostDialogCols).toHaveLength(9);
     });
   });
 
@@ -501,8 +501,8 @@ describe('TenableHostDialogComponent', () => {
 
     it('should handle comma-separated references', () => {
       component.parseReferences('CVE#CVE-2023-1234, IAVB#2023-B-0001');
-      expect(component.cveReferences().length).toBe(1);
-      expect(component.iavReferences().length).toBe(1);
+      expect(component.cveReferences()).toHaveLength(1);
+      expect(component.iavReferences()).toHaveLength(1);
     });
 
     it('should set all lists to empty for null/undefined xref', () => {

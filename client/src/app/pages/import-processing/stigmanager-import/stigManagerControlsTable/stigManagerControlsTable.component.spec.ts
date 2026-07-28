@@ -154,11 +154,11 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should have 8 controlColumns defined', () => {
-      expect(component.controlColumns.length).toBe(8);
+      expect(component.controlColumns).toHaveLength(8);
     });
 
     it('should have 8 findingColumns defined', () => {
-      expect(component.findingColumns.length).toBe(8);
+      expect(component.findingColumns).toHaveLength(8);
     });
   });
 
@@ -256,7 +256,7 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should create one summary per unique control', () => {
-      expect(component.controlSummaries().length).toBe(2);
+      expect(component.controlSummaries()).toHaveLength(2);
     });
 
     it('should set control field on each summary', () => {
@@ -747,10 +747,10 @@ describe('STIGManagerControlsTableComponent', () => {
       mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValue(findingsSubject.asObservable());
       component.ngOnInit();
       findingsSubject.next([...mockRawFindings]);
-      expect(component.controlSummaries().length).toBe(2);
+      expect(component.controlSummaries()).toHaveLength(2);
       fixture.destroy();
       findingsSubject.next([mockRawFindings[0]]);
-      expect(component.controlSummaries().length).toBe(2);
+      expect(component.controlSummaries()).toHaveLength(2);
     });
 
     it('does not throw on destroy', () => {

@@ -142,7 +142,7 @@ describe('AAPackageProcessingComponent', () => {
       const previousLength = component.aaPackages().length;
 
       component.onAddNewClick();
-      expect(component.aaPackages().length).toBe(previousLength + 1);
+      expect(component.aaPackages()).toHaveLength(previousLength + 1);
     });
 
     it('should reset table.first to 0', () => {
@@ -278,7 +278,7 @@ describe('AAPackageProcessingComponent', () => {
     it('should keep remaining packages after delete', () => {
       component.aaPackages.set([...mockPackages]);
       component.onRowDelete(mockPackages[0]);
-      expect(component.aaPackages().length).toBe(2);
+      expect(component.aaPackages()).toHaveLength(2);
     });
 
     it('should show success message on delete', () => {

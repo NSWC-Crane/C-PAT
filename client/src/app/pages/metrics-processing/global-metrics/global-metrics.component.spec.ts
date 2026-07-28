@@ -357,7 +357,7 @@ describe('GlobalMetricsComponent', () => {
     fixture.detectChanges();
 
     expect(component.tenableDetailCards()).toEqual([]);
-    expect(component.stigDetailCards().length).toBe(5);
+    expect(component.stigDetailCards()).toHaveLength(5);
   });
 
   it('builds severity-colored MTTR summary bars, one per source × severity', () => {
@@ -367,7 +367,7 @@ describe('GlobalMetricsComponent', () => {
     const chart = component.mttrSummaryChartData();
 
     expect(chart.labels).toEqual(['STIG Manager · CAT I - Critical/High', 'Tenable · CAT II - Medium']);
-    expect(chart.datasets.length).toBe(1);
+    expect(chart.datasets).toHaveLength(1);
     expect(chart.datasets[0].data).toEqual([30, 48]);
     expect(chart.datasets[0].backgroundColor).toEqual(['rgba(235, 70, 100, 0.85)', 'rgba(250, 165, 50, 0.8)']);
   });

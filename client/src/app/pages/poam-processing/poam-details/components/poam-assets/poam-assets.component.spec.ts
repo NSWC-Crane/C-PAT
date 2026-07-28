@@ -112,7 +112,7 @@ describe('PoamAssetsComponent', () => {
         })
       );
 
-      expect(component.displayAssets().length).toBe(1);
+      expect(component.displayAssets()).toHaveLength(1);
     });
 
     it('should set signal to empty array when poamAssets is null', () => {
@@ -307,7 +307,7 @@ describe('PoamAssetsComponent', () => {
 
       await component.addAsset();
 
-      expect(getInternalAssets(component).length).toBe(2);
+      expect(getInternalAssets(component)).toHaveLength(2);
       expect(getInternalAssets(component)[0].isNew).toBe(true);
       expect(getInternalAssets(component)[0].assetId).toBeNull();
       expect(getInternalAssets(component)[1].assetId).toBe(2);
@@ -328,7 +328,7 @@ describe('PoamAssetsComponent', () => {
     it('should add to an empty array', async () => {
       setInternalAssets(component, []);
       await component.addAsset();
-      expect(getInternalAssets(component).length).toBe(1);
+      expect(getInternalAssets(component)).toHaveLength(1);
     });
   });
 
@@ -378,7 +378,7 @@ describe('PoamAssetsComponent', () => {
 
       await component.onAssetChange(nullAsset, 0);
 
-      expect(getInternalAssets(component).length).toBe(1);
+      expect(getInternalAssets(component)).toHaveLength(1);
       expect(getInternalAssets(component)[0].assetId).toBe(2);
       expect(emitSpy).toHaveBeenCalled();
     });
@@ -404,7 +404,7 @@ describe('PoamAssetsComponent', () => {
 
       await component.onAssetChange(asset, 0);
 
-      expect(getInternalAssets(component).length).toBe(0);
+      expect(getInternalAssets(component)).toHaveLength(0);
     });
   });
 
@@ -434,7 +434,7 @@ describe('PoamAssetsComponent', () => {
 
       await component.deleteAsset(asset, 0);
 
-      expect(getInternalAssets(component).length).toBe(1);
+      expect(getInternalAssets(component)).toHaveLength(1);
       expect(getInternalAssets(component)[0].assetId).toBe(2);
       expect(emitSpy).toHaveBeenCalled();
     });
@@ -539,7 +539,7 @@ describe('PoamAssetsComponent', () => {
 
       await component.confirmDeleteAsset({ assetId: 2 });
 
-      expect(getInternalAssets(component).length).toBe(2);
+      expect(getInternalAssets(component)).toHaveLength(2);
       expect(getInternalAssets(component).map((a: any) => a.assetId)).toEqual([1, 3]);
     });
 
@@ -561,7 +561,7 @@ describe('PoamAssetsComponent', () => {
       setInternalAssets(component, [createAsset({ assetId: 1 })]);
       await component.confirmDeleteAsset({ assetId: 999 });
 
-      expect(getInternalAssets(component).length).toBe(1);
+      expect(getInternalAssets(component)).toHaveLength(1);
     });
   });
 

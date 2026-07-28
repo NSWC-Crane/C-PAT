@@ -126,7 +126,7 @@ describe('STIGManagerAssetsTableComponent', () => {
     });
 
     it('should set 6 columns', () => {
-      expect(component.cols.length).toBe(6);
+      expect(component.cols).toHaveLength(6);
     });
 
     it('should include name column', () => {

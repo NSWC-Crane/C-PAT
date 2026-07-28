@@ -140,7 +140,7 @@ describe('NotificationsPanelComponent', () => {
     it('should fetch and format unread notifications', () => {
       component.fetchNotifications();
 
-      expect(component.notifications().length).toBe(2);
+      expect(component.notifications()).toHaveLength(2);
       expect(component.notifications()[0].messageParts).toBeTruthy();
     });
 
@@ -160,7 +160,7 @@ describe('NotificationsPanelComponent', () => {
 
       component.fetchNotifications();
 
-      expect(component.notifications().length).toBe(1);
+      expect(component.notifications()).toHaveLength(1);
       expect(component.notifications()[0].notificationId).toBeUndefined();
     });
 
@@ -169,7 +169,7 @@ describe('NotificationsPanelComponent', () => {
 
       component.fetchNotifications();
 
-      expect(component.notifications().length).toBe(1);
+      expect(component.notifications()).toHaveLength(1);
       expect(component.notifications()[0].icon).toBeUndefined();
     });
   });
@@ -254,7 +254,7 @@ describe('NotificationsPanelComponent', () => {
 
       component.dismissNotification(notification);
 
-      expect(component.notifications().length).toBe(initialLength - 1);
+      expect(component.notifications()).toHaveLength(initialLength - 1);
       expect(component.notifications().find((n) => n.notificationId === notification.notificationId)).toBeUndefined();
     });
 

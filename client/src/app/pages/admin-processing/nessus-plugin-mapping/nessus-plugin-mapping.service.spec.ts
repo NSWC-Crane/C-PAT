@@ -45,7 +45,7 @@ describe('NessusPluginMappingService', () => {
 
       service.getIAVTableData().subscribe((data) => {
         expect(data).toEqual(mockIAVData);
-        expect(data.length).toBe(3);
+        expect(data).toHaveLength(3);
       });
 
       const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
@@ -78,7 +78,7 @@ describe('NessusPluginMappingService', () => {
 
       service.getIAVTableData().subscribe((data) => {
         expect(data[0].iavNumber).toBe('2024-A-0001');
-        expect(data[0].affectedProducts.length).toBe(2);
+        expect(data[0].affectedProducts).toHaveLength(2);
       });
 
       const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
@@ -192,7 +192,7 @@ describe('NessusPluginMappingService', () => {
 
       const req = httpMock.expectOne(`${apiBase}/mapPluginIds`);
 
-      expect(req.request.body.length).toBe(1);
+      expect(req.request.body).toHaveLength(1);
       req.flush(mockResponse);
     });
 
@@ -223,7 +223,7 @@ describe('NessusPluginMappingService', () => {
 
       const req = httpMock.expectOne(`${apiBase}/mapPluginIds`);
 
-      expect(req.request.body.length).toBe(100);
+      expect(req.request.body).toHaveLength(100);
       req.flush(mockResponse);
     });
 

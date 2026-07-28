@@ -51,7 +51,7 @@ describe('AssetDeltaService', () => {
       const req = httpMock.expectOne(`${apiBase}/import/assetlist/${collectionId}`);
 
       expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBe(true);
+      expect(req.request.body).toBeInstanceOf(FormData);
       req.flush(mockResponse);
     });
 
@@ -165,7 +165,7 @@ describe('AssetDeltaService', () => {
       const req = httpMock.expectOne(`${apiBase}/import/assetlist/multiple`);
 
       expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBe(true);
+      expect(req.request.body).toBeInstanceOf(FormData);
       req.flush(mockResponse);
     });
 
@@ -259,7 +259,7 @@ describe('AssetDeltaService', () => {
 
       service.getAssetDeltaListByCollection(collectionId).subscribe((data) => {
         expect(data).toEqual(mockDeltaList);
-        expect(data.length).toBe(3);
+        expect(data).toHaveLength(3);
       });
 
       const req = httpMock.expectOne(`${apiBase}/assets/delta/list/${collectionId}`);

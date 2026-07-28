@@ -178,7 +178,7 @@ describe('NessusPluginMappingComponent', () => {
   describe('initColumns', () => {
     it('should set 12 columns', () => {
       component.initColumns();
-      expect(component.cols.length).toBe(12);
+      expect(component.cols).toHaveLength(12);
     });
 
     it('should include iav and pluginID fields', () => {
@@ -193,7 +193,7 @@ describe('NessusPluginMappingComponent', () => {
   describe('getIAVTableData', () => {
     it('should set tableData from response', () => {
       component.getIAVTableData();
-      expect(component.tableData().length).toBe(2);
+      expect(component.tableData()).toHaveLength(2);
     });
 
     it('should set totalRecords from tableData length', () => {

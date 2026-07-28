@@ -177,7 +177,7 @@ describe('TenableVulnerabilitiesComponent', () => {
     });
 
     it('should have 61 accordion items', () => {
-      expect(component.accordionItems.length).toBe(61);
+      expect(component.accordionItems).toHaveLength(61);
     });
   });
 
@@ -375,20 +375,20 @@ describe('TenableVulnerabilitiesComponent', () => {
     it('should return all items when filterSearch is empty', () => {
       component.filterSearch = '';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems().length).toBe(3);
+      expect(component.filteredAccordionItems()).toHaveLength(3);
     });
 
     it('should filter by search term case-insensitively', () => {
       component.filterSearch = 'sev';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems().length).toBe(1);
+      expect(component.filteredAccordionItems()).toHaveLength(1);
       expect(component.filteredAccordionItems()[0].header).toBe('Severity');
     });
 
     it('should return empty array when no items match', () => {
       component.filterSearch = 'zzznomatch';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems().length).toBe(0);
+      expect(component.filteredAccordionItems()).toHaveLength(0);
     });
 
     it('should sort active filters first', () => {
@@ -722,7 +722,7 @@ describe('TenableVulnerabilitiesComponent', () => {
       ];
       component.currentFilterHistoryIndex = 1;
       component.applyFilters(false);
-      expect(component.filterHistory.length).toBe(3);
+      expect(component.filterHistory).toHaveLength(3);
     });
   });
 
@@ -1026,7 +1026,7 @@ describe('TenableVulnerabilitiesComponent', () => {
       component.selectedCollection.set(7);
       mockImportService.getTenableFilters.mockReturnValue(of([{ filterId: 1, filterName: 'My Filter', filter: '{}', createdBy: 'jdoe' }]));
       component.loadSavedFilters();
-      expect(component.premadeFilterOptions().length).toBe(2);
+      expect(component.premadeFilterOptions()).toHaveLength(2);
     });
 
     it('should show error on service failure', () => {

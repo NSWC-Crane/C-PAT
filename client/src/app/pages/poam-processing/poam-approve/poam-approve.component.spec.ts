@@ -194,7 +194,7 @@ describe('PoamApproveComponent', () => {
 
     it('should reset approvedDate to current date regardless of prior approval', () => {
       expect(component.dates().approvedDate).toBeDefined();
-      expect(component.dates().approvedDate instanceof Date).toBe(true);
+      expect(component.dates().approvedDate).toBeInstanceOf(Date);
     });
 
     it('should reset comments to null regardless of prior approval', () => {
@@ -238,7 +238,7 @@ describe('PoamApproveComponent', () => {
 
       it('should set approvedDate to current date', () => {
         expect(component.dates().approvedDate).toBeDefined();
-        expect(component.dates().approvedDate instanceof Date).toBe(true);
+        expect(component.dates().approvedDate).toBeInstanceOf(Date);
       });
 
       it('should set comments to null', () => {
@@ -270,7 +270,7 @@ describe('PoamApproveComponent', () => {
       });
 
       it('should default approvedDate to current date', () => {
-        expect(component.dates().approvedDate instanceof Date).toBe(true);
+        expect(component.dates().approvedDate).toBeInstanceOf(Date);
       });
     });
 
