@@ -53,7 +53,7 @@
             optionValue="vulnId"
           >
             <ng-template let-suggestion #item>
-              <div style="white-space: normal; word-break: break-word; max-width: 100%">
+              <div style="white-space: normal; overflow-wrap: break-word; max-width: 100%">
                 <span>{{ suggestion.vulnId }}</span>
                 @if (suggestion.titleText) {
                   <span class="ml-2" style="color: var(--text-secondary-color)">- {{ suggestion.titleText }}</span>
