@@ -319,7 +319,7 @@ export class TenableHostDialogComponent implements OnChanges {
       this.isLoadingPluginDetails.set(false);
       this.showErrorMessage('Invalid plugin ID');
 
-      return Promise.reject('Invalid plugin ID');
+      return Promise.reject(new Error('Invalid plugin ID'));
     }
 
     this.selectedPlugin = plugin;
@@ -493,7 +493,7 @@ export class TenableHostDialogComponent implements OnChanges {
     if (!pluginID) {
       this.showErrorMessage('Invalid plugin ID');
 
-      return Promise.reject('Invalid plugin ID');
+      return Promise.reject(new Error('Invalid plugin ID'));
     }
 
     return new Promise((resolve, reject) => {

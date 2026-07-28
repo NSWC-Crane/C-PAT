@@ -2804,7 +2804,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     if (!vulnerability?.pluginID) {
       this.showErrorMessage('Invalid vulnerability data');
 
-      return Promise.reject('Invalid vulnerability data');
+      return Promise.reject(new Error('Invalid vulnerability data'));
     }
 
     return new Promise((resolve, reject) => {

@@ -591,7 +591,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
         sticky: true
       });
 
-      return Promise.reject('Invalid Plugin ID');
+      return Promise.reject(new Error('Invalid Plugin ID'));
     }
 
     return new Promise((resolve, reject) => {

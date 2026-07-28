@@ -289,7 +289,7 @@ describe('TenableHostDialogComponent', () => {
 
   describe('showPluginDetails', () => {
     it('should reject and show error for missing pluginID', async () => {
-      await expect(component.showPluginDetails({})).rejects.toBe('Invalid plugin ID');
+      await expect(component.showPluginDetails({})).rejects.toThrow('Invalid plugin ID');
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
 
@@ -347,7 +347,7 @@ describe('TenableHostDialogComponent', () => {
 
   describe('getPluginData', () => {
     it('should reject for empty pluginID', async () => {
-      await expect(component.getPluginData('')).rejects.toBe('Invalid plugin ID');
+      await expect(component.getPluginData('')).rejects.toThrow('Invalid plugin ID');
     });
 
     it('should set pluginData on success', async () => {
