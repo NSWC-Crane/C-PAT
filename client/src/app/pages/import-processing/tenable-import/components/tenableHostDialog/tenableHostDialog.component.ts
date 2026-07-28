@@ -649,7 +649,7 @@ export class TenableHostDialogComponent implements OnChanges {
   parsePluginOutput(pluginText: string): string {
     if (!pluginText) return '';
 
-    return pluginText.replace(/<plugin_output>/g, '').replace(/<\/plugin_output>/g, '');
+    return pluginText.replaceAll('<plugin_output>', '').replaceAll('</plugin_output>', '');
   }
 
   getIavUrl(iavNumber: string): string {
