@@ -1694,7 +1694,13 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     }
 
     if (identifier === 'family') {
-      this.tempFilters['family'] = Array.isArray(event.value) ? event.value : event.value ? [event.value] : [];
+      const familyValue = event.value;
+
+      if (Array.isArray(familyValue)) {
+        this.tempFilters['family'] = familyValue;
+      } else {
+        this.tempFilters['family'] = familyValue ? [familyValue] : [];
+      }
 
       return;
     }

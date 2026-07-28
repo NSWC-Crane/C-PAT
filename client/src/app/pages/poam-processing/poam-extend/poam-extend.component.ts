@@ -504,17 +504,21 @@ export class PoamExtendComponent implements OnInit {
     });
   }
 
+  private formatMilestoneDate(value: string | Date): string {
+    return typeof value === 'string' ? value : format(value, 'yyyy-MM-dd');
+  }
+
   private updateExistingMilestone(milestone: any): Promise<void> {
     return new Promise((resolve, reject) => {
       const milestoneUpdate = {
         ...(milestone.milestoneDate && {
-          milestoneDate: milestone.milestoneDate ? (typeof milestone.milestoneDate === 'string' ? milestone.milestoneDate : format(milestone.milestoneDate, 'yyyy-MM-dd')) : null
+          milestoneDate: this.formatMilestoneDate(milestone.milestoneDate)
         }),
         ...(milestone.milestoneComments && {
           milestoneComments: milestone.milestoneComments
         }),
         ...(milestone.milestoneChangeDate && {
-          milestoneChangeDate: milestone.milestoneChangeDate ? (typeof milestone.milestoneChangeDate === 'string' ? milestone.milestoneChangeDate : format(milestone.milestoneChangeDate, 'yyyy-MM-dd')) : null
+          milestoneChangeDate: this.formatMilestoneDate(milestone.milestoneChangeDate)
         }),
         ...(milestone.milestoneChangeComments && {
           milestoneChangeComments: milestone.milestoneChangeComments

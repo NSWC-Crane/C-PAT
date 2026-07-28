@@ -134,10 +134,22 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       });
   }
 
+  private extractVulnerabilityId(vuln: any): string | null {
+    if (typeof vuln === 'string') {
+      return vuln;
+    }
+
+    if (typeof vuln === 'object' && vuln.associatedVulnerability) {
+      return vuln.associatedVulnerability;
+    }
+
+    return null;
+  }
+
   loadData() {
     this.loading.set(true);
     const associatedVulnIds = this.associatedVulnerabilities()
-      .map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null))
+      .map((vuln) => this.extractVulnerabilityId(vuln))
       .filter((id) => id !== null);
 
     const allVulnIds = [this.groupId(), ...associatedVulnIds];

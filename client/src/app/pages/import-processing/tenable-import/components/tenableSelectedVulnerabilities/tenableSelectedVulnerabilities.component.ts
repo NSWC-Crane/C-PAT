@@ -720,6 +720,18 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
     return getSeverityStyling(severity);
   }
 
+  private formatDateRangeLabel(startDate: Date | null, endDate: Date | null): string {
+    if (startDate && endDate) {
+      return `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}`;
+    }
+
+    if (startDate) {
+      return `After ${format(startDate, 'MM/dd/yyyy')}`;
+    }
+
+    return `Before ${format(endDate!, 'MM/dd/yyyy')}`;
+  }
+
   onNavyComplyDateFilterChange(event: any) {
     if (event?.value) {
       const today = new Date();
@@ -833,7 +845,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
         const col = this.cols().find((c) => c.field === 'navyComplyDate');
 
         if (col) {
-          col.filterValue = startDate && endDate ? `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}` : startDate ? `After ${format(startDate, 'MM/dd/yyyy')}` : `Before ${format(endDate!, 'MM/dd/yyyy')}`;
+          col.filterValue = this.formatDateRangeLabel(startDate, endDate);
         }
 
         table.filters['navyComplyDate'] = filterConstraints;

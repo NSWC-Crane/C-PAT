@@ -238,11 +238,23 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
       });
   }
 
+  private extractVulnerabilityId(vuln: any): string | null {
+    if (typeof vuln === 'string') {
+      return vuln;
+    }
+
+    if (typeof vuln === 'object' && vuln.associatedVulnerability) {
+      return vuln.associatedVulnerability;
+    }
+
+    return null;
+  }
+
   getAffectedAssetsForAllPlugins() {
     this.isLoading.set(true);
 
     const associatedPluginIds = this.associatedVulnerabilities()
-      .map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null))
+      .map((vuln) => this.extractVulnerabilityId(vuln))
       .filter((id) => id !== null);
 
     const allPluginIds = [this.pluginID(), ...associatedPluginIds];

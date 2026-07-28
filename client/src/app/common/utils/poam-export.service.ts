@@ -209,13 +209,21 @@ export class PoamExportService {
 
     const optionalDefaultValues = branchConfig.optionalDefaultValues;
 
+    const resolveCellValue = (poam: Poam, dbKey: string, columnKey: string): any => {
+      if (poam[dbKey] === undefined || poam[dbKey] === '') {
+        return optionalDefaultValues[columnKey] || '';
+      }
+
+      return cellValueMappers[dbKey] ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey) : poam[dbKey];
+    };
+
     const getCellValue = (poam: Poam, dbKey: string, columnKey: string, milestone: Poam['milestones'][number] | null, milestoneIndex: number): any => {
       if (dbKey === 'milestone') {
         return PoamExportService.getMilestoneCellValue(columnKey, milestone, milestoneIndex);
       }
 
       if (columnKey === 'T') {
-        const cciValue = poam[dbKey] !== undefined && poam[dbKey] !== '' ? (cellValueMappers[dbKey] ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey) : poam[dbKey]) : optionalDefaultValues[columnKey] || '';
+        const cciValue = resolveCellValue(poam, dbKey, columnKey);
         const impactDescription = poam['impactDescription'] || '';
 
         let result = cciValue;
@@ -227,11 +235,7 @@ export class PoamExportService {
         return result.trim();
       }
 
-      if (poam[dbKey] !== undefined && poam[dbKey] !== '') {
-        return cellValueMappers[dbKey] ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey) : poam[dbKey];
-      }
-
-      return optionalDefaultValues[columnKey] || '';
+      return resolveCellValue(poam, dbKey, columnKey);
     };
 
     poams.forEach((poam: Poam) => {
@@ -265,11 +269,23 @@ export class PoamExportService {
       throw new Error('Collection not found');
     }
 
+    const findingsCache = new Map<string, any[]>();
+    let cpatAssets: any[] | null = null;
+
     for (const poam of poams) {
       let processedPoam = { ...poam };
 
       if (collection.collectionType === 'STIG Manager' && poam.vulnerabilityId && poam.stigBenchmarkId) {
-        const findings = await firstValueFrom(sharedService.getSTIGMANAffectedAssetsByPoam(collection.originCollectionId, poam.stigBenchmarkId));
+        if (!collection.originCollectionId) {
+          throw new Error('Unable to determine the matching STIG Manager collection ID');
+        }
+
+        let findings = findingsCache.get(poam.stigBenchmarkId);
+
+        if (!findings) {
+          findings = (await firstValueFrom(sharedService.getSTIGMANAffectedAssetsByPoam(collection.originCollectionId, poam.stigBenchmarkId))) ?? [];
+          findingsCache.set(poam.stigBenchmarkId, findings);
+        }
 
         const matchingFinding = findings.find((finding) => finding.groupId === poam.vulnerabilityId);
 
@@ -308,7 +324,12 @@ export class PoamExportService {
         };
 
         const analysisData = await firstValueFrom(importService.postTenableAnalysis(analysisParams));
-        const tenableAssets = analysisData.response.results.map((asset: any) => ({
+
+        if (analysisData?.error_msg) {
+          throw new Error(`Error in Tenable response: ${analysisData.error_msg}`);
+        }
+
+        const tenableAssets = (analysisData?.response?.results || []).map((asset: any) => ({
           pluginId: asset.pluginID,
           dnsName: asset.dnsName ?? '',
           netbiosName: asset.netbiosName ?? ''
@@ -334,9 +355,9 @@ export class PoamExportService {
 
         processedPoam.devicesAffected = affectedDevices.join(' ');
       } else {
-        const assets = await firstValueFrom(poamService.getPoamAssetsByCollectionId(collection.collectionId));
+        cpatAssets ??= (await firstValueFrom(poamService.getPoamAssetsByCollectionId(collection.collectionId))) ?? [];
 
-        const poamAssets = assets
+        const poamAssets = cpatAssets
           .filter((asset: any) => asset.poamId === poam.poamId)
           .map((asset: any) => asset.assetName.toUpperCase())
           .filter(Boolean);
