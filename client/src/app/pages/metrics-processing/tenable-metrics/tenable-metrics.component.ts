@@ -470,6 +470,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const m = this.tenableMetrics();
     const lastObservedText = this.getLastObservedText();
     const hostRangeText = this.hostTimeRange() === 'all' ? '' : ` (${this.hostTimeRange()} Days)`;
+    const hostRangeDaysText = this.hostTimeRange() === 'all' ? '∞ days' : `${this.hostTimeRange()} days`;
 
     return [
       {
@@ -520,7 +521,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       },
       {
         label: `Valid Online Assets${hostRangeText}`,
-        tooltip: `Total count of hosts that were last seen within ${this.hostTimeRange() === 'all' ? '∞ days' : `${this.hostTimeRange()} days`}`,
+        tooltip: `Total count of hosts that were last seen within ${hostRangeDaysText}`,
         type: 'Tenable',
         value: loading ? '-' : m.validOnlineAssets,
         category: 'hosts',
@@ -576,6 +577,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const rows = [];
     const opensLabel = selectedRange === 'all' ? 'Opens (Unique)' : `Opens (Unique - ${selectedRange} Days)`;
     const timeRangeNote = selectedRange === 'all' ? '' : ` (${selectedRange} days)`;
+    const rangeLabel = selectedRange === 'all' ? 'All Time' : `${selectedRange} Days`;
 
     const catICount = data.severitySummary.critical + data.severitySummary.high;
     const catIICount = data.severitySummary.medium;
@@ -585,7 +587,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const hostRangeLabel = this.hostTimeRange() === 'all' ? '' : ` - (Within ${this.hostTimeRange()} Days)`;
 
     rows.push(
-      [`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()} - ${selectedRange === 'all' ? 'All Time' : `${selectedRange} Days`}`],
+      [`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()} - ${rangeLabel}`],
       ['Collection Name', 'CATEGORY', 'METRIC', 'VALUE'],
       [`[Tenable] ${collectionName}`, 'POAM', `CAT I Compliance %${timeRangeNote}`, `${data.complianceMetrics.catI.toFixed(1)}%`],
       [`[Tenable] ${collectionName}`, 'POAM', `CAT II Compliance %${timeRangeNote}`, `${data.complianceMetrics.catII.toFixed(1)}%`],

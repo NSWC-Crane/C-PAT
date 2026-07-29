@@ -164,12 +164,14 @@ async function process1DayNotifications(connection, notificationsSent) {
 
     for (const poam of poams) {
         const daysRemaining = Math.ceil((new Date(poam.effectiveDeadline) - Date.now()) / (1000 * 60 * 60 * 24));
+        const completionTiming = daysRemaining === 1 ? 'tomorrow' : `in ${daysRemaining} days`;
+
         await sendNotificationToOwnerAndSubmitter(
             connection,
             poam,
             '1day',
             'POAM Final Deadline Warning',
-            `POAM ${poam.poamId} is scheduled for completion ${daysRemaining === 1 ? 'tomorrow' : `in ${daysRemaining} days`}.`
+            `POAM ${poam.poamId} is scheduled for completion ${completionTiming}.`
         );
         notificationsSent['1day']++;
     }
