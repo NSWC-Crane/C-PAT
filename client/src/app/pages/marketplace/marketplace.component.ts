@@ -280,7 +280,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   loadThemes() {
     this.subs.sink = forkJoin([this.marketplaceService.getThemes(), this.marketplaceService.getUserThemes()]).subscribe({
       next: ([allThemes, purchasedThemes]: [Theme[], Theme[]]) => {
-        this.themes.set(allThemes.filter((theme) => !purchasedThemes.find((p) => p.themeId === theme.themeId)));
+        this.themes.set(allThemes.filter((theme) => !purchasedThemes.some((p) => p.themeId === theme.themeId)));
         this.purchasedThemes.set(purchasedThemes);
       },
       error: (error: Error) => {
