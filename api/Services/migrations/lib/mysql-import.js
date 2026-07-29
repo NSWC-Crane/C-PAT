@@ -361,8 +361,7 @@ class QueryParser {
 		this.hasDelimiter = queriesString.toLowerCase().includes('delimiter ');
 
 		// Iterate over each char in the string
-		for (let i = 0; i < this.queriesString.length; i++) {
-			let char = this.queriesString[i];
+		for (const char of this.queriesString) {
 			this.parseChar(char);
 		}
 	}

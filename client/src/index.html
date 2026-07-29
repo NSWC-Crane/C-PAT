@@ -107,8 +107,8 @@
           function j() {
             if (y) {
               ((u = a.innerWidth), (v = a.innerHeight), s.clearRect(0, 0, r.width, r.height));
-              for (var b = 0; b < z.length; b++) z[b].updatePosition();
-              for (var b = 0; b < z.length; b++) z[b].draw();
+              for (const b of z) b.updatePosition();
+              for (const b of z) b.draw();
               G || (t = requestAnimationFrame(j));
             }
           }
