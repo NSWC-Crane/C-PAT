@@ -13,7 +13,7 @@ $color-medium: rgba(250, 165, 50, 0.8);
 $color-low: rgba(230, 190, 45, 0.8);
 
 .chart-title {
-  font-family: 'Red Hat Display Variable';
+  font-family: 'Red Hat Display Variable', sans-serif;
   font-size: 1.2rem;
   font-weight: 600;
   color: var(--text-color);
@@ -125,7 +125,7 @@ $color-low: rgba(230, 190, 45, 0.8);
       position: relative;
       z-index: 3;
       margin-top: -1rem;
-      font-family: 'Red Hat Display Variable';
+      font-family: 'Red Hat Display Variable', sans-serif;
 
       .metric-type {
         font-size: 2rem;
