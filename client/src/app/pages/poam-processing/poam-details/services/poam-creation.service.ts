@@ -130,7 +130,7 @@ export class PoamCreationService {
       } else if (typeof pluginData === 'object') {
         dataObject = pluginData;
       } else {
-        throw new Error('Invalid plugin data format');
+        throw new TypeError('Invalid plugin data format');
       }
 
       return jsonToPlainText(dataObject, {});
