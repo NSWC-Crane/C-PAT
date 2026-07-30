@@ -18,6 +18,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, catchError, combineLatest, map, of, tap } from 'rxjs';
+import { RISK_GRADIENT, SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
@@ -43,6 +44,9 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
 
   readonly collection = input<any>(undefined);
   readonly componentInit = output<STIGManagerMetricsComponent>();
+
+  readonly severityColor = SEVERITY_COLOR;
+  readonly riskGradient = RISK_GRADIENT;
 
   isLoading = signal<boolean>(true);
   collectionName = signal<string>('');
@@ -138,7 +142,7 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
       datasets: [
         {
           data: [m.catIOpenRawCount, m.catIIOpenRawCount, m.catIIIOpenRawCount],
-          backgroundColor: ['rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(230, 185, 45, 0.8)'],
+          backgroundColor: [SEVERITY_COLOR.critical, SEVERITY_COLOR.medium, SEVERITY_COLOR.low],
           opacity: 0.8,
           hoverBorderColor: cardBackgroundColor,
           borderWidth: 8,
@@ -178,8 +182,8 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
         {
           label: 'Assessment Count',
           data: [m.acceptedCount, m.submittedCount, m.rejectedCount, assessedOnly, unassessedCount],
-          backgroundColor: ['rgba(15, 185, 130, 0.8)', 'rgba(230, 185, 45, 0.8)', 'rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(170, 170, 170, 0.8)'],
-          borderColor: ['rgba(15, 185, 130, 0.8)', 'rgba(230, 185, 45, 0.8)', 'rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(170, 170, 170, 0.8)'],
+          backgroundColor: ['rgba(15, 185, 130, 0.8)', 'rgba(230, 200, 45, 0.8)', 'rgba(235, 70, 100, 0.8)', 'rgba(250, 140, 50, 0.8)', 'rgba(170, 170, 170, 0.8)'],
+          borderColor: ['rgba(15, 185, 130, 0.8)', 'rgba(230, 200, 45, 0.8)', 'rgba(235, 70, 100, 0.8)', 'rgba(250, 140, 50, 0.8)', 'rgba(170, 170, 170, 0.8)'],
           borderWidth: 1,
           barThickness: 28,
           borderRadius: {
@@ -310,22 +314,22 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
     const m = this.stigManagerMetrics();
 
     if (riskScore === 0) {
-      return 'rgba(15, 185, 130, 0.8)';
+      return SEVERITY_COLOR.veryLow;
     }
 
     if (m.coraRiskRating === 'Low') {
-      return 'rgba(230, 190, 45, 0.85)';
+      return SEVERITY_COLOR.low;
     }
 
     if (riskScore >= 20) {
-      return 'rgba(235, 70, 100, 0.8)';
+      return SEVERITY_COLOR.critical;
     }
 
     if (riskScore >= 10) {
-      return 'rgba(245, 125, 70, 0.8)';
+      return SEVERITY_COLOR.high;
     }
 
-    return 'rgba(250, 165, 50, 0.8)';
+    return SEVERITY_COLOR.medium;
   }
 
   setChartOptions() {

@@ -13,6 +13,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { SharedService } from '../../../common/services/shared.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
@@ -369,7 +370,7 @@ describe('GlobalMetricsComponent', () => {
     expect(chart.labels).toEqual(['STIG Manager · CAT I - Critical/High', 'Tenable · CAT II - Medium']);
     expect(chart.datasets).toHaveLength(1);
     expect(chart.datasets[0].data).toEqual([30, 48]);
-    expect(chart.datasets[0].backgroundColor).toEqual(['rgba(235, 70, 100, 0.85)', 'rgba(250, 165, 50, 0.8)']);
+    expect(chart.datasets[0].backgroundColor).toEqual([SEVERITY_COLOR.critical, SEVERITY_COLOR.medium]);
   });
 
   it('builds source-split MTTR trend lines mapped onto the 12-month axis', () => {
@@ -391,8 +392,8 @@ describe('GlobalMetricsComponent', () => {
 
     expect(trend.labels).toHaveLength(12);
     expect(trend.datasets.map((d: any) => d.label)).toEqual(['STIG Manager · CAT I - Critical/High', 'Tenable · CAT II - Medium']);
-    expect(trend.datasets[0].borderColor).toBe('rgba(235, 70, 100, 0.85)');
-    expect(trend.datasets[1].borderColor).toBe('rgba(250, 165, 50, 0.8)');
+    expect(trend.datasets[0].borderColor).toBe(SEVERITY_COLOR.critical);
+    expect(trend.datasets[1].borderColor).toBe(SEVERITY_COLOR.medium);
     expect(trend.datasets[1].borderDash.length).toBeGreaterThan(0);
     expect(trend.datasets[0].data[11]).toBe(30);
     expect(trend.datasets[1].data[11]).toBe(48);

@@ -21,6 +21,7 @@ import { CpatChartComponent } from '../../../common/components/chart/chart.compo
 import { DividerModule } from 'primeng/divider';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 import { EMPTY, catchError, forkJoin, tap } from 'rxjs';
+import { RISK_GRADIENT, SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { MetricData } from '../../../common/models/metrics.model';
 import { TenableHighRiskAssetsTableComponent } from '../../import-processing/tenable-import/components/tenableHighRiskAssetsTable/tenableHighRiskAssetsTable.component';
@@ -100,6 +101,9 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   private readonly cachedPoamMetrics = signal<number>(0);
   private readonly cachedPastDueIAVs = signal<number>(0);
   private readonly cachedCredentialScanPercentage = signal<number>(0);
+
+  readonly severityColor = SEVERITY_COLOR;
+  readonly riskGradient = RISK_GRADIENT;
 
   isLoading = signal<boolean>(true);
   collectionName = signal<string>('');
@@ -429,7 +433,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       datasets: [
         {
           data: [m.catIOpenCount30Days, m.catIIOpenCount30Days, m.catIIIOpenCount30Days],
-          backgroundColor: ['rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(230, 185, 45, 0.8)'],
+          backgroundColor: [SEVERITY_COLOR.critical, SEVERITY_COLOR.medium, SEVERITY_COLOR.low],
           opacity: 0.8,
           hoverBorderColor: cardBackgroundColor,
           borderWidth: 8,
@@ -444,7 +448,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       datasets: [
         {
           data: [m.catIOpenCount, m.catIIOpenCount, m.catIIIOpenCount],
-          backgroundColor: ['rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(230, 185, 45, 0.8)'],
+          backgroundColor: [SEVERITY_COLOR.critical, SEVERITY_COLOR.medium, SEVERITY_COLOR.low],
           opacity: 0.8,
           hoverBorderColor: cardBackgroundColor,
           borderWidth: 8,
