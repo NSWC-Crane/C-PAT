@@ -88,7 +88,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   readonly pluginData = signal<any>(null);
   readonly totalRecords = signal<number>(0);
   filterValue: string = '';
-  readonly navyComplyDateFilters = signal<NavyComplyDateFilter[]>([]);
+  readonly deadlineRangeFilters = signal<NavyComplyDateFilter[]>([]);
   tenableTool: string = 'sumid';
   selectedNavyComplyDateFilter: NavyComplyDateFilter | null = null;
   selectedCollection: any;
@@ -268,8 +268,8 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       title: col.header,
       dataKey: col.field
     }));
-    this.navyComplyDateFilters.set([
-      { label: 'All IAVs', value: null },
+    this.deadlineRangeFilters.set([
+      { label: 'All', value: null },
       { label: 'All Overdue', value: 'alloverdue' },
       { label: '90+ Days Overdue', value: 'overdue90Plus' },
       { label: '30-90 Days Overdue', value: 'overdue30To90' },
