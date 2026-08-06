@@ -120,10 +120,7 @@
                     <span class="text-red-400 font-semibold text-xs opacity-90">High Risk</span>
                     <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
                   </div>
-                  <div
-                    class="relative rounded-full h-10 overflow-hidden shadow-lg"
-                    style="background: linear-gradient(to right, rgba(235, 70, 100, 0.8) 0%, rgba(235, 70, 100, 0.8) 75%, rgba(245, 125, 70, 0.8) 80%, rgba(230, 190, 45, 0.8) 92%, rgba(100, 185, 120, 0.8) 100%)"
-                  ></div>
+                  <div class="relative rounded-full h-10 overflow-hidden shadow-lg" [style.background]="riskGradient.cora"></div>
                 </div>
 
                 <div class="mt-5 pt-3 border-t border-gray-700">
@@ -167,10 +164,7 @@
                     <span class="text-red-400 font-semibold text-xs opacity-90">High Risk</span>
                     <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
                   </div>
-                  <div
-                    class="relative rounded-full h-10 overflow-hidden shadow-lg"
-                    style="background: linear-gradient(to right, rgba(235, 70, 100, 0.8) 0%, rgba(250, 145, 60, 0.8) 33%, rgba(250, 190, 35, 0.8) 66%, rgba(15, 185, 130, 0.8) 100%)"
-                  ></div>
+                  <div class="relative rounded-full h-10 overflow-hidden shadow-lg" [style.background]="riskGradient.vph"></div>
                 </div>
 
                 <div class="mt-5 pt-3 border-t border-gray-700">

@@ -144,7 +144,7 @@ describe('UserComponent', () => {
     });
 
     it('should have 4 accessLevelOptions', () => {
-      expect(component.accessLevelOptions.length).toBe(4);
+      expect(component.accessLevelOptions).toHaveLength(4);
     });
 
     it('should default checked to false', () => {
@@ -152,7 +152,7 @@ describe('UserComponent', () => {
     });
 
     it('should have teamCols with 2 columns', () => {
-      expect(component.teamCols.length).toBe(2);
+      expect(component.teamCols).toHaveLength(2);
     });
 
     it('should have officeOrgOptions list', () => {
@@ -169,7 +169,7 @@ describe('UserComponent', () => {
 
     it('should set cols with collectionName and accessLevelLabel', () => {
       component.ngOnInit();
-      expect(component.cols.length).toBe(2);
+      expect(component.cols).toHaveLength(2);
       expect(component.cols[0].field).toBe('collectionName');
       expect(component.cols[1].field).toBe('accessLevelLabel');
     });
@@ -239,7 +239,7 @@ describe('UserComponent', () => {
 
     it('should map availableTeams with title and value', async () => {
       await component.loadAssignedTeams();
-      expect(component.availableTeams().length).toBe(2);
+      expect(component.availableTeams()).toHaveLength(2);
       expect(component.availableTeams()[0].title).toBe('Team Alpha');
       expect(component.availableTeams()[0].value).toBe(1);
     });
@@ -272,7 +272,7 @@ describe('UserComponent', () => {
         assignedTeams: []
       });
       component.getData();
-      expect(component.collectionPermissions().length).toBe(1);
+      expect(component.collectionPermissions()).toHaveLength(1);
       expect(component.collectionPermissions()[0].collectionName).toBe('Collection A');
     });
 
@@ -300,7 +300,7 @@ describe('UserComponent', () => {
         assignedTeams: [{ userId: 1, assignedTeamId: 1, accessLevel: 3 }]
       });
       component.getData();
-      expect(component.userAssignedTeams().length).toBe(1);
+      expect(component.userAssignedTeams()).toHaveLength(1);
       expect(component.userAssignedTeams()[0].assignedTeamName).toBe('Team Alpha');
       expect(component.userAssignedTeams()[0].accessLevelLabel).toBe('Approver');
     });
@@ -377,7 +377,7 @@ describe('UserComponent', () => {
 
     it('should return empty array when no match', () => {
       component.filterOfficeOrgs({ query: 'ZZZZZ' });
-      expect(component.filteredOfficeOrgs().length).toBe(0);
+      expect(component.filteredOfficeOrgs()).toHaveLength(0);
     });
 
     it('should return all NAVSEA entries for navsea query', () => {
@@ -394,7 +394,7 @@ describe('UserComponent', () => {
 
     it('should add new permission to front of list', () => {
       component.onAddNewPermission();
-      expect(component.collectionPermissions().length).toBe(1);
+      expect(component.collectionPermissions()).toHaveLength(1);
     });
 
     it('should add permission with null collectionId', () => {
@@ -418,7 +418,7 @@ describe('UserComponent', () => {
 
       component.collectionPermissions.set([existing as any]);
       component.onAddNewPermission();
-      expect(component.collectionPermissions().length).toBe(2);
+      expect(component.collectionPermissions()).toHaveLength(2);
       expect(component.collectionPermissions()[0].collectionId).toBeNull();
     });
   });
@@ -469,7 +469,7 @@ describe('UserComponent', () => {
 
       component.collectionPermissions.set([perm as any]);
       component.onCancelEditPermission(perm as any);
-      expect(component.collectionPermissions().length).toBe(0);
+      expect(component.collectionPermissions()).toHaveLength(0);
     });
 
     it('should set editing to false for existing permission', () => {
@@ -560,7 +560,7 @@ describe('UserComponent', () => {
 
       component.collectionPermissions.set([perm as any]);
       component.onDeletePermission(perm as any);
-      expect(component.collectionPermissions().length).toBe(0);
+      expect(component.collectionPermissions()).toHaveLength(0);
     });
 
     it('should call confirmationService.confirm for existing permission', () => {
@@ -602,7 +602,7 @@ describe('UserComponent', () => {
 
     it('should add new team to front of list', () => {
       component.onAddNewAssignedTeam();
-      expect(component.userAssignedTeams().length).toBe(1);
+      expect(component.userAssignedTeams()).toHaveLength(1);
     });
 
     it('should add team with null assignedTeamId', () => {
@@ -667,7 +667,7 @@ describe('UserComponent', () => {
 
       component.userAssignedTeams.set([team as any]);
       component.onCancelEditAssignedTeam(team as any);
-      expect(component.userAssignedTeams().length).toBe(0);
+      expect(component.userAssignedTeams()).toHaveLength(0);
     });
 
     it('should set editing to false for existing team', () => {
@@ -706,7 +706,7 @@ describe('UserComponent', () => {
 
       component.userAssignedTeams.set([team as any]);
       component.onDeleteAssignedTeam(team as any);
-      expect(component.userAssignedTeams().length).toBe(0);
+      expect(component.userAssignedTeams()).toHaveLength(0);
     });
 
     it('should call confirmationService.confirm for existing team', () => {

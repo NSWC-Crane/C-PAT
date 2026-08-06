@@ -356,7 +356,7 @@ describe('PoamResourceService', () => {
         resourceText: '',
         isActive: true
       });
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0].resourceId).toBe(100);
     });
 
@@ -368,7 +368,7 @@ describe('PoamResourceService', () => {
       const result = await service.initializeTeamResources(poam, poamAssignedTeams, teamResources);
 
       expect(mockPoamService.postPoamTeamResource).not.toHaveBeenCalled();
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
     });
 
     it('should sort results by team name', async () => {
@@ -397,7 +397,7 @@ describe('PoamResourceService', () => {
 
       const result = await service.initializeTeamResources(poam, poamAssignedTeams, teamResources);
 
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
     });
 
     it('should handle error when creating resource', async () => {
@@ -425,7 +425,7 @@ describe('PoamResourceService', () => {
 
       const result = await service.initializeTeamResources(poam, poamAssignedTeams, teamResources);
 
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0].assignedTeamId).toBe(2);
     });
   });

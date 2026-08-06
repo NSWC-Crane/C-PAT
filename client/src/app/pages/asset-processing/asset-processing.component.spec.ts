@@ -187,7 +187,7 @@ describe('AssetProcessingComponent', () => {
     it('should call initializeColumns on init', async () => {
       component.ngOnInit();
       expect(component.cols).toBeDefined();
-      expect(component.cols.length).toBe(5);
+      expect(component.cols).toHaveLength(5);
     });
   });
 

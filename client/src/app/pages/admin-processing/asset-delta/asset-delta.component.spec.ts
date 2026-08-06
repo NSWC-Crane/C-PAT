@@ -180,7 +180,7 @@ describe('AssetDeltaComponent', () => {
     it('should initialize cols array in ngOnInit', () => {
       component.ngOnInit();
       expect(component.cols()).toBeDefined();
-      expect(component.cols().length).toBe(5);
+      expect(component.cols()).toHaveLength(5);
     });
   });
 
@@ -245,13 +245,13 @@ describe('AssetDeltaComponent', () => {
 
     it('should set assets on success', () => {
       component.loadAssetDeltaList(10);
-      expect(component.assets().length).toBe(2);
+      expect(component.assets()).toHaveLength(2);
       expect(component.assets()[0].key).toBe('ASSET-001');
     });
 
     it('should set filteredAssets on success', () => {
       component.loadAssetDeltaList(10);
-      expect(component.filteredAssets().length).toBe(2);
+      expect(component.filteredAssets()).toHaveLength(2);
     });
 
     it('should set assetDeltaUpdated from response', () => {
@@ -653,7 +653,7 @@ describe('AssetDeltaComponent', () => {
   describe('loadCollections', () => {
     it('should populate availableCollections on success', () => {
       component.loadCollections();
-      expect(component.availableCollections().length).toBe(2);
+      expect(component.availableCollections()).toHaveLength(2);
     });
 
     it('should show error when getCollectionBasicList fails', () => {

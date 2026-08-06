@@ -200,7 +200,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should set 7 columns', () => {
-      expect(component.cols.length).toBe(7);
+      expect(component.cols).toHaveLength(7);
     });
 
     it('should include assetName column', () => {
@@ -216,7 +216,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should set exportColumns from cols', () => {
-      expect(component.exportColumns.length).toBe(7);
+      expect(component.exportColumns).toHaveLength(7);
       expect(component.exportColumns[0]).toHaveProperty('title');
       expect(component.exportColumns[0]).toHaveProperty('dataKey');
     });
@@ -446,7 +446,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
 
     it('should add a tab for each team in assetsByTeam', () => {
       component.createTeamTabs();
-      expect(component.teamTabs().length).toBe(2);
+      expect(component.teamTabs()).toHaveLength(2);
     });
 
     it('should set correct teamName for team tab', () => {

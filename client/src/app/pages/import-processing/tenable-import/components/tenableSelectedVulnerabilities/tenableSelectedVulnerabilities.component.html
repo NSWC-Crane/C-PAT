@@ -15,7 +15,7 @@
         <div class="flex items-center justify-between">
           <button pButton class="ml-2" (click)="toggleNavyComplyFilter()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-filter" pButtonIcon></i></button>
           <button pButton class="ml-2" (click)="clear()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset default filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
-          <p-select #dd [options]="navyComplyDateFilters()" [(ngModel)]="selectedNavyComplyDateFilter" (onChange)="onNavyComplyDateFilterChange($event)" [filter]="true" filterBy="label" appendTo="body" class="custom-dropdown" />
+          <p-select #dd [options]="deadlineRangeFilters()" [(ngModel)]="selectedNavyComplyDateFilter" (onChange)="onNavyComplyDateFilterChange($event)" [filter]="true" filterBy="label" appendTo="body" class="custom-dropdown" />
           @if (this.tenableTool === 'sumid') {
             <button pButton (click)="loadVulnList()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Load Vulnerability List"><i class="pi pi-search-plus" pButtonIcon></i></button>
           }

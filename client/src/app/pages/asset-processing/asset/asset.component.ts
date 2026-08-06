@@ -296,7 +296,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     if (asset.assetId == 'ADDASSET') {
-      const exists = this.assets().find((e: { assetName: any }) => e.assetName === this.asset().assetName);
+      const exists = this.assets().some((e: { assetName: any }) => e.assetName === this.asset().assetName);
 
       if (exists) {
         this.invalidData('Asset Already Exists');

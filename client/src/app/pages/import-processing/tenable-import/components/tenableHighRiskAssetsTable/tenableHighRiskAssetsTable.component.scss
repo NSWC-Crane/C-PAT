@@ -8,8 +8,10 @@
 !##########################################################################
 */
 
+@use 'severity-colors' as severity;
+
 .chart-title {
-  font-family: 'Red Hat Display Variable';
+  font-family: 'Red Hat Display Variable', sans-serif;
   font-size: 1.2rem;
   font-weight: 600;
   color: var(--text-color);
@@ -42,16 +44,16 @@
     overflow: hidden;
 
     &.low {
-      background: rgba(230, 185, 45, 0.7);
+      background: severity.$severity-low;
     }
     &.medium {
-      background: rgba(250, 165, 50, 0.7);
+      background: severity.$severity-medium;
     }
     &.high {
-      background: rgba(250, 120, 70, 0.7);
+      background: severity.$severity-high;
     }
     &.critical {
-      background: rgba(235, 70, 100, 0.7);
+      background: severity.$severity-critical;
     }
 
     .segment-count {

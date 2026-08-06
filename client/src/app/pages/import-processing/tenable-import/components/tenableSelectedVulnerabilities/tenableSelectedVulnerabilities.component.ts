@@ -88,7 +88,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   readonly pluginData = signal<any>(null);
   readonly totalRecords = signal<number>(0);
   filterValue: string = '';
-  readonly navyComplyDateFilters = signal<NavyComplyDateFilter[]>([]);
+  readonly deadlineRangeFilters = signal<NavyComplyDateFilter[]>([]);
   tenableTool: string = 'sumid';
   selectedNavyComplyDateFilter: NavyComplyDateFilter | null = null;
   selectedCollection: any;
@@ -268,8 +268,8 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       title: col.header,
       dataKey: col.field
     }));
-    this.navyComplyDateFilters.set([
-      { label: 'All IAVs', value: null },
+    this.deadlineRangeFilters.set([
+      { label: 'All', value: null },
       { label: 'All Overdue', value: 'alloverdue' },
       { label: '90+ Days Overdue', value: 'overdue90Plus' },
       { label: '30-90 Days Overdue', value: 'overdue30To90' },
@@ -591,7 +591,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
         sticky: true
       });
 
-      return Promise.reject('Invalid Plugin ID');
+      return Promise.reject(new Error('Invalid Plugin ID'));
     }
 
     return new Promise((resolve, reject) => {
@@ -720,6 +720,18 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
     return getSeverityStyling(severity);
   }
 
+  private formatDateRangeLabel(startDate: Date | null, endDate: Date | null): string {
+    if (startDate && endDate) {
+      return `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}`;
+    }
+
+    if (startDate) {
+      return `After ${format(startDate, 'MM/dd/yyyy')}`;
+    }
+
+    return `Before ${format(endDate!, 'MM/dd/yyyy')}`;
+  }
+
   onNavyComplyDateFilterChange(event: any) {
     if (event?.value) {
       const today = new Date();
@@ -778,29 +790,25 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
           break;
 
         case 'dueWithin7':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
 
         case 'dueWithin14':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
 
         case 'dueWithin30':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
 
         case 'dueWithin90':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
@@ -833,7 +841,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
         const col = this.cols().find((c) => c.field === 'navyComplyDate');
 
         if (col) {
-          col.filterValue = startDate && endDate ? `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}` : startDate ? `After ${format(startDate, 'MM/dd/yyyy')}` : `Before ${format(endDate!, 'MM/dd/yyyy')}`;
+          col.filterValue = this.formatDateRangeLabel(startDate, endDate);
         }
 
         table.filters['navyComplyDate'] = filterConstraints;

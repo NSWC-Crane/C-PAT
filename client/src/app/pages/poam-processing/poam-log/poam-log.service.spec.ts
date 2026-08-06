@@ -92,7 +92,7 @@ describe('PoamLogService', () => {
       ];
 
       service.getPoamLogByPoamId(poamId).subscribe((logs) => {
-        expect(logs.length).toBe(1);
+        expect(logs).toHaveLength(1);
         expect(logs[0].action).toBe('Created');
       });
 
@@ -205,7 +205,7 @@ describe('PoamLogService', () => {
       ];
 
       service.getPoamLogByPoamId(poamId).subscribe((logs) => {
-        expect(logs.length).toBe(5);
+        expect(logs).toHaveLength(5);
         expect(logs.map((l: any) => l.action)).toEqual(['Created', 'Status Changed', 'Milestone Added', 'Approver Assigned', 'Comment Added']);
       });
 

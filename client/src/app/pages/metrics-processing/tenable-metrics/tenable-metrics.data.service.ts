@@ -60,13 +60,27 @@ export interface TenableGlobalComponents {
   compliance: ComplianceCounts;
 }
 
+const LAST_SEEN_BY_TIME_RANGE: Record<TenableTimeRange, string | null> = {
+  all: null,
+  '7': '0:7',
+  '30': '0:30',
+  '90': '0:90'
+};
+
+const DAYS_BY_TIME_RANGE: Record<TenableTimeRange, number> = {
+  all: 0,
+  '7': 7,
+  '30': 30,
+  '90': 90
+};
+
 @Injectable({ providedIn: 'root' })
 export class TenableMetricsDataService {
   private readonly importService = inject(ImportService);
   private readonly collectionsService = inject(CollectionsService);
 
   loadVulnerabilityDataForTimeRange(repoId: string, collectionId: any, timeRange: TenableTimeRange): Observable<TenableTimeRangeData> {
-    const lastSeenValue = timeRange === 'all' ? null : timeRange === '7' ? '0:7' : timeRange === '30' ? '0:30' : '0:90';
+    const lastSeenValue = LAST_SEEN_BY_TIME_RANGE[timeRange];
 
     return forkJoin({
       severitySummary30Days: this.getSeveritySummary(repoId, true, lastSeenValue),
@@ -112,7 +126,7 @@ export class TenableMetricsDataService {
     }
 
     const now = Date.now() / 1000;
-    const daysInSeconds = timeRange === '7' ? 7 * 24 * 60 * 60 : timeRange === '30' ? 30 * 24 * 60 * 60 : 90 * 24 * 60 * 60;
+    const daysInSeconds = DAYS_BY_TIME_RANGE[timeRange] * 24 * 60 * 60;
     const cutoffTime = now - daysInSeconds;
 
     return hosts.filter((host: any) => {

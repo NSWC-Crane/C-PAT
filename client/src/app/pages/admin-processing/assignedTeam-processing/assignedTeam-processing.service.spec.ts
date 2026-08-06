@@ -45,7 +45,7 @@ describe('AssignedTeamService', () => {
 
       service.getAssignedTeams().subscribe((data) => {
         expect(data).toEqual(mockTeams);
-        expect(data.length).toBe(3);
+        expect(data).toHaveLength(3);
       });
 
       const req = httpMock.expectOne(`${apiBase}/assignedTeams`);

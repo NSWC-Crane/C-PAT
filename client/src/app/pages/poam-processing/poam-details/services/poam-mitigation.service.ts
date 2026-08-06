@@ -145,7 +145,7 @@ export class PoamMitigationService {
   saveAllTeamMitigations(poam: any, teamMitigations: any[]): void {
     const activeTeamMitigations = teamMitigations.filter((tm) => tm.isActive);
 
-    const savePromises = activeTeamMitigations.map((teamMitigation) => this.poamService.updatePoamTeamMitigation(poam.poamId, teamMitigation.assignedTeamId, teamMitigation.mitigationText).toPromise());
+    const savePromises = activeTeamMitigations.map((teamMitigation) => firstValueFrom(this.poamService.updatePoamTeamMitigation(poam.poamId, teamMitigation.assignedTeamId, teamMitigation.mitigationText)));
 
     Promise.all(savePromises)
       .then(() => {})

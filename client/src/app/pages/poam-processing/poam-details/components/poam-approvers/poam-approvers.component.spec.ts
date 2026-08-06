@@ -145,7 +145,7 @@ describe('PoamApproversComponent', () => {
 
       await component.addApprover();
 
-      expect(component.poamApprovers().length).toBe(2);
+      expect(component.poamApprovers()).toHaveLength(2);
       expect(component.poamApprovers()[0].isNew).toBe(true);
       expect(component.poamApprovers()[1].userId).toBe(20);
     });
@@ -170,13 +170,13 @@ describe('PoamApproversComponent', () => {
     it('should add to an empty array', async () => {
       component.poamApprovers.set([]);
       await component.addApprover();
-      expect(component.poamApprovers().length).toBe(1);
+      expect(component.poamApprovers()).toHaveLength(1);
     });
 
     it('should add multiple approvers with repeated calls', async () => {
       await component.addApprover();
       await component.addApprover();
-      expect(component.poamApprovers().length).toBe(2);
+      expect(component.poamApprovers()).toHaveLength(2);
       expect(component.poamApprovers()[0].isNew).toBe(true);
       expect(component.poamApprovers()[1].isNew).toBe(true);
     });
@@ -210,7 +210,7 @@ describe('PoamApproversComponent', () => {
 
       await component.onApproverChange({ userId: 10 });
 
-      expect(component.poamApprovers().length).toBe(2);
+      expect(component.poamApprovers()).toHaveLength(2);
       expect(component.poamApprovers()[0].userId).toBe(10);
       expect(component.poamApprovers()[0].fullName).toBe('Alice Approver');
       expect(component.poamApprovers()[1].userId).toBe(20);
@@ -275,7 +275,7 @@ describe('PoamApproversComponent', () => {
 
       await component.deleteApprover(1);
 
-      expect(component.poamApprovers().length).toBe(2);
+      expect(component.poamApprovers()).toHaveLength(2);
       expect(component.poamApprovers()[0].userId).toBe(10);
       expect(component.poamApprovers()[1].userId).toBe(30);
     });
@@ -285,7 +285,7 @@ describe('PoamApproversComponent', () => {
 
       await component.deleteApprover(0);
 
-      expect(component.poamApprovers().length).toBe(1);
+      expect(component.poamApprovers()).toHaveLength(1);
       expect(component.poamApprovers()[0].userId).toBe(20);
     });
 
@@ -294,7 +294,7 @@ describe('PoamApproversComponent', () => {
 
       await component.deleteApprover(0);
 
-      expect(component.poamApprovers().length).toBe(0);
+      expect(component.poamApprovers()).toHaveLength(0);
     });
 
     it('should emit approversChanged after deletion', async () => {

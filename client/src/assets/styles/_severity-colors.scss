@@ -8,11 +8,9 @@
 !##########################################################################
 */
 
-.chart-title {
-  font-family: 'Red Hat Display Variable', sans-serif;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-color);
-  margin: -0.5rem 0 0.5rem;
-  text-align: left;
-}
+$severity-critical: rgba(235, 70, 100, 0.8);
+$severity-high: rgba(245, 125, 70, 0.8);
+$severity-medium: rgba(250, 140, 50, 0.8);
+$severity-low: rgba(230, 200, 45, 0.8);
+$severity-very-low: rgba(15, 185, 130, 0.8);
+$severity-unknown: rgba(150, 150, 150, 0.8);

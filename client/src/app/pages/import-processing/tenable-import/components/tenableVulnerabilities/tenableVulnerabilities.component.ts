@@ -1694,7 +1694,13 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     }
 
     if (identifier === 'family') {
-      this.tempFilters['family'] = Array.isArray(event.value) ? event.value : event.value ? [event.value] : [];
+      const familyValue = event.value;
+
+      if (Array.isArray(familyValue)) {
+        this.tempFilters['family'] = familyValue;
+      } else {
+        this.tempFilters['family'] = familyValue ? [familyValue] : [];
+      }
 
       return;
     }
@@ -2227,7 +2233,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
   }
 
   validateIP(ip: string): boolean {
-    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
 
     return ipRegex.test(ip);
   }
@@ -2798,7 +2804,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     if (!vulnerability?.pluginID) {
       this.showErrorMessage('Invalid vulnerability data');
 
-      return Promise.reject('Invalid vulnerability data');
+      return Promise.reject(new Error('Invalid vulnerability data'));
     }
 
     return new Promise((resolve, reject) => {

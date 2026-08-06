@@ -332,7 +332,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should set 21 columns for iav preset', () => {
-      expect(component.cols().length).toBe(21);
+      expect(component.cols()).toHaveLength(21);
     });
 
     it('should include poam column', () => {
@@ -366,7 +366,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     it('should set 22 columns for taskOrder preset', () => {
       (component as any).currentPreset = () => 'taskOrder';
       component.initColumnsAndFilters();
-      expect(component.cols().length).toBe(22);
+      expect(component.cols()).toHaveLength(22);
     });
 
     it('should include taskOrderNumber column for taskOrder preset', () => {
@@ -376,23 +376,23 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     });
 
     it('should set exportColumns matching cols length', () => {
-      expect(component.exportColumns.length).toBe(21);
+      expect(component.exportColumns).toHaveLength(21);
     });
 
-    it('should set 14 navyComplyDateFilters', () => {
-      expect(component.navyComplyDateFilters().length).toBe(14);
+    it('should set 14 deadlineRangeFilters', () => {
+      expect(component.deadlineRangeFilters()).toHaveLength(14);
     });
 
-    it('should include All IAVs option in navyComplyDateFilters', () => {
-      expect(component.navyComplyDateFilters().map((f: any) => f.label)).toContain('All IAVs');
+    it('should include an option for All in deadlineRangeFilters', () => {
+      expect(component.deadlineRangeFilters().map((f: any) => f.label)).toContain('All');
     });
 
-    it('should include All Overdue option in navyComplyDateFilters', () => {
-      expect(component.navyComplyDateFilters().map((f: any) => f.label)).toContain('All Overdue');
+    it('should include All Overdue option in deadlineRangeFilters', () => {
+      expect(component.deadlineRangeFilters().map((f: any) => f.label)).toContain('All Overdue');
     });
 
-    it('should include Due Within 90 Days option in navyComplyDateFilters', () => {
-      expect(component.navyComplyDateFilters().map((f: any) => f.label)).toContain('Due Within 90 Days');
+    it('should include Due Within 90 Days option in deadlineRangeFilters', () => {
+      expect(component.deadlineRangeFilters().map((f: any) => f.label)).toContain('Due Within 90 Days');
     });
 
     it('should call resetColumnSelections', () => {
@@ -519,7 +519,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should populate applicableVulnerabilities from results', () => {
       component.getApplicableFindings('12345');
-      expect(component.applicableVulnerabilities().length).toBe(1);
+      expect(component.applicableVulnerabilities()).toHaveLength(1);
     });
 
     it('should parse numeric pluginID', () => {
@@ -932,7 +932,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.onNavyComplyDateFilterChange({ value: 'alloverdue' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(1);
+      expect(filters).toHaveLength(1);
       expect(filters[0].matchMode).toBe('dateBefore');
     });
 
@@ -940,7 +940,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.onNavyComplyDateFilterChange({ value: 'overdue90Plus' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(1);
+      expect(filters).toHaveLength(1);
       expect(filters[0].matchMode).toBe('dateBefore');
     });
 
@@ -948,79 +948,16 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.onNavyComplyDateFilterChange({ value: 'overdue30To90' });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
       expect(filters.some((f: any) => f.matchMode === 'dateAfter')).toBe(true);
       expect(filters.some((f: any) => f.matchMode === 'dateBefore')).toBe(true);
     });
 
-    it('should set dateAfter and dateBefore constraints for overdue0To30', () => {
-      component.onNavyComplyDateFilterChange({ value: 'overdue0To30' });
+    it.each(['overdue0To30', 'overdue0To14', 'overdue0To7', 'dueBetween714', 'dueBetween1430', 'dueBetween3090', 'dueWithin7', 'dueWithin14', 'dueWithin30', 'dueWithin90'])('should set dateAfter and dateBefore constraints for %s', (value) => {
+      component.onNavyComplyDateFilterChange({ value });
       const filters = mockTable.filters['navyComplyDate'];
 
-      expect(filters.length).toBe(2);
-    });
-
-    it('should set dateAfter and dateBefore constraints for overdue0To14', () => {
-      component.onNavyComplyDateFilterChange({ value: 'overdue0To14' });
-      const filters = mockTable.filters['navyComplyDate'];
-
-      expect(filters.length).toBe(2);
-    });
-
-    it('should set dateAfter and dateBefore constraints for overdue0To7', () => {
-      component.onNavyComplyDateFilterChange({ value: 'overdue0To7' });
-      const filters = mockTable.filters['navyComplyDate'];
-
-      expect(filters.length).toBe(2);
-    });
-
-    it('should set dateAfter and dateBefore constraints for dueBetween714', () => {
-      component.onNavyComplyDateFilterChange({ value: 'dueBetween714' });
-      const filters = mockTable.filters['navyComplyDate'];
-
-      expect(filters.length).toBe(2);
-    });
-
-    it('should set dateAfter and dateBefore constraints for dueBetween1430', () => {
-      component.onNavyComplyDateFilterChange({ value: 'dueBetween1430' });
-      const filters = mockTable.filters['navyComplyDate'];
-
-      expect(filters.length).toBe(2);
-    });
-
-    it('should set dateAfter and dateBefore constraints for dueBetween3090', () => {
-      component.onNavyComplyDateFilterChange({ value: 'dueBetween3090' });
-      const filters = mockTable.filters['navyComplyDate'];
-
-      expect(filters.length).toBe(2);
-    });
-
-    it('should set dateAfter and dateBefore constraints for dueWithin7', () => {
-      component.onNavyComplyDateFilterChange({ value: 'dueWithin7' });
-      const filters = mockTable.filters['navyComplyDate'];
-
-      expect(filters.length).toBe(2);
-    });
-
-    it('should set dateAfter and dateBefore constraints for dueWithin14', () => {
-      component.onNavyComplyDateFilterChange({ value: 'dueWithin14' });
-      const filters = mockTable.filters['navyComplyDate'];
-
-      expect(filters.length).toBe(2);
-    });
-
-    it('should set dateAfter and dateBefore constraints for dueWithin30', () => {
-      component.onNavyComplyDateFilterChange({ value: 'dueWithin30' });
-      const filters = mockTable.filters['navyComplyDate'];
-
-      expect(filters.length).toBe(2);
-    });
-
-    it('should set dateAfter and dateBefore constraints for dueWithin90', () => {
-      component.onNavyComplyDateFilterChange({ value: 'dueWithin90' });
-      const filters = mockTable.filters['navyComplyDate'];
-
-      expect(filters.length).toBe(2);
+      expect(filters).toHaveLength(2);
     });
 
     it('should call table._filter after setting constraints', () => {
@@ -1134,7 +1071,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should set 11 columns for iav preset', () => {
       component.resetColumnSelections();
-      expect(component.selectedColumns().length).toBe(11);
+      expect(component.selectedColumns()).toHaveLength(11);
     });
   });
 
@@ -1144,25 +1081,11 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.initColumnsAndFilters();
     });
 
-    it('should include ips column', () => {
+    it.each(['ips', 'netbiosName', 'macAddress'])('should include %s column', (field) => {
       component.expandColumnSelections();
       const fields = component.selectedColumns().map((c: any) => c.field);
 
-      expect(fields).toContain('ips');
-    });
-
-    it('should include netbiosName column', () => {
-      component.expandColumnSelections();
-      const fields = component.selectedColumns().map((c: any) => c.field);
-
-      expect(fields).toContain('netbiosName');
-    });
-
-    it('should include macAddress column', () => {
-      component.expandColumnSelections();
-      const fields = component.selectedColumns().map((c: any) => c.field);
-
-      expect(fields).toContain('macAddress');
+      expect(fields).toContain(field);
     });
 
     it('should have more columns than reset selection', () => {

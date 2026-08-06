@@ -54,23 +54,23 @@
                 <div>The <span class="font-semibold">Risk Rating</span> is primarily determined by the <span class="font-semibold">Weighted Average</span>, except for the special "Low" risk condition:</div>
                 <ul class="ml-4 list-disc space-y-1">
                   <li>
-                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(235, 70, 100, 0.75); color: rgba(255, 255, 255, 0.9)">Very High</span>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="color: rgba(255, 255, 255, 0.9)" [style.backgroundColor]="severityColor.critical">Very High</span>
                     <span class="font-semibold ml-1">≥ 20%</span>
                   </li>
                   <li>
-                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(245, 125, 70, 0.75); color: rgba(255, 255, 255, 0.9)">High</span>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="color: rgba(255, 255, 255, 0.9)" [style.backgroundColor]="severityColor.high">High</span>
                     <span class="font-semibold ml-1">≥ 10% and &lt; 20%</span>
                   </li>
                   <li>
-                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(250, 165, 50, 0.75); color: rgba(255, 255, 255, 0.9)">Moderate</span>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="color: rgba(255, 255, 255, 0.9)" [style.backgroundColor]="severityColor.medium">Moderate</span>
                     <span class="font-semibold ml-1">&gt; 0% and &lt; 10%</span>
                   </li>
                   <li>
-                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(230, 190, 45, 0.85); color: rgba(255, 255, 255, 0.9)">Low</span>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="color: rgba(255, 255, 255, 0.9)" [style.backgroundColor]="severityColor.low">Low</span>
                     <span class="font-semibold ml-1">CAT I = 0; CAT II &amp; III each &lt; 5% <i>unweighted</i></span>
                   </li>
                   <li>
-                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="background-color: rgba(100, 185, 120, 0.75); color: rgba(255, 255, 255, 0.9)">Very Low</span>
+                    <span class="inline-flex items-center justify-center w-20 font-semibold px-1 rounded" style="color: rgba(255, 255, 255, 0.9)" [style.backgroundColor]="severityColor.veryLow">Very Low</span>
                     <span class="font-semibold ml-1">0% total</span>
                   </li>
                 </ul>
@@ -90,33 +90,30 @@
         <span class="text-[#10b981] font-semibold text-xs text-right">Low Risk</span>
       </div>
 
-      <div
-        class="relative rounded-full h-10 overflow-hidden shadow-lg"
-        style="background: linear-gradient(to right, rgba(235, 70, 100, 0.8) 0%, rgba(235, 70, 100, 0.8) 75%, rgba(245, 125, 70, 0.8) 80%, rgba(230, 190, 45, 0.8) 92%, rgba(100, 185, 120, 0.8) 100%)"
-      ></div>
+      <div class="relative rounded-full h-10 overflow-hidden shadow-lg" [style.background]="riskGradient.cora"></div>
     </div>
   </div>
 
   <div class="mt-8 pt-3 border-t border-gray-700">
     <div class="flex justify-between gap-2 mt-2">
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(235, 70, 100, 0.8)"></div>
+        <div class="w-8 h-3 rounded-full" [style.backgroundColor]="severityColor.critical"></div>
         <span class="text-xs text-gray-300">Very High</span>
       </div>
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(245, 125, 70, 0.8)"></div>
+        <div class="w-8 h-3 rounded-full" [style.backgroundColor]="severityColor.high"></div>
         <span class="text-xs text-gray-300">High</span>
       </div>
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(250, 165, 50, 0.8)"></div>
+        <div class="w-8 h-3 rounded-full" [style.backgroundColor]="severityColor.medium"></div>
         <span class="text-xs text-gray-300">Moderate</span>
       </div>
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(230, 190, 45, 0.8)"></div>
+        <div class="w-8 h-3 rounded-full" [style.backgroundColor]="severityColor.low"></div>
         <span class="text-xs text-gray-300">Low</span>
       </div>
       <div class="flex items-center gap-1">
-        <div class="w-8 h-3 rounded-full" style="background-color: rgba(100, 185, 120, 0.8)"></div>
+        <div class="w-8 h-3 rounded-full" [style.backgroundColor]="severityColor.veryLow"></div>
         <span class="text-xs text-gray-300">Very Low</span>
       </div>
     </div>
@@ -199,7 +196,7 @@
           <div class="flex-[0_0_45%] flex flex-col justify-center ml-2">
             <div class="flex flex-col w-full gap-4">
               <div class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
-                <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color" [style.backgroundColor]="'rgba(235, 70, 100, 0.8)'"></div>
+                <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color" [style.backgroundColor]="severityColor.critical"></div>
                 <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">High</div>
                 <div class="min-w-[1.5rem] text-[0.875rem] font-medium text-[var(--text-color)] opacity-70 item-value">
                   {{ stigManagerMetrics().catIOpenRawCount }}
@@ -209,7 +206,7 @@
                 </div>
               </div>
               <div class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
-                <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color" [style.backgroundColor]="'rgba(250, 165, 50, 0.8)'"></div>
+                <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color" [style.backgroundColor]="severityColor.medium"></div>
                 <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">Medium</div>
                 <div class="min-w-[1.5rem] text-[0.875rem] font-medium text-[var(--text-color)] opacity-70 item-value">
                   {{ stigManagerMetrics().catIIOpenRawCount }}
@@ -219,7 +216,7 @@
                 </div>
               </div>
               <div class="w-full flex items-center pr-2 transition-all duration-300 ease-in-out cursor-default hover:translate-x-2 legend-item">
-                <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color" [style.backgroundColor]="'rgba(230, 190, 45, 0.8)'"></div>
+                <div class="shrink-0 mr-2 w-5 h-5 rounded transition-all duration-300 ease-in-out item-color" [style.backgroundColor]="severityColor.low"></div>
                 <div class="ml-2 flex-1 text-[0.875rem] font-semibold text-[var(--text-color)] opacity-70 item-label">Low</div>
                 <div class="min-w-[1.5rem] text-[0.875rem] font-medium text-[var(--text-color)] opacity-70 item-value">
                   {{ stigManagerMetrics().catIIIOpenRawCount }}

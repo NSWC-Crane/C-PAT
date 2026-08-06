@@ -319,7 +319,7 @@ export class TenableHostDialogComponent implements OnChanges {
       this.isLoadingPluginDetails.set(false);
       this.showErrorMessage('Invalid plugin ID');
 
-      return Promise.reject('Invalid plugin ID');
+      return Promise.reject(new Error('Invalid plugin ID'));
     }
 
     this.selectedPlugin = plugin;
@@ -493,7 +493,7 @@ export class TenableHostDialogComponent implements OnChanges {
     if (!pluginID) {
       this.showErrorMessage('Invalid plugin ID');
 
-      return Promise.reject('Invalid plugin ID');
+      return Promise.reject(new Error('Invalid plugin ID'));
     }
 
     return new Promise((resolve, reject) => {
@@ -649,7 +649,7 @@ export class TenableHostDialogComponent implements OnChanges {
   parsePluginOutput(pluginText: string): string {
     if (!pluginText) return '';
 
-    return pluginText.replace(/<plugin_output>/g, '').replace(/<\/plugin_output>/g, '');
+    return pluginText.replaceAll('<plugin_output>', '').replaceAll('</plugin_output>', '');
   }
 
   getIavUrl(iavNumber: string): string {

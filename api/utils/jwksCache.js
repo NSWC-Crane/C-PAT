@@ -107,7 +107,7 @@ class JWKSCache extends EventEmitter {
                 res.on('end', () => {
                     if (res.statusCode < 200 || res.statusCode >= 300) {
                         const errorMsg = (res.body && (res.body.message || res.body)) || res.statusMessage || `Http Error ${res.statusCode}`;
-                        reject({ errorMsg });
+                        reject(new Error(errorMsg));
                     } else {
                         try {
                             logger.writeInfo('jwksCache', 'response', { socket: formatSocket(socketInfo) });

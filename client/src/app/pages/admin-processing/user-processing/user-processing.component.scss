@@ -20,10 +20,12 @@
   }
 }
 
-:host ::ng-deep .scrollable-users .p-datatable-header {
-  padding: var(--p-treetable-header-padding);
-}
+:host ::ng-deep {
+  .scrollable-users .p-datatable-header {
+    padding: var(--p-treetable-header-padding);
+  }
 
-:host ::ng-deep .onboarding-dialog .p-dialog .p-dialog-header {
-  padding-bottom: 0rem;
+  .onboarding-dialog .p-dialog .p-dialog-header {
+    padding-bottom: 0rem;
+  }
 }

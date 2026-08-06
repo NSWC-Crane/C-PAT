@@ -290,7 +290,7 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should include non-assigned collections in availableCollections', () => {
       component.editTeam(mockTeams[0]);
-      expect(component.availableCollections.length).toBe(2);
+      expect(component.availableCollections).toHaveLength(2);
     });
   });
 
@@ -352,7 +352,7 @@ describe('AssignedTeamProcessingComponent', () => {
 
       component.assignedCollections = [col];
       component.onMoveToTarget({ items: [col] });
-      expect(component.assignedCollections.length).toBe(1);
+      expect(component.assignedCollections).toHaveLength(1);
     });
 
     it('should handle single item (non-array) in new mode', () => {
@@ -367,7 +367,7 @@ describe('AssignedTeamProcessingComponent', () => {
       component.editingAssignedTeam.set(null);
       component.dialogMode = 'new';
       component.onMoveToTarget({ items: [{ collectionId: 2 }] });
-      expect(component.assignedCollections.length).toBe(0);
+      expect(component.assignedCollections).toHaveLength(0);
     });
 
     it('should call postAssignedTeamPermission in edit mode', () => {
@@ -388,14 +388,14 @@ describe('AssignedTeamProcessingComponent', () => {
       const col = { collectionId: 1, collectionName: 'Col A' };
 
       component.onMoveToSource({ items: [col] });
-      expect(component.assignedCollections.length).toBe(0);
+      expect(component.assignedCollections).toHaveLength(0);
     });
 
     it('should do nothing when editingAssignedTeam is null', () => {
       component.editingAssignedTeam.set(null);
       component.dialogMode = 'new';
       component.onMoveToSource({ items: [{ collectionId: 1 }] });
-      expect(component.assignedCollections.length).toBe(1);
+      expect(component.assignedCollections).toHaveLength(1);
     });
 
     it('should call deleteAssignedTeamPermission in edit mode', () => {
@@ -454,7 +454,7 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should remove permission from editingAssignedTeam.permissions', () => {
       component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
-      expect(component.editingAssignedTeam()!.permissions!.length).toBe(0);
+      expect(component.editingAssignedTeam()!.permissions!).toHaveLength(0);
     });
 
     it('should show error and revert on failure', () => {
@@ -533,7 +533,7 @@ describe('AssignedTeamProcessingComponent', () => {
       component.assignedCollections = [];
       component.saveTeam();
       await new Promise((r) => setTimeout(r, 0));
-      expect(component.assignedTeams().length).toBe(1);
+      expect(component.assignedTeams()).toHaveLength(1);
       expect(component.teamDialog()).toBe(false);
     });
 

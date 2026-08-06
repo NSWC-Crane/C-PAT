@@ -322,7 +322,7 @@ describe('PoamChatService', () => {
 
       const result = service.formatMessagesForUI(userId, messages);
 
-      expect(result.length).toBe(2);
+      expect(result).toHaveLength(2);
       expect(result[0].isCurrentUser).toBe(true);
       expect(result[1].isCurrentUser).toBe(false);
     });
@@ -398,7 +398,7 @@ describe('PoamChatService', () => {
 
       const result = service.formatMessagesForUI(userId, messages);
 
-      expect(result.length).toBe(3);
+      expect(result).toHaveLength(3);
       expect(result.every((m) => m.isCurrentUser)).toBe(true);
     });
 

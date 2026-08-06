@@ -27,7 +27,7 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
@@ -294,7 +294,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private async loadCollectionData(collectionId: any) {
     try {
-      const basicListData = await this.collectionsService.getCollectionBasicList().toPromise();
+      const basicListData = await firstValueFrom(this.collectionsService.getCollectionBasicList());
       const collection = basicListData?.find((c: any) => c.collectionId === collectionId);
 
       if (collection) {

@@ -129,7 +129,7 @@ export class TenableHostAssetsTableComponent implements OnInit {
                     .map((type: string) =>
                       type
                         .trim()
-                        .replace(/_/g, ' ')
+                        .replaceAll('_', ' ')
                         .replace(/\b\w/g, (char: string) => char.toUpperCase())
                     )
                     .join(', ')

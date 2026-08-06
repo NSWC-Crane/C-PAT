@@ -83,7 +83,7 @@ export class CsvExportService {
     }
 
     const stringValue = String(value);
-    const escaped = stringValue.replace(/"/g, '""');
+    const escaped = stringValue.replaceAll('"', '""');
 
     if (/[",\n]/.test(escaped)) {
       return `"${escaped}"`;

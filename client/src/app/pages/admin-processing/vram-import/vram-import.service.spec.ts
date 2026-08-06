@@ -52,7 +52,7 @@ describe('VRAMImportService', () => {
       const req = httpMock.expectOne(`${apiBase}/import/vram`);
 
       expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBe(true);
+      expect(req.request.body).toBeInstanceOf(FormData);
       req.flush(mockResponse);
     });
 

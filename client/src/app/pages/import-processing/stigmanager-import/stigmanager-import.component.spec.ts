@@ -243,11 +243,11 @@ describe('STIGManagerImportComponent', () => {
     });
 
     it('should define allColumns with 6 columns', () => {
-      expect(component.allColumns.length).toBe(6);
+      expect(component.allColumns).toHaveLength(6);
     });
 
     it('should have loadingSkeletonData with 15 items', () => {
-      expect(component.loadingSkeletonData.length).toBe(15);
+      expect(component.loadingSkeletonData).toHaveLength(15);
     });
   });
 
@@ -362,7 +362,7 @@ describe('STIGManagerImportComponent', () => {
   describe('loadBenchmarkSummaries', () => {
     it('should populate benchmarkSummaries', () => {
       (component as any).loadBenchmarkSummaries(100);
-      expect(component.benchmarkSummaries().length).toBe(2);
+      expect(component.benchmarkSummaries()).toHaveLength(2);
     });
 
     it('should set benchmarksCount', () => {
@@ -500,7 +500,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should map findings data into displayDataSource', () => {
       component.getSTIGMANFindings(100);
-      expect(component.displayDataSource().length).toBe(2);
+      expect(component.displayDataSource()).toHaveLength(2);
       expect(component.displayDataSource()[0].groupId).toBe('V-230221');
     });
 
@@ -627,7 +627,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should update displayDataSource', () => {
       (component as any).updateExistingPoams();
-      expect(component.displayDataSource().length).toBe(3);
+      expect(component.displayDataSource()).toHaveLength(3);
     });
 
     it('should update findingsCount', () => {

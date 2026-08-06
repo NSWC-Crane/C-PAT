@@ -43,11 +43,14 @@ interface SearchItem {
   `,
   styles: [
     `
-      :host ::ng-deep .p-autocomplete {
-        width: 100%;
-      }
-      :host ::ng-deep .p-autocomplete-panel {
-        max-width: 100%;
+      :host ::ng-deep {
+        .p-autocomplete {
+          width: 100%;
+        }
+
+        .p-autocomplete-panel {
+          max-width: 100%;
+        }
       }
     `
   ],

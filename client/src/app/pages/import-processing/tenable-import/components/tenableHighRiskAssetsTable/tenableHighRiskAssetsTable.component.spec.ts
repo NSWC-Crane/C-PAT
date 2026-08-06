@@ -231,7 +231,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
 
     it('should set highRiskAssets signal from response results', () => {
       component.loadHighRiskAssets();
-      expect(component.highRiskAssets().length).toBe(1);
+      expect(component.highRiskAssets()).toHaveLength(1);
     });
 
     it('should set highRiskAssetsTotalRecords from response', () => {
@@ -418,7 +418,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
     it('should map multiple assets', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([mockAssetRaw, mockAssetRawNoDns], 2)));
       component.loadHighRiskAssets();
-      expect(component.highRiskAssets().length).toBe(2);
+      expect(component.highRiskAssets()).toHaveLength(2);
     });
   });
 

@@ -134,7 +134,7 @@ describe('TenableHostAssetsTableComponent', () => {
     });
 
     it('should set 13 columns', () => {
-      expect(component.cols.length).toBe(13);
+      expect(component.cols).toHaveLength(13);
     });
 
     it('should include name column', () => {
@@ -157,7 +157,7 @@ describe('TenableHostAssetsTableComponent', () => {
     });
 
     it('should set exportColumns matching cols length', () => {
-      expect(component.exportColumns.length).toBe(13);
+      expect(component.exportColumns).toHaveLength(13);
     });
 
     it('should set selectedColumns to include all default fields', () => {
@@ -188,7 +188,7 @@ describe('TenableHostAssetsTableComponent', () => {
     it('should map host assets from response', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets().length).toBe(2);
+      expect(component.affectedAssets()).toHaveLength(2);
     });
 
     it('should extract source type from source array', () => {

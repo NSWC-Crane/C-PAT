@@ -189,7 +189,7 @@ describe('AppSearchComponent', () => {
       component.search({ query: 'poam' });
       const lowerResults = [...component.filteredItems()];
 
-      expect(upperResults.length).toBe(lowerResults.length);
+      expect(upperResults).toHaveLength(lowerResults.length);
     });
 
     it('should find Home when searching for "home"', () => {
@@ -219,7 +219,7 @@ describe('AppSearchComponent', () => {
 
     it('should update filteredItems on each search', () => {
       component.search({ query: 'home' });
-      expect(component.filteredItems().length).toBe(1);
+      expect(component.filteredItems()).toHaveLength(1);
 
       component.search({ query: 'processing' });
       expect(component.filteredItems().length).toBeGreaterThan(1);
@@ -342,7 +342,7 @@ describe('AppSearchComponent', () => {
   describe('search and navigation workflow', () => {
     it('should complete full search and select workflow', () => {
       component.search({ query: 'home' });
-      expect(component.filteredItems().length).toBe(1);
+      expect(component.filteredItems()).toHaveLength(1);
       expect(component.filteredItems()[0].title).toBe('Home');
 
       component.navigateTo({ value: component.filteredItems()[0] });
@@ -367,7 +367,7 @@ describe('AppSearchComponent', () => {
   describe('edge cases', () => {
     it('should handle empty search query', () => {
       component.search({ query: '' });
-      expect(component.filteredItems().length).toBe(component['searchItems'].length);
+      expect(component.filteredItems()).toHaveLength(component['searchItems'].length);
     });
 
     it('should handle single character search', () => {

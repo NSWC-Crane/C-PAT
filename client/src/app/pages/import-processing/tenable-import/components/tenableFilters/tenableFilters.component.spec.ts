@@ -212,7 +212,7 @@ describe('TenableFiltersComponent', () => {
     it('should map filters to FilterOption objects', () => {
       (component as any).collectionId = () => 1;
       component.loadExistingFilters();
-      expect(component.existingFilters.length).toBe(2);
+      expect(component.existingFilters).toHaveLength(2);
       expect(component.existingFilters[0].label).toBe('My Filter');
       expect(component.existingFilters[0].filterId).toBe(1);
     });
@@ -255,23 +255,23 @@ describe('TenableFiltersComponent', () => {
 
     it('should filter by case-insensitive query', () => {
       component.searchFilters({ query: 'my' });
-      expect(component.filteredFilters.length).toBe(1);
+      expect(component.filteredFilters).toHaveLength(1);
       expect(component.filteredFilters[0].label).toBe('My Filter');
     });
 
     it('should return all filters when query matches all', () => {
       component.searchFilters({ query: 'filter' });
-      expect(component.filteredFilters.length).toBe(3);
+      expect(component.filteredFilters).toHaveLength(3);
     });
 
     it('should return empty array when query matches none', () => {
       component.searchFilters({ query: 'zzz' });
-      expect(component.filteredFilters.length).toBe(0);
+      expect(component.filteredFilters).toHaveLength(0);
     });
 
     it('should be case-insensitive', () => {
       component.searchFilters({ query: 'ADMIN' });
-      expect(component.filteredFilters.length).toBe(1);
+      expect(component.filteredFilters).toHaveLength(1);
       expect(component.filteredFilters[0].label).toBe('Admin Filter');
     });
   });

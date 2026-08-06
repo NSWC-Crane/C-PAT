@@ -431,7 +431,7 @@ describe('PoamExtendComponent', () => {
         const originalLength = component.poamMilestones().length;
 
         component.onAddNewMilestone();
-        expect(component.poamMilestones().length).toBe(originalLength + 1);
+        expect(component.poamMilestones()).toHaveLength(originalLength + 1);
         expect(component.poamMilestones()[0].isNew).toBe(true);
       });
 

@@ -22,6 +22,7 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Subject, catchError, map, of, switchMap, take, tap } from 'rxjs';
+import { CAT_SEVERITY_COLORS, RISK_GRADIENT, SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { MetricData } from '../../../common/models/metrics.model';
@@ -33,14 +34,6 @@ import { MetricsExportService } from './metrics-export.service';
 
 const RING_OUTER_RADIUS = 62;
 const RING_INNER_RADIUS = 40;
-
-const SEVERITY_COLORS: Record<string, string> = {
-  'CAT I - Critical/High': 'rgba(235, 70, 100, 0.85)',
-  'CAT II - Medium': 'rgba(250, 165, 50, 0.8)',
-  'CAT III - Low': 'rgba(230, 185, 45, 0.8)',
-  'CAT III - Informational': 'rgba(100, 180, 100, 0.7)',
-  default: 'rgba(150, 150, 150, 0.7)'
-};
 
 const SOURCE_ORDER = ['STIG Manager', 'Tenable'];
 
@@ -90,6 +83,8 @@ export class GlobalMetricsComponent implements OnInit {
   result = signal<GlobalMetricsResult | null>(null);
   now = signal(new Date());
 
+  readonly severityColor = SEVERITY_COLOR;
+  readonly riskGradient = RISK_GRADIENT;
   readonly outerRadius = RING_OUTER_RADIUS;
   readonly innerRadius = RING_INNER_RADIUS;
   readonly outerCircumference = 2 * Math.PI * RING_OUTER_RADIUS;
@@ -280,7 +275,7 @@ export class GlobalMetricsComponent implements OnInit {
         {
           label: 'Avg Days to Close',
           data: items.map((item) => item.avgDays),
-          backgroundColor: items.map((item) => SEVERITY_COLORS[item.severity] ?? SEVERITY_COLORS['default']),
+          backgroundColor: items.map((item) => CAT_SEVERITY_COLORS[item.severity] ?? CAT_SEVERITY_COLORS['default']),
           borderRadius: 8,
           borderWidth: 1
         }
@@ -317,7 +312,7 @@ export class GlobalMetricsComponent implements OnInit {
       labels,
       datasets: seriesKeys.map((key) => {
         const [source, severity] = key.split('::');
-        const color = SEVERITY_COLORS[severity] ?? SEVERITY_COLORS['default'];
+        const color = CAT_SEVERITY_COLORS[severity] ?? CAT_SEVERITY_COLORS['default'];
 
         return {
           label: `${this.sourceLabel(source)} · ${severity}`,
@@ -481,22 +476,22 @@ export class GlobalMetricsComponent implements OnInit {
     const rating = this.result()?.stig?.cora.rating;
 
     if (riskScore === 0) {
-      return 'rgba(15, 185, 130, 0.8)';
+      return SEVERITY_COLOR.veryLow;
     }
 
     if (rating === 'Low') {
-      return 'rgba(230, 190, 45, 0.85)';
+      return SEVERITY_COLOR.low;
     }
 
     if (riskScore >= 20) {
-      return 'rgba(235, 70, 100, 0.8)';
+      return SEVERITY_COLOR.critical;
     }
 
     if (riskScore >= 10) {
-      return 'rgba(245, 125, 70, 0.8)';
+      return SEVERITY_COLOR.high;
     }
 
-    return 'rgba(250, 165, 50, 0.8)';
+    return SEVERITY_COLOR.medium;
   }
 
   getVPHColor(vphScore: number): string {

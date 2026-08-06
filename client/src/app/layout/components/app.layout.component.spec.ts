@@ -211,7 +211,7 @@ describe('AppLayoutComponent', () => {
       authUserSubject.next({ ...authUserSubject.getValue() });
       accessLevelSubject.next(accessLevelSubject.getValue());
 
-      expect(mockCollectionsService.getCollections.mock.calls.length).toBe(callCount);
+      expect(mockCollectionsService.getCollections.mock.calls).toHaveLength(callCount);
     });
 
     it('should call loadCollections again when lastCollectionAccessedId changes', () => {
@@ -220,7 +220,7 @@ describe('AppLayoutComponent', () => {
 
       authUserSubject.next({ ...authUserSubject.getValue(), lastCollectionAccessedId: 2 });
 
-      expect(mockCollectionsService.getCollections.mock.calls.length).toBe(callCount + 1);
+      expect(mockCollectionsService.getCollections.mock.calls).toHaveLength(callCount + 1);
     });
 
     it('should call loadCollections again when accessLevel changes', () => {
@@ -229,7 +229,7 @@ describe('AppLayoutComponent', () => {
 
       accessLevelSubject.next(3);
 
-      expect(mockCollectionsService.getCollections.mock.calls.length).toBe(callCount + 1);
+      expect(mockCollectionsService.getCollections.mock.calls).toHaveLength(callCount + 1);
     });
 
     it('should handle error from combineLatest', () => {
@@ -404,7 +404,7 @@ describe('AppLayoutComponent', () => {
       (globalThis as any).CPAT.Env.features.marketplaceDisabled = true;
       component.setUserMenuItems();
 
-      expect(component.userMenu().length).toBe(1);
+      expect(component.userMenu()).toHaveLength(1);
       expect(component.userMenu()[0].label).toBe('Log Out');
 
       (globalThis as any).CPAT.Env.features.marketplaceDisabled = false;

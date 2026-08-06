@@ -398,7 +398,7 @@ describe('LabelComponent', () => {
       const rowData: any = {};
 
       component.parseVulnerabilityIds('CVE-001, CVE-002', rowData);
-      expect(rowData.selectedPoams.length).toBe(2);
+      expect(rowData.selectedPoams).toHaveLength(2);
     });
 
     it('should skip already-added poams (not isNew)', () => {
@@ -413,7 +413,7 @@ describe('LabelComponent', () => {
       const rowData: any = { selectedPoams: [{ poamId: 1 }] };
 
       component.parseVulnerabilityIds('CVE-001', rowData);
-      expect(rowData.selectedPoams.filter((p: any) => p.poamId === 1).length).toBe(1);
+      expect(rowData.selectedPoams.filter((p: any) => p.poamId === 1)).toHaveLength(1);
     });
 
     it('should use empty array for selectedPoams when not defined', () => {
@@ -454,7 +454,7 @@ describe('LabelComponent', () => {
     it('should prepend a new row to displayPoams', () => {
       component.displayPoams.set([{ poamId: 1, isNew: false }]);
       component.addPoamRow();
-      expect(component.displayPoams().length).toBe(2);
+      expect(component.displayPoams()).toHaveLength(2);
       expect(component.displayPoams()[0].isNew).toBe(true);
     });
 
@@ -539,7 +539,7 @@ describe('LabelComponent', () => {
         { poamId: 2, isNew: false }
       ]);
       await component.onPoamAdd(component.displayPoams()[0], 0);
-      expect(component.displayPoams().length).toBe(2);
+      expect(component.displayPoams()).toHaveLength(2);
     });
   });
 
@@ -548,7 +548,7 @@ describe('LabelComponent', () => {
       component.displayPoams.set([{ poamId: 1, isNew: true }]);
       await component.deletePoamFromLabel({ poamId: 1, isNew: true }, 0);
       expect(mockPoamService.deletePoamLabel).not.toHaveBeenCalled();
-      expect(component.displayPoams().length).toBe(0);
+      expect(component.displayPoams()).toHaveLength(0);
     });
 
     it('should call poamService.deletePoamLabel for existing poam', async () => {
@@ -565,7 +565,7 @@ describe('LabelComponent', () => {
         { poamId: 6, isNew: false }
       ]);
       await component.deletePoamFromLabel({ poamId: 5, isNew: false }, 0);
-      expect(component.displayPoams().length).toBe(1);
+      expect(component.displayPoams()).toHaveLength(1);
     });
 
     it('should show success message on delete', async () => {
