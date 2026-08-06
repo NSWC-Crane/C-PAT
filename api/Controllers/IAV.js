@@ -41,11 +41,21 @@ module.exports.mapIAVPluginIds = async function mapIAVPluginIds(req, res) {
     }
 };
 
-module.exports.getIAVPluginIds = async function getIAVPluginIds(_req, res) {
+module.exports.getIAVPluginIds = async function getIAVPluginIds(req, res) {
     try {
-        const iavPluginIDs = await iavService.getIAVPluginIds();
+        const iavPluginIDs = await iavService.getIAVPluginIds(req.query.hasTaskOrder);
 
         res.status(200).json(iavPluginIDs);
+    } catch (error) {
+        sendError(res, error);
+    }
+};
+
+module.exports.putIAVTaskOrder = async function putIAVTaskOrder(req, res) {
+    try {
+        const result = await iavService.putIAVTaskOrder(req);
+
+        res.status(200).json(result);
     } catch (error) {
         sendError(res, error);
     }

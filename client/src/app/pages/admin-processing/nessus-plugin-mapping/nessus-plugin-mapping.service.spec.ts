@@ -323,4 +323,71 @@ describe('NessusPluginMappingService', () => {
       consoleSpy.mockRestore();
     });
   });
+
+  describe('putIAVTaskOrder', () => {
+    it('should update the task order for an IAV', () => {
+      const iavUpdate = { iav: '2024-A-0001', taskOrder: 'TO-2024-001' };
+
+      service.putIAVTaskOrder(iavUpdate).subscribe((data) => {
+        expect(data).toEqual(iavUpdate);
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/iav/taskOrder`);
+
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(iavUpdate);
+      req.flush(iavUpdate);
+    });
+
+    it('should clear the task order with a null value', () => {
+      const iavUpdate = { iav: '2024-A-0001', taskOrder: null };
+
+      service.putIAVTaskOrder(iavUpdate).subscribe((data) => {
+        expect(data.taskOrder).toBeNull();
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/iav/taskOrder`);
+
+      expect(req.request.body).toEqual(iavUpdate);
+      req.flush(iavUpdate);
+    });
+
+    it('should handle 404 not found error', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      service.putIAVTaskOrder({ iav: '2024-A-9999', taskOrder: 'TO-2024-001' }).subscribe({
+        next: () => {
+          throw new Error('Expected error');
+        },
+        error: (error) => {
+          expect(error.message).toContain('Something bad happened');
+        }
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/iav/taskOrder`);
+
+      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle server-side HTTP error', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      service.putIAVTaskOrder({ iav: '2024-A-0001', taskOrder: 'TO-2024-001' }).subscribe({
+        next: () => {
+          throw new Error('Expected error');
+        },
+        error: (error) => {
+          expect(error.message).toContain('Something bad happened');
+        }
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/iav/taskOrder`);
+
+      req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
+
+      consoleSpy.mockRestore();
+    });
+  });
 });

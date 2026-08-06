@@ -168,6 +168,16 @@ The 'MAP PLUGINS TO IAV' button will initiate the process of mapping IAV data to
 .. note::
    This process will take approximately 60 seconds to complete. Clicking away from the page will terminate the mapping and the process must be started over again.
 
+Task Order Assignment
+^^^^^^^^^^^^^^^^^^^^^
+
+Each row in the IAV table contains an editable ``Task Order`` field. To assign or update a task order, click the pencil icon in the Actions column, enter the task order value (up to 25 characters), and click the green check to save or the red X to discard the change. Clearing the field and saving removes the task order from the IAV.
+
+Assigned task orders determine which Plugin ID's are displayed when the IAV Task Orders source is selected within the Tenable Task Orders component.
+
+.. note::
+   Task orders are entered and maintained exclusively within C-PAT and are preserved when VRAM data is re-imported.
+
 
 Asset Deltas
 ------------

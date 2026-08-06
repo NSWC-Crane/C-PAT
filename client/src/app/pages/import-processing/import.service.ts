@@ -86,8 +86,8 @@ export class ImportService {
     return this.http.post(`${this.cpatApiBase}/iav/pluginInfo`, { pluginIDs }).pipe(catchError(this.handleError));
   }
 
-  getIAVPluginIds(): Observable<any> {
-    return this.http.get(`${this.cpatApiBase}/iav/pluginIDs`).pipe(catchError(this.handleError));
+  getIAVPluginIds(hasTaskOrder: boolean = false): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/iav/pluginIDs${hasTaskOrder ? '?hasTaskOrder=true' : ''}`).pipe(catchError(this.handleError));
   }
 
   getVulnerabilityIdsWithTaskOrderByCollection(collectionId: number): Observable<any> {

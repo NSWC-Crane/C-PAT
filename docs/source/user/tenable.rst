@@ -4,7 +4,7 @@
 Tenable
 -------
 
-The Tenable component is a comprehensive compilation of tools that provides a large majority of functionality contained in Tenable.sc in addition to numerous expanded capabilities. The tenable component is comprised of the Main Vulnerabilities, IAV Vulnerabilities, and Solutions components.
+The Tenable component is a comprehensive compilation of tools that provides a large majority of functionality contained in Tenable.sc in addition to numerous expanded capabilities. The tenable component is comprised of the Main Vulnerabilities, IAV Vulnerabilities, Task Orders, and Solutions components.
 
 Main Vulnerabilities Component
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -157,6 +157,32 @@ List View
 ''''''''''
 Expands to show additional columns:
 ``IP Address`` ``ACR`` ``AES`` ``NetBIOS`` ``DNS`` ``MAC Address`` ``Port`` ``Protocol`` ``Agent ID`` ``Host ID``
+
+Task Orders Component
+^^^^^^^^^^^^^^^^^^^^^^
+
+The Task Orders Component displays a table originated from Tenable's vulnerability summary, limited to Plugin ID's that are associated with a task order. A toggle located in the toolbar selects between two task order sources:
+
+POAM Task Orders
+"""""""""""""""""
+The default source. The table is limited to Plugin ID's that appear on a POAM within the current collection where the POAM contains a Task Order # entry. The ``Task Order #`` column is populated from the associated POAM.
+
+IAV Task Orders
+""""""""""""""""
+The table is limited to Plugin ID's that are mapped to an IAV with an assigned task order. The ``Task Order #`` column is populated from the IAV table. Task orders are assigned to IAVs by administrators within the Nessus Plugin Mapping component of the admin portal.
+
+.. note::
+   When a Plugin ID is mapped to multiple IAVs, the ``IAV`` and ``Navy Comply Date`` columns reflect the IAV with the most recent Navy Comply Date, while the ``Task Order #`` column displays the task order from the most recent IAV that has one assigned. These may originate from different IAVs.
+
+.. note::
+   Switching between sources resets all column filters, column selections, and the view to Vulnerability Summary before loading the selected source's data.
+
+Default Display
+""""""""""""""""
+When the task order table is initially displayed, the component will show columns for the following fields by default:
+``POAM`` ``Plugin ID`` ``Task Order #`` ``Name`` ``Family`` ``Severity`` ``VPR`` ``IAV`` ``Navy Comply Date`` ``Superseded By`` ``Total`` ``Host Total``
+
+The toolbar controls, filtering behavior, and view options match those of the IAV Vulnerabilities Component.
 
 Solutions Component
 ^^^^^^^^^^^^^^^^^^^^

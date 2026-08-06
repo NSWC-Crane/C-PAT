@@ -264,6 +264,17 @@ describe('ImportService', () => {
       expect(req.request.method).toBe('GET');
       req.flush(mockPluginIds);
     });
+
+    it('should append hasTaskOrder query param when requested', () => {
+      service.getIAVPluginIds(true).subscribe((result) => {
+        expect(result).toBe('12345,67890');
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/iav/pluginIDs?hasTaskOrder=true`);
+
+      expect(req.request.method).toBe('GET');
+      req.flush('12345,67890');
+    });
   });
 
   describe('getVulnerabilityIdsWithTaskOrderByCollection', () => {
