@@ -11,7 +11,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vitest';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
@@ -55,7 +55,8 @@ const mockIAVInfo = [
     pluginID: 12345,
     iav: 'IAVA-2023-A-0001',
     navyComplyDate: '2023-12-31T00:00:00',
-    supersededBy: 'N/A'
+    supersededBy: 'N/A',
+    taskOrder: 'TO-IAV-001'
   }
 ];
 
@@ -145,6 +146,10 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     (component as any).select = () => mockSelect;
     (component as any).columnSelect = () => mockMultiSelect;
     component.existingPoamPluginIDs = {};
+  });
+
+  afterEach(() => {
+    sessionStorage.removeItem('tenableFilterState');
   });
 
   describe('Creation and Defaults', () => {
@@ -244,6 +249,22 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
 
+    it('should call getIAVTaskOrderPluginIDs when preset is taskOrder and taskOrderSource is iav', () => {
+      (component as any).currentPreset = () => 'taskOrder';
+      component.taskOrderSource.set('iav');
+      const spy = vi.spyOn(component, 'getIAVTaskOrderPluginIDs');
+
+      component.ngOnInit();
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should restore taskOrderSource from sessionStorage when preset matches', () => {
+      sessionStorage.setItem('tenableFilterState', JSON.stringify({ currentPreset: 'taskOrder', taskOrderSource: 'iav' }));
+      (component as any).currentPreset = () => 'taskOrder';
+      component.ngOnInit();
+      expect(component.taskOrderSource()).toBe('iav');
+    });
+
     it('should handle missing collection (no matching collectionId)', () => {
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of([{ collectionId: 999, originCollectionId: 99 }]));
       component.ngOnInit();
@@ -272,7 +293,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
         tenableTool: 'listvuln'
       };
 
-      sessionStorage.setItem('tenableSelectedVulnState', JSON.stringify(savedState));
+      sessionStorage.setItem('tenableFilterState', JSON.stringify(savedState));
       (component as any).currentPreset = () => 'iav';
       component.ngOnInit();
       expect(component.filterValue).toBe('test');
@@ -292,7 +313,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
           tenableTool: 'sumid'
         };
 
-        sessionStorage.setItem('tenableSelectedVulnState', JSON.stringify(savedState));
+        sessionStorage.setItem('tenableFilterState', JSON.stringify(savedState));
         (component as any).currentPreset = () => 'iav';
         component.ngOnInit();
         vi.runAllTimers();
@@ -312,16 +333,23 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
         filterValue: 'different'
       };
 
-      sessionStorage.setItem('tenableSelectedVulnState', JSON.stringify(savedState));
+      sessionStorage.setItem('tenableFilterState', JSON.stringify(savedState));
       (component as any).currentPreset = () => 'iav';
       component.ngOnInit();
       expect(component.filterValue).toBe('');
     });
 
-    it('should remove sessionStorage item after reading', () => {
-      sessionStorage.setItem('tenableSelectedVulnState', JSON.stringify({ currentPreset: 'iav' }));
+    it('should remove sessionStorage item after reading when presets match', () => {
+      sessionStorage.setItem('tenableFilterState', JSON.stringify({ currentPreset: 'iav' }));
       component.ngOnInit();
-      expect(sessionStorage.getItem('tenableSelectedVulnState')).toBeNull();
+      expect(sessionStorage.getItem('tenableFilterState')).toBeNull();
+    });
+
+    it('should keep sessionStorage item when presets do not match', () => {
+      sessionStorage.setItem('tenableFilterState', JSON.stringify({ currentPreset: 'taskOrder' }));
+      (component as any).currentPreset = () => 'iav';
+      component.ngOnInit();
+      expect(sessionStorage.getItem('tenableFilterState')).not.toBeNull();
     });
   });
 
@@ -423,13 +451,20 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       const spy = vi.spyOn(component, 'getApplicableFindings');
 
       component.getIAVPluginIDs();
-      expect(spy).toHaveBeenCalledWith('12345,67890');
+      expect(spy).toHaveBeenCalledWith('12345,67890', expect.any(Number));
     });
 
     it('should show error message on failure', () => {
       mockImportService.getIAVPluginIds.mockReturnValue(throwError(() => new Error('fail')));
       component.getIAVPluginIDs();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+
+    it('should set isLoading false on failure', () => {
+      mockImportService.getIAVPluginIds.mockReturnValue(throwError(() => new Error('fail')));
+      component.isLoading.set(true);
+      component.getIAVPluginIDs();
+      expect(component.isLoading()).toBe(false);
     });
   });
 
@@ -487,6 +522,143 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.getTaskOrderVulnerabilityIds();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
+
+    it('should set isLoading false on failure', () => {
+      mockImportService.getVulnerabilityIdsWithTaskOrderByCollection.mockReturnValue(throwError(() => new Error('fail')));
+      component.isLoading.set(true);
+      component.getTaskOrderVulnerabilityIds();
+      expect(component.isLoading()).toBe(false);
+    });
+  });
+
+  describe('getIAVTaskOrderPluginIDs', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('currentPreset', 'taskOrder');
+      component.taskOrderSource.set('iav');
+      component.tenableRepoId = '42';
+      component.initColumnsAndFilters();
+    });
+
+    it('should call getIAVPluginIds with hasTaskOrder true', () => {
+      component.getIAVTaskOrderPluginIDs();
+      expect(mockImportService.getIAVPluginIds).toHaveBeenCalledWith(true);
+    });
+
+    it('should set applicablePluginIDs and call getApplicableFindings', () => {
+      const spy = vi.spyOn(component, 'getApplicableFindings');
+
+      component.getIAVTaskOrderPluginIDs();
+      expect(component.applicablePluginIDs).toBe('12345,67890');
+      expect(spy).toHaveBeenCalledWith('12345,67890', expect.any(Number));
+    });
+
+    it('should show info message and emit 0 when no pluginIDs returned', () => {
+      mockImportService.getIAVPluginIds.mockReturnValue(of(''));
+      const spy = vi.spyOn(component.totalRecordsChange, 'emit');
+
+      component.getIAVTaskOrderPluginIDs();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'info' }));
+      expect(spy).toHaveBeenCalledWith(0);
+      expect(component.isLoading()).toBe(false);
+    });
+
+    it('should show error on failure', () => {
+      mockImportService.getIAVPluginIds.mockReturnValue(throwError(() => new Error('fail')));
+      component.getIAVTaskOrderPluginIDs();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+
+    it('should set isLoading false on failure', () => {
+      mockImportService.getIAVPluginIds.mockReturnValue(throwError(() => new Error('fail')));
+      component.isLoading.set(true);
+      component.getIAVTaskOrderPluginIDs();
+      expect(component.isLoading()).toBe(false);
+    });
+  });
+
+  describe('onTaskOrderSourceChange', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('currentPreset', 'taskOrder');
+      component.selectedCollection = 1;
+      component.tenableRepoId = '42';
+      component.initColumnsAndFilters();
+    });
+
+    it('should do nothing when source is unchanged', () => {
+      const spy = vi.spyOn(component, 'getTaskOrderVulnerabilityIds');
+
+      component.onTaskOrderSourceChange('poam');
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should reset state and call getIAVTaskOrderPluginIDs when switching to iav', () => {
+      component.applicableVulnerabilities.set([{ pluginID: 12345 }]);
+      component.taskOrderMap = { '12345': 'TO-001' };
+      component.applicablePluginIDs = '12345';
+      component.tenableTool = 'listvuln';
+      const loadSpy = vi.spyOn(component, 'getIAVTaskOrderPluginIDs');
+      const emitSpy = vi.spyOn(component.totalRecordsChange, 'emit');
+
+      component.onTaskOrderSourceChange('iav');
+      expect(component.taskOrderSource()).toBe('iav');
+      expect(component.taskOrderMap).toEqual({});
+      expect(component.tenableTool).toBe('sumid');
+      expect(emitSpy).toHaveBeenCalledWith(0);
+      expect(loadSpy).toHaveBeenCalled();
+    });
+
+    it('should call getTaskOrderVulnerabilityIds when switching back to poam', () => {
+      component.taskOrderSource.set('iav');
+      const spy = vi.spyOn(component, 'getTaskOrderVulnerabilityIds');
+
+      component.onTaskOrderSourceChange('poam');
+      expect(component.taskOrderSource()).toBe('poam');
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should reset filters and search state when switching source', () => {
+      component.filters['taskOrderNumber'] = [{ value: 'TO-1', matchMode: 'contains', operator: 'and' }];
+      component.filterValue = 'search text';
+      component.selectedNavyComplyDateFilter = { label: 'All Overdue', value: 'alloverdue' };
+      component.selectedSeverities.set(['High']);
+
+      const navyComplyCol = component.cols().find((c: any) => c.field === 'navyComplyDate');
+
+      navyComplyCol.filterValue = '01/01/2026 - 02/01/2026';
+      component.onTaskOrderSourceChange('iav');
+      expect(component.filters['taskOrderNumber']).toBeUndefined();
+      expect(component.filters['supersededBy'][0].value).toBe('N/A');
+      expect(component.selectedSeverities()).toEqual(['Low', 'Medium', 'High', 'Critical']);
+      expect(component.filterValue).toBe('');
+      expect(component.selectedNavyComplyDateFilter).toBeNull();
+      expect(navyComplyCol.filterValue).toBe('');
+      expect(mockTable.clear).toHaveBeenCalled();
+    });
+
+    it('should set the source but skip loading when tenableRepoId is missing', () => {
+      component.tenableRepoId = '';
+      const spy = vi.spyOn(component, 'getIAVTaskOrderPluginIDs');
+
+      component.onTaskOrderSourceChange('iav');
+      expect(component.taskOrderSource()).toBe('iav');
+      expect(spy).not.toHaveBeenCalled();
+      expect(component.isLoading()).toBe(false);
+    });
+
+    it('should ignore an in-flight POAM chain after switching to IAV', () => {
+      const poamIds = new Subject<any>();
+
+      mockImportService.getVulnerabilityIdsWithTaskOrderByCollection.mockReturnValue(poamIds.asObservable());
+      component.getTaskOrderVulnerabilityIds();
+      const findingsSpy = vi.spyOn(component, 'getApplicableFindings');
+
+      component.onTaskOrderSourceChange('iav');
+      findingsSpy.mockClear();
+      poamIds.next([{ vulnerabilityId: '55555', taskOrderNumber: 'TO-STALE' }]);
+      poamIds.complete();
+      expect(findingsSpy).not.toHaveBeenCalled();
+      expect(component.taskOrderMap).toEqual({});
+    });
   });
 
   describe('getApplicableFindings', () => {
@@ -502,6 +674,36 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       const repoFilter = callArgs.query.filters.find((f: any) => f.filterName === 'repository');
 
       expect(repoFilter?.value[0].id).toBe('42');
+    });
+
+    it('should discard a stale response when a newer request supersedes it', () => {
+      const staleAnalysis = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(staleAnalysis.asObservable()).mockReturnValueOnce(of(mockAnalysisResponse));
+      component.getApplicableFindings('99999');
+      component.getApplicableFindings('12345');
+      expect(component.applicableVulnerabilities()).toHaveLength(1);
+      expect(component.applicableVulnerabilities()[0].pluginID).toBe(12345);
+      staleAnalysis.next({ response: { results: [{ ...mockAnalysisResponse.response.results[0], pluginID: '99999' }] } });
+      staleAnalysis.complete();
+      expect(component.applicableVulnerabilities()).toHaveLength(1);
+      expect(component.applicableVulnerabilities()[0].pluginID).toBe(12345);
+    });
+
+    it('should not let a stale request clear isLoading while a newer request is in flight', () => {
+      const staleAnalysis = new Subject<any>();
+      const activeAnalysis = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(staleAnalysis.asObservable()).mockReturnValueOnce(activeAnalysis.asObservable());
+      component.getApplicableFindings('99999');
+      component.getApplicableFindings('12345');
+      expect(component.isLoading()).toBe(true);
+      staleAnalysis.error(new Error('stale failure'));
+      expect(component.isLoading()).toBe(true);
+      expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('stale failure') }));
+      activeAnalysis.next(mockAnalysisResponse);
+      activeAnalysis.complete();
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should call postTenableAnalysis with pluginID filter', () => {
@@ -594,6 +796,14 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       component.getApplicableFindings('12345');
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
       expect(component.isLoading()).toBe(false);
+    });
+
+    it('should map taskOrderNumber from iavInfo when taskOrderSource is iav', () => {
+      (component as any).currentPreset = () => 'taskOrder';
+      component.taskOrderSource.set('iav');
+      component.taskOrderMap = {};
+      component.getApplicableFindings('12345');
+      expect(component.applicableVulnerabilities()[0].taskOrderNumber).toBe('TO-IAV-001');
     });
 
     it('should add taskOrderNumber to vulnerability when preset is taskOrder', () => {

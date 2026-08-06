@@ -1453,6 +1453,8 @@ paths:
                       format: date
                     supersededBy:
                       type: string
+                    taskOrder:
+                      type: [string, 'null']
         '400':
           description: Bad Request
           content:
@@ -1476,6 +1478,13 @@ paths:
       summary: Retrieves mapped IAV pluginIDs
       description: Get all unique pluginIDs that have an associated IAV as a comma-separated string
       operationId: getIAVPluginIds
+      parameters:
+        - name: hasTaskOrder
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: When true, only pluginIDs mapped to IAVs with an assigned task order are returned
       responses:
         '200':
           description: Successful response
@@ -1504,6 +1513,63 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
+
+  /iav/taskOrder:
+    put:
+      summary: Update the task order assigned to an IAV
+      description: Updates the task order value for a single IAV record
+      operationId: putIAVTaskOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                iav:
+                  type: string
+                  pattern: '^\d{4}-[A-Z]-\d{4}$'
+                  description: IAV in the format 0000-A-0000
+                taskOrder:
+                  type: [string, 'null']
+                  maxLength: 25
+              required:
+                - iav
+      responses:
+        '200':
+          description: Task order updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  iav:
+                    type: string
+                  taskOrder:
+                    type: [string, 'null']
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: IAV not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+            - 'c-pat:op'
 
   /mapPluginIds:
     post:
@@ -6936,6 +7002,9 @@ components:
         nessusPlugins:
           type: integer
           format: int32
+        taskOrder:
+          type: [string, 'null']
+          maxLength: 25
       required:
         - iav
         - title

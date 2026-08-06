@@ -47,6 +47,7 @@ export class NessusPluginMappingComponent implements OnInit {
   readonly loading = signal(true);
   totalRecords: number = 0;
   cols: any[] = [];
+  readonly editingShadows = new Map<string, any>();
   readonly searchValue = signal('');
   readonly isUpdating = signal(false);
   readonly updateProgress = signal(0);
@@ -74,8 +75,56 @@ export class NessusPluginMappingComponent implements OnInit {
       { field: 'supersededBy', header: 'Superseded By' },
       { field: 'knownExploits', header: 'Known Exploits' },
       { field: 'knownDodIncidents', header: 'Known DoD Incidents' },
-      { field: 'nessusPlugins', header: 'Nessus Plugins' }
+      { field: 'nessusPlugins', header: 'Nessus Plugins' },
+      { field: 'taskOrder', header: 'Task Order' }
     ];
+  }
+
+  onRowEditInit(rowData: any) {
+    this.editingShadows.set(rowData.iav, { ...rowData });
+  }
+
+  onRowEditSave(rowData: any) {
+    const taskOrder = rowData.taskOrder?.trim() || null;
+
+    this.nessusPluginMappingService
+      .putIAVTaskOrder({ iav: rowData.iav, taskOrder })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.tableData.update((current) => current.map((row) => (row.iav === rowData.iav ? { ...rowData, taskOrder } : row)));
+          this.editingShadows.delete(rowData.iav);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `Task order updated for ${rowData.iav}`
+          });
+        },
+        error: (error) => {
+          const restored = this.editingShadows.get(rowData.iav);
+
+          if (restored) {
+            this.tableData.update((current) => current.map((row) => (row.iav === restored.iav ? restored : row)));
+          }
+
+          this.editingShadows.delete(rowData.iav);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to update task order: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
+
+  onRowEditCancel(rowData: any) {
+    const restored = this.editingShadows.get(rowData.iav);
+
+    if (restored) {
+      this.tableData.update((current) => current.map((row) => (row.iav === restored.iav ? restored : row)));
+    }
+
+    this.editingShadows.delete(rowData.iav);
   }
 
   getIAVTableData(): void {
