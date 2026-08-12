@@ -211,6 +211,67 @@ describe('UsersService', () => {
       expect(req.request.method).toBe('DELETE');
       req.flush({ success: true });
     });
+
+    it('should surface the effective access level a post settled on', () => {
+      let result: any;
+
+      service.postPermission({ userId: 1, collectionId: 10, accessLevel: 1 }).subscribe((data) => {
+        result = data;
+      });
+
+      httpMock.expectOne(`${apiBase}/permission?elevate=true`).flush({
+        userId: 1,
+        collectionId: 10,
+        accessLevel: 1,
+        effectiveAccessLevel: 3,
+        teamFloor: 3,
+        coveringTeams: ['Alpha Team']
+      });
+
+      expect(result.accessLevel).toBe(1);
+      expect(result.effectiveAccessLevel).toBe(3);
+      expect(result.coveringTeams).toEqual(['Alpha Team']);
+    });
+
+    it('should surface a delete that left team-granted access in place', () => {
+      let result: any;
+
+      service.deletePermission(1, 10).subscribe((data) => {
+        result = data;
+      });
+
+      httpMock.expectOne(`${apiBase}/permission/1/10?elevate=true`).flush({
+        userId: 1,
+        collectionId: 10,
+        removed: false,
+        effectiveAccessLevel: 2,
+        teamFloor: 2,
+        coveringTeams: ['Alpha Team']
+      });
+
+      expect(result.removed).toBe(false);
+      expect(result.effectiveAccessLevel).toBe(2);
+    });
+
+    it('should surface a delete that removed access entirely', () => {
+      let result: any;
+
+      service.deletePermission(1, 10).subscribe((data) => {
+        result = data;
+      });
+
+      httpMock.expectOne(`${apiBase}/permission/1/10?elevate=true`).flush({
+        userId: 1,
+        collectionId: 10,
+        removed: true,
+        effectiveAccessLevel: null,
+        teamFloor: null,
+        coveringTeams: []
+      });
+
+      expect(result.removed).toBe(true);
+      expect(result.effectiveAccessLevel).toBeNull();
+    });
   });
 
   describe('Team Assignment Methods', () => {
@@ -242,45 +303,85 @@ describe('UsersService', () => {
       req.flush({ success: true });
     });
 
-    it('should delete a team assignment', () => {
+    it('should delete a team assignment without revoking permissions by default', () => {
       service.deleteTeamAssignment(1, 5).subscribe((data) => {
         expect(data).toBeTruthy();
       });
 
-      const req = httpMock.expectOne(`${apiBase}/user/1/teams/5?elevate=true`);
+      const req = httpMock.expectOne(`${apiBase}/user/1/teams/5?elevate=true&revokePermissions=false`);
 
       expect(req.request.method).toBe('DELETE');
       req.flush({ success: true });
     });
+
+    it('should delete a team assignment and revoke permissions when asked', () => {
+      service.deleteTeamAssignment(1, 5, true).subscribe((data) => {
+        expect(data).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/user/1/teams/5?elevate=true&revokePermissions=true`);
+
+      expect(req.request.method).toBe('DELETE');
+      req.flush({ success: true });
+    });
+
+    it('should fetch a grant preview', () => {
+      service.getGrantPreview(1, 5, 3).subscribe((data) => {
+        expect(data).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/user/1/teams/5/grantPreview?elevate=true&accessLevel=3`);
+
+      expect(req.request.method).toBe('GET');
+      req.flush({ additions: [], updates: [], unchanged: [] });
+    });
+
+    it('should fetch a revocation preview', () => {
+      service.getRevocationPreview(1, 5).subscribe((data) => {
+        expect(data).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/user/1/teams/5/revocationPreview?elevate=true`);
+
+      expect(req.request.method).toBe('GET');
+      req.flush({ removals: [], downgrades: [], unaffected: [] });
+    });
   });
 
   describe('Error Handling', () => {
-    it('should handle client-side errors', () => {
+    it('should propagate client-side errors', () => {
       const errorEvent = new ErrorEvent('Network error', {
         message: 'Network unavailable'
       });
 
+      let received: any;
+
       service.getCurrentUser().subscribe({
         error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
+          received = error;
         }
       });
 
       const req = httpMock.expectOne(`${apiBase}/user`);
 
       req.error(errorEvent);
+      expect(received.error).toBe(errorEvent);
     });
 
-    it('should handle server-side errors', () => {
+    it('should propagate server errors with status and detail intact', () => {
+      let received: any;
+
       service.getUsers().subscribe({
         error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
+          received = error;
         }
       });
 
       const req = httpMock.expectOne(`${apiBase}/users?elevate=true`);
 
-      req.flush('Internal Server Error', { status: 500, statusText: 'Server Error' });
+      req.flush({ error: 'Resource not found.', detail: 'Team assignment not found' }, { status: 404, statusText: 'Not Found' });
+      expect(received.status).toBe(404);
+      expect(received.error.detail).toBe('Team assignment not found');
     });
   });
 });
