@@ -40,8 +40,8 @@ module.exports.putPermission = async function putPermission(req, res) {
 
 module.exports.deletePermission = async function deletePermission(req, res) {
     try {
-        await permissionService.deletePermission(req.userObject.userId, req.query.elevate, req);
-        res.status(204).send();
+        const result = await permissionService.deletePermission(req.userObject.userId, req.query.elevate, req);
+        res.status(200).json(result);
     } catch (error) {
         sendError(res, error);
     }

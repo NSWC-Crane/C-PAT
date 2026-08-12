@@ -65,6 +65,24 @@ module.exports.postAssignedTeamPermission = async function postAssignedTeamPermi
     }
 };
 
+module.exports.getCoverageGrantPreview = async function getCoverageGrantPreview(req, res) {
+    try {
+        const plan = await assignedTeamsService.getCoverageGrantPreview(req);
+        res.status(200).json(plan);
+    } catch (error) {
+        sendError(res, error);
+    }
+};
+
+module.exports.getCoverageRevocationPreview = async function getCoverageRevocationPreview(req, res) {
+    try {
+        const plan = await assignedTeamsService.getCoverageRevocationPreview(req);
+        res.status(200).json(plan);
+    } catch (error) {
+        sendError(res, error);
+    }
+};
+
 module.exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req, res) {
     try {
         const result = await assignedTeamsService.deleteAssignedTeamPermission(req);

@@ -11,6 +11,27 @@
 import { AssignedTeams } from './assignedTeams.model';
 import { Permission } from './permission.model';
 
+export interface CollectionPermissionGrant {
+  collectionId: number;
+  assignedTeamId: number;
+  assignedTeamName: string;
+  accessLevel: number;
+}
+
+export interface CollectionDirectPermission {
+  collectionId: number;
+  accessLevel: number;
+  grantedAt?: string;
+}
+
+export interface CollectionGrantExclusion {
+  collectionId: number;
+  collectionName: string;
+  assignedTeamId: number;
+  assignedTeamName: string;
+  excludedAt?: string;
+}
+
 export interface Users {
   userId: number;
   userName: string;
@@ -29,4 +50,7 @@ export interface Users {
   points: number;
   permissions: Permission[];
   assignedTeams?: AssignedTeams[];
+  permissionGrants?: CollectionPermissionGrant[];
+  directPermissions?: CollectionDirectPermission[];
+  excludedGrants?: CollectionGrantExclusion[];
 }

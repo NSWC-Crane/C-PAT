@@ -53,6 +53,41 @@ C-PAT Collection Privileges
    * - CAT I Approver
      - The CAT I Approver role provides the highest level of access to a collection. Users with the CAT I Approver role will have the same access as that of the Approver role, in addition to the ability to issue final approval for CAT I POAMs. CAT I Approvers are the only users who can issue final approval for CAT I POAMs.
 
+A user's permission to a collection can come from more than one source: it can be granted directly to the user, granted through one or more of the user's team assignments, or both at once. The user's effective access level for a collection is always the highest level any of its sources grants.
+
+Team Assignments
+^^^^^^^^^^^^^^^^
+
+The Team Assignments tab within a user's account lists each team the user belongs to along with the access level the user holds on that team. Assigning a user to a team automatically grants the user a permission to every collection the team covers at the selected access level, without the need to assign each collection individually. Raising or lowering the access level on an existing assignment adjusts the permissions the team grants accordingly.
+
+Removing a team assignment opens a confirmation dialog that previews exactly how the removal would affect the user's collection permissions before anything is changed. The preview separates the affected collections into three groups:
+
+- **Access would be removed entirely**: Permissions that only this team justifies.
+- **Access would be lowered**: Permissions where another source still justifies access, but at a lower level.
+- **Unaffected**: Permissions still fully justified by another team or by a direct grant.
+
+The dialog then offers two ways to proceed:
+
+- **Remove but keep access**: Removes the team assignment and converts only the access that would otherwise be lost into direct grants, listed as ``Direct`` on the Collection Permissions tab. Anything another team or an existing direct grant already justifies is left alone, so nothing new is recorded for the collections listed as unaffected.
+- **Remove and revoke**: Removes the team assignment and applies the previewed removals and downgrades.
+
+.. _restoring-skipped-collections:
+
+Restoring Skipped Collections
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When collection coverage is added to a team, the administrator performing that action may choose to skip granting the new collection to particular members (see :ref:`adding-collection-coverage`). Skipped collections are remembered per user — saving the user's team assignment again will not grant them. When a user has skipped collections for a team, a restore icon appears on that team's row in the Team Assignments tab. Clicking it opens a dialog listing the skipped collections; checking one or more and clicking **Restore selected** grants them at the user's access level on that team.
+
+.. note::
+   A skipped collection remains skipped for the user until it is restored here. Three other actions also clear it: removing and re-adding the team's coverage of that collection, removing and re-adding the user's assignment to the team, or deleting the team.
+
+Collection Permissions
+^^^^^^^^^^^^^^^^^^^^^^
+
+The Collection Permissions tab lists every collection the user can access and the effective access level held for each. The ``Source`` column shows where each permission comes from: a ``Direct`` tag indicates access an administrator granted to this user on its own, and a tag bearing a team name indicates that team's coverage grants it. Both can apply at once, in which case the permission reflects the highest level among them.
+
+Adding or editing a permission on this tab creates or updates a direct grant for the user. Deleting a permission removes only the direct grant — if the collection is also granted by one or more of the user's teams, the user keeps the level the team coverage provides, and C-PAT will indicate which teams still grant it. To take that access away, change the team assignment or the team's collection coverage.
+
 Collection Management
 ---------------------
 
@@ -171,7 +206,7 @@ The 'MAP PLUGINS TO IAV' button will initiate the process of mapping IAV data to
 Task Order Assignment
 ^^^^^^^^^^^^^^^^^^^^^
 
-Each row in the IAV table contains an editable ``Task Order`` field. To assign or update a task order, click the pencil icon in the Actions column, enter the task order value (up to 25 characters), and click the green check to save or the red X to discard the change. Clearing the field and saving removes the task order from the IAV.
+Each row in the IAV table contains an editable ``Task Order`` field. To assign or update a task order, click the edit icon in the table actions column, enter the task order value, and click the green check to save. Clearing the field and saving removes the task order from the IAV.
 
 Assigned task orders determine which Plugin ID's are displayed when the IAV Task Orders source is selected within the Tenable Task Orders component.
 
@@ -207,7 +242,35 @@ C-PAT provides the ability for administrators to set A&A package options for the
 Assigned Teams
 --------------
 
-The Set Assigned Teams component allows administrators to create a team structure that fits their organization. Teams can be assigned collections of responsiblity. Subsequently, when assigning user permissions, a team can be selected with an appropriate access level for a user. In essence, a user will be given acess to each collection the team is assigned at the access level selected without having to manually assign each individual collection. This structure allows for a more granular approach to permissions and access control within C-PAT. In addition to Team Name and Team Permissions, assigned Teams also contains an AD Team field. The Asset Delta[Active Directory?] field is used to establish a link between a C-PAT team and a team name as provided in the AD Team list. This corelation allows for automatic team assignments to POAMs if an affected asset name matches with an AD row entry.
+The Set Assigned Teams component allows administrators to create a team structure that fits their organization. Teams can be assigned collections of responsibility, referred to as the team's collection coverage. Subsequently, when assigning user permissions, a team can be selected with an appropriate access level for a user. In essence, a user will be given access to each collection the team covers at the access level selected without having to manually assign each individual collection. This structure allows for a more granular approach to permissions and access control within C-PAT. In addition to Team Name and Team Permissions, assigned teams also contain an AD Team field. The AD Team field is used to establish a link between a C-PAT team and a team name as provided in the AD Team list. This correlation allows for automatic team assignments to POAMs if an affected asset name matches with an AD row entry.
+
+A team's collection coverage is managed with the **Team Permissions** picklist in the team dialog. When editing an existing team, moving a collection between the Available Collections and Assigned Collections lists immediately opens a dialog previewing the effect on the team's current members — nothing is changed until that dialog is confirmed. For a newly created team there are no members to preview, so the selected collections are applied when the team is saved.
+
+.. _adding-collection-coverage:
+
+Adding Collection Coverage
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Adding a collection to a team's coverage grants that collection to anyone assigned to the team later. For the team's current members, the Add Collection Coverage dialog lists each member who would receive access now, showing the change to their permission (e.g. no access → Submitter, or Viewer → Approver). Members who already hold sufficient access from another source are listed separately as unchanged. By default all eligible members are checked; unchecking a member skips them so the coverage is added without granting them the collection.
+
+.. note::
+   A skipped member remains skipped — saving their team assignment again will not grant the collection. To give it back later, use the restore action on the user's team row in User Management (see :ref:`restoring-skipped-collections`), or remove the coverage and add it again.
+
+Removing Collection Coverage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Removing a collection from a team's coverage stops the team from granting that collection to anyone added later. For permissions the team's current members already received, the Remove Collection Coverage dialog previews the effect on each member before anything is changed: whose access would be removed entirely, whose would be lowered to the level another source still justifies, and who is unaffected because another team or a direct grant still fully justifies their access. The dialog then offers two ways to proceed:
+
+- **Remove but keep access**: Removes the coverage and converts the access each member received from it into a direct grant, so it stays with them through future team changes.
+- **Remove and revoke**: Removes the coverage and applies the previewed removals and downgrades.
+
+.. note::
+   When multiple collections are removed in a single save, the keep-or-revoke choice applies to all of them. To decide differently for each collection, remove them one at a time.
+
+Deleting a Team
+^^^^^^^^^^^^^^^
+
+Deleting a team removes the team and every membership in it, but no member loses access: each member keeps the collection permissions the team granted them, converted into direct grants so they survive the team going away. Removing that access afterwards must be done per user on the Collection Permissions tab in User Management.
 
 
 App Configuration

@@ -132,6 +132,7 @@ let config = {
             lastname: process.env.CPAT_JWT_LAST_NAME_CLAIM || 'family_name',
             privilegesSql: formatMySqlJsonPath(process.env.CPAT_JWT_PRIVILEGES_CLAIM || 'realm_access.roles'),
             privilegesChain: formatJsChain(process.env.CPAT_JWT_PRIVILEGES_CLAIM || 'realm_access.roles'),
+            privilegesPath: (process.env.CPAT_JWT_PRIVILEGES_CLAIM || 'realm_access.roles').split('.'),
             email: process.env.CPAT_JWT_EMAIL_CLAIM || 'email',
             assertion: process.env.CPAT_JWT_ASSERTION_CLAIM || 'jti',
         },

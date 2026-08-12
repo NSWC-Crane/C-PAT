@@ -12,11 +12,35 @@
 const config = require('../utils/config');
 const dbUtils = require('./utils');
 const SmError = require('../utils/error');
+const grants = require('./collectionPermissionGrants');
+
+function requireAdmin(req) {
+    if (req.userObject?.isAdmin !== true) {
+        throw new SmError.PrivilegeError('Administrator privileges are required');
+    }
+}
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
+    } finally {
+        await connection.release();
+    }
+}
+
+async function withTransaction(callback) {
+    const connection = await dbUtils.pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        try {
+            const result = await callback(connection);
+            await connection.commit();
+            return result;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        }
     } finally {
         await connection.release();
     }
@@ -97,79 +121,214 @@ module.exports.getAssignedTeam = async function getAssignedTeam(req) {
 };
 
 module.exports.postAssignedTeam = async function postAssignedTeam(req) {
-    return await withConnection(async connection => {
-        let sql_query = `INSERT INTO ${config.database.schema}.assignedteams (assignedTeamName, adTeam) VALUES (?, ?)`;
-        await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam]);
+    requireAdmin(req);
 
-        let sql = `SELECT * FROM ${config.database.schema}.assignedteams WHERE assignedTeamName = ?`;
-        let [rowAssignedTeam] = await connection.query(sql, [req.body.assignedTeamName]);
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await withConnection(async connection => {
+                let sql_query = `INSERT INTO ${config.database.schema}.assignedteams (assignedTeamName, adTeam) VALUES (?, ?)`;
+                const [result] = await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam]);
 
-        const assignedTeam = {
-            assignedTeamId: rowAssignedTeam[0].assignedTeamId,
-            assignedTeamName: rowAssignedTeam[0].assignedTeamName,
-            adTeam: rowAssignedTeam[0].adTeam,
-        };
-        return assignedTeam;
-    });
+                const assignedTeam = {
+                    assignedTeamId: result.insertId,
+                    assignedTeamName: req.body.assignedTeamName,
+                    adTeam: req.body.adTeam,
+                };
+                return assignedTeam;
+            })
+    );
 };
 
 module.exports.putAssignedTeam = async function putAssignedTeam(req) {
-    return await withConnection(async connection => {
-        let sql_query = `UPDATE ${config.database.schema}.assignedteams SET assignedTeamName = ?, adTeam = ? WHERE assignedTeamId = ?`;
-        await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam, req.body.assignedTeamId]);
+    requireAdmin(req);
 
-        const assignedTeam = {
-            assignedTeamId: req.body.assignedTeamId,
-            assignedTeamName: req.body.assignedTeamName,
-            adTeam: req.body.adTeam,
-        };
-        return assignedTeam;
-    });
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await withConnection(async connection => {
+                let sql_query = `UPDATE ${config.database.schema}.assignedteams SET assignedTeamName = ?, adTeam = ? WHERE assignedTeamId = ?`;
+                const [result] = await connection.query(sql_query, [req.body.assignedTeamName, req.body.adTeam, req.body.assignedTeamId]);
+
+                if (result.affectedRows === 0) {
+                    throw new SmError.NotFoundError('Assigned Team not found');
+                }
+
+                const assignedTeam = {
+                    assignedTeamId: req.body.assignedTeamId,
+                    assignedTeamName: req.body.assignedTeamName,
+                    adTeam: req.body.adTeam,
+                };
+                return assignedTeam;
+            })
+    );
 };
 
 module.exports.deleteAssignedTeam = async function deleteAssignedTeam(req) {
-    return await withConnection(async connection => {
-        let sql = `DELETE FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
-        await connection.query(sql, [req.params.assignedTeamId]);
+    requireAdmin(req);
 
-        return { assignedTeam: [] };
-    });
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await withTransaction(async connection => {
+                await connection.query(`SELECT assignedTeamId FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ? FOR UPDATE`, [
+                    req.params.assignedTeamId,
+                ]);
+
+                await connection.query(`SELECT userId FROM ${config.database.schema}.userassignedteams WHERE assignedTeamId = ? FOR UPDATE`, [
+                    req.params.assignedTeamId,
+                ]);
+
+                await connection.query(`SELECT collectionId FROM ${config.database.schema}.assignedteampermissions WHERE assignedTeamId = ? FOR UPDATE`, [
+                    req.params.assignedTeamId,
+                ]);
+
+                await grants.convertGrantsToDirect(connection, { assignedTeamId: req.params.assignedTeamId });
+
+                let sql = `DELETE FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ?`;
+                await connection.query(sql, [req.params.assignedTeamId]);
+
+                return { assignedTeam: [] };
+            })
+    );
 };
 
 module.exports.postAssignedTeamPermission = async function postAssignedTeamPermission(req) {
-    return await withConnection(async connection => {
-        const { assignedTeamId, collectionId } = req.body;
+    requireAdmin(req);
 
-        let sql = `
+    const { assignedTeamId, collectionId } = req.body;
+    const grantUserIds = Array.isArray(req.body.grantUserIds) ? req.body.grantUserIds : [];
+    const previewedMembers = Array.isArray(req.body.previewedMembers) ? req.body.previewedMembers : undefined;
+
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await withTransaction(async connection => {
+                const [teamRows] = await connection.query(
+                    `SELECT assignedTeamId FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ? FOR SHARE`,
+                    [assignedTeamId]
+                );
+
+                if (teamRows.length === 0) {
+                    throw new SmError.NotFoundError('Assigned Team not found');
+                }
+
+                const plan = await grants.prepareCoverageGrantPlan(connection, assignedTeamId, collectionId);
+
+                let sql = `
             INSERT INTO ${config.database.schema}.assignedteampermissions
             (assignedTeamId, collectionId)
             VALUES (?, ?)
         `;
 
-        await connection.query(sql, [assignedTeamId, collectionId]);
+                try {
+                    await connection.query(sql, [assignedTeamId, collectionId]);
+                } catch (error) {
+                    if (error.code === 'ER_DUP_ENTRY') {
+                        throw new SmError.ConflictError(
+                            'This team already covers that collection, likely added by another administrator while the change was being previewed. Nothing was applied; review the coverage again.'
+                        );
+                    }
 
-        return {
-            assignedTeamId,
-            collectionId,
-        };
-    });
+                    throw error;
+                }
+
+                const granted = await grants.applyCoverageGrantPlan(
+                    connection,
+                    assignedTeamId,
+                    collectionId,
+                    plan,
+                    grantUserIds,
+                    req.userObject?.userId ?? null,
+                    previewedMembers
+                );
+
+                return {
+                    assignedTeamId,
+                    collectionId,
+                    granted,
+                    permissionChanges: plan,
+                };
+            })
+    );
+};
+
+module.exports.getCoverageGrantPreview = async function getCoverageGrantPreview(req) {
+    requireAdmin(req);
+
+    if (!req.params.assignedTeamId) {
+        throw new SmError.ClientError('assignedTeamId is required');
+    }
+
+    if (!req.params.collectionId) {
+        throw new SmError.ClientError('collectionId is required');
+    }
+
+    return await withConnection(async connection => await grants.buildCoverageGrantPlan(connection, req.params.assignedTeamId, req.params.collectionId));
+};
+
+module.exports.getCoverageRevocationPreview = async function getCoverageRevocationPreview(req) {
+    requireAdmin(req);
+
+    if (!req.params.assignedTeamId) {
+        throw new SmError.ClientError('assignedTeamId is required');
+    }
+
+    if (!req.params.collectionId) {
+        throw new SmError.ClientError('collectionId is required');
+    }
+
+    return await withConnection(async connection => await grants.buildCoverageRevocationPlan(connection, req.params.assignedTeamId, req.params.collectionId));
 };
 
 module.exports.deleteAssignedTeamPermission = async function deleteAssignedTeamPermission(req) {
-    return await withConnection(async connection => {
-        const { assignedTeamId, collectionId } = req.params;
+    requireAdmin(req);
 
-        let sql = `
+    const { assignedTeamId, collectionId } = req.params;
+    const revokePermissions = req.query.revokePermissions === true || req.query.revokePermissions === 'true';
+
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await withTransaction(async connection => {
+                const [coverage] = await connection.query(
+                    `SELECT collectionId FROM ${config.database.schema}.assignedteampermissions WHERE assignedTeamId = ? AND collectionId = ? FOR UPDATE`,
+                    [assignedTeamId, collectionId]
+                );
+
+                if (coverage.length === 0) {
+                    throw new SmError.NotFoundError('Permission not found');
+                }
+
+                await grants.clearCoverageExclusions(connection, assignedTeamId, collectionId);
+
+                const plan = revokePermissions
+                    ? await grants.buildCoverageRevocationPlan(connection, assignedTeamId, collectionId)
+                    : grants.emptyRevocationPlan();
+                const affectedUserIds = revokePermissions ? await grants.grantedUserIdsForCoverage(connection, assignedTeamId, collectionId) : [];
+
+                if (revokePermissions) {
+                    await grants.lockDirectPermissionsForCollection(connection, affectedUserIds, collectionId);
+                } else {
+                    await grants.convertGrantsToDirect(connection, { assignedTeamId, collectionId });
+                }
+
+                await connection.query(`DELETE FROM ${config.database.schema}.collectionpermissiongrants WHERE assignedTeamId = ? AND collectionId = ?`, [
+                    assignedTeamId,
+                    collectionId,
+                ]);
+
+                let sql = `
             DELETE FROM ${config.database.schema}.assignedteampermissions
             WHERE assignedTeamId = ? AND collectionId = ?
         `;
 
-        const [result] = await connection.query(sql, [assignedTeamId, collectionId]);
+                const [result] = await connection.query(sql, [assignedTeamId, collectionId]);
 
-        if (result.affectedRows === 0) {
-            throw new SmError.NotFoundError('Permission not found');
-        }
+                if (result.affectedRows === 0) {
+                    throw new SmError.NotFoundError('Permission not found');
+                }
 
-        return { success: true };
-    });
+                if (revokePermissions) {
+                    await grants.recomputeEffectivePermissionsForCollection(connection, affectedUserIds, collectionId);
+                }
+
+                return { success: true, revoked: revokePermissions, permissionChanges: plan };
+            })
+    );
 };

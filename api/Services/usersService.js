@@ -12,12 +12,29 @@ const dbUtils = require('./utils');
 const SmError = require('../utils/error');
 const config = require('../utils/config');
 
-const privilegeGetter = new Function('obj', 'return obj?.' + config.oauth.claims.privilegesChain + ' || [];');
+const privilegeGetter = obj => config.oauth.claims.privilegesPath.reduce((o, k) => o?.[k], obj) || [];
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
+    } finally {
+        await connection.release();
+    }
+}
+
+async function withTransaction(callback) {
+    const connection = await dbUtils.pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        try {
+            const result = await callback(connection);
+            await connection.commit();
+            return result;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        }
     } finally {
         await connection.release();
     }
@@ -143,7 +160,7 @@ module.exports.getUserByUserID = async function getUserByUserID(req, elevate) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
 
-    return await withConnection(async connection => {
+    return await withTransaction(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
         const [userQueryRows] = await connection.query(sql, [req.params.userId]);
 
@@ -167,6 +184,42 @@ module.exports.getUserByUserID = async function getUserByUserID(req, elevate) {
         const assignedTeams = assignedTeamsRows.map(assignedTeam => ({
             assignedTeamId: assignedTeam.assignedTeamId,
             accessLevel: assignedTeam.accessLevel,
+        }));
+
+        const grantsSql = `SELECT g.collectionId, g.assignedTeamId, g.accessLevel, t.assignedTeamName
+                           FROM ${config.database.schema}.collectionpermissiongrants g
+                           INNER JOIN ${config.database.schema}.assignedteams t ON t.assignedTeamId = g.assignedTeamId
+                           WHERE g.userId = ?
+                           ORDER BY t.assignedTeamName`;
+        const [grantRows] = await connection.query(grantsSql, [user.userId]);
+        const permissionGrants = grantRows.map(grant => ({
+            collectionId: grant.collectionId,
+            assignedTeamId: grant.assignedTeamId,
+            assignedTeamName: grant.assignedTeamName,
+            accessLevel: grant.accessLevel,
+        }));
+
+        const directSql = `SELECT collectionId, accessLevel, grantedAt FROM ${config.database.schema}.collectiondirectpermissions WHERE userId = ?`;
+        const [directRows] = await connection.query(directSql, [user.userId]);
+        const directPermissions = directRows.map(direct => ({
+            collectionId: direct.collectionId,
+            accessLevel: direct.accessLevel,
+            grantedAt: direct.grantedAt,
+        }));
+
+        const exclusionSql = `SELECT x.collectionId, x.assignedTeamId, x.excludedAt, c.collectionName, t.assignedTeamName
+                              FROM ${config.database.schema}.collectiongrantexclusions x
+                              INNER JOIN ${config.database.schema}.collection c ON c.collectionId = x.collectionId
+                              INNER JOIN ${config.database.schema}.assignedteams t ON t.assignedTeamId = x.assignedTeamId
+                              WHERE x.userId = ?
+                              ORDER BY t.assignedTeamName, c.collectionName`;
+        const [exclusionRows] = await connection.query(exclusionSql, [user.userId]);
+        const excludedGrants = exclusionRows.map(exclusion => ({
+            collectionId: exclusion.collectionId,
+            collectionName: exclusion.collectionName,
+            assignedTeamId: exclusion.assignedTeamId,
+            assignedTeamName: exclusion.assignedTeamName,
+            excludedAt: exclusion.excludedAt,
         }));
 
         let isAdmin;
@@ -195,6 +248,9 @@ module.exports.getUserByUserID = async function getUserByUserID(req, elevate) {
             lastClaims: user.lastClaims,
             permissions: permissions,
             assignedTeams: assignedTeams,
+            permissionGrants: permissionGrants,
+            directPermissions: directPermissions,
+            excludedGrants: excludedGrants,
         };
     });
 };
@@ -474,19 +530,16 @@ module.exports.disableUser = async function disableUser(userId, elevate, req) {
         throw new SmError.ClientError('Invalid userId');
     }
 
-    await withConnection(async connection => {
-        await connection.beginTransaction();
-
-        try {
-            await connection.query(`DELETE FROM ${config.database.schema}.userassignedteams WHERE userId = ?`, [userId]);
-            await connection.query(`DELETE FROM ${config.database.schema}.collectionpermissions WHERE userId = ?`, [userId]);
-            await connection.query(`UPDATE ${config.database.schema}.user SET accountStatus = 'DISABLED' WHERE userId = ?`, [userId]);
-            await connection.commit();
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        }
-    });
+    await dbUtils.retryOnDeadlock(
+        async () =>
+            await withTransaction(async connection => {
+                await connection.query(`DELETE FROM ${config.database.schema}.userassignedteams WHERE userId = ?`, [userId]);
+                await connection.query(`DELETE FROM ${config.database.schema}.collectiondirectpermissions WHERE userId = ?`, [userId]);
+                await connection.query(`DELETE FROM ${config.database.schema}.collectionpermissiongrants WHERE userId = ?`, [userId]);
+                await connection.query(`DELETE FROM ${config.database.schema}.collectionpermissions WHERE userId = ?`, [userId]);
+                await connection.query(`UPDATE ${config.database.schema}.user SET accountStatus = 'DISABLED' WHERE userId = ?`, [userId]);
+            })
+    );
 
     await module.exports.updateUserLastCollectionAccessed(userId, 0);
 };

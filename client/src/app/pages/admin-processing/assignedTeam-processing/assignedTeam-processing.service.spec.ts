@@ -396,20 +396,70 @@ describe('AssignedTeamService', () => {
 
       consoleSpy.mockRestore();
     });
+
+    it('should send the selected members to grant', () => {
+      const permission = { assignedTeamId: 1, collectionId: 100, grantUserIds: [7, 8] };
+
+      service.postAssignedTeamPermission(permission).subscribe();
+
+      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions`);
+
+      expect(req.request.body).toEqual(permission);
+      req.flush({ assignedTeamId: 1, collectionId: 100 });
+    });
+  });
+
+  describe('getCoverageGrantPreview', () => {
+    it('should fetch the grant plan for a team coverage', () => {
+      const mockResponse = { additions: [], updates: [], unchanged: [] };
+
+      service.getCoverageGrantPreview(1, 100).subscribe((data) => {
+        expect(data).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/1/100/grantPreview`);
+
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
+  });
+
+  describe('getCoverageRevocationPreview', () => {
+    it('should fetch the revocation plan for a team coverage', () => {
+      const mockResponse = { removals: [], downgrades: [], unaffected: [] };
+
+      service.getCoverageRevocationPreview(1, 100).subscribe((data) => {
+        expect(data).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/1/100`);
+
+      expect(req.request.method).toBe('GET');
+      req.flush(mockResponse);
+    });
   });
 
   describe('deleteAssignedTeamPermission', () => {
-    it('should delete a team permission', () => {
+    it('should delete a team permission and default to keeping access', () => {
       const mockResponse = { success: true };
 
       service.deleteAssignedTeamPermission(1, 100).subscribe((data) => {
         expect(data).toEqual(mockResponse);
       });
 
-      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/1/100`);
+      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/1/100?revokePermissions=false`);
 
       expect(req.request.method).toBe('DELETE');
       req.flush(mockResponse);
+    });
+
+    it('should request revocation when asked', () => {
+      service.deleteAssignedTeamPermission(1, 100, true).subscribe();
+
+      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/1/100?revokePermissions=true`);
+
+      expect(req.request.method).toBe('DELETE');
+      req.flush({ success: true, revoked: true });
     });
 
     it('should handle successful deletion with null response', () => {
@@ -417,7 +467,7 @@ describe('AssignedTeamService', () => {
         expect(data).toBeNull();
       });
 
-      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/2/200`);
+      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/2/200?revokePermissions=false`);
 
       req.flush(null);
     });
@@ -434,7 +484,7 @@ describe('AssignedTeamService', () => {
         }
       });
 
-      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/999/999`);
+      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/999/999?revokePermissions=false`);
 
       req.flush('Not Found', { status: 404, statusText: 'Not Found' });
 
@@ -444,7 +494,7 @@ describe('AssignedTeamService', () => {
     it('should construct correct URL with both parameters', () => {
       service.deleteAssignedTeamPermission(5, 10).subscribe();
 
-      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/5/10`);
+      const req = httpMock.expectOne(`${apiBase}/assignedTeams/permissions/5/10?revokePermissions=false`);
 
       expect(req.request.url).toContain('/5/10');
       req.flush({ success: true });

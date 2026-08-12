@@ -12,6 +12,7 @@
 const config = require('../utils/config');
 const dbUtils = require('./utils');
 const SmError = require('../utils/error');
+const grants = require('./collectionPermissionGrants');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -20,6 +21,33 @@ async function withConnection(callback) {
     } finally {
         await connection.release();
     }
+}
+
+async function withTransaction(callback) {
+    const connection = await dbUtils.pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        try {
+            const result = await callback(connection);
+            await connection.commit();
+            return result;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        }
+    } finally {
+        await connection.release();
+    }
+}
+
+function requireAccessLevel(value) {
+    const accessLevel = Number.parseInt(value, 10);
+
+    if (!Number.isInteger(accessLevel) || accessLevel < 1 || accessLevel > 4) {
+        throw new SmError.ClientError('accessLevel must be an integer between 1 and 4');
+    }
+
+    return accessLevel;
 }
 
 module.exports.getCollectionPermissions = async function getCollectionPermissions(req) {
@@ -49,36 +77,37 @@ module.exports.postPermission = async function postPermission(_userId, elevate, 
         throw new SmError.ClientError('collectionId is required');
     }
 
-    if (!req.body.accessLevel) {
-        throw new SmError.ClientError('accessLevel is required');
-    }
+    const accessLevel = requireAccessLevel(req.body.accessLevel);
 
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
 
-    try {
-        return await withConnection(async connection => {
-            let sql_query = `INSERT INTO ${config.database.schema}.collectionpermissions (accessLevel, userId, collectionId) VALUES (?, ?, ?);`;
-            await connection.query(sql_query, [req.body.accessLevel, req.body.userId, req.body.collectionId]);
+    const { userId, collectionId } = req.body;
 
-            return {
-                userId: req.body.userId,
-                collectionId: req.body.collectionId,
-                accessLevel: req.body.accessLevel,
-            };
-        });
-    } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
-            return await withConnection(async connection => {
-                let fetchSql = `SELECT * FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`;
-                const [existingPermission] = await connection.query(fetchSql, [req.body.userId, req.body.collectionId]);
-                return existingPermission[0];
-            });
-        }
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await withTransaction(async connection => {
+                await connection.query(
+                    `INSERT INTO ${config.database.schema}.collectiondirectpermissions (userId, collectionId, accessLevel, grantedBy)
+                     VALUES (?, ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE accessLevel = VALUES(accessLevel), grantedBy = VALUES(grantedBy)`,
+                    [userId, collectionId, accessLevel, req.userObject.userId]
+                );
 
-        throw error;
-    }
+                const effectiveAccessLevel = await grants.recomputeEffectivePermission(connection, userId, collectionId);
+                const { teamFloor, coveringTeams } = await grants.getTeamFloor(connection, userId, collectionId);
+
+                return {
+                    userId,
+                    collectionId,
+                    accessLevel,
+                    effectiveAccessLevel,
+                    teamFloor,
+                    coveringTeams,
+                };
+            })
+    );
 };
 
 module.exports.putPermission = async function putPermission(_userId, elevate, req) {
@@ -90,24 +119,50 @@ module.exports.putPermission = async function putPermission(_userId, elevate, re
         throw new SmError.ClientError('oldCollectionId is required');
     }
 
-    if (!req.body.accessLevel) {
-        throw new SmError.ClientError('accessLevel is required');
+    if (req.body.newCollectionId !== undefined) {
+        throw new SmError.ClientError('newCollectionId is no longer supported; delete the permission and create one on the new collection instead');
     }
+
+    const accessLevel = requireAccessLevel(req.body.accessLevel);
 
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
 
-    return await withConnection(async connection => {
-        let sql_query = `UPDATE ${config.database.schema}.collectionpermissions SET collectionId = ?, accessLevel = ? WHERE userId = ? AND collectionId = ?;`;
-        await connection.query(sql_query, [req.body.newCollectionId, req.body.accessLevel, req.body.userId, req.body.oldCollectionId]);
+    const { userId, oldCollectionId: collectionId } = req.body;
 
-        return {
-            userId: req.body.userId,
-            collectionId: req.body.newCollectionId,
-            accessLevel: req.body.accessLevel,
-        };
-    });
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await withTransaction(async connection => {
+                const [existing] = await connection.query(
+                    `SELECT accessLevel FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`,
+                    [userId, collectionId]
+                );
+
+                if (existing.length === 0) {
+                    throw new SmError.NotFoundError('Permission not found');
+                }
+
+                await connection.query(
+                    `INSERT INTO ${config.database.schema}.collectiondirectpermissions (userId, collectionId, accessLevel, grantedBy)
+                     VALUES (?, ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE accessLevel = VALUES(accessLevel), grantedBy = VALUES(grantedBy)`,
+                    [userId, collectionId, accessLevel, req.userObject.userId]
+                );
+
+                const effectiveAccessLevel = await grants.recomputeEffectivePermission(connection, userId, collectionId);
+                const { teamFloor, coveringTeams } = await grants.getTeamFloor(connection, userId, collectionId);
+
+                return {
+                    userId,
+                    collectionId,
+                    accessLevel,
+                    effectiveAccessLevel,
+                    teamFloor,
+                    coveringTeams,
+                };
+            })
+    );
 };
 
 module.exports.deletePermission = async function deletePermission(_userId, elevate, req) {
@@ -123,8 +178,27 @@ module.exports.deletePermission = async function deletePermission(_userId, eleva
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
 
-    return await withConnection(async connection => {
-        let sql = `DELETE FROM  ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`;
-        await connection.query(sql, [req.params.userId, req.params.collectionId]);
-    });
+    const { userId, collectionId } = req.params;
+
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await withTransaction(async connection => {
+                await connection.query(`DELETE FROM ${config.database.schema}.collectiondirectpermissions WHERE userId = ? AND collectionId = ?`, [
+                    userId,
+                    collectionId,
+                ]);
+
+                const effectiveAccessLevel = await grants.recomputeEffectivePermission(connection, userId, collectionId);
+                const { teamFloor, coveringTeams } = await grants.getTeamFloor(connection, userId, collectionId);
+
+                return {
+                    userId: Number(userId),
+                    collectionId: Number(collectionId),
+                    removed: effectiveAccessLevel === null,
+                    effectiveAccessLevel,
+                    teamFloor,
+                    coveringTeams,
+                };
+            })
+    );
 };
