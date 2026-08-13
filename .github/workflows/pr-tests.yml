@@ -1,0 +1,104 @@
+name: PR Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches: [main, development]
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changed-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Determine what changed
+        id: diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -f
+
+          if [ "$GITHUB_EVENT_NAME" = "merge_group" ]; then
+            echo "mode=full" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          RANGE="origin/${BASE_REF}...HEAD"
+
+          INFRA=$(git diff --name-only --relative --diff-filter=ACMR "$RANGE" -- \
+            package.json package-lock.json vitest.config.ts tsconfig.json tsconfig.spec.json \
+            src/test-setup.ts 'src/testing/**')
+
+          GONE=$(git diff --name-only --relative --no-renames --diff-filter=D "$RANGE" -- \
+            ':(glob)src/app/**/*.ts' ':(glob)src/app/**/*.html' \
+            package.json package-lock.json vitest.config.ts tsconfig.json tsconfig.spec.json \
+            src/test-setup.ts 'src/testing/**')
+
+          CHANGED=$(git diff --name-only --relative --diff-filter=ACMR "$RANGE" -- \
+            ':(glob)src/app/**/*.ts' ':(glob)src/app/**/*.html')
+
+          FILES=""
+          for f in $CHANGED; do
+            if [ ! -e "$f" ]; then
+              echo "Changed path '$f' not found on disk; running the full suite."
+              echo "mode=full" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            case "$f" in
+              *.html) t="${f%.html}.ts"; [ -f "$t" ] && FILES="$FILES $t" ;;
+              *) FILES="$FILES $f" ;;
+            esac
+          done
+          FILES=$(printf '%s\n' $FILES | sort -u | xargs)
+          set -- $FILES
+
+          if [ -n "$INFRA" ] || [ -n "$GONE" ] || [ "$#" -gt 300 ]; then
+            echo "mode=full" >> "$GITHUB_OUTPUT"
+          elif [ -n "$FILES" ]; then
+            echo "mode=related" >> "$GITHUB_OUTPUT"
+            echo "files=$FILES" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=skip" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        if: steps.diff.outputs.mode != 'skip'
+        run: npm ci --force --ignore-scripts
+
+      - name: Run full suite (test infrastructure changed)
+        if: steps.diff.outputs.mode == 'full'
+        run: npm run test:run
+
+      - name: Run tests related to changed files
+        if: steps.diff.outputs.mode == 'related'
+        env:
+          FILES: ${{ steps.diff.outputs.files }}
+        run: |
+          set -f
+          npx vitest related --run --passWithNoTests $FILES
+
+      - name: No client changes
+        if: steps.diff.outputs.mode == 'skip'
+        run: echo "No client source changes in this PR."
