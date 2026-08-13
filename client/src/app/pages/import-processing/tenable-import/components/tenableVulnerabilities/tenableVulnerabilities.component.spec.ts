@@ -181,81 +181,29 @@ describe('TenableVulnerabilitiesComponent', () => {
     });
   });
 
-  describe('Validation methods', () => {
-    describe('validateIP', () => {
-      it('should return true for valid IPv4', () => {
-        expect(component.validateIP('192.168.1.1')).toBe(true);
-      });
+  describe('Accordion item validators', () => {
+    const validatorFor = (identifier: string) => component.accordionItems.find((item) => item.identifier === identifier)?.validator;
 
-      it('should return true for 0.0.0.0', () => {
-        expect(component.validateIP('0.0.0.0')).toBe(true);
-      });
+    it.each([
+      ['ip', '192.168.1.1', '256.1.1.1'],
+      ['uuid', '550e8400-e29b-41d4-a716-446655440000', '550e8400e29b41d4a716446655440000'],
+      ['hostUUID', '550e8400-e29b-41d4-a716-446655440000', '550e8400e29b41d4a716446655440000'],
+      ['iavmID', '2024-A-0123', '2024-0123'],
+      ['stigSeverity', 'II', 'IV'],
+      ['cvssVector', 'AV:N/AC:L/Au:N/C:P/I:P/A:P', 'AV:N/AC:L/Au:N/C:P/I:P'],
+      ['cvssV3Vector', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N'],
+      ['cvssV4Vector', 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N', 'CVSS:4.0/AV:N/AC:L/AT:N']
+    ])('%s accepts a well-formed value and rejects a malformed one', (identifier, valid, invalid) => {
+      const validator = validatorFor(identifier);
 
-      it('should return true for 255.255.255.255', () => {
-        expect(component.validateIP('255.255.255.255')).toBe(true);
-      });
-
-      it('should return false for invalid IP (out of range)', () => {
-        expect(component.validateIP('256.1.1.1')).toBe(false);
-      });
-
-      it('should return false for partial IP', () => {
-        expect(component.validateIP('192.168.1')).toBe(false);
-      });
-
-      it('should return false for non-IP string', () => {
-        expect(component.validateIP('not-an-ip')).toBe(false);
-      });
+      expect(validator).toBeDefined();
+      expect(validator!(valid)).toBe(true);
+      expect(validator!(invalid)).toBe(false);
     });
 
-    describe('validateUUID', () => {
-      it('should return true for valid UUID', () => {
-        expect(component.validateUUID('550e8400-e29b-41d4-a716-446655440000')).toBe(true);
-      });
-
-      it('should return false for invalid UUID (missing dashes)', () => {
-        expect(component.validateUUID('550e8400e29b41d4a716446655440000')).toBe(false);
-      });
-
-      it('should return false for too-short UUID', () => {
-        expect(component.validateUUID('550e8400-e29b-41d4')).toBe(false);
-      });
-
-      it('should return false for empty string', () => {
-        expect(component.validateUUID('')).toBe(false);
-      });
-    });
-
-    describe('validateStigSeverity', () => {
-      it('should return true for "I"', () => {
-        expect(component.validateStigSeverity('I')).toBe(true);
-      });
-
-      it('should return true for "II"', () => {
-        expect(component.validateStigSeverity('II')).toBe(true);
-      });
-
-      it('should return true for "III"', () => {
-        expect(component.validateStigSeverity('III')).toBe(true);
-      });
-
-      it('should return false for "IV"', () => {
-        expect(component.validateStigSeverity('IV')).toBe(false);
-      });
-
-      it('should return false for empty string', () => {
-        expect(component.validateStigSeverity('')).toBe(false);
-      });
-    });
-
-    describe('validateIAVM', () => {
-      it('should return true for valid IAVM number', () => {
-        expect((component as any).validateIAVM('2024-A-0123')).toBe(true);
-      });
-
-      it('should return false for invalid format', () => {
-        expect((component as any).validateIAVM('2024-0123')).toBe(false);
-      });
+    it('should mark an input filter invalid without throwing when the value is null', () => {
+      expect(() => component.onFilterChange({ value: null }, 'ip', true)).not.toThrow();
+      expect(component.tempFilters['ip'].isValid).toBe(false);
     });
   });
 

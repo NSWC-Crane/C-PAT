@@ -11,6 +11,7 @@
 import { Injectable } from '@angular/core';
 import { add, format } from 'date-fns';
 import { AppConfiguration } from '../../../../common/models/appConfiguration.model';
+import { validateIAVM } from '../../../../common/utils/validation.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -125,6 +126,6 @@ export class PoamVariableMappingService {
    * @returns Boolean indicating if the IAVM number is valid
    */
   isIavmNumberValid(iavmNumber: string): boolean {
-    return /^\d{4}-[A-Za-z]-\d{4}$/.test(iavmNumber);
+    return validateIAVM(iavmNumber);
   }
 }

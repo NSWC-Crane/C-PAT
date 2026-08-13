@@ -27,6 +27,7 @@ import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../..
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { splitDelimitedIds } from '../../../common/utils/validation.utils';
 import { LabelService } from '../label.service';
 import { PoamService } from '../../poam-processing/poams.service';
 
@@ -155,14 +156,11 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   parseVulnerabilityIds(pastedText: string, rowData: any): void {
-    if (!pastedText.trim()) {
+    const vulnIds = splitDelimitedIds(pastedText);
+
+    if (vulnIds.length === 0) {
       return;
     }
-
-    const vulnIds = pastedText
-      .split(',')
-      .map((id) => id.trim())
-      .filter(Boolean);
 
     const matchedPoams: any[] = [];
     const unmatchedIds: string[] = [];
