@@ -29,7 +29,6 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
 @Component({
   selector: 'cpat-admin-processing',
   templateUrl: './admin-processing.component.html',
-  styleUrls: ['./admin-processing.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [

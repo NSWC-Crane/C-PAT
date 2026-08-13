@@ -28,7 +28,6 @@ import { PoamAttachmentService } from '../../services/poam-attachments.service';
 @Component({
   selector: 'cpat-poam-attachments',
   templateUrl: './poam-attachments.component.html',
-  styleUrls: ['./poam-attachments.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, ToastModule, TooltipModule, DatePipe]
