@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -86,7 +86,7 @@ jobs:
           echo "New version will be: $NEW_VERSION"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22"
 
@@ -96,13 +96,13 @@ jobs:
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" api/package.json
 
           cd api
-          npm install --package-lock-only --force
+          npm install --package-lock-only --force --ignore-scripts
           cd ..
 
           sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" client/package.json
 
           cd client
-          npm install --package-lock-only --force
+          npm install --package-lock-only --force --ignore-scripts
           cd ..
 
           sed -i "s/^release = '[^']*'/release = '$NEW_VERSION'/" docs/conf.py
@@ -115,6 +115,48 @@ jobs:
           sed -i "s/'Integration\/[^']*'/'Integration\/$NEW_VERSION (NAVSEA; CPAT; Build\/$NEW_VERSION)'/" api/bootstrap/middlewares.js
 
           echo "Updated version to $NEW_VERSION in all files"
+
+      - name: Update code.json metadata
+        run: |
+          CODE_JSON="C-PAT/C-PAT.json"
+          TODAY=$(date -u +%Y-%m-%d)
+
+          NEW_LABOR_HOURS=$(node -e '
+            const fs = require("fs");
+            const HOURS_PER_BUSINESS_DAY = 8;
+            const [codeJson, todayArg] = process.argv.slice(1);
+
+            const meta = JSON.parse(fs.readFileSync(codeJson, "utf8"));
+            const lastModified = new Date(meta.date.lastModified + "T00:00:00Z");
+            const today = new Date(todayArg + "T00:00:00Z");
+
+            if (Number.isNaN(lastModified.getTime())) {
+              console.error("Invalid date.lastModified: " + meta.date.lastModified);
+              process.exit(1);
+            }
+            if (!Number.isFinite(meta.laborHours)) {
+              console.error("Invalid laborHours: " + meta.laborHours);
+              process.exit(1);
+            }
+
+            let businessDays = 0;
+            const cursor = new Date(lastModified);
+            cursor.setUTCDate(cursor.getUTCDate() + 1);
+            while (cursor <= today) {
+              const day = cursor.getUTCDay();
+              if (day >= 1 && day <= 5) businessDays++;
+              cursor.setUTCDate(cursor.getUTCDate() + 1);
+            }
+
+            console.error("Business days since " + meta.date.lastModified + ": " + businessDays);
+            console.log(meta.laborHours + businessDays * HOURS_PER_BUSINESS_DAY);
+          ' "$CODE_JSON" "$TODAY")
+
+          sed -i "s/\"laborHours\": [0-9]*/\"laborHours\": $NEW_LABOR_HOURS/" "$CODE_JSON"
+          sed -i "s/\"lastModified\": \"[^\"]*\"/\"lastModified\": \"$TODAY\"/" "$CODE_JSON"
+          sed -i "s/\"metadataLastUpdated\": \"[^\"]*\"/\"metadataLastUpdated\": \"$TODAY\"/" "$CODE_JSON"
+
+          echo "Updated laborHours to $NEW_LABOR_HOURS and dates to $TODAY in $CODE_JSON"
 
       - name: Generate changelog
         id: changelog
@@ -148,7 +190,7 @@ jobs:
             CHANGELOG_HAS_CONTENT=true
           fi
 
-          OTHER_LOG=$(git log $RANGE --no-merges --pretty=format:"* %s (%h)" --grep="^chore\|^docs\|^style\|^refactor\|^perf\|^test")
+          OTHER_LOG=$(git log $RANGE --no-merges --pretty=format:"* %s (%h)" --grep="^build\|^chore\|^ci\|^docs\|^perf\|^refactor\|^revert\|^style\|^test")
           if [ -n "$OTHER_LOG" ]; then
             echo "" >> CHANGELOG.md
             echo "### Other Changes" >> CHANGELOG.md
@@ -181,7 +223,7 @@ jobs:
           git push --tags
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           tag_name: ${{ steps.version.outputs.new_version }}
           name: ${{ steps.version.outputs.new_version }}
@@ -192,10 +234,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
       - name: Login to DockerHub
-        uses: docker/login-action@v4
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -217,7 +259,7 @@ jobs:
           fi
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
           push: true

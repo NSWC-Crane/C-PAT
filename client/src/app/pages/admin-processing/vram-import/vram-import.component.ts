@@ -27,7 +27,6 @@ import { VRAMImportService } from './vram-import.service';
 @Component({
   selector: 'cpat-vram-import',
   templateUrl: './vram-import.component.html',
-  styleUrls: ['./vram-import.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [BadgeModule, ButtonModule, CardModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, TooltipModule, VramPopupComponent]

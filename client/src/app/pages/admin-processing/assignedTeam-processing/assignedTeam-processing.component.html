@@ -55,7 +55,7 @@
   </div>
 </div>
 
-<p-dialog [header]="dialogMode === 'new' ? 'New Team' : 'Edit Team'" [(visible)]="teamDialog" (onHide)="onDialogHide()" styleClass="cpat-dialog w-[60vw] h-auto max-h-[85vh] overflow-hidden p-fluid" [modal]="true" [draggable]="false">
+<p-dialog [header]="dialogMode === 'new' ? 'New Team' : 'Edit Team'" [(visible)]="teamDialog" (onHide)="onDialogHide()" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden p-fluid" [modal]="true" [draggable]="false">
   <ng-template #content>
     @if (editingAssignedTeam(); as editingTeam) {
       <div class="flex flex-col gap-6">
@@ -123,7 +123,7 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog header="Remove Collection Coverage" [(visible)]="coverageDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog w-[60vw] h-auto max-h-[80vh] overflow-hidden" (onHide)="cancelCoverageRemoval()">
+<p-dialog header="Remove Collection Coverage" [(visible)]="coverageDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelCoverageRemoval()">
   @if (coverageRemovalTargets().length > 0) {
     <div class="flex flex-col gap-5">
       <p class="m-0 leading-relaxed">Removing this coverage stops the team from granting the collection to anyone added later. Choose what happens to the collection permissions its current members already received.</p>
@@ -217,7 +217,7 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog header="Add Collection Coverage" [(visible)]="coverageGrantDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog w-[60vw] h-auto max-h-[80vh] overflow-hidden" (onHide)="cancelCoverageGrant()">
+<p-dialog header="Add Collection Coverage" [(visible)]="coverageGrantDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelCoverageGrant()">
   @if (coverageGrantTargets().length > 0) {
     <div class="flex flex-col gap-5">
       <p class="m-0 leading-relaxed">Adding this coverage grants the collection to anyone assigned to the team later. Choose which current members should receive it now.</p>
@@ -310,7 +310,7 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog header="Delete Team" [(visible)]="deleteTeamDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog w-[60vw] h-auto max-h-[80vh] overflow-hidden" (onHide)="cancelDeleteTeam()">
+<p-dialog header="Delete Team" [(visible)]="deleteTeamDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelDeleteTeam()">
   <div class="flex flex-col gap-5">
     <div class="flex items-start gap-3">
       <i class="pi pi-exclamation-triangle mt-1 text-xl text-amber-500"></i>
