@@ -85,6 +85,13 @@ describe('AppSearchComponent', () => {
       expect(item?.path).toBe('/asset-processing');
     });
 
+    it('should include Global Metrics item', () => {
+      const item = component['searchItems'].find((i) => i.title === 'Global Metrics');
+
+      expect(item).toBeTruthy();
+      expect(item?.path).toBe('/metrics/global');
+    });
+
     it('should include Home item', () => {
       const item = component['searchItems'].find((i) => i.title === 'Home');
 
