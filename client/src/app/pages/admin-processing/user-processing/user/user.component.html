@@ -291,7 +291,7 @@
   </div>
 </div>
 
-<p-dialog header="Remove Team Assignment" [(visible)]="unassignDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog w-[60vw] h-auto max-h-[80vh] overflow-hidden" (onHide)="cancelUnassign()">
+<p-dialog header="Remove Team Assignment" [(visible)]="unassignDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelUnassign()">
   @if (unassignPlan(); as plan) {
     <div class="flex flex-col gap-5">
       <p class="m-0 leading-relaxed">
@@ -379,7 +379,7 @@
   </ng-template>
 </p-dialog>
 
-<p-dialog header="Restore Skipped Collections" [(visible)]="restoreDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog w-[60vw] h-auto max-h-[80vh] overflow-hidden" (onHide)="cancelRestore()">
+<p-dialog header="Restore Skipped Collections" [(visible)]="restoreDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelRestore()">
   <div class="flex flex-col gap-5">
     <p class="m-0 leading-relaxed">
       These collections are covered by <strong>{{ restoreTarget()?.assignedTeamName }}</strong> but were deliberately skipped for this user when the coverage was added. Restoring grants them at the user's access level on this team.
@@ -415,4 +415,4 @@
 </p-dialog>
 
 <p-toast />
-<p-confirmdialog header="Confirmation" icon="pi pi-exclamation-triangle" styleClass="w-[60vw] h-auto max-h-[80vh] overflow-hidden" [draggable]="false" />
+<p-confirmdialog header="Confirmation" icon="pi pi-exclamation-triangle" styleClass="max-w-[60vw] max-h-[80vh] overflow-hidden" [draggable]="false" />
