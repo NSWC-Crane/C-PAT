@@ -29,8 +29,8 @@ import { MetricData } from '../../../common/models/metrics.model';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { GlobalMetricsResult, GlobalMetricsService } from './global-metrics.service';
-import { MetricsExportService } from './metrics-export.service';
+import { GlobalMetricsResult, GlobalMetricsService, isMetricsCapableCollection } from './global-metrics.service';
+import { MetricsExportProgress, MetricsExportService } from './metrics-export.service';
 
 const RING_OUTER_RADIUS = 62;
 const RING_INNER_RADIUS = 40;
@@ -80,6 +80,7 @@ export class GlobalMetricsComponent implements OnInit {
   isLoading = signal<boolean>(false);
   isGlobalExporting = signal<boolean>(false);
   progress = signal<{ loaded: number; total: number }>({ loaded: 0, total: 0 });
+  exportProgress = signal<MetricsExportProgress>({ loaded: 0, total: 0, phase: 'fetching' });
   result = signal<GlobalMetricsResult | null>(null);
   now = signal(new Date());
 
@@ -141,6 +142,14 @@ export class GlobalMetricsComponent implements OnInit {
 
   progressPercent = computed<number>(() => {
     const { loaded, total } = this.progress();
+
+    return total > 0 ? Math.round((loaded / total) * 100) : 0;
+  });
+
+  exportProgressPercent = computed<number>(() => {
+    const { loaded, total, phase } = this.exportProgress();
+
+    if (phase === 'writing') return 100;
 
     return total > 0 ? Math.round((loaded / total) * 100) : 0;
   });
@@ -330,6 +339,7 @@ export class GlobalMetricsComponent implements OnInit {
 
   ngOnInit() {
     this.globalMetricsService.progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((progress) => this.progress.set(progress));
+    this.metricsExportService.progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((progress) => this.exportProgress.set(progress));
 
     this.load$
       .pipe(
@@ -371,9 +381,7 @@ export class GlobalMetricsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (collections) => {
-          const metricsCollections: CollectionsBasicList[] = (collections || [])
-            .filter((c) => !!c.collectionId && !!c.originCollectionId && (c.collectionType === 'STIG Manager' || c.collectionType === 'Tenable'))
-            .map((c) => ({ ...c, collectionId: c.collectionId!, collectionName: c.collectionName ?? '' }));
+          const metricsCollections: CollectionsBasicList[] = (collections || []).filter(isMetricsCapableCollection).map((c) => ({ ...c, collectionId: c.collectionId!, collectionName: c.collectionName ?? '' }));
 
           this.collections.set(metricsCollections);
           this.initializeDefaultSelection(metricsCollections);
@@ -420,23 +428,34 @@ export class GlobalMetricsComponent implements OnInit {
     if (this.isGlobalExporting()) return;
 
     this.isGlobalExporting.set(true);
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Exporting',
-      detail: 'Compiling metrics for all collections. This may take a moment...'
-    });
+    this.exportProgress.set({ loaded: 0, total: 0, phase: 'fetching' });
 
     this.metricsExportService
       .exportGlobalMetrics()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
+        next: ({ failedCollections, exportedCount }) => {
           this.isGlobalExporting.set(false);
-          this.messageService.add({
-            severity: 'success',
-            summary: 'Export Complete',
-            detail: 'Global metrics export downloaded successfully.'
-          });
+
+          if (failedCollections.length > 0) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Partial Export',
+              detail: `Could not load metrics for: ${failedCollections.join(', ')}. The export contains blank metrics for ${failedCollections.length === 1 ? 'this collection' : 'these collections'}.`
+            });
+          } else if (exportedCount === 0) {
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Export Complete',
+              detail: 'No metrics-capable collections were found. The exported workbook contains headers only.'
+            });
+          } else {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Export Complete',
+              detail: 'Global metrics export downloaded successfully.'
+            });
+          }
         },
         error: (error) => {
           this.isGlobalExporting.set(false);

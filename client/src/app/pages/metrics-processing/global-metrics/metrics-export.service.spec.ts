@@ -10,11 +10,11 @@
 
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { delay, of, throwError } from 'rxjs';
+import { defer, delay, of, throwError } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { TenableMetricsDataService } from '../tenable-metrics/tenable-metrics.data.service';
-import { MetricsExportService } from './metrics-export.service';
+import { MetricsExportResult, MetricsExportService } from './metrics-export.service';
 
 const h = vi.hoisted(() => {
   const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
@@ -81,7 +81,7 @@ const mockFindings = [
 const mockCollectionMetrics = { assets: 12 };
 const mockPoams = [{ poamId: 1, vulnerabilityId: 'V-001', status: 'Approved', labels: [], associatedVulnerabilities: [] }];
 
-const tenableExport = { complianceCatI: 11, complianceCatII: 22, complianceCatIII: 33, seolVulnerabilities: 9, vphScore: 1.5, validOnlineAssets: 5 };
+const tenableExport = { complianceCatI: 11, complianceCatII: 22, complianceCatIII: 33, complianceCatI90: 44, complianceCatII90: 55, complianceCatIII90: 66, seolVulnerabilities: 9, vphScore: 1.5, validOnlineAssets: 5 };
 
 beforeAll(() => {
   (globalThis as any).CPAT = { Env: { apiBase: '/api', basePath: '', classification: 'U' } };
@@ -98,7 +98,12 @@ describe('MetricsExportService', () => {
   let mockSharedService: any;
   let mockTenableData: any;
 
-  const runExport = () => new Promise<void>((resolve, reject) => service.exportGlobalMetrics().subscribe({ complete: resolve, error: reject }));
+  const runExport = () =>
+    new Promise<MetricsExportResult>((resolve, reject) => {
+      let result: MetricsExportResult | undefined;
+
+      service.exportGlobalMetrics().subscribe({ next: (value) => (result = value), error: reject, complete: () => resolve(result!) });
+    });
 
   beforeEach(() => {
     for (const key of Object.keys(h.cells)) delete h.cells[key];
@@ -199,13 +204,16 @@ describe('MetricsExportService', () => {
     expect(h.cells['R3'].value).toBe(11);
     expect(h.cells['S3'].value).toBe(22);
     expect(h.cells['T3'].value).toBe(33);
+    expect(h.cells['U3'].value).toBe(44);
+    expect(h.cells['V3'].value).toBe(55);
+    expect(h.cells['W3'].value).toBe(66);
     expect(h.cells['Q3'].value).toBe('');
     expect(h.cells['X3'].value).toBe('');
     expect(mockTenableData.getCollectionExportMetrics).toHaveBeenCalledWith('7', 2);
   });
 
-  it('leaves the ACAS 90+ day columns blank, as no metric feeds them', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 }]));
+  it('leaves the ACAS 90+ day columns blank for STIG Manager rows', async () => {
+    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
 
     await runExport();
 
@@ -214,20 +222,34 @@ describe('MetricsExportService', () => {
     expect(h.cells['W3'].value).toBe('');
   });
 
-  it('emits a blank metrics row for collections with no originCollectionId', async () => {
+  it('excludes collections without an originCollectionId from the export', async () => {
     mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 3, collectionName: 'No Origin', collectionType: 'STIG Manager' }]));
+
+    const result = await runExport();
+
+    expect(h.cells['A3']).toBeUndefined();
+    expect(result.failedCollections).toEqual([]);
+    expect(result.exportedCount).toBe(0);
+    expect(mockSharedService.getCollectionSTIGSummaryFromSTIGMAN).not.toHaveBeenCalled();
+    expect(h.state.writeBufferCalls).toBe(1);
+  });
+
+  it('excludes non-metrics collection types from the export', async () => {
+    mockCollectionsService.getCollections.mockReturnValue(
+      of([
+        { collectionId: 3, collectionName: 'CPAT Native', collectionType: 'C-PAT', originCollectionId: 9 },
+        { collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }
+      ])
+    );
 
     await runExport();
 
-    expect(h.cells['A3'].value).toBe('No Origin');
-    expect(h.cells['K3'].value).toBe('STIG Manager');
-    expect(h.cells['L3'].value).toBe('');
-    expect(h.cells['Q3'].value).toBe('');
-    expect(h.cells['X3'].value).toBe('');
-    expect(mockSharedService.getCollectionSTIGSummaryFromSTIGMAN).not.toHaveBeenCalled();
+    expect(h.cells['A3'].value).toBe('Stig One');
+    expect(h.cells['A4']).toBeUndefined();
+    expect(mockTenableData.getCollectionExportMetrics).not.toHaveBeenCalled();
   });
 
-  it('isolates a failing collection without aborting the whole export', async () => {
+  it('isolates a failing collection without aborting the whole export and reports it in the result', async () => {
     mockCollectionsService.getCollections.mockReturnValue(
       of([
         { collectionId: 1, collectionName: 'Broken Stig', collectionType: 'STIG Manager', originCollectionId: 42 },
@@ -236,13 +258,78 @@ describe('MetricsExportService', () => {
     );
     mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('stigman down')));
 
-    await runExport();
+    const result = await runExport();
 
     expect(h.cells['A3'].value).toBe('Broken Stig');
     expect(h.cells['X3'].value).toBe('');
     expect(h.cells['A4'].value).toBe('Tenable Two');
     expect(h.cells['R4'].value).toBe(11);
+    expect(result.failedCollections).toEqual(['Broken Stig']);
+    expect(result.exportedCount).toBe(2);
     expect(h.state.writeBufferCalls).toBe(1);
+  });
+
+  it('reports a Tenable collection whose metrics fetch fails as failed with a blank metrics row', async () => {
+    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 2, collectionName: 'Broken Tenable', collectionType: 'Tenable', originCollectionId: 7 }]));
+    mockTenableData.getCollectionExportMetrics.mockReturnValue(throwError(() => new Error('tenable down')));
+
+    const result = await runExport();
+
+    expect(h.cells['A3'].value).toBe('Broken Tenable');
+    expect(h.cells['O3'].value).toBe('');
+    expect(h.cells['R3'].value).toBe('');
+    expect(h.cells['U3'].value).toBe('');
+    expect(result.failedCollections).toEqual(['Broken Tenable']);
+    expect(h.state.writeBufferCalls).toBe(1);
+  });
+
+  it('retries a transient failure once before reporting the collection as failed', async () => {
+    let attempts = 0;
+
+    mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(defer(() => (++attempts === 1 ? throwError(() => new Error('flaky')) : of(mockStigSummary))));
+    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+
+    const result = await runExport();
+
+    expect(attempts).toBe(2);
+    expect(h.cells['X3'].value).toBe(100);
+    expect(result.failedCollections).toEqual([]);
+  });
+
+  it('emits progress for the filtered collection set as each collection completes, then a writing phase', async () => {
+    const emissions: { loaded: number; total: number; phase: string }[] = [];
+    const subscription = service.progress$.subscribe((progress) => emissions.push(progress));
+
+    mockCollectionsService.getCollections.mockReturnValue(
+      of([
+        { collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 },
+        { collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 },
+        { collectionId: 3, collectionName: 'CPAT Native', collectionType: 'C-PAT' }
+      ])
+    );
+
+    await runExport();
+    subscription.unsubscribe();
+
+    expect(emissions).toEqual([
+      { loaded: 0, total: 2, phase: 'fetching' },
+      { loaded: 1, total: 2, phase: 'fetching' },
+      { loaded: 2, total: 2, phase: 'fetching' },
+      { loaded: 2, total: 2, phase: 'writing' }
+    ]);
+  });
+
+  it('emits a writing-phase progress update even when no collections are exported', async () => {
+    const emissions: { loaded: number; total: number; phase: string }[] = [];
+    const subscription = service.progress$.subscribe((progress) => emissions.push(progress));
+
+    await runExport();
+    subscription.unsubscribe();
+
+    expect(emissions).toEqual([
+      { loaded: 0, total: 0, phase: 'fetching' },
+      { loaded: 0, total: 0, phase: 'writing' }
+    ]);
   });
 
   it('preserves collection order even when fetches resolve out of order', async () => {

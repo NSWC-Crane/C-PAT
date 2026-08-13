@@ -85,6 +85,7 @@ describe('GlobalMetricsComponent', () => {
   let mockMessageService: any;
   let mockMetricsExportService: any;
   let progress$: Subject<{ loaded: number; total: number }>;
+  let exportProgress$: Subject<{ loaded: number; total: number; phase: 'fetching' | 'writing' }>;
 
   const configure = (selectedCollectionId: number) => {
     mockSharedService = { selectedCollection: new BehaviorSubject<number>(selectedCollectionId) };
@@ -109,6 +110,7 @@ describe('GlobalMetricsComponent', () => {
 
   beforeEach(() => {
     progress$ = new Subject();
+    exportProgress$ = new Subject();
     mockCollectionsService = {
       getCollections: vi.fn().mockReturnValue(of([stigCollection, tenableCollection, cpatCollection, noOriginCollection]))
     };
@@ -118,7 +120,8 @@ describe('GlobalMetricsComponent', () => {
     };
     mockMessageService = createMockMessageService();
     mockMetricsExportService = {
-      exportGlobalMetrics: vi.fn().mockReturnValue(of(undefined))
+      exportGlobalMetrics: vi.fn().mockReturnValue(of({ failedCollections: [], exportedCount: 2 })),
+      progress$: exportProgress$
     };
   });
 
@@ -424,7 +427,7 @@ describe('GlobalMetricsComponent', () => {
       mockMetricsExportService.exportGlobalMetrics.mockImplementation(() => {
         exportingDuringCall = component.isGlobalExporting();
 
-        return of(undefined);
+        return of({ failedCollections: [], exportedCount: 2 });
       });
       configure(999);
       fixture.detectChanges();
@@ -465,6 +468,80 @@ describe('GlobalMetricsComponent', () => {
       component.exportGlobalMetrics();
 
       expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows a partial-export warning naming the failed collections instead of a success toast', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(of({ failedCollections: ['Stig A'], exportedCount: 2 }));
+      configure(999);
+      fixture.detectChanges();
+
+      component.exportGlobalMetrics();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn', summary: 'Partial Export', detail: expect.stringContaining('Stig A') }));
+      expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('shows an info toast instead of a success toast when there was nothing to export', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(of({ failedCollections: [], exportedCount: 0 }));
+      configure(999);
+      fixture.detectChanges();
+
+      component.exportGlobalMetrics();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'info', detail: expect.stringContaining('No metrics-capable collections') }));
+      expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('tracks export progress from the export service progress stream', () => {
+      configure(999);
+      fixture.detectChanges();
+
+      exportProgress$.next({ loaded: 1, total: 4, phase: 'fetching' });
+
+      expect(component.exportProgress()).toEqual({ loaded: 1, total: 4, phase: 'fetching' });
+      expect(component.exportProgressPercent()).toBe(25);
+    });
+
+    it('renders the export progress bar with stage labels while exporting', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
+      configure(999);
+      fixture.detectChanges();
+
+      component.exportGlobalMetrics();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Preparing export');
+
+      exportProgress$.next({ loaded: 1, total: 3, phase: 'fetching' });
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Exporting 1 of 3 collections');
+
+      exportProgress$.next({ loaded: 3, total: 3, phase: 'writing' });
+      fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('Generating workbook');
+    });
+
+    it('shows the workbook-generation label for an empty export once the writing phase starts', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
+      configure(999);
+      fixture.detectChanges();
+
+      component.exportGlobalMetrics();
+      exportProgress$.next({ loaded: 0, total: 0, phase: 'writing' });
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Generating workbook');
+      expect(component.exportProgressPercent()).toBe(100);
+    });
+
+    it('resets stale export progress when a new export starts', () => {
+      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
+      configure(999);
+      fixture.detectChanges();
+
+      component.exportProgress.set({ loaded: 3, total: 3, phase: 'writing' });
+      component.exportGlobalMetrics();
+
+      expect(component.exportProgress()).toEqual({ loaded: 0, total: 0, phase: 'fetching' });
     });
   });
 });

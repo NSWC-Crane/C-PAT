@@ -53,6 +53,24 @@
     </div>
   }
 
+  @if (isGlobalExporting()) {
+    <div class="card mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm text-gray-400">
+          @if (exportProgress().phase === 'writing') {
+            Generating workbook…
+          } @else if (exportProgress().total === 0) {
+            Preparing export…
+          } @else {
+            Exporting {{ exportProgress().loaded }} of {{ exportProgress().total }} collections…
+          }
+        </span>
+        <span class="text-sm text-gray-400">{{ exportProgressPercent() }}%</span>
+      </div>
+      <p-progressbar [value]="exportProgressPercent()" />
+    </div>
+  }
+
   @if (!hasSelection() && !isLoading()) {
     <div class="card mt-4">
       <div class="no-data-message">Select one or more STIG Manager or Tenable collections to view combined metrics.</div>
