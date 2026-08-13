@@ -17,7 +17,7 @@ import { TenableMetricsDataService } from '../tenable-metrics/tenable-metrics.da
 import { MetricsExportResult, MetricsExportService } from './metrics-export.service';
 
 const h = vi.hoisted(() => {
-  const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+  const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC'];
   const HIDDEN_COLUMNS = ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'M', 'N'];
   const TEMPLATE_HEADER_FONT = { bold: true, size: 10, color: { theme: 0 }, name: 'Century Gothic', family: 2 };
   const cells: Record<string, any> = {};
@@ -81,7 +81,20 @@ const mockFindings = [
 const mockCollectionMetrics = { assets: 12 };
 const mockPoams = [{ poamId: 1, vulnerabilityId: 'V-001', status: 'Approved', labels: [], associatedVulnerabilities: [] }];
 
-const tenableExport = { complianceCatI: 11, complianceCatII: 22, complianceCatIII: 33, complianceCatI90: 44, complianceCatII90: 55, complianceCatIII90: 66, seolVulnerabilities: 9, vphScore: 1.5, validOnlineAssets: 5 };
+const tenableExport = {
+  complianceCatI: 11,
+  complianceCatII: 22,
+  complianceCatIII: 33,
+  complianceCatI90: 44,
+  complianceCatII90: 55,
+  complianceCatIII90: 66,
+  openFindingsCatI: 77,
+  openFindingsCatII: 88,
+  openFindingsCatIII: 99,
+  seolVulnerabilities: 9,
+  vphScore: 1.5,
+  validOnlineAssets: 5
+};
 
 beforeAll(() => {
   (globalThis as any).CPAT = { Env: { apiBase: '/api', basePath: '', classification: 'U' } };
@@ -144,7 +157,11 @@ describe('MetricsExportService', () => {
     expect(h.cells['C2'].value).toBe('Month');
     expect(h.cells['K2'].value).toBe('Collection Type');
     expect(h.cells['L2'].value).toBe('Asset Quantity');
-    expect(h.cells['Z2'].value).toBe('POAM Coverage (STIGs) % CAT III (Lows)');
+    expect(h.cells['R2'].value).toBe('Open Findings CAT I (Total)');
+    expect(h.cells['S2'].value).toBe('Open Findings CAT II (Total)');
+    expect(h.cells['T2'].value).toBe('Open Findings CAT III (Total)');
+    expect(h.cells['U2'].value).toBe('POAM Coverage (ACAS) % CAT I 30+ Days');
+    expect(h.cells['AC2'].value).toBe('POAM Coverage (STIGs) % CAT III (Lows)');
     expect(h.state.writeBufferCalls).toBe(1);
   });
 
@@ -184,11 +201,38 @@ describe('MetricsExportService', () => {
     expect(h.cells['K3'].value).toBe('STIG Manager');
     expect(h.cells['L3'].value).toBe(12);
     expect(h.cells['Q3'].value).toBe(44);
-    expect(h.cells['X3'].value).toBe(100);
+    expect(h.cells['AA3'].value).toBe(100);
     expect(h.cells['O3'].value).toBe('');
     expect(h.cells['P3'].value).toBe('');
-    expect(h.cells['R3'].value).toBe('');
+    expect(h.cells['U3'].value).toBe('');
     expect(mockTenableData.getCollectionExportMetrics).not.toHaveBeenCalled();
+  });
+
+  it('maps the deduplicated STIG open finding counts into the shared open findings columns', async () => {
+    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+
+    await runExport();
+
+    expect(h.cells['R3'].value).toBe(1);
+    expect(h.cells['S3'].value).toBe(1);
+    expect(h.cells['T3'].value).toBe(1);
+  });
+
+  it('counts a STIG rule violating several assets once in the open findings columns', async () => {
+    mockSharedService.getFindingsMetricsFromSTIGMAN.mockReturnValue(
+      of([
+        { groupId: 'V-100', severity: 'high', stigs: [{ benchmarkId: 'STIG_001' }] },
+        { groupId: 'V-101', severity: 'high', stigs: [{ benchmarkId: 'STIG_001' }] }
+      ])
+    );
+    mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of([{ ...mockStigSummary[0], metrics: { ...mockStigSummary[0].metrics, findings: { high: 40, medium: 0, low: 0 } } }]));
+    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+
+    await runExport();
+
+    expect(h.cells['R3'].value).toBe(2);
+    expect(h.cells['S3'].value).toBe(0);
+    expect(h.cells['T3'].value).toBe(0);
   });
 
   it('maps a Tenable collection into the ACAS columns and leaves STIG columns blank', async () => {
@@ -201,14 +245,17 @@ describe('MetricsExportService', () => {
     expect(h.cells['L3'].value).toBe(5);
     expect(h.cells['O3'].value).toBe(1.5);
     expect(h.cells['P3'].value).toBe(9);
-    expect(h.cells['R3'].value).toBe(11);
-    expect(h.cells['S3'].value).toBe(22);
-    expect(h.cells['T3'].value).toBe(33);
-    expect(h.cells['U3'].value).toBe(44);
-    expect(h.cells['V3'].value).toBe(55);
-    expect(h.cells['W3'].value).toBe(66);
+    expect(h.cells['R3'].value).toBe(77);
+    expect(h.cells['S3'].value).toBe(88);
+    expect(h.cells['T3'].value).toBe(99);
+    expect(h.cells['U3'].value).toBe(11);
+    expect(h.cells['V3'].value).toBe(22);
+    expect(h.cells['W3'].value).toBe(33);
+    expect(h.cells['X3'].value).toBe(44);
+    expect(h.cells['Y3'].value).toBe(55);
+    expect(h.cells['Z3'].value).toBe(66);
     expect(h.cells['Q3'].value).toBe('');
-    expect(h.cells['X3'].value).toBe('');
+    expect(h.cells['AA3'].value).toBe('');
     expect(mockTenableData.getCollectionExportMetrics).toHaveBeenCalledWith('7', 2);
   });
 
@@ -217,9 +264,9 @@ describe('MetricsExportService', () => {
 
     await runExport();
 
-    expect(h.cells['U3'].value).toBe('');
-    expect(h.cells['V3'].value).toBe('');
-    expect(h.cells['W3'].value).toBe('');
+    expect(h.cells['X3'].value).toBe('');
+    expect(h.cells['Y3'].value).toBe('');
+    expect(h.cells['Z3'].value).toBe('');
   });
 
   it('excludes collections without an originCollectionId from the export', async () => {
@@ -261,9 +308,11 @@ describe('MetricsExportService', () => {
     const result = await runExport();
 
     expect(h.cells['A3'].value).toBe('Broken Stig');
-    expect(h.cells['X3'].value).toBe('');
+    expect(h.cells['AA3'].value).toBe('');
+    expect(h.cells['R3'].value).toBe('');
     expect(h.cells['A4'].value).toBe('Tenable Two');
-    expect(h.cells['R4'].value).toBe(11);
+    expect(h.cells['R4'].value).toBe(77);
+    expect(h.cells['U4'].value).toBe(11);
     expect(result.failedCollections).toEqual(['Broken Stig']);
     expect(result.exportedCount).toBe(2);
     expect(h.state.writeBufferCalls).toBe(1);
@@ -279,6 +328,7 @@ describe('MetricsExportService', () => {
     expect(h.cells['O3'].value).toBe('');
     expect(h.cells['R3'].value).toBe('');
     expect(h.cells['U3'].value).toBe('');
+    expect(h.cells['X3'].value).toBe('');
     expect(result.failedCollections).toEqual(['Broken Tenable']);
     expect(h.state.writeBufferCalls).toBe(1);
   });
@@ -292,7 +342,7 @@ describe('MetricsExportService', () => {
     const result = await runExport();
 
     expect(attempts).toBe(2);
-    expect(h.cells['X3'].value).toBe(100);
+    expect(h.cells['AA3'].value).toBe(100);
     expect(result.failedCollections).toEqual([]);
   });
 
