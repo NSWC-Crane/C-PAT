@@ -151,24 +151,8 @@ describe('PoamValidationService', () => {
       expect(result.message).toBe('Local Impact is a required field for submission.');
     });
 
-    it('should require impactDescription when localImpact is Moderate or higher', () => {
-      const poam = { ...validPoam, localImpact: 'Moderate', impactDescription: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
-
-      expect(result.valid).toBe(false);
-      expect(result.message).toBe('If Local Impact is Moderate or higher, Impact Description becomes a required field.');
-    });
-
-    it('should require impactDescription when localImpact is High', () => {
-      const poam = { ...validPoam, localImpact: 'High', impactDescription: '' };
-      const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
-
-      expect(result.valid).toBe(false);
-      expect(result.message).toBe('If Local Impact is Moderate or higher, Impact Description becomes a required field.');
-    });
-
-    it('should require impactDescription when localImpact is Very High', () => {
-      const poam = { ...validPoam, localImpact: 'Very High', impactDescription: '' };
+    it.each(['Moderate', 'High', 'Very High'])('should require impactDescription when localImpact is %s', (localImpact) => {
+      const poam = { ...validPoam, localImpact, impactDescription: '' };
       const result = service.validateSubmissionRequirements(poam, validTeamMitigations, validTeamResources, validMilestones, validDates);
 
       expect(result.valid).toBe(false);

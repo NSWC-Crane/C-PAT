@@ -168,40 +168,18 @@ describe('TenableHighRiskAssetsTableComponent', () => {
       expect(repoFilter.value[0].id).toBe('42');
     });
 
-    it('should include patchPublished filter', () => {
+    it.each([
+      ['patchPublished', '30:all'],
+      ['pluginType', 'active'],
+      ['severity', '1,2,3,4'],
+      ['lastSeen', '0:30']
+    ])('should include %s filter with value %s', (id, value) => {
       component.loadHighRiskAssets();
       const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
-      const filter = params.query.filters.find((f: any) => f.id === 'patchPublished');
+      const filter = params.query.filters.find((f: any) => f.id === id);
 
       expect(filter).toBeDefined();
-      expect(filter.value).toBe('30:all');
-    });
-
-    it('should include pluginType filter with value active', () => {
-      component.loadHighRiskAssets();
-      const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
-      const filter = params.query.filters.find((f: any) => f.id === 'pluginType');
-
-      expect(filter).toBeDefined();
-      expect(filter.value).toBe('active');
-    });
-
-    it('should include severity filter', () => {
-      component.loadHighRiskAssets();
-      const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
-      const filter = params.query.filters.find((f: any) => f.id === 'severity');
-
-      expect(filter).toBeDefined();
-      expect(filter.value).toBe('1,2,3,4');
-    });
-
-    it('should include lastSeen filter', () => {
-      component.loadHighRiskAssets();
-      const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
-      const filter = params.query.filters.find((f: any) => f.id === 'lastSeen');
-
-      expect(filter).toBeDefined();
-      expect(filter.value).toBe('0:30');
+      expect(filter.value).toBe(value);
     });
 
     it('should sort by score descending', () => {

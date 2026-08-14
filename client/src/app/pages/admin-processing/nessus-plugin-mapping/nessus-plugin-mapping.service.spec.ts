@@ -105,7 +105,11 @@ describe('NessusPluginMappingService', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should handle server-side HTTP error', () => {
+    it.each<[number, string, string]>([
+      [500, 'Internal Server Error', 'Server Error'],
+      [401, 'Unauthorized', 'Unauthorized'],
+      [403, 'Forbidden', 'Forbidden']
+    ])('should handle server-side %i error', (status, statusText, body) => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       service.getIAVTableData().subscribe({
@@ -119,45 +123,7 @@ describe('NessusPluginMappingService', () => {
 
       const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
 
-      req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle 401 unauthorized error', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      service.getIAVTableData().subscribe({
-        next: () => {
-          throw new Error('Expected error');
-        },
-        error: (error) => {
-          expect(error.message).toContain('Something bad happened');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
-
-      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle 403 forbidden error', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      service.getIAVTableData().subscribe({
-        next: () => {
-          throw new Error('Expected error');
-        },
-        error: (error) => {
-          expect(error.message).toContain('Something bad happened');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
-
-      req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
+      req.flush(body, { status, statusText });
 
       consoleSpy.mockRestore();
     });

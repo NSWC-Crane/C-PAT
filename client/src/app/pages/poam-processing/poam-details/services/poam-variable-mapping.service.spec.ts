@@ -237,46 +237,18 @@ describe('PoamVariableMappingService', () => {
     });
 
     describe('with fallback values (no config)', () => {
-      it('should use fallback 30 days for CAT I - Critical', () => {
-        const result = service.calculateScheduledCompletionDate('CAT I - Critical', []);
+      it.each<[number, string, string]>([
+        [30, 'CAT I - Critical', '2024-07-15'],
+        [30, 'CAT I - High', '2024-07-15'],
+        [180, 'CAT II - Medium', '2024-12-12'],
+        [365, 'CAT III - Low', '2025-06-15'],
+        [365, 'CAT III - Informational', '2025-06-15'],
+        [30, 'Unknown', '2024-07-15'],
+        [30, '', '2024-07-15']
+      ])('should use the %i day fallback for severity "%s"', (_days, severity, expectedDate) => {
+        const result = service.calculateScheduledCompletionDate(severity, []);
 
-        expect(result).toBe('2024-07-15');
-      });
-
-      it('should use fallback 30 days for CAT I - High', () => {
-        const result = service.calculateScheduledCompletionDate('CAT I - High', []);
-
-        expect(result).toBe('2024-07-15');
-      });
-
-      it('should use fallback 180 days for CAT II - Medium', () => {
-        const result = service.calculateScheduledCompletionDate('CAT II - Medium', []);
-
-        expect(result).toBe('2024-12-12');
-      });
-
-      it('should use fallback 365 days for CAT III - Low', () => {
-        const result = service.calculateScheduledCompletionDate('CAT III - Low', []);
-
-        expect(result).toBe('2025-06-15');
-      });
-
-      it('should use fallback 365 days for CAT III - Informational', () => {
-        const result = service.calculateScheduledCompletionDate('CAT III - Informational', []);
-
-        expect(result).toBe('2025-06-15');
-      });
-
-      it('should use fallback 30 days for unknown severity', () => {
-        const result = service.calculateScheduledCompletionDate('Unknown', []);
-
-        expect(result).toBe('2024-07-15');
-      });
-
-      it('should use fallback 30 days for empty severity', () => {
-        const result = service.calculateScheduledCompletionDate('', []);
-
-        expect(result).toBe('2024-07-15');
+        expect(result).toBe(expectedDate);
       });
     });
 

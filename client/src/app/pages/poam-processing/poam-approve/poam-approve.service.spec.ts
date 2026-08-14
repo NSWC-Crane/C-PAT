@@ -261,14 +261,13 @@ describe('PoamApproveService', () => {
       req.flush(approverUpdate);
     });
 
-    it('should handle server error on update', () => {
-      const approverUpdate = {
-        approverId: 1,
-        poamId: 1,
-        userId: 1,
-        approvalStatus: 'Approved'
-      };
-
+    it.each<[number, string, string, any]>([
+      [500, 'Internal Server Error', 'Server error', { approverId: 1, poamId: 1, userId: 1, approvalStatus: 'Approved' }],
+      [400, 'Bad Request', 'Bad request', { approverId: null, approvalStatus: '' }],
+      [401, 'Unauthorized', 'Unauthorized', { approverId: 1, poamId: 1, userId: 1, approvalStatus: 'Approved' }],
+      [403, 'Forbidden', 'Forbidden', { approverId: 1, poamId: 1, userId: 1, approvalStatus: 'Approved' }],
+      [404, 'Not Found', 'Not found', { approverId: 999, poamId: 999, userId: 999, approvalStatus: 'Approved' }]
+    ])('should handle %i error on update', (status, statusText, body, approverUpdate) => {
       service.updatePoamApprover(approverUpdate).subscribe({
         error: (error) => {
           expect(error.message).toBe('Something bad happened; please try again later.');
@@ -277,7 +276,7 @@ describe('PoamApproveService', () => {
 
       const req = httpMock.expectOne(`${apiBase}/poamApprover`);
 
-      req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+      req.flush(body, { status, statusText });
     });
 
     it('should handle network error on update', () => {
@@ -297,80 +296,6 @@ describe('PoamApproveService', () => {
       const req = httpMock.expectOne(`${apiBase}/poamApprover`);
 
       req.error(new ProgressEvent('Network error'));
-    });
-
-    it('should handle 400 bad request', () => {
-      const invalidApproverUpdate = {
-        approverId: null,
-        approvalStatus: ''
-      };
-
-      service.updatePoamApprover(invalidApproverUpdate).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/poamApprover`);
-
-      req.flush('Bad request', { status: 400, statusText: 'Bad Request' });
-    });
-
-    it('should handle 401 unauthorized on update', () => {
-      const approverUpdate = {
-        approverId: 1,
-        poamId: 1,
-        userId: 1,
-        approvalStatus: 'Approved'
-      };
-
-      service.updatePoamApprover(approverUpdate).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/poamApprover`);
-
-      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
-    });
-
-    it('should handle 403 forbidden on update', () => {
-      const approverUpdate = {
-        approverId: 1,
-        poamId: 1,
-        userId: 1,
-        approvalStatus: 'Approved'
-      };
-
-      service.updatePoamApprover(approverUpdate).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/poamApprover`);
-
-      req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
-    });
-
-    it('should handle 404 not found on update', () => {
-      const approverUpdate = {
-        approverId: 999,
-        poamId: 999,
-        userId: 999,
-        approvalStatus: 'Approved'
-      };
-
-      service.updatePoamApprover(approverUpdate).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/poamApprover`);
-
-      req.flush('Not found', { status: 404, statusText: 'Not Found' });
     });
 
     it('should send correct content-type header', () => {

@@ -95,26 +95,10 @@ describe('AssetTeamMappingService', () => {
         expect(result).toEqual(existingTeams);
       });
 
-      it('should return existing teams when C-PAT collection has no poamAssets', () => {
+      it.each(['C-PAT', 'STIG Manager', 'Tenable'])('should return existing teams when %s collection has no assets to compare', (collectionType) => {
         const existingTeams = [{ assignedTeamId: 99, assignedTeamName: 'Existing Team' }];
 
-        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'C-PAT', [], [], mockAssetList, existingTeams);
-
-        expect(result).toEqual(existingTeams);
-      });
-
-      it('should return existing teams when STIG Manager collection has no externalAssets', () => {
-        const existingTeams = [{ assignedTeamId: 99, assignedTeamName: 'Existing Team' }];
-
-        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'STIG Manager', [], [], mockAssetList, existingTeams);
-
-        expect(result).toEqual(existingTeams);
-      });
-
-      it('should return existing teams when Tenable collection has no externalAssets', () => {
-        const existingTeams = [{ assignedTeamId: 99, assignedTeamName: 'Existing Team' }];
-
-        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, 'Tenable', [], [], mockAssetList, existingTeams);
+        const result = service.compareAssetsAndAssignTeams(mockPoam, mockAssetDeltaList, collectionType, [], [], mockAssetList, existingTeams);
 
         expect(result).toEqual(existingTeams);
       });

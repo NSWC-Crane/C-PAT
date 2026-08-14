@@ -60,10 +60,10 @@ describe('StatusDialogComponent', () => {
   });
 
   describe('input bindings', () => {
-    it('should accept progress input', () => {
-      fixture.componentRef.setInput('progress', 50);
+    it.each([0, 50, 75, 100])('should accept progress input of %i', (progress) => {
+      fixture.componentRef.setInput('progress', progress);
       fixture.detectChanges();
-      expect(component.progress()).toBe(50);
+      expect(component.progress()).toBe(progress);
     });
 
     it('should accept message input', () => {
@@ -76,24 +76,6 @@ describe('StatusDialogComponent', () => {
       fixture.componentRef.setInput('display', true);
       fixture.detectChanges();
       expect(component.display()).toBe(true);
-    });
-
-    it('should handle progress at 0%', () => {
-      fixture.componentRef.setInput('progress', 0);
-      fixture.detectChanges();
-      expect(component.progress()).toBe(0);
-    });
-
-    it('should handle progress at 100%', () => {
-      fixture.componentRef.setInput('progress', 100);
-      fixture.detectChanges();
-      expect(component.progress()).toBe(100);
-    });
-
-    it('should handle progress at intermediate values', () => {
-      fixture.componentRef.setInput('progress', 75);
-      fixture.detectChanges();
-      expect(component.progress()).toBe(75);
     });
   });
 

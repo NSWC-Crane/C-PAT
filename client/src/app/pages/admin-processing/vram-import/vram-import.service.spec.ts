@@ -243,7 +243,11 @@ describe('VRAMImportService', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should handle server-side HTTP error', () => {
+    it.each<[number, string, string]>([
+      [500, 'Internal Server Error', 'Server Error'],
+      [401, 'Unauthorized', 'Unauthorized'],
+      [404, 'Not Found', 'Not Found']
+    ])('should handle server-side %i error', (status, statusText, body) => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       service.getVramDataUpdatedDate().subscribe({
@@ -257,45 +261,7 @@ describe('VRAMImportService', () => {
 
       const req = httpMock.expectOne(`${apiBase}/iav/vramUpdatedDate`);
 
-      req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle 401 unauthorized error', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      service.getVramDataUpdatedDate().subscribe({
-        next: () => {
-          throw new Error('Expected error');
-        },
-        error: (error) => {
-          expect(error.message).toContain('Something bad happened');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/iav/vramUpdatedDate`);
-
-      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle 404 not found error', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      service.getVramDataUpdatedDate().subscribe({
-        next: () => {
-          throw new Error('Expected error');
-        },
-        error: (error) => {
-          expect(error.message).toContain('Something bad happened');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/iav/vramUpdatedDate`);
-
-      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+      req.flush(body, { status, statusText });
 
       consoleSpy.mockRestore();
     });

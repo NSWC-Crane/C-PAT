@@ -949,57 +949,15 @@ describe('PoamMilestonesComponent', () => {
   });
 
   describe('isChangeFieldsEditable (via validation)', () => {
-    it('should be editable when extensionDays > 0', () => {
+    it.each<[string, string, number]>([
+      ['extensionDays > 0', 'Draft', 10],
+      ['status is Extension Requested', 'Extension Requested', 0],
+      ['status is Approved', 'Approved', 0]
+    ])('should be editable when %s', (_label, status, extensionDays) => {
       (component as any).poam = () => ({
-        status: 'Draft',
+        status,
         scheduledCompletionDate: '2026-12-31',
-        extensionDays: 10
-      });
-      const milestone = createMilestone({
-        milestoneChangeDate: new Date('2026-06-01'),
-        milestoneChangeComments: null
-      });
-
-      component.clonedMilestones[milestone.milestoneId] = { ...milestone };
-
-      component.onRowEditSave(milestone);
-
-      expect(mockMessageService.add).toHaveBeenCalledWith(
-        expect.objectContaining({
-          severity: 'error',
-          detail: 'When providing a milestone change date, you must also include milestone change comments.'
-        })
-      );
-    });
-
-    it('should be editable when status is Extension Requested', () => {
-      (component as any).poam = () => ({
-        status: 'Extension Requested',
-        scheduledCompletionDate: '2026-12-31',
-        extensionDays: 0
-      });
-      const milestone = createMilestone({
-        milestoneChangeDate: new Date('2026-06-01'),
-        milestoneChangeComments: null
-      });
-
-      component.clonedMilestones[milestone.milestoneId] = { ...milestone };
-
-      component.onRowEditSave(milestone);
-
-      expect(mockMessageService.add).toHaveBeenCalledWith(
-        expect.objectContaining({
-          severity: 'error',
-          detail: 'When providing a milestone change date, you must also include milestone change comments.'
-        })
-      );
-    });
-
-    it('should be editable when status is Approved', () => {
-      (component as any).poam = () => ({
-        status: 'Approved',
-        scheduledCompletionDate: '2026-12-31',
-        extensionDays: 0
+        extensionDays
       });
       const milestone = createMilestone({
         milestoneChangeDate: new Date('2026-06-01'),

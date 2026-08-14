@@ -145,15 +145,8 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
       expect(component.selectedCollection).toBe(7);
     });
 
-    it('should call initColumnsAndFilters', () => {
-      const spy = vi.spyOn(component, 'initColumnsAndFilters');
-
-      component.ngOnInit();
-      expect(spy).toHaveBeenCalled();
-    });
-
-    it('should call loadAssetDeltaList', () => {
-      const spy = vi.spyOn(component, 'loadAssetDeltaList');
+    it.each(['initColumnsAndFilters', 'loadAssetDeltaList', 'loadData'])('should call %s when stigmanCollectionId and groupId are set', (method) => {
+      const spy = vi.spyOn(component as any, method);
 
       component.ngOnInit();
       expect(spy).toHaveBeenCalled();
@@ -162,13 +155,6 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     it('should initialize teamTabs with "all" entry', () => {
       component.ngOnInit();
       expect(component.teamTabs()[0]).toMatchObject({ teamId: 'all', teamName: 'All Assets' });
-    });
-
-    it('should call loadData when stigmanCollectionId and groupId are set', () => {
-      const spy = vi.spyOn(component, 'loadData');
-
-      component.ngOnInit();
-      expect(spy).toHaveBeenCalled();
     });
 
     it('should show error message when groupId is missing', () => {
