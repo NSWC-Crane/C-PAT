@@ -64,7 +64,10 @@
                 cursor: pointer;
                 user-select: none;
                 --p-focus-ring-offset: -1px;
-                @include focus-visible();
+
+                &:focus-visible {
+                    @include focus-visible();
+                }
 
                 .menu-icon {
                     width: 2rem;
@@ -137,7 +140,10 @@
                             outline-color: transparent;
                             position: relative;
                             --p-focus-ring-offset: -1px;
-                            @include focus-visible();
+
+                            &:focus-visible {
+                                @include focus-visible();
+                            }
 
                             &:hover {
                                 border-inline-start-color: var(--hover-border-color);

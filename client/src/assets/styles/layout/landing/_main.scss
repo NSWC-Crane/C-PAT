@@ -62,7 +62,10 @@
         padding: 1rem 1.5rem;
 
         cursor: pointer;
-        @include focus-visible();
+
+        &:focus-visible {
+            @include focus-visible();
+        }
 
         &:hover {
             background: var(--hover-background);
