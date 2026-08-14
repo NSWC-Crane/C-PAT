@@ -28,7 +28,16 @@
             "polyfills": ["src/polyfills.ts"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/silent-renew.html", "src/favicon.ico", "src/assets"],
+            "assets": [
+              "src/silent-renew.html",
+              "src/favicon.ico",
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets",
+                "ignore": ["styles/**"]
+              }
+            ],
             "stylePreprocessorOptions": {
               "includePaths": ["node_modules/", "src/assets/styles"]
             },
@@ -41,11 +50,6 @@
               {
                 "input": "src/assets/styles/layout/loader.scss",
                 "bundleName": "loader",
-                "inject": true
-              },
-              {
-                "input": "src/assets/styles/components/pace-theme-flash.tmpl.css",
-                "bundleName": "pace",
                 "inject": true
               },
               {
