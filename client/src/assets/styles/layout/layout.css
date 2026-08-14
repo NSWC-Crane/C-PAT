@@ -133,6 +133,21 @@
   --code-button-text-color: var(--p-surface-300);
   --docsearch-mask-background: var(--p-mask-background);
   --logo-color: var(--text-secondary-color);
+  --docsearch-searchbox-focus-background: var(--card-background);
+  --docsearch-text-color: var(--text-color);
+  --docsearch-muted-color: var(--text-color);
+  --docsearch-searchbox-background: var(--card-background);
+  --docsearch-modal-background: var(--overlay-background);
+  --docsearch-key-gradient: var(--ground-background);
+  --docsearch-key-shadow: none;
+  --docsearch-container-background: var(--docsearch-mask-background);
+  --docsearch-hit-background: var(--overlay-background);
+  --docsearch-hit-shadow: none;
+  --docsearch-spacing: 1rem;
+  --docsearch-hit-color: var(--text-color);
+  --docsearch-highlight-color: var(--primary-color);
+  --docsearch-hit-active-color: var(--primary-contrast-color);
+  --docsearch-searchbox-shadow: none;
 }
 
   :root[class=p-dark] {
@@ -172,7 +187,7 @@ html {
 }
 
 .material {
-  font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
 body {
@@ -877,6 +892,7 @@ pre[class*=language-] code {
   padding: 0 1rem;
   display: block;
   overflow: auto;
+  background: var(--code-background);
 }
 pre[class*=language-] code .token.comment,
 pre[class*=language-] code .token.block-comment,
@@ -942,10 +958,6 @@ pre[class*=language-] code .token.entity {
 
 .copy-to-clipboard-button {
   display: none;
-}
-
-pre[class*=language-] code {
-  background: var(--code-background);
 }
 
 .mark {
@@ -1471,25 +1483,6 @@ pre[class*=language-] code {
   text-align: center;
   display: inline-block;
   font-size: 0.875rem;
-}
-
-:root {
-  --docsearch-searchbox-focus-background: var(--card-background);
-  --docsearch-text-color: var(--text-color);
-  --docsearch-muted-color: var(--text-color);
-  --docsearch-searchbox-background: var(--card-background);
-  --docsearch-text-color: var(--text-color);
-  --docsearch-modal-background: var(--overlay-background);
-  --docsearch-key-gradient: var(--ground-background);
-  --docsearch-key-shadow: none;
-  --docsearch-container-background: var(--docsearch-mask-background);
-  --docsearch-hit-background: var(--overlay-background);
-  --docsearch-hit-shadow: none;
-  --docsearch-spacing: 1rem;
-  --docsearch-hit-color: var(--text-color);
-  --docsearch-highlight-color: var(--primary-color);
-  --docsearch-hit-active-color: var(--primary-contrast-color);
-  --docsearch-searchbox-shadow: none;
 }
 
 @media screen and (min-width: 1920px) {
@@ -2086,6 +2079,8 @@ pre[class*=language-] code {
 }
 .landing-templates .templates .template-block.block-middle {
   transform: scale(0.9);
+  border: 0 none;
+  box-shadow: none;
 }
 .landing-templates .templates .template-block.block-3 {
   animation: animated-block-1 2s 0.4s ease-in-out alternate infinite;
@@ -2135,10 +2130,6 @@ pre[class*=language-] code {
   border-right: 1px solid var(--border-color);
   border-left: 3px solid var(--border-color);
   border-bottom: 4px solid var(--border-color);
-}
-.landing-templates .templates .template-block.block-middle {
-  border: 0 none;
-  box-shadow: none;
 }
 .landing-templates .templates .template-block.block-middle:before {
   display: none;
