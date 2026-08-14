@@ -1090,7 +1090,18 @@ describe('TenableVulnerabilitiesComponent', () => {
     it('should show error on non-array response', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of({ bad: 'data' }));
       component.selectedCollection.set(7);
-      component.loadPoamAssociations().subscribe({ error: () => {} });
+
+      const next = vi.fn();
+
+      component.loadPoamAssociations().subscribe({ next, error: () => {} });
+
+      expect(next).not.toHaveBeenCalled();
+      expect(mockMessageService.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          severity: 'error',
+          detail: expect.stringContaining('Error loading POAM data')
+        })
+      );
     });
   });
 

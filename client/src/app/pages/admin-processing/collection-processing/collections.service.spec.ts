@@ -274,47 +274,78 @@ describe('CollectionsService', () => {
       expect(result).toEqual(mockCollectionList);
     });
 
-    it('should invalidate all caches after addCollection', () => {
+    const basicListFixture = () => mockCollectionList.map((c) => ({ collectionId: c.collectionId, collectionName: c.collectionName }));
+
+    const primeAllCaches = () => {
       service.getCollections().subscribe();
       httpMock.expectOne(`${apiBase}/collections`).flush(mockCollectionList);
+
+      service.getAllCollections().subscribe();
+      httpMock.expectOne(`${apiBase}/collections?elevate=true`).flush(mockCollectionList);
+
+      service.getCollectionBasicList().subscribe();
+      httpMock.expectOne(`${apiBase}/collections/basiclist`).flush(basicListFixture());
+    };
+
+    const expectAllCachesRefetched = () => {
+      const refreshed: any = {};
+
+      service.getCollections().subscribe((data) => (refreshed.collections = data));
+      service.getAllCollections().subscribe((data) => (refreshed.allCollections = data));
+      service.getCollectionBasicList().subscribe((data) => (refreshed.basicList = data));
+
+      const basicList = basicListFixture();
+
+      httpMock.expectOne(`${apiBase}/collections`).flush(mockCollectionList);
+      httpMock.expectOne(`${apiBase}/collections?elevate=true`).flush(mockCollectionList);
+      httpMock.expectOne(`${apiBase}/collections/basiclist`).flush(basicList);
+
+      expect(refreshed.collections).toEqual(mockCollectionList);
+      expect(refreshed.allCollections).toEqual(mockCollectionList);
+      expect(refreshed.basicList).toEqual(basicList);
+    };
+
+    it('should invalidate all caches after addCollection', () => {
+      primeAllCaches();
 
       service.addCollection({ collectionName: 'New' }).subscribe();
       httpMock.expectOne(`${apiBase}/collection`).flush(mockCollection);
 
-      service.getCollections().subscribe();
-      httpMock.expectOne(`${apiBase}/collections`).flush(mockCollectionList);
+      expectAllCachesRefetched();
     });
 
     it('should invalidate all caches after updateCollection', () => {
-      const basicList = mockCollectionList.map((c) => ({ collectionId: c.collectionId, collectionName: c.collectionName }));
-
-      service.getCollectionBasicList().subscribe();
-      httpMock.expectOne(`${apiBase}/collections/basiclist`).flush(basicList);
+      primeAllCaches();
 
       service.updateCollection(mockCollection).subscribe();
       httpMock.expectOne(`${apiBase}/collection`).flush(mockCollection);
 
-      service.getCollectionBasicList().subscribe();
-      httpMock.expectOne(`${apiBase}/collections/basiclist`).flush(basicList);
+      expectAllCachesRefetched();
     });
 
     it('should invalidate all caches after deleteCollection', () => {
-      service.getAllCollections().subscribe();
-      httpMock.expectOne(`${apiBase}/collections?elevate=true`).flush(mockCollectionList);
+      primeAllCaches();
 
       service.deleteCollection(1).subscribe();
       httpMock.expectOne(`${apiBase}/collection/1?elevate=true`).flush({ success: true });
 
-      service.getAllCollections().subscribe();
-      httpMock.expectOne(`${apiBase}/collections?elevate=true`).flush(mockCollectionList);
+      expectAllCachesRefetched();
     });
 
     it('should reset cache on HTTP error so next call retries', () => {
-      service.getCollections().subscribe({ error: () => {} });
+      let capturedError: any;
+
+      service.getCollections().subscribe({ error: (error) => (capturedError = error) });
       httpMock.expectOne(`${apiBase}/collections`).flush('Server Error', { status: 500, statusText: 'Server Error' });
 
-      service.getCollections().subscribe();
+      expect(capturedError.status).toBe(500);
+
+      let retried: any;
+
+      service.getCollections().subscribe((data) => (retried = data));
       httpMock.expectOne(`${apiBase}/collections`).flush(mockCollectionList);
+
+      expect(retried).toEqual(mockCollectionList);
     });
   });
 });

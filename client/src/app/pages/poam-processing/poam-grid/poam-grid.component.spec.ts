@@ -193,11 +193,12 @@ describe('PoamGridComponent', () => {
       expect(setPayloadSpy).toHaveBeenCalled();
     });
 
-    it('should set up table status filter on ngOnInit', async () => {
-      vi.useFakeTimers();
-      component.ngOnInit();
-      vi.runAllTimers();
-      vi.useRealTimers();
+    it('should set up the default table status filter on ngAfterViewInit', () => {
+      expect(component.table().filters['status']).toBeUndefined();
+
+      component.ngAfterViewInit();
+
+      expect(component.table().filters['status']).toEqual([{ value: 'closed', matchMode: 'notEquals' }]);
     });
   });
 

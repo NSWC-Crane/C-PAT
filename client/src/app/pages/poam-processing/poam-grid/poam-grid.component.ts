@@ -60,7 +60,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly csvExportService = inject(CsvExportService);
 
   protected fileUpload = viewChild.required<FileUpload>('fileUpload');
-  protected table = viewChild.required<Table>('dt');
+  table = viewChild.required<Table>('dt');
 
   readonly userId = input<number>(undefined);
   readonly variant = input<string>(undefined);
