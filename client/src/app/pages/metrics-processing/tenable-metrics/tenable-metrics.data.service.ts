@@ -40,6 +40,9 @@ export interface TenableExportMetrics {
   complianceCatI90: number;
   complianceCatII90: number;
   complianceCatIII90: number;
+  openFindingsCatI: number;
+  openFindingsCatII: number;
+  openFindingsCatIII: number;
   seolVulnerabilities: number;
   vphScore: number;
   validOnlineAssets: number;
@@ -606,6 +609,9 @@ export class TenableMetricsDataService {
           complianceCatI90: compliance90.catI,
           complianceCatII90: compliance90.catII,
           complianceCatIII90: compliance90.catIII,
+          openFindingsCatI: catICount,
+          openFindingsCatII: catIICount,
+          openFindingsCatIII: catIIICount,
           seolVulnerabilities,
           vphScore: vph.score,
           validOnlineAssets: validAssets

@@ -39,6 +39,9 @@ const METRICS_HEADERS: string[] = [
   'ACAS Vulnerability Per Host (VPH) Score',
   'ACAS Security End of Life Software Findings',
   'STIG Compliance CORA Risk Score',
+  'Open Findings CAT I (Total)',
+  'Open Findings CAT II (Total)',
+  'Open Findings CAT III (Total)',
   'POAM Coverage (ACAS) % CAT I 30+ Days',
   'POAM Coverage (ACAS) % CAT II 30+ Days',
   'POAM Coverage (ACAS) % CAT III 30+ Days',
@@ -50,7 +53,7 @@ const METRICS_HEADERS: string[] = [
   'POAM Coverage (STIGs) % CAT III (Lows)'
 ];
 
-const COLUMN_LETTERS: string[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+const COLUMN_LETTERS: string[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC'];
 
 interface MetricsExportRow {
   year: number;
@@ -66,6 +69,9 @@ interface MetricsExportRow {
   stigCatICompliance: number | '';
   stigCatIICompliance: number | '';
   stigCatIIICompliance: number | '';
+  openFindingsCatI: number | '';
+  openFindingsCatII: number | '';
+  openFindingsCatIII: number | '';
   coraRiskScore: number | '';
   acasSeol: number | '';
   vphScore: number | '';
@@ -163,6 +169,9 @@ export class MetricsExportService {
             stigCatICompliance: metrics.catICompliance,
             stigCatIICompliance: metrics.catIICompliance,
             stigCatIIICompliance: metrics.catIIICompliance,
+            openFindingsCatI: metrics.catIOpenCount,
+            openFindingsCatII: metrics.catIIOpenCount,
+            openFindingsCatIII: metrics.catIIIOpenCount,
             coraRiskScore: metrics.coraRiskScore,
             assetQuantity: metrics.assetCount
           },
@@ -187,6 +196,9 @@ export class MetricsExportService {
           acasCatICompliance90: metrics.complianceCatI90,
           acasCatIICompliance90: metrics.complianceCatII90,
           acasCatIIICompliance90: metrics.complianceCatIII90,
+          openFindingsCatI: metrics.openFindingsCatI,
+          openFindingsCatII: metrics.openFindingsCatII,
+          openFindingsCatIII: metrics.openFindingsCatIII,
           acasSeol: metrics.seolVulnerabilities,
           vphScore: metrics.vphScore,
           assetQuantity: metrics.validOnlineAssets
@@ -215,6 +227,9 @@ export class MetricsExportService {
       stigCatICompliance: '',
       stigCatIICompliance: '',
       stigCatIIICompliance: '',
+      openFindingsCatI: '',
+      openFindingsCatII: '',
+      openFindingsCatIII: '',
       coraRiskScore: '',
       acasSeol: '',
       vphScore: '',
@@ -279,15 +294,18 @@ export class MetricsExportService {
       this.round(row.vphScore), // O
       row.acasSeol, // P
       this.round(row.coraRiskScore), // Q
-      this.round(row.acasCatICompliance), // R
-      this.round(row.acasCatIICompliance), // S
-      this.round(row.acasCatIIICompliance), // T
-      this.round(row.acasCatICompliance90), // U
-      this.round(row.acasCatIICompliance90), // V
-      this.round(row.acasCatIIICompliance90), // W
-      this.round(row.stigCatICompliance), // X
-      this.round(row.stigCatIICompliance), // Y
-      this.round(row.stigCatIIICompliance) // Z
+      row.openFindingsCatI, // R
+      row.openFindingsCatII, // S
+      row.openFindingsCatIII, // T
+      this.round(row.acasCatICompliance), // U
+      this.round(row.acasCatIICompliance), // V
+      this.round(row.acasCatIIICompliance), // W
+      this.round(row.acasCatICompliance90), // X
+      this.round(row.acasCatIICompliance90), // Y
+      this.round(row.acasCatIIICompliance90), // Z
+      this.round(row.stigCatICompliance), // AA
+      this.round(row.stigCatIICompliance), // AB
+      this.round(row.stigCatIIICompliance) // AC
     ];
 
     values.forEach((value, columnIndex) => {

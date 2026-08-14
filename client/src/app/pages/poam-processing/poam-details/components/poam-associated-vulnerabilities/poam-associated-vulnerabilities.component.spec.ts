@@ -388,64 +388,22 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
   });
 
   describe('computeTagSeverity', () => {
-    it('should return danger for critical', () => {
-      (component as any).poamAssociatedVulnerabilities = () => ['10001'];
-      (component as any).currentCollection = () => ({ collectionType: 'Tenable', originCollectionId: 'repo-5' });
+    it.each<[string, string, string, string, string]>([
+      ['critical', 'danger', '10001', 'Tenable', 'repo-5'],
+      ['high', 'danger', 'V-12345', 'STIG Manager', 'col-1'],
+      ['medium', 'warn', 'V-12346', 'STIG Manager', 'col-1'],
+      ['low', 'info', 'V-12347', 'STIG Manager', 'col-1'],
+      ['informational', 'info', '10002', 'Tenable', 'repo-5']
+    ])('should return %s severity as tag %s', (_severity, expectedTag, vulnId, collectionType, originCollectionId) => {
+      (component as any).poamAssociatedVulnerabilities = () => [vulnId];
+      (component as any).currentCollection = () => ({ collectionType, originCollectionId });
 
       component.ngOnChanges({
-        poamAssociatedVulnerabilities: new SimpleChange([], ['10001'], false)
+        poamAssociatedVulnerabilities: new SimpleChange([], [vulnId], false)
       });
       component.getVulnTitles();
 
-      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('danger');
-    });
-
-    it('should return danger for high', () => {
-      (component as any).poamAssociatedVulnerabilities = () => ['V-12345'];
-      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
-
-      component.ngOnChanges({
-        poamAssociatedVulnerabilities: new SimpleChange([], ['V-12345'], false)
-      });
-      component.getVulnTitles();
-
-      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('danger');
-    });
-
-    it('should return warn for medium', () => {
-      (component as any).poamAssociatedVulnerabilities = () => ['V-12346'];
-      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
-
-      component.ngOnChanges({
-        poamAssociatedVulnerabilities: new SimpleChange([], ['V-12346'], false)
-      });
-      component.getVulnTitles();
-
-      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('warn');
-    });
-
-    it('should return info for low', () => {
-      (component as any).poamAssociatedVulnerabilities = () => ['V-12347'];
-      (component as any).currentCollection = () => ({ collectionType: 'STIG Manager', originCollectionId: 'col-1' });
-
-      component.ngOnChanges({
-        poamAssociatedVulnerabilities: new SimpleChange([], ['V-12347'], false)
-      });
-      component.getVulnTitles();
-
-      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('info');
-    });
-
-    it('should return info for informational', () => {
-      (component as any).poamAssociatedVulnerabilities = () => ['10002'];
-      (component as any).currentCollection = () => ({ collectionType: 'Tenable', originCollectionId: 'repo-5' });
-
-      component.ngOnChanges({
-        poamAssociatedVulnerabilities: new SimpleChange([], ['10002'], false)
-      });
-      component.getVulnTitles();
-
-      expect(component.displayVulnerabilities()[0].tagSeverity).toBe('info');
+      expect(component.displayVulnerabilities()[0].tagSeverity).toBe(expectedTag);
     });
 
     it('should return secondary for unknown severity', () => {

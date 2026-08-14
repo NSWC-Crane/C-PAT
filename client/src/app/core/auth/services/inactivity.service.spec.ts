@@ -164,64 +164,21 @@ describe('InactivityService', () => {
   });
 
   describe('shouldMonitor', () => {
-    it('should return true for normal paths', () => {
+    it.each([
+      ['/dashboard', true],
+      ['/401', false],
+      ['/403', false],
+      ['/404', false],
+      ['/not-activated', false],
+      ['/some/nested/401/page', false]
+    ])('should return the correct monitoring decision for pathname %s (expected %s)', (pathname, expected) => {
       Object.defineProperty(globalThis, 'location', {
-        value: { pathname: '/dashboard' },
+        value: { pathname },
         writable: true,
         configurable: true
       });
 
-      expect(service.shouldMonitor()).toBe(true);
-    });
-
-    it('should return false for /401 path', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: { pathname: '/401' },
-        writable: true,
-        configurable: true
-      });
-
-      expect(service.shouldMonitor()).toBe(false);
-    });
-
-    it('should return false for /403 path', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: { pathname: '/403' },
-        writable: true,
-        configurable: true
-      });
-
-      expect(service.shouldMonitor()).toBe(false);
-    });
-
-    it('should return false for /404 path', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: { pathname: '/404' },
-        writable: true,
-        configurable: true
-      });
-
-      expect(service.shouldMonitor()).toBe(false);
-    });
-
-    it('should return false for /not-activated path', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: { pathname: '/not-activated' },
-        writable: true,
-        configurable: true
-      });
-
-      expect(service.shouldMonitor()).toBe(false);
-    });
-
-    it('should return false for paths containing error paths', () => {
-      Object.defineProperty(globalThis, 'location', {
-        value: { pathname: '/some/nested/401/page' },
-        writable: true,
-        configurable: true
-      });
-
-      expect(service.shouldMonitor()).toBe(false);
+      expect(service.shouldMonitor()).toBe(expected);
     });
   });
 

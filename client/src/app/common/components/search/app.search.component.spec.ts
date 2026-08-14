@@ -71,60 +71,21 @@ describe('AppSearchComponent', () => {
   });
 
   describe('search items initialization', () => {
-    it('should include Add POAM item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Add POAM');
+    it.each([
+      ['Add POAM', '/poam-processing/poam-details/ADDPOAM'],
+      ['Asset Processing', '/asset-processing'],
+      ['Global Metrics', '/metrics/global'],
+      ['Home', '/home'],
+      ['Import Processing', '/import-processing'],
+      ['Label Processing', '/label-processing'],
+      ['Manage POAMs', '/poam-processing/poam-manage'],
+      ['Metrics', '/metrics'],
+      ['Notifications', '/notifications']
+    ])('should include %s item pointing at %s', (title, path) => {
+      const item = component['searchItems'].find((i) => i.title === title);
 
       expect(item).toBeTruthy();
-      expect(item?.path).toBe('/poam-processing/poam-details/ADDPOAM');
-    });
-
-    it('should include Asset Processing item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Asset Processing');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/asset-processing');
-    });
-
-    it('should include Home item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Home');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/home');
-    });
-
-    it('should include Import Processing item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Import Processing');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/import-processing');
-    });
-
-    it('should include Label Processing item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Label Processing');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/label-processing');
-    });
-
-    it('should include Manage POAMs item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Manage POAMs');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/poam-processing/poam-manage');
-    });
-
-    it('should include Metrics item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Metrics');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/metrics');
-    });
-
-    it('should include Notifications item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Notifications');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/notifications');
+      expect(item?.path).toBe(path);
     });
 
     it('should include Marketplace item when not disabled', () => {

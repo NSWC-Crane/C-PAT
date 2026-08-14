@@ -197,29 +197,9 @@ describe('AssetProcessingComponent', () => {
       expect(component.cols).toHaveLength(5);
     });
 
-    it('should include assetId column', () => {
+    it.each(['assetId', 'assetName', 'description', 'ipAddress', 'macAddress'])('should include %s column', (field) => {
       component.initializeColumns();
-      expect(component.cols.find((c) => c.field === 'assetId')).toBeDefined();
-    });
-
-    it('should include assetName column', () => {
-      component.initializeColumns();
-      expect(component.cols.find((c) => c.field === 'assetName')).toBeDefined();
-    });
-
-    it('should include description column', () => {
-      component.initializeColumns();
-      expect(component.cols.find((c) => c.field === 'description')).toBeDefined();
-    });
-
-    it('should include ipAddress column', () => {
-      component.initializeColumns();
-      expect(component.cols.find((c) => c.field === 'ipAddress')).toBeDefined();
-    });
-
-    it('should include macAddress column', () => {
-      component.initializeColumns();
-      expect(component.cols.find((c) => c.field === 'macAddress')).toBeDefined();
+      expect(component.cols.find((c) => c.field === field)).toBeDefined();
     });
 
     it('should set customExportHeader on assetId column', () => {

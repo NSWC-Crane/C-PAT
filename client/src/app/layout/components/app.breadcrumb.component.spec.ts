@@ -77,22 +77,12 @@ describe('AppBreadcrumbComponent', () => {
       expect(component.items().length).toBeGreaterThan(0);
     });
 
-    it('should set Home breadcrumb for empty path', () => {
-      mockLocation.path.mockReturnValue('');
-      fixture.detectChanges();
-
-      expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
-    });
-
-    it('should set Home breadcrumb for root path', () => {
-      mockLocation.path.mockReturnValue('/');
-      fixture.detectChanges();
-
-      expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
-    });
-
-    it('should set Home breadcrumb for /home path', () => {
-      mockLocation.path.mockReturnValue('/home');
+    it.each([
+      ['empty path', ''],
+      ['root path', '/'],
+      ['/home path', '/home']
+    ])('should set Home breadcrumb for %s', (_label, path) => {
+      mockLocation.path.mockReturnValue(path);
       fixture.detectChanges();
 
       expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);

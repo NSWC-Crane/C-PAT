@@ -53,6 +53,7 @@ import {
 import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { isZoneCorDPackage, validateCVSSv2Vector, validateCVSSv3Vector, validateCVSSv4Vector, validateIAVM, validateIP, validateStigSeverity, validateUUID } from '../../../../../common/utils/validation.utils';
 import { createIAVInfoMap, createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext } from '../../utils/tenable-vulnerability.utils';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
@@ -362,7 +363,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       content: 'input',
       identifier: 'ip',
       placeholder: 'IP Address...',
-      validator: this.validateIP.bind(this),
+      validator: validateIP,
       value: 4
     },
     {
@@ -370,7 +371,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       content: 'input',
       identifier: 'uuid',
       placeholder: 'UUID...',
-      validator: this.validateUUID.bind(this),
+      validator: validateUUID,
       value: 5
     },
     {
@@ -427,7 +428,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       content: 'input',
       identifier: 'cvssVector',
       placeholder: 'Enter CVSS v2 Vector...',
-      validator: this.validateCVSSv2Vector.bind(this),
+      validator: validateCVSSv2Vector,
       value: 13
     },
     {
@@ -442,7 +443,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       content: 'input',
       identifier: 'cvssV3Vector',
       placeholder: 'Enter CVSS v3 Vector...',
-      validator: this.validateCVSSv3Vector.bind(this),
+      validator: validateCVSSv3Vector,
       value: 15
     },
     {
@@ -478,7 +479,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       content: 'input',
       identifier: 'cvssV4Vector',
       placeholder: 'Enter CVSS v4 Vector...',
-      validator: this.validateCVSSv4Vector.bind(this),
+      validator: validateCVSSv4Vector,
       value: 20
     },
     {
@@ -514,7 +515,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       content: 'input',
       identifier: 'hostUUID',
       placeholder: 'Enter Host UUID...',
-      validator: this.validateUUID.bind(this),
+      validator: validateUUID,
       value: 25
     },
     {
@@ -522,7 +523,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       content: 'input',
       identifier: 'iavmID',
       placeholder: 'Enter IAVM ID...',
-      validator: this.validateIAVM.bind(this),
+      validator: validateIAVM,
       value: 26
     },
     {
@@ -649,7 +650,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       content: 'dropdownAndInput',
       identifier: 'stigSeverity',
       options: this.stigSeverityOptions,
-      validator: this.validateStigSeverity.bind(this),
+      validator: validateStigSeverity,
       value: 44
     },
     {
@@ -1101,7 +1102,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
     } else {
-      const zoneCorD = /Zone:?\s*[CD](?![A-Z])/i.test(this.aaPackage || '');
+      const zoneCorD = isZoneCorDPackage(this.aaPackage);
 
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = zoneCorD ? '0:90' : '0:30';
@@ -2232,50 +2233,6 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     }
   }
 
-  validateIP(ip: string): boolean {
-    const ipRegex = /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
-
-    return ipRegex.test(ip);
-  }
-
-  validateUUID(uuid: string): boolean {
-    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-
-    return uuidRegex.test(uuid);
-  }
-
-  validateCVSSv2Vector(vector: string): boolean {
-    const cvssV2Regex = /^(AV:[LAN]|AC:[LMH]|Au:[MSN]|C:[NPC]|I:[NPC]|A:[NPC])(\/(?!.*\1)(AV:[LAN]|AC:[LMH]|Au:[MSN]|C:[NPC]|I:[NPC]|A:[NPC])){5}$/;
-
-    return cvssV2Regex.test(vector);
-  }
-
-  validateCVSSv3Vector(vector: string): boolean {
-    const cvssV3Regex =
-      /^CVSS:3\.[01]\/((AV:[NALP]|AC:[LH]|PR:[NLH]|UI:[NR]|S:[UC]|C:[NLH]|I:[NLH]|A:[NLH]|E:[XUPFH]|RL:[XOTWU]|RC:[XURC]|CR:[XLH]|IR:[XLH]|AR:[XLH]|MAV:[XNALP]|MAC:[XLH]|MPR:[XNLH]|MUI:[XNR]|MS:[XUC]|MC:[XNLH]|MI:[XNLH]|MA:[XNLH])\/){8,11}$/;
-
-    return cvssV3Regex.test(vector);
-  }
-
-  validateCVSSv4Vector(vector: string): boolean {
-    const cvssV4Regex =
-      /^CVSS:4[.]0\/AV:[NALP]\/AC:[LH]\/AT:[NP]\/PR:[NLH]\/UI:[NPA]\/VC:[HLN]\/VI:[HLN]\/VA:[HLN]\/SC:[HLN]\/SI:[HLN]\/SA:[HLN](\/E:[XAPU])?(\/CR:[XHML])?(\/IR:[XHML])?(\/AR:[XHML])?(\/MAV:[XNALP])?(\/MAC:[XLH])?(\/MAT:[XNP])?(\/MPR:[XNLH])?(\/MUI:[XNPA])?(\/MVC:[XNLH])?(\/MVI:[XNLH])?(\/MVA:[XNLH])?(\/MSC:[XNLH])?(\/MSI:[XNLHS])?(\/MSA:[XNLHS])?(\/S:[XNP])?(\/AU:[XNY])?(\/R:[XAUI])?(\/V:[XDC])?(\/RE:[XLMH])?(\/U:(X|Clear|Green|Amber|Red))?$/;
-
-    return cvssV4Regex.test(vector);
-  }
-
-  validateIAVM(iavmNumber: string): boolean {
-    const iavmRegex = /^\d{4}-[A-Za-z]-\d{4}$/;
-
-    return iavmRegex.test(iavmNumber);
-  }
-
-  validateStigSeverity(severity: string): boolean {
-    const stigSeverityRegex = /^(I{1,3})$/;
-
-    return stigSeverityRegex.test(severity);
-  }
-
   onRangeChange(event: any, identifier: string) {
     this.tempFilters[identifier].value = event.value;
 
@@ -2345,7 +2302,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = '0:30';
     } else {
-      const zoneCorD = /Zone:?\s*[CD](?![A-Z])/i.test(this.aaPackage || '');
+      const zoneCorD = isZoneCorDPackage(this.aaPackage);
 
       this.tempFilters['severity'] = ['1', '2', '3', '4'];
       this.tempFilters['lastSeen'] = zoneCorD ? '0:90' : '0:30';

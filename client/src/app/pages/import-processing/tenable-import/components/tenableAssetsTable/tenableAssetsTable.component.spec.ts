@@ -261,8 +261,19 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should set isLoading to true at start', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [], totalRecords: 0 } }));
+      const pendingAnalysis = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValue(pendingAnalysis);
+      component.isLoading.set(false);
+
       component.getAffectedAssetsForAllPlugins();
+
+      expect(component.isLoading()).toBe(true);
+
+      pendingAnalysis.next({ response: { results: [], totalRecords: 0 } });
+      pendingAnalysis.complete();
+
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should call postTenableAnalysis', () => {

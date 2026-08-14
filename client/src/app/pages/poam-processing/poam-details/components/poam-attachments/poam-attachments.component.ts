@@ -23,6 +23,7 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { validateAttachment } from '../../../../../common/utils/validation.utils';
 import { PoamAttachmentService } from '../../services/poam-attachments.service';
 
 @Component({
@@ -186,23 +187,13 @@ export class PoamAttachmentsComponent implements OnInit {
   }
 
   validateFile(file: File): boolean {
-    if (file.size > 5242880) {
+    const result = validateAttachment(file, this.allowedTypes);
+
+    if (!result.valid) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'File size exceeds 5MB limit.'
-      });
-
-      return false;
-    }
-
-    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-
-    if (!this.allowedTypes.includes(fileExtension)) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'File type not allowed.'
+        detail: result.reason
       });
 
       return false;

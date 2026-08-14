@@ -9,16 +9,38 @@
 */
 
 @mixin ngx-pace-theme() {
-
-  .pace .pace-progress {
-    background: var(--p-primary-color);
+  .pace {
+    pointer-events: none;
+    user-select: none;
   }
 
-  .pace .pace-progress-inner {
-    box-shadow: 0 0 10px var(--p-surface-900), 0 0 5px var(--p-surface-900);
+  .pace-inactive {
+    display: none;
   }
 
   .pace .pace-activity {
     display: none;
+  }
+
+  .pace .pace-progress {
+    background: var(--p-primary-color);
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    right: 100%;
+    width: 100%;
+    height: 2px;
+  }
+
+  .pace .pace-progress-inner {
+    display: block;
+    position: absolute;
+    right: 0;
+    width: 100px;
+    height: 100%;
+    box-shadow:
+      0 0 10px var(--p-surface-900),
+      0 0 5px var(--p-surface-900);
+    transform: rotate(3deg) translateY(-4px);
   }
 }

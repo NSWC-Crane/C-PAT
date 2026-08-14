@@ -187,3 +187,4 @@ cython_debug/
 client/out-tsc
 sonar-project.properties
 .mcp.json
+~$*
