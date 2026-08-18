@@ -67,10 +67,10 @@
   >
     <ng-template #header>
       <tr>
-        <th style="width: 25%" pSortableColumn="dnsName">DNS <p-columnfilter type="text" field="dnsName" display="menu" /></th>
-        <th style="width: 20%" pSortableColumn="ip">IP Address <p-columnfilter type="text" field="ip" display="menu" /></th>
-        <th style="width: 10%" pSortableColumn="score">Score <p-columnfilter type="numeric" field="score" display="menu" /></th>
-        <th style="width: 45%" pSortableColumn="total">Vulnerabilities</th>
+        <th scope="col" style="width: 25%" pSortableColumn="dnsName">DNS <p-columnfilter type="text" field="dnsName" display="menu" /></th>
+        <th scope="col" style="width: 20%" pSortableColumn="ip">IP Address <p-columnfilter type="text" field="ip" display="menu" /></th>
+        <th scope="col" style="width: 10%" pSortableColumn="score">Score <p-columnfilter type="numeric" field="score" display="menu" /></th>
+        <th scope="col" style="width: 45%" pSortableColumn="total">Vulnerabilities</th>
       </tr>
     </ng-template>
     <ng-template #body let-asset>

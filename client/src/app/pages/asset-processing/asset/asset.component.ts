@@ -18,7 +18,6 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { SubSink } from 'subsink';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
@@ -31,7 +30,7 @@ import { AssetService } from '../assets.service';
   styleUrls: ['./asset.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, DialogModule, Select, FormsModule, InputTextModule, TableModule, ToastModule]
+  imports: [ButtonModule, CardModule, DialogModule, Select, FormsModule, InputTextModule, TableModule]
 })
 export class AssetComponent implements OnInit, OnChanges, OnDestroy {
   private readonly assetService = inject(AssetService);
@@ -102,18 +101,18 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    this.subs.sink = this.assetService.getAssetLabels(asset.assetId).subscribe(
-      (assetLabels: any) => {
+    this.subs.sink = this.assetService.getAssetLabels(asset.assetId).subscribe({
+      next: (assetLabels: any) => {
         this.assetLabels.set(assetLabels || []);
       },
-      (error) => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching asset labels: ${getErrorMessage(error)}`
         });
       }
-    );
+    });
   }
 
   transformToDropdownOptions(data: any[], labelField: string, valueField: string) {
@@ -159,8 +158,8 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
         detail: 'Label removed'
       });
     } else if (label.labelId) {
-      this.assetService.deleteAssetLabel(asset.assetId, label.labelId).subscribe(
-        () => {
+      this.assetService.deleteAssetLabel(asset.assetId, label.labelId).subscribe({
+        next: () => {
           this.assetLabels.update((current) => current.filter((_, i) => i !== index));
           this.messageService.add({
             severity: 'success',
@@ -168,14 +167,14 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
             detail: 'Label deleted successfully'
           });
         },
-        (error: Error) => {
+        error: (error: Error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Failed to delete label: ${getErrorMessage(error)}`
           });
         }
-      );
+      });
     }
   }
 
@@ -191,8 +190,8 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
         collectionId: this.selectedCollection()
       };
 
-      this.assetService.postAssetLabel(assetLabel).subscribe(
-        () => {
+      this.assetService.postAssetLabel(assetLabel).subscribe({
+        next: () => {
           this.messageService.add({
             severity: 'success',
             summary: 'Success',
@@ -200,14 +199,14 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
           });
           this.getAssetLabels();
         },
-        (error: Error) => {
+        error: (error: Error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Failed to add label: ${getErrorMessage(error)}`
           });
         }
-      );
+      });
     } else if (asset.assetId === 'ADDASSET' && newLabel.labelId) {
       this.messageService.add({
         severity: 'success',
@@ -244,11 +243,11 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     };
 
     if (asset.assetId === 0) {
-      this.subs.sink = this.assetService.postAsset(asset).subscribe(
-        (data) => {
+      this.subs.sink = this.assetService.postAsset(asset).subscribe({
+        next: (data) => {
           this.assetchange.emit(data.assetId);
         },
-        (error) => {
+        error: (error) => {
           this.invalidData('unexpected error adding asset');
           this.messageService.add({
             severity: 'error',
@@ -256,7 +255,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
             detail: `Error adding asset: ${getErrorMessage(error)}`
           });
         }
-      );
+      });
     } else {
       this.subs.sink = this.assetService.updateAsset(asset).subscribe((data) => {
         this.asset.set(data);
@@ -296,7 +295,7 @@ export class AssetComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     if (asset.assetId == 'ADDASSET') {
-      const exists = this.assets().find((e: { assetName: any }) => e.assetName === this.asset().assetName);
+      const exists = this.assets().some((e: { assetName: any }) => e.assetName === this.asset().assetName);
 
       if (exists) {
         this.invalidData('Asset Already Exists');

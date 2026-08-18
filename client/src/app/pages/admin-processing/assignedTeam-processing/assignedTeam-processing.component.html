@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 !##########################################################################
 ! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
 ! Use is governed by the Open Source Academic Research License Agreement
@@ -55,70 +55,278 @@
   </div>
 </div>
 
-<p-dialog [(visible)]="teamDialog" (onHide)="onDialogHide()" styleClass="w-[50vw] overflow-hidden p-fluid" [modal]="true">
+<p-dialog [header]="dialogMode === 'new' ? 'New Team' : 'Edit Team'" [(visible)]="teamDialog" (onHide)="onDialogHide()" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden p-fluid" [modal]="true" [draggable]="false">
   <ng-template #content>
     @if (editingAssignedTeam(); as editingTeam) {
-      <div class="mb-6">
-        <label for="name" class="mb-2 block text-base font-medium">Team Name:</label>
-        <input
-          type="text"
-          pInputText
-          id="name"
-          [(ngModel)]="editingTeam.assignedTeamName"
-          required
-          [class]="{ 'ng-invalid ng-dirty': !editingTeam.assignedTeamName }"
-          maxlength="99"
-          class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      <div class="flex flex-col gap-6">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class="flex flex-col gap-2">
+            <label for="name" class="text-sm font-semibold">Team Name</label>
+            <input type="text" pInputText id="name" [(ngModel)]="editingTeam.assignedTeamName" required [class]="{ 'ng-invalid ng-dirty': !editingTeam.assignedTeamName }" maxlength="99" placeholder="Team name..." class="w-full" />
+            <small class="text-muted-color">Required. Shown wherever this team is referenced.</small>
+          </div>
 
-        <label for="adTeam" class="mb-2 mt-4 block text-base font-medium">AD Team(s):</label>
-        <p-select
-          [multiple]="true"
-          [checkmark]="true"
-          [showClear]="true"
-          id="adTeam"
-          [(ngModel)]="selectedAdTeams"
-          [options]="filteredTeams()"
-          [filter]="true"
-          (onFilter)="filterTeams($event)"
-          placeholder="Select AD Teams..."
-          [panelStyle]="{ width: '100%' }"
-          class="w-full"
-        />
-      </div>
-      <div class="space-y-2">
-        <label class="mb-2 block text-base font-medium">Team Permissions:</label>
-        <p-picklist
-          [source]="availableCollections"
-          [target]="assignedCollections"
-          sourceHeader="Available Collections"
-          targetHeader="Assigned Collections"
-          [dragdrop]="true"
-          [responsive]="true"
-          [showSourceControls]="false"
-          [showTargetControls]="false"
-          [sourceStyle]="{ height: '300px' }"
-          [targetStyle]="{ height: '300px' }"
-          (onMoveToTarget)="onMoveToTarget($event)"
-          (onMoveToSource)="onMoveToSource($event)"
-          (onMoveAllToTarget)="onMoveToTarget($event)"
-          (onMoveAllToSource)="onMoveToSource($event)"
-          class="w-full"
-        >
-          <ng-template let-collection #item> {{ collection.collectionName }} </ng-template>
-        </p-picklist>
+          <div class="flex flex-col gap-2">
+            <label for="adTeam" class="text-sm font-semibold">AD Team(s)</label>
+            <p-select
+              [multiple]="true"
+              [checkmark]="true"
+              [showClear]="true"
+              id="adTeam"
+              [(ngModel)]="selectedAdTeams"
+              [options]="filteredTeams()"
+              [filter]="true"
+              (onFilter)="filterTeams($event)"
+              placeholder="Select AD Teams..."
+              [panelStyle]="{ width: '100%' }"
+              class="w-full"
+            />
+            <small class="text-muted-color">Optional. Maps this team to one or more Active Directory groups.</small>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold">Collection Coverage</span>
+            <i class="pi pi-info-circle text-primary cursor-pointer text-sm" pTooltip="Collections listed as assigned are granted to every member of this team." tooltipPosition="top"></i>
+          </div>
+          <p-picklist
+            id="teamPermissions"
+            [source]="availableCollections()"
+            [target]="assignedCollections()"
+            sourceHeader="Available Collections"
+            targetHeader="Assigned Collections"
+            [dragdrop]="true"
+            [responsive]="true"
+            [showSourceControls]="false"
+            [showTargetControls]="false"
+            [sourceStyle]="{ height: '18rem' }"
+            [targetStyle]="{ height: '18rem' }"
+            (onMoveToTarget)="onMoveToTarget($event)"
+            (onMoveToSource)="onMoveToSource($event)"
+            (onMoveAllToTarget)="onMoveToTarget($event)"
+            (onMoveAllToSource)="onMoveToSource($event)"
+            class="w-full"
+          >
+            <ng-template let-collection #item> {{ collection.collectionName }} </ng-template>
+          </p-picklist>
+        </div>
       </div>
     }
   </ng-template>
 
   <ng-template #footer>
     @if (editingAssignedTeam(); as editingTeam) {
-      <div class="flex w-full justify-between">
-        <button pButton (click)="hideDialog()" variant="outlined"><span pButtonLabel>Cancel</span></button>
-        <button pButton (click)="saveTeam()" variant="outlined" [disabled]="!editingTeam.assignedTeamName"><span pButtonLabel>Save</span></button>
-      </div>
+      <button pButton (click)="hideDialog()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
+      <button pButton (click)="saveTeam()" [outlined]="true" [disabled]="!editingTeam.assignedTeamName"><span pButtonLabel>Save</span></button>
     }
   </ng-template>
 </p-dialog>
 
-<p-toast />
+<p-dialog header="Remove Collection Coverage" [(visible)]="coverageDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelCoverageRemoval()">
+  @if (coverageRemovalTargets().length > 0) {
+    <div class="flex flex-col gap-5">
+      <p class="m-0 leading-relaxed">Removing this coverage stops the team from granting the collection to anyone added later. Choose what happens to the collection permissions its current members already received.</p>
+
+      @if (coverageRemovalTargets().length > 1) {
+        <div class="border-surface rounded-border flex items-start gap-3 border p-3">
+          <i class="pi pi-info-circle text-primary mt-1"></i>
+          <span class="text-muted-color text-sm leading-relaxed">This choice applies to all {{ coverageRemovalTargets().length }} collections listed below. To decide differently for each, cancel and move them one at a time.</span>
+        </div>
+      }
+
+      @for (target of coverageRemovalTargets(); track target.collection.collectionId) {
+        <div class="border-surface rounded-border overflow-hidden border">
+          <div class="bg-emphasis border-surface flex items-center gap-2 border-b px-4 py-2.5">
+            <i class="pi pi-folder text-muted-color"></i>
+            <span class="font-semibold">{{ target.collection.collectionName }}</span>
+          </div>
+
+          <div class="flex flex-col gap-4 p-4">
+            @if (target.plan.removals.length > 0) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-ban text-sm text-red-500"></i>
+                  <span class="text-sm font-semibold">Access removed entirely</span>
+                  <span class="text-muted-color text-sm">({{ target.plan.removals.length }})</span>
+                </div>
+                <ul class="m-0 list-none p-0">
+                  @for (entry of target.plan.removals; track entry.userId) {
+                    <li class="border-surface flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
+                      <span class="min-w-0 truncate">{{ entry.fullName || entry.userName }}</span>
+                      <p-tag [value]="getAccessLevelLabel(entry.currentAccessLevel)" severity="danger" [rounded]="true" />
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (target.plan.downgrades.length > 0) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-arrow-down text-sm text-amber-500"></i>
+                  <span class="text-sm font-semibold">Access lowered</span>
+                  <span class="text-muted-color text-sm">({{ target.plan.downgrades.length }})</span>
+                </div>
+                <ul class="m-0 list-none p-0">
+                  @for (entry of target.plan.downgrades; track entry.userId) {
+                    <li class="border-surface flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
+                      <span class="min-w-0 truncate">{{ entry.fullName || entry.userName }}</span>
+                      <span class="flex shrink-0 items-center gap-2">
+                        <p-tag [value]="getAccessLevelLabel(entry.currentAccessLevel)" severity="secondary" [rounded]="true" />
+                        <i class="pi pi-arrow-right text-muted-color text-xs"></i>
+                        <p-tag [value]="getAccessLevelLabel(entry.targetAccessLevel ?? 0)" severity="warn" [rounded]="true" />
+                      </span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (target.plan.unaffected.length > 0) {
+              <div class="text-muted-color flex items-center gap-2 text-sm">
+                <i class="pi pi-check-circle text-sm"></i>
+                <span>{{ target.plan.unaffected.length }} member{{ target.plan.unaffected.length > 1 ? 's' : '' }} unaffected &mdash; still justified by another team or by a direct grant.</span>
+              </div>
+            }
+
+            @if (target.plan.removals.length + target.plan.downgrades.length + target.plan.unaffected.length === 0) {
+              <div class="text-muted-color flex items-center gap-2 text-sm">
+                <i class="pi pi-minus-circle text-sm"></i>
+                <span>No member holds a permission this team is recorded as having granted for this collection.</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="border-surface rounded-border flex flex-col gap-2 border border-dashed p-3">
+        @if (!coverageHasProposals()) {
+          <span class="text-muted-color text-sm leading-relaxed">Nothing would change for any member. Removing the coverage only stops future assignments from granting it.</span>
+        }
+        <span class="text-muted-color text-sm leading-relaxed">Keeping the access converts it into a direct grant for each member, so it stays with them through future team changes.</span>
+      </div>
+    </div>
+  }
+  <ng-template #footer>
+    <button pButton (click)="cancelCoverageRemoval()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
+    <span class="flex gap-2">
+      <button pButton (click)="confirmCoverageRemoval(false)" [outlined]="true" [disabled]="coverageActionInFlight()"><span pButtonLabel>Remove but keep access</span></button>
+      <button pButton (click)="confirmCoverageRemoval(true)" [outlined]="true" severity="danger" [disabled]="!coverageHasProposals() || coverageActionInFlight()"><span pButtonLabel>Remove and revoke</span></button>
+    </span>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Add Collection Coverage" [(visible)]="coverageGrantDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelCoverageGrant()">
+  @if (coverageGrantTargets().length > 0) {
+    <div class="flex flex-col gap-5">
+      <p class="m-0 leading-relaxed">Adding this coverage grants the collection to anyone assigned to the team later. Choose which current members should receive it now.</p>
+
+      @for (target of coverageGrantTargets(); track target.collection.collectionId) {
+        <div class="border-surface rounded-border overflow-hidden border">
+          <div class="bg-emphasis border-surface flex items-center gap-2 border-b px-4 py-2.5">
+            <i class="pi pi-folder text-muted-color"></i>
+            <span class="font-semibold">{{ target.collection.collectionName }}</span>
+          </div>
+
+          <div class="flex flex-col gap-4 p-4">
+            @if (grantProposals(target).length > 0) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                  <p-checkbox [binary]="true" [ngModel]="allGrantMembersSelected(target)" (ngModelChange)="toggleAllGrantMembers(target)" [inputId]="'grantAll-' + target.collection.collectionId" />
+                  <label class="cursor-pointer text-sm font-semibold" [for]="'grantAll-' + target.collection.collectionId">Access to be granted</label>
+                  <span class="text-muted-color text-sm">({{ grantProposals(target).length }})</span>
+                </div>
+                <ul class="m-0 list-none p-0">
+                  @for (entry of grantProposals(target); track entry.userId) {
+                    <li class="border-surface flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
+                      <span class="flex min-w-0 items-center gap-2">
+                        <p-checkbox
+                          [binary]="true"
+                          [ngModel]="isGrantMemberSelected(target.collection.collectionId, entry.userId)"
+                          (ngModelChange)="toggleGrantMember(target.collection.collectionId, entry.userId)"
+                          [inputId]="'grant-' + target.collection.collectionId + '-' + entry.userId"
+                        />
+                        <label class="cursor-pointer truncate" [for]="'grant-' + target.collection.collectionId + '-' + entry.userId">{{ entry.fullName || entry.userName }}</label>
+                      </span>
+                      <span class="flex shrink-0 items-center gap-2">
+                        @if (entry.currentAccessLevel === null) {
+                          <span class="text-muted-color text-sm">No access</span>
+                        } @else {
+                          <p-tag [value]="getAccessLevelLabel(entry.currentAccessLevel)" severity="secondary" [rounded]="true" />
+                        }
+                        <i class="pi pi-arrow-right text-muted-color text-xs"></i>
+                        <p-tag [value]="getAccessLevelLabel(entry.newAccessLevel ?? 0)" severity="success" [rounded]="true" />
+                      </span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (target.plan.unchanged.length > 0) {
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-check-circle text-muted-color text-sm"></i>
+                  <span class="text-sm font-semibold">Already has sufficient access</span>
+                  <span class="text-muted-color text-sm">({{ target.plan.unchanged.length }})</span>
+                </div>
+                <ul class="m-0 list-none p-0">
+                  @for (entry of target.plan.unchanged; track entry.userId) {
+                    <li class="border-surface text-muted-color flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
+                      <span class="min-w-0 truncate">{{ entry.fullName || entry.userName }}</span>
+                      <p-tag [value]="getAccessLevelLabel(entry.accessLevel ?? 0)" severity="secondary" [rounded]="true" />
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (grantProposals(target).length + target.plan.unchanged.length === 0) {
+              <div class="text-muted-color flex items-center gap-2 text-sm">
+                <i class="pi pi-minus-circle text-sm"></i>
+                <span>No current member is eligible to receive this collection, so nothing is granted now.</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (coverageGrantHasProposals()) {
+        <div class="border-surface rounded-border border border-dashed p-3">
+          <span class="text-muted-color text-sm leading-relaxed">
+            Leaving a member unchecked skips them and saving their team assignment again will not grant this collection. To give it back later, use <strong>Restore skipped collections</strong> on their team row, or remove this coverage and add it
+            again.
+          </span>
+        </div>
+      }
+    </div>
+  }
+  <ng-template #footer>
+    <button pButton (click)="cancelCoverageGrant()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
+    <button pButton (click)="confirmCoverageGrant()" [outlined]="true" [disabled]="coverageGrantActionInFlight()">
+      <span pButtonLabel>Add and grant access ({{ selectedGrantCount() }})</span>
+    </button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Delete Team" [(visible)]="deleteTeamDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelDeleteTeam()">
+  <div class="flex flex-col gap-5">
+    <div class="flex items-start gap-3">
+      <i class="pi pi-exclamation-triangle mt-1 text-xl text-amber-500"></i>
+      <p class="m-0 leading-relaxed">
+        Delete <strong>{{ deleteTeamTarget()?.assignedTeamName }}</strong
+        >? This removes the team and every membership in it.
+      </p>
+    </div>
+    <div class="border-surface rounded-border border border-dashed p-3">
+      <span class="text-muted-color text-sm leading-relaxed">
+        No one loses access. Each member keeps the collection permissions this team granted them, converted into direct grants so they survive the team going away. Removing that access afterwards has to be done per user on the permissions tab.
+      </span>
+    </div>
+  </div>
+  <ng-template #footer>
+    <button pButton (click)="cancelDeleteTeam()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
+    <button pButton (click)="confirmDeleteTeam()" [outlined]="true" severity="danger"><span pButtonLabel>Delete team</span></button>
+  </ng-template>
+</p-dialog>

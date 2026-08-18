@@ -181,14 +181,14 @@ describe('TenableAssetsTableComponent', () => {
       (component as any).pluginID = () => undefined;
       (component as any).tenableRepoId = () => undefined;
       component.initColumnsAndFilters();
-      expect(component.cols.length).toBe(16);
+      expect(component.cols).toHaveLength(16);
     });
 
     it('should add 3 POAM columns when pluginID and tenableRepoId are set', () => {
       (component as any).pluginID = () => '12345';
       (component as any).tenableRepoId = () => 99;
       component.initColumnsAndFilters();
-      expect(component.cols.length).toBe(19);
+      expect(component.cols).toHaveLength(19);
     });
 
     it('should include firstSeen and lastSeen columns when pluginID is set', () => {
@@ -206,7 +206,7 @@ describe('TenableAssetsTableComponent', () => {
       (component as any).pluginID = () => undefined;
       (component as any).tenableRepoId = () => undefined;
       component.initColumnsAndFilters();
-      expect(component.exportColumns.length).toBe(component.cols.length);
+      expect(component.exportColumns).toHaveLength(component.cols.length);
     });
 
     it('should set selectedColumns to default subset', () => {
@@ -261,8 +261,19 @@ describe('TenableAssetsTableComponent', () => {
     });
 
     it('should set isLoading to true at start', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [], totalRecords: 0 } }));
+      const pendingAnalysis = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValue(pendingAnalysis);
+      component.isLoading.set(false);
+
       component.getAffectedAssetsForAllPlugins();
+
+      expect(component.isLoading()).toBe(true);
+
+      pendingAnalysis.next({ response: { results: [], totalRecords: 0 } });
+      pendingAnalysis.complete();
+
+      expect(component.isLoading()).toBe(false);
     });
 
     it('should call postTenableAnalysis', () => {
@@ -273,7 +284,7 @@ describe('TenableAssetsTableComponent', () => {
     it('should populate affectedAssets from results', () => {
       component.assetDeltaList = { assets: [] };
       component.getAffectedAssetsForAllPlugins();
-      expect(component.affectedAssets.length).toBe(2);
+      expect(component.affectedAssets).toHaveLength(2);
     });
 
     it('should set totalRecords to affectedAssets length', () => {
@@ -330,7 +341,7 @@ describe('TenableAssetsTableComponent', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(of(dupResult));
       component.assetDeltaList = { assets: [] };
       component.getAffectedAssetsForAllPlugins();
-      expect(component.affectedAssets.length).toBe(1);
+      expect(component.affectedAssets).toHaveLength(1);
     });
 
     it('should include 30-day filter when is30DayFilterActive is true', () => {
@@ -362,34 +373,6 @@ describe('TenableAssetsTableComponent', () => {
     it('should show error on service failure', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('fail')));
       component.getAffectedAssetsForAllPlugins();
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
-    });
-  });
-
-  describe('getAffectedAssetsByPluginId', () => {
-    it('should return an Observable of mapped assets', () => {
-      component.getAffectedAssetsByPluginId('12345', 99).subscribe((assets) => {
-        expect(assets.length).toBe(2);
-        expect(assets[0].family).toBe('Web Servers');
-      });
-    });
-
-    it('should set sourcePluginID on each asset', () => {
-      component.getAffectedAssetsByPluginId('12345', 99).subscribe((assets) => {
-        expect(assets[0].sourcePluginID).toBe('12345');
-      });
-    });
-
-    it('should return empty array on service error', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('fail')));
-      component.getAffectedAssetsByPluginId('12345', 99).subscribe((assets) => {
-        expect(assets).toEqual([]);
-      });
-    });
-
-    it('should show error message on service failure', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('fail')));
-      component.getAffectedAssetsByPluginId('12345', 99).subscribe(() => {});
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
   });
@@ -453,7 +436,7 @@ describe('TenableAssetsTableComponent', () => {
         { netbiosName: 'HOST2', dnsName: 'd2.com', hostUUID: 'u2', macAddress: 'BB' }
       ];
       component.matchAssetsWithTeams();
-      expect(component.assetsByTeam['team1'].length).toBe(1);
+      expect(component.assetsByTeam['team1']).toHaveLength(1);
     });
   });
 
@@ -472,7 +455,7 @@ describe('TenableAssetsTableComponent', () => {
         team2: [{ assignedTeamName: 'Team Beta', hostUUID: 'u2' }]
       };
       component.createTeamTabs();
-      expect(component.teamTabs().length).toBe(3);
+      expect(component.teamTabs()).toHaveLength(3);
     });
 
     it('should use assignedTeamName from first asset in team', () => {
@@ -490,21 +473,21 @@ describe('TenableAssetsTableComponent', () => {
       component.affectedAssets = [];
       component.assetsByTeam = { team1: [] };
       component.createTeamTabs();
-      expect(component.teamTabs().length).toBe(1);
+      expect(component.teamTabs()).toHaveLength(1);
     });
   });
 
   describe('lazyOrNot', () => {
     const event = { first: 0, rows: 25 } as any;
 
-    it('should call getAffectedAssetsByPluginId when pluginID set and not assetProcessing', () => {
-      const spy = vi.spyOn(component, 'getAffectedAssetsByPluginId').mockReturnValue(of([]));
+    it('should not load anything when assetProcessing is false', () => {
+      const spy = vi.spyOn(component, 'getAffectedAssets').mockImplementation(() => {});
 
       (component as any).pluginID = () => '12345';
       (component as any).tenableRepoId = () => 99;
       (component as any).assetProcessing = () => false;
       component.lazyOrNot(event);
-      expect(spy).toHaveBeenCalledWith('12345', 99);
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('should call getAffectedAssets when assetProcessing is true', () => {
@@ -566,7 +549,7 @@ describe('TenableAssetsTableComponent', () => {
 
     it('should parse IAVA references', () => {
       component.parseReferences('IAVA:2023-A-0001');
-      expect(component.iavReferences().length).toBe(1);
+      expect(component.iavReferences()).toHaveLength(1);
     });
 
     it('should parse other references', () => {
@@ -576,9 +559,9 @@ describe('TenableAssetsTableComponent', () => {
 
     it('should handle multiple references', () => {
       component.parseReferences('CVE:CVE-2023-1234 IAVB:2023-B-0001 BID:99');
-      expect(component.cveReferences().length).toBe(1);
-      expect(component.iavReferences().length).toBe(1);
-      expect(component.otherReferences().length).toBe(1);
+      expect(component.cveReferences()).toHaveLength(1);
+      expect(component.iavReferences()).toHaveLength(1);
+      expect(component.otherReferences()).toHaveLength(1);
     });
 
     it('should strip trailing comma from reference value', () => {
@@ -823,6 +806,44 @@ describe('TenableAssetsTableComponent', () => {
       fixture.componentRef.setInput('pluginID', '12345');
       component.ngOnInit();
       expect(() => fixture.destroy()).not.toThrow();
+    });
+  });
+
+  describe('load generation guard', () => {
+    const page = (name: string, totalRecords: number) => ({ response: { results: [{ pluginID: '1', name, family: { name: 'F' }, severity: { name: 'High' } }], totalRecords } });
+
+    it('keeps the newest page when an earlier page load lands afterwards', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+      (component as any).tenableRepoId = () => 99;
+      (component as any).assetProcessing = () => true;
+
+      component.getAffectedAssets({ first: 0, rows: 25 } as any);
+      component.getAffectedAssets({ first: 25, rows: 25 } as any);
+
+      second.next(page('page-2', 50));
+      first.next(page('page-1', 50));
+
+      expect(component.affectedAssets[0].pluginName).toBe('page-2');
+      expect(component.isLoading()).toBe(false);
+    });
+
+    it('does not let an earlier load clear the spinner of a newer one', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+      (component as any).tenableRepoId = () => 99;
+      (component as any).assetProcessing = () => true;
+
+      component.getAffectedAssets({ first: 0, rows: 25 } as any);
+      component.getAffectedAssets({ first: 25, rows: 25 } as any);
+
+      first.next(page('page-1', 50));
+
+      expect(component.isLoading()).toBe(true);
     });
   });
 });

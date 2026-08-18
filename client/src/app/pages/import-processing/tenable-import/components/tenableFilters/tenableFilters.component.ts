@@ -17,7 +17,6 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../import.service';
@@ -39,7 +38,7 @@ interface FilterOption {
   styleUrls: ['./tenableFilters.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, AutoCompleteModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, ToastModule, TooltipModule]
+  imports: [FormsModule, AutoCompleteModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, TooltipModule]
 })
 export class TenableFiltersComponent implements OnInit {
   private readonly importService = inject(ImportService);
@@ -105,7 +104,7 @@ export class TenableFiltersComponent implements OnInit {
         next: (filters: TenableFilter[]) => {
           this.existingFilters = filters.map((filter) => {
             const hasAccess = this.accessLevel() === 4;
-            const isCreator = this.currentUser && filter.createdBy === this.currentUser.userName;
+            const isCreator = !!this.currentUser?.userName && filter.createdBy === this.currentUser.userName;
             const canUpdateFilter = hasAccess || isCreator;
 
             return {
@@ -190,7 +189,7 @@ export class TenableFiltersComponent implements OnInit {
 
       if (existingFilter) {
         const hasAccess = this.accessLevel() === 4;
-        const isCreator = this.currentUser && existingFilter.createdBy === this.currentUser.userName;
+        const isCreator = !!this.currentUser?.userName && existingFilter.createdBy === this.currentUser.userName;
         const canUpdateExisting = hasAccess || isCreator;
 
         if (canUpdateExisting) {

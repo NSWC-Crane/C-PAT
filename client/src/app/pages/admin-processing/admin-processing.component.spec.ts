@@ -20,7 +20,6 @@ import { MessageService } from 'primeng/api';
 import { createMockMessageService, createMockRouter } from '../../../testing/mocks/service-mocks';
 import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
-import { ToastModule } from 'primeng/toast';
 import { AdminProcessingComponent } from './admin-processing.component';
 import { PayloadService } from '../../common/services/setPayload.service';
 
@@ -97,8 +96,7 @@ describe('AdminProcessingComponent', () => {
             MockNessusPluginMappingComponent,
             MockUserProcessingComponent,
             MockVRAMImportComponent,
-            TabsModule,
-            ToastModule
+            TabsModule
           ]
         }
       })
@@ -263,8 +261,7 @@ describe('AdminProcessingComponent', () => {
               MockNessusPluginMappingComponent,
               MockUserProcessingComponent,
               MockVRAMImportComponent,
-              TabsModule,
-              ToastModule
+              TabsModule
             ]
           }
         })

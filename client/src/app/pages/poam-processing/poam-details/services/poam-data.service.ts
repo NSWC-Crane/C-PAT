@@ -237,11 +237,21 @@ export class PoamDataService {
 
     if (!primaryId) return [];
 
-    const associatedIds = Array.isArray(poam.associatedVulnerabilities)
-      ? poam.associatedVulnerabilities.map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null)).filter((id) => id !== null && id !== undefined && id !== '')
-      : [];
+    const associatedIds = Array.isArray(poam.associatedVulnerabilities) ? poam.associatedVulnerabilities.map((vuln) => this.extractVulnerabilityId(vuln)).filter((id) => id !== null && id !== undefined && id !== '') : [];
 
     return [primaryId, ...associatedIds];
+  }
+
+  private extractVulnerabilityId(vuln: any): string | null {
+    if (typeof vuln === 'string') {
+      return vuln;
+    }
+
+    if (typeof vuln === 'object' && vuln.associatedVulnerability) {
+      return vuln.associatedVulnerability;
+    }
+
+    return null;
   }
 
   fetchAssets(collectionId: number, poamId: number): Observable<any> {

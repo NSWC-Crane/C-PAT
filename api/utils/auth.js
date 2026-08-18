@@ -21,7 +21,7 @@ const { differenceInMinutes } = require('date-fns');
 
 let jwksCache;
 
-const privilegeGetter = new Function('obj', 'return obj?.' + config.oauth.claims.privilegesChain + ' || [];');
+const privilegeGetter = obj => config.oauth.claims.privilegesPath.reduce((o, k) => o?.[k], obj) || [];
 
 function decodeToken(tokenJWT) {
     const tokenObj = jwt.decode(tokenJWT, { complete: true });

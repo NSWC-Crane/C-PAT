@@ -19,19 +19,18 @@ import { ButtonModule } from 'primeng/button';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
+import { validateAttachment } from '../../../../../common/utils/validation.utils';
 import { PoamAttachmentService } from '../../services/poam-attachments.service';
 
 @Component({
   selector: 'cpat-poam-attachments',
   templateUrl: './poam-attachments.component.html',
-  styleUrls: ['./poam-attachments.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, ToastModule, TooltipModule, DatePipe]
+  imports: [FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, TooltipModule, DatePipe]
 })
 export class PoamAttachmentsComponent implements OnInit {
   private readonly messageService = inject(MessageService);
@@ -187,23 +186,13 @@ export class PoamAttachmentsComponent implements OnInit {
   }
 
   validateFile(file: File): boolean {
-    if (file.size > 5242880) {
+    const result = validateAttachment(file, this.allowedTypes);
+
+    if (!result.valid) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'File size exceeds 5MB limit.'
-      });
-
-      return false;
-    }
-
-    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-
-    if (!this.allowedTypes.includes(fileExtension)) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'File type not allowed.'
+        detail: result.reason
       });
 
       return false;

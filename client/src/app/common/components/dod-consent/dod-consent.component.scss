@@ -8,16 +8,18 @@
 !##########################################################################
 */
 
-:host ::ng-deep .p-dialog-header {
-  margin: 1rem 0 0 1rem;
-  padding-bottom: 1rem;
-}
+:host ::ng-deep {
+  .p-dialog-header {
+    margin: 1rem 0 0 1rem;
+    padding-bottom: 1rem;
+  }
 
-:host ::ng-deep .p-dialog-content {
-  padding-top: 0;
-}
+  .p-dialog-content {
+    padding-top: 0;
+  }
 
-:host ::ng-deep p {
-  line-height: 1.25;
-  margin: 1rem 0;
+  p {
+    line-height: 1.25;
+    margin: 1rem 0;
+  }
 }

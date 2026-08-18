@@ -35,7 +35,7 @@ describe('MarketplaceService', () => {
 
       service.getThemes().subscribe((themes) => {
         expect(themes).toEqual(mockThemes);
-        expect(themes.length).toBe(3);
+        expect(themes).toHaveLength(3);
       });
 
       const req = httpMock.expectOne(`${apiBase}/marketplace/themes`);
@@ -132,7 +132,7 @@ describe('MarketplaceService', () => {
 
       service.getUserThemes().subscribe((themes) => {
         expect(themes).toEqual(mockUserThemes);
-        expect(themes.length).toBe(2);
+        expect(themes).toHaveLength(2);
       });
 
       const req = httpMock.expectOne(`${apiBase}/marketplace/user-themes`);

@@ -8,11 +8,13 @@
 !##########################################################################
 */
 
-$color-high: rgba(235, 70, 100, 0.8);
-$color-medium: rgba(250, 165, 50, 0.8);
-$color-low: rgba(230, 190, 45, 0.8);
-$color-stig: rgba(15, 185, 130, 0.85);
-$color-tenable: rgba(235, 70, 100, 0.85);
+@use 'severity-colors' as severity;
+
+$color-high: severity.$severity-critical;
+$color-medium: severity.$severity-medium;
+$color-low: severity.$severity-low;
+$color-stig: severity.$severity-very-low;
+$color-tenable: severity.$severity-critical;
 
 .no-data-message {
   display: flex;

@@ -22,7 +22,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { forkJoin } from 'rxjs';
 import { SubSink } from 'subsink';
@@ -69,7 +68,6 @@ interface AssetEntry {
     STIGManagerAssetsTableComponent,
     TableModule,
     TabsModule,
-    ToastModule,
     TenableHighRiskAssetsTableComponent,
     TenableHostAssetsTableComponent,
     TooltipModule

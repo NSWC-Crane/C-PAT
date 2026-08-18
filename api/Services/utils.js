@@ -21,7 +21,6 @@ const Importer = require('./migrations/lib/mysql-import.js');
 const MySqlStorage = require('./migrations/lib/umzug-mysql-storage');
 const state = require('../utils/state');
 const minMySqlVersion = '8.0.24';
-let _this = this;
 let initAttempt = 0;
 let NetKeepAlive;
 if (!process.pkg) {
@@ -34,8 +33,8 @@ const PoolMonitor = require('../utils/PoolMonitor.js');
  */
 async function preflightConnection() {
     logger.writeDebug('mysql', 'preflight', { attempt: ++initAttempt });
-    const connection = await _this.pool.getConnection();
-    await connection.release();
+    const connection = await module.exports.pool.getConnection();
+    connection.release();
 }
 
 /**
@@ -43,7 +42,7 @@ async function preflightConnection() {
  * @returns {Promise<string>} The MySQL version.
  */
 async function getMySqlVersion() {
-    let [result] = await _this.pool.query('SELECT VERSION() as version');
+    let [result] = await module.exports.pool.query('SELECT VERSION() as version');
     return result[0].version;
 }
 
@@ -52,7 +51,7 @@ async function getMySqlVersion() {
  * @returns {Promise<number>} The number of tables.
  */
 async function getTableCount() {
-    let [tables] = await _this.pool.query('SHOW TABLES');
+    let [tables] = await module.exports.pool.query('SHOW TABLES');
     return tables.length;
 }
 
@@ -70,8 +69,8 @@ function isOkVersion(version) {
  * @returns {Promise<Array>} The list of executed migrations.
  */
 async function doMigrations() {
-    const storage = new MySqlStorage({ pool: _this.pool });
-    const umzugGlobPattern = path.join(__dirname, './migrations/*.js').replace(/\\/g, '/');
+    const storage = new MySqlStorage({ pool: module.exports.pool });
+    const umzugGlobPattern = path.join(__dirname, './migrations/*.js').replaceAll('\\', '/');
 
     const umzug = new Umzug({
         migrations: {
@@ -86,7 +85,7 @@ async function doMigrations() {
             },
         },
         storage: storage,
-        context: _this.pool,
+        context: module.exports.pool,
         logger: {
             info: message => logger.writeInfo('umzug', 'info', typeof message === 'object' ? message : { message }),
             warn: message => logger.writeWarn('umzug', 'warn', typeof message === 'object' ? message : { message }),
@@ -127,7 +126,7 @@ async function doMigrations() {
  */
 async function setupInitialSchema() {
     logger.writeInfo('mysql', 'schema', { message: 'setting up new schema.' });
-    const importer = new Importer(_this.pool);
+    const importer = new Importer(module.exports.pool);
     const dir = path.join(__dirname, 'migrations', 'sql', 'current');
     const files = await fs.promises.readdir(dir);
     try {
@@ -233,7 +232,7 @@ async function poolMonitorRetryFn() {
         logger.writeInfo('mysql', 'restore', { message: `connection succeeded` });
         const version = await getMySqlVersion();
         if (!isOkVersion(version)) {
-            const connection = await _this.pool.getConnection();
+            const connection = await module.exports.pool.getConnection();
             connection.connection.destroy();
             throw new Error(`MySQL release ${version} is too old. Update to release ${minMySqlVersion} or later.`);
         } else {
@@ -303,12 +302,11 @@ module.exports.initializeDatabase = async function () {
         const poolConfig = getPoolConfig();
         logger.writeDebug('mysql', 'poolConfig', { ...poolConfig });
 
-        _this.pool = mysql.createPool(poolConfig);
-        module.exports.pool = _this.pool;
-        attachPoolEventHandlers(_this.pool);
+        module.exports.pool = mysql.createPool(poolConfig);
+        attachPoolEventHandlers(module.exports.pool);
 
-        new PoolMonitor({ pool: _this.pool, state, retryInterval: 20000, retryFn: poolMonitorRetryFn });
-        state.dbPool = _this.pool;
+        new PoolMonitor({ pool: module.exports.pool, state, retryInterval: 20000, retryFn: poolMonitorRetryFn });
+        state.dbPool = module.exports.pool;
 
         await bootstrapRetryFn(preflightConnection);
 
@@ -323,7 +321,7 @@ module.exports.initializeDatabase = async function () {
             logger.writeInfo('mysql', 'preflight', { success: true, version });
         }
 
-        patchRemoveConnection(_this.pool);
+        patchRemoveConnection(module.exports.pool);
 
         await setupSchema();
 
@@ -359,7 +357,6 @@ ${orderBy?.length ? 'ORDER BY\n  ' + orderBy.join(',\n  ') : ''}
 module.exports.CONTEXT_ALL = 'all';
 module.exports.CONTEXT_DEPT = 'department';
 module.exports.CONTEXT_USER = 'user';
-
 module.exports.WRITE_ACTION = {
     CREATE: 0,
     REPLACE: 1,
@@ -367,11 +364,16 @@ module.exports.WRITE_ACTION = {
 };
 
 module.exports.retryOnDeadlock = async function (fn, statusObj = {}) {
+    let lockWaitRetries = 0;
     const retryFunction = async function (bail) {
         try {
             return await fn();
         } catch (e) {
             if (e.code === 'ER_LOCK_DEADLOCK') {
+                throw e;
+            }
+            if (e.code === 'ER_LOCK_WAIT_TIMEOUT' && lockWaitRetries < 2) {
+                ++lockWaitRetries;
                 throw e;
             }
             bail(e);

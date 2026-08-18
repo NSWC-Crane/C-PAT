@@ -104,28 +104,10 @@ describe('DoDConsentComponent', () => {
       expect(paragraphs.length).toBeGreaterThanOrEqual(2);
     });
 
-    it('should contain USG consent language', () => {
+    it.each(['U.S. Government', 'monitors communications', 'inspect and seize data', 'privileged communications'])('should contain consent language: %s', (phrase) => {
       const container = fixture.debugElement.query(By.css('div'));
 
-      expect(container.nativeElement.textContent).toContain('U.S. Government');
-    });
-
-    it('should contain information about monitoring', () => {
-      const container = fixture.debugElement.query(By.css('div'));
-
-      expect(container.nativeElement.textContent).toContain('monitors communications');
-    });
-
-    it('should contain information about data inspection', () => {
-      const container = fixture.debugElement.query(By.css('div'));
-
-      expect(container.nativeElement.textContent).toContain('inspect and seize data');
-    });
-
-    it('should contain information about privileged communications', () => {
-      const container = fixture.debugElement.query(By.css('div'));
-
-      expect(container.nativeElement.textContent).toContain('privileged communications');
+      expect(container.nativeElement.textContent).toContain(phrase);
     });
 
     it('should render OK button', () => {

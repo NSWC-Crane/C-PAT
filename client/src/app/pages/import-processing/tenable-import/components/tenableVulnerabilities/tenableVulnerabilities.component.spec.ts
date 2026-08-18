@@ -177,85 +177,33 @@ describe('TenableVulnerabilitiesComponent', () => {
     });
 
     it('should have 61 accordion items', () => {
-      expect(component.accordionItems.length).toBe(61);
+      expect(component.accordionItems).toHaveLength(61);
     });
   });
 
-  describe('Validation methods', () => {
-    describe('validateIP', () => {
-      it('should return true for valid IPv4', () => {
-        expect(component.validateIP('192.168.1.1')).toBe(true);
-      });
+  describe('Accordion item validators', () => {
+    const validatorFor = (identifier: string) => component.accordionItems.find((item) => item.identifier === identifier)?.validator;
 
-      it('should return true for 0.0.0.0', () => {
-        expect(component.validateIP('0.0.0.0')).toBe(true);
-      });
+    it.each([
+      ['ip', '192.168.1.1', '256.1.1.1'],
+      ['uuid', '550e8400-e29b-41d4-a716-446655440000', '550e8400e29b41d4a716446655440000'],
+      ['hostUUID', '550e8400-e29b-41d4-a716-446655440000', '550e8400e29b41d4a716446655440000'],
+      ['iavmID', '2024-A-0123', '2024-0123'],
+      ['stigSeverity', 'II', 'IV'],
+      ['cvssVector', 'AV:N/AC:L/Au:N/C:P/I:P/A:P', 'AV:N/AC:L/Au:N/C:P/I:P'],
+      ['cvssV3Vector', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N'],
+      ['cvssV4Vector', 'CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N', 'CVSS:4.0/AV:N/AC:L/AT:N']
+    ])('%s accepts a well-formed value and rejects a malformed one', (identifier, valid, invalid) => {
+      const validator = validatorFor(identifier);
 
-      it('should return true for 255.255.255.255', () => {
-        expect(component.validateIP('255.255.255.255')).toBe(true);
-      });
-
-      it('should return false for invalid IP (out of range)', () => {
-        expect(component.validateIP('256.1.1.1')).toBe(false);
-      });
-
-      it('should return false for partial IP', () => {
-        expect(component.validateIP('192.168.1')).toBe(false);
-      });
-
-      it('should return false for non-IP string', () => {
-        expect(component.validateIP('not-an-ip')).toBe(false);
-      });
+      expect(validator).toBeDefined();
+      expect(validator!(valid)).toBe(true);
+      expect(validator!(invalid)).toBe(false);
     });
 
-    describe('validateUUID', () => {
-      it('should return true for valid UUID', () => {
-        expect(component.validateUUID('550e8400-e29b-41d4-a716-446655440000')).toBe(true);
-      });
-
-      it('should return false for invalid UUID (missing dashes)', () => {
-        expect(component.validateUUID('550e8400e29b41d4a716446655440000')).toBe(false);
-      });
-
-      it('should return false for too-short UUID', () => {
-        expect(component.validateUUID('550e8400-e29b-41d4')).toBe(false);
-      });
-
-      it('should return false for empty string', () => {
-        expect(component.validateUUID('')).toBe(false);
-      });
-    });
-
-    describe('validateStigSeverity', () => {
-      it('should return true for "I"', () => {
-        expect(component.validateStigSeverity('I')).toBe(true);
-      });
-
-      it('should return true for "II"', () => {
-        expect(component.validateStigSeverity('II')).toBe(true);
-      });
-
-      it('should return true for "III"', () => {
-        expect(component.validateStigSeverity('III')).toBe(true);
-      });
-
-      it('should return false for "IV"', () => {
-        expect(component.validateStigSeverity('IV')).toBe(false);
-      });
-
-      it('should return false for empty string', () => {
-        expect(component.validateStigSeverity('')).toBe(false);
-      });
-    });
-
-    describe('validateIAVM', () => {
-      it('should return true for valid IAVM number', () => {
-        expect((component as any).validateIAVM('2024-A-0123')).toBe(true);
-      });
-
-      it('should return false for invalid format', () => {
-        expect((component as any).validateIAVM('2024-0123')).toBe(false);
-      });
+    it('should mark an input filter invalid without throwing when the value is null', () => {
+      expect(() => component.onFilterChange({ value: null }, 'ip', true)).not.toThrow();
+      expect(component.tempFilters['ip'].isValid).toBe(false);
     });
   });
 
@@ -375,20 +323,20 @@ describe('TenableVulnerabilitiesComponent', () => {
     it('should return all items when filterSearch is empty', () => {
       component.filterSearch = '';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems().length).toBe(3);
+      expect(component.filteredAccordionItems()).toHaveLength(3);
     });
 
     it('should filter by search term case-insensitively', () => {
       component.filterSearch = 'sev';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems().length).toBe(1);
+      expect(component.filteredAccordionItems()).toHaveLength(1);
       expect(component.filteredAccordionItems()[0].header).toBe('Severity');
     });
 
     it('should return empty array when no items match', () => {
       component.filterSearch = 'zzznomatch';
       component.filterAccordionItems();
-      expect(component.filteredAccordionItems().length).toBe(0);
+      expect(component.filteredAccordionItems()).toHaveLength(0);
     });
 
     it('should sort active filters first', () => {
@@ -722,7 +670,7 @@ describe('TenableVulnerabilitiesComponent', () => {
       ];
       component.currentFilterHistoryIndex = 1;
       component.applyFilters(false);
-      expect(component.filterHistory.length).toBe(3);
+      expect(component.filterHistory).toHaveLength(3);
     });
   });
 
@@ -1026,7 +974,7 @@ describe('TenableVulnerabilitiesComponent', () => {
       component.selectedCollection.set(7);
       mockImportService.getTenableFilters.mockReturnValue(of([{ filterId: 1, filterName: 'My Filter', filter: '{}', createdBy: 'jdoe' }]));
       component.loadSavedFilters();
-      expect(component.premadeFilterOptions().length).toBe(2);
+      expect(component.premadeFilterOptions()).toHaveLength(2);
     });
 
     it('should show error on service failure', () => {
@@ -1142,7 +1090,18 @@ describe('TenableVulnerabilitiesComponent', () => {
     it('should show error on non-array response', () => {
       mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(of({ bad: 'data' }));
       component.selectedCollection.set(7);
-      component.loadPoamAssociations().subscribe({ error: () => {} });
+
+      const next = vi.fn();
+
+      component.loadPoamAssociations().subscribe({ next, error: () => {} });
+
+      expect(next).not.toHaveBeenCalled();
+      expect(mockMessageService.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          severity: 'error',
+          detail: expect.stringContaining('Error loading POAM data')
+        })
+      );
     });
   });
 
@@ -1249,12 +1208,64 @@ describe('TenableVulnerabilitiesComponent', () => {
       expect(component.displayDialog()).toBe(false);
       fixture.destroy();
       pluginSubject.next({ response: { id: 12345, description: 'Test plugin' } });
+      pluginSubject.complete();
       expect(component.displayDialog()).toBe(false);
     });
 
     it('does not throw on destroy', () => {
       component.ngOnInit();
       expect(() => fixture.destroy()).not.toThrow();
+    });
+  });
+
+  describe('exportAllData', () => {
+    it('bypasses the upstream cache for the export analysis', () => {
+      vi.useFakeTimers();
+      component.tenableTool = 'listvuln';
+      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [], totalRecords: 0 } }));
+
+      component.exportAllData();
+      vi.runAllTimers();
+      vi.useRealTimers();
+
+      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
+    });
+  });
+
+  describe('load generation guard', () => {
+    it('keeps the newest page when an earlier page load lands afterwards', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+      const page = (name: string) => ({ response: { results: [{ pluginID: '1', name, family: { name: 'F' }, severity: { name: 'High' } }], totalRecords: 1 } });
+
+      component.tenableRepoId = '99';
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadVulnerabilitiesLazy({ first: 0, rows: 25 });
+      component.loadVulnerabilitiesLazy({ first: 25, rows: 25 });
+
+      second.next(page('page-2'));
+      second.complete();
+      first.next(page('page-1'));
+
+      expect(component.allVulnerabilities()[0].pluginName).toBe('page-2');
+      expect(component.isLoading()).toBe(false);
+    });
+
+    it('does not let an earlier page load clear the spinner of a newer one', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      component.tenableRepoId = '99';
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadVulnerabilitiesLazy({ first: 0, rows: 25 });
+      component.loadVulnerabilitiesLazy({ first: 25, rows: 25 });
+
+      first.next({ response: { results: [], totalRecords: 0 } });
+      first.complete();
+
+      expect(component.isLoading()).toBe(true);
     });
   });
 });

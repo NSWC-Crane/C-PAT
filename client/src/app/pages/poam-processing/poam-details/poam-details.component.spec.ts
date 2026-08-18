@@ -343,22 +343,8 @@ describe('PoamDetailsComponent', () => {
       expect(options).toContain('Rejected');
     });
 
-    it('should return only Draft, Closed, Expired for accessLevel 2', () => {
-      component.accessLevel.set(2);
-      const options = component.filteredStatusOptions();
-
-      expect(options).toEqual(['Draft', 'Closed', 'Expired']);
-    });
-
-    it('should return only Draft, Closed, Expired for accessLevel 1', () => {
-      component.accessLevel.set(1);
-      const options = component.filteredStatusOptions();
-
-      expect(options).toEqual(['Draft', 'Closed', 'Expired']);
-    });
-
-    it('should return only Draft, Closed, Expired for accessLevel 0', () => {
-      component.accessLevel.set(0);
+    it.each([2, 1, 0])('should return only Draft, Closed, Expired for accessLevel %i', (accessLevel) => {
+      component.accessLevel.set(accessLevel);
       const options = component.filteredStatusOptions();
 
       expect(options).toEqual(['Draft', 'Closed', 'Expired']);
@@ -862,81 +848,37 @@ describe('PoamDetailsComponent', () => {
         vi.spyOn(component as any, 'loadAssets').mockImplementation(() => {});
       });
 
-      it('should call createNewACASPoam for ACAS source', async () => {
-        component.stateData.set({ vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' });
-        const spy = vi.spyOn(component, 'createNewACASPoam').mockResolvedValue();
+      const creationSources: [string, string, string, string][] = [
+        ['ACAS', 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner', 'createNewACASPoam', 'Failed to create ACAS POAM'],
+        ['STIG', 'STIG', 'createNewSTIGManagerPoam', 'Failed to create STIG Manager POAM'],
+        ['Other', 'Other', 'createNewPoam', 'Failed to create POAM']
+      ];
+
+      it.each(creationSources)('should call %s creation method for %s source', async (_label, vulnerabilitySource, method) => {
+        component.stateData.set({ vulnerabilitySource });
+        const spy = vi.spyOn(component as any, method).mockResolvedValue(undefined);
 
         await component.getData();
         expect(spy).toHaveBeenCalled();
       });
 
-      it('should call loadAssets after creating ACAS POAM', async () => {
-        component.stateData.set({ vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' });
-        vi.spyOn(component, 'createNewACASPoam').mockResolvedValue();
+      it.each(creationSources)('should call loadAssets after creating a %s POAM', async (_label, vulnerabilitySource, method) => {
+        component.stateData.set({ vulnerabilitySource });
+        vi.spyOn(component as any, method).mockResolvedValue(undefined);
+
         await component.getData();
         expect(component['loadAssets']).toHaveBeenCalled();
       });
 
-      it('should show error if createNewACASPoam throws', async () => {
-        component.stateData.set({ vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner' });
-        vi.spyOn(component, 'createNewACASPoam').mockRejectedValue(new Error('acas fail'));
+      it.each(creationSources)('should show error if the %s creation method throws', async (_label, vulnerabilitySource, method, errorDetail) => {
+        component.stateData.set({ vulnerabilitySource });
+        vi.spyOn(component as any, method).mockRejectedValue(new Error('create fail'));
+
         await component.getData();
         expect(mockMessageService.add).toHaveBeenCalledWith({
           severity: 'error',
           summary: 'Error',
-          detail: expect.stringContaining('Failed to create ACAS POAM')
-        });
-      });
-
-      it('should call createNewSTIGManagerPoam for STIG source', async () => {
-        component.stateData.set({ vulnerabilitySource: 'STIG' });
-        const spy = vi.spyOn(component, 'createNewSTIGManagerPoam').mockResolvedValue();
-
-        await component.getData();
-        expect(spy).toHaveBeenCalled();
-      });
-
-      it('should call loadAssets after creating STIG POAM', async () => {
-        component.stateData.set({ vulnerabilitySource: 'STIG' });
-        vi.spyOn(component, 'createNewSTIGManagerPoam').mockResolvedValue();
-        await component.getData();
-        expect(component['loadAssets']).toHaveBeenCalled();
-      });
-
-      it('should show error if createNewSTIGManagerPoam throws', async () => {
-        component.stateData.set({ vulnerabilitySource: 'STIG' });
-        vi.spyOn(component, 'createNewSTIGManagerPoam').mockRejectedValue(new Error('stig fail'));
-        await component.getData();
-        expect(mockMessageService.add).toHaveBeenCalledWith({
-          severity: 'error',
-          summary: 'Error',
-          detail: expect.stringContaining('Failed to create STIG Manager POAM')
-        });
-      });
-
-      it('should call createNewPoam for Other source', async () => {
-        component.stateData.set({ vulnerabilitySource: 'Other' });
-        const spy = vi.spyOn(component, 'createNewPoam').mockResolvedValue();
-
-        await component.getData();
-        expect(spy).toHaveBeenCalled();
-      });
-
-      it('should call loadAssets after creating generic POAM', async () => {
-        component.stateData.set({ vulnerabilitySource: 'Other' });
-        vi.spyOn(component, 'createNewPoam').mockResolvedValue();
-        await component.getData();
-        expect(component['loadAssets']).toHaveBeenCalled();
-      });
-
-      it('should show error if createNewPoam throws', async () => {
-        component.stateData.set({ vulnerabilitySource: 'Other' });
-        vi.spyOn(component, 'createNewPoam').mockRejectedValue(new Error('fail'));
-        await component.getData();
-        expect(mockMessageService.add).toHaveBeenCalledWith({
-          severity: 'error',
-          summary: 'Error',
-          detail: expect.stringContaining('Failed to create POAM')
+          detail: expect.stringContaining(errorDetail)
         });
       });
     });
@@ -1657,11 +1599,16 @@ describe('PoamDetailsComponent', () => {
       );
     });
 
-    it('should allow 30 days for CAT I - Critical by default', () => {
-      component.poam.update((p: any) => ({ ...p, rawSeverity: 'CAT I - Critical' }));
+    it.each<[string, number]>([
+      ['CAT I - Critical', 30],
+      ['CAT II - Medium', 180],
+      ['CAT III - Low', 365],
+      ['Unknown', 30]
+    ])('should allow %s %i days by default', (rawSeverity, allowedDays) => {
+      component.poam.update((p: any) => ({ ...p, rawSeverity }));
       const futureDate = new Date();
 
-      futureDate.setDate(futureDate.getDate() + 31);
+      futureDate.setDate(futureDate.getDate() + allowedDays + 1);
       component.dates().scheduledCompletionDate = futureDate;
 
       component.validateScheduledCompletion();
@@ -1669,58 +1616,7 @@ describe('PoamDetailsComponent', () => {
       expect(mockMessageService.add).toHaveBeenCalledWith(
         expect.objectContaining({
           severity: 'warn',
-          detail: expect.stringContaining('30 days')
-        })
-      );
-    });
-
-    it('should allow 180 days for CAT II - Medium by default', () => {
-      component.poam.update((p: any) => ({ ...p, rawSeverity: 'CAT II - Medium' }));
-      const futureDate = new Date();
-
-      futureDate.setDate(futureDate.getDate() + 181);
-      component.dates().scheduledCompletionDate = futureDate;
-
-      component.validateScheduledCompletion();
-
-      expect(mockMessageService.add).toHaveBeenCalledWith(
-        expect.objectContaining({
-          severity: 'warn',
-          detail: expect.stringContaining('180 days')
-        })
-      );
-    });
-
-    it('should allow 365 days for CAT III - Low by default', () => {
-      component.poam.update((p: any) => ({ ...p, rawSeverity: 'CAT III - Low' }));
-      const futureDate = new Date();
-
-      futureDate.setDate(futureDate.getDate() + 366);
-      component.dates().scheduledCompletionDate = futureDate;
-
-      component.validateScheduledCompletion();
-
-      expect(mockMessageService.add).toHaveBeenCalledWith(
-        expect.objectContaining({
-          severity: 'warn',
-          detail: expect.stringContaining('365 days')
-        })
-      );
-    });
-
-    it('should use default 30 days for unknown severity', () => {
-      component.poam.update((p: any) => ({ ...p, rawSeverity: 'Unknown' }));
-      const futureDate = new Date();
-
-      futureDate.setDate(futureDate.getDate() + 31);
-      component.dates().scheduledCompletionDate = futureDate;
-
-      component.validateScheduledCompletion();
-
-      expect(mockMessageService.add).toHaveBeenCalledWith(
-        expect.objectContaining({
-          severity: 'warn',
-          detail: expect.stringContaining('30 days')
+          detail: expect.stringContaining(`${allowedDays} days`)
         })
       );
     });
@@ -2772,12 +2668,12 @@ describe('PoamDetailsComponent', () => {
     });
   });
 
-  describe('onGlobalFindingToggle', () => {
-    it('should reset activeTabIndex and show info when isGlobalFinding is true', () => {
+  describe('onGlobalFindingEnabled', () => {
+    it('should reset activeTabIndex and show info', () => {
       component.poam.set({ isGlobalFinding: true });
       component.activeTabIndex.set(2);
 
-      component.onGlobalFindingToggle(true);
+      component.onGlobalFindingEnabled();
 
       expect(component.activeTabIndex()).toBe(0);
       expect(mockMessageService.add).toHaveBeenCalledWith({
@@ -2786,23 +2682,25 @@ describe('PoamDetailsComponent', () => {
         detail: expect.stringContaining('Team-specific mitigations are now hidden')
       });
     });
+  });
 
-    it('should reset activeTabIndex when not global and mitigations exist', () => {
+  describe('onGlobalFindingDisabled', () => {
+    it('should reset activeTabIndex when mitigations exist', () => {
       component.poam.set({ isGlobalFinding: false });
       component.teamMitigations.set([{ assignedTeamId: 1 }]);
       component.activeTabIndex.set(2);
 
-      component.onGlobalFindingToggle(false);
+      component.onGlobalFindingDisabled();
 
       expect(component.activeTabIndex()).toBe(0);
       expect(mockMessageService.add).not.toHaveBeenCalled();
     });
 
-    it('should show team assignment required when not global and no mitigations', () => {
+    it('should show team assignment required when no mitigations', () => {
       component.poam.set({ isGlobalFinding: false });
       component.teamMitigations.set([]);
 
-      component.onGlobalFindingToggle(false);
+      component.onGlobalFindingDisabled();
 
       expect(mockMessageService.add).toHaveBeenCalledWith({
         severity: 'info',
@@ -3396,12 +3294,16 @@ describe('PoamDetailsComponent', () => {
       expect(labels).toContain('POAM Extension');
     });
 
-    it('should include Submit for Review when accessLevel >= 2', () => {
-      component.accessLevel.set(2);
+    it.each<[string, number]>([
+      ['Submit for Review', 2],
+      ['POAM Approval', 3],
+      ['Delete POAM', 3]
+    ])('should include %s when accessLevel >= %i', (label, accessLevel) => {
+      component.accessLevel.set(accessLevel);
       const items = component.menuItems();
       const labels = items.map((i: any) => i.label);
 
-      expect(labels).toContain('Submit for Review');
+      expect(labels).toContain(label);
     });
 
     it('should not include Submit for Review when accessLevel < 2', () => {
@@ -3412,28 +3314,12 @@ describe('PoamDetailsComponent', () => {
       expect(labels).not.toContain('Submit for Review');
     });
 
-    it('should include POAM Approval when accessLevel >= 3', () => {
-      component.accessLevel.set(3);
-      const items = component.menuItems();
-      const labels = items.map((i: any) => i.label);
-
-      expect(labels).toContain('POAM Approval');
-    });
-
     it('should not include POAM Approval when accessLevel < 3', () => {
       component.accessLevel.set(2);
       const items = component.menuItems();
       const labels = items.map((i: any) => i.label);
 
       expect(labels).not.toContain('POAM Approval');
-    });
-
-    it('should include Delete POAM when accessLevel >= 3', () => {
-      component.accessLevel.set(3);
-      const items = component.menuItems();
-      const labels = items.map((i: any) => i.label);
-
-      expect(labels).toContain('Delete POAM');
     });
 
     it('should include Delete POAM when user is submitter and status is Draft', () => {

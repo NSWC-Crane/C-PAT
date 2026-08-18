@@ -200,7 +200,7 @@ describe('STIGManagerReviewsTableComponent', () => {
     });
 
     it('should set 11 columns', () => {
-      expect(component.cols.length).toBe(11);
+      expect(component.cols).toHaveLength(11);
     });
 
     it('should include assetName column', () => {
@@ -238,7 +238,7 @@ describe('STIGManagerReviewsTableComponent', () => {
 
     it('should set benchmarkOptions sorted', () => {
       component.loadBenchmarkIds();
-      expect(component.benchmarkOptions().length).toBe(2);
+      expect(component.benchmarkOptions()).toHaveLength(2);
       expect(component.benchmarkOptions()[0].value).toBe('BENCH-001');
       expect(component.benchmarkOptions()[1].value).toBe('BENCH-002');
     });
@@ -387,7 +387,7 @@ describe('STIGManagerReviewsTableComponent', () => {
 
     it('should populate reviews after load', () => {
       component.loadReviews();
-      expect(component.reviews.length).toBe(3);
+      expect(component.reviews).toHaveLength(3);
     });
 
     it('should set totalRecords to reviews count', () => {
@@ -458,6 +458,45 @@ describe('STIGManagerReviewsTableComponent', () => {
     });
   });
 
+  describe('load generation guard', () => {
+    it('keeps the newest reviews when an earlier load lands afterwards', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getReviewsFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+      component.appliedBenchmarkIds = ['BENCH-001'];
+
+      component.loadReviews();
+      component.loadReviews();
+
+      second.next([{ ...mockReviews[0], assetName: 'SecondAsset' }]);
+      second.complete();
+      first.next([
+        { ...mockReviews[0], assetName: 'FirstAsset' },
+        { ...mockReviews[1], assetName: 'FirstAsset' }
+      ]);
+      first.complete();
+
+      expect(component.reviews).toHaveLength(1);
+      expect(component.reviews[0].assetName).toBe('SecondAsset');
+    });
+
+    it('keeps the newest benchmark options when an earlier load lands afterwards', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadBenchmarkIds();
+      component.loadBenchmarkIds();
+
+      second.next([{ benchmarkId: 'SECOND' }]);
+      first.next([{ benchmarkId: 'FIRST-A' }, { benchmarkId: 'FIRST-B' }]);
+
+      expect(component.benchmarkOptions().map((option) => option.value)).toEqual(['SECOND']);
+    });
+  });
+
   describe('onResultFilterChange', () => {
     it('should update filterState.result', () => {
       component.onResultFilterChange('pass');
@@ -494,7 +533,7 @@ describe('STIGManagerReviewsTableComponent', () => {
     it('should group reviews by assetName', () => {
       const nodes = component.transformReviewsToTreeNodes(mockReviews);
 
-      expect(nodes.length).toBe(2);
+      expect(nodes).toHaveLength(2);
     });
 
     it('should set first review as parent node data', () => {
@@ -530,7 +569,7 @@ describe('STIGManagerReviewsTableComponent', () => {
       const reviews = [{ result: 'fail' }];
       const nodes = component.transformReviewsToTreeNodes(reviews);
 
-      expect(nodes.length).toBe(1);
+      expect(nodes).toHaveLength(1);
     });
 
     it('should set expanded to false on parent nodes', () => {
@@ -913,7 +952,7 @@ describe('STIGManagerReviewsTableComponent', () => {
       ];
       const result = component.flattenTreeNodes(nodes as any);
 
-      expect(result.length).toBe(3);
+      expect(result).toHaveLength(3);
       expect(result.map((r) => r.id)).toContain(1);
       expect(result.map((r) => r.id)).toContain(2);
       expect(result.map((r) => r.id)).toContain(3);

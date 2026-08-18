@@ -21,7 +21,6 @@ import { Select, SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../common/services/shared.service';
 import { CsvExportService } from '../../../../common/utils/csv-export.service';
@@ -40,7 +39,7 @@ interface ExportColumn {
   styleUrls: ['./stigManagerPoamAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, MultiSelectDirective, SelectModule, TabsModule, TableModule, ToastModule, TagModule, TooltipModule]
+  imports: [ButtonModule, CardModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, MultiSelectDirective, SelectModule, TabsModule, TableModule, TagModule, TooltipModule]
 })
 export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit {
   private readonly assetDeltaService = inject(AssetDeltaService);
@@ -67,6 +66,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   readonly teamTabs = signal<{ teamId: string; teamName: string; assets: any[] }[]>([]);
   activeTab: string = 'all';
   readonly loading = signal<boolean>(true);
+  private loadGeneration = 0;
   private readonly tableMap = new Map<string, Table>();
   selectedCollection: any;
 
@@ -134,10 +134,24 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       });
   }
 
+  private extractVulnerabilityId(vuln: any): string | null {
+    if (typeof vuln === 'string') {
+      return vuln;
+    }
+
+    if (typeof vuln === 'object' && vuln.associatedVulnerability) {
+      return vuln.associatedVulnerability;
+    }
+
+    return null;
+  }
+
   loadData() {
     this.loading.set(true);
+
+    const gen = ++this.loadGeneration;
     const associatedVulnIds = this.associatedVulnerabilities()
-      .map((vuln) => (typeof vuln === 'string' ? vuln : typeof vuln === 'object' && vuln.associatedVulnerability ? vuln.associatedVulnerability : null))
+      .map((vuln) => this.extractVulnerabilityId(vuln))
       .filter((id) => id !== null);
 
     const allVulnIds = [this.groupId(), ...associatedVulnIds];
@@ -147,6 +161,10 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (poamAssets) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           let allAssets: any[] = [];
 
           allVulnIds.forEach((vulnId) => {
@@ -175,9 +193,13 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
             }
           });
 
-          this.loadAssetDetails(Array.from(assetMap.values()));
+          this.loadAssetDetails(Array.from(assetMap.values()), gen);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -188,15 +210,20 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       });
   }
 
-  loadAssetDetails(mappedAssets: any[]) {
+  loadAssetDetails(mappedAssets: any[], gen: number = this.loadGeneration) {
     this.sharedService
       .getAssetDetailsFromSTIGMAN(this.stigmanCollectionId())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (assetDetails) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           if (!assetDetails || assetDetails.length === 0) {
             console.error('No asset details found.');
             this.affectedAssets = mappedAssets;
+            this.loading.set(false);
 
             return;
           }
@@ -228,6 +255,10 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
           this.loading.set(false);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

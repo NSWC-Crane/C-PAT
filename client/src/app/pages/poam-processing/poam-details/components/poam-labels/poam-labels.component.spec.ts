@@ -112,7 +112,7 @@ describe('PoamLabelsComponent', () => {
 
       await component.addLabel();
 
-      expect(component.poamLabels().length).toBe(2);
+      expect(component.poamLabels()).toHaveLength(2);
       expect(component.poamLabels()[0].isNew).toBe(true);
       expect(component.poamLabels()[0].labelId).toBeNull();
       expect(component.poamLabels()[1].labelId).toBe(2);
@@ -135,13 +135,13 @@ describe('PoamLabelsComponent', () => {
     it('should add to an empty array', async () => {
       component.poamLabels.set([]);
       await component.addLabel();
-      expect(component.poamLabels().length).toBe(1);
+      expect(component.poamLabels()).toHaveLength(1);
     });
 
     it('should support multiple consecutive adds', async () => {
       await component.addLabel();
       await component.addLabel();
-      expect(component.poamLabels().length).toBe(2);
+      expect(component.poamLabels()).toHaveLength(2);
       expect(component.poamLabels()[0].isNew).toBe(true);
       expect(component.poamLabels()[1].isNew).toBe(true);
     });
@@ -170,7 +170,7 @@ describe('PoamLabelsComponent', () => {
 
       await component.onLabelChange({ labelId: 1 });
 
-      expect(component.poamLabels().length).toBe(2);
+      expect(component.poamLabels()).toHaveLength(2);
       expect(component.poamLabels()[0].labelId).toBe(1);
       expect(component.poamLabels()[0].labelName).toBe('Critical');
     });
@@ -199,7 +199,7 @@ describe('PoamLabelsComponent', () => {
       component.poamLabels.set([]);
       await component.onLabelChange({ labelId: 1 });
 
-      expect(component.poamLabels().length).toBe(1);
+      expect(component.poamLabels()).toHaveLength(1);
       expect(emitSpy).toHaveBeenCalled();
     });
   });
@@ -216,7 +216,7 @@ describe('PoamLabelsComponent', () => {
 
       await component.deleteLabel(1);
 
-      expect(component.poamLabels().length).toBe(2);
+      expect(component.poamLabels()).toHaveLength(2);
       expect(component.poamLabels()[0].labelId).toBe(1);
       expect(component.poamLabels()[1].labelId).toBe(3);
     });
@@ -225,14 +225,14 @@ describe('PoamLabelsComponent', () => {
       component.poamLabels.set([createLabel({ labelId: 1 }), createLabel({ labelId: 2 })]);
       await component.deleteLabel(0);
 
-      expect(component.poamLabels().length).toBe(1);
+      expect(component.poamLabels()).toHaveLength(1);
       expect(component.poamLabels()[0].labelId).toBe(2);
     });
 
     it('should remove the last label leaving empty array', async () => {
       component.poamLabels.set([createLabel({ labelId: 1 })]);
       await component.deleteLabel(0);
-      expect(component.poamLabels().length).toBe(0);
+      expect(component.poamLabels()).toHaveLength(0);
     });
 
     it('should emit labelsChanged after deletion', async () => {

@@ -17,6 +17,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -26,7 +27,6 @@ import { PickListModule } from 'primeng/picklist';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing.component';
 import { AssignedTeamService } from './assignedTeam-processing.service';
@@ -44,6 +44,11 @@ describe('AssignedTeamProcessingComponent', () => {
   let mockAssetDeltaService: any;
   let mockMessageService: any;
   let selectedCollectionSubject: Subject<any>;
+
+  const flush = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  };
 
   const mockTeams = [
     { assignedTeamId: 1, assignedTeamName: 'Team Alpha', adTeam: 'AD-ALPHA', permissions: [{ collectionId: 1, collectionName: 'Col A' }] },
@@ -77,7 +82,9 @@ describe('AssignedTeamProcessingComponent', () => {
       putAssignedTeam: vi.fn().mockReturnValue(of({})),
       deleteAssignedTeam: vi.fn().mockReturnValue(of({})),
       postAssignedTeamPermission: vi.fn().mockReturnValue(of({})),
-      deleteAssignedTeamPermission: vi.fn().mockReturnValue(of({}))
+      deleteAssignedTeamPermission: vi.fn().mockReturnValue(of({})),
+      getCoverageRevocationPreview: vi.fn().mockReturnValue(of({ removals: [], downgrades: [], unaffected: [] })),
+      getCoverageGrantPreview: vi.fn().mockReturnValue(of({ additions: [], updates: [], unchanged: [] }))
     };
 
     mockCollectionsService = {
@@ -108,7 +115,7 @@ describe('AssignedTeamProcessingComponent', () => {
     })
       .overrideComponent(AssignedTeamProcessingComponent, {
         set: {
-          imports: [ButtonModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, SelectModule, TableModule, TagModule, ToastModule, TooltipModule]
+          imports: [ButtonModule, CheckboxModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, SelectModule, TableModule, TagModule, TooltipModule]
         }
       })
       .compileComponents();
@@ -219,13 +226,13 @@ describe('AssignedTeamProcessingComponent', () => {
   describe('loadCollections', () => {
     it('should set allCollections and availableCollections on success', () => {
       component.loadCollections();
-      expect(component.availableCollections).toEqual(mockCollections);
+      expect(component.availableCollections()).toEqual(mockCollections);
     });
 
     it('should set allCollections to empty array when response is null', () => {
       mockCollectionsService.getCollectionBasicList.mockReturnValue(of(null));
       component.loadCollections();
-      expect(component.availableCollections).toEqual([]);
+      expect(component.availableCollections()).toEqual([]);
     });
 
     it('should show error message on failure', () => {
@@ -280,17 +287,17 @@ describe('AssignedTeamProcessingComponent', () => {
 
     it('should map assignedCollections from permissions', () => {
       component.editTeam(mockTeams[0]);
-      expect(component.assignedCollections).toEqual([{ collectionId: 1, collectionName: 'Col A' }]);
+      expect(component.assignedCollections()).toEqual([{ collectionId: 1, collectionName: 'Col A' }]);
     });
 
     it('should filter availableCollections to exclude assigned', () => {
       component.editTeam(mockTeams[0]);
-      expect(component.availableCollections.some((c: any) => c.collectionId === 1)).toBe(false);
+      expect(component.availableCollections().some((c: any) => c.collectionId === 1)).toBe(false);
     });
 
     it('should include non-assigned collections in availableCollections', () => {
       component.editTeam(mockTeams[0]);
-      expect(component.availableCollections.length).toBe(2);
+      expect(component.availableCollections()).toHaveLength(2);
     });
   });
 
@@ -321,21 +328,21 @@ describe('AssignedTeamProcessingComponent', () => {
     });
 
     it('should reset assignedCollections to empty', () => {
-      component.assignedCollections = [{ collectionId: 1 }];
+      component.assignedCollections.set([{ collectionId: 1 }]);
       component.openNew();
-      expect(component.assignedCollections).toEqual([]);
+      expect(component.assignedCollections()).toEqual([]);
     });
 
     it('should set availableCollections to all collections', () => {
       component.openNew();
-      expect(component.availableCollections).toEqual(mockCollections);
+      expect(component.availableCollections()).toEqual(mockCollections);
     });
   });
 
   describe('onMoveToTarget', () => {
     beforeEach(() => {
       component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
-      component.assignedCollections = [];
+      component.assignedCollections.set([]);
     });
 
     it('should add collection to assignedCollections in new mode', () => {
@@ -343,16 +350,16 @@ describe('AssignedTeamProcessingComponent', () => {
       const col = { collectionId: 2, collectionName: 'Col B' };
 
       component.onMoveToTarget({ items: [col] });
-      expect(component.assignedCollections).toContain(col);
+      expect(component.assignedCollections()).toContain(col);
     });
 
     it('should not duplicate collection in new mode', () => {
       component.dialogMode = 'new';
       const col = { collectionId: 2, collectionName: 'Col B' };
 
-      component.assignedCollections = [col];
+      component.assignedCollections.set([col]);
       component.onMoveToTarget({ items: [col] });
-      expect(component.assignedCollections.length).toBe(1);
+      expect(component.assignedCollections()).toHaveLength(1);
     });
 
     it('should handle single item (non-array) in new mode', () => {
@@ -360,27 +367,53 @@ describe('AssignedTeamProcessingComponent', () => {
       const col = { collectionId: 2, collectionName: 'Col B' };
 
       component.onMoveToTarget({ items: col });
-      expect(component.assignedCollections).toContain(col);
+      expect(component.assignedCollections()).toContain(col);
     });
 
     it('should do nothing when editingAssignedTeam is null', () => {
       component.editingAssignedTeam.set(null);
       component.dialogMode = 'new';
       component.onMoveToTarget({ items: [{ collectionId: 2 }] });
-      expect(component.assignedCollections.length).toBe(0);
+      expect(component.assignedCollections()).toHaveLength(0);
     });
 
-    it('should call postAssignedTeamPermission in edit mode', () => {
+    it('should preview instead of posting immediately in edit mode', async () => {
       component.dialogMode = 'edit';
       component.onMoveToTarget({ items: [{ collectionId: 2, collectionName: 'Col B' }] });
-      expect(mockAssignedTeamService.postAssignedTeamPermission).toHaveBeenCalled();
+      await flush();
+
+      expect(mockAssignedTeamService.getCoverageGrantPreview).toHaveBeenCalledWith(1, 2);
+      expect(mockAssignedTeamService.postAssignedTeamPermission).not.toHaveBeenCalled();
+      expect(component.coverageGrantDialogVisible()).toBe(true);
+    });
+
+    it('should keep the collection out of the assigned list while the dialog is open', async () => {
+      component.dialogMode = 'edit';
+      component.assignedCollections.set([{ collectionId: 2, collectionName: 'Col B' }]);
+      component.availableCollections.set([]);
+      component.onMoveToTarget({ items: [{ collectionId: 2, collectionName: 'Col B' }] });
+
+      expect(component.assignedCollections()).not.toContainEqual(expect.objectContaining({ collectionId: 2 }));
+      expect(component.availableCollections()).toContainEqual(expect.objectContaining({ collectionId: 2 }));
+
+      await flush();
+    });
+
+    it('should not open the dialog when the preview fails', async () => {
+      mockAssignedTeamService.getCoverageGrantPreview.mockReturnValue(throwError(() => new Error('Error')));
+      component.dialogMode = 'edit';
+      component.onMoveToTarget({ items: [{ collectionId: 2, collectionName: 'Col B' }] });
+      await flush();
+
+      expect(component.coverageGrantDialogVisible()).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
   });
 
   describe('onMoveToSource', () => {
     beforeEach(() => {
       component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
-      component.assignedCollections = [{ collectionId: 1, collectionName: 'Col A' }];
+      component.assignedCollections.set([{ collectionId: 1, collectionName: 'Col A' }]);
     });
 
     it('should remove collection from assignedCollections in new mode', () => {
@@ -388,54 +421,251 @@ describe('AssignedTeamProcessingComponent', () => {
       const col = { collectionId: 1, collectionName: 'Col A' };
 
       component.onMoveToSource({ items: [col] });
-      expect(component.assignedCollections.length).toBe(0);
+      expect(component.assignedCollections()).toHaveLength(0);
     });
 
     it('should do nothing when editingAssignedTeam is null', () => {
       component.editingAssignedTeam.set(null);
       component.dialogMode = 'new';
       component.onMoveToSource({ items: [{ collectionId: 1 }] });
-      expect(component.assignedCollections.length).toBe(1);
+      expect(component.assignedCollections()).toHaveLength(1);
     });
 
-    it('should call deleteAssignedTeamPermission in edit mode', () => {
+    it('should preview instead of deleting immediately in edit mode', async () => {
       component.dialogMode = 'edit';
       component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
-      expect(mockAssignedTeamService.deleteAssignedTeamPermission).toHaveBeenCalled();
-    });
-  });
+      await flush();
 
-  describe('addPermissionsToExistingTeam (via onMoveToTarget in edit mode)', () => {
-    beforeEach(() => {
-      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
+      expect(mockAssignedTeamService.getCoverageRevocationPreview).toHaveBeenCalledWith(1, 1);
+      expect(mockAssignedTeamService.deleteAssignedTeamPermission).not.toHaveBeenCalled();
+      expect(component.coverageDialogVisible()).toBe(true);
+    });
+
+    it('should restore the collection to the assigned list while the dialog is open', async () => {
       component.dialogMode = 'edit';
-      component.assignedCollections = [];
-      component.availableCollections = [...mockCollections];
+      component.assignedCollections.set([]);
+      component.availableCollections.set([{ collectionId: 1, collectionName: 'Col A' }]);
+      component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
+
+      expect(component.assignedCollections()).toContainEqual(expect.objectContaining({ collectionId: 1 }));
+      expect(component.availableCollections()).not.toContainEqual(expect.objectContaining({ collectionId: 1 }));
+
+      await flush();
     });
 
-    it('should show success message after adding permission', () => {
-      component.onMoveToTarget({ items: [{ collectionId: 2, collectionName: 'Col B' }] });
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
-    });
+    it('should not open the dialog when the preview fails', async () => {
+      mockAssignedTeamService.getCoverageRevocationPreview.mockReturnValue(throwError(() => new Error('Error')));
+      component.dialogMode = 'edit';
+      component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
+      await flush();
 
-    it('should add permission to editingAssignedTeam.permissions', () => {
-      const col = { collectionId: 2, collectionName: 'Col B' };
-
-      component.onMoveToTarget({ items: [col] });
-      expect(component.editingAssignedTeam()!.permissions).toContainEqual(expect.objectContaining({ collectionId: 2 }));
-    });
-
-    it('should show error and revert on failure', () => {
-      mockAssignedTeamService.postAssignedTeamPermission.mockReturnValue(throwError(() => new Error('Error')));
-      const col = { collectionId: 2, collectionName: 'Col B' };
-
-      component.assignedCollections = [col];
-      component.onMoveToTarget({ items: [col] });
+      expect(component.coverageDialogVisible()).toBe(false);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
   });
 
-  describe('removePermissionsFromExistingTeam (via onMoveToSource in edit mode)', () => {
+  describe('coverage removal dialog', () => {
+    const plan = {
+      removals: [{ userId: 7, userName: 'alice', fullName: 'Alice A', collectionId: 1, collectionName: 'Col A', currentAccessLevel: 3 }],
+      downgrades: [],
+      unaffected: []
+    };
+
+    beforeEach(() => {
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [{ collectionId: 1, collectionName: 'Col A' }] });
+      component.dialogMode = 'edit';
+      component.assignedCollections.set([{ collectionId: 1, collectionName: 'Col A' }]);
+      component.availableCollections.set([]);
+      component.coverageRemovalTargets.set([{ collection: { collectionId: 1, collectionName: 'Col A' }, plan }]);
+      component.coverageDialogVisible.set(true);
+    });
+
+    it('should report proposals when a member would lose access', () => {
+      expect(component.coverageHasProposals()).toBe(true);
+    });
+
+    it('should report no proposals when every member is unaffected', () => {
+      component.coverageRemovalTargets.set([{ collection: { collectionId: 1, collectionName: 'Col A' }, plan: { removals: [], downgrades: [], unaffected: [] } }]);
+      expect(component.coverageHasProposals()).toBe(false);
+    });
+
+    it('should issue no delete and keep the collection assigned on cancel', () => {
+      component.cancelCoverageRemoval();
+
+      expect(mockAssignedTeamService.deleteAssignedTeamPermission).not.toHaveBeenCalled();
+      expect(component.coverageDialogVisible()).toBe(false);
+      expect(component.assignedCollections()).toHaveLength(1);
+    });
+
+    it('should delete without revoking when keeping access', () => {
+      component.confirmCoverageRemoval(false);
+
+      expect(mockAssignedTeamService.deleteAssignedTeamPermission).toHaveBeenCalledWith(1, 1, false);
+      expect(component.assignedCollections()).toHaveLength(0);
+      expect(component.availableCollections()).toHaveLength(1);
+    });
+
+    it('should delete with revocation when revoking', () => {
+      component.confirmCoverageRemoval(true);
+
+      expect(mockAssignedTeamService.deleteAssignedTeamPermission).toHaveBeenCalledWith(1, 1, true);
+    });
+
+    it('should clear the targets after confirming', () => {
+      component.confirmCoverageRemoval(false);
+
+      expect(component.coverageRemovalTargets()).toHaveLength(0);
+      expect(component.coverageDialogVisible()).toBe(false);
+    });
+  });
+
+  describe('coverage grant dialog', () => {
+    const grantPlan = {
+      additions: [{ userId: 7, userName: 'alice', fullName: 'Alice A', teamAccessLevel: 3, currentAccessLevel: null, newAccessLevel: 3 }],
+      updates: [{ userId: 8, userName: 'bob', fullName: 'Bob B', teamAccessLevel: 3, currentAccessLevel: 1, newAccessLevel: 3 }],
+      unchanged: [{ userId: 9, userName: 'carol', fullName: 'Carol C', teamAccessLevel: 3, currentAccessLevel: 4, accessLevel: 4 }]
+    };
+
+    const target = { collection: { collectionId: 2, collectionName: 'Col B' }, plan: grantPlan };
+
+    beforeEach(() => {
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
+      component.dialogMode = 'edit';
+      component.assignedCollections.set([]);
+      component.availableCollections.set([...mockCollections]);
+      component.coverageGrantTargets.set([target]);
+      component.coverageGrantSelections.set(new Set(['2:7', '2:8']));
+      component.coverageGrantDialogVisible.set(true);
+    });
+
+    it('should report proposals when a member would gain access', () => {
+      expect(component.coverageGrantHasProposals()).toBe(true);
+    });
+
+    it('should report no proposals when every member already has access', () => {
+      component.coverageGrantTargets.set([{ collection: target.collection, plan: { additions: [], updates: [], unchanged: grantPlan.unchanged } }]);
+      expect(component.coverageGrantHasProposals()).toBe(false);
+    });
+
+    it('should preselect every proposed member when the preview opens', async () => {
+      mockAssignedTeamService.getCoverageGrantPreview.mockReturnValue(of(grantPlan));
+      component.coverageGrantDialogVisible.set(false);
+      component.coverageGrantSelections.set(new Set());
+      component.onMoveToTarget({ items: [target.collection] });
+      await flush();
+
+      expect(component.isGrantMemberSelected(2, 7)).toBe(true);
+      expect(component.isGrantMemberSelected(2, 8)).toBe(true);
+      expect(component.isGrantMemberSelected(2, 9)).toBe(false);
+      expect(component.selectedGrantCount()).toBe(2);
+    });
+
+    it('should refuse a second move while a coverage dialog is already open', async () => {
+      mockAssignedTeamService.getCoverageGrantPreview.mockClear();
+      component.onMoveToTarget({ items: [{ collectionId: 3, collectionName: 'Col C' }] });
+      await flush();
+
+      expect(mockAssignedTeamService.getCoverageGrantPreview).not.toHaveBeenCalled();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'info' }));
+      expect(component.coverageGrantTargets()).toEqual([target]);
+    });
+
+    it('should toggle a single member off and back on', () => {
+      component.toggleGrantMember(2, 7);
+      expect(component.isGrantMemberSelected(2, 7)).toBe(false);
+
+      component.toggleGrantMember(2, 7);
+      expect(component.isGrantMemberSelected(2, 7)).toBe(true);
+    });
+
+    it('should clear every proposed member when select-all is toggled off', () => {
+      expect(component.allGrantMembersSelected(target)).toBe(true);
+
+      component.toggleAllGrantMembers(target);
+      expect(component.allGrantMembersSelected(target)).toBe(false);
+      expect(component.selectedGrantCount()).toBe(0);
+
+      component.toggleAllGrantMembers(target);
+      expect(component.selectedGrantCount()).toBe(2);
+    });
+
+    it('should issue no post and leave the collection unassigned on cancel', () => {
+      component.cancelCoverageGrant();
+
+      expect(mockAssignedTeamService.postAssignedTeamPermission).not.toHaveBeenCalled();
+      expect(component.coverageGrantDialogVisible()).toBe(false);
+      expect(component.assignedCollections()).toHaveLength(0);
+    });
+
+    it('should post only the checked members on confirm', () => {
+      component.toggleGrantMember(2, 8);
+      component.confirmCoverageGrant();
+
+      expect(mockAssignedTeamService.postAssignedTeamPermission).toHaveBeenCalledWith({
+        assignedTeamId: 1,
+        collectionId: 2,
+        grantUserIds: [7],
+        previewedMembers: [
+          { userId: 7, bucket: 'additions', teamAccessLevel: 3, newAccessLevel: 3 },
+          { userId: 8, bucket: 'updates', teamAccessLevel: 3, newAccessLevel: 3 },
+          { userId: 9, bucket: 'unchanged', teamAccessLevel: 3 }
+        ]
+      });
+    });
+
+    it('should echo the previewed bucket of every member, including ones with no checkbox', () => {
+      component.confirmCoverageGrant();
+
+      const body = mockAssignedTeamService.postAssignedTeamPermission.mock.calls[0][0];
+
+      expect(body.previewedMembers).toContainEqual({ userId: 9, bucket: 'unchanged', teamAccessLevel: 3 });
+      expect(body.grantUserIds).not.toContain(9);
+    });
+
+    it('should echo the previewed levels for proposals but no promised level for unchanged members', () => {
+      component.confirmCoverageGrant();
+
+      const body = mockAssignedTeamService.postAssignedTeamPermission.mock.calls[0][0];
+      const addition = body.previewedMembers.find((member: any) => member.userId === 7);
+      const unchanged = body.previewedMembers.find((member: any) => member.userId === 9);
+
+      expect(addition).toEqual({ userId: 7, bucket: 'additions', teamAccessLevel: 3, newAccessLevel: 3 });
+      expect(unchanged.newAccessLevel).toBeUndefined();
+    });
+
+    it('should post an empty grant list when every member is unchecked', () => {
+      component.toggleAllGrantMembers(target);
+      component.confirmCoverageGrant();
+
+      expect(mockAssignedTeamService.postAssignedTeamPermission).toHaveBeenCalledWith(expect.objectContaining({ grantUserIds: [] }));
+    });
+
+    it('should assign the collection and record the permission on confirm', () => {
+      component.confirmCoverageGrant();
+
+      expect(component.assignedCollections()).toContainEqual(expect.objectContaining({ collectionId: 2 }));
+      expect(component.editingAssignedTeam()!.permissions).toContainEqual(expect.objectContaining({ collectionId: 2 }));
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('should clear the targets and selections after confirming', () => {
+      component.confirmCoverageGrant();
+
+      expect(component.coverageGrantTargets()).toHaveLength(0);
+      expect(component.selectedGrantCount()).toBe(0);
+      expect(component.coverageGrantDialogVisible()).toBe(false);
+    });
+
+    it('should show error and revert on post failure', () => {
+      mockAssignedTeamService.postAssignedTeamPermission.mockReturnValue(throwError(() => new Error('Error')));
+      component.confirmCoverageGrant();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+      expect(component.assignedCollections()).not.toContainEqual(expect.objectContaining({ collectionId: 2 }));
+    });
+  });
+
+  describe('removePermissionsFromExistingTeam (via the coverage removal dialog)', () => {
     beforeEach(() => {
       component.editingAssignedTeam.set({
         assignedTeamId: 1,
@@ -443,25 +673,35 @@ describe('AssignedTeamProcessingComponent', () => {
         permissions: [{ collectionId: 1, collectionName: 'Col A' }]
       });
       component.dialogMode = 'edit';
-      component.assignedCollections = [{ collectionId: 1, collectionName: 'Col A' }];
-      component.availableCollections = [];
+      component.assignedCollections.set([{ collectionId: 1, collectionName: 'Col A' }]);
+      component.availableCollections.set([]);
+      component.coverageRemovalTargets.set([{ collection: { collectionId: 1, collectionName: 'Col A' }, plan: { removals: [], downgrades: [], unaffected: [] } }]);
     });
 
     it('should show success message after removing permission', () => {
-      component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
+      component.confirmCoverageRemoval(false);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
     });
 
     it('should remove permission from editingAssignedTeam.permissions', () => {
-      component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
-      expect(component.editingAssignedTeam()!.permissions!.length).toBe(0);
+      component.confirmCoverageRemoval(false);
+      expect(component.editingAssignedTeam()!.permissions!).toHaveLength(0);
     });
 
     it('should show error and revert on failure', () => {
       mockAssignedTeamService.deleteAssignedTeamPermission.mockReturnValue(throwError(() => new Error('Error')));
-      component.availableCollections = [{ collectionId: 1, collectionName: 'Col A' }];
-      component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
+      component.confirmCoverageRemoval(false);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+      expect(component.assignedCollections()).toContainEqual(expect.objectContaining({ collectionId: 1 }));
+    });
+
+    it('should treat a 404 as already removed instead of reverting', () => {
+      mockAssignedTeamService.deleteAssignedTeamPermission.mockReturnValue(throwError(() => ({ status: 404 })));
+      component.confirmCoverageRemoval(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'info', summary: 'Already removed' }));
+      expect(component.assignedCollections()).not.toContainEqual(expect.objectContaining({ collectionId: 1 }));
+      expect(component.editingAssignedTeam()!.permissions!).toHaveLength(0);
+      expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });
   });
 
@@ -477,7 +717,7 @@ describe('AssignedTeamProcessingComponent', () => {
       component.dialogMode = 'new';
       component.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] });
       component.selectedAdTeams.set([]);
-      component.assignedCollections = [];
+      component.assignedCollections.set([]);
       component.saveTeam();
       expect(mockAssignedTeamService.postAssignedTeam).toHaveBeenCalled();
     });
@@ -530,10 +770,10 @@ describe('AssignedTeamProcessingComponent', () => {
       component.assignedTeams.set([]);
       component.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] });
       component.selectedAdTeams.set([]);
-      component.assignedCollections = [];
+      component.assignedCollections.set([]);
       component.saveTeam();
       await new Promise((r) => setTimeout(r, 0));
-      expect(component.assignedTeams().length).toBe(1);
+      expect(component.assignedTeams()).toHaveLength(1);
       expect(component.teamDialog()).toBe(false);
     });
 
@@ -542,10 +782,10 @@ describe('AssignedTeamProcessingComponent', () => {
       component.assignedTeams.set([]);
       component.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] });
       component.selectedAdTeams.set([]);
-      component.assignedCollections = [
+      component.assignedCollections.set([
         { collectionId: 1, collectionName: 'Col A' },
         { collectionId: 2, collectionName: 'Col B' }
-      ];
+      ]);
       component.saveTeam();
       await new Promise((r) => setTimeout(r, 0));
       expect(mockAssignedTeamService.postAssignedTeamPermission).toHaveBeenCalledTimes(2);
@@ -583,44 +823,55 @@ describe('AssignedTeamProcessingComponent', () => {
   });
 
   describe('onRowDelete', () => {
-    it('should call deleteAssignedTeam when confirmed', () => {
-      vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+    it('should open the confirmation dialog without deleting', () => {
       component.assignedTeams.set([...mockTeams]);
       component.onRowDelete(mockTeams[0]);
+
+      expect(component.deleteTeamDialogVisible()).toBe(true);
+      expect(component.deleteTeamTarget()).toEqual(mockTeams[0]);
+      expect(mockAssignedTeamService.deleteAssignedTeam).not.toHaveBeenCalled();
+    });
+
+    it('should call deleteAssignedTeam when confirmed', () => {
+      component.assignedTeams.set([...mockTeams]);
+      component.onRowDelete(mockTeams[0]);
+      component.confirmDeleteTeam();
+
       expect(mockAssignedTeamService.deleteAssignedTeam).toHaveBeenCalledWith(1);
-      vi.unstubAllGlobals();
     });
 
     it('should not call deleteAssignedTeam when cancelled', () => {
-      vi.stubGlobal('confirm', vi.fn().mockReturnValue(false));
       component.onRowDelete(mockTeams[0]);
+      component.cancelDeleteTeam();
+
       expect(mockAssignedTeamService.deleteAssignedTeam).not.toHaveBeenCalled();
-      vi.unstubAllGlobals();
+      expect(component.deleteTeamDialogVisible()).toBe(false);
+      expect(component.deleteTeamTarget()).toBeNull();
     });
 
     it('should remove team from assignedTeams on success', () => {
-      vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
       component.assignedTeams.set([...mockTeams]);
       component.onRowDelete(mockTeams[0]);
+      component.confirmDeleteTeam();
+
       expect(component.assignedTeams().some((t) => t.assignedTeamId === 1)).toBe(false);
-      vi.unstubAllGlobals();
     });
 
     it('should show success message on delete', () => {
-      vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
       component.assignedTeams.set([...mockTeams]);
       component.onRowDelete(mockTeams[0]);
+      component.confirmDeleteTeam();
+
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: 'Assigned Team Deleted' }));
-      vi.unstubAllGlobals();
     });
 
     it('should show error message when delete fails', () => {
-      vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
       mockAssignedTeamService.deleteAssignedTeam.mockReturnValue(throwError(() => new Error('Error')));
       component.assignedTeams.set([...mockTeams]);
       component.onRowDelete(mockTeams[0]);
+      component.confirmDeleteTeam();
+
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
-      vi.unstubAllGlobals();
     });
   });
 
@@ -651,15 +902,15 @@ describe('AssignedTeamProcessingComponent', () => {
     });
 
     it('should reset assignedCollections to empty', () => {
-      component.assignedCollections = [{ collectionId: 1 }];
+      component.assignedCollections.set([{ collectionId: 1 }]);
       component.onDialogHide();
-      expect(component.assignedCollections).toEqual([]);
+      expect(component.assignedCollections()).toEqual([]);
     });
 
     it('should restore availableCollections from allCollections', () => {
-      component.availableCollections = [];
+      component.availableCollections.set([]);
       component.onDialogHide();
-      expect(component.availableCollections).toEqual(mockCollections);
+      expect(component.availableCollections()).toEqual(mockCollections);
     });
 
     it('should restore filteredTeams from uniqueTeams', () => {

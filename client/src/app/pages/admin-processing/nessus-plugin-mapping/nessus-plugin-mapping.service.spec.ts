@@ -45,7 +45,7 @@ describe('NessusPluginMappingService', () => {
 
       service.getIAVTableData().subscribe((data) => {
         expect(data).toEqual(mockIAVData);
-        expect(data.length).toBe(3);
+        expect(data).toHaveLength(3);
       });
 
       const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
@@ -78,7 +78,7 @@ describe('NessusPluginMappingService', () => {
 
       service.getIAVTableData().subscribe((data) => {
         expect(data[0].iavNumber).toBe('2024-A-0001');
-        expect(data[0].affectedProducts.length).toBe(2);
+        expect(data[0].affectedProducts).toHaveLength(2);
       });
 
       const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
@@ -105,7 +105,11 @@ describe('NessusPluginMappingService', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should handle server-side HTTP error', () => {
+    it.each<[number, string, string]>([
+      [500, 'Internal Server Error', 'Server Error'],
+      [401, 'Unauthorized', 'Unauthorized'],
+      [403, 'Forbidden', 'Forbidden']
+    ])('should handle server-side %i error', (status, statusText, body) => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       service.getIAVTableData().subscribe({
@@ -119,45 +123,7 @@ describe('NessusPluginMappingService', () => {
 
       const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
 
-      req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle 401 unauthorized error', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      service.getIAVTableData().subscribe({
-        next: () => {
-          throw new Error('Expected error');
-        },
-        error: (error) => {
-          expect(error.message).toContain('Something bad happened');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
-
-      req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle 403 forbidden error', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      service.getIAVTableData().subscribe({
-        next: () => {
-          throw new Error('Expected error');
-        },
-        error: (error) => {
-          expect(error.message).toContain('Something bad happened');
-        }
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/iav/iavSummary`);
-
-      req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
+      req.flush(body, { status, statusText });
 
       consoleSpy.mockRestore();
     });
@@ -192,7 +158,7 @@ describe('NessusPluginMappingService', () => {
 
       const req = httpMock.expectOne(`${apiBase}/mapPluginIds`);
 
-      expect(req.request.body.length).toBe(1);
+      expect(req.request.body).toHaveLength(1);
       req.flush(mockResponse);
     });
 
@@ -223,7 +189,7 @@ describe('NessusPluginMappingService', () => {
 
       const req = httpMock.expectOne(`${apiBase}/mapPluginIds`);
 
-      expect(req.request.body.length).toBe(100);
+      expect(req.request.body).toHaveLength(100);
       req.flush(mockResponse);
     });
 
@@ -319,6 +285,73 @@ describe('NessusPluginMappingService', () => {
       const req = httpMock.expectOne(`${apiBase}/mapPluginIds`);
 
       req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('putIAVTaskOrder', () => {
+    it('should update the task order for an IAV', () => {
+      const iavUpdate = { iav: '2024-A-0001', taskOrder: 'TO-2024-001' };
+
+      service.putIAVTaskOrder(iavUpdate).subscribe((data) => {
+        expect(data).toEqual(iavUpdate);
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/iav/taskOrder`);
+
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual(iavUpdate);
+      req.flush(iavUpdate);
+    });
+
+    it('should clear the task order with a null value', () => {
+      const iavUpdate = { iav: '2024-A-0001', taskOrder: null };
+
+      service.putIAVTaskOrder(iavUpdate).subscribe((data) => {
+        expect(data.taskOrder).toBeNull();
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/iav/taskOrder`);
+
+      expect(req.request.body).toEqual(iavUpdate);
+      req.flush(iavUpdate);
+    });
+
+    it('should handle 404 not found error', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      service.putIAVTaskOrder({ iav: '2024-A-9999', taskOrder: 'TO-2024-001' }).subscribe({
+        next: () => {
+          throw new Error('Expected error');
+        },
+        error: (error) => {
+          expect(error.message).toContain('Something bad happened');
+        }
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/iav/taskOrder`);
+
+      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle server-side HTTP error', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      service.putIAVTaskOrder({ iav: '2024-A-0001', taskOrder: 'TO-2024-001' }).subscribe({
+        next: () => {
+          throw new Error('Expected error');
+        },
+        error: (error) => {
+          expect(error.message).toContain('Something bad happened');
+        }
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/iav/taskOrder`);
+
+      req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
 
       consoleSpy.mockRestore();
     });

@@ -356,7 +356,7 @@ describe('PoamMitigationService', () => {
         mitigationText: '',
         isActive: true
       });
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0].mitigationId).toBe(100);
     });
 
@@ -368,7 +368,7 @@ describe('PoamMitigationService', () => {
       const result = await service.initializeTeamMitigations(poam, poamAssignedTeams, teamMitigations);
 
       expect(mockPoamService.postPoamTeamMitigation).not.toHaveBeenCalled();
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
     });
 
     it('should sort results by team name', async () => {
@@ -397,7 +397,7 @@ describe('PoamMitigationService', () => {
 
       const result = await service.initializeTeamMitigations(poam, poamAssignedTeams, teamMitigations);
 
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
     });
 
     it('should handle error when creating mitigation', async () => {
@@ -425,7 +425,7 @@ describe('PoamMitigationService', () => {
 
       const result = await service.initializeTeamMitigations(poam, poamAssignedTeams, teamMitigations);
 
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0].assignedTeamId).toBe(2);
     });
   });

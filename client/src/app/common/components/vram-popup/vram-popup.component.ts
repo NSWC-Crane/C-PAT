@@ -67,21 +67,6 @@ import { StepperModule } from 'primeng/stepper';
       </div>
     }
   `,
-  styles: [
-    `
-      :host ::ng-deep .card {
-        height: auto !important;
-        display: block !important;
-        flex-direction: unset !important;
-        min-height: unset !important;
-      }
-
-      .status-display {
-        margin-top: 1rem;
-        transition: opacity 0.3s ease-in-out;
-      }
-    `
-  ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, ImageModule, FormsModule, StepperModule]

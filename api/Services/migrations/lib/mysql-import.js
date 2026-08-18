@@ -134,16 +134,11 @@ class Importer {
 	 * @returns {Promise}
 	 */
 	async disconnect() {
-		try {
-			if (!this._conn) {
-				return
-			}
-			await this._conn.release()
-			this._conn = null
+		if (!this._conn) {
+			return
 		}
-		catch (e) {
-			throw (e)
-		}
+		await this._conn.release()
+		this._conn = null
 	}
 
 	////////////////////////////////////////////////////////////////////////////
@@ -190,15 +185,10 @@ class Importer {
 	 * @returns {Promise}
 	 */
 	async _connect() {
-		try {
-			if (this._conn) {
-				return (this._conn)
-			}
-			this._conn = await this._pool.getConnection()
+		if (this._conn) {
+			return (this._conn)
 		}
-		catch (e) {
-			throw (e)
-		}
+		this._conn = await this._pool.getConnection()
 	}
 
 	/**
@@ -261,7 +251,7 @@ class Importer {
 		return new Promise(async (resolve, reject) => {
 			const full_paths = [];
 			let error = null;
-			paths = [].concat.apply([], paths); // flatten array of paths
+			paths = paths.flat();
 			await slowLoop(paths, async (filepath, index, next) => {
 				if (error) {
 					next();
@@ -290,7 +280,7 @@ class Importer {
 				}
 			});
 			if (error) {
-				reject(error);
+				reject(error instanceof Error ? error : new Error(String(error)));
 			} else {
 				resolve(full_paths);
 			}
@@ -361,8 +351,7 @@ class QueryParser {
 		this.hasDelimiter = queriesString.toLowerCase().includes('delimiter ');
 
 		// Iterate over each char in the string
-		for (let i = 0; i < this.queriesString.length; i++) {
-			let char = this.queriesString[i];
+		for (const char of this.queriesString) {
 			this.parseChar(char);
 		}
 	}
@@ -384,7 +373,7 @@ class QueryParser {
 	// and update this.escaped
 	checkEscapeChar() {
 		if (!this.buffer.length) return;
-		if (this.buffer[this.buffer.length - 1] === "\\") {
+		if (this.buffer.at(-1) === "\\") {
 			this.escaped = !this.escaped;
 		} else {
 			this.escaped = false;

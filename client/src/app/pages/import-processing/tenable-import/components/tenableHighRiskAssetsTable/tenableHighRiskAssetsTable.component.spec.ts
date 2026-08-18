@@ -12,8 +12,10 @@ import { NO_ERRORS_SCHEMA, SimpleChange, SimpleChanges } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError, Subject } from 'rxjs';
+import { MessageService } from 'primeng/api';
 import { TenableHighRiskAssetsTableComponent } from './tenableHighRiskAssetsTable.component';
 import { ImportService } from '../../../import.service';
+import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 
 const makeAnalysisResponse = (results: any[], totalRecords = results.length) => ({
   response: {
@@ -52,6 +54,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
   let component: TenableHighRiskAssetsTableComponent;
   let fixture: ComponentFixture<TenableHighRiskAssetsTableComponent>;
   let mockImportService: any;
+  let mockMessageService: any;
 
   const createMockTable = () => ({
     clear: vi.fn(),
@@ -80,9 +83,14 @@ describe('TenableHighRiskAssetsTableComponent', () => {
       postTenableAnalysis: vi.fn().mockReturnValue(of(makeAnalysisResponse([mockAssetRaw])))
     };
 
+    mockMessageService = createMockMessageService();
+
     await TestBed.configureTestingModule({
       imports: [TenableHighRiskAssetsTableComponent],
-      providers: [{ provide: ImportService, useValue: mockImportService }],
+      providers: [
+        { provide: ImportService, useValue: mockImportService },
+        { provide: MessageService, useValue: mockMessageService }
+      ],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
@@ -168,40 +176,18 @@ describe('TenableHighRiskAssetsTableComponent', () => {
       expect(repoFilter.value[0].id).toBe('42');
     });
 
-    it('should include patchPublished filter', () => {
+    it.each([
+      ['patchPublished', '30:all'],
+      ['pluginType', 'active'],
+      ['severity', '1,2,3,4'],
+      ['lastSeen', '0:30']
+    ])('should include %s filter with value %s', (id, value) => {
       component.loadHighRiskAssets();
       const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
-      const filter = params.query.filters.find((f: any) => f.id === 'patchPublished');
+      const filter = params.query.filters.find((f: any) => f.id === id);
 
       expect(filter).toBeDefined();
-      expect(filter.value).toBe('30:all');
-    });
-
-    it('should include pluginType filter with value active', () => {
-      component.loadHighRiskAssets();
-      const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
-      const filter = params.query.filters.find((f: any) => f.id === 'pluginType');
-
-      expect(filter).toBeDefined();
-      expect(filter.value).toBe('active');
-    });
-
-    it('should include severity filter', () => {
-      component.loadHighRiskAssets();
-      const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
-      const filter = params.query.filters.find((f: any) => f.id === 'severity');
-
-      expect(filter).toBeDefined();
-      expect(filter.value).toBe('1,2,3,4');
-    });
-
-    it('should include lastSeen filter', () => {
-      component.loadHighRiskAssets();
-      const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
-      const filter = params.query.filters.find((f: any) => f.id === 'lastSeen');
-
-      expect(filter).toBeDefined();
-      expect(filter.value).toBe('0:30');
+      expect(filter.value).toBe(value);
     });
 
     it('should sort by score descending', () => {
@@ -231,7 +217,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
 
     it('should set highRiskAssets signal from response results', () => {
       component.loadHighRiskAssets();
-      expect(component.highRiskAssets().length).toBe(1);
+      expect(component.highRiskAssets()).toHaveLength(1);
     });
 
     it('should set highRiskAssetsTotalRecords from response', () => {
@@ -263,6 +249,46 @@ describe('TenableHighRiskAssetsTableComponent', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Network error')));
       component.loadHighRiskAssets();
       expect(component.highRiskAssets()).toEqual([]);
+    });
+
+    it('surfaces a message rather than failing silently on error', () => {
+      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Network error')));
+      component.loadHighRiskAssets();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error', detail: expect.stringContaining('Network error') }));
+    });
+  });
+
+  describe('load generation guard', () => {
+    it('keeps the newest load when an earlier one lands afterwards', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadHighRiskAssets();
+      component.loadHighRiskAssets();
+
+      second.next(makeAnalysisResponse([mockAssetRaw, mockAssetRawNoDns], 2));
+      first.next(makeAnalysisResponse([mockAssetRaw], 1));
+
+      expect(component.highRiskAssets()).toHaveLength(2);
+      expect(component.highRiskAssetsTotalRecords()).toBe(2);
+    });
+
+    it('does not surface an error from an earlier load', () => {
+      const first = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(of(makeAnalysisResponse([mockAssetRaw], 1)));
+
+      component.loadHighRiskAssets();
+      component.loadHighRiskAssets();
+      mockMessageService.add.mockClear();
+
+      first.error(new Error('stale failure'));
+
+      expect(mockMessageService.add).not.toHaveBeenCalled();
+      expect(component.highRiskAssets()).toHaveLength(1);
     });
   });
 
@@ -418,7 +444,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
     it('should map multiple assets', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([mockAssetRaw, mockAssetRawNoDns], 2)));
       component.loadHighRiskAssets();
-      expect(component.highRiskAssets().length).toBe(2);
+      expect(component.highRiskAssets()).toHaveLength(2);
     });
   });
 

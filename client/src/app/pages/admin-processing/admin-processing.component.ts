@@ -14,7 +14,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
-import { ToastModule } from 'primeng/toast';
 import { filter } from 'rxjs';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
@@ -29,7 +28,6 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
 @Component({
   selector: 'cpat-admin-processing',
   templateUrl: './admin-processing.component.html',
-  styleUrls: ['./admin-processing.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -41,7 +39,6 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
     FormsModule,
     NessusPluginMappingComponent,
     TabsModule,
-    ToastModule,
     UserProcessingComponent,
     AssetDeltaComponent,
     VRAMImportComponent

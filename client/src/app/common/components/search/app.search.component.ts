@@ -43,11 +43,14 @@ interface SearchItem {
   `,
   styles: [
     `
-      :host ::ng-deep .p-autocomplete {
-        width: 100%;
-      }
-      :host ::ng-deep .p-autocomplete-panel {
-        max-width: 100%;
+      :host ::ng-deep {
+        .p-autocomplete {
+          width: 100%;
+        }
+
+        .p-autocomplete-panel {
+          max-width: 100%;
+        }
       }
     `
   ],
@@ -69,6 +72,7 @@ export class AppSearchComponent {
     this.searchItems = [
       { title: 'Add POAM', path: '/poam-processing/poam-details/ADDPOAM' },
       { title: 'Asset Processing', path: '/asset-processing' },
+      { title: 'Global Metrics', path: '/metrics/global' },
       { title: 'Home', path: '/home' },
       { title: 'Import Processing', path: '/import-processing' },
       { title: 'Label Processing', path: '/label-processing' },

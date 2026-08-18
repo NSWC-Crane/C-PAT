@@ -8,19 +8,19 @@
 !##########################################################################
 */
 
-:host ::ng-deep .pointsBalance {
-  padding: 1rem 1.25rem;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-:host ::ng-deep .pointsBalance .p-card-body {
-  height: 0;
-  margin-bottom: 0;
-  padding: 8px;
-}
-
 :host ::ng-deep {
+  .pointsBalance {
+    padding: 1rem 1.25rem;
+    margin-bottom: 0;
+    padding-bottom: 0;
+
+    .p-card-body {
+      height: 0;
+      margin-bottom: 0;
+      padding: 8px;
+    }
+  }
+
   .p-grid {
     display: flex;
     flex-wrap: wrap;
@@ -110,16 +110,16 @@
       }
     }
   }
-}
 
-@media (max-width: 1200px) {
-  :host ::ng-deep .p-col-12.p-md-4.p-lg-3 {
-    flex: 1 1 calc(50% - 32px);
+  @media (max-width: 1200px) {
+    .p-col-12.p-md-4.p-lg-3 {
+      flex: 1 1 calc(50% - 32px);
+    }
   }
-}
 
-@media (max-width: 768px) {
-  :host ::ng-deep .p-col-12.p-md-4.p-lg-3 {
-    flex: 1 1 calc(100% - 32px);
+  @media (max-width: 768px) {
+    .p-col-12.p-md-4.p-lg-3 {
+      flex: 1 1 calc(100% - 32px);
+    }
   }
 }

@@ -27,7 +27,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, Observable, catchError, filter, finalize, forkJoin, map, of, switchMap, take } from 'rxjs';
 import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
@@ -91,7 +90,6 @@ interface ChartData {
     SelectModule,
     MultiSelectDirective,
     TableModule,
-    ToastModule,
     TooltipModule,
     DatePipe
   ],
@@ -534,7 +532,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       }))
     );
 
-    return this.sharedService.getCollectionsFromSTIGMAN().pipe(
+    return this.sharedService.getCollectionsFromSTIGMAN(false).pipe(
       catchError((error) => {
         this.messageService.add({
           severity: 'error',
@@ -550,7 +548,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         }
 
         const assetRequests = collections.map((collection) =>
-          this.sharedService.getAssetsFromSTIGMAN(collection.collectionId).pipe(
+          this.sharedService.getAssetsFromSTIGMAN(collection.collectionId, false).pipe(
             catchError((error) => {
               this.messageService.add({
                 severity: 'error',
@@ -771,7 +769,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams);
+    return this.importService.postTenableAnalysis(analysisParams, false);
   }
 
   private updateChartData() {

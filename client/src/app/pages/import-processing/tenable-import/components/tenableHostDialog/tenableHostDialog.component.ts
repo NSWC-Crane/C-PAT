@@ -23,7 +23,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { forkJoin, of } from 'rxjs';
 import { catchError, first } from 'rxjs/operators';
@@ -39,7 +38,7 @@ import { MultiSelectDirective } from '../../../../../common/directives/multi-sel
   styleUrls: ['./tenableHostDialog.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, DialogModule, ToastModule, TooltipModule, TagModule, NgClass]
+  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, DialogModule, TooltipModule, TagModule, NgClass]
 })
 export class TenableHostDialogComponent implements OnChanges {
   private readonly importService = inject(ImportService);
@@ -319,7 +318,7 @@ export class TenableHostDialogComponent implements OnChanges {
       this.isLoadingPluginDetails.set(false);
       this.showErrorMessage('Invalid plugin ID');
 
-      return Promise.reject('Invalid plugin ID');
+      return Promise.reject(new Error('Invalid plugin ID'));
     }
 
     this.selectedPlugin = plugin;
@@ -493,7 +492,7 @@ export class TenableHostDialogComponent implements OnChanges {
     if (!pluginID) {
       this.showErrorMessage('Invalid plugin ID');
 
-      return Promise.reject('Invalid plugin ID');
+      return Promise.reject(new Error('Invalid plugin ID'));
     }
 
     return new Promise((resolve, reject) => {
@@ -649,7 +648,7 @@ export class TenableHostDialogComponent implements OnChanges {
   parsePluginOutput(pluginText: string): string {
     if (!pluginText) return '';
 
-    return pluginText.replace(/<plugin_output>/g, '').replace(/<\/plugin_output>/g, '');
+    return pluginText.replaceAll('<plugin_output>', '').replaceAll('</plugin_output>', '');
   }
 
   getIavUrl(iavNumber: string): string {

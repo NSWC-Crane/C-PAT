@@ -106,56 +106,88 @@
   }
 }
 
-::ng-deep .p-dialog {
-  box-shadow:
-    0 3px 6px rgba(0, 0, 0, 0.16),
-    0 3px 6px rgba(0, 0, 0, 0.23);
-  padding: 1rem;
-
-  .p-dialog-header-actions {
-    display: none;
+:host ::ng-deep .cpat-dialog {
+  .p-dialog-header {
+    border-bottom: 1px solid var(--p-content-border-color);
   }
 
+  .p-dialog-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .p-dialog-content {
+    text-align: left;
+    padding: 1.5rem;
+  }
+
+  .p-dialog-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-top: 1px solid var(--p-content-border-color);
+    padding-top: 1rem;
+  }
+}
+
+:host ::ng-deep .p-confirmdialog {
   .p-dialog-header {
-    padding: 2rem 2rem 0 2rem;
     border: none;
     display: flex;
     justify-content: center;
 
     .p-dialog-title {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: 600;
       text-align: center;
     }
   }
 
   .p-dialog-content {
-    padding: 2rem;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow: hidden;
-
-    > i {
-      font-size: 2rem;
-      color: var(--p-yellow-500);
-      margin-bottom: 1rem;
-      display: block;
-    }
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
+    overflow-y: auto;
   }
 
-  > span {
-    font-size: 1.1rem;
-    line-height: 1.5;
-    display: block;
-    width: 100%;
+  .p-confirmdialog-icon {
+    color: var(--p-yellow-500);
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+
+  .p-confirmdialog-message {
+    margin: 0;
+    min-width: 0;
+    line-height: 1.6;
   }
 
   .p-dialog-footer {
     display: flex;
     border: none;
     justify-content: space-between;
-    padding: 1rem 1rem 0.5rem 1rem;
+    padding: 0 1.5rem 1.25rem 1.5rem;
+  }
+
+  .permission-changes {
+    p {
+      margin: 0;
+    }
+
+    ul {
+      list-style: disc;
+      margin: 0.25rem 0 0 0;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.25rem;
+    }
+
+    br {
+      display: block;
+      content: '';
+      margin-top: 0.75rem;
+    }
   }
 }

@@ -20,7 +20,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Select, SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../import.service';
@@ -38,7 +37,7 @@ interface ExportColumn {
   styleUrls: ['./tenableHostAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, ToastModule, TooltipModule, TagModule, TenableHostDialogComponent]
+  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, TooltipModule, TagModule, TenableHostDialogComponent]
 })
 export class TenableHostAssetsTableComponent implements OnInit {
   private readonly importService = inject(ImportService);
@@ -54,6 +53,7 @@ export class TenableHostAssetsTableComponent implements OnInit {
   selectedColumns: any[];
   readonly affectedAssets = signal<any[]>([]);
   readonly isLoading = signal<boolean>(true);
+  private loadGeneration = 0;
   readonly totalRecords = signal<number>(0);
   filterValue: string = '';
   selectedHost = signal<any>(null);
@@ -94,6 +94,8 @@ export class TenableHostAssetsTableComponent implements OnInit {
     if (!tenableRepoId) return;
 
     this.isLoading.set(true);
+
+    const gen = ++this.loadGeneration;
     const hostParams = {
       filters: {
         and: [
@@ -121,6 +123,10 @@ export class TenableHostAssetsTableComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.affectedAssets.set(
             data.response.map((asset: any) => {
               const formattedSystemType = asset.systemType
@@ -129,7 +135,7 @@ export class TenableHostAssetsTableComponent implements OnInit {
                     .map((type: string) =>
                       type
                         .trim()
-                        .replace(/_/g, ' ')
+                        .replaceAll('_', ' ')
                         .replace(/\b\w/g, (char: string) => char.toUpperCase())
                     )
                     .join(', ')
@@ -160,6 +166,10 @@ export class TenableHostAssetsTableComponent implements OnInit {
           this.isLoading.set(false);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

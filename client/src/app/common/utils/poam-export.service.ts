@@ -9,6 +9,7 @@
 */
 
 import { format } from 'date-fns';
+import { firstValueFrom } from 'rxjs';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../pages/import-processing/import.service';
 import { PoamService } from '../../pages/poam-processing/poams.service';
@@ -208,13 +209,21 @@ export class PoamExportService {
 
     const optionalDefaultValues = branchConfig.optionalDefaultValues;
 
+    const resolveCellValue = (poam: Poam, dbKey: string, columnKey: string): any => {
+      if (poam[dbKey] === undefined || poam[dbKey] === '') {
+        return optionalDefaultValues[columnKey] || '';
+      }
+
+      return cellValueMappers[dbKey] ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey) : poam[dbKey];
+    };
+
     const getCellValue = (poam: Poam, dbKey: string, columnKey: string, milestone: Poam['milestones'][number] | null, milestoneIndex: number): any => {
       if (dbKey === 'milestone') {
         return PoamExportService.getMilestoneCellValue(columnKey, milestone, milestoneIndex);
       }
 
       if (columnKey === 'T') {
-        const cciValue = poam[dbKey] !== undefined && poam[dbKey] !== '' ? (cellValueMappers[dbKey] ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey) : poam[dbKey]) : optionalDefaultValues[columnKey] || '';
+        const cciValue = resolveCellValue(poam, dbKey, columnKey);
         const impactDescription = poam['impactDescription'] || '';
 
         let result = cciValue;
@@ -226,11 +235,7 @@ export class PoamExportService {
         return result.trim();
       }
 
-      if (poam[dbKey] !== undefined && poam[dbKey] !== '') {
-        return cellValueMappers[dbKey] ? cellValueMappers[dbKey](poam[dbKey], poam, columnKey) : poam[dbKey];
-      }
-
-      return optionalDefaultValues[columnKey] || '';
+      return resolveCellValue(poam, dbKey, columnKey);
     };
 
     poams.forEach((poam: Poam) => {
@@ -257,20 +262,30 @@ export class PoamExportService {
 
   private static async processPoamsWithAssets(poams: Poam[], collectionId: number, collectionsService: CollectionsService, importService: ImportService, poamService: PoamService, sharedService: SharedService): Promise<Poam[]> {
     const processedPoams: Poam[] = [];
-    const collection = await collectionsService
-      .getCollectionBasicList()
-      .toPromise()
-      .then((collections) => collections.find((c) => c.collectionId === collectionId));
+    const collections = await firstValueFrom(collectionsService.getCollectionBasicList());
+    const collection = collections.find((c) => c.collectionId === collectionId);
 
     if (!collection) {
       throw new Error('Collection not found');
     }
 
+    const findingsCache = new Map<string, any[]>();
+    let cpatAssets: any[] | null = null;
+
     for (const poam of poams) {
       let processedPoam = { ...poam };
 
       if (collection.collectionType === 'STIG Manager' && poam.vulnerabilityId && poam.stigBenchmarkId) {
-        const findings = await sharedService.getSTIGMANAffectedAssetsByPoam(collection.originCollectionId, poam.stigBenchmarkId).toPromise();
+        if (!collection.originCollectionId) {
+          throw new Error('Unable to determine the matching STIG Manager collection ID');
+        }
+
+        let findings = findingsCache.get(poam.stigBenchmarkId);
+
+        if (!findings) {
+          findings = (await firstValueFrom(sharedService.getSTIGMANAffectedAssetsByPoam(collection.originCollectionId, poam.stigBenchmarkId))) ?? [];
+          findingsCache.set(poam.stigBenchmarkId, findings);
+        }
 
         const matchingFinding = findings.find((finding) => finding.groupId === poam.vulnerabilityId);
 
@@ -308,16 +323,17 @@ export class PoamExportService {
           type: 'vuln'
         };
 
-        const tenableAssets = await importService
-          .postTenableAnalysis(analysisParams)
-          .toPromise()
-          .then((data) =>
-            data.response.results.map((asset: any) => ({
-              pluginId: asset.pluginID,
-              dnsName: asset.dnsName ?? '',
-              netbiosName: asset.netbiosName ?? ''
-            }))
-          );
+        const analysisData = await firstValueFrom(importService.postTenableAnalysis(analysisParams, false));
+
+        if (analysisData?.error_msg) {
+          throw new Error(`Error in Tenable response: ${analysisData.error_msg}`);
+        }
+
+        const tenableAssets = (analysisData?.response?.results || []).map((asset: any) => ({
+          pluginId: asset.pluginID,
+          dnsName: asset.dnsName ?? '',
+          netbiosName: asset.netbiosName ?? ''
+        }));
 
         const affectedDevices = tenableAssets
           .map((asset) => {
@@ -339,9 +355,9 @@ export class PoamExportService {
 
         processedPoam.devicesAffected = affectedDevices.join(' ');
       } else {
-        const assets = await poamService.getPoamAssetsByCollectionId(collection.collectionId).toPromise();
+        cpatAssets ??= (await firstValueFrom(poamService.getPoamAssetsByCollectionId(collection.collectionId))) ?? [];
 
-        const poamAssets = assets
+        const poamAssets = cpatAssets
           .filter((asset: any) => asset.poamId === poam.poamId)
           .map((asset: any) => asset.assetName.toUpperCase())
           .filter(Boolean);

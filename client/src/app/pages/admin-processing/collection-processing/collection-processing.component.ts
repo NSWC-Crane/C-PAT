@@ -22,10 +22,9 @@ import { ListboxModule } from 'primeng/listbox';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
-import { EMPTY, Observable, catchError, forkJoin, from, map, of, switchMap, tap, throwError } from 'rxjs';
+import { EMPTY, Observable, catchError, forkJoin, from, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { AAPackage } from '../../../common/models/aaPackage.model';
 import { Collections } from '../../../common/models/collections.model';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -49,7 +48,7 @@ interface TreeNode<T> {
   styleUrls: ['./collection-processing.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TagModule, TextareaModule, ToastModule, TooltipModule, TreeTableModule]
+  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TagModule, TextareaModule, TooltipModule, TreeTableModule]
 })
 export class CollectionProcessingComponent implements OnInit {
   private readonly aaPackageService = inject(AAPackageService);
@@ -119,7 +118,6 @@ export class CollectionProcessingComponent implements OnInit {
   readonly bulkImporting = signal(false);
   readonly loadingBulkImports = signal(false);
   tenableEnabled = CPAT.Env.features.tenableEnabled;
-  private readonly findingsCache: Map<string, any[]> = new Map();
 
   ngOnInit() {
     this.initColumnsAndFilters();
@@ -330,7 +328,7 @@ export class CollectionProcessingComponent implements OnInit {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams).pipe(
+    return this.importService.postTenableAnalysis(analysisParams, false).pipe(
       map((data) => {
         this.tenableAffectedAssets = data.response.results.map((asset: any) => ({
           pluginId: asset.pluginID,
@@ -388,17 +386,25 @@ export class CollectionProcessingComponent implements OnInit {
   }
 
   private processPoamsWithStigFindings(poams: any[], originCollectionId: number): Observable<any[]> {
+    const findingsByBenchmark = new Map<string, Observable<any>>();
+
+    const findingsFor = (benchmarkId: string): Observable<any> => {
+      let findings$ = findingsByBenchmark.get(benchmarkId);
+
+      if (!findings$) {
+        findings$ = this.sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, benchmarkId).pipe(shareReplay({ bufferSize: 1, refCount: false }));
+        findingsByBenchmark.set(benchmarkId, findings$);
+      }
+
+      return findings$;
+    };
+
     const poamProcessingOperations = poams.map((poam) => {
       if (!poam.vulnerabilityId || !poam.stigBenchmarkId) {
         return of(poam);
       }
 
-      if (this.findingsCache.has(poam.stigBenchmarkId)) {
-        return this.processPoamWithCachedFindings(poam, this.findingsCache.get(poam.stigBenchmarkId)!);
-      }
-
-      return this.sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, poam.stigBenchmarkId).pipe(
-        tap((findings) => this.findingsCache.set(poam.stigBenchmarkId, findings)),
+      return findingsFor(poam.stigBenchmarkId).pipe(
         map((findings) => this.processSinglePoamWithFindings(poam, findings)),
         catchError((error) => {
           if (error?.message?.includes('403')) {
@@ -413,9 +419,6 @@ export class CollectionProcessingComponent implements OnInit {
     });
 
     return forkJoin(poamProcessingOperations);
-  }
-  private processPoamWithCachedFindings(poam: any, findings: any[]): Observable<any> {
-    return of(this.processSinglePoamWithFindings(poam, findings));
   }
 
   private processSinglePoamWithFindings(poam: any, findings: any[]): any {
@@ -495,10 +498,6 @@ export class CollectionProcessingComponent implements OnInit {
         this.getCollectionData();
         this.displayCollectionDialog.set(false);
       });
-  }
-
-  clearCache() {
-    this.findingsCache.clear();
   }
 
   showAddCollectionDialog() {
@@ -603,8 +602,8 @@ export class CollectionProcessingComponent implements OnInit {
 
     const source$ =
       collectionType === 'STIG Manager'
-        ? this.sharedService.getCollectionsFromSTIGMAN().pipe(map((list: any[]) => (list ?? []).map((c: any) => ({ label: c.name, value: +c.collectionId }))))
-        : this.importService.getTenableRepositories().pipe(map((res: any) => (res?.response ?? []).map((r: any) => ({ label: r.name, value: +r.id }))));
+        ? this.sharedService.getCollectionsFromSTIGMAN(false).pipe(map((list: any[]) => (list ?? []).map((c: any) => ({ label: c.name, value: +c.collectionId }))))
+        : this.importService.getTenableRepositories(false).pipe(map((res: any) => (res?.response ?? []).map((r: any) => ({ label: r.name, value: +r.id }))));
 
     source$
       .pipe(
@@ -853,7 +852,7 @@ export class CollectionProcessingComponent implements OnInit {
 
     const source$ =
       collectionType === 'STIG Manager'
-        ? this.sharedService.getCollectionsFromSTIGMAN().pipe(
+        ? this.sharedService.getCollectionsFromSTIGMAN(false).pipe(
             map((list: any[]) =>
               (list ?? [])
                 .filter((c: any) => !usedOriginIds.has(+c.collectionId))
@@ -868,7 +867,7 @@ export class CollectionProcessingComponent implements OnInit {
                 }))
             )
           )
-        : this.importService.getTenableRepositories().pipe(
+        : this.importService.getTenableRepositories(false).pipe(
             map((res: any) =>
               (res?.response ?? [])
                 .filter((r: any) => !usedOriginIds.has(+r.id))

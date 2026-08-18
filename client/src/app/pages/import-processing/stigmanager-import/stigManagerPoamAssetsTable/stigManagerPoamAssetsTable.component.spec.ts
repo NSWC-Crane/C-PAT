@@ -145,15 +145,8 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
       expect(component.selectedCollection).toBe(7);
     });
 
-    it('should call initColumnsAndFilters', () => {
-      const spy = vi.spyOn(component, 'initColumnsAndFilters');
-
-      component.ngOnInit();
-      expect(spy).toHaveBeenCalled();
-    });
-
-    it('should call loadAssetDeltaList', () => {
-      const spy = vi.spyOn(component, 'loadAssetDeltaList');
+    it.each(['initColumnsAndFilters', 'loadAssetDeltaList', 'loadData'])('should call %s when stigmanCollectionId and groupId are set', (method) => {
+      const spy = vi.spyOn(component as any, method);
 
       component.ngOnInit();
       expect(spy).toHaveBeenCalled();
@@ -162,13 +155,6 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     it('should initialize teamTabs with "all" entry', () => {
       component.ngOnInit();
       expect(component.teamTabs()[0]).toMatchObject({ teamId: 'all', teamName: 'All Assets' });
-    });
-
-    it('should call loadData when stigmanCollectionId and groupId are set', () => {
-      const spy = vi.spyOn(component, 'loadData');
-
-      component.ngOnInit();
-      expect(spy).toHaveBeenCalled();
     });
 
     it('should show error message when groupId is missing', () => {
@@ -200,7 +186,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should set 7 columns', () => {
-      expect(component.cols.length).toBe(7);
+      expect(component.cols).toHaveLength(7);
     });
 
     it('should include assetName column', () => {
@@ -216,7 +202,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
 
     it('should set exportColumns from cols', () => {
-      expect(component.exportColumns.length).toBe(7);
+      expect(component.exportColumns).toHaveLength(7);
       expect(component.exportColumns[0]).toHaveProperty('title');
       expect(component.exportColumns[0]).toHaveProperty('dataKey');
     });
@@ -328,10 +314,51 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
     });
   });
 
+  describe('load generation guard', () => {
+    it('keeps the newest load when an earlier one lands afterwards', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getPOAMAssetsFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+      mockSharedService.getAssetDetailsFromSTIGMAN.mockReturnValue(of([]));
+
+      component.loadData();
+      component.loadData();
+
+      second.next([{ groupId: 'V-001', assets: [{ name: 'Second', assetId: 2 }] }]);
+      first.next([{ groupId: 'V-001', assets: [{ name: 'First', assetId: 1 }] }]);
+
+      expect(component.affectedAssets).toHaveLength(1);
+      expect(component.affectedAssets[0].assetName).toBe('Second');
+    });
+
+    it('ignores asset details that belong to an earlier load', () => {
+      const firstDetails = new Subject<any[]>();
+
+      mockSharedService.getPOAMAssetsFromSTIGMAN.mockReturnValue(of([{ groupId: 'V-001', assets: [{ name: 'Asset', assetId: 1 }] }]));
+      mockSharedService.getAssetDetailsFromSTIGMAN.mockReturnValueOnce(firstDetails.asObservable()).mockReturnValueOnce(of([{ assetId: 1, fqdn: 'second.example.com' }]));
+
+      component.loadData();
+      component.loadData();
+
+      firstDetails.next([{ assetId: 1, fqdn: 'first.example.com' }]);
+
+      expect(component.affectedAssets[0].fqdn).toBe('second.example.com');
+    });
+  });
+
   describe('loadAssetDetails', () => {
     it('should call getAssetDetailsFromSTIGMAN with stigmanCollectionId', () => {
       component.ngOnInit();
       expect(mockSharedService.getAssetDetailsFromSTIGMAN).toHaveBeenCalledWith(42);
+    });
+
+    it('clears the spinner and keeps the mapped assets when no details come back', () => {
+      mockSharedService.getAssetDetailsFromSTIGMAN.mockReturnValue(of([]));
+      component.ngOnInit();
+
+      expect(component.loading()).toBe(false);
+      expect(component.affectedAssets.length).toBeGreaterThan(0);
     });
 
     it('should enrich affectedAssets with fqdn from details', () => {
@@ -446,7 +473,7 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
 
     it('should add a tab for each team in assetsByTeam', () => {
       component.createTeamTabs();
-      expect(component.teamTabs().length).toBe(2);
+      expect(component.teamTabs()).toHaveLength(2);
     });
 
     it('should set correct teamName for team tab', () => {

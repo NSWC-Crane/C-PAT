@@ -109,48 +109,69 @@
         </div>
       }
       <hr class="my-6" />
-      <p-stepper [value]="1">
-        <p-step-list>
-          <p-step [value]="1">Team Assignments</p-step>
-          <p-step [value]="2">Collection Permissions</p-step>
-        </p-step-list>
-        <p-step-panels>
-          <p-step-panel [value]="1">
-            <ng-template #content let-activateCallback="activateCallback">
-              <p-table #teamTable class="w-full" [value]="userAssignedTeams()" [columns]="teamCols" editMode="row" [paginator]="true" [rows]="5">
-                <ng-template #header let-columns>
-                  <tr>
-                    <th scope="col" class="w-24">
-                      <button pButton (click)="onAddNewAssignedTeam()" variant="text"><i class="pi pi-plus" pButtonIcon></i></button>
-                    </th>
-                    @for (col of columns; track col.header) {
-                      <th scope="col">{{ col.header }}</th>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template #body let-rowData let-columns="columns">
-                  <tr>
-                    <td class="w-24">
-                      <div class="flex space-x-2">
-                        @if (rowData.editing) {
-                          <button pButton (click)="onSaveAssignedTeam(rowData)" [rounded]="true" variant="text" severity="success"><i class="pi pi-check" pButtonIcon></i></button>
-                          <button pButton (click)="onCancelEditAssignedTeam(rowData)" [rounded]="true" variant="text" severity="danger"><i class="pi pi-times" pButtonIcon></i></button>
-                        } @else {
-                          <button pButton (click)="onEditAssignedTeam(rowData)" [rounded]="true" variant="text"><i class="pi pi-pencil" pButtonIcon></i></button>
-                        }
-                        <button pButton (click)="onDeleteAssignedTeam(rowData)" variant="text"><i class="pi pi-trash" pButtonIcon></i></button>
-                      </div>
-                    </td>
-                    @for (col of columns; track col.field) {
-                      <td>
-                        @if (!rowData.editing) {
-                          <span>{{ rowData[col.field] }}</span>
-                        }
-                        @if (rowData.editing && col.field === 'assignedTeamName') {
+      <p-tabs [(value)]="activeTab">
+        <p-tablist>
+          <p-tab [value]="0"
+            ><span>Team Assignments</span><span class="text-muted-color ml-2">({{ userAssignedTeams().length }})</span></p-tab
+          >
+          <p-tab [value]="1"
+            ><span>Collection Permissions</span><span class="text-muted-color ml-2">({{ collectionPermissions().length }})</span></p-tab
+          >
+        </p-tablist>
+        <p-tabpanels>
+          <p-tabpanel [value]="0">
+            <p-table #teamTable class="w-full" [value]="userAssignedTeams()" [columns]="teamCols" editMode="row" [paginator]="true" [rows]="5">
+              <ng-template #header let-columns>
+                <tr>
+                  <th scope="col" class="w-24">
+                    <button pButton (click)="onAddNewAssignedTeam()" variant="text" aria-label="Add team assignment" pTooltip="Assign this user to a team" tooltipPosition="right"><i class="pi pi-plus" pButtonIcon></i></button>
+                  </th>
+                  @for (col of columns; track col.header) {
+                    <th scope="col">{{ col.header }}</th>
+                  }
+                </tr>
+              </ng-template>
+              <ng-template #body let-rowData let-columns="columns">
+                <tr>
+                  <td class="w-24">
+                    <div class="flex space-x-2">
+                      @if (rowData.editing) {
+                        <button pButton (click)="onSaveAssignedTeam(rowData)" [rounded]="true" variant="text" severity="success" [disabled]="teamActionInFlight()" aria-label="Save team assignment" pTooltip="Save">
+                          <i class="pi pi-check" pButtonIcon></i>
+                        </button>
+                        <button pButton (click)="onCancelEditAssignedTeam(rowData)" [rounded]="true" variant="text" severity="danger" aria-label="Cancel editing team assignment" pTooltip="Cancel"><i class="pi pi-times" pButtonIcon></i></button>
+                      } @else {
+                        <button pButton (click)="onEditAssignedTeam(rowData)" [rounded]="true" variant="text" aria-label="Edit team assignment" pTooltip="Edit"><i class="pi pi-pencil" pButtonIcon></i></button>
+                      }
+                      @if (excludedCountForTeam(rowData.assignedTeamId) > 0) {
+                        <button
+                          pButton
+                          (click)="openRestoreDialog(rowData)"
+                          [rounded]="true"
+                          variant="text"
+                          severity="warn"
+                          [disabled]="teamActionInFlight()"
+                          aria-label="Restore skipped collections"
+                          pTooltip="Restore collections skipped for this user"
+                        >
+                          <i class="pi pi-replay" pButtonIcon></i>
+                        </button>
+                      }
+                      <button pButton (click)="onDeleteAssignedTeam(rowData)" variant="text" [disabled]="teamActionInFlight()" aria-label="Delete team assignment" pTooltip="Remove from team"><i class="pi pi-trash" pButtonIcon></i></button>
+                    </div>
+                  </td>
+                  @for (col of columns; track col.field) {
+                    <td>
+                      @if (!rowData.editing) {
+                        <span>{{ rowData[col.field] }}</span>
+                      } @else if (col.field === 'assignedTeamName') {
+                        @if (rowData.assignedTeamName) {
+                          <span>{{ rowData.assignedTeamName }}</span>
+                        } @else if (rowData.oldAssignedTeamId === undefined) {
                           <p-select
                             [options]="availableTeams()"
                             [(ngModel)]="rowData.assignedTeamId"
-                            name="teamDropdown"
+                            [ngModelOptions]="{ standalone: true }"
                             [filter]="true"
                             filterBy="title"
                             optionLabel="title"
@@ -159,62 +180,69 @@
                             class="w-full"
                             appendTo="body"
                           />
-                        }
-                        @if (rowData.editing && col.field === 'accessLevelLabel') {
-                          <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
-                        }
-                      </td>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template #emptymessage>
-                  <tr>
-                    <td colspan="3" style="text-align: center">No teams to display</td>
-                  </tr>
-                </ng-template>
-              </p-table>
-              <div class="flex justify-end p-4">
-                <button pButton (click)="activateCallback(2)" [outlined]="true" [rounded]="true" [text]="true" [raised]="true"><i class="pi pi-arrow-right" pButtonIcon></i></button>
-              </div>
-            </ng-template>
-          </p-step-panel>
-
-          <p-step-panel [value]="2">
-            <ng-template #content let-activateCallback="activateCallback">
-              <p-table #permissionsTable class="w-full" [value]="collectionPermissions()" [columns]="cols" editMode="row" [paginator]="true" [rows]="5">
-                <ng-template #header let-columns>
-                  <tr>
-                    <th scope="col" class="w-24">
-                      <button pButton (click)="onAddNewPermission()" variant="text"><i class="pi pi-plus" pButtonIcon></i></button>
-                    </th>
-                    @for (col of columns; track col.header) {
-                      <th scope="col">{{ col.header }}</th>
-                    }
-                  </tr>
-                </ng-template>
-                <ng-template #body let-rowData let-columns="columns">
-                  <tr>
-                    <td class="w-24">
-                      <div class="flex space-x-2">
-                        @if (rowData.editing) {
-                          <button pButton (click)="onSavePermission(rowData)" [rounded]="true" variant="text" severity="success"><i class="pi pi-check" pButtonIcon></i></button>
-                          <button pButton (click)="onCancelEditPermission(rowData)" [rounded]="true" variant="text" severity="danger"><i class="pi pi-times" pButtonIcon></i></button>
                         } @else {
-                          <button pButton (click)="onEditPermission(rowData)" [rounded]="true" variant="text"><i class="pi pi-pencil" pButtonIcon></i></button>
+                          <span class="text-muted-color">Unknown team (ID {{ rowData.assignedTeamId }})</span>
                         }
-                        <button pButton (click)="onDeletePermission(rowData)" variant="text"><i class="pi pi-trash" pButtonIcon></i></button>
-                      </div>
+                      } @else if (col.field === 'accessLevelLabel') {
+                        <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" [ngModelOptions]="{ standalone: true }" optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
+                      }
                     </td>
-                    @for (col of columns; track col.field) {
-                      <td>
-                        @if (!rowData.editing) {
-                          <span>{{ rowData[col.field] }}</span>
-                        }
-                        @if (rowData.editing && col.field === 'collectionName') {
+                  }
+                </tr>
+              </ng-template>
+              <ng-template #emptymessage>
+                <tr>
+                  <td colspan="3" class="text-center">No teams assigned. Assigning a team also grants the collection permissions that team covers.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </p-tabpanel>
+
+          <p-tabpanel [value]="1">
+            <p-table #permissionsTable class="w-full" [value]="collectionPermissions()" [columns]="cols" editMode="row" [paginator]="true" [rows]="5">
+              <ng-template #header let-columns>
+                <tr>
+                  <th scope="col" class="w-24">
+                    <button pButton (click)="onAddNewPermission()" variant="text" aria-label="Add collection permission" pTooltip="Grant access to a collection" tooltipPosition="right"><i class="pi pi-plus" pButtonIcon></i></button>
+                  </th>
+                  @for (col of columns; track col.header) {
+                    <th scope="col">{{ col.header }}</th>
+                  }
+                  <th scope="col">
+                    Source
+                    <i
+                      class="pi pi-info-circle text-primary ml-1 cursor-pointer"
+                      pTooltip="A collection permission is the highest level any of its sources grants. 'Direct' is access an administrator gave this user on its own; a team name means that team's coverage grants it. Both can apply at once."
+                      tooltipPosition="top"
+                    ></i>
+                  </th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-rowData let-columns="columns">
+                <tr>
+                  <td class="w-24">
+                    <div class="flex space-x-2">
+                      @if (rowData.editing) {
+                        <button pButton (click)="onSavePermission(rowData)" [rounded]="true" variant="text" severity="success" aria-label="Save collection permission" pTooltip="Save"><i class="pi pi-check" pButtonIcon></i></button>
+                        <button pButton (click)="onCancelEditPermission(rowData)" [rounded]="true" variant="text" severity="danger" aria-label="Cancel editing collection permission" pTooltip="Cancel"><i class="pi pi-times" pButtonIcon></i></button>
+                      } @else {
+                        <button pButton (click)="onEditPermission(rowData)" [rounded]="true" variant="text" aria-label="Edit collection permission" pTooltip="Edit"><i class="pi pi-pencil" pButtonIcon></i></button>
+                      }
+                      <button pButton (click)="onDeletePermission(rowData)" variant="text" aria-label="Delete collection permission" pTooltip="Revoke access"><i class="pi pi-trash" pButtonIcon></i></button>
+                    </div>
+                  </td>
+                  @for (col of columns; track col.field) {
+                    <td>
+                      @if (!rowData.editing) {
+                        <span>{{ rowData[col.field] }}</span>
+                      } @else if (col.field === 'collectionName') {
+                        @if (rowData.collectionName) {
+                          <span>{{ rowData.collectionName }}</span>
+                        } @else {
                           <p-select
                             [options]="availableCollections()"
                             [(ngModel)]="rowData.collectionId"
-                            name="collectionDropdown"
+                            [ngModelOptions]="{ standalone: true }"
                             [filter]="true"
                             filterBy="title"
                             optionLabel="title"
@@ -224,26 +252,34 @@
                             appendTo="body"
                           />
                         }
-                        @if (rowData.editing && col.field === 'accessLevelLabel') {
-                          <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" name="accessLevelDropdown" optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
+                      } @else if (col.field === 'accessLevelLabel') {
+                        <p-select [options]="accessLevelOptions" [(ngModel)]="rowData.accessLevel" [ngModelOptions]="{ standalone: true }" optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
+                      }
+                    </td>
+                  }
+                  <td>
+                    @if (rowData.collectionId) {
+                      <div class="flex flex-wrap gap-1">
+                        @if (directLevel(rowData.collectionId); as directAccessLevel) {
+                          <p-tag [value]="'Direct: ' + getAccessLevelLabel(directAccessLevel)" severity="secondary" [rounded]="true" />
                         }
-                      </td>
+                        @for (teamName of teamsCovering(rowData.collectionId); track teamName) {
+                          <p-tag [value]="teamName" severity="info" [rounded]="true" />
+                        }
+                      </div>
                     }
-                  </tr>
-                </ng-template>
-                <ng-template #emptymessage>
-                  <tr>
-                    <td colspan="3" class="text-center">No Data to Display</td>
-                  </tr>
-                </ng-template>
-              </p-table>
-              <div class="flex justify-between p-4">
-                <button pButton (click)="activateCallback(1)" [outlined]="true" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
-              </div>
-            </ng-template>
-          </p-step-panel>
-        </p-step-panels>
-      </p-stepper>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template #emptymessage>
+                <tr>
+                  <td colspan="4" class="text-center">No collection permissions assigned.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
     </form>
   </div>
 
@@ -255,5 +291,127 @@
   </div>
 </div>
 
-<p-toast />
-<p-confirmdialog header="Confirmation" icon="pi pi-exclamation-triangle" />
+<p-dialog header="Remove Team Assignment" [(visible)]="unassignDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelUnassign()">
+  @if (unassignPlan(); as plan) {
+    <div class="flex flex-col gap-5">
+      <p class="m-0 leading-relaxed">
+        Removing <strong>{{ unassignTarget()?.assignedTeamName }}</strong> deletes the team assignment. Choose what happens to the collection permissions it granted.
+      </p>
+
+      @if (plan.removals.length > 0) {
+        <div class="border-surface rounded-border overflow-hidden border">
+          <div class="bg-emphasis border-surface flex items-center gap-2 border-b px-4 py-2.5">
+            <i class="pi pi-ban text-sm text-red-500"></i>
+            <span class="text-sm font-semibold">Access removed entirely</span>
+            <span class="text-muted-color text-sm">({{ plan.removals.length }})</span>
+          </div>
+          <ul class="m-0 list-none px-4 py-1">
+            @for (entry of plan.removals; track entry.collectionId) {
+              <li class="border-surface flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
+                <span class="min-w-0 truncate">{{ entry.collectionName }}</span>
+                <p-tag [value]="getAccessLevelLabel(entry.currentAccessLevel)" severity="danger" [rounded]="true" />
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (plan.downgrades.length > 0) {
+        <div class="border-surface rounded-border overflow-hidden border">
+          <div class="bg-emphasis border-surface flex items-center gap-2 border-b px-4 py-2.5">
+            <i class="pi pi-arrow-down text-sm text-amber-500"></i>
+            <span class="text-sm font-semibold">Access lowered</span>
+            <span class="text-muted-color text-sm">({{ plan.downgrades.length }})</span>
+          </div>
+          <ul class="m-0 list-none px-4 py-1">
+            @for (entry of plan.downgrades; track entry.collectionId) {
+              <li class="border-surface flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
+                <span class="min-w-0 truncate">{{ entry.collectionName }}</span>
+                <span class="flex shrink-0 items-center gap-2">
+                  <p-tag [value]="getAccessLevelLabel(entry.currentAccessLevel)" severity="secondary" [rounded]="true" />
+                  <i class="pi pi-arrow-right text-muted-color text-xs"></i>
+                  <p-tag [value]="getAccessLevelLabel(entry.targetAccessLevel ?? 0)" severity="warn" [rounded]="true" />
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (plan.unaffected.length > 0) {
+        <div class="border-surface rounded-border overflow-hidden border">
+          <div class="bg-emphasis border-surface flex items-center gap-2 border-b px-4 py-2.5">
+            <i class="pi pi-check-circle text-muted-color text-sm"></i>
+            <span class="text-sm font-semibold">Unaffected</span>
+            <span class="text-muted-color text-sm">({{ plan.unaffected.length }})</span>
+            <i class="pi pi-info-circle text-primary ml-1 cursor-pointer text-sm" pTooltip="Still justified by another team or by a direct grant." tooltipPosition="top"></i>
+          </div>
+          <ul class="m-0 list-none px-4 py-1">
+            @for (entry of plan.unaffected; track entry.collectionId) {
+              <li class="border-surface text-muted-color flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
+                <span class="min-w-0 truncate">{{ entry.collectionName }}</span>
+                <p-tag [value]="getAccessLevelLabel(entry.currentAccessLevel)" severity="secondary" [rounded]="true" />
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      <div class="border-surface rounded-border flex flex-col gap-2 border border-dashed p-3">
+        @if (!hasRevocationProposals()) {
+          <span class="text-muted-color text-sm leading-relaxed"
+            >Nothing this team granted would change. Either the collections it covers are still justified by another team or by a direct grant, or the user holds no permissions this team is recorded as having granted.</span
+          >
+        }
+        <span class="text-muted-color text-sm leading-relaxed">
+          Keeping the access converts only what would otherwise be lost into a direct grant, listed as <strong>Direct</strong> on the permissions tab. Anything another team or an existing direct grant already justifies is left alone, so nothing new
+          is recorded for the collections listed as unaffected.
+        </span>
+      </div>
+    </div>
+  }
+  <ng-template #footer>
+    <button pButton (click)="cancelUnassign()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
+    <span class="flex gap-2">
+      <button pButton (click)="confirmUnassign(false)" [outlined]="true" [disabled]="teamActionInFlight()"><span pButtonLabel>Remove but keep access</span></button>
+      <button pButton (click)="confirmUnassign(true)" [outlined]="true" severity="danger" [disabled]="!hasRevocationProposals() || teamActionInFlight()"><span pButtonLabel>Remove and revoke</span></button>
+    </span>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Restore Skipped Collections" [(visible)]="restoreDialogVisible" [modal]="true" [draggable]="false" styleClass="cpat-dialog max-w-[60vw] max-h-[80vh] overflow-hidden" (onHide)="cancelRestore()">
+  <div class="flex flex-col gap-5">
+    <p class="m-0 leading-relaxed">
+      These collections are covered by <strong>{{ restoreTarget()?.assignedTeamName }}</strong> but were deliberately skipped for this user when the coverage was added. Restoring grants them at the user's access level on this team.
+    </p>
+
+    <div class="border-surface rounded-border overflow-hidden border">
+      <div class="bg-emphasis border-surface flex items-center gap-2 border-b px-4 py-2.5">
+        <i class="pi pi-replay text-muted-color text-sm"></i>
+        <span class="text-sm font-semibold">Skipped collections</span>
+        <span class="text-muted-color text-sm">({{ restoreCandidates().length }})</span>
+      </div>
+      <ul class="m-0 list-none px-4 py-1">
+        @for (entry of restoreCandidates(); track entry.collectionId) {
+          <li class="border-surface flex items-center gap-2 border-b py-2 last:border-b-0">
+            <p-checkbox [binary]="true" [ngModel]="isRestoreSelected(entry.collectionId)" (ngModelChange)="toggleRestoreCollection(entry.collectionId)" [inputId]="'restore-' + entry.collectionId" />
+            <label class="min-w-0 cursor-pointer truncate" [for]="'restore-' + entry.collectionId">{{ entry.collectionName }}</label>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="border-surface rounded-border border border-dashed p-3">
+      <span class="text-muted-color text-sm leading-relaxed">
+        Anything left unchecked is skipped for this user until it is restored here. Three other things clear it: removing and readding the team's coverage of that collection, removing and readding the user's assignment to the team, or deleting the
+        team.
+      </span>
+    </div>
+  </div>
+  <ng-template #footer>
+    <button pButton (click)="cancelRestore()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
+    <button pButton (click)="confirmRestore()" [outlined]="true" [disabled]="restoreSelections().size === 0 || teamActionInFlight()"><span pButtonLabel>Restore selected</span></button>
+  </ng-template>
+</p-dialog>
+
+<p-confirmdialog header="Confirmation" icon="pi pi-exclamation-triangle" styleClass="max-w-[60vw] max-h-[80vh] overflow-hidden" [draggable]="false" />

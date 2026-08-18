@@ -193,11 +193,12 @@ describe('PoamGridComponent', () => {
       expect(setPayloadSpy).toHaveBeenCalled();
     });
 
-    it('should set up table status filter on ngOnInit', async () => {
-      vi.useFakeTimers();
-      component.ngOnInit();
-      vi.runAllTimers();
-      vi.useRealTimers();
+    it('should set up the default table status filter on ngAfterViewInit', () => {
+      expect(component.table().filters['status']).toBeUndefined();
+
+      component.ngAfterViewInit();
+
+      expect(component.table().filters['status']).toEqual([{ value: 'closed', matchMode: 'notEquals' }]);
     });
   });
 
@@ -590,16 +591,6 @@ describe('PoamGridComponent', () => {
     });
   });
 
-  describe('clearCache', () => {
-    it('should clear the findingsCache', () => {
-      component['findingsCache'].set('test-key', [{ id: 1 }]);
-      expect(component['findingsCache'].size).toBe(1);
-
-      component.clearCache();
-      expect(component['findingsCache'].size).toBe(0);
-    });
-  });
-
   describe('exportCollection', () => {
     let dialogCloseSubject: Subject<any>;
 
@@ -793,7 +784,7 @@ describe('PoamGridComponent', () => {
       expect(result[0].devicesAffected).toBe('Server-01 Server-02');
     });
 
-    it('should use cached findings on second call', async () => {
+    it('fetches fresh findings on every export rather than reusing an earlier result', async () => {
       const stigPoam = createMockPoam({
         vulnerabilityId: 'V-12345',
         vulnerabilitySource: 'STIG',
@@ -813,7 +804,28 @@ describe('PoamGridComponent', () => {
       await component.processPoamsWithStigFindings([stigPoam], 100);
       await component.processPoamsWithStigFindings([stigPoam], 100);
 
-      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledTimes(1);
+      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledTimes(2);
+      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledWith(100, 'RHEL_8_STIG');
+    });
+
+    it('requests each benchmark once per export and shares the result across its POAMs', async () => {
+      const first = createMockPoam({ poamId: 1, vulnerabilityId: 'V-1', vulnerabilitySource: 'STIG', stigBenchmarkId: 'RHEL_8_STIG' });
+      const second = createMockPoam({ poamId: 2, vulnerabilityId: 'V-2', vulnerabilitySource: 'STIG', stigBenchmarkId: 'RHEL_8_STIG' });
+      const third = createMockPoam({ poamId: 3, vulnerabilityId: 'V-3', vulnerabilitySource: 'STIG', stigBenchmarkId: 'WIN_11_STIG' });
+      const findings = [
+        { groupId: 'V-1', assets: [{ name: 'Server-01', assetId: 1 }], ccis: [] },
+        { groupId: 'V-2', assets: [{ name: 'Server-02', assetId: 2 }], ccis: [] }
+      ];
+
+      mockSharedService.getSTIGMANAffectedAssetsByPoam.mockReturnValue(of(findings));
+
+      const result = await component.processPoamsWithStigFindings([first, second, third], 100);
+
+      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledTimes(2);
+      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledWith(100, 'RHEL_8_STIG');
+      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledWith(100, 'WIN_11_STIG');
+      expect(result.find((p: any) => p.poamId === 1).devicesAffected).toBe('Server-01');
+      expect(result.find((p: any) => p.poamId === 2).devicesAffected).toBe('Server-02');
     });
 
     it('should handle errors fetching STIG findings', async () => {
@@ -910,6 +922,8 @@ describe('PoamGridComponent', () => {
       expect(result).toHaveLength(1);
       expect(result[0].controlAPs).toBe('SI-2.9');
       expect(result[0].cci).toContain('002605');
+      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
+      expect(mockImportService.getTenablePlugin).toHaveBeenCalledWith('12345', false);
     });
 
     it('should use CM-6.5 mapping when no patchPubDate', async () => {

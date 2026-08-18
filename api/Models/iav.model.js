@@ -57,6 +57,10 @@ module.exports = function iavModel(sequelize, DataTypes) {
                 type: DataTypes.INTEGER,
                 allowNull: true,
             },
+            taskOrder: {
+                type: DataTypes.STRING(25),
+                allowNull: true,
+            },
         },
         {
             tableName: 'iav',

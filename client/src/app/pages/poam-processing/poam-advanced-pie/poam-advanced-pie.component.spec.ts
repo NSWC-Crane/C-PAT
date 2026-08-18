@@ -192,7 +192,7 @@ describe('PoamAdvancedPieComponent', () => {
 
       const sorted = component.sortedPieChartData();
 
-      expect(sorted.length).toBe(1);
+      expect(sorted).toHaveLength(1);
       expect(sorted[0]).toEqual({ name: 'Approved', value: 10 });
     });
 
@@ -202,7 +202,7 @@ describe('PoamAdvancedPieComponent', () => {
 
       const sorted = component.sortedPieChartData();
 
-      expect(sorted.length).toBe(1);
+      expect(sorted).toHaveLength(1);
       expect(sorted[0].name).toBe('No Data');
     });
   });
@@ -219,76 +219,22 @@ describe('PoamAdvancedPieComponent', () => {
       expect(scheme.group).toBe(ScaleType.Ordinal);
     });
 
-    it('should map Approved to its correct color', () => {
-      hostComponent.pieChartData.set([{ name: 'Approved', value: 5 }]);
+    it.each([
+      ['Approved', 'rgba(75, 192, 115, 0.6)'],
+      ['Submitted', 'rgba(75, 192, 170, 0.55)'],
+      ['Open Findings', 'rgba(230, 50, 50, 0.4)'],
+      ['No Data', 'rgba(200, 200, 200, .6)'],
+      ['Closed', 'rgba(25, 25, 25, .6)'],
+      ['Expired', 'rgba(255, 160, 65, .5)'],
+      ['Rejected', 'rgba(255, 55, 55, 0.45)'],
+      ['Unknown Status', 'rgba(128, 128, 128, .7)']
+    ])('should map %s to its correct color', (name, color) => {
+      hostComponent.pieChartData.set([{ name, value: 1 }]);
       hostFixture.detectChanges();
 
       const scheme = component.colorScheme();
 
-      expect(scheme.domain[0]).toBe('rgba(75, 192, 115, 0.6)');
-    });
-
-    it('should map Submitted to its correct color', () => {
-      hostComponent.pieChartData.set([{ name: 'Submitted', value: 3 }]);
-      hostFixture.detectChanges();
-
-      const scheme = component.colorScheme();
-
-      expect(scheme.domain[0]).toBe('rgba(75, 192, 170, 0.55)');
-    });
-
-    it('should map Open Findings to its correct color', () => {
-      hostComponent.pieChartData.set([{ name: 'Open Findings', value: 2 }]);
-      hostFixture.detectChanges();
-
-      const scheme = component.colorScheme();
-
-      expect(scheme.domain[0]).toBe('rgba(230, 50, 50, 0.4)');
-    });
-
-    it('should map No Data to its correct color', () => {
-      hostComponent.pieChartData.set([{ name: 'No Data', value: 1 }]);
-      hostFixture.detectChanges();
-
-      const scheme = component.colorScheme();
-
-      expect(scheme.domain[0]).toBe('rgba(200, 200, 200, .6)');
-    });
-
-    it('should map Closed to its correct color', () => {
-      hostComponent.pieChartData.set([{ name: 'Closed', value: 1 }]);
-      hostFixture.detectChanges();
-
-      const scheme = component.colorScheme();
-
-      expect(scheme.domain[0]).toBe('rgba(25, 25, 25, .6)');
-    });
-
-    it('should map Expired to its correct color', () => {
-      hostComponent.pieChartData.set([{ name: 'Expired', value: 1 }]);
-      hostFixture.detectChanges();
-
-      const scheme = component.colorScheme();
-
-      expect(scheme.domain[0]).toBe('rgba(255, 160, 65, .5)');
-    });
-
-    it('should map Rejected to its correct color', () => {
-      hostComponent.pieChartData.set([{ name: 'Rejected', value: 1 }]);
-      hostFixture.detectChanges();
-
-      const scheme = component.colorScheme();
-
-      expect(scheme.domain[0]).toBe('rgba(255, 55, 55, 0.45)');
-    });
-
-    it('should use fallback gray for unknown status names', () => {
-      hostComponent.pieChartData.set([{ name: 'Unknown Status', value: 1 }]);
-      hostFixture.detectChanges();
-
-      const scheme = component.colorScheme();
-
-      expect(scheme.domain[0]).toBe('rgba(128, 128, 128, .7)');
+      expect(scheme.domain[0]).toBe(color);
     });
 
     it('should generate colors matching sorted data order', () => {
@@ -323,7 +269,7 @@ describe('PoamAdvancedPieComponent', () => {
 
       const scheme = component.colorScheme();
 
-      expect(scheme.domain.length).toBe(3);
+      expect(scheme.domain).toHaveLength(3);
     });
 
     it('should map all known statuses to their correct colors', () => {
@@ -343,7 +289,7 @@ describe('PoamAdvancedPieComponent', () => {
 
       const scheme = component.colorScheme();
 
-      expect(scheme.domain.length).toBe(10);
+      expect(scheme.domain).toHaveLength(10);
       expect(scheme.domain.every((c: string) => c.startsWith('rgba('))).toBe(true);
       expect(scheme.domain).not.toContain('rgba(128, 128, 128, .7)');
     });

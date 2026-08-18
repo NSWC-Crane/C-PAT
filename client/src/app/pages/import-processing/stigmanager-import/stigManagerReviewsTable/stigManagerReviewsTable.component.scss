@@ -19,48 +19,6 @@
     top: 3rem;
     right: -1rem;
   }
-}
-
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-
-  .right-buttons {
-    position: relative;
-    display: flex;
-    gap: 0.5rem;
-  }
-}
-
-.status-icon-container {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.status-icon-container .pi {
-  font-size: 1.2rem;
-}
-
-.pi-star {
-  color: #fab806;
-}
-
-.pi-times-circle {
-  color: #d64606;
-}
-
-.pi-bookmark-fill {
-  color: #9a9a9a;
-}
-
-.pi-reply {
-  color: #50b000;
-}
-
-:host ::ng-deep {
   .p-treetable {
     display: flex;
     flex-direction: column;
@@ -108,8 +66,47 @@
   .filter-active {
     color: var(--primary-color) !important;
   }
+
+  .p-datepicker {
+    min-width: 250px;
+  }
 }
 
-:host ::ng-deep .p-datepicker {
-  min-width: 250px;
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .right-buttons {
+    position: relative;
+    display: flex;
+    gap: 0.5rem;
+  }
+}
+
+.status-icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-icon-container .pi {
+  font-size: 1.2rem;
+}
+
+.pi-star {
+  color: #fab806;
+}
+
+.pi-times-circle {
+  color: #d64606;
+}
+
+.pi-bookmark-fill {
+  color: #9a9a9a;
+}
+
+.pi-reply {
+  color: #50b000;
 }

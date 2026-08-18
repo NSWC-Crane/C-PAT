@@ -17,6 +17,12 @@
   display: none;
 }
 
-:host ::ng-deep .p-dialog .p-dialog-header {
-  @apply hidden;
+:host ::ng-deep .cpat-dialog .p-dialog-content {
+  text-align: left;
+}
+
+:host ::ng-deep .cpat-dialog .p-dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
 }

@@ -22,6 +22,15 @@ interface AssignedTeam {
 interface AssignedTeamPermission {
   assignedTeamId: number;
   collectionId: number;
+  grantUserIds?: number[];
+  previewedMembers?: PreviewedMember[];
+}
+
+interface PreviewedMember {
+  userId: number;
+  bucket: 'additions' | 'updates' | 'unchanged';
+  teamAccessLevel?: number;
+  newAccessLevel?: number;
 }
 
 @Injectable({
@@ -62,7 +71,15 @@ export class AssignedTeamService {
     return this.http.post<AssignedTeamPermission>(`${this.cpatApiBase}/assignedTeams/permissions`, assignedTeamPermission).pipe(catchError(this.handleError));
   }
 
-  deleteAssignedTeamPermission(assignedTeamId: number, collectionId: number): Observable<any> {
-    return this.http.delete(`${this.cpatApiBase}/assignedTeams/permissions/${assignedTeamId}/${collectionId}`).pipe(catchError(this.handleError));
+  getCoverageGrantPreview(assignedTeamId: number, collectionId: number): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/assignedTeams/permissions/${assignedTeamId}/${collectionId}/grantPreview`).pipe(catchError(this.handleError));
+  }
+
+  getCoverageRevocationPreview(assignedTeamId: number, collectionId: number): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/assignedTeams/permissions/${assignedTeamId}/${collectionId}`).pipe(catchError(this.handleError));
+  }
+
+  deleteAssignedTeamPermission(assignedTeamId: number, collectionId: number, revokePermissions = false): Observable<any> {
+    return this.http.delete(`${this.cpatApiBase}/assignedTeams/permissions/${assignedTeamId}/${collectionId}?revokePermissions=${revokePermissions}`).pipe(catchError(this.handleError));
   }
 }

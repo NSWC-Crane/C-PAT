@@ -17,7 +17,6 @@ import { ChipModule } from 'primeng/chip';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DividerModule } from 'primeng/divider';
 import { ImageModule } from 'primeng/image';
-import { ToastModule } from 'primeng/toast';
 import { filter, forkJoin, switchMap, take } from 'rxjs';
 import { SubSink } from 'subsink';
 import { getErrorMessage } from '../../common/utils/error-utils';
@@ -40,8 +39,8 @@ interface Theme {
   styleUrls: ['./marketplace.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, ChipModule, ConfirmDialogModule, DividerModule, ToastModule, ImageModule],
-  providers: [ConfirmationService, MessageService]
+  imports: [ButtonModule, CardModule, ChipModule, ConfirmDialogModule, DividerModule, ImageModule],
+  providers: [ConfirmationService]
 })
 export class MarketplaceComponent implements OnInit, OnDestroy {
   private readonly marketplaceService = inject(MarketplaceService);
@@ -280,7 +279,7 @@ export class MarketplaceComponent implements OnInit, OnDestroy {
   loadThemes() {
     this.subs.sink = forkJoin([this.marketplaceService.getThemes(), this.marketplaceService.getUserThemes()]).subscribe({
       next: ([allThemes, purchasedThemes]: [Theme[], Theme[]]) => {
-        this.themes.set(allThemes.filter((theme) => !purchasedThemes.find((p) => p.themeId === theme.themeId)));
+        this.themes.set(allThemes.filter((theme) => !purchasedThemes.some((p) => p.themeId === theme.themeId)));
         this.purchasedThemes.set(purchasedThemes);
       },
       error: (error: Error) => {

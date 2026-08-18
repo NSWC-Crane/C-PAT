@@ -14,7 +14,7 @@
     <meta charset="utf-8" />
     <title>C-PAT</title>
     <base href="/" />
-    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, viewport-fit=cover" />
+    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <script>
       (function () {
@@ -56,22 +56,30 @@
     </cpat-app>
 
     <script>
-      (!(function (a, b) {
+      (function (a, b) {
         'use strict';
+        function randomFraction() {
+          return crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296;
+        }
         function c(a) {
           a = a || {};
           for (var b = 1; b < arguments.length; b++) {
             var c = arguments[b];
-            if (c) for (var d in c) c.hasOwnProperty(d) && ('object' == typeof c[d] ? deepExtend(a[d], c[d]) : (a[d] = c[d]));
+            if (!c) continue;
+            for (var d in c) {
+              if (!c.hasOwnProperty(d)) continue;
+              if ('object' == typeof c[d]) deepExtend(a[d], c[d]);
+              else a[d] = c[d];
+            }
           }
           return a;
         }
-        function d(d, g) {
+        function Plugin(d, g) {
           function h() {
             if (y) {
               ((r = b.createElement('canvas')), (r.className = 'pg-canvas'), (r.style.display = 'block'), d.insertBefore(r, d.firstChild), (s = r.getContext('2d')), i());
               for (var c = Math.round((r.width * r.height) / g.density), e = 0; c > e; e++) {
-                var f = new n();
+                var f = new Particle();
                 (f.setStackPos(e), z.push(f));
               }
               (a.addEventListener(
@@ -107,22 +115,24 @@
           function j() {
             if (y) {
               ((u = a.innerWidth), (v = a.innerHeight), s.clearRect(0, 0, r.width, r.height));
-              for (var b = 0; b < z.length; b++) z[b].updatePosition();
-              for (var b = 0; b < z.length; b++) z[b].draw();
-              G || (t = requestAnimationFrame(j));
+              for (const b of z) b.updatePosition();
+              for (const b of z) b.draw();
+              if (!G) requestAnimationFrame(j);
             }
           }
           function k() {
             i();
-            for (var a = d.offsetWidth, b = d.offsetHeight, c = z.length - 1; c >= 0; c--) (z[c].position.x > a || z[c].position.y > b) && z.splice(c, 1);
+            var a = d.offsetWidth,
+              b = d.offsetHeight;
+            for (let c = z.length - 1; c >= 0; c--) (z[c].position.x > a || z[c].position.y > b) && z.splice(c, 1);
             var e = Math.round((r.width * r.height) / g.density);
             if (e > z.length)
-              for (; e > z.length;) {
-                var f = new n();
+              while (e > z.length) {
+                var f = new Particle();
                 z.push(f);
               }
             else e < z.length && z.splice(e);
-            for (c = z.length - 1; c >= 0; c--) z[c].setStackPos(c);
+            for (let c = z.length - 1; c >= 0; c--) z[c].setStackPos(c);
           }
           function l() {
             G = !0;
@@ -130,39 +140,43 @@
           function m() {
             ((G = !1), j());
           }
-          function n() {
+          function Particle() {
             switch (
               (this.stackPos,
               (this.active = !0),
-              (this.layer = Math.ceil(3 * Math.random())),
+              (this.layer = Math.ceil(3 * randomFraction())),
               (this.parallaxOffsetX = 0),
               (this.parallaxOffsetY = 0),
-              (this.position = { x: Math.ceil(Math.random() * r.width), y: Math.ceil(Math.random() * r.height) }),
+              (this.position = { x: Math.ceil(randomFraction() * r.width), y: Math.ceil(randomFraction() * r.height) }),
               (this.speed = {}),
               g.directionX)
             ) {
               case 'left':
-                this.speed.x = +(-g.maxSpeedX + Math.random() * g.maxSpeedX - g.minSpeedX).toFixed(2);
+                this.speed.x = +(-g.maxSpeedX + randomFraction() * g.maxSpeedX - g.minSpeedX).toFixed(2);
                 break;
               case 'right':
-                this.speed.x = +(Math.random() * g.maxSpeedX + g.minSpeedX).toFixed(2);
+                this.speed.x = +(randomFraction() * g.maxSpeedX + g.minSpeedX).toFixed(2);
                 break;
               default:
-                ((this.speed.x = +(-g.maxSpeedX / 2 + Math.random() * g.maxSpeedX).toFixed(2)), (this.speed.x += this.speed.x > 0 ? g.minSpeedX : -g.minSpeedX));
+                ((this.speed.x = +(-g.maxSpeedX / 2 + randomFraction() * g.maxSpeedX).toFixed(2)), (this.speed.x += this.speed.x > 0 ? g.minSpeedX : -g.minSpeedX));
             }
             switch (g.directionY) {
               case 'up':
-                this.speed.y = +(-g.maxSpeedY + Math.random() * g.maxSpeedY - g.minSpeedY).toFixed(2);
+                this.speed.y = +(-g.maxSpeedY + randomFraction() * g.maxSpeedY - g.minSpeedY).toFixed(2);
                 break;
               case 'down':
-                this.speed.y = +(Math.random() * g.maxSpeedY + g.minSpeedY).toFixed(2);
+                this.speed.y = +(randomFraction() * g.maxSpeedY + g.minSpeedY).toFixed(2);
                 break;
               default:
-                ((this.speed.y = +(-g.maxSpeedY / 2 + Math.random() * g.maxSpeedY).toFixed(2)), (this.speed.x += this.speed.y > 0 ? g.minSpeedY : -g.minSpeedY));
+                ((this.speed.y = +(-g.maxSpeedY / 2 + randomFraction() * g.maxSpeedY).toFixed(2)), (this.speed.x += this.speed.y > 0 ? g.minSpeedY : -g.minSpeedY));
             }
           }
           function o(a, b) {
-            return b ? void (g[a] = b) : g[a];
+            if (b) {
+              g[a] = b;
+              return undefined;
+            }
+            return g[a];
           }
           function p() {
             (console.log('destroy'), r.remove(), q('onDestroy'), f && f(d).removeData('plugin_' + e));
@@ -172,7 +186,6 @@
           }
           var r,
             s,
-            t,
             u,
             v,
             w,
@@ -188,13 +201,13 @@
             G = !1;
           return (
             (g = c({}, a[e].defaults, g)),
-            (n.prototype.draw = function () {
+            (Particle.prototype.draw = function () {
               (s.beginPath(), s.arc(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY, g.particleRadius / 2, 0, 2 * Math.PI, !0), s.closePath(), s.fill(), s.beginPath());
               for (var a = z.length - 1; a > this.stackPos; a--) {
                 var b = z[a],
                   c = this.position.x - b.position.x,
                   d = this.position.y - b.position.y,
-                  e = Math.sqrt(c * c + d * d).toFixed(2);
+                  e = Math.hypot(c, d).toFixed(2);
                 e < g.proximity &&
                   (s.moveTo(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY),
                   g.curvedLines
@@ -203,7 +216,7 @@
               }
               (s.stroke(), s.closePath());
             }),
-            (n.prototype.updatePosition = function () {
+            (Particle.prototype.updatePosition = function () {
               if (g.parallax) {
                 if (D && !C) {
                   var a = (u - 0) / 60;
@@ -240,7 +253,7 @@
               }
               ((this.position.x += this.speed.x), (this.position.y += this.speed.y));
             }),
-            (n.prototype.setStackPos = function (a) {
+            (Particle.prototype.setStackPos = function (a) {
               this.stackPos = a;
             }),
             h(),
@@ -250,7 +263,7 @@
         var e = 'particleground',
           f = a.jQuery;
         ((a[e] = function (a, b) {
-          return new d(a, b);
+          return new Plugin(a, b);
         }),
           (a[e].defaults = {
             minSpeedX: 0.1,
@@ -287,33 +300,36 @@
               return 'object' != typeof a && a
                 ? void 0
                 : this.each(function () {
-                    f.data(this, 'plugin_' + e) || f.data(this, 'plugin_' + e, new d(this, a));
+                    f.data(this, 'plugin_' + e) || f.data(this, 'plugin_' + e, new Plugin(this, a));
                   });
             }));
-      })(globalThis, document),
-        /**
-         * requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
-         * @see: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-         * @see: http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
-         * @license: MIT license
-         */
-        (function () {
-          for (var a = 0, b = ['ms', 'moz', 'webkit', 'o'], c = 0; c < b.length && !globalThis.requestAnimationFrame; ++c)
-            ((globalThis.requestAnimationFrame = globalThis[b[c] + 'RequestAnimationFrame']), (globalThis.cancelAnimationFrame = globalThis[b[c] + 'CancelAnimationFrame'] || globalThis[b[c] + 'CancelRequestAnimationFrame']));
-          (globalThis.requestAnimationFrame ||
-            (globalThis.requestAnimationFrame = function (b) {
-              var c = Date.now(),
-                d = Math.max(0, 16 - (c - a)),
-                e = globalThis.setTimeout(function () {
-                  b(c + d);
-                }, d);
-              return ((a = c + d), e);
-            }),
-            globalThis.cancelAnimationFrame ||
-              (globalThis.cancelAnimationFrame = function (a) {
-                clearTimeout(a);
-              }));
-        })());
+      })(globalThis, document);
+
+      /**
+       * requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel
+       * @see: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+       * @see: http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+       * @license: MIT license
+       */
+      (function () {
+        var a = 0;
+        var b = ['ms', 'moz', 'webkit', 'o'];
+        for (var c = 0; c < b.length && !globalThis.requestAnimationFrame; ++c)
+          ((globalThis.requestAnimationFrame = globalThis[b[c] + 'RequestAnimationFrame']), (globalThis.cancelAnimationFrame = globalThis[b[c] + 'CancelAnimationFrame'] || globalThis[b[c] + 'CancelRequestAnimationFrame']));
+        (globalThis.requestAnimationFrame ||
+          (globalThis.requestAnimationFrame = function (b) {
+            var c = Date.now(),
+              d = Math.max(0, 16 - (c - a)),
+              e = globalThis.setTimeout(function () {
+                b(c + d);
+              }, d);
+            return ((a = c + d), e);
+          }),
+          globalThis.cancelAnimationFrame ||
+            (globalThis.cancelAnimationFrame = function (a) {
+              clearTimeout(a);
+            }));
+      })();
 
       document.addEventListener('DOMContentLoaded', function () {
         const foregroundEl = document.getElementById('particles-foreground');

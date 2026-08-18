@@ -21,9 +21,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { Table, TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { EMPTY, Observable, catchError, map, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { EMPTY, Observable, catchError, map, shareReplay, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { ImportService } from '../../import-processing/import.service';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
@@ -34,7 +33,7 @@ import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
   styleUrls: ['./nessus-plugin-mapping.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule, TooltipModule, DatePipe]
+  imports: [ButtonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, TooltipModule, DatePipe]
 })
 export class NessusPluginMappingComponent implements OnInit {
   private readonly messageService = inject(MessageService);
@@ -47,6 +46,7 @@ export class NessusPluginMappingComponent implements OnInit {
   readonly loading = signal(true);
   totalRecords: number = 0;
   cols: any[] = [];
+  readonly editingShadows = new Map<string, any>();
   readonly searchValue = signal('');
   readonly isUpdating = signal(false);
   readonly updateProgress = signal(0);
@@ -74,8 +74,56 @@ export class NessusPluginMappingComponent implements OnInit {
       { field: 'supersededBy', header: 'Superseded By' },
       { field: 'knownExploits', header: 'Known Exploits' },
       { field: 'knownDodIncidents', header: 'Known DoD Incidents' },
-      { field: 'nessusPlugins', header: 'Nessus Plugins' }
+      { field: 'nessusPlugins', header: 'Nessus Plugins' },
+      { field: 'taskOrder', header: 'Task Order' }
     ];
+  }
+
+  onRowEditInit(rowData: any) {
+    this.editingShadows.set(rowData.iav, { ...rowData });
+  }
+
+  onRowEditSave(rowData: any) {
+    const taskOrder = rowData.taskOrder?.trim() || null;
+
+    this.nessusPluginMappingService
+      .putIAVTaskOrder({ iav: rowData.iav, taskOrder })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.tableData.update((current) => current.map((row) => (row.iav === rowData.iav ? { ...rowData, taskOrder } : row)));
+          this.editingShadows.delete(rowData.iav);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: `Task order updated for ${rowData.iav}`
+          });
+        },
+        error: (error) => {
+          const restored = this.editingShadows.get(rowData.iav);
+
+          if (restored) {
+            this.tableData.update((current) => current.map((row) => (row.iav === restored.iav ? restored : row)));
+          }
+
+          this.editingShadows.delete(rowData.iav);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to update task order: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
+
+  onRowEditCancel(rowData: any) {
+    const restored = this.editingShadows.get(rowData.iav);
+
+    if (restored) {
+      this.tableData.update((current) => current.map((row) => (row.iav === restored.iav ? restored : row)));
+    }
+
+    this.editingShadows.delete(rowData.iav);
   }
 
   getIAVTableData(): void {
@@ -84,7 +132,7 @@ export class NessusPluginMappingComponent implements OnInit {
       .getIAVTableData()
       .pipe(
         map((response) => {
-          if (!response || !response.tableData || !Array.isArray(response.tableData)) {
+          if (!response?.tableData || !Array.isArray(response.tableData)) {
             throw new Error('Invalid response format');
           }
 
@@ -134,11 +182,13 @@ export class NessusPluginMappingComponent implements OnInit {
 
         this.estimatedTimeRemaining.set(this.formatTime(estimatedTotal - (Date.now() - startTime)));
       }),
-      takeUntilDestroyed(this.destroyRef)
+      takeUntilDestroyed(this.destroyRef),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
 
     const progressUpdates$ = timer(0, 100).pipe(
       takeUntil(batchProcess$),
+      takeUntilDestroyed(this.destroyRef),
       tap(() => {
         if (this.updateProgress() < 90) {
           this.updateProgress.update((value) => value + 1);
@@ -152,15 +202,7 @@ export class NessusPluginMappingComponent implements OnInit {
     progressUpdates$.subscribe();
 
     batchProcess$.subscribe({
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to update plugin IDs: ${getErrorMessage(error)}`
-        });
-        this.isUpdating.set(false);
-      },
-      complete: () => {
+      next: () => {
         this.isUpdating.set(false);
         this.updateProgress.set(100);
         this.estimatedTimeRemaining.set('');
@@ -170,6 +212,14 @@ export class NessusPluginMappingComponent implements OnInit {
           detail: 'Plugin IDs successfully mapped.'
         });
         this.getIAVTableData();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to update plugin IDs: ${getErrorMessage(error)}`
+        });
+        this.isUpdating.set(false);
       }
     });
   }
@@ -234,7 +284,7 @@ export class NessusPluginMappingComponent implements OnInit {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams).pipe(
+    return this.importService.postTenableAnalysis(analysisParams, false).pipe(
       map((data) => ({
         pluginData: data.response.results,
         totalRecords: data.response.totalRecords

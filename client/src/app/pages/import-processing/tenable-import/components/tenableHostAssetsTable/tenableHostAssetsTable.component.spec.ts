@@ -134,7 +134,7 @@ describe('TenableHostAssetsTableComponent', () => {
     });
 
     it('should set 13 columns', () => {
-      expect(component.cols.length).toBe(13);
+      expect(component.cols).toHaveLength(13);
     });
 
     it('should include name column', () => {
@@ -157,7 +157,7 @@ describe('TenableHostAssetsTableComponent', () => {
     });
 
     it('should set exportColumns matching cols length', () => {
-      expect(component.exportColumns.length).toBe(13);
+      expect(component.exportColumns).toHaveLength(13);
     });
 
     it('should set selectedColumns to include all default fields', () => {
@@ -188,7 +188,7 @@ describe('TenableHostAssetsTableComponent', () => {
     it('should map host assets from response', () => {
       (component as any).tenableRepoId = () => 42;
       component.getAffectedAssets();
-      expect(component.affectedAssets().length).toBe(2);
+      expect(component.affectedAssets()).toHaveLength(2);
     });
 
     it('should extract source type from source array', () => {
@@ -257,6 +257,25 @@ describe('TenableHostAssetsTableComponent', () => {
       component.getAffectedAssets();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
       expect(component.isLoading()).toBe(false);
+    });
+  });
+
+  describe('load generation guard', () => {
+    it('keeps the newest repository result when an earlier load lands afterwards', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      mockImportService.postTenableHostSearch.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      (component as any).tenableRepoId = () => 1;
+      component.getAffectedAssets();
+      (component as any).tenableRepoId = () => 2;
+      component.getAffectedAssets();
+
+      second.next({ response: [{ name: 'repo-2-host', totalRecords: 1 }] });
+      first.next({ response: [{ name: 'repo-1-host', totalRecords: 1 }] });
+
+      expect(component.affectedAssets()[0].name).toBe('repo-2-host');
     });
   });
 

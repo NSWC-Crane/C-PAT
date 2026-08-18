@@ -375,24 +375,8 @@ describe('PoamAttachmentsComponent', () => {
       );
     });
 
-    it('should allow .nessus files', () => {
-      const file = new File([''], 'scan.nessus');
-
-      Object.defineProperty(file, 'size', { value: 1024 });
-
-      expect(component.validateFile(file)).toBe(true);
-    });
-
-    it('should allow .xlsx files', () => {
-      const file = new File([''], 'data.xlsx');
-
-      Object.defineProperty(file, 'size', { value: 1024 });
-
-      expect(component.validateFile(file)).toBe(true);
-    });
-
-    it('should allow .json files', () => {
-      const file = new File([''], 'config.json');
+    it.each(['scan.nessus', 'data.xlsx', 'config.json'])('should allow %s', (filename) => {
+      const file = new File([''], filename);
 
       Object.defineProperty(file, 'size', { value: 1024 });
 

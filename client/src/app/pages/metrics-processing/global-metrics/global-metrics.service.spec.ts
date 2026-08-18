@@ -16,7 +16,7 @@ import { CollectionsService } from '../../admin-processing/collection-processing
 import { MetricsService } from '../metrics.service';
 import { calculateCORAScore } from '../stigman-metrics/stigman-metrics.compute';
 import { TenableMetricsDataService } from '../tenable-metrics/tenable-metrics.data.service';
-import { GlobalMetricsProgress, GlobalMetricsResult, GlobalMetricsService } from './global-metrics.service';
+import { GlobalMetricsProgress, GlobalMetricsResult, GlobalMetricsService, isMetricsCapableCollection } from './global-metrics.service';
 
 const mockStigSummary = [
   {
@@ -67,6 +67,25 @@ const emptyTenableComponents = {
 
 const stigCollection = { collectionId: 1, collectionName: 'Stig A', collectionType: 'STIG Manager', originCollectionId: 101 };
 const tenableCollection = { collectionId: 2, collectionName: 'Ten B', collectionType: 'Tenable', originCollectionId: 7 };
+
+describe('isMetricsCapableCollection', () => {
+  it('accepts STIG Manager and Tenable collections with an origin', () => {
+    expect(isMetricsCapableCollection(stigCollection)).toBe(true);
+    expect(isMetricsCapableCollection(tenableCollection)).toBe(true);
+  });
+
+  it('rejects collections without an originCollectionId', () => {
+    expect(isMetricsCapableCollection({ collectionId: 3, collectionType: 'STIG Manager' })).toBe(false);
+  });
+
+  it('rejects non-metrics collection types even with an origin', () => {
+    expect(isMetricsCapableCollection({ collectionId: 4, collectionType: 'C-PAT', originCollectionId: 9 })).toBe(false);
+  });
+
+  it('rejects collections without a collectionId', () => {
+    expect(isMetricsCapableCollection({ collectionType: 'Tenable', originCollectionId: 9 })).toBe(false);
+  });
+});
 
 describe('GlobalMetricsService', () => {
   let service: GlobalMetricsService;

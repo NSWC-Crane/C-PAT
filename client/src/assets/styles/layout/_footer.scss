@@ -28,7 +28,9 @@
         outline-color: transparent;
         border-radius: 6px;
 
-        @include focus-visible();
+        &:focus-visible {
+            @include focus-visible();
+        }
 
         &:hover {
             text-decoration: underline;

@@ -19,7 +19,6 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
@@ -37,7 +36,7 @@ interface ExportColumn {
   styleUrls: ['./tenableSolutions.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, DialogModule, SkeletonModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule, ToastModule]
+  imports: [FormsModule, ButtonModule, DialogModule, SkeletonModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule]
 })
 export class TenableSolutionsComponent implements OnInit {
   private readonly importService = inject(ImportService);
@@ -58,6 +57,7 @@ export class TenableSolutionsComponent implements OnInit {
   filterValue: string = '';
   dialogFilterValue: string = '';
   selectedCollection: any;
+  private dialogGeneration = 0;
   tenableRepoId: string | undefined = '';
   private readonly table = viewChild.required<Table>('dt');
   private readonly dialogTable = viewChild.required<Table>('dialogTable');
@@ -167,8 +167,9 @@ export class TenableSolutionsComponent implements OnInit {
   getAffectedHosts(solution: any) {
     this.displayDialog = true;
     const solutionId = Number.parseInt(solution.solutionID.split('-')[1], 10);
+    const gen = ++this.dialogGeneration;
 
-    this.getVulnDetails(solutionId);
+    this.getVulnDetails(solutionId, gen);
 
     const solutionParams = {
       query: {
@@ -207,6 +208,10 @@ export class TenableSolutionsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data: any) => {
+          if (gen !== this.dialogGeneration) {
+            return;
+          }
+
           this.affectedHosts.set(
             data.response.results.map((affectedHost: any) => ({
               ip: affectedHost.ip,
@@ -221,6 +226,10 @@ export class TenableSolutionsComponent implements OnInit {
           this.loadingAffectedHosts.set(false);
         },
         error: (error: any) => {
+          if (gen !== this.dialogGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -231,7 +240,7 @@ export class TenableSolutionsComponent implements OnInit {
       });
   }
 
-  getVulnDetails(solutionId: any) {
+  getVulnDetails(solutionId: any, gen: number = this.dialogGeneration) {
     const solutionVulnParams = {
       query: {
         type: 'vuln',
@@ -269,6 +278,10 @@ export class TenableSolutionsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data: any) => {
+          if (gen !== this.dialogGeneration) {
+            return;
+          }
+
           this.solutionVulnDetails.set(
             data.response.map((vuln: any) => ({
               pluginID: vuln.pluginID,
@@ -281,6 +294,10 @@ export class TenableSolutionsComponent implements OnInit {
           this.loadingVulnDetails.set(false);
         },
         error: (error: any) => {
+          if (gen !== this.dialogGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -292,6 +309,7 @@ export class TenableSolutionsComponent implements OnInit {
   }
 
   resetData() {
+    this.dialogGeneration++;
     this.loadingAffectedHosts.set(true);
     this.loadingVulnDetails.set(true);
     this.affectedHosts.set([]);

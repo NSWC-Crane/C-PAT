@@ -23,13 +23,9 @@ export class UsersService {
   private readonly cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error('An error occurred:', error.error.message);
-    } else {
-      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
-    }
+    console.error('An error occurred:', error);
 
-    return throwError(() => new Error('Something bad happened; please try again later.'));
+    return throwError(() => error);
   }
 
   getUser(id: number): Observable<Users> {
@@ -76,8 +72,16 @@ export class UsersService {
     return this.http.put<Users>(`${this.cpatApiBase}/user/updatePoints?elevate=true`, userPointsData).pipe(catchError(this.handleError));
   }
 
-  deleteTeamAssignment(userId: number, assignedTeamId: number): Observable<any> {
-    return this.http.delete<any>(`${this.cpatApiBase}/user/${userId}/teams/${assignedTeamId}?elevate=true`).pipe(catchError(this.handleError));
+  deleteTeamAssignment(userId: number, assignedTeamId: number, revokePermissions: boolean = false): Observable<any> {
+    return this.http.delete<any>(`${this.cpatApiBase}/user/${userId}/teams/${assignedTeamId}?elevate=true&revokePermissions=${revokePermissions}`).pipe(catchError(this.handleError));
+  }
+
+  getGrantPreview(userId: number, assignedTeamId: number, accessLevel: number): Observable<any> {
+    return this.http.get<any>(`${this.cpatApiBase}/user/${userId}/teams/${assignedTeamId}/grantPreview?elevate=true&accessLevel=${accessLevel}`).pipe(catchError(this.handleError));
+  }
+
+  getRevocationPreview(userId: number, assignedTeamId: number): Observable<any> {
+    return this.http.get<any>(`${this.cpatApiBase}/user/${userId}/teams/${assignedTeamId}/revocationPreview?elevate=true`).pipe(catchError(this.handleError));
   }
 
   postTeamAssignment(assignedTeam: any): Observable<any> {

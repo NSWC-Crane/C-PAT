@@ -12,6 +12,7 @@
 const config = require('../utils/config');
 const dbUtils = require('./utils');
 const logger = require('../utils/logger');
+const SmError = require('../utils/error');
 const { format } = require('date-fns');
 
 async function withConnection(callback) {
@@ -19,7 +20,7 @@ async function withConnection(callback) {
     try {
         return await callback(connection);
     } finally {
-        await connection.release();
+        connection.release();
     }
 }
 
@@ -122,9 +123,22 @@ function validatePluginID(pluginID) {
     return null;
 }
 
-module.exports.getIAVPluginIds = async function getIAVPluginIds() {
+module.exports.putIAVTaskOrder = async function putIAVTaskOrder(req) {
     return await withConnection(async connection => {
-        let sql = `SELECT DISTINCT pluginID FROM ${config.database.schema}.iav_plugin`;
+        const taskOrder = req.body.taskOrder?.trim() || null;
+        const [result] = await connection.query(`UPDATE ${config.database.schema}.iav SET taskOrder = ? WHERE iav = ?`, [taskOrder, req.body.iav]);
+        if (result.affectedRows === 0) {
+            throw new SmError.NotFoundError('IAV not found');
+        }
+        return { iav: req.body.iav, taskOrder };
+    });
+};
+
+module.exports.getIAVPluginIds = async function getIAVPluginIds(hasTaskOrder) {
+    return await withConnection(async connection => {
+        let sql = hasTaskOrder
+            ? `SELECT DISTINCT ip.pluginID FROM ${config.database.schema}.iav_plugin ip JOIN ${config.database.schema}.iav i ON ip.iav = i.iav WHERE i.taskOrder IS NOT NULL AND i.taskOrder <> ''`
+            : `SELECT DISTINCT pluginID FROM ${config.database.schema}.iav_plugin`;
         let [pluginIDs] = await connection.query(sql);
 
         const uniquePluginIDs = [...new Set(pluginIDs.map(row => row.pluginID))];
@@ -152,17 +166,20 @@ module.exports.getIAVInfoForPlugins = async function getIAVInfoForPlugins(plugin
 
     return await withConnection(async connection => {
         const sql = `
-                SELECT ip.pluginID, i.iav, i.navyComplyDate, i.supersededBy
+                SELECT ip.pluginID, i.iav, i.navyComplyDate, i.supersededBy, i.taskOrder
                 FROM ${config.database.schema}.iav_plugin ip
                 JOIN ${config.database.schema}.iav i ON ip.iav = i.iav
                 WHERE ip.pluginID IN (?)
-                ORDER BY ip.pluginID, i.navyComplyDate DESC
+                ORDER BY ip.pluginID, i.navyComplyDate DESC, i.iav DESC
             `;
         const [results] = await connection.query(sql, [validPluginIDs]);
         const latestResults = validPluginIDs
             .map(pluginID => {
                 const entries = results.filter(r => r.pluginID === pluginID);
-                return entries.length > 0 ? entries[0] : null;
+                if (entries.length === 0) {
+                    return null;
+                }
+                return { ...entries[0], taskOrder: entries.find(e => e.taskOrder)?.taskOrder ?? null };
             })
             .filter(Boolean);
         return latestResults;

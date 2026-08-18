@@ -148,14 +148,14 @@ describe('NotificationsComponent', () => {
     it('should fetch and format notifications', () => {
       component.fetchNotifications();
 
-      expect(component.notifications().length).toBe(3);
+      expect(component.notifications()).toHaveLength(3);
       expect(component.notifications()[0].messageParts).toBeTruthy();
     });
 
     it('should filter notifications after fetching', () => {
       component.fetchNotifications();
 
-      expect(component.filteredNotifications().length).toBe(2);
+      expect(component.filteredNotifications()).toHaveLength(2);
     });
 
     it('should show error message on fetch failure', () => {
@@ -185,7 +185,7 @@ describe('NotificationsComponent', () => {
 
       component.fetchNotifications();
 
-      expect(component.notifications().length).toBe(1);
+      expect(component.notifications()).toHaveLength(1);
     });
   });
 
@@ -267,7 +267,7 @@ describe('NotificationsComponent', () => {
 
     it('should show all notifications when filter is All', () => {
       component.filterStatus.set('All');
-      expect(component.filteredNotifications().length).toBe(3);
+      expect(component.filteredNotifications()).toHaveLength(3);
     });
   });
 
@@ -289,7 +289,7 @@ describe('NotificationsComponent', () => {
 
     it('should update filtered notifications after reset', () => {
       component.filterStatus.set('All');
-      expect(component.filteredNotifications().length).toBe(3);
+      expect(component.filteredNotifications()).toHaveLength(3);
 
       component.resetFilter();
       expect(component.filteredNotifications().every((n) => n.read === 0)).toBe(true);
@@ -509,12 +509,6 @@ describe('NotificationsComponent', () => {
       const deleteAllButton = buttons.find((btn) => btn.nativeElement.textContent.includes('Delete all'));
 
       expect(deleteAllButton).toBeTruthy();
-    });
-
-    it('should render p-toast for messages', () => {
-      const toast = fixture.debugElement.query(By.css('p-toast'));
-
-      expect(toast).toBeTruthy();
     });
   });
 

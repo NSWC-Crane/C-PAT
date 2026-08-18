@@ -116,6 +116,10 @@ interface ComplianceAccumulator {
   catIII: ComplianceCount;
 }
 
+export function isMetricsCapableCollection(collection: { collectionId?: number; originCollectionId?: number; collectionType?: string }): boolean {
+  return !!collection.collectionId && !!collection.originCollectionId && (collection.collectionType === 'STIG Manager' || collection.collectionType === 'Tenable');
+}
+
 @Injectable({ providedIn: 'root' })
 export class GlobalMetricsService {
   private readonly collectionsService = inject(CollectionsService);

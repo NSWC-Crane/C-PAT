@@ -154,11 +154,11 @@ describe('STIGManagerControlsTableComponent', () => {
     });
 
     it('should have 8 controlColumns defined', () => {
-      expect(component.controlColumns.length).toBe(8);
+      expect(component.controlColumns).toHaveLength(8);
     });
 
     it('should have 8 findingColumns defined', () => {
-      expect(component.findingColumns.length).toBe(8);
+      expect(component.findingColumns).toHaveLength(8);
     });
   });
 
@@ -250,13 +250,61 @@ describe('STIGManagerControlsTableComponent', () => {
     });
   });
 
+  describe('load generation guard', () => {
+    it('keeps the newest findings when an earlier load lands afterwards', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      (component as any).loadControlsData();
+      (component as any).loadControlsData();
+
+      second.next([mockRawFindings[1]]);
+      first.next([...mockRawFindings]);
+
+      expect(component.controlSummaries()).toHaveLength(1);
+      expect(component.controlSummaries()[0].control).toBe('CM-1');
+    });
+
+    it('does not let a stale POAM-percentage failure clear the spinner of a newer load', () => {
+      const firstPoams = new Subject<any>();
+
+      mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValueOnce(firstPoams.asObservable()).mockReturnValueOnce(new Subject<any>().asObservable());
+      mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValue(of([...mockRawFindings]));
+
+      (component as any).loadControlsData();
+      (component as any).loadControlsData();
+      mockMessageService.add.mockClear();
+
+      firstPoams.error(new Error('stale failure'));
+
+      expect(component.loadingControls()).toBe(true);
+      expect(mockMessageService.add).not.toHaveBeenCalled();
+    });
+
+    it('does not let an earlier load clear the spinner of a newer one', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      (component as any).loadControlsData();
+      (component as any).loadControlsData();
+
+      first.next([...mockRawFindings]);
+
+      expect(component.loadingControls()).toBe(true);
+    });
+  });
+
   describe('processControlSummaries (private, tested via ngOnInit)', () => {
     beforeEach(() => {
       component.ngOnInit();
     });
 
     it('should create one summary per unique control', () => {
-      expect(component.controlSummaries().length).toBe(2);
+      expect(component.controlSummaries()).toHaveLength(2);
     });
 
     it('should set control field on each summary', () => {
@@ -747,10 +795,10 @@ describe('STIGManagerControlsTableComponent', () => {
       mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValue(findingsSubject.asObservable());
       component.ngOnInit();
       findingsSubject.next([...mockRawFindings]);
-      expect(component.controlSummaries().length).toBe(2);
+      expect(component.controlSummaries()).toHaveLength(2);
       fixture.destroy();
       findingsSubject.next([mockRawFindings[0]]);
-      expect(component.controlSummaries().length).toBe(2);
+      expect(component.controlSummaries()).toHaveLength(2);
     });
 
     it('does not throw on destroy', () => {

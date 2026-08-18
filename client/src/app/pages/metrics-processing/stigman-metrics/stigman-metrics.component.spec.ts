@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { STIGManagerMetricsComponent } from './stigman-metrics.component';
+import { SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
@@ -171,7 +172,7 @@ describe('STIGManagerMetricsComponent', () => {
     });
 
     it('should include all 8 metric entries', () => {
-      expect(component.metricsDisplay().length).toBe(8);
+      expect(component.metricsDisplay()).toHaveLength(8);
     });
   });
 
@@ -223,6 +224,16 @@ describe('STIGManagerMetricsComponent', () => {
       (component as any).collection = () => null;
       component.ngOnChanges();
       expect(mockSharedService.getCollectionSTIGSummaryFromSTIGMAN).not.toHaveBeenCalled();
+    });
+
+    it('falls back to empty metrics and reports the failure when the load fails', () => {
+      (component as any).collection = () => mockCollection;
+      mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('cold failure')));
+
+      component.ngOnChanges();
+
+      expect(component.stigsAssessmentData()).toEqual([]);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('cold failure') }));
     });
 
     it('should set isLoading to true before load', () => {
@@ -285,7 +296,7 @@ describe('STIGManagerMetricsComponent', () => {
     it('should populate stigsAssessmentData', () => {
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
-      expect(component.stigsAssessmentData().length).toBe(1);
+      expect(component.stigsAssessmentData()).toHaveLength(1);
     });
 
     it('should set stigAssessmentData title from STIG summary', () => {
@@ -319,47 +330,47 @@ describe('STIGManagerMetricsComponent', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of(mockStigSummary));
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
-      expect(component.stigsAssessmentData().length).toBe(1);
+      expect(component.stigsAssessmentData()).toHaveLength(1);
     });
 
     it('should handle non-array stigSummary (single object)', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of(mockStigSummary[0]));
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
-      expect(component.stigsAssessmentData().length).toBe(1);
+      expect(component.stigsAssessmentData()).toHaveLength(1);
     });
 
     it('should handle null stigSummary', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of(null));
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
-      expect(component.stigsAssessmentData().length).toBe(0);
+      expect(component.stigsAssessmentData()).toHaveLength(0);
     });
   });
 
   describe('getCoraRiskColor', () => {
-    it('should return green for score 0', () => {
-      expect(component.getCoraRiskColor(0)).toBe('rgba(15, 185, 130, 0.8)');
+    it('should return the very low color for score 0', () => {
+      expect(component.getCoraRiskColor(0)).toBe(SEVERITY_COLOR.veryLow);
     });
 
-    it('should return yellow for Low rating (non-zero score)', () => {
+    it('should return the low color for Low rating (non-zero score)', () => {
       component.stigManagerMetrics.set({ ...component.stigManagerMetrics(), coraRiskRating: 'Low' });
-      expect(component.getCoraRiskColor(5)).toBe('rgba(230, 190, 45, 0.85)');
+      expect(component.getCoraRiskColor(5)).toBe(SEVERITY_COLOR.low);
     });
 
-    it('should return red for score >= 20', () => {
+    it('should return the critical color for score >= 20', () => {
       component.stigManagerMetrics.set({ ...component.stigManagerMetrics(), coraRiskRating: 'Very High' });
-      expect(component.getCoraRiskColor(20)).toBe('rgba(235, 70, 100, 0.8)');
+      expect(component.getCoraRiskColor(20)).toBe(SEVERITY_COLOR.critical);
     });
 
-    it('should return orange for score >= 10 and < 20', () => {
+    it('should return the high color for score >= 10 and < 20', () => {
       component.stigManagerMetrics.set({ ...component.stigManagerMetrics(), coraRiskRating: 'High' });
-      expect(component.getCoraRiskColor(15)).toBe('rgba(245, 125, 70, 0.8)');
+      expect(component.getCoraRiskColor(15)).toBe(SEVERITY_COLOR.high);
     });
 
-    it('should return amber for moderate score (< 10, not Low rating, not 0)', () => {
+    it('should return the medium color for moderate score (< 10, not Low rating, not 0)', () => {
       component.stigManagerMetrics.set({ ...component.stigManagerMetrics(), coraRiskRating: 'Moderate' });
-      expect(component.getCoraRiskColor(5)).toBe('rgba(250, 165, 50, 0.8)');
+      expect(component.getCoraRiskColor(5)).toBe(SEVERITY_COLOR.medium);
     });
   });
 

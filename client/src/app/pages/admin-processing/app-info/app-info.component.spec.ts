@@ -23,7 +23,6 @@ import { CpatChartComponent } from '../../../common/components/chart/chart.compo
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
-import { ToastModule } from 'primeng/toast';
 import { AppInfoComponent } from './app-info.component';
 import { AdminProcessingService } from '../admin-processing.service';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
@@ -181,7 +180,7 @@ describe('AppInfoComponent', () => {
     })
       .overrideComponent(AppInfoComponent, {
         set: {
-          imports: [ButtonModule, CardModule, CpatChartComponent, CommonModule, FormsModule, PanelModule, TableModule, TabsModule, ToastModule]
+          imports: [ButtonModule, CardModule, CpatChartComponent, CommonModule, FormsModule, PanelModule, TableModule, TabsModule]
         }
       })
       .compileComponents();
@@ -246,17 +245,17 @@ describe('AppInfoComponent', () => {
 
     it('should populate cpuRows after init', async () => {
       await component.ngOnInit();
-      expect(component.cpuRows().length).toBe(1);
+      expect(component.cpuRows()).toHaveLength(1);
     });
 
     it('should populate environmentRows after init', async () => {
       await component.ngOnInit();
-      expect(component.environmentRows().length).toBe(3);
+      expect(component.environmentRows()).toHaveLength(3);
     });
 
     it('should populate userRows after init', async () => {
       await component.ngOnInit();
-      expect(component.userRows().length).toBe(2);
+      expect(component.userRows()).toHaveLength(2);
     });
 
     it('should show error message when getAppInfo fails', async () => {
@@ -357,17 +356,17 @@ describe('AppInfoComponent', () => {
 
     it('should set userPrivilegeOverall from privilege counts', async () => {
       await component.ngOnInit();
-      expect(component.userPrivilegeOverall().length).toBe(4);
+      expect(component.userPrivilegeOverall()).toHaveLength(4);
     });
 
     it('should set userPrivilege30Days from privilege counts', async () => {
       await component.ngOnInit();
-      expect(component.userPrivilege30Days().length).toBe(4);
+      expect(component.userPrivilege30Days()).toHaveLength(4);
     });
 
     it('should set userPrivilege90Days from privilege counts', async () => {
       await component.ngOnInit();
-      expect(component.userPrivilege90Days().length).toBe(4);
+      expect(component.userPrivilege90Days()).toHaveLength(4);
     });
   });
 
@@ -404,7 +403,7 @@ describe('AppInfoComponent', () => {
 
     it('should set empty errors when operation has no errors', () => {
       component.onOperationSelect({ data: { name: 'POST /poam' } });
-      expect(component.selectedOperationErrors().length).toBe(0);
+      expect(component.selectedOperationErrors()).toHaveLength(0);
     });
 
     it('should do nothing when event.data is null', () => {

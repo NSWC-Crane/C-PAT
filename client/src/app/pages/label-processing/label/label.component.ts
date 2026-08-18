@@ -17,7 +17,6 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DialogService } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToastModule } from 'primeng/toast';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
@@ -27,6 +26,7 @@ import { ConfirmationDialogComponent, ConfirmationDialogOptions } from '../../..
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
+import { splitDelimitedIds } from '../../../common/utils/validation.utils';
 import { LabelService } from '../label.service';
 import { PoamService } from '../../poam-processing/poams.service';
 
@@ -36,7 +36,7 @@ import { PoamService } from '../../poam-processing/poams.service';
   styleUrls: ['./label.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, ToastModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
+  imports: [FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   private readonly labelService = inject(LabelService);
@@ -155,14 +155,11 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   parseVulnerabilityIds(pastedText: string, rowData: any): void {
-    if (!pastedText.trim()) {
+    const vulnIds = splitDelimitedIds(pastedText);
+
+    if (vulnIds.length === 0) {
       return;
     }
-
-    const vulnIds = pastedText
-      .split(',')
-      .map((id) => id.trim())
-      .filter(Boolean);
 
     const matchedPoams: any[] = [];
     const unmatchedIds: string[] = [];

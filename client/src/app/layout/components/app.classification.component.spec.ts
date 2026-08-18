@@ -67,52 +67,19 @@ describe('AppClassificationComponent', () => {
       expect(component.isClassificationActive()).toBe(true);
     });
 
-    it('should set classification for CUI response', () => {
-      setupComponent(of({ classification: 'CUI' }));
+    it.each([
+      ['CUI', 'CUI', '#502b85'],
+      ['FOUO', 'CUI', '#502b85'],
+      ['C', 'CONFIDENTIAL', '#0033a0'],
+      ['S', 'SECRET', '#c8102e'],
+      ['TS', 'TOP SECRET', '#ff8c00'],
+      ['SCI', 'TOP SECRET // SCI', '#fce83a']
+    ])('should set classification for %s response', (classification, expectedText, expectedColorCode) => {
+      setupComponent(of({ classification }));
       fixture.detectChanges();
 
-      expect(component.classification()!.classificationText).toBe('CUI');
-      expect(component.classification()!.classificationColorCode).toBe('#502b85');
-    });
-
-    it('should set classification for FOUO response', () => {
-      setupComponent(of({ classification: 'FOUO' }));
-      fixture.detectChanges();
-
-      expect(component.classification()!.classificationText).toBe('CUI');
-      expect(component.classification()!.classificationColorCode).toBe('#502b85');
-    });
-
-    it('should set classification for CONFIDENTIAL response', () => {
-      setupComponent(of({ classification: 'C' }));
-      fixture.detectChanges();
-
-      expect(component.classification()!.classificationText).toBe('CONFIDENTIAL');
-      expect(component.classification()!.classificationColorCode).toBe('#0033a0');
-    });
-
-    it('should set classification for SECRET response', () => {
-      setupComponent(of({ classification: 'S' }));
-      fixture.detectChanges();
-
-      expect(component.classification()!.classificationText).toBe('SECRET');
-      expect(component.classification()!.classificationColorCode).toBe('#c8102e');
-    });
-
-    it('should set classification for TOP SECRET response', () => {
-      setupComponent(of({ classification: 'TS' }));
-      fixture.detectChanges();
-
-      expect(component.classification()!.classificationText).toBe('TOP SECRET');
-      expect(component.classification()!.classificationColorCode).toBe('#ff8c00');
-    });
-
-    it('should set classification for SCI response', () => {
-      setupComponent(of({ classification: 'SCI' }));
-      fixture.detectChanges();
-
-      expect(component.classification()!.classificationText).toBe('TOP SECRET // SCI');
-      expect(component.classification()!.classificationColorCode).toBe('#fce83a');
+      expect(component.classification()!.classificationText).toBe(expectedText);
+      expect(component.classification()!.classificationColorCode).toBe(expectedColorCode);
     });
 
     it('should handle NONE classification with showBanner false', () => {

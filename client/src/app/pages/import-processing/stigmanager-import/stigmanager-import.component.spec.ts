@@ -25,7 +25,6 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -181,7 +180,6 @@ describe('STIGManagerImportComponent', () => {
             SkeletonModule,
             TableModule,
             TabsModule,
-            ToastModule,
             TooltipModule,
             InputIconModule,
             IconFieldModule,
@@ -243,11 +241,11 @@ describe('STIGManagerImportComponent', () => {
     });
 
     it('should define allColumns with 6 columns', () => {
-      expect(component.allColumns.length).toBe(6);
+      expect(component.allColumns).toHaveLength(6);
     });
 
     it('should have loadingSkeletonData with 15 items', () => {
-      expect(component.loadingSkeletonData.length).toBe(15);
+      expect(component.loadingSkeletonData).toHaveLength(15);
     });
   });
 
@@ -362,7 +360,7 @@ describe('STIGManagerImportComponent', () => {
   describe('loadBenchmarkSummaries', () => {
     it('should populate benchmarkSummaries', () => {
       (component as any).loadBenchmarkSummaries(100);
-      expect(component.benchmarkSummaries().length).toBe(2);
+      expect(component.benchmarkSummaries()).toHaveLength(2);
     });
 
     it('should set benchmarksCount', () => {
@@ -402,6 +400,12 @@ describe('STIGManagerImportComponent', () => {
       mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('Fetch error')));
       (component as any).loadBenchmarkSummaries(100);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
+    });
+
+    it('clears the spinner on error rather than leaving it stuck', () => {
+      mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('Fetch error')));
+      (component as any).loadBenchmarkSummaries(100);
+      expect(component.loadingTableInfo()).toBe(false);
     });
   });
 
@@ -500,7 +504,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should map findings data into displayDataSource', () => {
       component.getSTIGMANFindings(100);
-      expect(component.displayDataSource().length).toBe(2);
+      expect(component.displayDataSource()).toHaveLength(2);
       expect(component.displayDataSource()[0].groupId).toBe('V-230221');
     });
 
@@ -541,6 +545,41 @@ describe('STIGManagerImportComponent', () => {
 
       component.getSTIGMANFindings(100);
       expect(spy).toHaveBeenCalled();
+    });
+
+    describe('load generation guard', () => {
+      it('keeps the newest findings when an earlier load lands afterwards', () => {
+        const first = new Subject<any[]>();
+        const second = new Subject<any[]>();
+
+        mockSharedService.getFindingsFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+        component.getSTIGMANFindings(100);
+        component.getSTIGMANFindings(100);
+
+        second.next([mockFindings[1]]);
+        first.next([...mockFindings]);
+
+        expect(component.displayDataSource()).toHaveLength(1);
+        expect(component.displayDataSource()[0].groupId).toBe(mockFindings[1].groupId);
+        expect(component.findingsCount()).toBe(1);
+      });
+
+      it('does not let an earlier benchmark-summary load overwrite a newer one', () => {
+        const first = new Subject<any[]>();
+        const second = new Subject<any[]>();
+
+        mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+        (component as any).loadBenchmarkSummaries(100);
+        (component as any).loadBenchmarkSummaries(100);
+
+        second.next([mockBenchmarkData[1]]);
+        first.next([...mockBenchmarkData]);
+
+        expect(component.benchmarkSummaries()).toHaveLength(1);
+        expect(component.benchmarksCount()).toBe(1);
+      });
     });
   });
 
@@ -627,7 +666,7 @@ describe('STIGManagerImportComponent', () => {
 
     it('should update displayDataSource', () => {
       (component as any).updateExistingPoams();
-      expect(component.displayDataSource().length).toBe(3);
+      expect(component.displayDataSource()).toHaveLength(3);
     });
 
     it('should update findingsCount', () => {

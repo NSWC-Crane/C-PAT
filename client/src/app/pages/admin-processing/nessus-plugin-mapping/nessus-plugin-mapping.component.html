@@ -37,7 +37,8 @@
     [paginator]="true"
     [scrollable]="true"
     scrollHeight="flex"
-    [globalFilterFields]="['iav', 'pluginID', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate', 'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins']"
+    [globalFilterFields]="['iav', 'pluginID', 'status', 'title', 'iavCat', 'type', 'releaseDate', 'navyComplyDate', 'supersededBy', 'knownExploits', 'knownDodIncidents', 'nessusPlugins', 'taskOrder']"
+    editMode="row"
   >
     <ng-template #caption>
       <div class="flex items-center justify-between">
@@ -82,10 +83,11 @@
             </div>
           </th>
         }
+        <th scope="col">Actions</th>
       </tr>
     </ng-template>
-    <ng-template #body let-rowData>
-      <tr>
+    <ng-template #body let-rowData let-editing="editing">
+      <tr [pEditableRow]="rowData">
         @for (col of cols; track col.field) {
           <td>
             @switch (col.field) {
@@ -98,19 +100,39 @@
               @case ('navyComplyDate') {
                 {{ rowData[col.field] | date: 'yyyy-MM-dd' }}
               }
+              @case ('taskOrder') {
+                <p-celleditor>
+                  <ng-template #input>
+                    <input pInputText type="text" class="w-full" id="taskOrder" [(ngModel)]="rowData.taskOrder" maxlength="25" />
+                  </ng-template>
+                  <ng-template #output> {{ rowData.taskOrder }} </ng-template>
+                </p-celleditor>
+              }
               @default {
                 {{ rowData[col.field] }}
               }
             }
           </td>
         }
+        <td>
+          <div class="flex gap-2">
+            @if (!editing) {
+              <button pButton (click)="$event.stopPropagation(); onRowEditInit(rowData)" pInitEditableRow [rounded]="true" variant="text"><i class="pi pi-pencil" pButtonIcon></i></button>
+            }
+            @if (editing) {
+              <button pButton class="mr-2" (click)="$event.stopPropagation(); onRowEditSave(rowData)" pSaveEditableRow [rounded]="true" variant="text" severity="success"><i class="pi pi-check" pButtonIcon></i></button>
+            }
+            @if (editing) {
+              <button pButton (click)="$event.stopPropagation(); onRowEditCancel(rowData)" pCancelEditableRow [rounded]="true" variant="text" severity="danger"><i class="pi pi-times" pButtonIcon></i></button>
+            }
+          </div>
+        </td>
       </tr>
     </ng-template>
     <ng-template #emptymessage>
       <tr>
-        <td colspan="12">No IAV data found.</td>
+        <td colspan="14">No IAV data found.</td>
       </tr>
     </ng-template>
   </p-table>
 </div>
-<p-toast />

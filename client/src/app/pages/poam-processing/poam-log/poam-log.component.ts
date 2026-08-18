@@ -13,7 +13,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { Subscription } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -31,7 +30,7 @@ interface FSEntry {
   styleUrls: ['./poam-log.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DialogModule, TableModule, ToastModule]
+  imports: [DialogModule, TableModule]
 })
 export class PoamLogComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);

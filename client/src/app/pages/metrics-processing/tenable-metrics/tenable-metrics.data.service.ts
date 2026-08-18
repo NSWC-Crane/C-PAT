@@ -37,6 +37,12 @@ export interface TenableExportMetrics {
   complianceCatI: number;
   complianceCatII: number;
   complianceCatIII: number;
+  complianceCatI90: number;
+  complianceCatII90: number;
+  complianceCatIII90: number;
+  openFindingsCatI: number;
+  openFindingsCatII: number;
+  openFindingsCatIII: number;
   seolVulnerabilities: number;
   vphScore: number;
   validOnlineAssets: number;
@@ -60,13 +66,27 @@ export interface TenableGlobalComponents {
   compliance: ComplianceCounts;
 }
 
+const LAST_SEEN_BY_TIME_RANGE: Record<TenableTimeRange, string | null> = {
+  all: null,
+  '7': '0:7',
+  '30': '0:30',
+  '90': '0:90'
+};
+
+const DAYS_BY_TIME_RANGE: Record<TenableTimeRange, number> = {
+  all: 0,
+  '7': 7,
+  '30': 30,
+  '90': 90
+};
+
 @Injectable({ providedIn: 'root' })
 export class TenableMetricsDataService {
   private readonly importService = inject(ImportService);
   private readonly collectionsService = inject(CollectionsService);
 
   loadVulnerabilityDataForTimeRange(repoId: string, collectionId: any, timeRange: TenableTimeRange): Observable<TenableTimeRangeData> {
-    const lastSeenValue = timeRange === 'all' ? null : timeRange === '7' ? '0:7' : timeRange === '30' ? '0:30' : '0:90';
+    const lastSeenValue = LAST_SEEN_BY_TIME_RANGE[timeRange];
 
     return forkJoin({
       severitySummary30Days: this.getSeveritySummary(repoId, true, lastSeenValue),
@@ -77,7 +97,7 @@ export class TenableMetricsDataService {
     });
   }
 
-  loadAllHosts(repoId: string): Observable<any[]> {
+  loadAllHosts(repoId: string, propagateErrors = false): Observable<any[]> {
     const hostParams = {
       filters: {
         and: [
@@ -100,10 +120,9 @@ export class TenableMetricsDataService {
       }
     };
 
-    return this.importService.postTenableHostSearch(hostParams).pipe(
-      map((response: any) => response?.response || []),
-      catchError(() => of([]))
-    );
+    const hosts$ = this.importService.postTenableHostSearch(hostParams).pipe(map((response: any) => response?.response || []));
+
+    return propagateErrors ? hosts$ : hosts$.pipe(catchError(() => of([])));
   }
 
   filterHostCount(hosts: any[], timeRange: TenableTimeRange): number {
@@ -112,7 +131,7 @@ export class TenableMetricsDataService {
     }
 
     const now = Date.now() / 1000;
-    const daysInSeconds = timeRange === '7' ? 7 * 24 * 60 * 60 : timeRange === '30' ? 30 * 24 * 60 * 60 : 90 * 24 * 60 * 60;
+    const daysInSeconds = DAYS_BY_TIME_RANGE[timeRange] * 24 * 60 * 60;
     const cutoffTime = now - daysInSeconds;
 
     return hosts.filter((host: any) => {
@@ -171,21 +190,22 @@ export class TenableMetricsDataService {
     );
   }
 
-  calculateComplianceMetrics(repoId: string, collectionId: any, lastSeenValue: string | null): Observable<{ catI: number; catII: number; catIII: number }> {
-    return this.calculateComplianceCounts(repoId, collectionId, lastSeenValue).pipe(
-      map((counts) => ({
-        catI: counts.catI.total === 0 ? 0 : (counts.catI.compliant / counts.catI.total) * 100,
-        catII: counts.catII.total === 0 ? 0 : (counts.catII.compliant / counts.catII.total) * 100,
-        catIII: counts.catIII.total === 0 ? 0 : (counts.catIII.compliant / counts.catIII.total) * 100
-      }))
+  calculateComplianceMetrics(repoId: string, collectionId: any, lastSeenValue: string | null, pluginPublishedValue = '30:all'): Observable<{ catI: number; catII: number; catIII: number }> {
+    return this.calculateComplianceCounts(repoId, collectionId, lastSeenValue, pluginPublishedValue).pipe(map((counts) => this.toCompliancePercentages(counts)));
+  }
+
+  calculateComplianceCounts(repoId: string, collectionId: any, lastSeenValue: string | null, pluginPublishedValue = '30:all'): Observable<ComplianceCounts> {
+    return combineLatest([this.fetchComplianceVulnerabilities(repoId, lastSeenValue, pluginPublishedValue), this.collectionsService.getPoamsByCollection(collectionId)]).pipe(
+      map(([vulnSets, poams]) => this.toComplianceCounts(vulnSets, poams)),
+      catchError(() => of({ catI: { compliant: 0, total: 0 }, catII: { compliant: 0, total: 0 }, catIII: { compliant: 0, total: 0 } }))
     );
   }
 
-  calculateComplianceCounts(repoId: string, collectionId: any, lastSeenValue: string | null): Observable<ComplianceCounts> {
-    const baseFilters = [];
+  private buildComplianceFilters(lastSeenValue: string | null, pluginPublishedValue: string, severityValue: string): any[] {
+    const filters = [];
 
     if (lastSeenValue) {
-      baseFilters.push({
+      filters.push({
         filterName: 'lastSeen',
         operator: '=',
         value: lastSeenValue,
@@ -194,97 +214,70 @@ export class TenableMetricsDataService {
       });
     }
 
-    const catIFilters = [
-      ...baseFilters,
+    filters.push(
       {
         filterName: 'pluginPublished',
         operator: '=',
-        value: '30:all',
+        value: pluginPublishedValue,
         type: 'vuln',
         isPredefined: true
       },
       {
         filterName: 'severity',
         operator: '=',
-        value: '3,4',
+        value: severityValue,
         type: 'vuln',
         isPredefined: true
       }
-    ];
-
-    const catIIFilters = [
-      ...baseFilters,
-      {
-        filterName: 'pluginPublished',
-        operator: '=',
-        value: '30:all',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'severity',
-        operator: '=',
-        value: '2',
-        type: 'vuln',
-        isPredefined: true
-      }
-    ];
-
-    const catIIIFilters = [
-      ...baseFilters,
-      {
-        filterName: 'pluginPublished',
-        operator: '=',
-        value: '30:all',
-        type: 'vuln',
-        isPredefined: true
-      },
-      {
-        filterName: 'severity',
-        operator: '=',
-        value: '1',
-        type: 'vuln',
-        isPredefined: true
-      }
-    ];
-
-    return combineLatest([
-      this.getTenableVulnerabilities(repoId, catIFilters),
-      this.getTenableVulnerabilities(repoId, catIIFilters),
-      this.getTenableVulnerabilities(repoId, catIIIFilters),
-      this.collectionsService.getPoamsByCollection(collectionId)
-    ]).pipe(
-      map(([catIVulns, catIIVulns, catIIIVulns, poams]) => {
-        const vulnerabilityStatusMap = new Map<string, string>();
-
-        poams.forEach((poam: any) => {
-          if (poam.vulnerabilityId) {
-            vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
-          }
-
-          if (Array.isArray(poam?.associatedVulnerabilities)) {
-            poam.associatedVulnerabilities.forEach((vulnId: string) => {
-              vulnerabilityStatusMap.set(vulnId, poam.status);
-            });
-          }
-        });
-
-        const complianceComponents = (vulnData: any): ComplianceCount => {
-          const vulnerabilities = vulnData.response?.results || [];
-          const total = vulnerabilities.length;
-          const compliant = vulnerabilities.filter((vuln: any) => vulnerabilityStatusMap.get(vuln.pluginID) === 'Approved').length;
-
-          return { compliant, total };
-        };
-
-        return {
-          catI: complianceComponents(catIVulns),
-          catII: complianceComponents(catIIVulns),
-          catIII: complianceComponents(catIIIVulns)
-        };
-      }),
-      catchError(() => of({ catI: { compliant: 0, total: 0 }, catII: { compliant: 0, total: 0 }, catIII: { compliant: 0, total: 0 } }))
     );
+
+    return filters;
+  }
+
+  private fetchComplianceVulnerabilities(repoId: string, lastSeenValue: string | null, pluginPublishedValue: string, propagateErrors = false): Observable<[any, any, any]> {
+    return combineLatest([
+      this.getTenableVulnerabilities(repoId, this.buildComplianceFilters(lastSeenValue, pluginPublishedValue, '3,4'), propagateErrors),
+      this.getTenableVulnerabilities(repoId, this.buildComplianceFilters(lastSeenValue, pluginPublishedValue, '2'), propagateErrors),
+      this.getTenableVulnerabilities(repoId, this.buildComplianceFilters(lastSeenValue, pluginPublishedValue, '1'), propagateErrors)
+    ]);
+  }
+
+  private toComplianceCounts([catIVulns, catIIVulns, catIIIVulns]: [any, any, any], poams: any[]): ComplianceCounts {
+    const vulnerabilityStatusMap = new Map<string, string>();
+
+    poams.forEach((poam: any) => {
+      if (poam.vulnerabilityId) {
+        vulnerabilityStatusMap.set(poam.vulnerabilityId, poam.status);
+      }
+
+      if (Array.isArray(poam?.associatedVulnerabilities)) {
+        poam.associatedVulnerabilities.forEach((vulnId: string) => {
+          vulnerabilityStatusMap.set(vulnId, poam.status);
+        });
+      }
+    });
+
+    const complianceComponents = (vulnData: any): ComplianceCount => {
+      const vulnerabilities = vulnData.response?.results || [];
+      const total = vulnerabilities.length;
+      const compliant = vulnerabilities.filter((vuln: any) => vulnerabilityStatusMap.get(vuln.pluginID) === 'Approved').length;
+
+      return { compliant, total };
+    };
+
+    return {
+      catI: complianceComponents(catIVulns),
+      catII: complianceComponents(catIIVulns),
+      catIII: complianceComponents(catIIIVulns)
+    };
+  }
+
+  private toCompliancePercentages(counts: ComplianceCounts): { catI: number; catII: number; catIII: number } {
+    return {
+      catI: counts.catI.total === 0 ? 0 : (counts.catI.compliant / counts.catI.total) * 100,
+      catII: counts.catII.total === 0 ? 0 : (counts.catII.compliant / counts.catII.total) * 100,
+      catIII: counts.catIII.total === 0 ? 0 : (counts.catIII.compliant / counts.catIII.total) * 100
+    };
   }
 
   calculateExploitableFindings(repoId: string, lastSeenValue: string | null): Observable<number> {
@@ -375,7 +368,7 @@ export class TenableMetricsDataService {
     );
   }
 
-  calculateSEOLVulnerabilities(repoId: string, lastSeenValue: string | null): Observable<number> {
+  calculateSEOLVulnerabilities(repoId: string, lastSeenValue: string | null, propagateErrors = false): Observable<number> {
     const filters = [];
 
     if (lastSeenValue) {
@@ -412,10 +405,9 @@ export class TenableMetricsDataService {
       }
     );
 
-    return this.getTenableVulnerabilities(repoId, filters).pipe(
-      map((data) => Number(data.response?.totalRecords) || 0),
-      catchError(() => of(0))
-    );
+    const count$ = this.getTenableVulnerabilities(repoId, filters, propagateErrors).pipe(map((data) => Number(data.response?.totalRecords) || 0));
+
+    return propagateErrors ? count$ : count$.pipe(catchError(() => of(0)));
   }
 
   calculateCredentialScanPercentage(repoId: string): Observable<number> {
@@ -444,7 +436,7 @@ export class TenableMetricsDataService {
     );
   }
 
-  getSeveritySummary(repoId: string, apply30DayFilter: boolean, lastSeenValue: string | null): Observable<SeveritySummary> {
+  getSeveritySummary(repoId: string, apply30DayFilter: boolean, lastSeenValue: string | null, propagateErrors = false): Observable<SeveritySummary> {
     const filters = [
       {
         filterName: 'pluginType',
@@ -500,7 +492,7 @@ export class TenableMetricsDataService {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams).pipe(
+    const summary$ = this.importService.postTenableAnalysis(analysisParams).pipe(
       map((response: any) => {
         const results = response?.response?.results || [];
         const summary: SeveritySummary = {
@@ -535,12 +527,13 @@ export class TenableMetricsDataService {
         });
 
         return summary;
-      }),
-      catchError(() => of({ critical: 0, high: 0, medium: 0, low: 0, info: 0 }))
+      })
     );
+
+    return propagateErrors ? summary$ : summary$.pipe(catchError(() => of({ critical: 0, high: 0, medium: 0, low: 0, info: 0 })));
   }
 
-  getTenableVulnerabilities(repoId: string, additionalFilters: any[] = []): Observable<any> {
+  getTenableVulnerabilities(repoId: string, additionalFilters: any[] = [], propagateErrors = false): Observable<any> {
     const baseFilter = this.createRepositoryFilter(repoId);
     const filters = [baseFilter, ...additionalFilters];
 
@@ -565,13 +558,17 @@ export class TenableMetricsDataService {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams).pipe(
-      catchError((error) => {
-        console.error('Error fetching Tenable data:', error);
+    const analysis$ = this.importService.postTenableAnalysis(analysisParams);
 
-        return of({ response: { totalRecords: 0, results: [] } });
-      })
-    );
+    return propagateErrors
+      ? analysis$
+      : analysis$.pipe(
+          catchError((error) => {
+            console.error('Error fetching Tenable data:', error);
+
+            return of({ response: { totalRecords: 0, results: [] } });
+          })
+        );
   }
 
   createRepositoryFilter(repoId: string): any {
@@ -586,22 +583,36 @@ export class TenableMetricsDataService {
   }
 
   getCollectionExportMetrics(repoId: string, collectionId: any): Observable<TenableExportMetrics> {
+    const lastSeenValue = LAST_SEEN_BY_TIME_RANGE['30'];
+
     return forkJoin({
-      vulnerabilityData: this.loadVulnerabilityDataForTimeRange(repoId, collectionId, '30'),
-      hosts: this.loadAllHosts(repoId)
+      severitySummary: this.getSeveritySummary(repoId, false, lastSeenValue, true),
+      seolVulnerabilities: this.calculateSEOLVulnerabilities(repoId, lastSeenValue, true),
+      vulns30: this.fetchComplianceVulnerabilities(repoId, lastSeenValue, '30:all', true),
+      vulns90: this.fetchComplianceVulnerabilities(repoId, lastSeenValue, '90:all', true),
+      poams: this.collectionsService.getPoamsByCollection(collectionId),
+      hosts: this.loadAllHosts(repoId, true)
     }).pipe(
-      map(({ vulnerabilityData, hosts }) => {
+      map(({ severitySummary, seolVulnerabilities, vulns30, vulns90, poams, hosts }) => {
+        const compliance30 = this.toCompliancePercentages(this.toComplianceCounts(vulns30, poams));
+        const compliance90 = this.toCompliancePercentages(this.toComplianceCounts(vulns90, poams));
         const validAssets = this.filterHostCount(hosts, '30');
-        const catICount = vulnerabilityData.severitySummary.critical + vulnerabilityData.severitySummary.high;
-        const catIICount = vulnerabilityData.severitySummary.medium;
-        const catIIICount = vulnerabilityData.severitySummary.low;
+        const catICount = severitySummary.critical + severitySummary.high;
+        const catIICount = severitySummary.medium;
+        const catIIICount = severitySummary.low;
         const vph = this.calculateVPHScore(catICount, catIICount, catIIICount, validAssets);
 
         return {
-          complianceCatI: vulnerabilityData.complianceMetrics.catI,
-          complianceCatII: vulnerabilityData.complianceMetrics.catII,
-          complianceCatIII: vulnerabilityData.complianceMetrics.catIII,
-          seolVulnerabilities: vulnerabilityData.seolVulnerabilities,
+          complianceCatI: compliance30.catI,
+          complianceCatII: compliance30.catII,
+          complianceCatIII: compliance30.catIII,
+          complianceCatI90: compliance90.catI,
+          complianceCatII90: compliance90.catII,
+          complianceCatIII90: compliance90.catIII,
+          openFindingsCatI: catICount,
+          openFindingsCatII: catIICount,
+          openFindingsCatIII: catIIICount,
+          seolVulnerabilities,
           vphScore: vph.score,
           validOnlineAssets: validAssets
         };

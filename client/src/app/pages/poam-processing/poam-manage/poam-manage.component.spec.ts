@@ -352,7 +352,7 @@ describe('PoamManageComponent', () => {
 
       component.updateGridData();
 
-      expect(component.poamsNeedingAttention().length).toBe(2);
+      expect(component.poamsNeedingAttention()).toHaveLength(2);
       expect(component.poamsNeedingAttention().map((p: any) => p.poamId)).toContain(1);
       expect(component.poamsNeedingAttention().map((p: any) => p.poamId)).toContain(2);
     });
@@ -368,7 +368,7 @@ describe('PoamManageComponent', () => {
 
       component.updateGridData();
 
-      expect(component.poamsNeedingAttention().length).toBe(0);
+      expect(component.poamsNeedingAttention()).toHaveLength(0);
     });
 
     it('should not include poams with no scheduledCompletionDate in needing attention', () => {
@@ -378,7 +378,7 @@ describe('PoamManageComponent', () => {
 
       component.updateGridData();
 
-      expect(component.poamsNeedingAttention().length).toBe(0);
+      expect(component.poamsNeedingAttention()).toHaveLength(0);
     });
 
     it('should filter submittedPoams by submitterId or ownerId matching current user', () => {
@@ -394,7 +394,7 @@ describe('PoamManageComponent', () => {
 
       component.updateGridData();
 
-      expect(component.submittedPoams().length).toBe(3);
+      expect(component.submittedPoams()).toHaveLength(3);
       expect(component.submittedPoams().map((p: any) => p.poamId)).toContain(1);
       expect(component.submittedPoams().map((p: any) => p.poamId)).toContain(2);
       expect(component.submittedPoams().map((p: any) => p.poamId)).toContain(4);
@@ -408,7 +408,7 @@ describe('PoamManageComponent', () => {
 
       component.updateGridData();
 
-      expect(component.submittedPoams().length).toBe(1);
+      expect(component.submittedPoams()).toHaveLength(1);
       expect(component.submittedPoams()[0].poamId).toBe(2);
     });
 
@@ -425,7 +425,7 @@ describe('PoamManageComponent', () => {
 
       component.updateGridData();
 
-      expect(component.poamsPendingApproval().length).toBe(3);
+      expect(component.poamsPendingApproval()).toHaveLength(3);
     });
 
     it('should filter teamPoams by user assigned team ids', () => {
@@ -440,7 +440,7 @@ describe('PoamManageComponent', () => {
 
       component.updateGridData();
 
-      expect(component.teamPoams().length).toBe(2);
+      expect(component.teamPoams()).toHaveLength(2);
       expect(component.teamPoams().map((p: any) => p.poamId)).toContain(1);
       expect(component.teamPoams().map((p: any) => p.poamId)).toContain(3);
     });
@@ -453,7 +453,7 @@ describe('PoamManageComponent', () => {
 
       component.updateGridData();
 
-      expect(component.teamPoams().length).toBe(0);
+      expect(component.teamPoams()).toHaveLength(0);
     });
   });
 
@@ -623,7 +623,7 @@ describe('PoamManageComponent', () => {
 
       const result = (component as any).createCategoryChartData('CAT I', data);
 
-      expect(result.length).toBe(2);
+      expect(result).toHaveLength(2);
       expect(result[0]).toEqual(expect.objectContaining({ name: 'Approved', value: 3 }));
       expect(result[1]).toEqual(expect.objectContaining({ name: 'Open Findings', value: 5 }));
     });
@@ -643,7 +643,7 @@ describe('PoamManageComponent', () => {
 
       const result = (component as any).createCategoryChartData('CAT II', data);
 
-      expect(result.length).toBe(1);
+      expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         name: 'No Data',
         value: 1,
@@ -666,7 +666,7 @@ describe('PoamManageComponent', () => {
 
       const result = (component as any).createCategoryChartData('CAT III', data);
 
-      expect(result.length).toBe(9);
+      expect(result).toHaveLength(9);
       expect(result.map((r: any) => r.name)).toEqual(['Approved', 'Submitted', 'Extension Requested', 'False-Positive', 'Pending CAT-I Approval', 'Expired', 'Rejected', 'Closed', 'Open Findings']);
     });
 
@@ -896,7 +896,7 @@ describe('PoamManageComponent', () => {
 
       (component as any).fetchFindingsData(100, 'Tenable');
 
-      expect(component.findingsData().length).toBe(2);
+      expect(component.findingsData()).toHaveLength(2);
       expect(component.findingsData()[0].groupId).toBe('12345');
       expect(component.findingsData()[0].severity).toBe('high');
     });
@@ -931,7 +931,7 @@ describe('PoamManageComponent', () => {
 
       (component as any).fetchFindingsData(100, 'Tenable');
 
-      expect(component.findingsData30Days().length).toBe(1);
+      expect(component.findingsData30Days()).toHaveLength(1);
       expect(component.findingsData30Days()[0].groupId).toBe('99999');
     });
 

@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<div class="card overflow-hidden relative">
+<div class="card relative flex h-[calc(100vh-11rem)] min-h-0 flex-col overflow-hidden">
   <button pButton class="!absolute top-1 right-1 z-10" (click)="navigateToAppInfo()" [rounded]="true" variant="text"><i class="pi pi-cog" pButtonIcon></i></button>
   <p-tabs [(value)]="value" lazy>
     <p-tablist class="mt-[-1.5rem]">
@@ -64,5 +64,3 @@
     </p-tabpanels>
   </p-tabs>
 </div>
-
-<p-toast />

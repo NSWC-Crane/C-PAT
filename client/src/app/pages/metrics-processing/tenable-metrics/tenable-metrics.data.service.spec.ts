@@ -13,7 +13,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { ImportService } from '../../import-processing/import.service';
-import { TenableMetricsDataService, TenableTimeRangeData } from './tenable-metrics.data.service';
+import { TenableMetricsDataService } from './tenable-metrics.data.service';
 
 beforeAll(() => {
   (globalThis as any).CPAT = { Env: { apiBase: '/api' } };
@@ -307,6 +307,22 @@ describe('TenableMetricsDataService', () => {
         catIII: { compliant: 0, total: 0 }
       });
     });
+
+    it('defaults the pluginPublished window to 30 days for every severity query', () => {
+      service.calculateComplianceCounts('5', 1, '0:30').subscribe();
+
+      const windows = mockImportService.postTenableAnalysis.mock.calls.map(([params]: any[]) => params.query.filters.find((f: any) => f.filterName === 'pluginPublished')?.value);
+
+      expect(windows).toEqual(['30:all', '30:all', '30:all']);
+    });
+
+    it('applies the requested pluginPublished window to every severity query', () => {
+      service.calculateComplianceCounts('5', 1, '0:30', '90:all').subscribe();
+
+      const windows = mockImportService.postTenableAnalysis.mock.calls.map(([params]: any[]) => params.query.filters.find((f: any) => f.filterName === 'pluginPublished')?.value);
+
+      expect(windows).toEqual(['90:all', '90:all', '90:all']);
+    });
   });
 
   describe('getCollectionGlobalComponents', () => {
@@ -336,27 +352,52 @@ describe('TenableMetricsDataService', () => {
   });
 
   describe('getCollectionExportMetrics', () => {
-    it('composes the slim export metric set from vulnerability data and hosts', async () => {
-      const timeRangeData: TenableTimeRangeData = {
-        severitySummary30Days: { critical: 0, high: 0, medium: 0, low: 0, info: 0 },
-        severitySummary: { critical: 4, high: 6, medium: 20, low: 30, info: 0 },
-        exploitableFindings: 0,
-        seolVulnerabilities: 9,
-        complianceMetrics: { catI: 11, catII: 22, catIII: 33 }
-      };
+    it('composes the export metric set with 30-day and 90-day POAM coverage from a single POAM fetch', async () => {
       const now = Date.now() / 1000;
 
-      vi.spyOn(service, 'loadVulnerabilityDataForTimeRange').mockReturnValue(of(timeRangeData));
+      vi.spyOn(service, 'getSeveritySummary').mockReturnValue(of({ critical: 4, high: 6, medium: 20, low: 30, info: 0 }));
+      vi.spyOn(service, 'calculateSEOLVulnerabilities').mockReturnValue(of(9));
       vi.spyOn(service, 'loadAllHosts').mockReturnValue(of([{ lastSeen: now - 60 }, { lastSeen: now - 100 * 24 * 60 * 60 }]));
+      mockImportService.postTenableAnalysis.mockImplementation((params: any) => {
+        const published = params.query.filters.find((f: any) => f.filterName === 'pluginPublished')?.value;
+
+        return published === '90:all' ? analysis([{ pluginID: '100' }]) : analysis([{ pluginID: '100' }, { pluginID: '200' }]);
+      });
+      mockCollectionsService.getPoamsByCollection.mockReturnValue(
+        of([
+          { vulnerabilityId: '100', status: 'Approved' },
+          { vulnerabilityId: '200', status: 'Draft' }
+        ])
+      );
 
       const result = await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe(resolve));
 
-      expect(result.complianceCatI).toBe(11);
-      expect(result.complianceCatII).toBe(22);
-      expect(result.complianceCatIII).toBe(33);
+      expect(result.complianceCatI).toBe(50);
+      expect(result.complianceCatII).toBe(50);
+      expect(result.complianceCatIII).toBe(50);
+      expect(result.complianceCatI90).toBe(100);
+      expect(result.complianceCatII90).toBe(100);
+      expect(result.complianceCatIII90).toBe(100);
       expect(result.seolVulnerabilities).toBe(9);
       expect(result.validOnlineAssets).toBe(1);
       expect(result.vphScore).toBeCloseTo(service.calculateVPHScore(10, 20, 30, 1).score, 5);
+      expect(mockCollectionsService.getPoamsByCollection).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates Tenable analysis failures instead of composing zero-valued metrics', async () => {
+      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('tenable down')));
+
+      const error = await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe({ error: resolve }));
+
+      expect(error.message).toBe('tenable down');
+    });
+
+    it('propagates host search failures instead of reporting zero assets', async () => {
+      mockImportService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('hosts down')));
+
+      const error = await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe({ error: resolve }));
+
+      expect(error.message).toBe('hosts down');
     });
   });
 });

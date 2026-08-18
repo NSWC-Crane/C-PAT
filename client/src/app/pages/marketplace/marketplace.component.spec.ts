@@ -74,7 +74,8 @@ describe('MarketplaceComponent', () => {
         { provide: MarketplaceService, useValue: mockMarketplaceService },
         { provide: UsersService, useValue: mockUsersService },
         { provide: AppConfigService, useValue: mockConfigService },
-        { provide: PayloadService, useValue: mockPayloadService }
+        { provide: PayloadService, useValue: mockPayloadService },
+        MessageService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -113,7 +114,7 @@ describe('MarketplaceComponent', () => {
     });
 
     it('should have 9 surfaces defined', () => {
-      expect(component.surfaces.length).toBe(9);
+      expect(component.surfaces).toHaveLength(9);
     });
 
     it('should include carbide in surfaces', () => {
@@ -214,7 +215,7 @@ describe('MarketplaceComponent', () => {
 
     it('should set themes to unpurchased themes only', () => {
       component.loadThemes();
-      expect(component.themes().length).toBe(2);
+      expect(component.themes()).toHaveLength(2);
     });
 
     it('should derive themeImageUrls after loading', () => {

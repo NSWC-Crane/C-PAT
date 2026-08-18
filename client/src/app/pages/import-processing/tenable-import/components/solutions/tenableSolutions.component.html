@@ -17,7 +17,7 @@
             <p-inputicon>
               <i class="pi pi-search"></i>
             </p-inputicon>
-            <input pInputText id="search" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search Solutions" />
+            <input pInputText id="solutionsSearch" [(ngModel)]="filterValue" (input)="onGlobalFilter($event)" placeholder="Search Solutions" />
           </p-iconfield>
           <button pButton class="ml-2" (click)="clear()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
         </div>
@@ -238,7 +238,7 @@
               <p-inputicon>
                 <i class="pi pi-search"></i>
               </p-inputicon>
-              <input pInputText id="search" [(ngModel)]="dialogFilterValue" (input)="onDialogFilter($event)" placeholder="Search Assets" style="width: 300px" />
+              <input pInputText id="affectedHostsSearch" [(ngModel)]="dialogFilterValue" (input)="onDialogFilter($event)" placeholder="Search Assets" style="width: 300px" />
             </p-iconfield>
             <button pButton class="ml-auto" (click)="clearDialog()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
           </div>
@@ -314,5 +314,3 @@
     </div>
   </ng-template>
 </p-dialog>
-
-<p-toast position="center" key="error" />

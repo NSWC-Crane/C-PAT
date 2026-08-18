@@ -280,7 +280,7 @@ describe('AssetComponent', () => {
     it('should prepend a new label row to assetLabels', () => {
       component.assetLabels.set([...mockAssetLabels]);
       component.addNewRow();
-      expect(component.assetLabels().length).toBe(3);
+      expect(component.assetLabels()).toHaveLength(3);
       expect(component.assetLabels()[0].isNew).toBe(true);
     });
 
@@ -325,7 +325,7 @@ describe('AssetComponent', () => {
 
       component.assetLabels.set([label]);
       component.onLabelChange(label, 0);
-      expect(component.assetLabels().length).toBe(0);
+      expect(component.assetLabels()).toHaveLength(0);
     });
   });
 
@@ -337,7 +337,7 @@ describe('AssetComponent', () => {
     it('should splice and show success message for ADDASSET', () => {
       component.asset.set({ ...mockAsset, assetId: 'ADDASSET' });
       component.deleteAssetLabel(mockAssetLabels[0], 0);
-      expect(component.assetLabels().length).toBe(1);
+      expect(component.assetLabels()).toHaveLength(1);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
     });
 
@@ -348,7 +348,7 @@ describe('AssetComponent', () => {
 
     it('should splice label and show success on successful delete', () => {
       component.deleteAssetLabel(mockAssetLabels[0], 0);
-      expect(component.assetLabels().length).toBe(1);
+      expect(component.assetLabels()).toHaveLength(1);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
     });
 

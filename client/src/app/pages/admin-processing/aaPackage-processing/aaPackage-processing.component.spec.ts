@@ -21,7 +21,6 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { AAPackageProcessingComponent } from './aaPackage-processing.component';
 import { AAPackageService } from './aaPackage-processing.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
@@ -64,7 +63,7 @@ describe('AAPackageProcessingComponent', () => {
     })
       .overrideComponent(AAPackageProcessingComponent, {
         set: {
-          imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
+          imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule]
         }
       })
       .compileComponents();
@@ -142,7 +141,7 @@ describe('AAPackageProcessingComponent', () => {
       const previousLength = component.aaPackages().length;
 
       component.onAddNewClick();
-      expect(component.aaPackages().length).toBe(previousLength + 1);
+      expect(component.aaPackages()).toHaveLength(previousLength + 1);
     });
 
     it('should reset table.first to 0', () => {
@@ -278,7 +277,7 @@ describe('AAPackageProcessingComponent', () => {
     it('should keep remaining packages after delete', () => {
       component.aaPackages.set([...mockPackages]);
       component.onRowDelete(mockPackages[0]);
-      expect(component.aaPackages().length).toBe(2);
+      expect(component.aaPackages()).toHaveLength(2);
     });
 
     it('should show success message on delete', () => {

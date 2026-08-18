@@ -21,7 +21,6 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { CommonModule } from '@angular/common';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { UserProcessingComponent } from './user-processing.component';
@@ -129,12 +128,13 @@ describe('UserProcessingComponent', () => {
         { provide: UsersService, useValue: mockUsersService },
         { provide: PayloadService, useValue: mockPayloadService },
         { provide: Router, useValue: mockRouter },
-        { provide: CsvExportService, useValue: mockCsvExportService }
+        { provide: CsvExportService, useValue: mockCsvExportService },
+        MessageService
       ]
     })
       .overrideComponent(UserProcessingComponent, {
         set: {
-          imports: [ButtonModule, CommonModule, DialogModule, FormsModule, SelectModule, TableModule, ToastModule, MockUserComponent]
+          imports: [ButtonModule, CommonModule, DialogModule, FormsModule, SelectModule, TableModule, MockUserComponent]
         }
       })
       .compileComponents();

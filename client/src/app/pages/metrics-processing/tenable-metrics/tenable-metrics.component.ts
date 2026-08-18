@@ -21,6 +21,7 @@ import { CpatChartComponent } from '../../../common/components/chart/chart.compo
 import { DividerModule } from 'primeng/divider';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 import { EMPTY, catchError, forkJoin, tap } from 'rxjs';
+import { RISK_GRADIENT, SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { MetricData } from '../../../common/models/metrics.model';
 import { TenableHighRiskAssetsTableComponent } from '../../import-processing/tenable-import/components/tenableHighRiskAssetsTable/tenableHighRiskAssetsTable.component';
@@ -100,6 +101,9 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   private readonly cachedPoamMetrics = signal<number>(0);
   private readonly cachedPastDueIAVs = signal<number>(0);
   private readonly cachedCredentialScanPercentage = signal<number>(0);
+
+  readonly severityColor = SEVERITY_COLOR;
+  readonly riskGradient = RISK_GRADIENT;
 
   isLoading = signal<boolean>(true);
   collectionName = signal<string>('');
@@ -429,7 +433,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       datasets: [
         {
           data: [m.catIOpenCount30Days, m.catIIOpenCount30Days, m.catIIIOpenCount30Days],
-          backgroundColor: ['rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(230, 185, 45, 0.8)'],
+          backgroundColor: [SEVERITY_COLOR.critical, SEVERITY_COLOR.medium, SEVERITY_COLOR.low],
           opacity: 0.8,
           hoverBorderColor: cardBackgroundColor,
           borderWidth: 8,
@@ -444,7 +448,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       datasets: [
         {
           data: [m.catIOpenCount, m.catIIOpenCount, m.catIIIOpenCount],
-          backgroundColor: ['rgba(235, 70, 100, 0.8)', 'rgba(250, 165, 50, 0.8)', 'rgba(230, 185, 45, 0.8)'],
+          backgroundColor: [SEVERITY_COLOR.critical, SEVERITY_COLOR.medium, SEVERITY_COLOR.low],
           opacity: 0.8,
           hoverBorderColor: cardBackgroundColor,
           borderWidth: 8,
@@ -470,6 +474,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const m = this.tenableMetrics();
     const lastObservedText = this.getLastObservedText();
     const hostRangeText = this.hostTimeRange() === 'all' ? '' : ` (${this.hostTimeRange()} Days)`;
+    const hostRangeDaysText = this.hostTimeRange() === 'all' ? '∞ days' : `${this.hostTimeRange()} days`;
 
     return [
       {
@@ -520,7 +525,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
       },
       {
         label: `Valid Online Assets${hostRangeText}`,
-        tooltip: `Total count of hosts that were last seen within ${this.hostTimeRange() === 'all' ? '∞ days' : `${this.hostTimeRange()} days`}`,
+        tooltip: `Total count of hosts that were last seen within ${hostRangeDaysText}`,
         type: 'Tenable',
         value: loading ? '-' : m.validOnlineAssets,
         category: 'hosts',
@@ -576,6 +581,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const rows = [];
     const opensLabel = selectedRange === 'all' ? 'Opens (Unique)' : `Opens (Unique - ${selectedRange} Days)`;
     const timeRangeNote = selectedRange === 'all' ? '' : ` (${selectedRange} days)`;
+    const rangeLabel = selectedRange === 'all' ? 'All Time' : `${selectedRange} Days`;
 
     const catICount = data.severitySummary.critical + data.severitySummary.high;
     const catIICount = data.severitySummary.medium;
@@ -585,7 +591,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
     const hostRangeLabel = this.hostTimeRange() === 'all' ? '' : ` - (Within ${this.hostTimeRange()} Days)`;
 
     rows.push(
-      [`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()} - ${selectedRange === 'all' ? 'All Time' : `${selectedRange} Days`}`],
+      [`[Tenable] ${collectionName} C-PAT Metrics - ${new Date().toLocaleString()} - ${rangeLabel}`],
       ['Collection Name', 'CATEGORY', 'METRIC', 'VALUE'],
       [`[Tenable] ${collectionName}`, 'POAM', `CAT I Compliance %${timeRangeNote}`, `${data.complianceMetrics.catI.toFixed(1)}%`],
       [`[Tenable] ${collectionName}`, 'POAM', `CAT II Compliance %${timeRangeNote}`, `${data.complianceMetrics.catII.toFixed(1)}%`],

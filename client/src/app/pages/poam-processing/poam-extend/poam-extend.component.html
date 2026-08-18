@@ -9,11 +9,15 @@
 -->
 
 <p-dialog [(visible)]="displayExtensionDialog" [modal]="true" styleClass="w-[80vw] h-auto max-h-[80vh] overflow-hidden" [draggable]="false" [resizable]="false" [closable]="false" (onHide)="cancelExtension()">
-  @if (poam) {
+  @if (loading()) {
+    <div class="p-4">
+      <p-progressbar mode="indeterminate" [style]="{ height: '6px' }" />
+    </div>
+  }
+  @if (poam(); as poam) {
     <div class="extensionContainer">
       <div class="p-grid">
         @if (poam.ownerName) {
-          <!-- Owned By -->
           <div class="p-col-12">
             <div class="p-field">
               <label for="poamOwner">POAM Owned By:</label>
@@ -21,7 +25,6 @@
             </div>
           </div>
         } @else {
-          <!-- Created By -->
           <div class="p-col-12">
             <div class="p-field">
               <label for="submitterName">POAM Created By:</label>
@@ -29,30 +32,27 @@
             </div>
           </div>
         }
-        <!-- Raw Severity -->
         <div class="p-col-12">
           <div class="p-field">
             <label for="rawSeverity">Raw Severity:</label>
             <input type="text" pInputText [value]="poam.rawSeverity" name="rawSeverity" disabled class="w-full" />
           </div>
         </div>
-        <!-- Adjusted Severity -->
         <div class="p-col-12">
           <div class="p-field">
             <label for="adjSeverity">Adjusted Severity:</label>
             <input type="text" pInputText [value]="poam.adjSeverity" name="adjSeverity" disabled class="w-full" />
           </div>
         </div>
-        <!-- Extension Time Allowed -->
         <div class="p-col-12">
           <div class="p-field">
             <label for="extensionDays">Extension Time Requested:</label>
             <div class="flex align-items-center gap-2">
               <p-select
                 [options]="extensionTimeOptions"
-                [(ngModel)]="poam.extensionDays"
+                [ngModel]="poam.extensionDays"
+                (ngModelChange)="patchPoam({ extensionDays: $event }); computeDeadlineWithExtension()"
                 [invalid]="isExtensionInvalid('extensionDays')"
-                (onChange)="computeDeadlineWithExtension()"
                 placeholder="Extension Time Requested..."
                 [filter]="true"
                 filterBy="label"
@@ -62,8 +62,6 @@
               <button
                 pButton
                 (click)="deletePoamExtension()"
-                [rounded]="false"
-                [text]="true"
                 severity="danger"
                 pTooltip="Remove the current extension: this must be done to request an updated extension with the same duration as an existing extension."
                 [disabled]="accessLevel() < 2"
@@ -73,7 +71,6 @@
             </div>
           </div>
         </div>
-        <!-- Deadline With Extension -->
         <div class="p-col-12">
           <div class="p-field">
             <label for="extensionDeadline">Deadline With Extension:</label>
@@ -91,7 +88,6 @@
             </div>
           </div>
         </div>
-        <!-- Justification for Extension -->
         <div class="p-col-12">
           <div class="p-field">
             <label for="extensionJustification">Justification for Extension:</label>
@@ -117,7 +113,6 @@
           <p-step [value]="4">Risk & Impact</p-step>
         </p-step-list>
         <p-step-panels>
-          <!-- Milestones -->
           <p-step-panel [value]="1">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
@@ -252,7 +247,6 @@
             </ng-template>
           </p-step-panel>
 
-          <!-- Mitigations -->
           <p-step-panel [value]="2">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
@@ -319,7 +313,8 @@
                               <textarea
                                 pTextarea
                                 class="w-full"
-                                [(ngModel)]="poam.mitigations"
+                                [ngModel]="poam.mitigations"
+                                (ngModelChange)="patchPoam({ mitigations: $event })"
                                 [invalid]="isExtensionInvalid('mitigations')"
                                 id="mitigations"
                                 name="mitigations"
@@ -344,7 +339,8 @@
                                   <textarea
                                     pTextarea
                                     class="w-full"
-                                    [(ngModel)]="teamMitigation.mitigationText"
+                                    [ngModel]="teamMitigation.mitigationText"
+                                    (ngModelChange)="patchTeamMitigation(teamMitigation.assignedTeamId, $event)"
                                     [invalid]="teamMitigation.isActive && isExtensionInvalid('teamMitigation:' + teamMitigation.assignedTeamId)"
                                     rows="16"
                                     maxlength="10000"
@@ -368,12 +364,21 @@
             </ng-template>
           </p-step-panel>
 
-          <!-- Required Resources -->
           <p-step-panel [value]="3">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <textarea pTextarea class="w-full" [(ngModel)]="poam.requiredResources" name="requiredResources" rows="16" maxlength="2000" placeholder="Required Resources..." [disabled]="accessLevel() < 2"></textarea>
+                  <textarea
+                    pTextarea
+                    class="w-full"
+                    [ngModel]="poam.requiredResources"
+                    (ngModelChange)="patchPoam({ requiredResources: $event })"
+                    name="requiredResources"
+                    rows="16"
+                    maxlength="2000"
+                    placeholder="Required Resources..."
+                    [disabled]="accessLevel() < 2"
+                  ></textarea>
                 </div>
                 <div class="stepper-buttons">
                   <button pButton (click)="activateCallback(2)" [rounded]="true" [text]="true" [raised]="true" severity="secondary"><i class="pi pi-arrow-left" pButtonIcon></i></button>
@@ -383,7 +388,6 @@
             </ng-template>
           </p-step-panel>
 
-          <!-- Risk & Impact -->
           <p-step-panel [value]="4">
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
@@ -392,7 +396,8 @@
                     <label for="localImpact">Local Impact:</label>
                     <p-select
                       [options]="selectableRatingOptions"
-                      [(ngModel)]="poam.localImpact"
+                      [ngModel]="poam.localImpact"
+                      (ngModelChange)="patchPoam({ localImpact: $event })"
                       id="localImpact"
                       name="localImpact"
                       placeholder="Local Impact..."
@@ -406,17 +411,49 @@
 
                   <div class="form-group">
                     <label for="impactDescription">Impact Description: </label>
-                    <textarea pTextarea class="w-full" [(ngModel)]="poam.impactDescription" name="impactDescription" rows="16" placeholder="Impact Description..." [disabled]="accessLevel() < 2"></textarea>
+                    <textarea
+                      pTextarea
+                      class="w-full"
+                      [ngModel]="poam.impactDescription"
+                      (ngModelChange)="patchPoam({ impactDescription: $event })"
+                      name="impactDescription"
+                      rows="16"
+                      placeholder="Impact Description..."
+                      [disabled]="accessLevel() < 2"
+                    ></textarea>
                   </div>
 
                   <div class="form-group">
                     <label for="residualRisk">Residual Risk:</label>
-                    <p-select [options]="selectableRatingOptions" [(ngModel)]="poam.residualRisk" name="residualRisk" placeholder="Residual Risk..." optionLabel="label" optionValue="value" appendTo="body" class="w-full" [disabled]="true" />
+                    <p-select
+                      [options]="selectableRatingOptions"
+                      [ngModel]="poam.residualRisk"
+                      (ngModelChange)="patchPoam({ residualRisk: $event })"
+                      name="residualRisk"
+                      placeholder="Residual Risk..."
+                      optionLabel="label"
+                      optionValue="value"
+                      appendTo="body"
+                      class="w-full"
+                      [disabled]="true"
+                    />
                   </div>
 
                   <div class="form-group">
                     <label for="likelihood">Likelihood:</label>
-                    <p-select [options]="selectableRatingOptions" [(ngModel)]="poam.likelihood" id="likelihood" name="likelihood" placeholder="Likelihood..." optionLabel="label" optionValue="value" appendTo="body" class="w-full" [disabled]="true" />
+                    <p-select
+                      [options]="selectableRatingOptions"
+                      [ngModel]="poam.likelihood"
+                      (ngModelChange)="patchPoam({ likelihood: $event })"
+                      id="likelihood"
+                      name="likelihood"
+                      placeholder="Likelihood..."
+                      optionLabel="label"
+                      optionValue="value"
+                      appendTo="body"
+                      class="w-full"
+                      [disabled]="true"
+                    />
                   </div>
                 </div>
                 <div class="stepper-buttons">
@@ -432,37 +469,38 @@
   <ng-template #footer>
     <div class="m-2 flex w-full items-center justify-between">
       <button pButton class="ml-4" (click)="cancelExtension()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
-      <div>
-        @if (accessLevel() >= 3) {
-          <button pButton (click)="approveExtension()" [outlined]="true" severity="success" pTooltip="Approving a POAM extension will automatically update the POAM status to 'Approved'" [disabled]="accessLevel() < 3">
-            <span pButtonLabel>Approve</span>
-          </button>
-          <p-splitbutton
-            class="rejectSplitButton ml-4"
-            [model]="rejectButtonItems"
+      @if (poam()) {
+        <div>
+          @if (accessLevel() >= 3) {
+            <button pButton (click)="approveExtension()" [outlined]="true" severity="success" pTooltip="Approving a POAM extension will automatically update the POAM status to 'Approved'" [disabled]="accessLevel() < 3">
+              <span pButtonLabel>Approve</span>
+            </button>
+            <p-splitbutton
+              class="rejectSplitButton ml-4"
+              [model]="rejectButtonItems"
+              [outlined]="true"
+              severity="danger"
+              label="Reject"
+              pTooltip="Rejecting a POAM extension will automatically update the POAM status to 'Rejected'"
+              (onClick)="rejectExtension()"
+              [disabled]="accessLevel() < 3"
+              menuStyleClass="extension-splitbutton-menu"
+            />
+          }
+          <button
+            pButton
+            class="ml-4 mr-4"
+            (click)="submitPoamExtension()"
             [outlined]="true"
-            severity="danger"
-            label="Reject"
-            pTooltip="Rejecting a POAM extension will automatically update the POAM status to 'Rejected'"
-            (onClick)="rejectExtension()"
-            [disabled]="accessLevel() < 3"
-            menuStyleClass="extension-splitbutton-menu"
-          />
-        }
-        <button
-          pButton
-          class="ml-4 mr-4"
-          (click)="submitPoamExtension()"
-          [outlined]="true"
-          pTooltip="Saving an extension where 'Extension Time Requested' is provided will automatically update the POAM status to 'Extension Requested' and notify an Approver for review."
-          [disabled]="accessLevel() < 2"
-        >
-          <span pButtonLabel>Save</span>
-        </button>
-      </div>
+            pTooltip="Saving an extension where 'Extension Time Requested' is provided will automatically update the POAM status to 'Extension Requested' and notify an Approver for review."
+            [disabled]="accessLevel() < 2"
+          >
+            <span pButtonLabel>Save</span>
+          </button>
+        </div>
+      }
     </div>
   </ng-template>
 </p-dialog>
 
-<p-toast class="!z-99999" />
 <p-confirmdialog header="Confirmation" icon="pi pi-exclamation-triangle" />

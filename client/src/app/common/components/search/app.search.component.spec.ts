@@ -71,60 +71,21 @@ describe('AppSearchComponent', () => {
   });
 
   describe('search items initialization', () => {
-    it('should include Add POAM item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Add POAM');
+    it.each([
+      ['Add POAM', '/poam-processing/poam-details/ADDPOAM'],
+      ['Asset Processing', '/asset-processing'],
+      ['Global Metrics', '/metrics/global'],
+      ['Home', '/home'],
+      ['Import Processing', '/import-processing'],
+      ['Label Processing', '/label-processing'],
+      ['Manage POAMs', '/poam-processing/poam-manage'],
+      ['Metrics', '/metrics'],
+      ['Notifications', '/notifications']
+    ])('should include %s item pointing at %s', (title, path) => {
+      const item = component['searchItems'].find((i) => i.title === title);
 
       expect(item).toBeTruthy();
-      expect(item?.path).toBe('/poam-processing/poam-details/ADDPOAM');
-    });
-
-    it('should include Asset Processing item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Asset Processing');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/asset-processing');
-    });
-
-    it('should include Home item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Home');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/home');
-    });
-
-    it('should include Import Processing item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Import Processing');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/import-processing');
-    });
-
-    it('should include Label Processing item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Label Processing');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/label-processing');
-    });
-
-    it('should include Manage POAMs item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Manage POAMs');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/poam-processing/poam-manage');
-    });
-
-    it('should include Metrics item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Metrics');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/metrics');
-    });
-
-    it('should include Notifications item', () => {
-      const item = component['searchItems'].find((i) => i.title === 'Notifications');
-
-      expect(item).toBeTruthy();
-      expect(item?.path).toBe('/notifications');
+      expect(item?.path).toBe(path);
     });
 
     it('should include Marketplace item when not disabled', () => {
@@ -189,7 +150,7 @@ describe('AppSearchComponent', () => {
       component.search({ query: 'poam' });
       const lowerResults = [...component.filteredItems()];
 
-      expect(upperResults.length).toBe(lowerResults.length);
+      expect(upperResults).toHaveLength(lowerResults.length);
     });
 
     it('should find Home when searching for "home"', () => {
@@ -219,7 +180,7 @@ describe('AppSearchComponent', () => {
 
     it('should update filteredItems on each search', () => {
       component.search({ query: 'home' });
-      expect(component.filteredItems().length).toBe(1);
+      expect(component.filteredItems()).toHaveLength(1);
 
       component.search({ query: 'processing' });
       expect(component.filteredItems().length).toBeGreaterThan(1);
@@ -342,7 +303,7 @@ describe('AppSearchComponent', () => {
   describe('search and navigation workflow', () => {
     it('should complete full search and select workflow', () => {
       component.search({ query: 'home' });
-      expect(component.filteredItems().length).toBe(1);
+      expect(component.filteredItems()).toHaveLength(1);
       expect(component.filteredItems()[0].title).toBe('Home');
 
       component.navigateTo({ value: component.filteredItems()[0] });
@@ -367,7 +328,7 @@ describe('AppSearchComponent', () => {
   describe('edge cases', () => {
     it('should handle empty search query', () => {
       component.search({ query: '' });
-      expect(component.filteredItems().length).toBe(component['searchItems'].length);
+      expect(component.filteredItems()).toHaveLength(component['searchItems'].length);
     });
 
     it('should handle single character search', () => {

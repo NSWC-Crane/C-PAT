@@ -38,4 +38,8 @@ export class NessusPluginMappingService {
   mapIAVPluginIds(mappedData: any[]): Observable<any> {
     return this.http.post(`${this.cpatApiBase}/mapPluginIds`, mappedData).pipe(catchError(this.handleError));
   }
+
+  putIAVTaskOrder(iavUpdate: { iav: string; taskOrder: string | null }): Observable<any> {
+    return this.http.put(`${this.cpatApiBase}/iav/taskOrder`, iavUpdate).pipe(catchError(this.handleError));
+  }
 }

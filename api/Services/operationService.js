@@ -20,7 +20,7 @@ async function withConnection(callback) {
     try {
         return await callback(connection);
     } finally {
-        await connection.release();
+        connection.release();
     }
 }
 
@@ -61,14 +61,15 @@ module.exports.getAppInfo = async function () {
     ud.created,
     ud.lastAccess,
     coalesce(
-      JSON_EXTRACT(ud.lastClaims, "$.${config.oauth.claims.privilegesChainSql}"),
+      JSON_EXTRACT(ud.lastClaims, '$.${config.oauth.claims.privilegesSql}'),
       json_array()
     ) as privileges,
     json_object(
 		  "Viewer", sum(case when cg.accessLevel = 1 then 1 else 0 end),
       "Submitter", sum(case when cg.accessLevel = 2 then 1 else 0 end),
 		  "Approver", sum(case when cg.accessLevel = 3 then 1 else 0 end),
-      "CAT-I Approver", sum(case when cg.accessLevel = 4 then 1 else 0 end)
+      "CAT-I Approver", sum(case when cg.accessLevel = 4 then 1 else 0 end),
+      "Other", sum(case when cg.accessLevel is not null and cg.accessLevel not between 1 and 4 then 1 else 0 end)
 	  ) as roles
   from
     ${config.database.schema}.user ud
@@ -191,7 +192,7 @@ module.exports.getAppInfo = async function () {
 
     const cpatPrivs = new Set(['admin', 'cpat_write', 'user']);
     for (const user of userInfo) {
-        user.privileges = user.privileges.filter(v => cpatPrivs.has(v));
+        user.privileges = Array.isArray(user.privileges) ? user.privileges.filter(v => cpatPrivs.has(v)) : [];
     }
 
     const userPrivilegeCounts = breakOutPrivilegeUsage(userInfo);

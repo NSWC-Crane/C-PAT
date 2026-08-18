@@ -16,6 +16,7 @@ import { Router } from '@angular/router';
 import { format, parseISO, startOfDay } from 'date-fns';
 import { FilterMetadata, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ButtonGroupModule } from 'primeng/buttongroup';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -24,7 +25,6 @@ import { Select, SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, catchError, finalize, map, switchMap } from 'rxjs';
 import { ExportColumn, IAVInfo, ParsedReferences, Reference, SeverityStyle } from '../../../../../common/models/tenable.model';
@@ -49,7 +49,7 @@ const DEFAULT_SEVERITIES = ['Low', 'Medium', 'High', 'Critical'];
   styleUrls: ['./tenableSelectedVulnerabilities.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, DialogModule, SelectModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, SkeletonModule, TableModule, ToastModule, TooltipModule, TagModule, DatePipe, NgClass]
+  imports: [ButtonModule, ButtonGroupModule, DialogModule, SelectModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, SkeletonModule, TableModule, TooltipModule, TagModule, DatePipe, NgClass]
 })
 export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   private readonly importService = inject(ImportService);
@@ -88,30 +88,32 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   readonly pluginData = signal<any>(null);
   readonly totalRecords = signal<number>(0);
   filterValue: string = '';
-  readonly navyComplyDateFilters = signal<NavyComplyDateFilter[]>([]);
+  readonly deadlineRangeFilters = signal<NavyComplyDateFilter[]>([]);
   tenableTool: string = 'sumid';
   selectedNavyComplyDateFilter: NavyComplyDateFilter | null = null;
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
   readonly selectedSeverities = signal<string[]>([...DEFAULT_SEVERITIES]);
+  readonly taskOrderSource = signal<'poam' | 'iav'>('poam');
+  private loadGeneration = 0;
 
   ngOnInit() {
     this.isLoading.set(true);
-    const stored = sessionStorage.getItem('tenableSelectedVulnState');
+    const stored = sessionStorage.getItem('tenableFilterState');
     let shouldRestoreState = false;
 
     if (stored) {
       const savedState = JSON.parse(stored);
 
-      sessionStorage.removeItem('tenableSelectedVulnState');
-
       if (savedState.currentPreset === this.currentPreset()) {
+        sessionStorage.removeItem('tenableFilterState');
         shouldRestoreState = true;
         this.filters = savedState.filters || this.filters;
         this.selectedSeverities.set(savedState.selectedSeverities || [...DEFAULT_SEVERITIES]);
         this.selectedNavyComplyDateFilter = savedState.selectedNavyComplyDateFilter || null;
         this.filterValue = savedState.filterValue || '';
         this.tenableTool = savedState.tenableTool || 'sumid';
+        this.taskOrderSource.set(savedState.taskOrderSource || 'poam');
         this.restoredSelectedColumns = savedState.selectedColumns;
       }
     }
@@ -132,7 +134,11 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
             this.loadPoamAssociations();
 
             if (this.currentPreset() === 'taskOrder') {
-              this.getTaskOrderVulnerabilityIds();
+              if (this.taskOrderSource() === 'iav') {
+                this.getIAVTaskOrderPluginIDs();
+              } else {
+                this.getTaskOrderVulnerabilityIds();
+              }
             } else {
               this.getIAVPluginIDs();
             }
@@ -268,8 +274,8 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       title: col.header,
       dataKey: col.field
     }));
-    this.navyComplyDateFilters.set([
-      { label: 'All IAVs', value: null },
+    this.deadlineRangeFilters.set([
+      { label: 'All', value: null },
       { label: 'All Overdue', value: 'alloverdue' },
       { label: '90+ Days Overdue', value: 'overdue90Plus' },
       { label: '30-90 Days Overdue', value: 'overdue30To90' },
@@ -288,15 +294,26 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   }
 
   getIAVPluginIDs() {
+    const gen = ++this.loadGeneration;
+
     this.importService
       .getIAVPluginIds()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.applicablePluginIDs = data;
-          this.getApplicableFindings(this.applicablePluginIDs);
+          this.getApplicableFindings(this.applicablePluginIDs, gen);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
+          this.isLoading.set(false);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -306,12 +323,111 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       });
   }
 
+  getIAVTaskOrderPluginIDs() {
+    const gen = ++this.loadGeneration;
+
+    this.importService
+      .getIAVPluginIds(true)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
+          if (!data) {
+            this.applicableVulnerabilities.set([]);
+            this.totalRecords.set(0);
+            this.totalRecordsChange.emit(this.totalRecords());
+            this.isLoading.set(false);
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Notice',
+              detail: 'There are no IAVs with an assigned Task Order.',
+              sticky: true
+            });
+
+            return;
+          }
+
+          this.applicablePluginIDs = data;
+          this.getApplicableFindings(this.applicablePluginIDs, gen);
+        },
+        error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
+          this.isLoading.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching IAV task order pluginIDs: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
+
+  onTaskOrderSourceChange(source: 'poam' | 'iav') {
+    if (source === this.taskOrderSource()) {
+      return;
+    }
+
+    this.taskOrderSource.set(source);
+
+    if (!this.tenableRepoId) {
+      return;
+    }
+
+    this.applicableVulnerabilities.set([]);
+    this.taskOrderMap = {};
+    this.applicablePluginIDs = '';
+    this.totalRecords.set(0);
+    this.totalRecordsChange.emit(this.totalRecords());
+    this.tenableTool = 'sumid';
+    this.filters = {
+      supersededBy: [{ value: 'N/A', matchMode: 'contains', operator: 'and' }],
+      severity: [{ value: [...DEFAULT_SEVERITIES], matchMode: 'in', operator: 'and' }]
+    };
+    this.selectedSeverities.set([...DEFAULT_SEVERITIES]);
+    this.filterValue = '';
+    this.selectedNavyComplyDateFilter = null;
+
+    const navyComplyCol = this.cols().find((c) => c.field === 'navyComplyDate');
+
+    if (navyComplyCol) {
+      navyComplyCol.filterValue = '';
+    }
+
+    const table = this.table();
+
+    if (table) {
+      table.clear();
+      table.filters = { ...this.filters };
+    }
+
+    this.resetColumnSelections();
+    this.isLoading.set(true);
+
+    if (source === 'iav') {
+      this.getIAVTaskOrderPluginIDs();
+    } else {
+      this.getTaskOrderVulnerabilityIds();
+    }
+  }
+
   getTaskOrderVulnerabilityIds() {
+    const gen = ++this.loadGeneration;
+
     this.importService
       .getVulnerabilityIdsWithTaskOrderByCollection(this.selectedCollection)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           if (!data || data.length === 0) {
             this.applicableVulnerabilities.set([]);
             this.totalRecords.set(0);
@@ -336,9 +452,14 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
           }, {});
 
           this.applicablePluginIDs = mappedPluginIDs;
-          this.getApplicableFindings(this.applicablePluginIDs);
+          this.getApplicableFindings(this.applicablePluginIDs, gen);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
+          this.isLoading.set(false);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -348,7 +469,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       });
   }
 
-  getApplicableFindings(pluginIDs: string) {
+  getApplicableFindings(pluginIDs: string, gen: number = ++this.loadGeneration) {
     const analysisParams = {
       query: {
         description: '',
@@ -400,26 +521,35 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       .pipe(
         switchMap((data) => this.importService.getIAVInfoForPlugins(pluginIDList).pipe(map((iavData) => ({ vulnData: data, iavData })))),
         catchError((error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching Vulnerabilities: ${getErrorMessage(error)}`
-          });
+          if (gen === this.loadGeneration) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching Vulnerabilities: ${getErrorMessage(error)}`
+            });
+          }
 
           return EMPTY;
         }),
         finalize(() => {
-          this.isLoading.set(false);
+          if (gen === this.loadGeneration) {
+            this.isLoading.set(false);
+          }
         }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: ({ vulnData, iavData }) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           const iavInfoMap = iavData.reduce((acc: { [key: number]: IAVInfo }, item: any) => {
             acc[item.pluginID] = {
               iav: item.iav || null,
               navyComplyDate: item.navyComplyDate ? item.navyComplyDate.split('T')[0] : null,
-              supersededBy: item.supersededBy || 'N/A'
+              supersededBy: item.supersededBy || 'N/A',
+              taskOrder: item.taskOrder || null
             };
 
             return acc;
@@ -472,7 +602,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
                 acrScore: vuln.acrScore !== '' && vuln.acrScore != null ? Number(vuln.acrScore) : null,
                 assetExposureScore: vuln.assetExposureScore !== '' && vuln.assetExposureScore != null ? Number(vuln.assetExposureScore) : null,
                 port: vuln.port !== '' && vuln.port != null ? Number(vuln.port) : null,
-                ...(this.currentPreset() === 'taskOrder' && { taskOrderNumber: this.taskOrderMap[vuln.pluginID] || '' })
+                ...(this.currentPreset() === 'taskOrder' && { taskOrderNumber: this.taskOrderSource() === 'iav' ? iavInfo?.taskOrder || '' : this.taskOrderMap[vuln.pluginID] || '' })
               };
             })
           );
@@ -591,7 +721,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
         sticky: true
       });
 
-      return Promise.reject('Invalid Plugin ID');
+      return Promise.reject(new Error('Invalid Plugin ID'));
     }
 
     return new Promise((resolve, reject) => {
@@ -660,6 +790,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
         tenableTool: this.tenableTool,
         selectedColumns: this.selectedColumns(),
         currentPreset: this.currentPreset(),
+        taskOrderSource: this.taskOrderSource(),
         parentTabIndex: this.currentPreset() === 'iav' ? 2 : 3
       };
 
@@ -720,6 +851,18 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
     return getSeverityStyling(severity);
   }
 
+  private formatDateRangeLabel(startDate: Date | null, endDate: Date | null): string {
+    if (startDate && endDate) {
+      return `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}`;
+    }
+
+    if (startDate) {
+      return `After ${format(startDate, 'MM/dd/yyyy')}`;
+    }
+
+    return `Before ${format(endDate!, 'MM/dd/yyyy')}`;
+  }
+
   onNavyComplyDateFilterChange(event: any) {
     if (event?.value) {
       const today = new Date();
@@ -778,29 +921,25 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
           break;
 
         case 'dueWithin7':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
 
         case 'dueWithin14':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
 
         case 'dueWithin30':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
 
         case 'dueWithin90':
-          startDate = new Date(today.getTime());
-          startDate.setHours(0, 0, 0, 0);
+          startDate = startOfDay(today);
           endDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
           endDate.setHours(23, 59, 59, 999);
           break;
@@ -833,7 +972,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
         const col = this.cols().find((c) => c.field === 'navyComplyDate');
 
         if (col) {
-          col.filterValue = startDate && endDate ? `${format(startDate, 'MM/dd/yyyy')} - ${format(endDate, 'MM/dd/yyyy')}` : startDate ? `After ${format(startDate, 'MM/dd/yyyy')}` : `Before ${format(endDate!, 'MM/dd/yyyy')}`;
+          col.filterValue = this.formatDateRangeLabel(startDate, endDate);
         }
 
         table.filters['navyComplyDate'] = filterConstraints;

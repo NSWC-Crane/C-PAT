@@ -32,7 +32,6 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AssetDeltaComponent } from './asset-delta.component';
 import { AssetDeltaService } from './asset-delta.service';
@@ -141,7 +140,6 @@ describe('AssetDeltaComponent', () => {
             ProgressBarModule,
             SelectModule,
             TableModule,
-            ToastModule,
             TooltipModule
           ]
         }
@@ -180,7 +178,7 @@ describe('AssetDeltaComponent', () => {
     it('should initialize cols array in ngOnInit', () => {
       component.ngOnInit();
       expect(component.cols()).toBeDefined();
-      expect(component.cols().length).toBe(5);
+      expect(component.cols()).toHaveLength(5);
     });
   });
 
@@ -245,13 +243,13 @@ describe('AssetDeltaComponent', () => {
 
     it('should set assets on success', () => {
       component.loadAssetDeltaList(10);
-      expect(component.assets().length).toBe(2);
+      expect(component.assets()).toHaveLength(2);
       expect(component.assets()[0].key).toBe('ASSET-001');
     });
 
     it('should set filteredAssets on success', () => {
       component.loadAssetDeltaList(10);
-      expect(component.filteredAssets().length).toBe(2);
+      expect(component.filteredAssets()).toHaveLength(2);
     });
 
     it('should set assetDeltaUpdated from response', () => {
@@ -327,6 +325,13 @@ describe('AssetDeltaComponent', () => {
 
       expect(result).toBeDefined();
       expect(typeof result.subscribe).toBe('function');
+    });
+
+    it('bypasses the upstream cache for the collection and asset reads', () => {
+      component.checkStigManagerStatus().subscribe();
+
+      expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalledWith(false);
+      expect(mockSharedService.getAssetsFromSTIGMAN).toHaveBeenCalledWith(expect.anything(), false);
     });
 
     it('should return a Set of lowercase asset names when collections are found', () => {
@@ -638,7 +643,8 @@ describe('AssetDeltaComponent', () => {
             tool: 'sumdnsname',
             type: 'vuln'
           })
-        })
+        }),
+        false
       );
     });
 
@@ -653,7 +659,7 @@ describe('AssetDeltaComponent', () => {
   describe('loadCollections', () => {
     it('should populate availableCollections on success', () => {
       component.loadCollections();
-      expect(component.availableCollections().length).toBe(2);
+      expect(component.availableCollections()).toHaveLength(2);
     });
 
     it('should show error when getCollectionBasicList fails', () => {

@@ -8,11 +8,12 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, WritableSignal, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -21,7 +22,6 @@ import { SelectModule } from 'primeng/select';
 import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, catchError, firstValueFrom } from 'rxjs';
 import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
@@ -40,13 +40,62 @@ interface AssignedTeam {
   permissions?: Permission[];
 }
 
+interface CoverageRevocationEntry {
+  userId: number;
+  userName: string;
+  fullName: string | null;
+  collectionId: number;
+  collectionName: string;
+  currentAccessLevel: number;
+  targetAccessLevel?: number;
+}
+
+interface CoverageRevocationPlan {
+  removals: CoverageRevocationEntry[];
+  downgrades: CoverageRevocationEntry[];
+  unaffected: CoverageRevocationEntry[];
+}
+
+interface CoverageRemovalTarget {
+  collection: any;
+  plan: CoverageRevocationPlan;
+}
+
+interface CoverageGrantEntry {
+  userId: number;
+  userName: string;
+  fullName: string | null;
+  teamAccessLevel: number;
+  currentAccessLevel: number | null;
+  accessLevel?: number;
+  newAccessLevel?: number;
+}
+
+interface CoverageGrantPlan {
+  additions: CoverageGrantEntry[];
+  updates: CoverageGrantEntry[];
+  unchanged: CoverageGrantEntry[];
+}
+
+interface CoverageGrantTarget {
+  collection: any;
+  plan: CoverageGrantPlan;
+}
+
+interface PreviewedMember {
+  userId: number;
+  bucket: 'additions' | 'updates' | 'unchanged';
+  teamAccessLevel?: number;
+  newAccessLevel?: number;
+}
+
 @Component({
   selector: 'cpat-assigned-team-processing',
   templateUrl: './assignedTeam-processing.component.html',
   styleUrls: ['./assignedTeam-processing.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, MultiSelectDirective, PickListModule, TableModule, TagModule, ToastModule, TooltipModule]
+  imports: [ButtonModule, CheckboxModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, MultiSelectDirective, PickListModule, TableModule, TagModule, TooltipModule]
 })
 export class AssignedTeamProcessingComponent implements OnInit {
   private readonly assetDeltaService = inject(AssetDeltaService);
@@ -61,12 +110,25 @@ export class AssignedTeamProcessingComponent implements OnInit {
   readonly assignedTeams = signal<AssignedTeam[]>([]);
   uniqueTeams: any;
   readonly filteredTeams = signal<string[]>([]);
-  availableCollections: CollectionsBasicList[] = [];
-  assignedCollections: any[] = [];
+  readonly availableCollections = signal<CollectionsBasicList[]>([]);
+  readonly assignedCollections = signal<any[]>([]);
   readonly editingAssignedTeam = signal<AssignedTeam | null>(null);
   readonly teamDialog = signal(false);
   dialogMode: 'new' | 'edit' = 'new';
   readonly selectedAdTeams = signal<string[]>([]);
+  readonly coverageDialogVisible = signal(false);
+  readonly coverageRemovalTargets = signal<CoverageRemovalTarget[]>([]);
+  readonly coverageActionInFlight = signal(false);
+  readonly coverageHasProposals = computed(() => this.coverageRemovalTargets().some((target) => target.plan.removals.length + target.plan.downgrades.length > 0));
+  readonly coverageGrantDialogVisible = signal(false);
+  readonly coverageGrantTargets = signal<CoverageGrantTarget[]>([]);
+  readonly coverageGrantActionInFlight = signal(false);
+  readonly coverageGrantSelections = signal<Set<string>>(new Set<string>());
+  readonly coverageGrantHasProposals = computed(() => this.coverageGrantTargets().some((target) => target.plan.additions.length + target.plan.updates.length > 0));
+  readonly selectedGrantCount = computed(() => this.coverageGrantSelections().size);
+  readonly deleteTeamDialogVisible = signal(false);
+  readonly deleteTeamTarget = signal<AssignedTeam | null>(null);
+  readonly coverageInteractionBusy = computed(() => this.coverageActionInFlight() || this.coverageGrantActionInFlight() || this.coverageDialogVisible() || this.coverageGrantDialogVisible());
 
   ngOnInit() {
     this.loadAssetDeltaList();
@@ -114,7 +176,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
     this.collectionsService.getCollectionBasicList().subscribe({
       next: (response) => {
         this.allCollections = response || [];
-        this.availableCollections = [...this.allCollections];
+        this.availableCollections.set([...this.allCollections]);
       },
       error: (error) =>
         this.messageService.add({
@@ -126,7 +188,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
   }
 
   editTeam(assignedTeam: AssignedTeam) {
-    const editing: AssignedTeam = { ...assignedTeam };
+    const editing: AssignedTeam = { ...assignedTeam, permissions: [...(assignedTeam.permissions ?? [])] };
 
     if (editing.adTeam) {
       const parsed = editing.adTeam
@@ -148,13 +210,14 @@ export class AssignedTeamProcessingComponent implements OnInit {
       this.filteredTeams.set([...this.uniqueTeams]);
     }
 
-    this.assignedCollections =
+    const assigned =
       assignedTeam.permissions?.map((p) => ({
         collectionId: p.collectionId,
         collectionName: p.collectionName
       })) || [];
 
-    this.availableCollections = this.allCollections.filter((collection) => !this.assignedCollections.some((assigned) => assigned.collectionId === collection.collectionId));
+    this.assignedCollections.set(assigned);
+    this.availableCollections.set(this.allCollections.filter((collection) => !assigned.some((entry) => entry.collectionId === collection.collectionId)));
 
     this.dialogMode = 'edit';
     this.editingAssignedTeam.set(editing);
@@ -164,8 +227,8 @@ export class AssignedTeamProcessingComponent implements OnInit {
   openNew() {
     this.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: '', adTeam: null, permissions: [] });
     this.selectedAdTeams.set([]);
-    this.availableCollections = [...this.allCollections];
-    this.assignedCollections = [];
+    this.availableCollections.set([...this.allCollections]);
+    this.assignedCollections.set([]);
     this.dialogMode = 'new';
     this.teamDialog.set(true);
   }
@@ -176,16 +239,20 @@ export class AssignedTeamProcessingComponent implements OnInit {
     if (!this.editingAssignedTeam() || !collections.length) return;
 
     if (this.dialogMode === 'new') {
-      collections.forEach((collection) => {
-        if (!this.assignedCollections.some((c) => c.collectionId === collection.collectionId)) {
-          this.assignedCollections.push(collection);
-        }
-      });
+      this.addToList(this.assignedCollections, collections);
 
       return;
     }
 
-    this.addPermissionsToExistingTeam(collections);
+    this.moveCollectionsToAvailable(collections);
+
+    if (this.coverageInteractionBusy()) {
+      this.notifyCoverageBusy();
+
+      return;
+    }
+
+    this.openCoverageGrantDialog(collections);
   }
 
   onMoveToSource(event: any) {
@@ -194,21 +261,249 @@ export class AssignedTeamProcessingComponent implements OnInit {
     if (!this.editingAssignedTeam() || !collections.length) return;
 
     if (this.dialogMode === 'new') {
-      collections.forEach((collection) => {
-        const index = this.assignedCollections.findIndex((c) => c.collectionId === collection.collectionId);
-
-        if (index !== -1) {
-          this.assignedCollections.splice(index, 1);
-        }
-      });
+      this.removeFromList(this.assignedCollections, collections);
 
       return;
     }
 
-    this.removePermissionsFromExistingTeam(collections);
+    this.moveCollectionsToAssigned(collections);
+
+    if (this.coverageInteractionBusy()) {
+      this.notifyCoverageBusy();
+
+      return;
+    }
+
+    this.openCoverageRemovalDialog(collections);
   }
 
-  private addPermissionsToExistingTeam(collections: any[]) {
+  private notifyCoverageBusy() {
+    this.messageService.add({
+      severity: 'info',
+      summary: 'One change at a time',
+      detail: 'Finish the coverage change already in progress before moving another collection.'
+    });
+  }
+
+  private addToList(list: WritableSignal<any[]>, collections: any[]) {
+    list.update((current) => [...current, ...collections.filter((collection) => !current.some((entry) => entry.collectionId === collection.collectionId))]);
+  }
+
+  private removeFromList(list: WritableSignal<any[]>, collections: any[]) {
+    const ids = new Set(collections.map((collection) => collection.collectionId));
+
+    list.update((current) => current.filter((entry) => !ids.has(entry.collectionId)));
+  }
+
+  private moveCollectionsToAssigned(collections: any[]) {
+    this.removeFromList(this.availableCollections, collections);
+    this.addToList(this.assignedCollections, collections);
+  }
+
+  private moveCollectionsToAvailable(collections: any[]) {
+    this.removeFromList(this.assignedCollections, collections);
+    this.addToList(this.availableCollections, collections);
+  }
+
+  private async openCoverageRemovalDialog(collections: any[]) {
+    const editing = this.editingAssignedTeam();
+
+    if (!editing || this.coverageActionInFlight()) return;
+
+    this.coverageActionInFlight.set(true);
+
+    try {
+      const targets = await Promise.all(
+        collections.map(async (collection) => ({
+          collection,
+          plan: (await firstValueFrom(this.assignedTeamService.getCoverageRevocationPreview(editing.assignedTeamId, collection.collectionId))) as CoverageRevocationPlan
+        }))
+      );
+
+      this.coverageRemovalTargets.set(targets);
+      this.coverageDialogVisible.set(true);
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Failed to determine what removing this coverage would do: ${getErrorMessage(error)}`
+      });
+    } finally {
+      this.coverageActionInFlight.set(false);
+    }
+  }
+
+  cancelCoverageRemoval() {
+    this.coverageDialogVisible.set(false);
+    this.coverageRemovalTargets.set([]);
+  }
+
+  confirmCoverageRemoval(revokePermissions: boolean) {
+    const collections = this.coverageRemovalTargets().map((target) => target.collection);
+
+    this.coverageDialogVisible.set(false);
+    this.coverageRemovalTargets.set([]);
+
+    if (!collections.length) return;
+
+    this.moveCollectionsToAvailable(collections);
+    this.removePermissionsFromExistingTeam(collections, revokePermissions);
+  }
+
+  private async openCoverageGrantDialog(collections: any[]) {
+    const editing = this.editingAssignedTeam();
+
+    if (!editing || this.coverageGrantActionInFlight()) return;
+
+    this.coverageGrantActionInFlight.set(true);
+
+    try {
+      const targets = await Promise.all(
+        collections.map(async (collection) => ({
+          collection,
+          plan: (await firstValueFrom(this.assignedTeamService.getCoverageGrantPreview(editing.assignedTeamId, collection.collectionId))) as CoverageGrantPlan
+        }))
+      );
+
+      const selections = new Set<string>();
+
+      targets.forEach((target) => {
+        this.grantProposals(target).forEach((entry) => selections.add(this.grantSelectionKey(target.collection.collectionId, entry.userId)));
+      });
+
+      this.coverageGrantSelections.set(selections);
+      this.coverageGrantTargets.set(targets);
+      this.coverageGrantDialogVisible.set(true);
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Failed to determine what adding this coverage would grant: ${getErrorMessage(error)}`
+      });
+    } finally {
+      this.coverageGrantActionInFlight.set(false);
+    }
+  }
+
+  private grantSelectionKey(collectionId: number, userId: number): string {
+    return `${collectionId}:${userId}`;
+  }
+
+  grantProposals(target: CoverageGrantTarget): CoverageGrantEntry[] {
+    return [...target.plan.additions, ...target.plan.updates];
+  }
+
+  isGrantMemberSelected(collectionId: number, userId: number): boolean {
+    return this.coverageGrantSelections().has(this.grantSelectionKey(collectionId, userId));
+  }
+
+  toggleGrantMember(collectionId: number, userId: number) {
+    const key = this.grantSelectionKey(collectionId, userId);
+
+    this.coverageGrantSelections.update((selections) => {
+      const next = new Set(selections);
+
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+
+      return next;
+    });
+  }
+
+  allGrantMembersSelected(target: CoverageGrantTarget): boolean {
+    const proposals = this.grantProposals(target);
+
+    return proposals.length > 0 && proposals.every((entry) => this.isGrantMemberSelected(target.collection.collectionId, entry.userId));
+  }
+
+  toggleAllGrantMembers(target: CoverageGrantTarget) {
+    const proposals = this.grantProposals(target);
+    const selectAll = !this.allGrantMembersSelected(target);
+
+    this.coverageGrantSelections.update((selections) => {
+      const next = new Set(selections);
+
+      proposals.forEach((entry) => {
+        const key = this.grantSelectionKey(target.collection.collectionId, entry.userId);
+
+        if (selectAll) {
+          next.add(key);
+        } else {
+          next.delete(key);
+        }
+      });
+
+      return next;
+    });
+  }
+
+  cancelCoverageGrant() {
+    this.coverageGrantDialogVisible.set(false);
+    this.coverageGrantTargets.set([]);
+    this.coverageGrantSelections.set(new Set<string>());
+  }
+
+  private previewedMembers(target: CoverageGrantTarget): PreviewedMember[] {
+    return [
+      ...target.plan.additions.map((entry) => ({ userId: entry.userId, bucket: 'additions' as const, teamAccessLevel: entry.teamAccessLevel, newAccessLevel: entry.newAccessLevel })),
+      ...target.plan.updates.map((entry) => ({ userId: entry.userId, bucket: 'updates' as const, teamAccessLevel: entry.teamAccessLevel, newAccessLevel: entry.newAccessLevel })),
+      ...target.plan.unchanged.map((entry) => ({ userId: entry.userId, bucket: 'unchanged' as const, teamAccessLevel: entry.teamAccessLevel }))
+    ];
+  }
+
+  confirmCoverageGrant() {
+    const targets = this.coverageGrantTargets();
+    const grantUserIds = new Map<number, number[]>();
+    const previewedMembers = new Map<number, PreviewedMember[]>();
+
+    targets.forEach((target) => {
+      const collectionId = target.collection.collectionId;
+
+      grantUserIds.set(
+        collectionId,
+        this.grantProposals(target)
+          .filter((entry) => this.isGrantMemberSelected(collectionId, entry.userId))
+          .map((entry) => entry.userId)
+      );
+      previewedMembers.set(collectionId, this.previewedMembers(target));
+    });
+
+    const collections = targets.map((target) => target.collection);
+
+    this.coverageGrantDialogVisible.set(false);
+    this.coverageGrantTargets.set([]);
+    this.coverageGrantSelections.set(new Set<string>());
+
+    if (!collections.length) return;
+
+    this.moveCollectionsToAssigned(collections);
+    this.addPermissionsToExistingTeam(collections, grantUserIds, previewedMembers);
+  }
+
+  getAccessLevelLabel(accessLevel: number): string {
+    switch (accessLevel) {
+      case 1:
+        return 'Viewer';
+      case 2:
+        return 'Submitter';
+      case 3:
+        return 'Approver';
+      case 4:
+        return 'CAT-I Approver';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  private syncTeamPermissions(assignedTeamId: number, mutate: (permissions: any[]) => any[]) {
+    this.editingAssignedTeam.update((current) => (current?.assignedTeamId === assignedTeamId ? { ...current, permissions: mutate(current.permissions ?? []) } : current));
+    this.assignedTeams.update((teams) => teams.map((team) => (team.assignedTeamId === assignedTeamId ? { ...team, permissions: mutate(team.permissions ?? []) } : team)));
+  }
+
+  private addPermissionsToExistingTeam(collections: any[], grantUserIds: Map<number, number[]>, previewedMembers: Map<number, PreviewedMember[]>) {
     const editing = this.editingAssignedTeam();
 
     if (!editing) return;
@@ -221,7 +516,9 @@ export class AssignedTeamProcessingComponent implements OnInit {
       this.assignedTeamService
         .postAssignedTeamPermission({
           assignedTeamId: editing.assignedTeamId,
-          collectionId: collection.collectionId
+          collectionId: collection.collectionId,
+          grantUserIds: grantUserIds.get(collection.collectionId) ?? [],
+          previewedMembers: previewedMembers.get(collection.collectionId) ?? []
         })
         .pipe(
           catchError((error) => {
@@ -232,12 +529,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
               detail: `Failed to add permission for ${collection.collectionName}: ${getErrorMessage(error)}`
             });
             completedCount++;
-            const index = this.assignedCollections.findIndex((c) => c.collectionId === collection.collectionId);
-
-            if (index !== -1) {
-              this.assignedCollections.splice(index, 1);
-              this.availableCollections.push(collection);
-            }
+            this.moveCollectionsToAvailable([collection]);
 
             if (completedCount === collections.length) {
               this.showFinalMessage(successCount, errorCount);
@@ -250,14 +542,13 @@ export class AssignedTeamProcessingComponent implements OnInit {
           successCount++;
           completedCount++;
 
-          if (!editing.permissions) {
-            editing.permissions = [];
-          }
-
-          editing.permissions.push({
-            collectionId: collection.collectionId,
-            collectionName: collection.collectionName
-          });
+          this.syncTeamPermissions(editing.assignedTeamId, (permissions) => [
+            ...permissions,
+            {
+              collectionId: collection.collectionId,
+              collectionName: collection.collectionName
+            }
+          ]);
 
           if (completedCount === collections.length) {
             this.showFinalMessage(successCount, errorCount);
@@ -266,7 +557,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
     });
   }
 
-  private removePermissionsFromExistingTeam(collections: any[]) {
+  private removePermissionsFromExistingTeam(collections: any[], revokePermissions: boolean = false) {
     const editing = this.editingAssignedTeam();
 
     if (!editing) return;
@@ -277,21 +568,27 @@ export class AssignedTeamProcessingComponent implements OnInit {
 
     collections.forEach((collection) => {
       this.assignedTeamService
-        .deleteAssignedTeamPermission(editing.assignedTeamId, collection.collectionId)
+        .deleteAssignedTeamPermission(editing.assignedTeamId, collection.collectionId, revokePermissions)
         .pipe(
           catchError((error) => {
-            errorCount++;
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: `Failed to remove permission for ${collection.collectionName}: ${getErrorMessage(error)}`
-            });
             completedCount++;
-            const index = this.availableCollections.findIndex((c) => c.collectionId === collection.collectionId);
 
-            if (index !== -1) {
-              this.availableCollections.splice(index, 1);
-              this.assignedCollections.push(collection);
+            if (error?.status === 404) {
+              successCount++;
+              this.syncTeamPermissions(editing.assignedTeamId, (permissions) => permissions.filter((p) => p.collectionId !== collection.collectionId));
+              this.messageService.add({
+                severity: 'info',
+                summary: 'Already removed',
+                detail: `${collection.collectionName} coverage was already removed by another administrator.`
+              });
+            } else {
+              errorCount++;
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Failed to remove permission for ${collection.collectionName}: ${getErrorMessage(error)}`
+              });
+              this.moveCollectionsToAssigned([collection]);
             }
 
             if (completedCount === collections.length) {
@@ -305,9 +602,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
           successCount++;
           completedCount++;
 
-          if (editing.permissions) {
-            editing.permissions = editing.permissions.filter((p) => p.collectionId !== collection.collectionId);
-          }
+          this.syncTeamPermissions(editing.assignedTeamId, (permissions) => permissions.filter((p) => p.collectionId !== collection.collectionId));
 
           if (completedCount === collections.length) {
             this.showFinalMessage(successCount, errorCount, true);
@@ -340,7 +635,7 @@ export class AssignedTeamProcessingComponent implements OnInit {
     if (!editing) return;
 
     editing.adTeam = this.selectedAdTeams().length > 0 ? this.selectedAdTeams().join(', ') : null;
-    const pendingPermissions = this.dialogMode === 'new' ? [...this.assignedCollections] : [];
+    const pendingPermissions = this.dialogMode === 'new' ? [...this.assignedCollections()] : [];
     const saveOperation = this.dialogMode === 'new' ? this.assignedTeamService.postAssignedTeam(editing) : this.assignedTeamService.putAssignedTeam(editing);
 
     saveOperation
@@ -402,7 +697,8 @@ export class AssignedTeamProcessingComponent implements OnInit {
         await firstValueFrom(
           this.assignedTeamService.postAssignedTeamPermission({
             assignedTeamId: newTeam.assignedTeamId,
-            collectionId: collection.collectionId
+            collectionId: collection.collectionId,
+            previewedMembers: []
           })
         );
 
@@ -448,9 +744,25 @@ export class AssignedTeamProcessingComponent implements OnInit {
   }
 
   onRowDelete(assignedTeam: AssignedTeam) {
-    if (!confirm(`Are you sure you want to delete the team "${assignedTeam.assignedTeamName}"?`)) {
+    this.deleteTeamTarget.set(assignedTeam);
+    this.deleteTeamDialogVisible.set(true);
+  }
+
+  cancelDeleteTeam() {
+    this.deleteTeamDialogVisible.set(false);
+    this.deleteTeamTarget.set(null);
+  }
+
+  confirmDeleteTeam() {
+    const assignedTeam = this.deleteTeamTarget();
+
+    if (!assignedTeam) {
+      this.cancelDeleteTeam();
+
       return;
     }
+
+    this.cancelDeleteTeam();
 
     this.assignedTeamService
       .deleteAssignedTeam(assignedTeam.assignedTeamId)
@@ -482,8 +794,8 @@ export class AssignedTeamProcessingComponent implements OnInit {
   onDialogHide(): void {
     this.editingAssignedTeam.set(null);
     this.selectedAdTeams.set([]);
-    this.assignedCollections = [];
-    this.availableCollections = [...this.allCollections];
+    this.assignedCollections.set([]);
+    this.availableCollections.set([...this.allCollections]);
     this.filteredTeams.set([...this.uniqueTeams]);
   }
 

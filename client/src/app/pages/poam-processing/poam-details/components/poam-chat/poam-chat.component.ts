@@ -17,7 +17,6 @@ import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { PopoverModule } from 'primeng/popover';
-import { ToastModule } from 'primeng/toast';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { PoamChatService } from '../../services/poam-chat.service';
 
@@ -27,7 +26,7 @@ import { PoamChatService } from '../../services/poam-chat.service';
   styleUrls: ['./poam-chat.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule, ToastModule]
+  imports: [FormsModule, PopoverModule, InputTextModule, ButtonModule, InputGroupModule, InputGroupAddonModule]
 })
 export class PoamChatComponent implements OnInit {
   private readonly poamChatService = inject(PoamChatService);

@@ -178,7 +178,13 @@ export function computeStigManagerMetrics(stigSummary: any, findings: any[], col
 
   const stigAssetCount = collectionMetrics?.assets || 0;
   const stigAssessmentData: STIGAssessmentRow[] = [];
-  const initialStigSummary = Array.isArray(stigSummary) ? stigSummary : stigSummary ? [stigSummary] : [];
+  let initialStigSummary: any[] = [];
+
+  if (Array.isArray(stigSummary)) {
+    initialStigSummary = stigSummary;
+  } else if (stigSummary) {
+    initialStigSummary = [stigSummary];
+  }
 
   const kiorVulnIds = new Set<string>();
   const approvedVulnIds = new Set<string>();

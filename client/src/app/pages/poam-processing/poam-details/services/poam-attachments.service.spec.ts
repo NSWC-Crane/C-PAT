@@ -47,7 +47,7 @@ describe('PoamAttachmentService', () => {
 
       service.getAttachmentsByPoamId(poamId).subscribe((attachments) => {
         expect(attachments).toEqual(mockAttachments);
-        expect(attachments.length).toBe(2);
+        expect(attachments).toHaveLength(2);
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamAttachments/poam/${poamId}`);
@@ -61,7 +61,7 @@ describe('PoamAttachmentService', () => {
 
       service.getAttachmentsByPoamId(poamId).subscribe((attachments) => {
         expect(attachments).toEqual([]);
-        expect(attachments.length).toBe(0);
+        expect(attachments).toHaveLength(0);
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamAttachments/poam/${poamId}`);
@@ -122,7 +122,7 @@ describe('PoamAttachmentService', () => {
       const req = httpMock.expectOne(`${apiBase}/poamAttachment`);
 
       expect(req.request.method).toBe('POST');
-      expect(req.request.body instanceof FormData).toBe(true);
+      expect(req.request.body).toBeInstanceOf(FormData);
 
       const formData = req.request.body as FormData;
 
@@ -150,7 +150,7 @@ describe('PoamAttachmentService', () => {
       expect(events.length).toBeGreaterThan(1);
       const progressEvents = events.filter((e) => e.type === HttpEventType.UploadProgress);
 
-      expect(progressEvents.length).toBe(2);
+      expect(progressEvents).toHaveLength(2);
     });
 
     it('should handle upload error', () => {
@@ -209,7 +209,7 @@ describe('PoamAttachmentService', () => {
       const mockBlob = new Blob(['file content'], { type: 'application/pdf' });
 
       service.downloadAttachment(poamId, attachmentId).subscribe((blob) => {
-        expect(blob instanceof Blob).toBe(true);
+        expect(blob).toBeInstanceOf(Blob);
         expect(blob.size).toBeGreaterThan(0);
       });
 
@@ -226,7 +226,7 @@ describe('PoamAttachmentService', () => {
       const mockImageBlob = new Blob(['PNG data'], { type: 'image/png' });
 
       service.downloadAttachment(poamId, attachmentId).subscribe((blob) => {
-        expect(blob instanceof Blob).toBe(true);
+        expect(blob).toBeInstanceOf(Blob);
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamAttachment/poam/${poamId}/attachment/${attachmentId}`);

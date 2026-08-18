@@ -17,7 +17,6 @@ import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 @Component({
@@ -25,7 +24,7 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
   templateUrl: './poam-approvers.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ButtonModule, TextareaModule, SelectModule, ToastModule, DatePipe]
+  imports: [FormsModule, TableModule, ButtonModule, TextareaModule, SelectModule, DatePipe]
 })
 export class PoamApproversComponent implements OnInit {
   readonly poamId = input<any>(undefined);

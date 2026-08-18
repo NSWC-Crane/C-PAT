@@ -135,7 +135,7 @@ const deserializeError = (value, options = {}) => {
     }
 
     if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-        const newError = new Error();
+        const newError = new Error(typeof value.message === 'string' ? value.message : 'Unknown error');
         destroyCircular({
             from: value,
             seen: [],

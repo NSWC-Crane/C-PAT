@@ -44,7 +44,10 @@
   .layout-topbar-icon {
     transition: outline-color 0.2s;
     outline-color: transparent;
-    @include focus-visible();
+
+    &:focus-visible {
+      @include focus-visible();
+    }
 
     svg {
       width: 120px;
@@ -101,7 +104,9 @@
       background-color: var(--card-background);
       cursor: pointer;
 
-      @include focus-visible();
+      &:focus-visible {
+        @include focus-visible();
+      }
 
       &:hover {
         border-color: var(--primary-color);

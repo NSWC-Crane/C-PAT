@@ -143,8 +143,20 @@ describe('CsvExportService', () => {
       expect(createObjectURLSpy).toHaveBeenCalled();
     });
 
-    it('should escape values with commas', () => {
-      const data = [{ id: 1, name: 'Test, Value' }];
+    it.each([
+      ['commas', 'Test, Value', '"Test, Value"'],
+      ['quotes', 'Test "Value"', '"Test ""Value"""'],
+      ['newlines', 'Test\nValue', '"Test\nValue"']
+    ])('should escape values with %s', async (_label, rawValue, expectedCell) => {
+      const blobs: Blob[] = [];
+
+      createObjectURLSpy.mockImplementation((blob: Blob) => {
+        blobs.push(blob);
+
+        return 'blob:test';
+      });
+
+      const data = [{ id: 1, name: rawValue }];
       const columns: CsvColumn[] = [
         { field: 'id', header: 'ID' },
         { field: 'name', header: 'Name' }
@@ -152,31 +164,8 @@ describe('CsvExportService', () => {
 
       service.exportToCsv(data, { filename: 'test', columns });
 
-      expect(createObjectURLSpy).toHaveBeenCalled();
-    });
-
-    it('should escape values with quotes', () => {
-      const data = [{ id: 1, name: 'Test "Value"' }];
-      const columns: CsvColumn[] = [
-        { field: 'id', header: 'ID' },
-        { field: 'name', header: 'Name' }
-      ];
-
-      service.exportToCsv(data, { filename: 'test', columns });
-
-      expect(createObjectURLSpy).toHaveBeenCalled();
-    });
-
-    it('should escape values with newlines', () => {
-      const data = [{ id: 1, name: 'Test\nValue' }];
-      const columns: CsvColumn[] = [
-        { field: 'id', header: 'ID' },
-        { field: 'name', header: 'Name' }
-      ];
-
-      service.exportToCsv(data, { filename: 'test', columns });
-
-      expect(createObjectURLSpy).toHaveBeenCalled();
+      expect(blobs).toHaveLength(1);
+      await expect(blobs[0].text()).resolves.toBe(`ID,Name\n1,${expectedCell}`);
     });
 
     it('should handle null values', () => {

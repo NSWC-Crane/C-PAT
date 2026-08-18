@@ -48,6 +48,7 @@ export interface IAVInfo {
   iav: string;
   navyComplyDate: string;
   supersededBy?: string;
+  taskOrder?: string | null;
 }
 
 export interface TempFilters {

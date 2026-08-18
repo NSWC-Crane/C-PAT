@@ -1101,6 +1101,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '404':
+          description: Assigned Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '409':
+          description: >-
+            Nothing was applied because the request no longer matches the current state. Either the team already
+            covers the collection (for example, another administrator added it concurrently), or the team's
+            membership or permissions have changed since the plan in `previewedMembers` was built so the selections
+            in `grantUserIds` no longer describe the same people. Re-run the preview and confirm again.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -1112,6 +1128,52 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
+
+  '/assignedTeams/permissions/{assignedTeamId}/{collectionId}/grantPreview':
+    parameters:
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Preview what adding this collection to the team's coverage would grant its members
+      operationId: getCoverageGrantPreview
+      responses:
+        '200':
+          description: The grant plan for every member of the team
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/coverage_grant_plan'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden, insufficient privileges.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AssignedTeams
+      security:
+        - oauth:
+            - 'c-pat:read'
 
   '/assignedTeams/permissions/{assignedTeamId}/{collectionId}':
     parameters:
@@ -1125,9 +1187,53 @@ paths:
         required: true
         schema:
           type: integer
+    get:
+      summary: Preview what removing this collection from the team's coverage would do to its members
+      operationId: getCoverageRevocationPreview
+      responses:
+        '200':
+          description: The revocation plan for every member of the team
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/coverage_revocation_plan'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - AssignedTeams
+      security:
+        - oauth:
+            - 'c-pat:read'
     delete:
       summary: Delete a team permission
       operationId: deleteAssignedTeamPermission
+      parameters:
+        - name: revokePermissions
+          in: query
+          required: false
+          description: >-
+            When true, also revoke the collection permissions this coverage granted to the teams members, floored by
+            each members own direct grant and by any other team still granting the collection. When false or absent
+            the members keep their access, which is converted into a direct grant so it survives future team changes.
+          schema:
+            type: boolean
+            default: false
       responses:
         '200':
           description: Team permission deleted successfully
@@ -1135,10 +1241,15 @@ paths:
             application/json:
               schema:
                 type: object
+                additionalProperties: true
                 properties:
                   success:
                     type: boolean
                     example: true
+                  revoked:
+                    type: boolean
+                  permissionChanges:
+                    $ref: '#/components/schemas/coverage_revocation_plan'
         '400':
           description: Bad Request
           content:
@@ -1453,6 +1564,8 @@ paths:
                       format: date
                     supersededBy:
                       type: string
+                    taskOrder:
+                      type: [string, 'null']
         '400':
           description: Bad Request
           content:
@@ -1476,6 +1589,13 @@ paths:
       summary: Retrieves mapped IAV pluginIDs
       description: Get all unique pluginIDs that have an associated IAV as a comma-separated string
       operationId: getIAVPluginIds
+      parameters:
+        - name: hasTaskOrder
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: When true, only pluginIDs mapped to IAVs with an assigned task order are returned
       responses:
         '200':
           description: Successful response
@@ -1504,6 +1624,63 @@ paths:
       security:
         - oauth:
             - 'c-pat:read'
+
+  /iav/taskOrder:
+    put:
+      summary: Update the task order assigned to an IAV
+      description: Updates the task order value for a single IAV record
+      operationId: putIAVTaskOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                iav:
+                  type: string
+                  pattern: '^\d{4}-[A-Z]-\d{4}$'
+                  description: IAV in the format 0000-A-0000
+                taskOrder:
+                  type: [string, 'null']
+                  maxLength: 25
+              required:
+                - iav
+      responses:
+        '200':
+          description: Task order updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  iav:
+                    type: string
+                  taskOrder:
+                    type: [string, 'null']
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: IAV not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - IAV
+      security:
+        - oauth:
+            - 'c-pat:op'
 
   /mapPluginIds:
     post:
@@ -2878,11 +3055,19 @@ paths:
         schema:
           type: integer
     delete:
-      summary: Delete a collection permission by userId and collectionId
+      summary: Remove a user's direct collection permission
+      description: >-
+        Removes the direct grant an administrator set for this user and collection, then recomputes the effective
+        permission from what remains. If a team still covers the collection the user keeps access at the team's level
+        and `removed` is false; use the team assignment or the team's coverage to take that access away.
       operationId: deletePermission
       responses:
-        '204':
-          description: Permission deleted successfully
+        '200':
+          description: Direct permission removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/permission_delete_result'
         '400':
           description: Bad Request
           content:
@@ -2910,6 +3095,10 @@ paths:
   '/permission':
     post:
       summary: Add a user collection permission
+      description: >-
+        Records a direct grant for this user and collection, then recomputes the effective permission. The requested
+        level is always stored as the direct grant; if a team grants more, `effectiveAccessLevel` is higher than
+        `accessLevel` and `teamFloor` explains why.
       operationId: postPermission
       parameters:
         - $ref: '#/components/parameters/ElevateQuery'
@@ -2925,7 +3114,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_Permissions'
+                $ref: '#/components/schemas/permission_write_result'
         '400':
           description: Bad Request
           content:
@@ -2951,6 +3140,10 @@ paths:
             - 'c-pat:op'
     put:
       summary: Update user collection permissions
+      description: >-
+        Records a direct grant at the requested level, then recomputes the effective permission. A level below what a
+        team grants is stored faithfully but does not lower the user's access; the response returns the higher
+        `effectiveAccessLevel` along with the `teamFloor` holding it up.
       operationId: putPermission
       parameters:
         - $ref: '#/components/parameters/ElevateQuery'
@@ -2966,7 +3159,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_Permissions'
+                $ref: '#/components/schemas/permission_write_result'
         '400':
           description: Bad Request
           content:
@@ -6230,9 +6423,133 @@ paths:
     delete:
       summary: Remove a user from a team
       operationId: deleteTeamAssignment
+      parameters:
+        - name: revokePermissions
+          in: query
+          description: >-
+            When true, revoke the permissions this team assignment justified, floored by the user's own direct grant
+            and by any other team still granting the collection. When false or absent the user keeps their access,
+            which is converted into a direct grant so it survives future team changes.
+          schema:
+            type: boolean
+            default: false
       responses:
-        '204':
-          description: Team assignment deleted successfully
+        '200':
+          description: Team assignment deleted where the body reports what was actually applied.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                properties:
+                  revoked:
+                    type: boolean
+                    description: Whether the caller asked to revoke rather than keep the access this assignment justified.
+                  permissionChanges:
+                    $ref: '#/components/schemas/permission_revocation_plan'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - UserTeamAssignments
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  '/user/{userId}/teams/{assignedTeamId}/grantPreview':
+    parameters:
+      - $ref: '#/components/parameters/ElevateQuery'
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Preview the permission changes a team assignment would make
+      operationId: getGrantPreview
+      parameters:
+        - name: accessLevel
+          in: query
+          required: true
+          description: The access level the assignment would be saved with.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4
+      responses:
+        '200':
+          description: Grant plan retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/permission_grant_plan'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      tags:
+        - UserTeamAssignments
+      security:
+        - oauth:
+            - 'c-pat:op'
+
+  '/user/{userId}/teams/{assignedTeamId}/revocationPreview':
+    parameters:
+      - $ref: '#/components/parameters/ElevateQuery'
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: assignedTeamId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Preview what removing a team assignment would do to the permissions it justifies
+      operationId: getRevocationPreview
+      responses:
+        '200':
+          description: Revocation plan retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/permission_revocation_plan'
         '400':
           description: Bad Request
           content:
@@ -6275,7 +6592,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_team_assignment'
+                allOf:
+                  - $ref: '#/components/schemas/user_team_assignment'
+                  - type: object
+                    properties:
+                      created:
+                        type: boolean
+                        description: >-
+                          False when an assignment for this user and team already existed. In that case, the existing
+                          access level was kept and the requested one ignored, so accessLevel in this response may
+                          differ from the one submitted.
+                      permissionChanges:
+                        $ref: '#/components/schemas/permission_grant_plan'
         '400':
           description: Bad Request
           content:
@@ -6284,6 +6612,12 @@ paths:
                 $ref: '#/components/schemas/error'
         '403':
           description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Assigned Team not found
           content:
             application/json:
               schema:
@@ -6316,7 +6650,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_team_assignment'
+                allOf:
+                  - $ref: '#/components/schemas/user_team_assignment'
+                  - type: object
+                    properties:
+                      permissionChanges:
+                        $ref: '#/components/schemas/permission_grant_plan'
         '400':
           description: Bad Request
           content:
@@ -6325,6 +6664,12 @@ paths:
                 $ref: '#/components/schemas/error'
         '403':
           description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Team assignment not found
           content:
             application/json:
               schema:
@@ -6876,6 +7221,44 @@ components:
         collectionId:
           type: integer
           description: ID of the collection to grant permission for
+        grantUserIds:
+          type: array
+          items:
+            type: integer
+          description: >-
+            Team members who should receive the collection permission this coverage implies. The server rebuilds the
+            grant plan itself and only acts on ids that appear in it, so an id outside the team is ignored. Omitted or
+            empty means no member gains access.
+        previewedMembers:
+          type: array
+          description: >-
+            Which bucket each member fell into when the plan behind `grantUserIds` was previewed, plus the access
+            levels the preview displayed. The server rebuilds the plan and rejects the request with 409 if any
+            member's bucket has changed, or if a supplied access level no longer matches the rebuilt plan, because
+            `grantUserIds` is a bare id list and cannot say whether a member was left out deliberately or was never
+            offered a choice. Required whenever the rebuilt plan contains members whose access would change.
+          items:
+            type: object
+            required:
+              - userId
+              - bucket
+            properties:
+              userId:
+                type: integer
+              bucket:
+                type: string
+                enum:
+                  - additions
+                  - updates
+                  - unchanged
+              teamAccessLevel:
+                type: integer
+                description: The member's access level on the team as the preview displayed it. When present, the server rejects with 409 if it has since changed.
+              newAccessLevel:
+                type: integer
+                description: >-
+                  The effective level the preview promised for an addition or update. When present, the server rejects
+                  with 409 if the rebuilt plan would grant a different level.
 
     assignedTeamPermission_Object:
       type: object
@@ -6889,6 +7272,20 @@ components:
         collectionId:
           type: integer
           description: ID of the collection permission is granted for
+        granted:
+          type: object
+          additionalProperties: true
+          properties:
+            additions:
+              type: integer
+            updates:
+              type: integer
+            unchanged:
+              type: integer
+            excluded:
+              type: integer
+        permissionChanges:
+          $ref: '#/components/schemas/coverage_grant_plan'
 
     permission_Object:
       type: object
@@ -6936,6 +7333,9 @@ components:
         nessusPlugins:
           type: integer
           format: int32
+        taskOrder:
+          type: [string, 'null']
+          maxLength: 25
       required:
         - iav
         - title
@@ -7791,6 +8191,345 @@ components:
                 type: integer
               accessLevel:
                 type: integer
+        permissionGrants:
+          type: array
+          description: >-
+            Team-derived provenance for collection permissions. Each entry records that a team assignment justifies
+            part of the user's permission on a collection.
+          items:
+            $ref: '#/components/schemas/collection_permission_grant'
+        directPermissions:
+          type: array
+          description: >-
+            Administrator-set provenance for collection permissions. Each entry records access granted to this user
+            directly rather than through a team. A collection permission is the highest of the user's direct entry
+            and every team grant for that collection, so every permission has at least one entry in one of the two
+            lists.
+          items:
+            $ref: '#/components/schemas/collection_direct_permission'
+        excludedGrants:
+          type: array
+          description: >-
+            Collections a team covers that an administrator deliberately withheld from this user. Each entry suppresses
+            the grant the team's coverage would otherwise justify, and survives future saves of the team assignment
+            until it is restored or the assignment itself is removed.
+          items:
+            $ref: '#/components/schemas/collection_grant_exclusion'
+
+    collection_grant_exclusion:
+      type: object
+      required:
+        - collectionId
+        - assignedTeamId
+      additionalProperties: true
+      properties:
+        collectionId:
+          type: integer
+        collectionName:
+          type: string
+        assignedTeamId:
+          type: integer
+        assignedTeamName:
+          type: string
+        excludedAt:
+          type: string
+          format: date-time
+
+    collection_permission_grant:
+      type: object
+      required:
+        - collectionId
+        - assignedTeamId
+        - accessLevel
+      additionalProperties: true
+      properties:
+        collectionId:
+          type: integer
+        assignedTeamId:
+          type: integer
+        assignedTeamName:
+          type: string
+        accessLevel:
+          type: integer
+          description: The access level this team assignment justifies.
+
+    collection_direct_permission:
+      type: object
+      required:
+        - collectionId
+        - accessLevel
+      additionalProperties: true
+      properties:
+        collectionId:
+          type: integer
+        accessLevel:
+          type: integer
+          description: The access level an administrator granted directly, independent of any team.
+        grantedAt:
+          type: string
+          format: date-time
+
+    permission_write_result:
+      type: object
+      description: >-
+        The outcome of setting a user's direct permission on a collection. A collection permission is the highest of
+        the user's direct grant and any grant a team assignment justifies, so the level an administrator sets is not
+        always the level the user ends up with.
+      additionalProperties: true
+      properties:
+        userId:
+          type: integer
+        collectionId:
+          type: integer
+        accessLevel:
+          type: integer
+          description: The direct grant that was recorded, which is what the administrator asked for.
+        effectiveAccessLevel:
+          type: [integer, 'null']
+          description: The level the user now holds on this collection.
+        teamFloor:
+          type: [integer, 'null']
+          description: The highest level any team assignment grants for this collection, or null when no team covers it.
+        coveringTeams:
+          type: array
+          description: Names of the teams whose coverage grants this collection to this user.
+          items:
+            type: string
+
+    permission_delete_result:
+      type: object
+      description: The outcome of removing a user's direct permission on a collection.
+      additionalProperties: true
+      properties:
+        userId:
+          type: integer
+        collectionId:
+          type: integer
+        removed:
+          type: boolean
+          description: True when the user no longer holds any access to the collection.
+        effectiveAccessLevel:
+          type: [integer, 'null']
+          description: The level the user retains from team coverage, or null when access is gone entirely.
+        teamFloor:
+          type: [integer, 'null']
+          description: The highest level any team assignment grants for this collection, or null when no team covers it.
+        coveringTeams:
+          type: array
+          description: Names of the teams whose coverage still grants this collection to this user.
+          items:
+            type: string
+
+    permission_grant_plan:
+      type: object
+      description: The additions, escalations and downgrades a team assignment would perform.
+      additionalProperties: true
+      properties:
+        additions:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              collectionId:
+                type: integer
+              collectionName:
+                type: string
+              accessLevel:
+                type: integer
+        updates:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              collectionId:
+                type: integer
+              collectionName:
+                type: string
+              oldAccessLevel:
+                type: integer
+              newAccessLevel:
+                type: integer
+        downgrades:
+          type: array
+          description: >-
+            Permissions that would be lowered because the team's access level was lowered. The new level is the highest
+            of the user's direct grant, any other team's grant, and this team's new level, so a downgrade never drops
+            access below what another source justifies.
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              collectionId:
+                type: integer
+              collectionName:
+                type: string
+              oldAccessLevel:
+                type: integer
+              newAccessLevel:
+                type: integer
+        unchanged:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              collectionId:
+                type: integer
+              collectionName:
+                type: string
+              accessLevel:
+                type: integer
+        excluded:
+          type: array
+          description: >-
+            Collections this team covers that an administrator deliberately skipped for this user when the coverage was
+            added. They are left untouched by this assignment, and stay that way until the exclusion is cleared by
+            listing the collection in includeCollectionIds or by removing and re-adding the team's coverage of it.
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              collectionId:
+                type: integer
+              collectionName:
+                type: string
+              currentAccessLevel:
+                type: [integer, 'null']
+              wouldGrantAccessLevel:
+                type: integer
+
+    permission_revocation_plan:
+      type: object
+      description: >-
+        What removing a team assignment would do to the permissions that assignment justifies. An empty plan means
+        nothing attributable was found.
+      additionalProperties: true
+      properties:
+        removals:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              collectionId:
+                type: integer
+              collectionName:
+                type: string
+              currentAccessLevel:
+                type: integer
+        downgrades:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              collectionId:
+                type: integer
+              collectionName:
+                type: string
+              currentAccessLevel:
+                type: integer
+              targetAccessLevel:
+                type: integer
+        unaffected:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              collectionId:
+                type: integer
+              collectionName:
+                type: string
+              currentAccessLevel:
+                type: integer
+
+    coverage_revocation_plan:
+      type: object
+      description: >-
+        What removing a collection from a team's coverage would do to every member of that team. Entries carry the
+        member they apply to, since one coverage removal affects the whole team.
+      additionalProperties: true
+      properties:
+        removals:
+          type: array
+          items:
+            $ref: '#/components/schemas/coverage_revocation_entry'
+        downgrades:
+          type: array
+          items:
+            $ref: '#/components/schemas/coverage_revocation_entry'
+        unaffected:
+          type: array
+          items:
+            $ref: '#/components/schemas/coverage_revocation_entry'
+
+    coverage_revocation_entry:
+      type: object
+      additionalProperties: true
+      properties:
+        userId:
+          type: integer
+        userName:
+          type: string
+        fullName:
+          type: [string, 'null']
+        collectionId:
+          type: integer
+        collectionName:
+          type: string
+        currentAccessLevel:
+          type: integer
+        targetAccessLevel:
+          type: integer
+          description: Present on downgrades only.
+
+    coverage_grant_plan:
+      type: object
+      description: >-
+        What adding a collection to a team's coverage would grant every member of that team. The plan can only add or
+        raise access; a member already holding more than the team's level lands in unchanged and keeps it.
+      additionalProperties: true
+      properties:
+        additions:
+          type: array
+          items:
+            $ref: '#/components/schemas/coverage_grant_entry'
+        updates:
+          type: array
+          items:
+            $ref: '#/components/schemas/coverage_grant_entry'
+        unchanged:
+          type: array
+          items:
+            $ref: '#/components/schemas/coverage_grant_entry'
+
+    coverage_grant_entry:
+      type: object
+      additionalProperties: true
+      properties:
+        userId:
+          type: integer
+        userName:
+          type: string
+        fullName:
+          type: [string, 'null']
+        teamAccessLevel:
+          type: integer
+          description: The member's access level on this team, which is what the coverage records as granted.
+        currentAccessLevel:
+          type: [integer, 'null']
+          description: The member's effective access today. Null on additions, where they hold none.
+        newAccessLevel:
+          type: integer
+          description: >-
+            Present on additions and updates. The effective level the member would end up with, which is the highest
+            of their direct grant, any other team's grant, and this team's level.
+        accessLevel:
+          type: integer
+          description: Present on unchanged only.
 
     user_Create:
       type: object
@@ -7875,6 +8614,8 @@ components:
           type: integer
         accessLevel:
           type: integer
+          minimum: 1
+          maximum: 4
         firstName:
           type: string
         lastName:
@@ -7889,7 +8630,6 @@ components:
       required:
         - userId
         - oldCollectionId
-        - newCollectionId
         - accessLevel
       additionalProperties: true
       properties:
@@ -7897,10 +8637,11 @@ components:
           type: integer
         oldCollectionId:
           type: integer
-        newCollectionId:
-          type: integer
+          description: Identifies the permission to update. A permission cannot be moved to a different collection.
         accessLevel:
           type: integer
+          minimum: 1
+          maximum: 4
         firstName:
           type: string
         lastName:
@@ -7924,12 +8665,22 @@ components:
           type: integer
         accessLevel:
           type: integer
+          minimum: 1
+          maximum: 4
         fullName:
           type: string
         userName:
           type: string
         email:
           type: string
+        includeCollectionIds:
+          type: array
+          items:
+            type: integer
+          description: >-
+            Collections this team covers that were previously skipped for this user and should now be granted again.
+            Clearing the exclusion is all this does; the grant itself still comes from the team's coverage, so an id
+            the team does not cover has no effect.
 
     Username:
       $ref: '#/components/schemas/String255'
@@ -7939,18 +8690,28 @@ components:
       required:
         - userId
         - oldAssignedTeamId
-        - newAssignedTeamId
-        - accessLevel
       additionalProperties: true
       properties:
         userId:
           type: integer
         oldAssignedTeamId:
           type: integer
-        newAssignedTeamId:
-          type: integer
+          description: Identifies the assignment to update. The team an assignment points at cannot be changed.
         accessLevel:
           type: integer
+          minimum: 1
+          maximum: 4
+          description: >-
+            The access level to store on the assignment. When omitted, the stored level is kept and the covered
+            collections are re-synced at that level, which is how exclusions are restored without touching the level.
+        includeCollectionIds:
+          type: array
+          items:
+            type: integer
+          description: >-
+            Collections this team covers that were previously skipped for this user and should now be granted again.
+            Clearing the exclusion is all this does; the grant itself still comes from the team's coverage, so an id
+            the team does not cover has no effect.
 
   responses:
     forbidden:

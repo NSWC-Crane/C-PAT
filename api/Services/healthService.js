@@ -17,19 +17,14 @@ const logger = require('../utils/logger');
 const { serializeError } = require('../utils/serializeError');
 const state = require('../utils/state');
 const tenableTls = require('../utils/tenableTls');
-
-function stripTrailingSlashes(url) {
-    let end = url.length;
-    while (end > 0 && url.codePointAt(end - 1) === 47) end--;
-    return url.slice(0, end);
-}
+const { stripTrailingSlashes } = require('../utils/url');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
     try {
         return await callback(connection);
     } finally {
-        await connection.release();
+        connection.release();
     }
 }
 

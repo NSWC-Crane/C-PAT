@@ -10,29 +10,20 @@
 
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CpatChartComponent } from '../../common/components/chart/chart.component';
 import { DividerModule } from 'primeng/divider';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { map, switchMap, tap, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { CAT_SEVERITY_COLORS } from '../../common/constants/severity-colors';
 import { SharedService } from '../../common/services/shared.service';
 import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
 import { MetricsService, MTTRData } from './metrics.service';
 import { STIGManagerMetricsComponent } from './stigman-metrics/stigman-metrics.component';
 import { TenableMetricsComponent } from './tenable-metrics/tenable-metrics.component';
-
-const SEVERITY_COLORS: Record<string, string> = {
-  'CAT I - Critical/High': 'rgba(235, 70, 100, 0.85)',
-  'CAT II - Medium': 'rgba(250, 165, 50, 0.8)',
-  'CAT III - Low': 'rgba(230, 185, 45, 0.8)',
-  'CAT III - Informational': 'rgba(100, 180, 100, 0.7)',
-  default: 'rgba(150, 150, 150, 0.7)'
-};
 
 @Component({
   selector: 'cpat-metrics',
@@ -40,8 +31,7 @@ const SEVERITY_COLORS: Record<string, string> = {
   styleUrls: ['./metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, CpatChartComponent, DividerModule, ProgressSpinnerModule, ToastModule, TooltipModule, STIGManagerMetricsComponent, TenableMetricsComponent],
-  providers: [MessageService]
+  imports: [ButtonModule, CardModule, CpatChartComponent, DividerModule, ProgressSpinnerModule, TooltipModule, STIGManagerMetricsComponent, TenableMetricsComponent]
 })
 export class MetricsComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);
@@ -153,7 +143,7 @@ export class MetricsComponent implements OnInit {
               {
                 label: 'Avg Days to Close',
                 data: severities.map((s) => (summaryMap[s].count ? Math.round(summaryMap[s].weightedDays / summaryMap[s].count) : 0)),
-                backgroundColor: severities.map((s) => SEVERITY_COLORS[s] ?? SEVERITY_COLORS['default']),
+                backgroundColor: severities.map((s) => CAT_SEVERITY_COLORS[s] ?? CAT_SEVERITY_COLORS['default']),
                 opacity: 0.8,
                 hoverBorderColor: cardBackgroundColor,
                 borderWidth: 8,
@@ -190,9 +180,9 @@ export class MetricsComponent implements OnInit {
 
                 return entry?.count ? Math.round(entry.weightedDays / entry.count) : null;
               }),
-              borderColor: SEVERITY_COLORS[sev] ?? SEVERITY_COLORS['default'],
-              backgroundColor: SEVERITY_COLORS[sev] ?? SEVERITY_COLORS['default'],
-              pointBackgroundColor: SEVERITY_COLORS[sev] ?? SEVERITY_COLORS['default'],
+              borderColor: CAT_SEVERITY_COLORS[sev] ?? CAT_SEVERITY_COLORS['default'],
+              backgroundColor: CAT_SEVERITY_COLORS[sev] ?? CAT_SEVERITY_COLORS['default'],
+              pointBackgroundColor: CAT_SEVERITY_COLORS[sev] ?? CAT_SEVERITY_COLORS['default'],
               tension: 0.3,
               spanGaps: true
             }))

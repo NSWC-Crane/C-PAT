@@ -20,6 +20,24 @@ module.exports.getTeamAssignments = async function getTeamAssignments(req, res) 
     }
 };
 
+module.exports.getGrantPreview = async function getGrantPreview(req, res) {
+    try {
+        const preview = await userTeamAssignmentService.getGrantPreview(req.userObject.userId, req.query.elevate, req);
+        res.status(200).json(preview);
+    } catch (error) {
+        sendError(res, error);
+    }
+};
+
+module.exports.getRevocationPreview = async function getRevocationPreview(req, res) {
+    try {
+        const preview = await userTeamAssignmentService.getRevocationPreview(req.userObject.userId, req.query.elevate, req);
+        res.status(200).json(preview);
+    } catch (error) {
+        sendError(res, error);
+    }
+};
+
 module.exports.postTeamAssignment = async function postTeamAssignment(req, res) {
     try {
         const teamAssignment = await userTeamAssignmentService.postTeamAssignment(req.userObject.userId, req.query.elevate, req);
@@ -40,8 +58,8 @@ module.exports.putTeamAssignment = async function putTeamAssignment(req, res) {
 
 module.exports.deleteTeamAssignment = async function deleteTeamAssignment(req, res) {
     try {
-        await userTeamAssignmentService.deleteTeamAssignment(req.userObject.userId, req.query.elevate, req);
-        res.status(204).send();
+        const result = await userTeamAssignmentService.deleteTeamAssignment(req.userObject.userId, req.query.elevate, req);
+        res.status(200).json(result);
     } catch (error) {
         sendError(res, error);
     }

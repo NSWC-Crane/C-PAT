@@ -14,7 +14,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
@@ -24,7 +24,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { NessusPluginMappingComponent } from './nessus-plugin-mapping.component';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 import { ImportService } from '../../import-processing/import.service';
@@ -84,7 +83,8 @@ describe('NessusPluginMappingComponent', () => {
   beforeEach(async () => {
     mockNessusPluginMappingService = {
       getIAVTableData: vi.fn().mockReturnValue(of(buildMockIAVResponse())),
-      mapIAVPluginIds: vi.fn().mockReturnValue(of({}))
+      mapIAVPluginIds: vi.fn().mockReturnValue(of({})),
+      putIAVTaskOrder: vi.fn().mockReturnValue(of({}))
     };
 
     mockImportService = {
@@ -112,7 +112,7 @@ describe('NessusPluginMappingComponent', () => {
     })
       .overrideComponent(NessusPluginMappingComponent, {
         set: {
-          imports: [ButtonModule, CommonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule]
+          imports: [ButtonModule, CommonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule]
         }
       })
       .compileComponents();
@@ -176,9 +176,9 @@ describe('NessusPluginMappingComponent', () => {
   });
 
   describe('initColumns', () => {
-    it('should set 12 columns', () => {
+    it('should set 13 columns', () => {
       component.initColumns();
-      expect(component.cols.length).toBe(12);
+      expect(component.cols).toHaveLength(13);
     });
 
     it('should include iav and pluginID fields', () => {
@@ -188,12 +188,118 @@ describe('NessusPluginMappingComponent', () => {
       expect(fields).toContain('iav');
       expect(fields).toContain('pluginID');
     });
+
+    it('should include taskOrder field', () => {
+      component.initColumns();
+      const fields = component.cols.map((c) => c.field);
+
+      expect(fields).toContain('taskOrder');
+    });
+  });
+
+  describe('row editing', () => {
+    beforeEach(() => {
+      component.getIAVTableData();
+    });
+
+    it('should store a shadow copy on onRowEditInit', () => {
+      const rowData = component.tableData()[0];
+
+      component.onRowEditInit(rowData);
+      expect(component.editingShadows.get(rowData.iav)).toEqual(rowData);
+      expect(component.editingShadows.get(rowData.iav)).not.toBe(rowData);
+    });
+
+    it('should call putIAVTaskOrder with trimmed taskOrder on save', () => {
+      const rowData = { ...component.tableData()[0], taskOrder: '  TO-2024-001  ' };
+
+      component.onRowEditInit(rowData);
+      component.onRowEditSave(rowData);
+      expect(mockNessusPluginMappingService.putIAVTaskOrder).toHaveBeenCalledWith({ iav: rowData.iav, taskOrder: 'TO-2024-001' });
+    });
+
+    it('should send null when taskOrder is empty on save', () => {
+      const rowData = { ...component.tableData()[0], taskOrder: '' };
+
+      component.onRowEditInit(rowData);
+      component.onRowEditSave(rowData);
+      expect(mockNessusPluginMappingService.putIAVTaskOrder).toHaveBeenCalledWith({ iav: rowData.iav, taskOrder: null });
+    });
+
+    it('should update tableData and clear the shadow copy on successful save', () => {
+      const rowData = { ...component.tableData()[0], taskOrder: 'TO-2024-001' };
+
+      component.onRowEditInit(rowData);
+      component.onRowEditSave(rowData);
+      expect(component.tableData()[0].taskOrder).toBe('TO-2024-001');
+      expect(component.editingShadows.has(rowData.iav)).toBe(false);
+    });
+
+    it('should show success message on save', () => {
+      const rowData = { ...component.tableData()[0], taskOrder: 'TO-2024-001' };
+
+      component.onRowEditInit(rowData);
+      component.onRowEditSave(rowData);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', summary: 'Success' }));
+    });
+
+    it('should restore the shadow copy and show error when save fails', () => {
+      mockNessusPluginMappingService.putIAVTaskOrder.mockReturnValue(throwError(() => new Error('Network error')));
+      const original = component.tableData()[0];
+      const rowData = { ...original, taskOrder: 'TO-2024-001' };
+
+      component.onRowEditInit(original);
+      component.onRowEditSave(rowData);
+      expect(component.tableData()[0].taskOrder).toBe(original.taskOrder);
+      expect(component.editingShadows.has(original.iav)).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
+    });
+
+    it('should restore the shadow copy on cancel', () => {
+      const original = component.tableData()[0];
+
+      component.onRowEditInit(original);
+      component.tableData.update((current) => current.map((row) => (row.iav === original.iav ? { ...row, taskOrder: 'discarded' } : row)));
+      component.onRowEditCancel(original);
+      expect(component.tableData()[0].taskOrder).toBe(original.taskOrder);
+      expect(component.editingShadows.has(original.iav)).toBe(false);
+    });
+
+    it('should not throw on cancel when no edit is in progress', () => {
+      expect(() => component.onRowEditCancel(component.tableData()[0])).not.toThrow();
+    });
+
+    it('should restore the cancelled row and keep the other edit when two rows are edited', () => {
+      const rowA = component.tableData()[0];
+      const rowB = component.tableData()[1];
+
+      component.onRowEditInit(rowA);
+      component.onRowEditInit(rowB);
+      component.tableData.update((current) => current.map((row) => (row.iav === rowA.iav ? { ...row, taskOrder: 'discarded' } : row)));
+      component.onRowEditCancel(rowA);
+      expect(component.tableData()[0].taskOrder).toBe(rowA.taskOrder);
+      expect(component.editingShadows.has(rowA.iav)).toBe(false);
+      expect(component.editingShadows.get(rowB.iav)).toEqual(rowB);
+    });
+
+    it('should restore only the failed row when a save fails while another row is being edited', () => {
+      mockNessusPluginMappingService.putIAVTaskOrder.mockReturnValue(throwError(() => new Error('Network error')));
+      const rowA = component.tableData()[0];
+      const rowB = component.tableData()[1];
+
+      component.onRowEditInit(rowA);
+      component.onRowEditInit(rowB);
+      component.onRowEditSave({ ...rowA, taskOrder: 'TO-2024-001' });
+      expect(component.tableData()[0].taskOrder).toBe(rowA.taskOrder);
+      expect(component.editingShadows.has(rowA.iav)).toBe(false);
+      expect(component.editingShadows.get(rowB.iav)).toEqual(rowB);
+    });
   });
 
   describe('getIAVTableData', () => {
     it('should set tableData from response', () => {
       component.getIAVTableData();
-      expect(component.tableData().length).toBe(2);
+      expect(component.tableData()).toHaveLength(2);
     });
 
     it('should set totalRecords from tableData length', () => {
@@ -273,7 +379,8 @@ describe('NessusPluginMappingComponent', () => {
       expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({ tool: 'vulndetails', type: 'vuln' })
-        })
+        }),
+        false
       );
     });
 
@@ -307,6 +414,65 @@ describe('NessusPluginMappingComponent', () => {
       component.updatePluginIds();
       vi.runAllTimers();
       expect(spy).toHaveBeenCalled();
+    });
+
+    it('does not report success when the component is destroyed mid-run', () => {
+      const pending = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValue(pending.asObservable());
+
+      component.updatePluginIds();
+      fixture.destroy();
+      vi.runAllTimers();
+
+      expect(mockNessusPluginMappingService.mapIAVPluginIds).not.toHaveBeenCalled();
+      expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    describe('cache opt-out', () => {
+      const batch = (pluginID: string, totalRecords: number) => ({
+        response: { results: [{ pluginID, xref: `IAVA #2023-A-000${pluginID}` }], totalRecords }
+      });
+
+      it('bypasses the upstream cache for every batch', () => {
+        (component as any).batchSize = 1;
+        mockImportService.postTenableAnalysis.mockReturnValueOnce(of(batch('1', 2))).mockReturnValueOnce(of(batch('2', 2)));
+
+        component.updatePluginIds();
+        vi.runAllTimers();
+
+        expect(mockImportService.postTenableAnalysis).toHaveBeenCalledTimes(2);
+        mockImportService.postTenableAnalysis.mock.calls.forEach((call: any[]) => expect(call[1]).toBe(false));
+      });
+
+      it('walks a multi-batch run without skipping or repeating an offset', () => {
+        (component as any).batchSize = 1;
+        mockImportService.postTenableAnalysis
+          .mockReturnValueOnce(of(batch('1', 3)))
+          .mockReturnValueOnce(of(batch('2', 3)))
+          .mockReturnValueOnce(of(batch('3', 3)));
+
+        component.updatePluginIds();
+        vi.runAllTimers();
+
+        const offsets = mockImportService.postTenableAnalysis.mock.calls.map((call: any[]) => call[0].query.startOffset);
+
+        expect(offsets).toEqual([0, 1, 2]);
+        expect(mockNessusPluginMappingService.mapIAVPluginIds).toHaveBeenCalledTimes(1);
+      });
+
+      it('maps every plugin exactly once across a multi-batch run', () => {
+        (component as any).batchSize = 1;
+        mockImportService.postTenableAnalysis.mockReturnValueOnce(of(batch('1', 2))).mockReturnValueOnce(of(batch('2', 2)));
+
+        component.updatePluginIds();
+        vi.runAllTimers();
+
+        const mapped = mockNessusPluginMappingService.mapIAVPluginIds.mock.calls[0][0];
+        const pluginIds = mapped.flatMap((entry: any) => entry.pluginIDs ?? []);
+
+        expect(pluginIds).toHaveLength(new Set(pluginIds).size);
+      });
     });
 
     it('should show error message when batch processing fails', () => {
