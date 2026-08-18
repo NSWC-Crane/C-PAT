@@ -19,7 +19,6 @@ import { CpatChartComponent } from '../../../common/components/chart/chart.compo
 import { SelectModule } from 'primeng/select';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Subject, catchError, map, of, switchMap, take, tap } from 'rxjs';
 import { CAT_SEVERITY_COLORS, RISK_GRADIENT, SEVERITY_COLOR } from '../../../common/constants/severity-colors';
@@ -63,8 +62,7 @@ interface FindingCard {
   styleUrls: ['./global-metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, CardModule, CpatChartComponent, SelectModule, MultiSelectDirective, ProgressBarModule, TagModule, ToastModule, TooltipModule, DatePipe],
-  providers: [MessageService]
+  imports: [FormsModule, ButtonModule, CardModule, CpatChartComponent, SelectModule, MultiSelectDirective, ProgressBarModule, TagModule, TooltipModule, DatePipe]
 })
 export class GlobalMetricsComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);

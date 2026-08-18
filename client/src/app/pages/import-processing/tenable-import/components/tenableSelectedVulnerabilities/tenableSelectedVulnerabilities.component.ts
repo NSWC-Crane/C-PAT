@@ -25,7 +25,6 @@ import { Select, SelectModule } from 'primeng/select';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, catchError, finalize, map, switchMap } from 'rxjs';
 import { ExportColumn, IAVInfo, ParsedReferences, Reference, SeverityStyle } from '../../../../../common/models/tenable.model';
@@ -50,25 +49,7 @@ const DEFAULT_SEVERITIES = ['Low', 'Medium', 'High', 'Critical'];
   styleUrls: ['./tenableSelectedVulnerabilities.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ButtonModule,
-    ButtonGroupModule,
-    DialogModule,
-    SelectModule,
-    FormsModule,
-    InputTextModule,
-    InputIconModule,
-    IconFieldModule,
-    MultiSelectDirective,
-    SelectModule,
-    SkeletonModule,
-    TableModule,
-    ToastModule,
-    TooltipModule,
-    TagModule,
-    DatePipe,
-    NgClass
-  ]
+  imports: [ButtonModule, ButtonGroupModule, DialogModule, SelectModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, SkeletonModule, TableModule, TooltipModule, TagModule, DatePipe, NgClass]
 })
 export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   private readonly importService = inject(ImportService);

@@ -24,7 +24,6 @@ import { Select, SelectModule } from 'primeng/select';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeTable, TreeTableModule } from 'primeng/treetable';
 import { forkJoin, map } from 'rxjs';
@@ -63,25 +62,7 @@ interface FilterState {
   styleUrls: ['./stigManagerReviewsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ButtonModule,
-    CardModule,
-    DatePickerModule,
-    FormsModule,
-    InputTextModule,
-    InputIconModule,
-    IconFieldModule,
-    TextareaModule,
-    SelectModule,
-    MultiSelectDirective,
-    TreeTableModule,
-    ToastModule,
-    TagModule,
-    TooltipModule,
-    PopoverModule,
-    DatePipe,
-    NgClass
-  ]
+  imports: [ButtonModule, CardModule, DatePickerModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, SelectModule, MultiSelectDirective, TreeTableModule, TagModule, TooltipModule, PopoverModule, DatePipe, NgClass]
 })
 export class STIGManagerReviewsTableComponent implements OnInit {
   private readonly messageService = inject(MessageService);

@@ -20,7 +20,6 @@ import { Select, SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
@@ -32,7 +31,7 @@ import { MultiSelectDirective } from '../../../../common/directives/multi-select
   styleUrls: ['./stigManagerAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, TextareaModule, SelectModule, TableModule, ToastModule, TagModule, TooltipModule]
+  imports: [ButtonModule, CardModule, FormsModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, TextareaModule, SelectModule, TableModule, TagModule, TooltipModule]
 })
 export class STIGManagerAssetsTableComponent implements OnInit {
   private readonly messageService = inject(MessageService);

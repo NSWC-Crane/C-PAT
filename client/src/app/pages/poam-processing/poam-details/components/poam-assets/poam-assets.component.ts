@@ -15,7 +15,6 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -29,7 +28,7 @@ import { PoamService } from '../../../poams.service';
   templateUrl: './poam-assets.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ButtonModule, SelectModule, TooltipModule, ToastModule, STIGManagerPoamAssetsTableComponent, TenableAssetsTableComponent]
+  imports: [FormsModule, TableModule, ButtonModule, SelectModule, TooltipModule, STIGManagerPoamAssetsTableComponent, TenableAssetsTableComponent]
 })
 export class PoamAssetsComponent implements OnChanges {
   readonly poam = input<any>(undefined);

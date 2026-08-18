@@ -23,7 +23,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { forkJoin, of } from 'rxjs';
 import { catchError, first } from 'rxjs/operators';
@@ -39,7 +38,7 @@ import { MultiSelectDirective } from '../../../../../common/directives/multi-sel
   styleUrls: ['./tenableHostDialog.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, DialogModule, ToastModule, TooltipModule, TagModule, NgClass]
+  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, DialogModule, TooltipModule, TagModule, NgClass]
 })
 export class TenableHostDialogComponent implements OnChanges {
   private readonly importService = inject(ImportService);

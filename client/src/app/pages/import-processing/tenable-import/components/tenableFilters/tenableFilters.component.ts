@@ -17,7 +17,6 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../import.service';
@@ -39,7 +38,7 @@ interface FilterOption {
   styleUrls: ['./tenableFilters.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, AutoCompleteModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, ToastModule, TooltipModule]
+  imports: [FormsModule, AutoCompleteModule, ButtonModule, DialogModule, InputTextModule, TextareaModule, TooltipModule]
 })
 export class TenableFiltersComponent implements OnInit {
   private readonly importService = inject(ImportService);

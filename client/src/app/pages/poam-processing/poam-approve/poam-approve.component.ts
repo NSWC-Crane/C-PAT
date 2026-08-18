@@ -21,7 +21,6 @@ import { DatePicker } from 'primeng/datepicker';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { forkJoin } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -45,7 +44,7 @@ export interface PoamApproval {
   styleUrls: ['./poam-approve.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, DatePicker, CheckboxModule, DialogModule, SelectModule, TextareaModule, ToastModule, ToggleSwitch],
+  imports: [FormsModule, ButtonModule, DatePicker, CheckboxModule, DialogModule, SelectModule, TextareaModule, ToggleSwitch],
   providers: [DatePipe]
 })
 export class PoamApproveComponent implements OnInit {

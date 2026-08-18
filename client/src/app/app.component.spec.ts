@@ -11,6 +11,7 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { MessageService } from 'primeng/api';
 import { Subject } from 'rxjs';
 import { AppComponent } from './app.component';
 import { AuthService } from './core/auth/services/auth.service';
@@ -39,10 +40,7 @@ describe('AppComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [
-        { provide: AuthService, useValue: mockAuthService },
-        { provide: InactivityService, useValue: mockInactivityService }
-      ],
+      providers: [{ provide: AuthService, useValue: mockAuthService }, { provide: InactivityService, useValue: mockInactivityService }, MessageService],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 

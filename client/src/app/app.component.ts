@@ -10,6 +10,7 @@
 
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ToastModule } from 'primeng/toast';
 import { Subscription } from 'rxjs';
 import { AuthService } from './core/auth/services/auth.service';
 import { InactivityService } from './core/auth/services/inactivity.service';
@@ -20,7 +21,7 @@ import { InactivityWarningComponent } from './common/components/inactivity-warni
   templateUrl: './app.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, InactivityWarningComponent]
+  imports: [RouterOutlet, InactivityWarningComponent, ToastModule]
 })
 export class AppComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);

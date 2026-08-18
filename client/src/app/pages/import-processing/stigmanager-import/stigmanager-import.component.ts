@@ -26,7 +26,6 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter, take } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
@@ -67,7 +66,6 @@ interface STIGManagerFinding {
     SkeletonModule,
     TableModule,
     TabsModule,
-    ToastModule,
     TooltipModule,
     STIGManagerControlsTableComponent,
     STIGManagerReviewsTableComponent,

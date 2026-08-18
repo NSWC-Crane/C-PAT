@@ -21,7 +21,6 @@ import { Select, SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../common/services/shared.service';
 import { CsvExportService } from '../../../../common/utils/csv-export.service';
@@ -40,7 +39,7 @@ interface ExportColumn {
   styleUrls: ['./stigManagerPoamAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, MultiSelectDirective, SelectModule, TabsModule, TableModule, ToastModule, TagModule, TooltipModule]
+  imports: [ButtonModule, CardModule, FormsModule, InputIconModule, IconFieldModule, InputTextModule, MultiSelectDirective, SelectModule, TabsModule, TableModule, TagModule, TooltipModule]
 })
 export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewInit {
   private readonly assetDeltaService = inject(AssetDeltaService);

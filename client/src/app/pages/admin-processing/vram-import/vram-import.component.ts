@@ -18,7 +18,6 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { VramPopupComponent } from '../../../common/components/vram-popup/vram-popup.component';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -29,7 +28,7 @@ import { VRAMImportService } from './vram-import.service';
   templateUrl: './vram-import.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BadgeModule, ButtonModule, CardModule, FileUploadModule, FormsModule, ProgressBarModule, ToastModule, TooltipModule, VramPopupComponent]
+  imports: [BadgeModule, ButtonModule, CardModule, FileUploadModule, FormsModule, ProgressBarModule, TooltipModule, VramPopupComponent]
 })
 export class VRAMImportComponent implements OnInit {
   private readonly messageService = inject(MessageService);

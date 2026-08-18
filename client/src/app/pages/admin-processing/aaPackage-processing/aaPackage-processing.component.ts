@@ -16,7 +16,6 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AAPackage } from '../../../common/models/aaPackage.model';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -28,7 +27,7 @@ import { AAPackageService } from './aaPackage-processing.service';
   styleUrls: ['./aaPackage-processing.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule, TooltipModule]
+  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, TooltipModule]
 })
 export class AAPackageProcessingComponent implements OnInit {
   private readonly aaPackageService = inject(AAPackageService);

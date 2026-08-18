@@ -16,7 +16,6 @@ import { ButtonModule } from 'primeng/button';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { firstValueFrom } from 'rxjs';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { PoamService } from '../../../poams.service';
@@ -26,7 +25,7 @@ import { PoamService } from '../../../poams.service';
   templateUrl: './poam-teams.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ProgressBarModule, SelectModule, ButtonModule, ToastModule]
+  imports: [FormsModule, TableModule, ProgressBarModule, SelectModule, ButtonModule]
 })
 export class PoamTeamsComponent {
   private readonly messageService = inject(MessageService);

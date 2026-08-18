@@ -23,7 +23,6 @@ import { CpatChartComponent } from '../../../common/components/chart/chart.compo
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
-import { ToastModule } from 'primeng/toast';
 import { AppInfoComponent } from './app-info.component';
 import { AdminProcessingService } from '../admin-processing.service';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
@@ -181,7 +180,7 @@ describe('AppInfoComponent', () => {
     })
       .overrideComponent(AppInfoComponent, {
         set: {
-          imports: [ButtonModule, CardModule, CpatChartComponent, CommonModule, FormsModule, PanelModule, TableModule, TabsModule, ToastModule]
+          imports: [ButtonModule, CardModule, CpatChartComponent, CommonModule, FormsModule, PanelModule, TableModule, TabsModule]
         }
       })
       .compileComponents();

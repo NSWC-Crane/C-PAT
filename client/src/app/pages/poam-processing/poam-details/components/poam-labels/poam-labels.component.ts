@@ -15,7 +15,6 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 
 @Component({
@@ -23,7 +22,7 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
   templateUrl: './poam-labels.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ButtonModule, SelectModule, ToastModule]
+  imports: [FormsModule, TableModule, ButtonModule, SelectModule]
 })
 export class PoamLabelsComponent implements OnInit {
   readonly poamId = input<any>(undefined);

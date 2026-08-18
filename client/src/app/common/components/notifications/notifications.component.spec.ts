@@ -510,12 +510,6 @@ describe('NotificationsComponent', () => {
 
       expect(deleteAllButton).toBeTruthy();
     });
-
-    it('should render p-toast for messages', () => {
-      const toast = fixture.debugElement.query(By.css('p-toast'));
-
-      expect(toast).toBeTruthy();
-    });
   });
 
   describe('accessLevel changes', () => {

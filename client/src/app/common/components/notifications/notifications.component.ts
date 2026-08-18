@@ -17,7 +17,6 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { filter, map } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -29,7 +28,7 @@ import { NotificationService } from './notifications.service';
   styleUrls: ['./notifications.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, TableModule, ToastModule, SelectModule, FormsModule, DatePipe]
+  imports: [ButtonModule, CardModule, TableModule, SelectModule, FormsModule, DatePipe]
 })
 export class NotificationsComponent implements OnInit {
   private readonly notificationService = inject(NotificationService);

@@ -31,7 +31,6 @@ import { StepperModule } from 'primeng/stepper';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { forkJoin } from 'rxjs';
@@ -99,7 +98,6 @@ interface PoamAction {
     StepperModule,
     TabsModule,
     TagModule,
-    ToastModule,
     TooltipModule,
     PoamAttachmentsComponent,
     PoamMitigationGeneratorComponent,
@@ -113,7 +111,7 @@ interface PoamAction {
     TourPrimeNg,
     DatePipe
   ],
-  providers: [DatePipe, ConfirmationService, MessageService]
+  providers: [DatePipe, ConfirmationService]
 })
 export class PoamDetailsComponent implements OnInit {
   private readonly appConfigurationService = inject(AppConfigurationService);

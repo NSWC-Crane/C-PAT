@@ -74,7 +74,8 @@ describe('MarketplaceComponent', () => {
         { provide: MarketplaceService, useValue: mockMarketplaceService },
         { provide: UsersService, useValue: mockUsersService },
         { provide: AppConfigService, useValue: mockConfigService },
-        { provide: PayloadService, useValue: mockPayloadService }
+        { provide: PayloadService, useValue: mockPayloadService },
+        MessageService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();

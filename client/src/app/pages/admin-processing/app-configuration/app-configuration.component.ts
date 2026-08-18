@@ -16,7 +16,6 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Table, TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { AppConfiguration } from '../../../common/models/appConfiguration.model';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AppConfigurationService } from './app-configuration.service';
@@ -27,7 +26,7 @@ import { AppConfigurationService } from './app-configuration.service';
   styleUrls: ['./app-configuration.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
+  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule]
 })
 export class AppConfigurationComponent implements OnInit {
   private readonly appConfigurationService = inject(AppConfigurationService);

@@ -18,7 +18,6 @@ import { CpatChartComponent } from '../../../common/components/chart/chart.compo
 import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
-import { ToastModule } from 'primeng/toast';
 import { EMPTY, catchError } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
@@ -211,7 +210,7 @@ interface OperationError {
   templateUrl: './app-info.component.html',
   styleUrls: ['./app-info.component.scss'],
   standalone: true,
-  imports: [ButtonModule, CpatChartComponent, TabsModule, ToastModule, CardModule, TableModule, FormsModule, PanelModule, DatePipe],
+  imports: [ButtonModule, CpatChartComponent, TabsModule, CardModule, TableModule, FormsModule, PanelModule, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppInfoComponent implements OnInit {

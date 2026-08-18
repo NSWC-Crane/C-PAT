@@ -16,7 +16,6 @@ import { AutoCompleteCompleteEvent, AutoCompleteModule } from 'primeng/autocompl
 import { ButtonModule } from 'primeng/button';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
@@ -60,7 +59,7 @@ interface AutocompleteSuggestion {
   ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ButtonModule, TagModule, ToastModule, TooltipModule, AutoCompleteModule]
+  imports: [FormsModule, TableModule, ButtonModule, TagModule, TooltipModule, AutoCompleteModule]
 })
 export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges {
   private readonly importService = inject(ImportService);

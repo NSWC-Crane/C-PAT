@@ -22,7 +22,6 @@ import { SelectModule } from 'primeng/select';
 import { PickListModule } from 'primeng/picklist';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, catchError, firstValueFrom } from 'rxjs';
 import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
@@ -96,7 +95,7 @@ interface PreviewedMember {
   styleUrls: ['./assignedTeam-processing.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CheckboxModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, MultiSelectDirective, PickListModule, TableModule, TagModule, ToastModule, TooltipModule]
+  imports: [ButtonModule, CheckboxModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, MultiSelectDirective, PickListModule, TableModule, TagModule, TooltipModule]
 })
 export class AssignedTeamProcessingComponent implements OnInit {
   private readonly assetDeltaService = inject(AssetDeltaService);

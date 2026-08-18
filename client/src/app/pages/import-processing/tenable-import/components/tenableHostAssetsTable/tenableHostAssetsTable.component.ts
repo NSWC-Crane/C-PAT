@@ -20,7 +20,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Select, SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../import.service';
@@ -38,7 +37,7 @@ interface ExportColumn {
   styleUrls: ['./tenableHostAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, ToastModule, TooltipModule, TagModule, TenableHostDialogComponent]
+  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, TooltipModule, TagModule, TenableHostDialogComponent]
 })
 export class TenableHostAssetsTableComponent implements OnInit {
   private readonly importService = inject(ImportService);

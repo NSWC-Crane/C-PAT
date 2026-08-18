@@ -21,7 +21,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { Table, TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, Observable, catchError, map, shareReplay, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -34,7 +33,7 @@ import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
   styleUrls: ['./nessus-plugin-mapping.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule, TooltipModule, DatePipe]
+  imports: [ButtonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, TooltipModule, DatePipe]
 })
 export class NessusPluginMappingComponent implements OnInit {
   private readonly messageService = inject(MessageService);

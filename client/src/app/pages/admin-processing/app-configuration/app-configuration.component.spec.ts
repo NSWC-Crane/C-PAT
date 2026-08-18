@@ -20,7 +20,6 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { AppConfigurationComponent } from './app-configuration.component';
 import { AppConfigurationService } from './app-configuration.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
@@ -61,7 +60,7 @@ describe('AppConfigurationComponent', () => {
     })
       .overrideComponent(AppConfigurationComponent, {
         set: {
-          imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
+          imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule]
         }
       })
       .compileComponents();

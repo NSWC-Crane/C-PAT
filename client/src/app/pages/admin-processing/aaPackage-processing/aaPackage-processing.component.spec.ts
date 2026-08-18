@@ -21,7 +21,6 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { AAPackageProcessingComponent } from './aaPackage-processing.component';
 import { AAPackageService } from './aaPackage-processing.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
@@ -64,7 +63,7 @@ describe('AAPackageProcessingComponent', () => {
     })
       .overrideComponent(AAPackageProcessingComponent, {
         set: {
-          imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, ToastModule]
+          imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule]
         }
       })
       .compileComponents();
