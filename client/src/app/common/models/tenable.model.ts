@@ -85,9 +85,7 @@ export interface FilterValue {
   max?: number;
 }
 
-export interface FilterHandler {
-  (filter: any): FilterValue;
-}
+export type FilterHandler = (filter: any) => FilterValue;
 
 export interface TenableFilter {
   filterId?: number;

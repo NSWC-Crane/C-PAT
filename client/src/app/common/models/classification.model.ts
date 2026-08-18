@@ -9,13 +9,11 @@
 */
 
 export class Classification {
-  public showBanner: boolean;
+  public showBanner = true;
   public classificationText?: string;
   public classificationColorCode?: string;
 
   constructor(apiClassification: string) {
-    this.showBanner = true;
-
     switch (apiClassification) {
       case 'U':
         this.classificationText = 'UNCLASSIFIED';

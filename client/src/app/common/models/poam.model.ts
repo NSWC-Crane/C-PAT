@@ -7,6 +7,9 @@
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 */
+export type DateInput = Date | string;
+export type NullableDateInput = DateInput | null;
+
 export interface Poam {
   [key: string]: any;
   poamId: number;
@@ -15,7 +18,7 @@ export interface Poam {
   vulnerabilityTitle: string | null;
   controlAPs: string;
   iavmNumber: string | null;
-  iavComplyByDate: Date | string | null;
+  iavComplyByDate: NullableDateInput;
   taskOrderNumber: string | null;
   aaPackage: string;
   vulnerabilityId: string | null;
@@ -25,7 +28,7 @@ export interface Poam {
   description: string;
   rawSeverity: string;
   adjSeverity: string | null;
-  scheduledCompletionDate: Date | string;
+  scheduledCompletionDate: DateInput;
   submitterId: number;
   ownerId: number | null;
   submitterName: string;
@@ -34,8 +37,8 @@ export interface Poam {
   requiredResources: string | null;
   residualRisk: string | null;
   status: string;
-  submittedDate: Date | string;
-  closedDate: Date | string | null;
+  submittedDate: DateInput;
+  closedDate: NullableDateInput;
   officeOrg: string;
   predisposingConditions: string | null;
   severity: string;
@@ -44,12 +47,12 @@ export interface Poam {
   devicesAffected: string;
   impactDescription: string | null;
   extensionDays: number;
-  extensionDeadline: Date | string | null;
+  extensionDeadline: NullableDateInput;
   extensionJustification: string;
   hqs: boolean | null;
   isGlobalFinding: boolean | null;
-  created: Date | string;
-  lastUpdated: Date | string;
+  created: DateInput;
+  lastUpdated: DateInput;
   localImpact: string | null;
   associatedVulnerabilities: string[];
   labels: {
@@ -58,7 +61,7 @@ export interface Poam {
   approvers?: {
     userId: number;
     approvalStatus: string;
-    approvedDate: Date | string | null;
+    approvedDate: NullableDateInput;
     comments: string | null;
     hqs: boolean | null;
   }[];
