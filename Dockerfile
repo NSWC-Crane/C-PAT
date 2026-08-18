@@ -3,7 +3,7 @@ ARG BASE_IMAGE="node:lts-alpine"
 FROM ${BASE_IMAGE} AS build
 WORKDIR /app/client
 COPY client/package*.json ./
-RUN npm install --force
+RUN npm ci --force --ignore-scripts
 COPY client/. .
 RUN npm run build
 
@@ -14,7 +14,7 @@ USER node
 WORKDIR /home/node/app/api
 
 COPY --chown=node:node api/package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 COPY --chown=node:node api/. .
 
@@ -30,7 +30,6 @@ USER node
 
 COPY --chown=node:node --from=build /app/client/dist/browser ../client/dist/browser
 
-RUN mkdir docs
 COPY --chown=node:node ./docs/_build/html ../docs/_build/html
 
 USER root
