@@ -74,7 +74,7 @@ interface AssetEntry {
   ]
 })
 export class AssetProcessingComponent implements OnInit, OnDestroy {
-  private assetService = inject(AssetService);
+  private readonly assetService = inject(AssetService);
   private readonly setPayloadService = inject(PayloadService);
   private readonly sharedService = inject(SharedService);
   private readonly collectionsService = inject(CollectionsService);

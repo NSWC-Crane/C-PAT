@@ -195,7 +195,7 @@ function configureOpenApi(app) {
                 coerceTypes: false,
                 allowUnknownQueryParameters: false,
             },
-            validateResponses: buildResponseValidationConfig(config.settings.responseValidation === 'logOnly'),
+            validateResponses: config.settings.responseValidation === 'logOnly' ? buildResponseValidationConfig() : false,
             validateApiSpec: true,
             $refParser: {
                 mode: 'dereference',
