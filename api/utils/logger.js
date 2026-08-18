@@ -197,6 +197,10 @@ function serializeEnvironment() {
     return env;
 }
 
+function runningAverage({ currentAvg, counter, newValue }) {
+    return currentAvg + (newValue - currentAvg) / counter;
+}
+
 function trackOperationStats(operationId, durationMs, res) {
     const acceptsRequestBody = res.req.method === 'POST' || res.req.method === 'PUT' || res.req.method === 'PATCH';
 
@@ -302,10 +306,6 @@ function trackOperationStats(operationId, durationMs, res) {
                 projStats.averageRetries = projStats.averageRetries + (res.svcStatus.retries - projStats.averageRetries) / projStats.retried;
             }
         }
-    }
-
-    function runningAverage({ currentAvg, counter, newValue }) {
-        return currentAvg + (newValue - currentAvg) / counter;
     }
 }
 
