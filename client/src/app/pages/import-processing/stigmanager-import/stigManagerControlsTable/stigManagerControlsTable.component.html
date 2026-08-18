@@ -205,6 +205,8 @@
                       (keyup.enter)="addPoam(rowData)"
                       [pTooltip]="getPoamStatusTooltip(rowData.poamStatus, rowData.hasExistingPoam, rowData.parentStatus)"
                       tooltipPosition="top"
+                      role="button"
+                      aria-label="Manage POAM"
                       tabindex="0"
                     ></i>
                   }
