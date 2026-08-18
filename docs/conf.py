@@ -16,7 +16,7 @@ extensions = [
     'sphinx_tabs.tabs'
 ]
 
-# Todo configuration
+# To do configuration
 todo_include_todos = True
 
 # Images configuration
