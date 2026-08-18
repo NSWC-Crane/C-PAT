@@ -273,7 +273,7 @@ async function initializeAuth() {
         minTimeout: 5 * 1000,
         maxTimeout: 5 * 1000,
         onRetry: error => {
-            state.setStatus(false);
+            state.setOidcStatus(false);
             logger.writeError('auth', 'discovery', { success: false, metadataUri, message: error.message });
         },
     });
