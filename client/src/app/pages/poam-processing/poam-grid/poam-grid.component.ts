@@ -192,8 +192,26 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
       return dataToFilter;
     }
 
-    return dataToFilter.filter((poam) => Object.values(poam).some((value) => value?.toString().toLowerCase().includes(filterValue.toLowerCase())));
+    const query = filterValue.toLowerCase();
+
+    return dataToFilter.filter((poam) => Object.values(poam).some((value) => this.toSearchableText(value).includes(query)));
   });
+
+  private toSearchableText(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.toSearchableText(item)).join(' ');
+    }
+
+    if (typeof value === 'object') {
+      return '';
+    }
+
+    return String(value).toLowerCase();
+  }
 
   protected tableData = computed(() => {
     const cycle = this.statusSortCycle();
@@ -550,6 +568,33 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private getTenableAffectedDevices(vulnerabilityId: string): string[] {
+    return this.tenableAffectedAssets()
+      .filter((asset: any) => asset.pluginId === vulnerabilityId)
+      .map((asset: any) => this.getTenableDeviceName(asset))
+      .filter(Boolean);
+  }
+
+  private getTenableDeviceName(asset: any): string | null {
+    if (asset.netbiosName) {
+      const parts = asset.netbiosName.split('\\');
+
+      if (parts.length > 1) {
+        return parts.at(-1);
+      }
+    }
+
+    if (asset.dnsName) {
+      const parts = asset.dnsName.split('.');
+
+      if (parts.length > 0) {
+        return parts[0].toUpperCase();
+      }
+    }
+
+    return null;
+  }
+
   processPoamsWithTenableFindings(poams: any[]): Promise<any[]> {
     return new Promise((resolve) => {
       const processedPoams: any[] = [];
@@ -625,34 +670,11 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
                   cci = '000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.';
                 }
 
-                const affectedDevices = this.tenableAffectedAssets()
-                  .filter((asset: any) => asset.pluginId === poam.vulnerabilityId)
-                  .map((asset: any) => {
-                    if (asset.netbiosName) {
-                      const parts = asset.netbiosName.split('\\');
-
-                      if (parts.length > 1) {
-                        return parts[parts.length - 1];
-                      }
-                    }
-
-                    if (asset.dnsName) {
-                      const parts = asset.dnsName.split('.');
-
-                      if (parts.length > 0) {
-                        return parts[0].toUpperCase();
-                      }
-                    }
-
-                    return null;
-                  })
-                  .filter(Boolean);
-
                 processedPoams.push({
                   ...poam,
                   controlAPs,
                   cci,
-                  devicesAffected: affectedDevices.join(' ')
+                  devicesAffected: this.getTenableAffectedDevices(poam.vulnerabilityId).join(' ')
                 });
 
                 completedPoams++;
