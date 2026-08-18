@@ -184,8 +184,8 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
 
     if (!payload) return;
 
-    this.subs.sink = forkJoin([this.assetService.getAssetsByCollection(this.user().lastCollectionAccessedId), this.assetService.getCollectionAssetLabel(payload.lastCollectionAccessedId)]).subscribe(
-      ([assetData, assetLabelResponse]: any) => {
+    this.subs.sink = forkJoin([this.assetService.getAssetsByCollection(this.user().lastCollectionAccessedId), this.assetService.getCollectionAssetLabel(payload.lastCollectionAccessedId)]).subscribe({
+      next: ([assetData, assetLabelResponse]: any) => {
         if (!Array.isArray(assetData)) {
           console.error('Unexpected response format:', assetData);
 
@@ -211,14 +211,14 @@ export class AssetProcessingComponent implements OnInit, OnDestroy {
         this.data.set(sorted);
         this.assets.set(sorted);
       },
-      (error) => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Failed to fetch assets by collection: ${getErrorMessage(error)}`
         });
       }
-    );
+    });
   }
 
   initializeColumns() {

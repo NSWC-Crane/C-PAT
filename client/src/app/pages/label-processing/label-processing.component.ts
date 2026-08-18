@@ -87,8 +87,8 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
 
   getLabelData() {
     this.labels.set([]);
-    this.subs.sink = this.labelService.getLabels(this.selectedCollection()).subscribe(
-      (result: any) => {
+    this.subs.sink = this.labelService.getLabels(this.selectedCollection()).subscribe({
+      next: (result: any) => {
         const sorted = (result as Label[])
           .map((label) => ({
             ...label,
@@ -99,14 +99,14 @@ export class LabelProcessingComponent implements OnInit, OnDestroy {
         this.data.set(sorted);
         this.labels.set(sorted);
       },
-      (error) => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Error fetching labels: ${getErrorMessage(error)}`
         });
       }
-    );
+    });
   }
 
   setLabel(labelId: number) {
