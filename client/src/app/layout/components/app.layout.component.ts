@@ -13,7 +13,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, injec
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
-import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem } from 'primeng/api';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { ButtonModule } from 'primeng/button';
@@ -22,7 +22,6 @@ import { DividerModule } from 'primeng/divider';
 import { MenuModule } from 'primeng/menu';
 import { RippleModule } from 'primeng/ripple';
 import { Tag } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { combineLatest, distinctUntilChanged, filter, forkJoin, map, switchMap, take } from 'rxjs';
 import { IStepOption, TourPrimeNg, TourService } from 'ngx-ui-tour-primeng';
@@ -50,7 +49,6 @@ import { CardModule } from 'primeng/card';
     DividerModule,
     AvatarModule,
     TooltipModule,
-    ToastModule,
     ButtonModule,
     RippleModule,
     StatusMessageComponent,
@@ -58,7 +56,7 @@ import { CardModule } from 'primeng/card';
     Tag,
     TourPrimeNg
   ],
-  providers: [ConfirmationService, MessageService],
+  providers: [ConfirmationService],
   template: `
     @if (collectionType() && collectionName()) {
       <div class="current-collection mt-5 ml-[10.5rem] mb-[-2.5rem] flex items-center" tourAnchor="current-collection">
@@ -182,7 +180,6 @@ import { CardModule } from 'primeng/card';
         </div>
       </ng-template>
     </p-dialog>
-    <p-toast />
     <tour-step-template />
   `,
   styles: [

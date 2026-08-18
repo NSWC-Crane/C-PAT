@@ -21,7 +21,6 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Observable } from 'rxjs';
 import { SubSink } from 'subsink';
@@ -39,7 +38,7 @@ import { LabelComponent } from './label/label.component';
   styleUrls: ['./label-processing.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, CardModule, DialogModule, SelectModule, InputTextModule, InputIconModule, IconFieldModule, TableModule, ToastModule, TooltipModule, LabelComponent]
+  imports: [FormsModule, ButtonModule, CardModule, DialogModule, SelectModule, InputTextModule, InputIconModule, IconFieldModule, TableModule, TooltipModule, LabelComponent]
 })
 export class LabelProcessingComponent implements OnInit, OnDestroy {
   private readonly labelService = inject(LabelService);

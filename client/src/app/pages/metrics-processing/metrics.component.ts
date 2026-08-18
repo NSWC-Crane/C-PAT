@@ -10,13 +10,11 @@
 
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { CpatChartComponent } from '../../common/components/chart/chart.component';
 import { DividerModule } from 'primeng/divider';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { map, switchMap, tap, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -33,8 +31,7 @@ import { TenableMetricsComponent } from './tenable-metrics/tenable-metrics.compo
   styleUrls: ['./metrics.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, CpatChartComponent, DividerModule, ProgressSpinnerModule, ToastModule, TooltipModule, STIGManagerMetricsComponent, TenableMetricsComponent],
-  providers: [MessageService]
+  imports: [ButtonModule, CardModule, CpatChartComponent, DividerModule, ProgressSpinnerModule, TooltipModule, STIGManagerMetricsComponent, TenableMetricsComponent]
 })
 export class MetricsComponent implements OnInit {
   private readonly collectionsService = inject(CollectionsService);

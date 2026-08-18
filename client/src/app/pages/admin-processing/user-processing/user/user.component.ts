@@ -25,7 +25,6 @@ import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { SubSink } from 'subsink';
@@ -124,26 +123,8 @@ interface RevocationPlan {
   styleUrls: ['./user.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    AutoCompleteModule,
-    ButtonModule,
-    CardModule,
-    CheckboxModule,
-    ConfirmDialogModule,
-    DialogModule,
-    SelectModule,
-    InputNumberModule,
-    ToggleSwitch,
-    InputTextModule,
-    FormsModule,
-    TableModule,
-    TabsModule,
-    TagModule,
-    ToastModule,
-    TooltipModule,
-    JsonPipe
-  ],
-  providers: [ConfirmationService, MessageService]
+  imports: [AutoCompleteModule, ButtonModule, CardModule, CheckboxModule, ConfirmDialogModule, DialogModule, SelectModule, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, TableModule, TabsModule, TagModule, TooltipModule, JsonPipe],
+  providers: [ConfirmationService]
 })
 export class UserComponent implements OnInit, OnDestroy {
   private readonly assignedTeamService = inject(AssignedTeamService);

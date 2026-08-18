@@ -25,7 +25,6 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
@@ -181,7 +180,6 @@ describe('STIGManagerImportComponent', () => {
             SkeletonModule,
             TableModule,
             TabsModule,
-            ToastModule,
             TooltipModule,
             InputIconModule,
             IconFieldModule,

@@ -23,7 +23,6 @@ import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { CsvExportService } from '../../../../../common/utils/csv-export.service';
@@ -48,7 +47,7 @@ interface ExportColumn {
   styleUrls: ['./tenableAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, TabsModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, SelectModule, MultiSelectDirective, DialogModule, ToastModule, TooltipModule, TagModule, DatePipe]
+  imports: [FormsModule, TableModule, TabsModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, TextareaModule, SelectModule, MultiSelectDirective, DialogModule, TooltipModule, TagModule, DatePipe]
 })
 export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   private readonly assetDeltaService = inject(AssetDeltaService);

@@ -27,7 +27,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, Observable, catchError, filter, finalize, forkJoin, map, of, switchMap, take } from 'rxjs';
 import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
@@ -91,7 +90,6 @@ interface ChartData {
     SelectModule,
     MultiSelectDirective,
     TableModule,
-    ToastModule,
     TooltipModule,
     DatePipe
   ],

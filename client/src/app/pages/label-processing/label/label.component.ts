@@ -17,7 +17,6 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DialogService } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
-import { ToastModule } from 'primeng/toast';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
@@ -37,7 +36,7 @@ import { PoamService } from '../../poam-processing/poams.service';
   styleUrls: ['./label.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, ToastModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
+  imports: [FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
 })
 export class LabelComponent implements OnInit, OnDestroy, OnChanges {
   private readonly labelService = inject(LabelService);

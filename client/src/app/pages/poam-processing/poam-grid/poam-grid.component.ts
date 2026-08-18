@@ -25,7 +25,6 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { Observable, Subscription, firstValueFrom, shareReplay } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -46,7 +45,7 @@ import { TourPrimeNg } from 'ngx-ui-tour-primeng';
   styleUrls: ['./poam-grid.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, CardModule, SelectModule, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, NgTemplateOutlet, TableModule, TooltipModule, ToastModule, TagModule, TourPrimeNg]
+  imports: [FormsModule, ButtonModule, CardModule, SelectModule, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, NgTemplateOutlet, TableModule, TooltipModule, TagModule, TourPrimeNg]
 })
 export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly dialogService = inject(DialogService);

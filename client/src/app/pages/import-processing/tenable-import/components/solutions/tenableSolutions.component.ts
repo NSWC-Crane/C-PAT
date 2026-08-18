@@ -19,7 +19,6 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
 import { Table, TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
@@ -37,7 +36,7 @@ interface ExportColumn {
   styleUrls: ['./tenableSolutions.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, DialogModule, SkeletonModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule, ToastModule]
+  imports: [FormsModule, ButtonModule, DialogModule, SkeletonModule, TableModule, InputTextModule, InputIconModule, IconFieldModule, TooltipModule]
 })
 export class TenableSolutionsComponent implements OnInit {
   private readonly importService = inject(ImportService);

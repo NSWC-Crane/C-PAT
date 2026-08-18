@@ -27,7 +27,6 @@ import { PickListModule } from 'primeng/picklist';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing.component';
 import { AssignedTeamService } from './assignedTeam-processing.service';
@@ -116,7 +115,7 @@ describe('AssignedTeamProcessingComponent', () => {
     })
       .overrideComponent(AssignedTeamProcessingComponent, {
         set: {
-          imports: [ButtonModule, CheckboxModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, SelectModule, TableModule, TagModule, ToastModule, TooltipModule]
+          imports: [ButtonModule, CheckboxModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, SelectModule, TableModule, TagModule, TooltipModule]
         }
       })
       .compileComponents();

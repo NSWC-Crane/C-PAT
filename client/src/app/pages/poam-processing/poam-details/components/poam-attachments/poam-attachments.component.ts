@@ -19,7 +19,6 @@ import { ButtonModule } from 'primeng/button';
 import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
@@ -31,7 +30,7 @@ import { PoamAttachmentService } from '../../services/poam-attachments.service';
   templateUrl: './poam-attachments.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, ToastModule, TooltipModule, DatePipe]
+  imports: [FormsModule, ButtonModule, FileUploadModule, TableModule, ProgressBarModule, BadgeModule, TooltipModule, DatePipe]
 })
 export class PoamAttachmentsComponent implements OnInit {
   private readonly messageService = inject(MessageService);

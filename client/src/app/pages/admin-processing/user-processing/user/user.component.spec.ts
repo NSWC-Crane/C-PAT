@@ -28,7 +28,6 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
-import { ToastModule } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { UserComponent } from './user.component';
@@ -142,7 +141,6 @@ describe('UserComponent', () => {
             TableModule,
             TabsModule,
             TagModule,
-            ToastModule,
             ToggleSwitch,
             TooltipModule
           ],

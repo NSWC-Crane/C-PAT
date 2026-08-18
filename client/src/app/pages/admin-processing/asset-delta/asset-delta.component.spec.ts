@@ -32,7 +32,6 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { AssetDeltaComponent } from './asset-delta.component';
 import { AssetDeltaService } from './asset-delta.service';
@@ -141,7 +140,6 @@ describe('AssetDeltaComponent', () => {
             ProgressBarModule,
             SelectModule,
             TableModule,
-            ToastModule,
             TooltipModule
           ]
         }

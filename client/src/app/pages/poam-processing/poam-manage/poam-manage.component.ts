@@ -14,7 +14,6 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TabsModule } from 'primeng/tabs';
-import { ToastModule } from 'primeng/toast';
 import { Observable, catchError, combineLatest, filter, forkJoin, of, switchMap, take, tap } from 'rxjs';
 import { SubSink } from 'subsink';
 import { Poam } from '../../../common/models/poam.model';
@@ -34,7 +33,7 @@ import { TourPrimeNg } from 'ngx-ui-tour-primeng';
   styleUrls: ['./poam-manage.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, TabsModule, ToastModule, PoamAdvancedPieComponent, PoamGridComponent, PoamMilestoneGridComponent, TourPrimeNg]
+  imports: [ButtonModule, CardModule, TabsModule, PoamAdvancedPieComponent, PoamGridComponent, PoamMilestoneGridComponent, TourPrimeNg]
 })
 export class PoamManageComponent implements OnInit, OnDestroy {
   private readonly collectionsService = inject(CollectionsService);

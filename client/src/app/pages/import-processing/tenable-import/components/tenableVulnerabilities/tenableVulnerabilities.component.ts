@@ -2502,7 +2502,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       return;
     }
 
-    this.messageService.clear();
+    this.messageService.clear('deleteConfirmation');
     this.messageService.add({
       key: 'deleteConfirmation',
       sticky: true,
@@ -2531,7 +2531,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
           }
 
           this.loadSavedFilters();
-          this.messageService.clear();
+          this.messageService.clear('deleteConfirmation');
         },
         error: (error) => {
           this.messageService.add({

@@ -24,7 +24,6 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { NessusPluginMappingComponent } from './nessus-plugin-mapping.component';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 import { ImportService } from '../../import-processing/import.service';
@@ -113,7 +112,7 @@ describe('NessusPluginMappingComponent', () => {
     })
       .overrideComponent(NessusPluginMappingComponent, {
         set: {
-          imports: [ButtonModule, CommonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule, ToastModule]
+          imports: [ButtonModule, CommonModule, DatePicker, IconFieldModule, InputIconModule, InputTextModule, FormsModule, MessageModule, ProgressBarModule, TableModule]
         }
       })
       .compileComponents();

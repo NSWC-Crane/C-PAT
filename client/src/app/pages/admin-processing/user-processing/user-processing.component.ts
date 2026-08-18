@@ -20,7 +20,6 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { Table, TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
@@ -34,8 +33,7 @@ import { UsersService } from './users.service';
   styleUrls: ['./user-processing.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, DialogModule, FormsModule, InputIconModule, InputTextModule, IconFieldModule, SelectModule, TableModule, ToastModule, TooltipModule, UserComponent],
-  providers: [MessageService]
+  imports: [ButtonModule, DialogModule, FormsModule, InputIconModule, InputTextModule, IconFieldModule, SelectModule, TableModule, TooltipModule, UserComponent]
 })
 export class UserProcessingComponent implements OnInit {
   private readonly userService = inject(UsersService);

@@ -29,7 +29,6 @@ import { StepperModule } from 'primeng/stepper';
 import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { forkJoin } from 'rxjs';
 import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
@@ -67,12 +66,11 @@ import { PoamService } from '../poams.service';
     StepperModule,
     TableModule,
     TagModule,
-    ToastModule,
     ConfirmDialogModule,
     DatePipe,
     PoamMitigationGeneratorComponent
   ],
-  providers: [ConfirmationService, MessageService]
+  providers: [ConfirmationService]
 })
 export class PoamExtendComponent implements OnInit {
   readonly table = viewChild.required<Table>('dt');

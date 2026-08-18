@@ -17,7 +17,6 @@ import { DialogModule } from 'primeng/dialog';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { TextareaModule } from 'primeng/textarea';
-import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { PoamService } from '../../../poams.service';
@@ -27,7 +26,7 @@ import { PoamService } from '../../../poams.service';
   templateUrl: './poam-mitigation-generator.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, TextareaModule, ProgressBarModule, TooltipModule, DialogModule, SplitButtonModule, ToastModule]
+  imports: [FormsModule, ButtonModule, TextareaModule, ProgressBarModule, TooltipModule, DialogModule, SplitButtonModule]
 })
 export class PoamMitigationGeneratorComponent implements OnChanges {
   private readonly poamService = inject(PoamService);
