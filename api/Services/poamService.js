@@ -25,7 +25,7 @@ async function withConnection(callback) {
     try {
         return await callback(connection);
     } finally {
-        await connection.release();
+        connection.release();
     }
 }
 
