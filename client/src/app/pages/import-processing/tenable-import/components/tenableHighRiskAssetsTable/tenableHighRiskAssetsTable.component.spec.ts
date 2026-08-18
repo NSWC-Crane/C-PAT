@@ -12,8 +12,10 @@ import { NO_ERRORS_SCHEMA, SimpleChange, SimpleChanges } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError, Subject } from 'rxjs';
+import { MessageService } from 'primeng/api';
 import { TenableHighRiskAssetsTableComponent } from './tenableHighRiskAssetsTable.component';
 import { ImportService } from '../../../import.service';
+import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 
 const makeAnalysisResponse = (results: any[], totalRecords = results.length) => ({
   response: {
@@ -52,6 +54,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
   let component: TenableHighRiskAssetsTableComponent;
   let fixture: ComponentFixture<TenableHighRiskAssetsTableComponent>;
   let mockImportService: any;
+  let mockMessageService: any;
 
   const createMockTable = () => ({
     clear: vi.fn(),
@@ -80,9 +83,14 @@ describe('TenableHighRiskAssetsTableComponent', () => {
       postTenableAnalysis: vi.fn().mockReturnValue(of(makeAnalysisResponse([mockAssetRaw])))
     };
 
+    mockMessageService = createMockMessageService();
+
     await TestBed.configureTestingModule({
       imports: [TenableHighRiskAssetsTableComponent],
-      providers: [{ provide: ImportService, useValue: mockImportService }],
+      providers: [
+        { provide: ImportService, useValue: mockImportService },
+        { provide: MessageService, useValue: mockMessageService }
+      ],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
@@ -241,6 +249,46 @@ describe('TenableHighRiskAssetsTableComponent', () => {
       mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Network error')));
       component.loadHighRiskAssets();
       expect(component.highRiskAssets()).toEqual([]);
+    });
+
+    it('surfaces a message rather than failing silently on error', () => {
+      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Network error')));
+      component.loadHighRiskAssets();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error', detail: expect.stringContaining('Network error') }));
+    });
+  });
+
+  describe('load generation guard', () => {
+    it('keeps the newest load when an earlier one lands afterwards', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadHighRiskAssets();
+      component.loadHighRiskAssets();
+
+      second.next(makeAnalysisResponse([mockAssetRaw, mockAssetRawNoDns], 2));
+      first.next(makeAnalysisResponse([mockAssetRaw], 1));
+
+      expect(component.highRiskAssets()).toHaveLength(2);
+      expect(component.highRiskAssetsTotalRecords()).toBe(2);
+    });
+
+    it('does not surface an error from an earlier load', () => {
+      const first = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(of(makeAnalysisResponse([mockAssetRaw], 1)));
+
+      component.loadHighRiskAssets();
+      component.loadHighRiskAssets();
+      mockMessageService.add.mockClear();
+
+      first.error(new Error('stale failure'));
+
+      expect(mockMessageService.add).not.toHaveBeenCalled();
+      expect(component.highRiskAssets()).toHaveLength(1);
     });
   });
 

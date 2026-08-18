@@ -140,6 +140,8 @@ export class STIGManagerImportComponent implements OnInit {
   readonly displayDataSource = signal<STIGManagerFinding[]>([]);
   public existingPoams: any[] = [];
   readonly loadingTableInfo = signal<boolean>(true);
+  private summariesGeneration = 0;
+  private findingsGeneration = 0;
   loadingSkeletonData: any[] = new Array(15).fill({});
   multiSortMeta: any[] = [];
   readonly selectedCollection = signal<any>(null);
@@ -271,14 +273,22 @@ export class STIGManagerImportComponent implements OnInit {
 
   private loadBenchmarkSummaries(stigmanCollectionId: number) {
     this.loadingTableInfo.set(true);
+
+    const gen = ++this.summariesGeneration;
+
     this.sharedService
       .getCollectionSTIGSummaryFromSTIGMAN(stigmanCollectionId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
+          if (gen !== this.summariesGeneration) {
+            return;
+          }
+
+          this.loadingTableInfo.set(false);
+
           if (!data || data.length === 0) {
             this.showWarn('No benchmark summaries found.');
-            this.loadingTableInfo.set(false);
 
             return;
           }
@@ -287,14 +297,16 @@ export class STIGManagerImportComponent implements OnInit {
           this.benchmarksCount.set(this.benchmarkSummaries().length);
         },
         error: (error) => {
+          if (gen !== this.summariesGeneration) {
+            return;
+          }
+
+          this.loadingTableInfo.set(false);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Failed to fetch benchmark summaries: ${getErrorMessage(error)}`
           });
-        },
-        complete: () => {
-          this.loadingTableInfo.set(false);
         }
       });
   }
@@ -324,11 +336,18 @@ export class STIGManagerImportComponent implements OnInit {
 
     const apiCall = benchmarkId ? this.sharedService.getFindingsByBenchmarkFromSTIGMAN(stigmanCollectionId, benchmarkId) : this.sharedService.getFindingsFromSTIGMAN(stigmanCollectionId);
 
+    const gen = ++this.findingsGeneration;
+
     apiCall.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
+        if (gen !== this.findingsGeneration) {
+          return;
+        }
+
+        this.loadingTableInfo.set(false);
+
         if (!data || data.length === 0) {
           this.showWarn('No affected assets found' + (benchmarkId ? ' for this benchmark.' : '.'));
-          this.loadingTableInfo.set(false);
 
           return;
         }
@@ -348,14 +367,16 @@ export class STIGManagerImportComponent implements OnInit {
         this.filterFindings();
       },
       error: (error) => {
+        if (gen !== this.findingsGeneration) {
+          return;
+        }
+
+        this.loadingTableInfo.set(false);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Failed to fetch affected assets: ${getErrorMessage(error)}`
         });
-      },
-      complete: () => {
-        this.loadingTableInfo.set(false);
       }
     });
   }

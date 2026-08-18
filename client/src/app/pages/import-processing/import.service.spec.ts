@@ -418,4 +418,181 @@ describe('ImportService', () => {
       consoleSpy.mockRestore();
     });
   });
+
+  describe('cache confinement', () => {
+    const drain = (url: string) => {
+      const req = httpMock.expectOne(url);
+
+      req.flush({ response: { results: [] } });
+    };
+
+    it('caches reads from the tenable proxy', () => {
+      const emissions: any[] = [];
+
+      service.getTenableRepositories().subscribe();
+      drain(`${apiBase}/tenable/repository`);
+
+      service.getTenableRepositories().subscribe((value) => emissions.push(value));
+
+      expect(emissions).toHaveLength(1);
+      httpMock.expectNone(`${apiBase}/tenable/repository`);
+    });
+
+    it('caches postTenableAnalysis by default', () => {
+      const emissions: any[] = [];
+      const params = { query: { tool: 'listvuln' } };
+
+      service.postTenableAnalysis(params).subscribe();
+      drain(`${apiBase}/tenable/analysis`);
+
+      service.postTenableAnalysis(params).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toHaveLength(1);
+      httpMock.expectNone(`${apiBase}/tenable/analysis`);
+    });
+
+    it('does not cache a Tenable-level failure returned with a 200', () => {
+      const emissions: any[] = [];
+      const params = { query: { tool: 'listvuln' } };
+
+      service.postTenableAnalysis(params).subscribe();
+      httpMock.expectOne(`${apiBase}/tenable/analysis`).flush({ error_code: 1, error_msg: 'Session expired', response: null });
+
+      service.postTenableAnalysis(params).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toHaveLength(0);
+
+      drain(`${apiBase}/tenable/analysis`);
+
+      expect(emissions).toHaveLength(1);
+    });
+
+    it('treats the Tenable success envelope as cacheable', () => {
+      const emissions: any[] = [];
+      const params = { query: { tool: 'listvuln' } };
+
+      service.postTenableAnalysis(params).subscribe();
+      httpMock.expectOne(`${apiBase}/tenable/analysis`).flush({ type: 'regular', error_code: 0, error_msg: '', response: { results: [] } });
+
+      service.postTenableAnalysis(params).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toHaveLength(1);
+      httpMock.expectNone(`${apiBase}/tenable/analysis`);
+    });
+
+    it('neither reads nor writes the cache when postTenableAnalysis opts out', () => {
+      const emissions: any[] = [];
+      const params = { query: { tool: 'listvuln' } };
+
+      service.postTenableAnalysis(params, false).subscribe();
+      drain(`${apiBase}/tenable/analysis`);
+
+      service.postTenableAnalysis(params, false).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toHaveLength(0);
+
+      drain(`${apiBase}/tenable/analysis`);
+
+      expect(emissions).toHaveLength(1);
+    });
+
+    it('neither reads nor writes the cache when getTenableRepositories opts out', () => {
+      const emissions: any[] = [];
+
+      service.getTenableRepositories(false).subscribe();
+      drain(`${apiBase}/tenable/repository`);
+
+      service.getTenableRepositories(false).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toHaveLength(0);
+
+      drain(`${apiBase}/tenable/repository`);
+
+      expect(emissions).toHaveLength(1);
+
+      service.getTenableRepositories().subscribe();
+      drain(`${apiBase}/tenable/repository`);
+    });
+
+    it('neither reads nor writes the cache when getTenablePlugin opts out', () => {
+      const emissions: any[] = [];
+
+      service.getTenablePlugin(19506, false).subscribe();
+      drain(`${apiBase}/tenable/plugin/19506`);
+
+      service.getTenablePlugin(19506, false).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toHaveLength(0);
+
+      drain(`${apiBase}/tenable/plugin/19506`);
+
+      expect(emissions).toHaveLength(1);
+
+      service.getTenablePlugin(19506).subscribe();
+      drain(`${apiBase}/tenable/plugin/19506`);
+    });
+
+    it('leaves no cache entry behind for a later cached caller to read', () => {
+      const emissions: any[] = [];
+      const params = { query: { tool: 'listvuln' } };
+
+      service.postTenableAnalysis(params, false).subscribe();
+      drain(`${apiBase}/tenable/analysis`);
+
+      service.postTenableAnalysis(params).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toHaveLength(0);
+
+      drain(`${apiBase}/tenable/analysis`);
+
+      expect(emissions).toHaveLength(1);
+    });
+
+    it('never caches tenableFilters despite the shared prefix', () => {
+      const emissions: any[] = [];
+
+      service.getTenableFilters(1).subscribe();
+      drain(`${apiBase}/tenableFilters/1`);
+
+      service.getTenableFilters(1).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toHaveLength(0);
+
+      drain(`${apiBase}/tenableFilters/1`);
+
+      expect(emissions).toHaveLength(1);
+    });
+
+    it('bypasses the cache for a non-proxy url routed through cachedGet', () => {
+      const emissions: any[] = [];
+      const cachedGet = (service as any).cachedGet.bind(service);
+
+      cachedGet(`${apiBase}/poam/1/taskOrders`).subscribe();
+      drain(`${apiBase}/poam/1/taskOrders`);
+
+      cachedGet(`${apiBase}/poam/1/taskOrders`).subscribe((value: any) => emissions.push(value));
+
+      expect(emissions).toHaveLength(0);
+
+      drain(`${apiBase}/poam/1/taskOrders`);
+
+      expect(emissions).toHaveLength(1);
+    });
+
+    it('bypasses the cache for a non-proxy url routed through cachedPost', () => {
+      const emissions: any[] = [];
+      const cachedPost = (service as any).cachedPost.bind(service);
+
+      cachedPost(`${apiBase}/iav/pluginInfo`, { pluginIDs: [1] }).subscribe();
+      drain(`${apiBase}/iav/pluginInfo`);
+
+      cachedPost(`${apiBase}/iav/pluginInfo`, { pluginIDs: [1] }).subscribe((value: any) => emissions.push(value));
+
+      expect(emissions).toHaveLength(0);
+
+      drain(`${apiBase}/iav/pluginInfo`);
+
+      expect(emissions).toHaveLength(1);
+    });
+  });
 });

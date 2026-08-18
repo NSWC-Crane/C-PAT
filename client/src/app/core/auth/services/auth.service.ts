@@ -12,7 +12,8 @@ import { Injectable, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Observable, of } from 'rxjs';
-import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, finalize, map, switchMap, tap } from 'rxjs/operators';
+import { DataCacheService } from '../../../common/services/data-cache.service';
 import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
 import { Router } from '@angular/router';
 
@@ -28,6 +29,7 @@ export class AuthService {
   private readonly oidcSecurityService = inject(OidcSecurityService);
   private readonly usersService = inject(UsersService);
   private readonly router = inject(Router);
+  private readonly cache = inject(DataCacheService);
 
   private readonly _currentUser = signal<any>(null);
   private readonly _accessLevel = signal<number>(0);
@@ -160,7 +162,8 @@ export class AuthService {
         console.error('Logout error:', error);
 
         return of(undefined);
-      })
+      }),
+      finalize(() => this.cache.clear())
     );
   }
 

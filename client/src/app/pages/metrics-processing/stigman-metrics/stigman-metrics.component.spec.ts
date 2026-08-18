@@ -226,6 +226,16 @@ describe('STIGManagerMetricsComponent', () => {
       expect(mockSharedService.getCollectionSTIGSummaryFromSTIGMAN).not.toHaveBeenCalled();
     });
 
+    it('falls back to empty metrics and reports the failure when the load fails', () => {
+      (component as any).collection = () => mockCollection;
+      mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('cold failure')));
+
+      component.ngOnChanges();
+
+      expect(component.stigsAssessmentData()).toEqual([]);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('cold failure') }));
+    });
+
     it('should set isLoading to true before load', () => {
       (component as any).collection = () => mockCollection;
       let capturedLoading: boolean | undefined;

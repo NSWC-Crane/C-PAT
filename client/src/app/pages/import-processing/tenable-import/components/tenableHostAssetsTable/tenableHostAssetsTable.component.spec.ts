@@ -260,6 +260,25 @@ describe('TenableHostAssetsTableComponent', () => {
     });
   });
 
+  describe('load generation guard', () => {
+    it('keeps the newest repository result when an earlier load lands afterwards', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      mockImportService.postTenableHostSearch.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      (component as any).tenableRepoId = () => 1;
+      component.getAffectedAssets();
+      (component as any).tenableRepoId = () => 2;
+      component.getAffectedAssets();
+
+      second.next({ response: [{ name: 'repo-2-host', totalRecords: 1 }] });
+      first.next({ response: [{ name: 'repo-1-host', totalRecords: 1 }] });
+
+      expect(component.affectedAssets()[0].name).toBe('repo-2-host');
+    });
+  });
+
   describe('formatTimestamp', () => {
     it('should return undefined for undefined input', () => {
       expect(component.formatTimestamp(undefined)).toBeUndefined();

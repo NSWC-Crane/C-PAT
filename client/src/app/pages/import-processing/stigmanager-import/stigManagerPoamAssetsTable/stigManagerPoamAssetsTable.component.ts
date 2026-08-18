@@ -67,6 +67,7 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   readonly teamTabs = signal<{ teamId: string; teamName: string; assets: any[] }[]>([]);
   activeTab: string = 'all';
   readonly loading = signal<boolean>(true);
+  private loadGeneration = 0;
   private readonly tableMap = new Map<string, Table>();
   selectedCollection: any;
 
@@ -148,6 +149,8 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
 
   loadData() {
     this.loading.set(true);
+
+    const gen = ++this.loadGeneration;
     const associatedVulnIds = this.associatedVulnerabilities()
       .map((vuln) => this.extractVulnerabilityId(vuln))
       .filter((id) => id !== null);
@@ -159,6 +162,10 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (poamAssets) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           let allAssets: any[] = [];
 
           allVulnIds.forEach((vulnId) => {
@@ -187,9 +194,13 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
             }
           });
 
-          this.loadAssetDetails(Array.from(assetMap.values()));
+          this.loadAssetDetails(Array.from(assetMap.values()), gen);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -200,15 +211,20 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       });
   }
 
-  loadAssetDetails(mappedAssets: any[]) {
+  loadAssetDetails(mappedAssets: any[], gen: number = this.loadGeneration) {
     this.sharedService
       .getAssetDetailsFromSTIGMAN(this.stigmanCollectionId())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (assetDetails) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           if (!assetDetails || assetDetails.length === 0) {
             console.error('No asset details found.');
             this.affectedAssets = mappedAssets;
+            this.loading.set(false);
 
             return;
           }
@@ -240,6 +256,10 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
           this.loading.set(false);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

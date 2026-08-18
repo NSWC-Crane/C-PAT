@@ -945,6 +945,45 @@ describe('CollectionProcessingComponent', () => {
 
       expect(mockPoamService.getPoamAssetsByCollectionId).toHaveBeenCalledWith(1);
     });
+
+    describe('cache opt-out', () => {
+      const tenableRow = {
+        collectionId: 3,
+        collectionName: 'Tenable Col',
+        collectionType: 'Tenable',
+        originCollectionId: 0,
+        systemType: '',
+        systemName: '',
+        ccsafa: '',
+        aaPackage: '',
+        predisposingConditions: ''
+      };
+
+      it('bypasses the upstream cache for the export analysis', async () => {
+        vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
+        mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [{ pluginID: '12345', dnsName: 'fresh.example.com', netbiosName: '' }] } }));
+
+        component.exportCollection(tenableRow);
+        await Promise.resolve();
+
+        expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
+      });
+
+      it('builds one workbook from the analysis results', async () => {
+        const convertSpy = vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
+
+        mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [{ pluginID: '12345', dnsName: 'fresh.example.com', netbiosName: '' }] } }));
+
+        component.exportCollection(tenableRow);
+        await Promise.resolve();
+
+        expect(convertSpy).toHaveBeenCalledTimes(1);
+
+        const exportedPoams = convertSpy.mock.calls[0][0] as any[];
+
+        expect(exportedPoams.find((poam) => poam.poamId === 1).devicesAffected).toBe('FRESH');
+      });
+    });
   });
 
   describe('processPoamsWithCpatData (via processPoamsData)', () => {
@@ -1062,7 +1101,31 @@ describe('CollectionProcessingComponent', () => {
       expect(result[0].devicesAffected).toBe('ASSET-1 ASSET-2');
     });
 
-    it('should use findings cache on second invocation with same benchmarkId', () => {
+    it('requests each benchmark once per export and shares the result across its POAMs', () => {
+      const poams = [
+        { poamId: 1, vulnerabilityId: 'V-001', stigBenchmarkId: 'BENCH-A' },
+        { poamId: 2, vulnerabilityId: 'V-002', stigBenchmarkId: 'BENCH-A' },
+        { poamId: 3, vulnerabilityId: 'V-003', stigBenchmarkId: 'BENCH-B' }
+      ];
+      const findings = [
+        { groupId: 'V-001', assets: [{ name: 'ASSET-1' }], ccis: [] },
+        { groupId: 'V-002', assets: [{ name: 'ASSET-2' }], ccis: [] }
+      ];
+
+      mockSharedService.getSTIGMANAffectedAssetsByPoam.mockReturnValue(of(findings));
+
+      let result: any[];
+
+      (component as any).processPoamsWithStigFindings(poams, 10).subscribe((r: any) => (result = r));
+
+      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledTimes(2);
+      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledWith(10, 'BENCH-A');
+      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledWith(10, 'BENCH-B');
+      expect(result[0].devicesAffected).toBe('ASSET-1');
+      expect(result[1].devicesAffected).toBe('ASSET-2');
+    });
+
+    it('fetches findings again on a later export rather than reusing an earlier result', () => {
       const poamsFirstCall = [{ poamId: 1, vulnerabilityId: 'V-001', stigBenchmarkId: 'BENCH-A' }];
       const poamsSecondCall = [{ poamId: 2, vulnerabilityId: 'V-002', stigBenchmarkId: 'BENCH-A' }];
       const findings = [{ groupId: 'V-001', assets: [{ name: 'ASSET' }], ccis: [] }];
@@ -1072,7 +1135,7 @@ describe('CollectionProcessingComponent', () => {
       (component as any).processPoamsWithStigFindings(poamsFirstCall, 10).subscribe();
       (component as any).processPoamsWithStigFindings(poamsSecondCall, 10).subscribe();
 
-      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledTimes(1);
+      expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledTimes(2);
     });
 
     it('should return poam without enrichment on 403 error', () => {
@@ -1158,17 +1221,6 @@ describe('CollectionProcessingComponent', () => {
     });
   });
 
-  describe('clearCache', () => {
-    it('should clear the findingsCache', () => {
-      (component as any).findingsCache.set('BENCH-1', [{ groupId: 'V-001' }]);
-      expect((component as any).findingsCache.size).toBe(1);
-
-      component.clearCache();
-
-      expect((component as any).findingsCache.size).toBe(0);
-    });
-  });
-
   describe('filterGlobal', () => {
     it('should call table filterGlobal with contains', async () => {
       fixture.detectChanges();
@@ -1235,7 +1287,7 @@ describe('CollectionProcessingComponent', () => {
     it('should trigger STIG Manager fetch by default', () => {
       component.showBulkImportDialog();
 
-      expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalled();
+      expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalledWith(false);
     });
   });
 
@@ -1275,14 +1327,14 @@ describe('CollectionProcessingComponent', () => {
       component.bulkImportSource.set('Tenable');
       component.onBulkImportSourceChange();
 
-      expect(mockImportService.getTenableRepositories).toHaveBeenCalled();
+      expect(mockImportService.getTenableRepositories).toHaveBeenCalledWith(false);
     });
 
     it('should fetch STIG Manager collections when source is STIG Manager', () => {
       component.bulkImportSource.set('STIG Manager');
       component.onBulkImportSourceChange();
 
-      expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalled();
+      expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalledWith(false);
     });
   });
 
@@ -1527,6 +1579,7 @@ describe('CollectionProcessingComponent', () => {
       expect(ids).toContain(200);
       expect(ids).toContain(300);
       expect(ids).not.toContain(100);
+      expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalledWith(false);
     });
 
     it('should not load origin options for C-PAT collection type', () => {

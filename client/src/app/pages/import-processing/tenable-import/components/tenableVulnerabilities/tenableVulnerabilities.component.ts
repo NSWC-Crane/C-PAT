@@ -117,6 +117,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
   displayDialog = signal<boolean>(false);
   parsedVprContext = signal<any[]>([]);
   isLoading = signal<boolean>(false);
+  private loadGeneration = 0;
   formattedDescription = signal<string>('');
   totalRecords = signal<number>(0);
   rows: number = 100;
@@ -1381,6 +1382,8 @@ export class TenableVulnerabilitiesComponent implements OnInit {
 
     this.isLoading.set(true);
 
+    const gen = ++this.loadGeneration;
+
     const startOffset = this.tenableTool === 'sumid' ? 0 : (event.first ?? 0);
     const endOffset = this.tenableTool === 'sumid' ? 5000 : startOffset + (event.rows ?? 100);
     const analysisParams = {
@@ -1408,15 +1411,21 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       .postTenableAnalysis(analysisParams)
       .pipe(
         catchError((error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error fetching all Vulnerabilities: ${getErrorMessage(error)}`
-          });
+          if (gen === this.loadGeneration) {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error fetching all Vulnerabilities: ${getErrorMessage(error)}`
+            });
+          }
 
           return EMPTY;
         }),
         switchMap((data) => {
+          if (gen !== this.loadGeneration) {
+            return EMPTY;
+          }
+
           if (data.error_msg) {
             this.showErrorMessage(data.error_msg);
 
@@ -1449,13 +1458,19 @@ export class TenableVulnerabilitiesComponent implements OnInit {
           });
         }),
         finalize(() => {
-          this.isLoading.set(false);
-          this.filterAccordionItems();
+          if (gen === this.loadGeneration) {
+            this.isLoading.set(false);
+            this.filterAccordionItems();
+          }
         }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: ({ vulnData, iavInfoMap }) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.allVulnerabilities.set(
             vulnData.results.map((vuln: any) => {
               const defaultVuln = {
@@ -1553,7 +1568,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     };
 
     this.importService
-      .postTenableAnalysis(analysisParams)
+      .postTenableAnalysis(analysisParams, false)
       .pipe(
         catchError((error) => {
           this.messageService.add({

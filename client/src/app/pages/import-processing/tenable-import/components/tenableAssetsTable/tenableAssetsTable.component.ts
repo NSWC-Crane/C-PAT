@@ -25,7 +25,6 @@ import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Observable, catchError, map, of } from 'rxjs';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
@@ -77,6 +76,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   readonly displayDialog = signal(false);
   readonly parsedVprContext = signal<any[]>([]);
   readonly isLoading = signal(true);
+  private loadGeneration = 0;
   readonly is30DayFilterActive = signal(false);
   readonly formattedDescription = signal<string>('');
   readonly pluginData = signal<any>(null);
@@ -253,6 +253,8 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   getAffectedAssetsForAllPlugins() {
     this.isLoading.set(true);
 
+    const gen = ++this.loadGeneration;
+
     const associatedPluginIds = this.associatedVulnerabilities()
       .map((vuln) => this.extractVulnerabilityId(vuln))
       .filter((id) => id !== null);
@@ -315,6 +317,10 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           if (!data?.response?.results) {
             this.messageService.add({
               severity: 'error',
@@ -362,6 +368,10 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
           this.matchAssetsWithTeams();
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -370,78 +380,6 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
           this.isLoading.set(false);
         }
       });
-  }
-
-  getAffectedAssetsByPluginId(pluginID: string, tenableRepoId: number): Observable<any[]> {
-    const analysisParams = {
-      query: {
-        description: '',
-        context: '',
-        status: -1,
-        createdTime: 0,
-        modifiedTime: 0,
-        groups: [],
-        type: 'vuln',
-        tool: 'listvuln',
-        sourceType: 'cumulative',
-        startOffset: 0,
-        endOffset: 10000,
-        filters: [
-          {
-            id: 'pluginID',
-            filterName: 'pluginID',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: pluginID
-          },
-          {
-            id: 'repository',
-            filterName: 'repository',
-            operator: '=',
-            type: 'vuln',
-            isPredefined: true,
-            value: [{ id: tenableRepoId.toString() }]
-          }
-        ],
-        vulnTool: 'listvuln'
-      },
-      sourceType: 'cumulative',
-      columns: [],
-      type: 'vuln'
-    };
-
-    return this.importService.postTenableAnalysis(analysisParams).pipe(
-      map((data) =>
-        data.response.results.map((asset: any) => {
-          const defaultAsset = {
-            pluginID: '',
-            pluginName: '',
-            family: '',
-            severity: '',
-            vprScore: ''
-          };
-
-          return {
-            ...defaultAsset,
-            ...asset,
-            pluginName: asset.name || '',
-            family: asset.family?.name || '',
-            severity: asset.severity?.name || '',
-            sourcePluginID: pluginID
-          };
-        })
-      ),
-      catchError((error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Error fetching assets for plugin ${pluginID}: ${getErrorMessage(error)}`
-        });
-
-        return of([]);
-      })
-    );
   }
 
   matchAssetsWithTeams() {
@@ -529,12 +467,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   }
 
   lazyOrNot(event: TableLazyLoadEvent) {
-    const pluginID = this.pluginID();
-    const assetProcessing = this.assetProcessing();
-
-    if (pluginID && !assetProcessing) {
-      this.getAffectedAssetsByPluginId(pluginID, this.tenableRepoId());
-    } else if (assetProcessing) {
+    if (this.assetProcessing()) {
       this.getAffectedAssets(event);
     }
   }
@@ -546,6 +479,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
 
     this.isLoading.set(true);
 
+    const gen = ++this.loadGeneration;
     const startOffset = event.first ?? 0;
     const endOffset = startOffset + (event.rows ?? 25);
     const repoFilter = {
@@ -583,6 +517,10 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.affectedAssets = data.response.results.map((asset: any) => {
             const defaultAsset = {
               pluginID: '',
@@ -612,6 +550,10 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
           this.isLoading.set(false);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

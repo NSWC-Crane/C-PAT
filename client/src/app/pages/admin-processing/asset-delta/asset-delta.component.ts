@@ -534,7 +534,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       }))
     );
 
-    return this.sharedService.getCollectionsFromSTIGMAN().pipe(
+    return this.sharedService.getCollectionsFromSTIGMAN(false).pipe(
       catchError((error) => {
         this.messageService.add({
           severity: 'error',
@@ -550,7 +550,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
         }
 
         const assetRequests = collections.map((collection) =>
-          this.sharedService.getAssetsFromSTIGMAN(collection.collectionId).pipe(
+          this.sharedService.getAssetsFromSTIGMAN(collection.collectionId, false).pipe(
             catchError((error) => {
               this.messageService.add({
                 severity: 'error',
@@ -771,7 +771,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams);
+    return this.importService.postTenableAnalysis(analysisParams, false);
   }
 
   private updateChartData() {

@@ -21,6 +21,7 @@ describe('SharedService', () => {
 
   afterEach(() => {
     httpMock.verify();
+    vi.useRealTimers();
   });
 
   it('should be created', () => {
@@ -353,21 +354,6 @@ describe('SharedService', () => {
       });
     });
 
-    describe('getSTIGMANAffectedAssetsForExport', () => {
-      it('should fetch affected assets for export', () => {
-        const collectionId = 1;
-        const mockData = [{ groupId: 'V-12345', assets: [], ccis: [] }];
-
-        service.getSTIGMANAffectedAssetsForExport(collectionId).subscribe((data) => {
-          expect(data).toEqual(mockData);
-        });
-        const req = httpMock.expectOne(`${stigmanUrl}/collections/${collectionId}/findings?aggregator=groupId&projection=assets&projection=ccis`);
-
-        expect(req.request.method).toBe('GET');
-        req.flush(mockData);
-      });
-    });
-
     describe('getSTIGMANAffectedAssetsByPoam', () => {
       it('should fetch affected assets by POAM benchmark', () => {
         const collectionId = 1;
@@ -575,6 +561,114 @@ describe('SharedService', () => {
       req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('caching', () => {
+    it('serves the cached value once without a request inside the refresh window', () => {
+      const emissions: any[] = [];
+
+      service.getFindingsFromSTIGMAN(42).subscribe();
+      httpMock.expectOne((request) => request.url.startsWith(`${stigmanUrl}/collections/42/findings`)).flush(['stale']);
+
+      service.getFindingsFromSTIGMAN(42).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toEqual([['stale']]);
+      httpMock.expectNone((request) => request.url.startsWith(`${stigmanUrl}/collections/42/findings`));
+    });
+
+    it('serves the cached value once and refreshes it in the background past the window', () => {
+      vi.useFakeTimers();
+
+      const emissions: any[] = [];
+
+      service.getFindingsFromSTIGMAN(42).subscribe();
+      httpMock.expectOne((request) => request.url.startsWith(`${stigmanUrl}/collections/42/findings`)).flush(['stale']);
+      vi.advanceTimersByTime(60 * 1000);
+
+      service.getFindingsFromSTIGMAN(42).subscribe((value) => emissions.push(value));
+
+      expect(emissions).toEqual([['stale']]);
+
+      httpMock.expectOne((request) => request.url.startsWith(`${stigmanUrl}/collections/42/findings`)).flush(['fresh']);
+
+      expect(emissions).toEqual([['stale']]);
+
+      const later: any[] = [];
+
+      service.getFindingsFromSTIGMAN(42).subscribe((value) => later.push(value));
+
+      expect(later).toEqual([['fresh']]);
+    });
+
+    it('keeps projection variants on separate keys', () => {
+      service.getFindingsMetricsFromSTIGMAN(42).subscribe();
+      httpMock.expectOne(`${stigmanUrl}/collections/42/findings?aggregator=groupId&projection=stigs`).flush(['stigs']);
+
+      const emissions: any[] = [];
+
+      service.getFindingsMetricsAndRulesFromSTIGMAN(42).subscribe((value) => emissions.push(value));
+      httpMock.expectOne(`${stigmanUrl}/collections/42/findings?aggregator=groupId&projection=rules`).flush(['rules']);
+
+      expect(emissions).toEqual([['rules']]);
+    });
+
+    it('scopes cached values per collection', () => {
+      service.getFindingsFromSTIGMAN(42).subscribe();
+      httpMock.expectOne((request) => request.url.includes('/collections/42/findings')).flush(['forty-two']);
+
+      const emissions: any[] = [];
+
+      service.getFindingsFromSTIGMAN(43).subscribe((value) => emissions.push(value));
+      httpMock.expectOne((request) => request.url.includes('/collections/43/findings')).flush(['forty-three']);
+
+      expect(emissions).toEqual([['forty-three']]);
+    });
+  });
+
+  describe('cache confinement', () => {
+    it('never caches the per-POAM export fetch getSTIGMANAffectedAssetsByPoam', () => {
+      const url = `${stigmanUrl}/collections/42/findings?aggregator=groupId&benchmarkId=BENCH-1&projection=assets&projection=ccis`;
+
+      service.getSTIGMANAffectedAssetsByPoam(42, 'BENCH-1').subscribe();
+      httpMock.expectOne(url).flush(['first']);
+
+      const emissions: any[] = [];
+
+      service.getSTIGMANAffectedAssetsByPoam(42, 'BENCH-1').subscribe((value) => emissions.push(value));
+
+      expect(emissions).toEqual([]);
+
+      httpMock.expectOne(url).flush(['second']);
+
+      expect(emissions).toEqual([['second']]);
+    });
+
+    it('never caches C-PAT api reads', () => {
+      service.getPoamsByVulnerabilityId('V-1').subscribe();
+      httpMock.expectOne(`${apiBase}/vulnerability/poam/V-1`).flush(['first']);
+
+      const emissions: any[] = [];
+
+      service.getPoamsByVulnerabilityId('V-1').subscribe((value) => emissions.push(value));
+      httpMock.expectOne(`${apiBase}/vulnerability/poam/V-1`).flush(['second']);
+
+      expect(emissions).toEqual([['second']]);
+    });
+
+    it('bypasses the cache for a non-stigman url routed through cached', () => {
+      const cached = (service as any).cached.bind(service);
+      const url = `${apiBase}/vulnerability/poam/V-1`;
+
+      cached(42, url).subscribe();
+      httpMock.expectOne(url).flush(['first']);
+
+      const emissions: any[] = [];
+
+      cached(42, url).subscribe((value: any) => emissions.push(value));
+      httpMock.expectOne(url).flush(['second']);
+
+      expect(emissions).toEqual([['second']]);
     });
   });
 });

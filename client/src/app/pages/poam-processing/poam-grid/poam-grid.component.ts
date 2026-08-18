@@ -27,7 +27,7 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { Observable, Subscription, firstValueFrom, shareReplay } from 'rxjs';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
@@ -230,7 +230,6 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedCollectionId = signal<any>(null);
   selectedCollection = signal<any>(null);
 
-  private readonly findingsCache: Map<string, any[]> = new Map();
   private readonly payloadSubscription: Subscription[] = [];
   private readonly subscriptions = new Subscription();
 
@@ -593,7 +592,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
         type: 'vuln'
       };
 
-      this.importService.postTenableAnalysis(analysisParams).subscribe({
+      this.importService.postTenableAnalysis(analysisParams, false).subscribe({
         next: (data: any) => {
           this.tenableAffectedAssets.set(
             data.response.results.map((asset: any) => ({
@@ -614,7 +613,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
           }
 
           targetPoams.forEach((poam) => {
-            this.importService.getTenablePlugin(poam.vulnerabilityId).subscribe({
+            this.importService.getTenablePlugin(poam.vulnerabilityId, false).subscribe({
               next: (plugin: any) => {
                 let controlAPs: string;
                 let cci: string;
@@ -705,29 +704,35 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
       let completedPoams = 0;
 
+      const findingsByBenchmark = new Map<string, Observable<any>>();
+
+      const findingsFor = (benchmarkId: string): Observable<any> => {
+        let findings$ = findingsByBenchmark.get(benchmarkId);
+
+        if (!findings$) {
+          findings$ = this.sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, benchmarkId).pipe(shareReplay({ bufferSize: 1, refCount: false }));
+          findingsByBenchmark.set(benchmarkId, findings$);
+        }
+
+        return findings$;
+      };
+
       const processPoam = (poam: any) => {
         if (poam.vulnerabilityId && poam.stigBenchmarkId && poam.vulnerabilitySource === 'STIG') {
-          if (this.findingsCache.has(poam.stigBenchmarkId)) {
-            const findings = this.findingsCache.get(poam.stigBenchmarkId)!;
-
-            processPoamWithFindings(poam, findings);
-          } else {
-            this.sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, poam.stigBenchmarkId).subscribe({
-              next: (findings: any) => {
-                this.findingsCache.set(poam.stigBenchmarkId, findings);
-                processPoamWithFindings(poam, findings);
-              },
-              error: (error) => {
-                this.messageService.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: `Error fetching affected assets for POAM ${poam.poamId}: ${getErrorMessage(error)}`
-                });
-                processedStigPoams.push(poam);
-                checkCompletion();
-              }
-            });
-          }
+          findingsFor(poam.stigBenchmarkId).subscribe({
+            next: (findings: any) => {
+              processPoamWithFindings(poam, findings);
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error fetching affected assets for POAM ${poam.poamId}: ${getErrorMessage(error)}`
+              });
+              processedStigPoams.push(poam);
+              checkCompletion();
+            }
+          });
         } else {
           processedStigPoams.push(poam);
           checkCompletion();
@@ -839,10 +844,6 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
         fileUpload.clear();
       }
     });
-  }
-
-  clearCache() {
-    this.findingsCache.clear();
   }
 
   managePoam(row: any) {

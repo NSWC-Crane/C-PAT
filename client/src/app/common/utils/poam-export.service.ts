@@ -323,7 +323,7 @@ export class PoamExportService {
           type: 'vuln'
         };
 
-        const analysisData = await firstValueFrom(importService.postTenableAnalysis(analysisParams));
+        const analysisData = await firstValueFrom(importService.postTenableAnalysis(analysisParams, false));
 
         if (analysisData?.error_msg) {
           throw new Error(`Error in Tenable response: ${analysisData.error_msg}`);

@@ -377,34 +377,6 @@ describe('TenableAssetsTableComponent', () => {
     });
   });
 
-  describe('getAffectedAssetsByPluginId', () => {
-    it('should return an Observable of mapped assets', () => {
-      component.getAffectedAssetsByPluginId('12345', 99).subscribe((assets) => {
-        expect(assets).toHaveLength(2);
-        expect(assets[0].family).toBe('Web Servers');
-      });
-    });
-
-    it('should set sourcePluginID on each asset', () => {
-      component.getAffectedAssetsByPluginId('12345', 99).subscribe((assets) => {
-        expect(assets[0].sourcePluginID).toBe('12345');
-      });
-    });
-
-    it('should return empty array on service error', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('fail')));
-      component.getAffectedAssetsByPluginId('12345', 99).subscribe((assets) => {
-        expect(assets).toEqual([]);
-      });
-    });
-
-    it('should show error message on service failure', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('fail')));
-      component.getAffectedAssetsByPluginId('12345', 99).subscribe(() => {});
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
-    });
-  });
-
   describe('matchAssetsWithTeams', () => {
     it('should return early when assetDeltaList has no assets', () => {
       component.assetDeltaList = null;
@@ -508,14 +480,14 @@ describe('TenableAssetsTableComponent', () => {
   describe('lazyOrNot', () => {
     const event = { first: 0, rows: 25 } as any;
 
-    it('should call getAffectedAssetsByPluginId when pluginID set and not assetProcessing', () => {
-      const spy = vi.spyOn(component, 'getAffectedAssetsByPluginId').mockReturnValue(of([]));
+    it('should not load anything when assetProcessing is false', () => {
+      const spy = vi.spyOn(component, 'getAffectedAssets').mockImplementation(() => {});
 
       (component as any).pluginID = () => '12345';
       (component as any).tenableRepoId = () => 99;
       (component as any).assetProcessing = () => false;
       component.lazyOrNot(event);
-      expect(spy).toHaveBeenCalledWith('12345', 99);
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('should call getAffectedAssets when assetProcessing is true', () => {
@@ -834,6 +806,44 @@ describe('TenableAssetsTableComponent', () => {
       fixture.componentRef.setInput('pluginID', '12345');
       component.ngOnInit();
       expect(() => fixture.destroy()).not.toThrow();
+    });
+  });
+
+  describe('load generation guard', () => {
+    const page = (name: string, totalRecords: number) => ({ response: { results: [{ pluginID: '1', name, family: { name: 'F' }, severity: { name: 'High' } }], totalRecords } });
+
+    it('keeps the newest page when an earlier page load lands afterwards', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+      (component as any).tenableRepoId = () => 99;
+      (component as any).assetProcessing = () => true;
+
+      component.getAffectedAssets({ first: 0, rows: 25 } as any);
+      component.getAffectedAssets({ first: 25, rows: 25 } as any);
+
+      second.next(page('page-2', 50));
+      first.next(page('page-1', 50));
+
+      expect(component.affectedAssets[0].pluginName).toBe('page-2');
+      expect(component.isLoading()).toBe(false);
+    });
+
+    it('does not let an earlier load clear the spinner of a newer one', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+      (component as any).tenableRepoId = () => 99;
+      (component as any).assetProcessing = () => true;
+
+      component.getAffectedAssets({ first: 0, rows: 25 } as any);
+      component.getAffectedAssets({ first: 25, rows: 25 } as any);
+
+      first.next(page('page-1', 50));
+
+      expect(component.isLoading()).toBe(true);
     });
   });
 });

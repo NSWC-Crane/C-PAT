@@ -23,7 +23,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { Table, TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
-import { EMPTY, Observable, catchError, map, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { EMPTY, Observable, catchError, map, shareReplay, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { ImportService } from '../../import-processing/import.service';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
@@ -183,11 +183,13 @@ export class NessusPluginMappingComponent implements OnInit {
 
         this.estimatedTimeRemaining.set(this.formatTime(estimatedTotal - (Date.now() - startTime)));
       }),
-      takeUntilDestroyed(this.destroyRef)
+      takeUntilDestroyed(this.destroyRef),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
 
     const progressUpdates$ = timer(0, 100).pipe(
       takeUntil(batchProcess$),
+      takeUntilDestroyed(this.destroyRef),
       tap(() => {
         if (this.updateProgress() < 90) {
           this.updateProgress.update((value) => value + 1);
@@ -201,15 +203,7 @@ export class NessusPluginMappingComponent implements OnInit {
     progressUpdates$.subscribe();
 
     batchProcess$.subscribe({
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to update plugin IDs: ${getErrorMessage(error)}`
-        });
-        this.isUpdating.set(false);
-      },
-      complete: () => {
+      next: () => {
         this.isUpdating.set(false);
         this.updateProgress.set(100);
         this.estimatedTimeRemaining.set('');
@@ -219,6 +213,14 @@ export class NessusPluginMappingComponent implements OnInit {
           detail: 'Plugin IDs successfully mapped.'
         });
         this.getIAVTableData();
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to update plugin IDs: ${getErrorMessage(error)}`
+        });
+        this.isUpdating.set(false);
       }
     });
   }
@@ -283,7 +285,7 @@ export class NessusPluginMappingComponent implements OnInit {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams).pipe(
+    return this.importService.postTenableAnalysis(analysisParams, false).pipe(
       map((data) => ({
         pluginData: data.response.results,
         totalRecords: data.response.totalRecords

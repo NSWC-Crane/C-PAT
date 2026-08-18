@@ -452,6 +452,73 @@ describe('TenableSolutionsComponent', () => {
     });
   });
 
+  describe('dialog generation guard', () => {
+    const hosts = (netbiosName: string) => ({ response: { results: [{ ip: '10.0.0.1', netbiosName, dnsName: `${netbiosName}.example.com`, osCPE: '', vprScore: '1', repository: { name: 'Repo' } }] } });
+    const vulns = (pluginID: string) => ({ response: [{ pluginID, vprScore: '1', cvssV3BaseScore: '1', hostTotal: '1' }] });
+
+    it('ignores a late emission from an earlier solution after a newer one was opened', () => {
+      const firstHosts = new Subject<any>();
+      const secondHosts = new Subject<any>();
+
+      mockImportService.postTenableSolutionAssets.mockReturnValueOnce(firstHosts.asObservable()).mockReturnValueOnce(secondHosts.asObservable());
+      mockImportService.postTenableSolutionVuln.mockReturnValue(of(vulns('1')));
+
+      component.getAffectedHosts({ solutionID: 'sol-1', solution: 'First' });
+      component.getAffectedHosts({ solutionID: 'sol-2', solution: 'Second' });
+
+      secondHosts.next(hosts('SECOND'));
+      firstHosts.next(hosts('FIRST'));
+
+      expect(component.affectedHosts()[0].netbiosName).toBe('SECOND');
+    });
+
+    it('ignores a late vuln-details emission from an earlier solution', () => {
+      const firstVulns = new Subject<any>();
+      const secondVulns = new Subject<any>();
+
+      mockImportService.postTenableSolutionAssets.mockReturnValue(of(hosts('X')));
+      mockImportService.postTenableSolutionVuln.mockReturnValueOnce(firstVulns.asObservable()).mockReturnValueOnce(secondVulns.asObservable());
+
+      component.getAffectedHosts({ solutionID: 'sol-1', solution: 'First' });
+      component.getAffectedHosts({ solutionID: 'sol-2', solution: 'Second' });
+
+      secondVulns.next(vulns('222'));
+      firstVulns.next(vulns('111'));
+
+      expect(component.solutionVulnDetails()[0].pluginID).toBe('222');
+    });
+
+    it('drops emissions that arrive after the dialog was reset', () => {
+      const gate = new Subject<any>();
+
+      mockImportService.postTenableSolutionAssets.mockReturnValue(gate.asObservable());
+      mockImportService.postTenableSolutionVuln.mockReturnValue(of(vulns('1')));
+
+      component.getAffectedHosts({ solutionID: 'sol-1', solution: 'First' });
+      component.resetData();
+      gate.next(hosts('LATE'));
+
+      expect(component.affectedHosts()).toEqual([]);
+      expect(component.loadingAffectedHosts()).toBe(true);
+    });
+
+    it('ignores a late error from an earlier solution', () => {
+      const firstHosts = new Subject<any>();
+
+      mockImportService.postTenableSolutionAssets.mockReturnValueOnce(firstHosts.asObservable()).mockReturnValueOnce(of(hosts('SECOND')));
+      mockImportService.postTenableSolutionVuln.mockReturnValue(of(vulns('1')));
+
+      component.getAffectedHosts({ solutionID: 'sol-1', solution: 'First' });
+      component.getAffectedHosts({ solutionID: 'sol-2', solution: 'Second' });
+      mockMessageService.add.mockClear();
+
+      firstHosts.error(new Error('stale failure'));
+
+      expect(mockMessageService.add).not.toHaveBeenCalled();
+      expect(component.affectedHosts()[0].netbiosName).toBe('SECOND');
+    });
+  });
+
   describe('getVulnDetails', () => {
     it('should call postTenableSolutionVuln with correct solutionId', () => {
       component.getVulnDetails(12345);

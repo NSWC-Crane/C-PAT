@@ -250,6 +250,54 @@ describe('STIGManagerControlsTableComponent', () => {
     });
   });
 
+  describe('load generation guard', () => {
+    it('keeps the newest findings when an earlier load lands afterwards', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      (component as any).loadControlsData();
+      (component as any).loadControlsData();
+
+      second.next([mockRawFindings[1]]);
+      first.next([...mockRawFindings]);
+
+      expect(component.controlSummaries()).toHaveLength(1);
+      expect(component.controlSummaries()[0].control).toBe('CM-1');
+    });
+
+    it('does not let a stale POAM-percentage failure clear the spinner of a newer load', () => {
+      const firstPoams = new Subject<any>();
+
+      mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValueOnce(firstPoams.asObservable()).mockReturnValueOnce(new Subject<any>().asObservable());
+      mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValue(of([...mockRawFindings]));
+
+      (component as any).loadControlsData();
+      (component as any).loadControlsData();
+      mockMessageService.add.mockClear();
+
+      firstPoams.error(new Error('stale failure'));
+
+      expect(component.loadingControls()).toBe(true);
+      expect(mockMessageService.add).not.toHaveBeenCalled();
+    });
+
+    it('does not let an earlier load clear the spinner of a newer one', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getFindingsByCCIFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      (component as any).loadControlsData();
+      (component as any).loadControlsData();
+
+      first.next([...mockRawFindings]);
+
+      expect(component.loadingControls()).toBe(true);
+    });
+  });
+
   describe('processControlSummaries (private, tested via ngOnInit)', () => {
     beforeEach(() => {
       component.ngOnInit();

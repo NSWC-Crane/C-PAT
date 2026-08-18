@@ -46,6 +46,7 @@ export class STIGManagerAssetsTableComponent implements OnInit {
   selectedColumns: any[];
   readonly assets = signal<any[]>([]);
   readonly isLoading = signal<boolean>(true);
+  private loadGeneration = 0;
   readonly totalRecords = signal<number>(0);
   filterValue: string = '';
 
@@ -61,9 +62,20 @@ export class STIGManagerAssetsTableComponent implements OnInit {
 
   loadData() {
     this.isLoading.set(true);
+
+    const gen = ++this.loadGeneration;
+
     this.sharedService.getAssetsFromSTIGMAN(this.stigmanCollectionId()).subscribe({
       next: (assets) => {
+        if (gen !== this.loadGeneration) {
+          return;
+        }
+
+        this.isLoading.set(false);
+
         if (!assets || assets.length === 0) {
+          this.assets.set([]);
+          this.totalRecords.set(0);
           this.showErrorMessage('No assets found.');
 
           return;
@@ -78,14 +90,16 @@ export class STIGManagerAssetsTableComponent implements OnInit {
         this.totalRecords.set(this.assets().length);
       },
       error: (error) => {
+        if (gen !== this.loadGeneration) {
+          return;
+        }
+
+        this.isLoading.set(false);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
           detail: `Failed to fetch assets: ${getErrorMessage(error)}`
         });
-      },
-      complete: () => {
-        this.isLoading.set(false);
       }
     });
   }

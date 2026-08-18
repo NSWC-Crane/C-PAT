@@ -225,7 +225,13 @@ export class STIGManagerMetricsComponent implements OnInit, OnChanges {
 
         return metrics;
       }),
-      catchError(() => {
+      catchError((error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Error loading STIG Manager metrics: ${getErrorMessage(error)}`
+        });
+
         this.stigsAssessmentData.set([]);
 
         return of(getEmptySTIGManagerMetrics());
