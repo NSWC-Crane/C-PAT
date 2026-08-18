@@ -123,7 +123,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
   readonly loadingControls = signal<boolean>(true);
   private loadGeneration = 0;
   loadingFindings: boolean = false;
-  loadingSkeletonData: any[] = Array(15).fill({});
+  loadingSkeletonData: any[] = new Array(15).fill({});
 
   controlsCount: number = 0;
   findingsCount: number = 0;

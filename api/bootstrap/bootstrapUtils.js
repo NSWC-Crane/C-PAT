@@ -25,20 +25,16 @@ function modulePathResolver(handlersPath, route, apiDoc) {
     return handler[method];
 }
 
-function buildResponseValidationConfig(willValidateResponse) {
-    if (willValidateResponse) {
-        return {
-            onError: (error, body, req) => {
-                logger.writeError('rest', 'responseValidation', {
-                    error,
-                    request: logger.serializeRequest(req),
-                    body,
-                });
-            },
-        };
-    } else {
-        return false;
-    }
+function buildResponseValidationConfig() {
+    return {
+        onError: (error, body, req) => {
+            logger.writeError('rest', 'responseValidation', {
+                error,
+                request: logger.serializeRequest(req),
+                body,
+            });
+        },
+    };
 }
 
 function logAppConfig(config) {

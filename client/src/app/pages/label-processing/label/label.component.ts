@@ -366,18 +366,18 @@ export class LabelComponent implements OnInit, OnDestroy, OnChanges {
     };
 
     if (label.labelId === 0) {
-      this.subs.sink = this.labelService.addLabel(this.selectedCollection(), label).subscribe(
-        (data: any) => {
+      this.subs.sink = this.labelService.addLabel(this.selectedCollection(), label).subscribe({
+        next: (data: any) => {
           this.labelchange.emit(data.labelId);
         },
-        (error) => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Error adding label: ${getErrorMessage(error)}`
           });
         }
-      );
+      });
     } else {
       this.subs.sink = this.labelService.updateLabel(this.selectedCollection(), label.labelId, label).subscribe((data) => {
         this.label.set(data);

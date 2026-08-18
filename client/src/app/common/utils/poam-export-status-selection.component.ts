@@ -62,9 +62,9 @@ export class PoamExportStatusSelectionComponent {
   readonly selectedStatuses = signal<string[]>([]);
 
   constructor() {
-    const defaultExcluded = ['draft', 'closed'];
+    const defaultExcluded = new Set(['draft', 'closed']);
 
-    this.selectedStatuses.set(this.allStatusOptions.filter((status) => !defaultExcluded.includes(status.value)).map((status) => status.value));
+    this.selectedStatuses.set(this.allStatusOptions.filter((status) => !defaultExcluded.has(status.value)).map((status) => status.value));
   }
 
   cancel() {

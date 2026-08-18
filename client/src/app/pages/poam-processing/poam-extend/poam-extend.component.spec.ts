@@ -1297,7 +1297,7 @@ describe('PoamExtendComponent', () => {
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('past-due milestones') }));
     });
 
-    it('should fail if no milestone has both change comments and change date', async () => {
+    it('should fail if a future-dated milestone lacks both change comments and change date', async () => {
       component.poamMilestones.set([
         {
           milestoneDate: '2025-12-01',

@@ -11,12 +11,18 @@
 import { describe, it, expect } from 'vitest';
 
 describe('Vitest Setup', () => {
-  it('should run a basic test', () => {
-    expect(true).toBe(true);
+  it('should provide a DOM environment', () => {
+    const el = document.createElement('div');
+
+    el.textContent = 'C-PAT';
+    document.body.appendChild(el);
+
+    expect(document.body.contains(el)).toBe(true);
+    el.remove();
   });
 
-  it('should perform basic math', () => {
-    expect(1 + 1).toBe(2);
+  it('should expose the CPAT environment stub', () => {
+    expect((globalThis as any).CPAT?.Env?.apiBase).toBe('/api');
   });
 
   it('should work with arrays', () => {

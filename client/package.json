@@ -63,7 +63,6 @@
     "@angular/compiler-cli": "^22.1.2",
     "@angular/localize": "^22.1.2",
     "@angular/platform-browser": "^22.1.2",
-    "@angular/platform-browser-dynamic": "^22.1.2",
     "@eslint/js": "^10.0.1",
     "@oxc-project/runtime": "^0.145.0",
     "@tailwindcss/postcss": "^4.3.3",

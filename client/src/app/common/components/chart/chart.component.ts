@@ -61,7 +61,7 @@ export class CpatChartComponent implements AfterViewInit, OnDestroy {
 
     if (!data) return;
 
-    const opts = { ...(this.options() ?? {}) };
+    const opts = { ...this.options() };
 
     if (this.height() || this.width()) {
       opts.maintainAspectRatio = false;
