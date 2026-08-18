@@ -206,11 +206,11 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
       return value.map((item) => this.toSearchableText(item)).join(' ');
     }
 
-    if (typeof value === 'object') {
-      return '';
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+      return String(value).toLowerCase();
     }
 
-    return String(value).toLowerCase();
+    return '';
   }
 
   protected tableData = computed(() => {
