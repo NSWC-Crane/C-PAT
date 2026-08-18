@@ -132,7 +132,7 @@ export class MetricsComponent implements OnInit {
       summaryMap[key].count += r.count;
     });
 
-    const severities = Object.keys(summaryMap).sort();
+    const severities = Object.keys(summaryMap).sort((a, b) => a.localeCompare(b));
     const cardBackgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--card-background').trim();
 
     this.mttrSummaryChartData.set(
@@ -167,7 +167,7 @@ export class MetricsComponent implements OnInit {
       trendMap[key].count += row.count;
     });
 
-    const trendSeverities = [...new Set(data.trend.map((r) => this.normalizeSeverity(r.rawSeverity)))].sort();
+    const trendSeverities = [...new Set(data.trend.map((r) => this.normalizeSeverity(r.rawSeverity)))].sort((a, b) => a.localeCompare(b));
 
     this.mttrTrendChartData.set(
       trendSeverities.length
