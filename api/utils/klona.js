@@ -6,7 +6,7 @@ module.exports = function klona(val) {
     let k, out, tmp;
 
     if (Array.isArray(val)) {
-        out = Array((k = val.length));
+        out = new Array((k = val.length));
         while (k--) out[k] = (tmp = val[k]) && typeof tmp === 'object' ? klona(tmp) : tmp;
         return out;
     }
