@@ -329,6 +329,13 @@ describe('AssetDeltaComponent', () => {
       expect(typeof result.subscribe).toBe('function');
     });
 
+    it('bypasses the upstream cache for the collection and asset reads', () => {
+      component.checkStigManagerStatus().subscribe();
+
+      expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalledWith(false);
+      expect(mockSharedService.getAssetsFromSTIGMAN).toHaveBeenCalledWith(expect.anything(), false);
+    });
+
     it('should return a Set of lowercase asset names when collections are found', () => {
       component.assets.set([{ key: 'ASSET-001', value: 'Team A', eMASS: true, loading: false }]);
       let result: Set<string> | undefined;
@@ -638,7 +645,8 @@ describe('AssetDeltaComponent', () => {
             tool: 'sumdnsname',
             type: 'vuln'
           })
-        })
+        }),
+        false
       );
     });
 

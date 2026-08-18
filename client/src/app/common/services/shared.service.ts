@@ -13,10 +13,12 @@ import { Injectable, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Observable, Subject, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { DataCacheService } from './data-cache.service';
 
 @Injectable({ providedIn: 'root' })
 export class SharedService {
   private readonly http = inject(HttpClient);
+  private readonly cache = inject(DataCacheService);
 
   private readonly cpatApiBase = CPAT.Env.apiBase;
   private readonly STIGMANAGER_URL = CPAT.Env.stigman.apiUrl;
@@ -40,6 +42,18 @@ export class SharedService {
     return throwError(() => new Error(errorMessage));
   }
 
+  private stigmanKey(scope: number | string, url: string): string {
+    return `stigman:${scope}:${url}`;
+  }
+
+  private request<T>(url: string): Observable<T> {
+    return this.http.get<T>(url).pipe(catchError(this.handleError));
+  }
+
+  private cached<T>(scope: number | string, url: string): Observable<T> {
+    return url.startsWith(this.STIGMANAGER_URL) ? this.cache.observe<T>(this.stigmanKey(scope, url), () => this.request<T>(url)) : this.request<T>(url);
+  }
+
   public setSelectedCollection(collection: number): void {
     this._selectedCollection.set(collection);
   }
@@ -57,94 +71,91 @@ export class SharedService {
   }
 
   getSTIGsFromSTIGMAN(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/stigs/`).pipe(catchError(this.handleError));
+    return this.cached<any[]>('global', `${this.STIGMANAGER_URL}/stigs/`);
   }
 
   getCollectionSTIGSummaryFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/metrics/summary/stig`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/metrics/summary/stig`);
   }
 
   getCollectionMetricsSummaryFromSTIGMAN(collectionId: number): Observable<any> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/metrics/summary/collection`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/metrics/summary/collection`);
   }
 
-  getCollectionsFromSTIGMAN(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/`).pipe(catchError(this.handleError));
+  getCollectionsFromSTIGMAN(useCache: boolean = true): Observable<any[]> {
+    const url = `${this.STIGMANAGER_URL}/collections/`;
+
+    return useCache ? this.cached<any[]>('global', url) : this.request<any[]>(url);
   }
 
   selectedCollectionFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}?projection=labels`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}?projection=labels`);
   }
 
-  getAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`).pipe(catchError(this.handleError));
+  getAssetsFromSTIGMAN(collectionId: number, useCache: boolean = true): Observable<any[]> {
+    const url = `${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`;
+
+    return useCache ? this.cached<any[]>(collectionId, url) : this.request<any[]>(url);
   }
 
   getSTIGAssociatedAssets(collectionId: number, benchmarkId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`);
   }
 
   getPOAMAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets`);
   }
 
   getFindingsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=stigs&projection=rules`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=stigs&projection=rules`);
   }
 
   getFindingsMetricsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=stigs`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=stigs`);
   }
 
   getFindingsMetricsAndRulesFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=rules`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=rules`);
   }
 
   getFindingsByBenchmarkFromSTIGMAN(collectionId: number, benchmarkId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&benchmarkId=${benchmarkId}&projection=ccis&projection=rules&projection=stigs`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&benchmarkId=${benchmarkId}&projection=ccis&projection=rules&projection=stigs`);
   }
 
   getFindingsByCCIFromSTIGMAN(collectionId: number): Observable<any> {
-    return this.http.get<any>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=cci&projection=ccis&projection=groups&projection=rules&projection=stigs`).pipe(catchError(this.handleError));
+    return this.cached<any>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=cci&projection=ccis&projection=groups&projection=rules&projection=stigs`);
   }
 
   getAffectedAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets&projection=stigs&projection=rules&projection=ccis`).pipe(catchError(this.handleError));
-  }
-
-  getSTIGMANAffectedAssetsForExport(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets&projection=ccis`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets&projection=stigs&projection=rules&projection=ccis`);
   }
 
   getSTIGMANAffectedAssetsByPoam(collectionId: number, benchmarkId: string): Observable<any> {
-    return this.http.get<any>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&benchmarkId=${benchmarkId}&projection=assets&projection=ccis`).pipe(catchError(this.handleError));
+    return this.request<any>(`${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&benchmarkId=${benchmarkId}&projection=assets&projection=ccis`);
   }
 
   getAffectedAssetsFromSTIGMANByBenchmarkId(collectionId: number, benchmarkId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`);
   }
 
   getCollectionWithAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/collections/${collectionId}?elevate=false&projection=assets`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}?elevate=false&projection=assets`);
   }
 
   getAssetDetailsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`);
   }
 
   getRuleDataFromSTIGMAN(ruleId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.STIGMANAGER_URL}/stigs/rules/${ruleId}?projection=detail&projection=check&projection=fix`).pipe(catchError(this.handleError));
+    return this.cached<any[]>('global', `${this.STIGMANAGER_URL}/stigs/rules/${ruleId}?projection=detail&projection=check&projection=fix`);
   }
 
   getReviewsFromSTIGMAN(collectionId: number, result: string, benchmarkId: string): Observable<any[]> {
-    let queryUrl: string;
+    const queryUrl =
+      result === 'all'
+        ? `${this.STIGMANAGER_URL}/collections/${collectionId}/reviews?rules=default-mapped&benchmarkId=${benchmarkId}&projection=rule`
+        : `${this.STIGMANAGER_URL}/collections/${collectionId}/reviews?rules=default-mapped&result=${result}&benchmarkId=${benchmarkId}&projection=rule`;
 
-    if (result === 'all') {
-      queryUrl = `${this.STIGMANAGER_URL}/collections/${collectionId}/reviews?rules=default-mapped&benchmarkId=${benchmarkId}&projection=rule`;
-    } else {
-      queryUrl = `${this.STIGMANAGER_URL}/collections/${collectionId}/reviews?rules=default-mapped&result=${result}&benchmarkId=${benchmarkId}&projection=rule`;
-    }
-
-    return this.http.get<any[]>(queryUrl).pipe(catchError(this.handleError));
+    return this.cached<any[]>(collectionId, queryUrl);
   }
 }

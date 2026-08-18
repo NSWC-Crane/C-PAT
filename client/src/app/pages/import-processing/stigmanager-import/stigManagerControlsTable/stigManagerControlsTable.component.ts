@@ -121,6 +121,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
   viewMode: 'summary' | 'findings' = 'summary';
 
   readonly loadingControls = signal<boolean>(true);
+  private loadGeneration = 0;
   loadingFindings: boolean = false;
   loadingSkeletonData: any[] = Array(15).fill({});
 
@@ -197,11 +198,17 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
     this.rawFindings = [];
     this.controlSummaries.set([]);
 
+    const gen = ++this.loadGeneration;
+
     this.sharedService
       .getFindingsByCCIFromSTIGMAN(this.stigmanCollectionId())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data: RawCciFinding[]) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           if (!data || data.length === 0) {
             this.showWarn('No control findings found.');
             this.loadingControls.set(false);
@@ -210,9 +217,13 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
           }
 
           this.rawFindings = data;
-          this.processControlSummaries(data);
+          this.processControlSummaries(data, gen);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -223,7 +234,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
       });
   }
 
-  private processControlSummaries(findings: RawCciFinding[]) {
+  private processControlSummaries(findings: RawCciFinding[], gen: number = this.loadGeneration) {
     const controlMap = new Map<string, ControlSummary>();
 
     findings.forEach((finding) => {
@@ -281,10 +292,10 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
     this.controlsCount = this.controlSummaries().length;
     this.controlsCountChange.emit(this.controlsCount);
 
-    this.updateControlPoamPercentages();
+    this.updateControlPoamPercentages(gen);
   }
 
-  private updateControlPoamPercentages() {
+  private updateControlPoamPercentages(gen: number = this.loadGeneration) {
     const selectedCollection = this.selectedCollection();
 
     if (!selectedCollection) {
@@ -298,6 +309,10 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: any) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.existingPoams = response;
 
           const excludedStatuses = new Set(['draft', 'rejected']);
@@ -318,6 +333,10 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
           this.loadingControls.set(false);
         },
         error: (error) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

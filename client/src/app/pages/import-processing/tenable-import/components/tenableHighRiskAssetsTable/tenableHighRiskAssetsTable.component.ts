@@ -12,6 +12,7 @@ import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, SimpleChanges, inject, input, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -19,8 +20,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
-import { catchError, map, of } from 'rxjs';
+import { EMPTY, catchError, map, of } from 'rxjs';
 import { CsvExportService } from '../../../../../common/utils/csv-export.service';
+import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { ImportService } from '../../../import.service';
 import { TenableHostDialogComponent } from '../tenableHostDialog/tenableHostDialog.component';
 
@@ -54,6 +56,7 @@ export interface HighRiskAsset {
 export class TenableHighRiskAssetsTableComponent implements OnChanges {
   private readonly csvExportService = inject(CsvExportService);
   private readonly importService = inject(ImportService);
+  private readonly messageService = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly tenableRepoId = input.required<number>();
@@ -61,6 +64,7 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges {
   highRiskAssets = signal<HighRiskAsset[]>([]);
   highRiskAssetsTotalRecords = signal<number>(0);
   isLoading = signal<boolean>(false);
+  private loadGeneration = 0;
   selectedHost = signal<any>(null);
   displayDialog = signal<boolean>(false);
   filterValue: string = '';
@@ -73,6 +77,8 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges {
 
   loadHighRiskAssets(): void {
     this.isLoading.set(true);
+
+    const gen = ++this.loadGeneration;
 
     const analysisParams = {
       query: {
@@ -140,9 +146,7 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges {
           const results = response?.response?.results || [];
           const totalRecords = Number.parseInt(response?.response?.totalRecords) || 0;
 
-          this.highRiskAssetsTotalRecords.set(totalRecords);
-
-          return results.map((item: any) => {
+          const rows = results.map((item: any) => {
             const low = Number.parseInt(item.severityLow) || 0;
             const medium = Number.parseInt(item.severityMedium) || 0;
             const high = Number.parseInt(item.severityHigh) || 0;
@@ -169,12 +173,34 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges {
               criticalPercent: totalSeverity > 0 ? (critical / totalSeverity) * 100 : 0
             };
           });
+
+          if (gen === this.loadGeneration) {
+            this.highRiskAssetsTotalRecords.set(totalRecords);
+          }
+
+          return rows;
         }),
-        catchError(() => of([])),
+        catchError((error) => {
+          if (gen !== this.loadGeneration) {
+            return EMPTY;
+          }
+
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching high risk assets: ${getErrorMessage(error)}`
+          });
+
+          return of([]);
+        }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (assets) => {
+          if (gen !== this.loadGeneration) {
+            return;
+          }
+
           this.highRiskAssets.set(assets);
           this.isLoading.set(false);
         },

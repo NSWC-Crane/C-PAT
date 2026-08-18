@@ -91,8 +91,7 @@
               "outputHashing": "all",
               "sourceMap": false,
               "namedChunks": false,
-              "extractLicenses": true,
-              "serviceWorker": "ngsw-config.json"
+              "extractLicenses": true
             },
             "development": {
               "index": "src/development.html",

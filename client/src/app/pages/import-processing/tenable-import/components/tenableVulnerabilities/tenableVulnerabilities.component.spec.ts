@@ -1208,12 +1208,64 @@ describe('TenableVulnerabilitiesComponent', () => {
       expect(component.displayDialog()).toBe(false);
       fixture.destroy();
       pluginSubject.next({ response: { id: 12345, description: 'Test plugin' } });
+      pluginSubject.complete();
       expect(component.displayDialog()).toBe(false);
     });
 
     it('does not throw on destroy', () => {
       component.ngOnInit();
       expect(() => fixture.destroy()).not.toThrow();
+    });
+  });
+
+  describe('exportAllData', () => {
+    it('bypasses the upstream cache for the export analysis', () => {
+      vi.useFakeTimers();
+      component.tenableTool = 'listvuln';
+      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [], totalRecords: 0 } }));
+
+      component.exportAllData();
+      vi.runAllTimers();
+      vi.useRealTimers();
+
+      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
+    });
+  });
+
+  describe('load generation guard', () => {
+    it('keeps the newest page when an earlier page load lands afterwards', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+      const page = (name: string) => ({ response: { results: [{ pluginID: '1', name, family: { name: 'F' }, severity: { name: 'High' } }], totalRecords: 1 } });
+
+      component.tenableRepoId = '99';
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadVulnerabilitiesLazy({ first: 0, rows: 25 });
+      component.loadVulnerabilitiesLazy({ first: 25, rows: 25 });
+
+      second.next(page('page-2'));
+      second.complete();
+      first.next(page('page-1'));
+
+      expect(component.allVulnerabilities()[0].pluginName).toBe('page-2');
+      expect(component.isLoading()).toBe(false);
+    });
+
+    it('does not let an earlier page load clear the spinner of a newer one', () => {
+      const first = new Subject<any>();
+      const second = new Subject<any>();
+
+      component.tenableRepoId = '99';
+      mockImportService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadVulnerabilitiesLazy({ first: 0, rows: 25 });
+      component.loadVulnerabilitiesLazy({ first: 25, rows: 25 });
+
+      first.next({ response: { results: [], totalRecords: 0 } });
+      first.complete();
+
+      expect(component.isLoading()).toBe(true);
     });
   });
 });

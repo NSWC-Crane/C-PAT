@@ -102,6 +102,8 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   selectedColumns: any[];
   reviews: any;
   readonly isLoading = signal<boolean>(true);
+  private reviewsGeneration = 0;
+  private benchmarkGeneration = 0;
   totalRecords: number = 0;
   readonly benchmarkOptions = signal<BenchmarkOption[]>([]);
   appliedBenchmarkIds: string[] = [];
@@ -259,6 +261,7 @@ export class STIGManagerReviewsTableComponent implements OnInit {
     this.isLoading.set(true);
     this.showBenchmarkSelector = false;
 
+    const gen = ++this.reviewsGeneration;
     const savedFilterState = this.cloneFilterState();
     const reviewRequests = this.appliedBenchmarkIds.map((benchmarkId) => this.sharedService.getReviewsFromSTIGMAN(this.stigmanCollectionId(), this.filterState.result, benchmarkId));
 
@@ -269,6 +272,12 @@ export class STIGManagerReviewsTableComponent implements OnInit {
       )
       .subscribe({
         next: (reviews) => {
+          if (gen !== this.reviewsGeneration) {
+            return;
+          }
+
+          this.isLoading.set(false);
+
           const processedReviews = (reviews ?? []).map((review) => ({
             ...review,
             displayResult: this.resultMapping[review.result] || review.result,
@@ -293,14 +302,16 @@ export class STIGManagerReviewsTableComponent implements OnInit {
           }
         },
         error: (error) => {
+          if (gen !== this.reviewsGeneration) {
+            return;
+          }
+
+          this.isLoading.set(false);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
             detail: `Failed to fetch reviews: ${getErrorMessage(error)}`
           });
-        },
-        complete: () => {
-          this.isLoading.set(false);
         }
       });
   }
@@ -323,15 +334,26 @@ export class STIGManagerReviewsTableComponent implements OnInit {
 
   loadBenchmarkIds() {
     this.isLoading.set(true);
+
+    const gen = ++this.benchmarkGeneration;
+
     this.sharedService
       .getCollectionSTIGSummaryFromSTIGMAN(this.stigmanCollectionId())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data: any[]) => {
+          if (gen !== this.benchmarkGeneration) {
+            return;
+          }
+
           this.benchmarkOptions.set([...new Set(data.map((stig) => stig.benchmarkId))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).map((id) => ({ label: id, value: id })));
           this.isLoading.set(false);
         },
         error: (error) => {
+          if (gen !== this.benchmarkGeneration) {
+            return;
+          }
+
           this.messageService.add({
             severity: 'error',
             summary: 'Error',

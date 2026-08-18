@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { STIGManagerAssetsTableComponent } from './stigManagerAssetsTable.component';
 import { SharedService } from '../../../../common/services/shared.service';
@@ -215,6 +215,42 @@ describe('STIGManagerAssetsTableComponent', () => {
       component.loadData();
       expect(component.assets()[0].name).toBe('Asset1');
       expect(component.assets()[0].fqdn).toBe('asset1.example.com');
+    });
+  });
+
+  describe('load generation guard', () => {
+    it('keeps the newest load when an earlier one lands afterwards', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getAssetsFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadData();
+      component.loadData();
+
+      second.next([{ name: 'second', collection: { name: 'Beta' } }]);
+      first.next([
+        { name: 'first-a', collection: { name: 'Alpha' } },
+        { name: 'first-b', collection: { name: 'Alpha' } }
+      ]);
+
+      expect(component.assets()).toHaveLength(1);
+      expect(component.assets()[0].name).toBe('second');
+      expect(component.totalRecords()).toBe(1);
+    });
+
+    it('does not let an earlier load clear the spinner of a newer one', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getAssetsFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadData();
+      component.loadData();
+
+      first.next([{ name: 'first', collection: { name: 'Alpha' } }]);
+
+      expect(component.isLoading()).toBe(true);
     });
   });
 

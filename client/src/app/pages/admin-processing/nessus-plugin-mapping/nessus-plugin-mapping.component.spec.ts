@@ -14,7 +14,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
@@ -380,7 +380,8 @@ describe('NessusPluginMappingComponent', () => {
       expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({ tool: 'vulndetails', type: 'vuln' })
-        })
+        }),
+        false
       );
     });
 
@@ -414,6 +415,65 @@ describe('NessusPluginMappingComponent', () => {
       component.updatePluginIds();
       vi.runAllTimers();
       expect(spy).toHaveBeenCalled();
+    });
+
+    it('does not report success when the component is destroyed mid-run', () => {
+      const pending = new Subject<any>();
+
+      mockImportService.postTenableAnalysis.mockReturnValue(pending.asObservable());
+
+      component.updatePluginIds();
+      fixture.destroy();
+      vi.runAllTimers();
+
+      expect(mockNessusPluginMappingService.mapIAVPluginIds).not.toHaveBeenCalled();
+      expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    describe('cache opt-out', () => {
+      const batch = (pluginID: string, totalRecords: number) => ({
+        response: { results: [{ pluginID, xref: `IAVA #2023-A-000${pluginID}` }], totalRecords }
+      });
+
+      it('bypasses the upstream cache for every batch', () => {
+        (component as any).batchSize = 1;
+        mockImportService.postTenableAnalysis.mockReturnValueOnce(of(batch('1', 2))).mockReturnValueOnce(of(batch('2', 2)));
+
+        component.updatePluginIds();
+        vi.runAllTimers();
+
+        expect(mockImportService.postTenableAnalysis).toHaveBeenCalledTimes(2);
+        mockImportService.postTenableAnalysis.mock.calls.forEach((call: any[]) => expect(call[1]).toBe(false));
+      });
+
+      it('walks a multi-batch run without skipping or repeating an offset', () => {
+        (component as any).batchSize = 1;
+        mockImportService.postTenableAnalysis
+          .mockReturnValueOnce(of(batch('1', 3)))
+          .mockReturnValueOnce(of(batch('2', 3)))
+          .mockReturnValueOnce(of(batch('3', 3)));
+
+        component.updatePluginIds();
+        vi.runAllTimers();
+
+        const offsets = mockImportService.postTenableAnalysis.mock.calls.map((call: any[]) => call[0].query.startOffset);
+
+        expect(offsets).toEqual([0, 1, 2]);
+        expect(mockNessusPluginMappingService.mapIAVPluginIds).toHaveBeenCalledTimes(1);
+      });
+
+      it('maps every plugin exactly once across a multi-batch run', () => {
+        (component as any).batchSize = 1;
+        mockImportService.postTenableAnalysis.mockReturnValueOnce(of(batch('1', 2))).mockReturnValueOnce(of(batch('2', 2)));
+
+        component.updatePluginIds();
+        vi.runAllTimers();
+
+        const mapped = mockNessusPluginMappingService.mapIAVPluginIds.mock.calls[0][0];
+        const pluginIds = mapped.flatMap((entry: any) => entry.pluginIDs ?? []);
+
+        expect(pluginIds).toHaveLength(new Set(pluginIds).size);
+      });
     });
 
     it('should show error message when batch processing fails', () => {

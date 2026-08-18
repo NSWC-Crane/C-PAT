@@ -458,6 +458,45 @@ describe('STIGManagerReviewsTableComponent', () => {
     });
   });
 
+  describe('load generation guard', () => {
+    it('keeps the newest reviews when an earlier load lands afterwards', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getReviewsFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+      component.appliedBenchmarkIds = ['BENCH-001'];
+
+      component.loadReviews();
+      component.loadReviews();
+
+      second.next([{ ...mockReviews[0], assetName: 'SecondAsset' }]);
+      second.complete();
+      first.next([
+        { ...mockReviews[0], assetName: 'FirstAsset' },
+        { ...mockReviews[1], assetName: 'FirstAsset' }
+      ]);
+      first.complete();
+
+      expect(component.reviews).toHaveLength(1);
+      expect(component.reviews[0].assetName).toBe('SecondAsset');
+    });
+
+    it('keeps the newest benchmark options when an earlier load lands afterwards', () => {
+      const first = new Subject<any[]>();
+      const second = new Subject<any[]>();
+
+      mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+      component.loadBenchmarkIds();
+      component.loadBenchmarkIds();
+
+      second.next([{ benchmarkId: 'SECOND' }]);
+      first.next([{ benchmarkId: 'FIRST-A' }, { benchmarkId: 'FIRST-B' }]);
+
+      expect(component.benchmarkOptions().map((option) => option.value)).toEqual(['SECOND']);
+    });
+  });
+
   describe('onResultFilterChange', () => {
     it('should update filterState.result', () => {
       component.onResultFilterChange('pass');

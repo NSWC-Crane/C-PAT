@@ -23,6 +23,7 @@ const logger = require('../utils/logger');
 const proxy = require('express-http-proxy');
 const RateLimit = require('express-rate-limit');
 const tenableTls = require('../utils/tenableTls');
+const { stripTrailingSlashes } = require('../utils/url');
 
 function configureMiddleware(app) {
     const middlewareConfigFunctions = [
@@ -33,8 +34,8 @@ function configureMiddleware(app) {
         configureLogging,
         configureCompression,
         configureServiceCheck,
-        configureTenableProxy,
         configureAuth,
+        configureTenableProxy,
         configureOpenApi,
         configureErrorHandlers,
     ];
@@ -100,7 +101,15 @@ function configureServiceCheck(app) {
 
 function configureTenableProxy(app) {
     if (config.tenable.enabled) {
-        const tenableBaseUrl = config.tenable.url.replace(/\/+$/, '');
+        const tenableBaseUrl = stripTrailingSlashes(config.tenable.url);
+        app.use('/api/tenable', (req, _res, next) => {
+            try {
+                auth.validateOauthSecurity(req, ['c-pat:read']);
+                next();
+            } catch (e) {
+                next(e);
+            }
+        });
         app.use(
             '/api/tenable',
             proxy(tenableBaseUrl, {

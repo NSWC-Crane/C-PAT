@@ -403,6 +403,12 @@ describe('STIGManagerImportComponent', () => {
       (component as any).loadBenchmarkSummaries(100);
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
     });
+
+    it('clears the spinner on error rather than leaving it stuck', () => {
+      mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('Fetch error')));
+      (component as any).loadBenchmarkSummaries(100);
+      expect(component.loadingTableInfo()).toBe(false);
+    });
   });
 
   describe('selectBenchmark', () => {
@@ -541,6 +547,41 @@ describe('STIGManagerImportComponent', () => {
 
       component.getSTIGMANFindings(100);
       expect(spy).toHaveBeenCalled();
+    });
+
+    describe('load generation guard', () => {
+      it('keeps the newest findings when an earlier load lands afterwards', () => {
+        const first = new Subject<any[]>();
+        const second = new Subject<any[]>();
+
+        mockSharedService.getFindingsFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+        component.getSTIGMANFindings(100);
+        component.getSTIGMANFindings(100);
+
+        second.next([mockFindings[1]]);
+        first.next([...mockFindings]);
+
+        expect(component.displayDataSource()).toHaveLength(1);
+        expect(component.displayDataSource()[0].groupId).toBe(mockFindings[1].groupId);
+        expect(component.findingsCount()).toBe(1);
+      });
+
+      it('does not let an earlier benchmark-summary load overwrite a newer one', () => {
+        const first = new Subject<any[]>();
+        const second = new Subject<any[]>();
+
+        mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
+
+        (component as any).loadBenchmarkSummaries(100);
+        (component as any).loadBenchmarkSummaries(100);
+
+        second.next([mockBenchmarkData[1]]);
+        first.next([...mockBenchmarkData]);
+
+        expect(component.benchmarkSummaries()).toHaveLength(1);
+        expect(component.benchmarksCount()).toBe(1);
+      });
     });
   });
 
