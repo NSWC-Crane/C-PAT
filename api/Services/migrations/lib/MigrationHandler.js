@@ -48,7 +48,7 @@ module.exports = class MigrationHandler {
       });
       throw e;
     } finally {
-      if (connection) await connection.release();
+      if (connection) connection.release();
       logger.writeInfo("mysql", "migration", {
         status: "finish",
         name: migrationName,
@@ -85,7 +85,7 @@ module.exports = class MigrationHandler {
       });
       throw e;
     } finally {
-      if (connection) await connection.release();
+      if (connection) connection.release();
       logger.writeInfo("mysql", "migration", {
         status: "finish",
         name: migrationName,

@@ -34,7 +34,7 @@ const PoolMonitor = require('../utils/PoolMonitor.js');
 async function preflightConnection() {
     logger.writeDebug('mysql', 'preflight', { attempt: ++initAttempt });
     const connection = await module.exports.pool.getConnection();
-    await connection.release();
+    connection.release();
 }
 
 /**
