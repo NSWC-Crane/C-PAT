@@ -23,23 +23,6 @@ async function withConnection(callback) {
     }
 }
 
-async function withTransaction(callback) {
-    const connection = await dbUtils.pool.getConnection();
-    try {
-        await connection.beginTransaction();
-        try {
-            const result = await callback(connection);
-            await connection.commit();
-            return result;
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        }
-    } finally {
-        connection.release();
-    }
-}
-
 function requireAccessLevel(value) {
     const accessLevel = Number.parseInt(value, 10);
 
@@ -87,7 +70,7 @@ module.exports.postPermission = async function postPermission(_userId, elevate, 
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 await connection.query(
                     `INSERT INTO ${config.database.schema}.collectiondirectpermissions (userId, collectionId, accessLevel, grantedBy)
                      VALUES (?, ?, ?, ?)
@@ -133,7 +116,7 @@ module.exports.putPermission = async function putPermission(_userId, elevate, re
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 const [existing] = await connection.query(
                     `SELECT accessLevel FROM ${config.database.schema}.collectionpermissions WHERE userId = ? AND collectionId = ?`,
                     [userId, collectionId]
@@ -182,7 +165,7 @@ module.exports.deletePermission = async function deletePermission(_userId, eleva
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 await connection.query(`DELETE FROM ${config.database.schema}.collectiondirectpermissions WHERE userId = ? AND collectionId = ?`, [
                     userId,
                     collectionId,

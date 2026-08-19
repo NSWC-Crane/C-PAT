@@ -22,23 +22,6 @@ async function withConnection(callback) {
     }
 }
 
-async function withTransaction(callback) {
-    const connection = await dbUtils.pool.getConnection();
-    try {
-        await connection.beginTransaction();
-        try {
-            const result = await callback(connection);
-            await connection.commit();
-            return result;
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        }
-    } finally {
-        connection.release();
-    }
-}
-
 module.exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
     return await withConnection(async connection => {
         let sql = `
@@ -241,7 +224,7 @@ module.exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMit
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection =>
+            await dbUtils.withTransaction(async connection =>
                 applyTeamMitigationStatus(connection, {
                     assignedTeamId: req.params.assignedTeamId,
                     poamId: req.params.poamId,

@@ -23,23 +23,6 @@ async function withConnection(callback) {
     }
 }
 
-async function withTransaction(callback) {
-    const connection = await dbUtils.pool.getConnection();
-    try {
-        await connection.beginTransaction();
-        try {
-            const result = await callback(connection);
-            await connection.commit();
-            return result;
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        }
-    } finally {
-        connection.release();
-    }
-}
-
 module.exports.getUsers = async function getUsers(elevate, req) {
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
@@ -160,7 +143,7 @@ module.exports.getUserByUserID = async function getUserByUserID(req, elevate) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
     }
 
-    return await withTransaction(async connection => {
+    return await dbUtils.withTransaction(async connection => {
         let sql = `SELECT * FROM ${config.database.schema}.user WHERE userId = ?`;
         const [userQueryRows] = await connection.query(sql, [req.params.userId]);
 
@@ -532,7 +515,7 @@ module.exports.disableUser = async function disableUser(userId, elevate, req) {
 
     await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 await connection.query(`DELETE FROM ${config.database.schema}.userassignedteams WHERE userId = ?`, [userId]);
                 await connection.query(`DELETE FROM ${config.database.schema}.collectiondirectpermissions WHERE userId = ?`, [userId]);
                 await connection.query(`DELETE FROM ${config.database.schema}.collectionpermissiongrants WHERE userId = ?`, [userId]);
