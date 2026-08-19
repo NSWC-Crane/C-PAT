@@ -22,6 +22,23 @@ async function withConnection(callback) {
     }
 }
 
+async function withTransaction(callback) {
+    const connection = await dbUtils.pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        try {
+            const result = await callback(connection);
+            await connection.commit();
+            return result;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        }
+    } finally {
+        connection.release();
+    }
+}
+
 module.exports.getPoamTeamMitigations = async function getPoamTeamMitigations() {
     return await withConnection(async connection => {
         let sql = `
@@ -176,6 +193,41 @@ module.exports.updatePoamTeamMitigation = async function updatePoamTeamMitigatio
     });
 };
 
+async function applyTeamMitigationStatus(connection, { assignedTeamId, poamId, isActive }) {
+    let lockSql = `SELECT mitigationId FROM ${config.database.schema}.poamteammitigations
+                   WHERE assignedTeamId = ? AND poamId = ?
+                   FOR UPDATE`;
+    const [existingRecord] = await connection.query(lockSql, [assignedTeamId, poamId]);
+
+    if (existingRecord.length === 0) {
+        throw new SmError.NotFoundError('Team mitigation not found');
+    }
+
+    let updateSql = `UPDATE ${config.database.schema}.poamteammitigations
+                     SET isActive = ?
+                     WHERE assignedTeamId = ? AND poamId = ?`;
+    await connection.query(updateSql, [isActive, assignedTeamId, poamId]);
+
+    let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams
+                           WHERE assignedTeamId = ?`;
+    const [team] = await connection.query(assignedTeamSql, [assignedTeamId]);
+
+    let fetchSql = `SELECT mitigationId, poamId, assignedTeamId, mitigationText, isActive
+                    FROM ${config.database.schema}.poamteammitigations
+                    WHERE assignedTeamId = ? AND poamId = ?`;
+    const [teamMitigation] = await connection.query(fetchSql, [assignedTeamId, poamId]);
+
+    if (teamMitigation.length === 0) {
+        throw new SmError.NotFoundError('Team mitigation not found');
+    }
+
+    return {
+        ...teamMitigation[0],
+        isActive: teamMitigation[0].isActive == null ? null : Boolean(teamMitigation[0].isActive),
+        assignedTeamName: team[0] ? team[0].assignedTeamName : 'Unknown Team',
+    };
+}
+
 module.exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMitigationStatus(req) {
     if (!req.params.assignedTeamId) {
         throw new SmError.ClientError('assignedTeamId is required');
@@ -187,65 +239,16 @@ module.exports.updatePoamTeamMitigationStatus = async function updatePoamTeamMit
         throw new SmError.ClientError('isActive is required');
     }
 
-    return await withConnection(async connection => {
-        const maxRetries = 3;
-        let retryCount = 0;
-
-        while (retryCount < maxRetries) {
-            try {
-                await connection.beginTransaction();
-
-                try {
-                    let lockSql = `SELECT mitigationId FROM ${config.database.schema}.poamteammitigations
-                                   WHERE assignedTeamId = ? AND poamId = ?
-                                   FOR UPDATE`;
-                    const [existingRecord] = await connection.query(lockSql, [req.params.assignedTeamId, req.params.poamId]);
-
-                    if (existingRecord.length === 0) {
-                        throw new SmError.NotFoundError('Team mitigation not found');
-                    }
-
-                    let updateSql = `UPDATE ${config.database.schema}.poamteammitigations
-                                     SET isActive = ?
-                                     WHERE assignedTeamId = ? AND poamId = ?`;
-                    await connection.query(updateSql, [req.body.isActive, req.params.assignedTeamId, req.params.poamId]);
-
-                    let assignedTeamSql = `SELECT assignedTeamName FROM ${config.database.schema}.assignedteams
-                                           WHERE assignedTeamId = ?`;
-                    const [team] = await connection.query(assignedTeamSql, [req.params.assignedTeamId]);
-                    const teamName = team[0] ? team[0].assignedTeamName : 'Unknown Team';
-
-                    let fetchSql = `SELECT mitigationId, poamId, assignedTeamId, mitigationText, isActive
-                                    FROM ${config.database.schema}.poamteammitigations
-                                    WHERE assignedTeamId = ? AND poamId = ?`;
-                    const [teamMitigation] = await connection.query(fetchSql, [req.params.assignedTeamId, req.params.poamId]);
-
-                    await connection.commit();
-
-                    if (teamMitigation.length === 0) {
-                        throw new SmError.NotFoundError('Team mitigation not found');
-                    }
-
-                    const result = { ...teamMitigation[0] };
-                    result.isActive = result.isActive == null ? null : Boolean(result.isActive);
-                    result.assignedTeamName = teamName;
-                    return result;
-                } catch (error) {
-                    await connection.rollback();
-                    throw error;
-                }
-            } catch (error) {
-                if (error.code === 'ER_LOCK_DEADLOCK' && retryCount < maxRetries - 1) {
-                    retryCount++;
-                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 50));
-                    continue;
-                }
-                throw error;
-            }
-        }
-
-        throw new Error('Failed after maximum retry attempts due to deadlock');
-    });
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await withTransaction(async connection =>
+                applyTeamMitigationStatus(connection, {
+                    assignedTeamId: req.params.assignedTeamId,
+                    poamId: req.params.poamId,
+                    isActive: req.body.isActive,
+                })
+            )
+    );
 };
 
 module.exports.deletePoamTeamMitigation = async function deletePoamTeamMitigation(req) {
