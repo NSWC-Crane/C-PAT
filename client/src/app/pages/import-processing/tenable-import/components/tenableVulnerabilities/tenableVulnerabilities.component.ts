@@ -55,6 +55,7 @@ import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { isZoneCorDPackage, validateCVSSv2Vector, validateCVSSv3Vector, validateCVSSv4Vector, validateIAVM, validateIP, validateStigSeverity, validateUUID } from '../../../../../common/utils/validation.utils';
 import { createIAVInfoMap, createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext } from '../../utils/tenable-vulnerability.utils';
+import { API_FILTER_BUILDERS, buildAssetFilterExpression, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, toArray, toIdList } from '../../utils/tenable-filter.utils';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { ImportService } from '../../../import.service';
@@ -1683,72 +1684,59 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       return;
     }
 
-    if (identifier === 'asset') {
-      if (!this.tempFilters[identifier]) {
-        this.tempFilters[identifier] = { value: [], operator: 'contains' };
-      }
+    switch (identifier) {
+      case 'asset':
+        this.updateAssetFilter(event.value, isOperator);
+        break;
+      case 'severity':
+      case 'lastSeen':
+      case 'policy':
+      case 'auditFile':
+        this.tempFilters[identifier] = event.value;
+        break;
+      case 'family':
+        this.tempFilters['family'] = toArray(event.value);
+        break;
+      case 'responsibleUser':
+        this.tempFilters['responsibleUser'] = event.value || [];
+        break;
+      default:
+        this.updateOperatorValueFilter(identifier, event, isInput, isOperator);
+    }
+  }
 
-      if (isOperator) {
-        this.tempFilters[identifier].operator = event.value;
-      } else {
-        this.tempFilters[identifier].value = event.value;
-      }
-
-      return;
+  private updateAssetFilter(value: any, isOperator: boolean): void {
+    if (!this.tempFilters['asset']) {
+      this.tempFilters['asset'] = { value: [], operator: 'contains' };
     }
 
-    if (identifier === 'severity') {
-      this.tempFilters['severity'] = event.value;
+    if (isOperator) {
+      this.tempFilters['asset'].operator = value;
+    } else {
+      this.tempFilters['asset'].value = value;
+    }
+  }
 
-      return;
+  private updateOperatorValueFilter(identifier: string, event: any, isInput: boolean, isOperator: boolean): void {
+    const value = isInput ? (event.target?.value ?? event.value) : event.value;
+
+    if (!this.tempFilters[identifier]) {
+      this.tempFilters[identifier] = { operator: null, value: null };
     }
 
-    if (identifier === 'lastSeen') {
-      this.tempFilters['lastSeen'] = event.value;
-
-      return;
+    if (isInput) {
+      this.tempFilters[identifier].value = value;
+      this.tempFilters[identifier].isValid = this.isValidFilterValue(identifier, value);
+      this.tempFilters[identifier].isDirty = true;
+    } else if (isOperator) {
+      this.tempFilters[identifier].operator = value;
     }
+  }
 
-    if (identifier === 'family') {
-      const familyValue = event.value;
+  private isValidFilterValue(identifier: string, value: any): boolean {
+    const validator = this.accordionItems.find((item) => item.identifier === identifier)?.validator;
 
-      if (Array.isArray(familyValue)) {
-        this.tempFilters['family'] = familyValue;
-      } else {
-        this.tempFilters['family'] = familyValue ? [familyValue] : [];
-      }
-
-      return;
-    }
-
-    if (identifier === 'policy' || identifier === 'auditFile') {
-      this.tempFilters[identifier] = event.value;
-
-      return;
-    }
-
-    if (identifier === 'responsibleUser') {
-      this.tempFilters[identifier] = event.value || [];
-
-      return;
-    }
-
-    if (identifier) {
-      const accordionItem = this.accordionItems.find((item) => item.identifier === identifier);
-      const value = isInput ? (event.target?.value ?? event.value) : event.value;
-
-      if (!this.tempFilters[identifier]) {
-        this.tempFilters[identifier] = { operator: null, value: null };
-      }
-
-      if (isInput) {
-        this.tempFilters[identifier].value = value;
-        this.tempFilters[identifier].isValid = !accordionItem?.validator || accordionItem.validator(value);
-        this.tempFilters[identifier].isDirty = true;
-      } else if (isOperator) {
-        this.tempFilters[identifier].operator = value;
-      }
-    }
+    return !validator || validator(value);
   }
 
   private mapSingleFilter(filter: any): void {
@@ -1758,77 +1746,61 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       return;
     }
 
-    if (filter.filterName === 'xref' && filter.value.includes('IAVA|20*,IAVB|20*')) {
-      const value = filter.operator === '=' ? 'iav' : 'non-iav';
-
-      this.tempFilters['vulnerabilityType'] = value;
-      this.onFilterChange({ value }, 'vulnerabilityType');
+    if (isIavXrefFilter(filter)) {
+      this.setVulnerabilityType(filter.operator === '=' ? 'iav' : 'non-iav');
 
       return;
     }
 
-    if (filter.filterName === 'asset') {
-      let operator = 'contains';
-      let assetIds: string[] = [];
+    switch (filter.filterName) {
+      case 'asset':
+        this.tempFilters['asset'] = parseAssetFilterValue(filter.value);
 
-      if (filter.value && typeof filter.value === 'object' && filter.value.operator === 'complement') {
-        operator = 'notContains';
-        filter.value = filter.value.operand1;
-      }
+        return;
+      case 'severity':
+        this.tempFilters['severity'] = filter.value.split(',');
 
-      if (filter.value && typeof filter.value === 'object') {
-        const flattenUnion = (obj: any): void => {
-          if (obj.id) {
-            assetIds.push(obj.id);
-          }
+        return;
+      case 'policy':
+      case 'auditFile':
+        this.setSingleIdFilter(filter.filterName, filter.value);
 
-          if (obj.operand1) flattenUnion(obj.operand1);
-          if (obj.operand2) flattenUnion(obj.operand2);
-        };
+        return;
+      case 'responsibleUser':
+        if (Array.isArray(filter.value)) {
+          this.tempFilters['responsibleUser'] = toIdList(filter.value);
+        }
 
-        flattenUnion(filter.value);
-      } else if (Array.isArray(filter.value)) {
-        assetIds = filter.value.map((v: any) => v.id || v);
-      }
+        return;
+      case 'family':
+        if (Array.isArray(filter.value)) {
+          this.tempFilters['family'] = toIdList(filter.value);
 
-      this.tempFilters['asset'] = {
-        value: assetIds,
-        operator: operator
-      };
+          return;
+        }
 
-      return;
+        break;
+      default:
+        break;
     }
 
-    if (filter.filterName === 'family' && Array.isArray(filter.value)) {
-      this.tempFilters['family'] = filter.value.map((v: any) => v.id || v);
+    this.mapConfiguredFilter(filter);
+  }
 
-      return;
+  private setVulnerabilityType(value: string): void {
+    this.tempFilters['vulnerabilityType'] = value;
+    this.onFilterChange({ value }, 'vulnerabilityType');
+  }
+
+  private setSingleIdFilter(identifier: string, value: any): void {
+    if (Array.isArray(value) && value.length > 0) {
+      this.tempFilters[identifier] = value[0].id || value[0];
+    } else if (value?.id) {
+      this.tempFilters[identifier] = value.id;
     }
+  }
 
-    if (filter.filterName === 'severity') {
-      this.tempFilters['severity'] = filter.value.split(',');
-
-      return;
-    }
-
-    if (filter.filterName === 'policy' || filter.filterName === 'auditFile') {
-      if (Array.isArray(filter.value) && filter.value.length > 0) {
-        this.tempFilters[filter.filterName] = filter.value[0].id || filter.value[0];
-      } else if (filter?.value?.id) {
-        this.tempFilters[filter.filterName] = filter.value.id;
-      }
-
-      return;
-    }
-
-    if (filter.filterName === 'responsibleUser') {
-      if (Array.isArray(filter.value)) {
-        this.tempFilters['responsibleUser'] = filter.value.map((v: any) => v.id || v);
-      }
-
-      return;
-    }
-
+  private mapConfiguredFilter(filter: any): void {
     const config = this.filterNameMappings[filter.filterName];
 
     if (!config) return;
@@ -1842,231 +1814,52 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     if (config.handler === 'simpleValue') {
       this.tempFilters[config.uiName] = filterValue.value;
       this.onFilterChange({ value: filterValue.value }, config.uiName);
-    } else {
-      this.tempFilters[config.uiName] = filterValue;
 
-      if (filterValue.operator) {
-        this.onFilterChange({ value: filterValue.value }, config.uiName, true);
-        this.onFilterChange({ value: filterValue.operator }, config.uiName, false, true);
-      } else if (config.handler === 'range' && filterValue.value === 'customRange') {
-        this.onFilterChange({ value: 'customRange' }, config.uiName);
-        this.tempFilters[config.uiName] = {
-          value: 'customRange',
-          min: filterValue.min,
-          max: filterValue.max
-        };
-        this.onRangeValueChange(config.uiName);
-      } else {
-        this.onFilterChange({ value: filterValue.value }, config.uiName);
-      }
+      return;
     }
+
+    this.tempFilters[config.uiName] = filterValue;
+
+    if (filterValue.operator) {
+      this.onFilterChange({ value: filterValue.value }, config.uiName, true);
+      this.onFilterChange({ value: filterValue.operator }, config.uiName, false, true);
+    } else if (config.handler === 'range' && filterValue.value === 'customRange') {
+      this.applyCustomRange(config.uiName, filterValue);
+    } else {
+      this.onFilterChange({ value: filterValue.value }, config.uiName);
+    }
+  }
+
+  private applyCustomRange(uiName: string, filterValue: FilterValue): void {
+    this.onFilterChange({ value: 'customRange' }, uiName);
+    this.tempFilters[uiName] = {
+      value: 'customRange',
+      min: filterValue.min,
+      max: filterValue.max
+    };
+    this.onRangeValueChange(uiName);
   }
 
   createAssetsFilter(value: any, operator: string = 'contains'): AssetsFilter | null {
-    if (!value || value.length === 0) {
-      return null;
-    }
-
-    if (value.length === 1) {
-      return {
-        filterName: 'asset',
-        operator: operator === 'notContains' ? '~' : '=',
-        value: { id: value[0] }
-      };
-    }
-
-    let formattedValue: any = { id: value[0] };
-
-    for (let i = 1; i < value.length; i++) {
-      formattedValue = {
-        operator: 'union',
-        operand1: formattedValue,
-        operand2: {
-          id: value[i]
-        }
-      };
-    }
-
-    if (operator === 'notContains') {
-      formattedValue = {
-        operator: 'complement',
-        operand1: formattedValue
-      };
-    }
-
-    return {
-      filterName: 'asset',
-      operator: '~',
-      value: formattedValue
-    };
+    return buildAssetFilterExpression(value, operator);
   }
 
   private convertTempFiltersToAPI(): CustomFilter[] {
-    const tempActiveFilters = Object.entries(this.tempFilters)
-      .filter(([_, value]) => {
-        if (value === null || value === undefined) return false;
-        if (Array.isArray(value) && value.length === 0) return false;
-
-        if (typeof value === 'object') {
-          if ('value' in value && (value.value === null || value.value === undefined)) return false;
-          if ('value' in value && value.value === 'all') return false;
-          if (Object.keys(value).length === 0) return false;
-        }
-
-        return true;
-      })
-      .map(([uiName, value]) => {
-        const apiConfig = Object.entries(this.filterNameMappings).find(([_, config]) => config.uiName === uiName);
-
-        if (!apiConfig) return null;
-
-        const [apiName, config] = apiConfig;
-
-        switch (config.handler) {
-          case 'idArray':
-            if (apiName === 'asset') {
-              if (typeof value === 'object' && 'value' in value && 'operator' in value) {
-                const assetFilter = this.createAssetsFilter(value.value, value.operator);
-
-                if (assetFilter) {
-                  return {
-                    id: apiName,
-                    ...assetFilter,
-                    type: 'vuln',
-                    isPredefined: true
-                  };
-                }
-              }
-
-              return null;
-            }
-
-            if (typeof value === 'string') {
-              return {
-                id: apiName,
-                filterName: apiName,
-                operator: '=',
-                type: 'vuln',
-                isPredefined: true,
-                value: [{ id: value }]
-              };
-            }
-
-            if (Array.isArray(value) && value.length > 0) {
-              return {
-                id: apiName,
-                filterName: apiName,
-                operator: '=',
-                type: 'vuln',
-                isPredefined: true,
-                value: value.map((v) => ({ id: v }))
-              };
-            }
-
-            return null;
-
-          case 'family':
-            if (!Array.isArray(value) || value.length === 0) return null;
-
-            return {
-              id: 'family',
-              filterName: 'family',
-              operator: '=',
-              type: 'vuln',
-              isPredefined: true,
-              value: value.map((v) => ({ id: v }))
-            };
-
-          case 'severity': {
-            const severityValue = Array.isArray(value) ? value.join(',') : value;
-
-            return severityValue
-              ? {
-                  id: 'severity',
-                  filterName: 'severity',
-                  operator: '=',
-                  type: 'vuln',
-                  isPredefined: true,
-                  value: severityValue
-                }
-              : null;
-          }
-
-          case 'array': {
-            const hasValue = Array.isArray(value) ? value.length > 0 : value !== null && value !== undefined;
-
-            return hasValue
-              ? {
-                  id: apiName,
-                  filterName: apiName,
-                  operator: '=',
-                  type: 'vuln',
-                  isPredefined: true,
-                  value: Array.isArray(value) ? value.join(',') : value
-                }
-              : null;
-          }
-
-          case 'operatorValue':
-            return value.value
-              ? {
-                  id: apiName,
-                  filterName: apiName,
-                  operator: value.operator || '=',
-                  type: 'vuln',
-                  isPredefined: true,
-                  value: value.value
-                }
-              : null;
-
-          case 'range':
-            if (value.value === 'none') {
-              return {
-                id: apiName,
-                filterName: apiName,
-                operator: '=',
-                type: 'vuln',
-                isPredefined: true,
-                value: 'none'
-              };
-            }
-
-            if (value.value === 'all' || !value.value) return null;
-
-            if (value.value === 'customRange') {
-              return {
-                id: apiName,
-                filterName: apiName,
-                operator: '=',
-                type: 'vuln',
-                isPredefined: true,
-                value: `${value.min}-${value.max}`
-              };
-            }
-
-            return null;
-
-          case 'simpleValue':
-            return value
-              ? {
-                  id: apiName,
-                  filterName: apiName,
-                  operator: '=',
-                  type: 'vuln',
-                  isPredefined: true,
-                  value: value?.value ?? value
-                }
-              : null;
-
-          default:
-            return null;
-        }
-      })
+    return Object.entries(this.tempFilters)
+      .filter(([_, value]) => isActiveFilterValue(value))
+      .map(([uiName, value]) => this.toApiFilter(uiName, value))
       .filter((filter): filter is CustomFilter => filter !== null);
+  }
 
-    let activeFilters: CustomFilter[] = [];
+  private toApiFilter(uiName: string, value: any): CustomFilter | null {
+    const mapping = Object.entries(this.filterNameMappings).find(([_, config]) => config.uiName === uiName);
 
-    return [...activeFilters, ...tempActiveFilters];
+    if (!mapping) return null;
+
+    const [apiName, config] = mapping;
+    const builder = API_FILTER_BUILDERS[config.handler];
+
+    return builder ? builder(apiName, value) : null;
   }
 
   applyFilters(loadVuln: boolean = true) {

@@ -16,6 +16,7 @@ import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from 'vite
 import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableVulnerabilitiesComponent } from './tenableVulnerabilities.component';
+import { CustomFilter } from '../../../../../common/models/tenable.model';
 import { ImportService } from '../../../import.service';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
@@ -614,6 +615,339 @@ describe('TenableVulnerabilitiesComponent', () => {
       const result = component.createAssetsFilter(['a1', 'a2']);
 
       expect(result?.filterName).toBe('asset');
+    });
+  });
+
+  describe('convertTempFiltersToAPI', () => {
+    const convert = (): CustomFilter[] => (component as any).convertTempFiltersToAPI();
+    const encoded = (filterName: string): CustomFilter | undefined => convert().find((f) => f.filterName === filterName);
+
+    beforeEach(() => {
+      component.tempFilters = (component as any).initializeTempFilters();
+    });
+
+    it('should produce no filters from the initial tempFilters', () => {
+      expect(convert()).toEqual([]);
+    });
+
+    it('should encode a single contains asset as an id object with = operator', () => {
+      component.tempFilters['asset'] = { value: ['a1'], operator: 'contains' };
+      expect(encoded('asset')).toEqual({ id: 'asset', filterName: 'asset', operator: '=', value: { id: 'a1' }, type: 'vuln', isPredefined: true });
+    });
+
+    it('should encode multiple contains assets as a union tree with ~ operator', () => {
+      component.tempFilters['asset'] = { value: ['a1', 'a2', 'a3'], operator: 'contains' };
+      expect(encoded('asset')).toEqual({
+        id: 'asset',
+        filterName: 'asset',
+        operator: '~',
+        value: { operator: 'union', operand1: { operator: 'union', operand1: { id: 'a1' }, operand2: { id: 'a2' } }, operand2: { id: 'a3' } },
+        type: 'vuln',
+        isPredefined: true
+      });
+    });
+
+    it('should wrap notContains assets in a complement', () => {
+      component.tempFilters['asset'] = { value: ['a1', 'a2'], operator: 'notContains' };
+      expect(encoded('asset')?.value).toEqual({ operator: 'complement', operand1: { operator: 'union', operand1: { id: 'a1' }, operand2: { id: 'a2' } } });
+    });
+
+    it('should encode a single notContains asset with ~ operator and no complement', () => {
+      component.tempFilters['asset'] = { value: ['a1'], operator: 'notContains' };
+      expect(encoded('asset')).toMatchObject({ operator: '~', value: { id: 'a1' } });
+    });
+
+    it('should drop an asset filter with no selected ids', () => {
+      component.tempFilters['asset'] = { value: [], operator: 'notContains' };
+      expect(encoded('asset')).toBeUndefined();
+    });
+
+    it.each(['policy', 'auditFile'])('should encode a %s string as a single-element id array', (key) => {
+      component.tempFilters[key] = 'x1';
+      expect(encoded(key)).toEqual({ id: key, filterName: key, operator: '=', type: 'vuln', isPredefined: true, value: [{ id: 'x1' }] });
+    });
+
+    it('should encode responsibleUser ids as id objects', () => {
+      component.tempFilters['responsibleUser'] = ['u1', 'u2'];
+      expect(encoded('responsibleUser')?.value).toEqual([{ id: 'u1' }, { id: 'u2' }]);
+    });
+
+    it('should encode family ids as id objects', () => {
+      component.tempFilters['family'] = ['f1', 'f2'];
+      expect(encoded('family')).toEqual({ id: 'family', filterName: 'family', operator: '=', type: 'vuln', isPredefined: true, value: [{ id: 'f1' }, { id: 'f2' }] });
+    });
+
+    it('should join severity values with commas', () => {
+      component.tempFilters['severity'] = ['3', '4'];
+      expect(encoded('severity')?.value).toBe('3,4');
+    });
+
+    it('should pass a severity string through unchanged', () => {
+      component.tempFilters['severity'] = '4';
+      expect(encoded('severity')?.value).toBe('4');
+    });
+
+    it('should join array-handler values with commas', () => {
+      component.tempFilters['aesSeverity'] = ['1', '2'];
+      expect(encoded('aesSeverity')).toEqual({ id: 'aesSeverity', filterName: 'aesSeverity', operator: '=', type: 'vuln', isPredefined: true, value: '1,2' });
+    });
+
+    it('should pass an array-handler string through unchanged', () => {
+      component.tempFilters['protocol'] = 'tcp';
+      expect(encoded('protocol')?.value).toBe('tcp');
+    });
+
+    it('should encode operator/value filters with their operator', () => {
+      component.tempFilters['ip'] = { value: '10.0.0.1', operator: '~', isValid: true, isDirty: true };
+      expect(encoded('ip')).toEqual({ id: 'ip', filterName: 'ip', operator: '~', type: 'vuln', isPredefined: true, value: '10.0.0.1' });
+    });
+
+    it('should default a missing operator to =', () => {
+      component.tempFilters['port'] = { value: '443', operator: null };
+      expect(encoded('port')?.operator).toBe('=');
+    });
+
+    it('should use the API name when it differs from the UI name', () => {
+      component.tempFilters['cceId'] = { value: 'CCE-1', operator: '=' };
+      expect(encoded('cceID')).toMatchObject({ id: 'cceID', value: 'CCE-1' });
+      expect(encoded('cceId')).toBeUndefined();
+    });
+
+    it('should encode a range set to none', () => {
+      component.tempFilters['vprScore'] = { value: 'none', min: 0, max: 10 };
+      expect(encoded('vprScore')?.value).toBe('none');
+    });
+
+    it('should encode a custom range as min-max', () => {
+      component.tempFilters['vprScore'] = { value: 'customRange', min: 2, max: 7 };
+      expect(encoded('vprScore')).toEqual({ id: 'vprScore', filterName: 'vprScore', operator: '=', type: 'vuln', isPredefined: true, value: '2-7' });
+    });
+
+    it.each([
+      ['all', { value: 'all', min: 0, max: 10 }],
+      ['null', { value: null, min: 0, max: 10 }],
+      ['unknown', { value: 'weird', min: 0, max: 10 }]
+    ])('should drop a range whose value is %s', (_label, value) => {
+      component.tempFilters['vprScore'] = value;
+      expect(encoded('vprScore')).toBeUndefined();
+    });
+
+    it('should encode a simple value', () => {
+      component.tempFilters['exploitAvailable'] = 'true';
+      expect(encoded('exploitAvailable')).toEqual({ id: 'exploitAvailable', filterName: 'exploitAvailable', operator: '=', type: 'vuln', isPredefined: true, value: 'true' });
+    });
+
+    it('should unwrap a value object for simple-value keys', () => {
+      component.tempFilters['pluginType'] = { operator: null, value: 'active' };
+      expect(encoded('pluginType')?.value).toBe('active');
+    });
+
+    it('should drop an empty simple value', () => {
+      component.tempFilters['exploitAvailable'] = '';
+      expect(encoded('exploitAvailable')).toBeUndefined();
+    });
+
+    it('should drop keys that have no API mapping', () => {
+      component.tempFilters['vulnerabilityType'] = 'iav';
+      expect(convert()).toEqual([]);
+    });
+
+    it.each([
+      ['null', null],
+      ['undefined', undefined],
+      ['an empty array', []],
+      ['an empty object', {}],
+      ['a null value object', { value: null, operator: '=' }],
+      ['an all value object', { value: 'all', min: 0, max: 10 }]
+    ])('should skip a key holding %s', (_label, value) => {
+      component.tempFilters['ip'] = value;
+      expect(encoded('ip')).toBeUndefined();
+    });
+  });
+
+  describe('mapSingleFilter', () => {
+    const mapFilter = (filter: any) => (component as any).mapSingleFilter(filter);
+    const vulnFilter = (filterName: string, value: any, operator = '='): CustomFilter => ({ id: filterName, filterName, operator, type: 'vuln', isPredefined: true, value });
+
+    beforeEach(() => {
+      component.tempFilters = (component as any).initializeTempFilters();
+    });
+
+    it.each([
+      ['null', null],
+      ['a filter without a name', { value: 'x' }]
+    ])('should warn and leave tempFilters untouched for %s', (_label, filter) => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const before = structuredClone(component.tempFilters);
+
+      expect(() => mapFilter(filter)).not.toThrow();
+      expect(warnSpy).toHaveBeenCalled();
+      expect(component.tempFilters).toEqual(before);
+      warnSpy.mockRestore();
+    });
+
+    it('should map an = IAV xref filter to the iav vulnerability type', () => {
+      mapFilter(vulnFilter('xref', 'IAVA|20*,IAVB|20*'));
+      expect(component.tempFilters['vulnerabilityType']).toBe('iav');
+    });
+
+    it('should map a non-= IAV xref filter to the non-iav vulnerability type', () => {
+      mapFilter(vulnFilter('xref', 'IAVA|20*,IAVB|20*', '~'));
+      expect(component.tempFilters['vulnerabilityType']).toBe('non-iav');
+    });
+
+    it('should map any other xref filter as an operator/value filter', () => {
+      mapFilter(vulnFilter('xref', 'CVE-*'));
+      expect(component.tempFilters['xref']).toEqual({ value: 'CVE-*', operator: '=', isDirty: true, isValid: true });
+      expect(component.tempFilters['vulnerabilityType']).toBeNull();
+    });
+
+    it('should map a single asset id to a contains filter', () => {
+      mapFilter(vulnFilter('asset', { id: 'a1' }));
+      expect(component.tempFilters['asset']).toEqual({ value: ['a1'], operator: 'contains' });
+    });
+
+    it('should flatten a union tree in operand order', () => {
+      mapFilter(vulnFilter('asset', { operator: 'union', operand1: { operator: 'union', operand1: { id: 'a1' }, operand2: { id: 'a2' } }, operand2: { id: 'a3' } }, '~'));
+      expect(component.tempFilters['asset']).toEqual({ value: ['a1', 'a2', 'a3'], operator: 'contains' });
+    });
+
+    it('should map a complement to a notContains filter', () => {
+      mapFilter(vulnFilter('asset', { operator: 'complement', operand1: { operator: 'union', operand1: { id: 'a1' }, operand2: { id: 'a2' } } }, '~'));
+      expect(component.tempFilters['asset']).toEqual({ value: ['a1', 'a2'], operator: 'notContains' });
+    });
+
+    it('should map a complement of a single asset to a notContains filter', () => {
+      mapFilter(vulnFilter('asset', { operator: 'complement', operand1: { id: 'a1' } }, '~'));
+      expect(component.tempFilters['asset']).toEqual({ value: ['a1'], operator: 'notContains' });
+    });
+
+    it('should map family id objects to ids', () => {
+      mapFilter(vulnFilter('family', [{ id: 'f1' }, { id: 'f2' }]));
+      expect(component.tempFilters['family']).toEqual(['f1', 'f2']);
+    });
+
+    it('should keep family string ids as-is', () => {
+      mapFilter(vulnFilter('family', ['f1']));
+      expect(component.tempFilters['family']).toEqual(['f1']);
+    });
+
+    it('should split severity on commas', () => {
+      mapFilter(vulnFilter('severity', '3,4'));
+      expect(component.tempFilters['severity']).toEqual(['3', '4']);
+    });
+
+    it.each(['policy', 'auditFile'])('should map the first %s id from an array', (key) => {
+      mapFilter(vulnFilter(key, [{ id: 'x1' }, { id: 'x2' }]));
+      expect(component.tempFilters[key]).toBe('x1');
+    });
+
+    it.each(['policy', 'auditFile'])('should map a %s string array to its first element', (key) => {
+      mapFilter(vulnFilter(key, ['x1']));
+      expect(component.tempFilters[key]).toBe('x1');
+    });
+
+    it.each(['policy', 'auditFile'])('should map a %s id object', (key) => {
+      mapFilter(vulnFilter(key, { id: 'x1' }));
+      expect(component.tempFilters[key]).toBe('x1');
+    });
+
+    it.each(['policy', 'auditFile'])('should leave %s untouched for an empty array', (key) => {
+      mapFilter(vulnFilter(key, []));
+      expect(component.tempFilters[key]).toEqual([]);
+    });
+
+    it('should map responsibleUser id objects to ids', () => {
+      mapFilter(vulnFilter('responsibleUser', [{ id: 'u1' }, 'u2']));
+      expect(component.tempFilters['responsibleUser']).toEqual(['u1', 'u2']);
+    });
+
+    it('should leave responsibleUser untouched for a non-array value', () => {
+      mapFilter(vulnFilter('responsibleUser', 'u1'));
+      expect(component.tempFilters['responsibleUser']).toEqual([]);
+    });
+
+    it('should map a simple value directly', () => {
+      mapFilter(vulnFilter('exploitAvailable', 'true'));
+      expect(component.tempFilters['exploitAvailable']).toBe('true');
+    });
+
+    it('should map an operator/value filter and mark it dirty and valid', () => {
+      mapFilter(vulnFilter('ip', '10.0.0.1'));
+      expect(component.tempFilters['ip']).toEqual({ value: '10.0.0.1', operator: '=', isDirty: true, isValid: true });
+    });
+
+    it('should re-run the validator for an operator/value filter', () => {
+      mapFilter(vulnFilter('ip', '999.1.1.1', '~'));
+      expect(component.tempFilters['ip']).toEqual({ value: '999.1.1.1', operator: '~', isDirty: true, isValid: false });
+    });
+
+    it('should map an API name onto its UI name', () => {
+      mapFilter(vulnFilter('cceID', 'CCE-1'));
+      expect(component.tempFilters['cceId']).toMatchObject({ value: 'CCE-1', operator: '=' });
+      expect(component.tempFilters['cceID']).toBeUndefined();
+    });
+
+    it('should map an array-handler string to an array', () => {
+      mapFilter(vulnFilter('aesSeverity', '1,2'));
+      expect(component.tempFilters['aesSeverity']).toEqual(['1', '2']);
+    });
+
+    it('should map a min-max range to a custom range', () => {
+      mapFilter(vulnFilter('vprScore', '2-7'));
+      expect(component.tempFilters['vprScore']).toEqual({ value: 'customRange', min: 2, max: 7 });
+    });
+
+    it('should clamp a custom range to the identifier bounds', () => {
+      mapFilter(vulnFilter('assetCriticalityRating', '0-20'));
+      expect(component.tempFilters['assetCriticalityRating']).toEqual({ value: 'customRange', min: 1, max: 10 });
+    });
+
+    it('should map a range set to none', () => {
+      mapFilter(vulnFilter('vprScore', 'none'));
+      expect(component.tempFilters['vprScore']).toEqual({ value: 'none' });
+    });
+
+    it('should ignore an unknown filter name', () => {
+      const before = structuredClone(component.tempFilters);
+
+      mapFilter(vulnFilter('notARealFilter', 'x'));
+      expect(component.tempFilters).toEqual(before);
+    });
+
+    it('should round-trip every handler type through convertTempFiltersToAPI', () => {
+      component.tempFilters['asset'] = { value: ['a1', 'a2'], operator: 'notContains' };
+      component.tempFilters['ip'] = { value: '10.0.0.1', operator: '~', isValid: true, isDirty: true };
+      component.tempFilters['cceId'] = { value: 'CCE-1', operator: '=', isValid: true, isDirty: true };
+      component.tempFilters['severity'] = ['3', '4'];
+      component.tempFilters['family'] = ['f1', 'f2'];
+      component.tempFilters['policy'] = 'p1';
+      component.tempFilters['auditFile'] = 'af1';
+      component.tempFilters['responsibleUser'] = ['u1'];
+      component.tempFilters['aesSeverity'] = ['1', '2'];
+      component.tempFilters['vprScore'] = { value: 'customRange', min: 2, max: 7 };
+      component.tempFilters['baseCVSSScore'] = { value: 'none', min: 0, max: 10 };
+      component.tempFilters['exploitAvailable'] = 'true';
+      component.tempFilters['lastSeen'] = '0:30';
+
+      const encodedFilters = (component as any).convertTempFiltersToAPI() as CustomFilter[];
+
+      component.tempFilters = (component as any).initializeTempFilters();
+      encodedFilters.forEach((filter) => mapFilter(filter));
+
+      expect(component.tempFilters['asset']).toEqual({ value: ['a1', 'a2'], operator: 'notContains' });
+      expect(component.tempFilters['ip']).toEqual({ value: '10.0.0.1', operator: '~', isValid: true, isDirty: true });
+      expect(component.tempFilters['cceId']).toEqual({ value: 'CCE-1', operator: '=', isValid: true, isDirty: true });
+      expect(component.tempFilters['severity']).toEqual(['3', '4']);
+      expect(component.tempFilters['family']).toEqual(['f1', 'f2']);
+      expect(component.tempFilters['policy']).toBe('p1');
+      expect(component.tempFilters['auditFile']).toBe('af1');
+      expect(component.tempFilters['responsibleUser']).toEqual(['u1']);
+      expect(component.tempFilters['aesSeverity']).toEqual(['1', '2']);
+      expect(component.tempFilters['vprScore']).toEqual({ value: 'customRange', min: 2, max: 7 });
+      expect(component.tempFilters['baseCVSSScore']).toEqual({ value: 'none' });
+      expect(component.tempFilters['exploitAvailable']).toBe('true');
+      expect(component.tempFilters['lastSeen']).toBe('0:30');
     });
   });
 
