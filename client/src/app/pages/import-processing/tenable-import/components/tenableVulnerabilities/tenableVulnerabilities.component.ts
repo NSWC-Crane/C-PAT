@@ -53,7 +53,19 @@ import { PayloadService } from '../../../../../common/services/setPayload.servic
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { isZoneCorDPackage, validateCVSSv2Vector, validateCVSSv3Vector, validateCVSSv4Vector, validateIAVM, validateIP, validateStigSeverity, validateUUID } from '../../../../../common/utils/validation.utils';
-import { createIAVInfoMap, createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext } from '../../utils/tenable-vulnerability.utils';
+import {
+  createIAVInfoMap,
+  createPoamAssociationsMap,
+  getCveUrl,
+  getIavUrl,
+  getPoamStatusColor,
+  getPoamStatusIcon,
+  getPoamStatusTooltip,
+  getSeverityStyling,
+  parseReferences,
+  parseVprContext,
+  toNullableNumber
+} from '../../utils/tenable-vulnerability.utils';
 import { API_FILTER_BUILDERS, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, parseRangeBounds, toArray, toIdList } from '../../utils/tenable-filter.utils';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
@@ -1504,12 +1516,12 @@ export class TenableVulnerabilitiesComponent implements OnInit {
                 pluginName: vuln.name || '',
                 family: vuln.family?.name || '',
                 severity: vuln.severity?.name || '',
-                pluginID: vuln.pluginID !== '' && vuln.pluginID != null ? Number(vuln.pluginID) : null,
-                vprScore: vuln.vprScore !== '' && vuln.vprScore != null ? Number(vuln.vprScore) : null,
-                acrScore: vuln.acrScore !== '' && vuln.acrScore != null ? Number(vuln.acrScore) : null,
-                assetExposureScore: vuln.assetExposureScore !== '' && vuln.assetExposureScore != null ? Number(vuln.assetExposureScore) : null,
-                total: vuln.total !== '' && vuln.total != null ? Number(vuln.total) : null,
-                hostTotal: vuln.hostTotal !== '' && vuln.hostTotal != null ? Number(vuln.hostTotal) : null
+                pluginID: toNullableNumber(vuln.pluginID),
+                vprScore: toNullableNumber(vuln.vprScore),
+                acrScore: toNullableNumber(vuln.acrScore),
+                assetExposureScore: toNullableNumber(vuln.assetExposureScore),
+                total: toNullableNumber(vuln.total),
+                hostTotal: toNullableNumber(vuln.hostTotal)
               };
             })
           );

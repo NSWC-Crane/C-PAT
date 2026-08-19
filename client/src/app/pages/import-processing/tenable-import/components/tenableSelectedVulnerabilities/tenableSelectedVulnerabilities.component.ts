@@ -13,7 +13,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, viewChi
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { format, parseISO, startOfDay } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { FilterMetadata, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ButtonGroupModule } from 'primeng/buttongroup';
@@ -30,7 +30,8 @@ import { EMPTY, catchError, finalize, map, switchMap } from 'rxjs';
 import { ExportColumn, IAVInfo, ParsedReferences, Reference, SeverityStyle } from '../../../../../common/models/tenable.model';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
-import { createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext } from '../../utils/tenable-vulnerability.utils';
+import { resolveNavyComplyDateRange } from '../../utils/navy-comply-date.utils';
+import { createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext, toNullableNumber } from '../../utils/tenable-vulnerability.utils';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { ImportService } from '../../../import.service';
@@ -393,11 +394,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
     this.filterValue = '';
     this.selectedNavyComplyDateFilter = null;
 
-    const navyComplyCol = this.cols().find((c) => c.field === 'navyComplyDate');
-
-    if (navyComplyCol) {
-      navyComplyCol.filterValue = '';
-    }
+    this.setNavyComplyDateColumnLabel('');
 
     const table = this.table();
 
@@ -595,13 +592,13 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
                 pluginName: vuln.name || '',
                 family: vuln.family?.name || '',
                 severity: vuln.severity?.name || '',
-                pluginID: vuln.pluginID !== '' && vuln.pluginID != null ? Number(vuln.pluginID) : null,
-                vprScore: vuln.vprScore !== '' && vuln.vprScore != null ? Number(vuln.vprScore) : null,
-                total: vuln.total !== '' && vuln.total != null ? Number(vuln.total) : null,
-                hostTotal: vuln.hostTotal !== '' && vuln.hostTotal != null ? Number(vuln.hostTotal) : null,
-                acrScore: vuln.acrScore !== '' && vuln.acrScore != null ? Number(vuln.acrScore) : null,
-                assetExposureScore: vuln.assetExposureScore !== '' && vuln.assetExposureScore != null ? Number(vuln.assetExposureScore) : null,
-                port: vuln.port !== '' && vuln.port != null ? Number(vuln.port) : null,
+                pluginID: toNullableNumber(vuln.pluginID),
+                vprScore: toNullableNumber(vuln.vprScore),
+                total: toNullableNumber(vuln.total),
+                hostTotal: toNullableNumber(vuln.hostTotal),
+                acrScore: toNullableNumber(vuln.acrScore),
+                assetExposureScore: toNullableNumber(vuln.assetExposureScore),
+                port: toNullableNumber(vuln.port),
                 ...(this.currentPreset() === 'taskOrder' && { taskOrderNumber: this.taskOrderSource() === 'iav' ? iavInfo?.taskOrder || '' : this.taskOrderMap[vuln.pluginID] || '' })
               };
             })
@@ -863,137 +860,73 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
     return `Before ${format(endDate!, 'MM/dd/yyyy')}`;
   }
 
-  onNavyComplyDateFilterChange(event: any) {
-    if (event?.value) {
-      const today = new Date();
+  private buildNavyComplyDateConstraints(startDate: Date | null, endDate: Date | null): FilterMetadata[] {
+    const filterConstraints: FilterMetadata[] = [];
 
-      today.setHours(23, 59, 59, 999);
-      let startDate: Date | null = null;
-      let endDate: Date | null = null;
+    if (startDate) {
+      const adjustedStartDate = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
 
-      switch (event.value) {
-        case 'alloverdue':
-          endDate = today;
-          break;
-
-        case 'overdue90Plus':
-          endDate = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-
-        case 'overdue30To90':
-          startDate = startOfDay(new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000));
-          endDate = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-
-        case 'overdue0To30':
-          startDate = startOfDay(new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000));
-          endDate = today;
-          break;
-
-        case 'overdue0To14':
-          startDate = startOfDay(new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000));
-          endDate = today;
-          break;
-
-        case 'overdue0To7':
-          startDate = startOfDay(new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000));
-          endDate = today;
-          break;
-
-        case 'dueBetween714':
-          startDate = startOfDay(new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000));
-          endDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-
-        case 'dueBetween1430':
-          startDate = startOfDay(new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000));
-          endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-
-        case 'dueBetween3090':
-          startDate = startOfDay(new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000));
-          endDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-
-        case 'dueWithin7':
-          startDate = startOfDay(today);
-          endDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-
-        case 'dueWithin14':
-          startDate = startOfDay(today);
-          endDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-
-        case 'dueWithin30':
-          startDate = startOfDay(today);
-          endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-
-        case 'dueWithin90':
-          startDate = startOfDay(today);
-          endDate = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-      }
-
-      const filterConstraints: FilterMetadata[] = [];
-
-      if (startDate) {
-        const adjustedStartDate = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
-
-        adjustedStartDate.setHours(23, 59, 59, 999);
-        filterConstraints.push({
-          value: adjustedStartDate,
-          matchMode: 'dateAfter',
-          operator: 'and'
-        });
-      }
-
-      if (endDate) {
-        filterConstraints.push({
-          value: endDate,
-          matchMode: 'dateBefore',
-          operator: 'and'
-        });
-      }
-
-      const table = this.table();
-
-      if (table && filterConstraints.length > 0) {
-        const col = this.cols().find((c) => c.field === 'navyComplyDate');
-
-        if (col) {
-          col.filterValue = this.formatDateRangeLabel(startDate, endDate);
-        }
-
-        table.filters['navyComplyDate'] = filterConstraints;
-        table._filter();
-      }
-    } else {
-      delete this.filters['navyComplyDate'];
-
-      const col = this.cols().find((c) => c.field === 'navyComplyDate');
-
-      if (col) {
-        col.filterValue = '';
-      }
-
-      const table = this.table();
-
-      if (table) {
-        delete table.filters['navyComplyDate'];
-        table._filter();
-      }
+      adjustedStartDate.setHours(23, 59, 59, 999);
+      filterConstraints.push({
+        value: adjustedStartDate,
+        matchMode: 'dateAfter',
+        operator: 'and'
+      });
     }
+
+    if (endDate) {
+      filterConstraints.push({
+        value: endDate,
+        matchMode: 'dateBefore',
+        operator: 'and'
+      });
+    }
+
+    return filterConstraints;
+  }
+
+  private setNavyComplyDateColumnLabel(filterValue: string) {
+    const col = this.cols().find((c) => c.field === 'navyComplyDate');
+
+    if (col) {
+      col.filterValue = filterValue;
+    }
+  }
+
+  private clearNavyComplyDateFilter() {
+    delete this.filters['navyComplyDate'];
+    this.setNavyComplyDateColumnLabel('');
+
+    const table = this.table();
+
+    if (table) {
+      delete table.filters['navyComplyDate'];
+      table._filter();
+    }
+  }
+
+  onNavyComplyDateFilterChange(event: any) {
+    if (!event?.value) {
+      this.clearNavyComplyDateFilter();
+
+      return;
+    }
+
+    const today = new Date();
+
+    today.setHours(23, 59, 59, 999);
+
+    const { startDate, endDate } = resolveNavyComplyDateRange(event.value, today);
+    const filterConstraints = this.buildNavyComplyDateConstraints(startDate, endDate);
+    const table = this.table();
+
+    if (!table || filterConstraints.length === 0) {
+      return;
+    }
+
+    this.setNavyComplyDateColumnLabel(this.formatDateRangeLabel(startDate, endDate));
+    table.filters['navyComplyDate'] = filterConstraints;
+    table._filter();
   }
 
   clear() {
