@@ -265,7 +265,6 @@ describe('AppFooterComponent with swagger disabled', () => {
 });
 
 describe('AppFooterComponent with all features disabled', () => {
-  let _component: AppFooterComponent;
   let fixture: ComponentFixture<AppFooterComponent>;
 
   beforeEach(async () => {
@@ -286,7 +285,6 @@ describe('AppFooterComponent with all features disabled', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppFooterComponent);
-    _component = fixture.componentInstance;
     fixture.detectChanges();
   });
 

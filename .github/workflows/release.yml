@@ -93,17 +93,9 @@ jobs:
       - name: Update version in files
         run: |
           NEW_VERSION=${{ steps.version.outputs.new_version }}
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" api/package.json
 
-          cd api
-          npm install --package-lock-only --force --ignore-scripts
-          cd ..
-
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" client/package.json
-
-          cd client
-          npm install --package-lock-only --force --ignore-scripts
-          cd ..
+          (cd api && npm version "$NEW_VERSION" --no-git-tag-version --ignore-scripts)
+          (cd client && npm version "$NEW_VERSION" --no-git-tag-version --ignore-scripts)
 
           sed -i "s/^release = '[^']*'/release = '$NEW_VERSION'/" docs/conf.py
           sed -i "s/^version = '[^']*'/version = '$NEW_VERSION'/" docs/conf.py
@@ -115,6 +107,11 @@ jobs:
           sed -i "s/'Integration\/[^']*'/'Integration\/$NEW_VERSION (NAVSEA; CPAT; Build\/$NEW_VERSION)'/" api/bootstrap/middlewares.js
 
           echo "Updated version to $NEW_VERSION in all files"
+
+      - name: Verify lockfiles are in sync
+        run: |
+          (cd api && npm ci --dry-run --omit=dev --ignore-scripts)
+          (cd client && npm ci --dry-run --force --ignore-scripts)
 
       - name: Update code.json metadata
         run: |

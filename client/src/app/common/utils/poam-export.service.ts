@@ -260,6 +260,90 @@ export class PoamExportService {
     });
   }
 
+  private static extractTenableDeviceName(netbiosName: string, dnsName: string): string | null {
+    if (netbiosName) {
+      const parts = netbiosName.split('\\');
+
+      return parts.length > 1 ? (parts.at(-1) ?? null) : null;
+    }
+
+    if (dnsName) {
+      const parts = dnsName.split('.');
+
+      return parts.length > 0 ? parts[0].toUpperCase() : null;
+    }
+
+    return null;
+  }
+
+  private static async resolveStigManagerDevices(poam: Poam, stigBenchmarkId: string, originCollectionId: number | undefined, findingsCache: Map<string, any[]>, sharedService: SharedService): Promise<string> {
+    if (!originCollectionId) {
+      throw new Error('Unable to determine the matching STIG Manager collection ID');
+    }
+
+    let findings = findingsCache.get(stigBenchmarkId);
+
+    if (!findings) {
+      findings = (await firstValueFrom(sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, stigBenchmarkId))) ?? [];
+      findingsCache.set(stigBenchmarkId, findings);
+    }
+
+    const matchingFinding = findings.find((finding) => finding.groupId === poam.vulnerabilityId);
+
+    return matchingFinding ? matchingFinding.assets.map((asset: { name: string }) => asset.name).join(' ') : poam.devicesAffected;
+  }
+
+  private static async resolveTenableDevices(vulnerabilityId: string, importService: ImportService): Promise<string> {
+    const analysisParams = {
+      query: {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: 'listvuln',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 10000,
+        filters: [
+          {
+            id: 'pluginID',
+            filterName: 'pluginID',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: vulnerabilityId
+          }
+        ],
+        vulnTool: 'listvuln'
+      },
+      sourceType: 'cumulative',
+      columns: [],
+      type: 'vuln'
+    };
+
+    const analysisData = await firstValueFrom(importService.postTenableAnalysis(analysisParams, false));
+
+    if (analysisData?.error_msg) {
+      throw new Error(`Error in Tenable response: ${analysisData.error_msg}`);
+    }
+
+    return ((analysisData?.response?.results || []) as any[])
+      .map((asset: any) => PoamExportService.extractTenableDeviceName(asset.netbiosName ?? '', asset.dnsName ?? ''))
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  private static resolveCpatDevices(cpatAssets: any[], poamId: number): string {
+    return cpatAssets
+      .filter((asset: any) => asset.poamId === poamId)
+      .map((asset: any) => asset.assetName.toUpperCase())
+      .filter(Boolean)
+      .join(' ');
+  }
+
   private static async processPoamsWithAssets(poams: Poam[], collectionId: number, collectionsService: CollectionsService, importService: ImportService, poamService: PoamService, sharedService: SharedService): Promise<Poam[]> {
     const processedPoams: Poam[] = [];
     const collections = await firstValueFrom(collectionsService.getCollectionBasicList());
@@ -276,93 +360,12 @@ export class PoamExportService {
       let processedPoam = { ...poam };
 
       if (collection.collectionType === 'STIG Manager' && poam.vulnerabilityId && poam.stigBenchmarkId) {
-        if (!collection.originCollectionId) {
-          throw new Error('Unable to determine the matching STIG Manager collection ID');
-        }
-
-        let findings = findingsCache.get(poam.stigBenchmarkId);
-
-        if (!findings) {
-          findings = (await firstValueFrom(sharedService.getSTIGMANAffectedAssetsByPoam(collection.originCollectionId, poam.stigBenchmarkId))) ?? [];
-          findingsCache.set(poam.stigBenchmarkId, findings);
-        }
-
-        const matchingFinding = findings.find((finding) => finding.groupId === poam.vulnerabilityId);
-
-        if (matchingFinding) {
-          processedPoam.devicesAffected = matchingFinding.assets.map((asset: { name: string }) => asset.name).join(' ');
-        }
+        processedPoam.devicesAffected = await PoamExportService.resolveStigManagerDevices(poam, poam.stigBenchmarkId, collection.originCollectionId, findingsCache, sharedService);
       } else if (collection.collectionType === 'Tenable' && poam.vulnerabilityId) {
-        const analysisParams = {
-          query: {
-            description: '',
-            context: '',
-            status: -1,
-            createdTime: 0,
-            modifiedTime: 0,
-            groups: [],
-            type: 'vuln',
-            tool: 'listvuln',
-            sourceType: 'cumulative',
-            startOffset: 0,
-            endOffset: 10000,
-            filters: [
-              {
-                id: 'pluginID',
-                filterName: 'pluginID',
-                operator: '=',
-                type: 'vuln',
-                isPredefined: true,
-                value: poam.vulnerabilityId
-              }
-            ],
-            vulnTool: 'listvuln'
-          },
-          sourceType: 'cumulative',
-          columns: [],
-          type: 'vuln'
-        };
-
-        const analysisData = await firstValueFrom(importService.postTenableAnalysis(analysisParams, false));
-
-        if (analysisData?.error_msg) {
-          throw new Error(`Error in Tenable response: ${analysisData.error_msg}`);
-        }
-
-        const tenableAssets = (analysisData?.response?.results || []).map((asset: any) => ({
-          pluginId: asset.pluginID,
-          dnsName: asset.dnsName ?? '',
-          netbiosName: asset.netbiosName ?? ''
-        }));
-
-        const affectedDevices = tenableAssets
-          .map((asset) => {
-            if (asset.netbiosName) {
-              const parts = asset.netbiosName.split('\\');
-
-              return parts.length > 1 ? parts[parts.length - 1] : null;
-            }
-
-            if (asset.dnsName) {
-              const parts = asset.dnsName.split('.');
-
-              return parts.length > 0 ? parts[0].toUpperCase() : null;
-            }
-
-            return null;
-          })
-          .filter(Boolean);
-
-        processedPoam.devicesAffected = affectedDevices.join(' ');
+        processedPoam.devicesAffected = await PoamExportService.resolveTenableDevices(poam.vulnerabilityId, importService);
       } else {
         cpatAssets ??= (await firstValueFrom(poamService.getPoamAssetsByCollectionId(collection.collectionId))) ?? [];
-
-        const poamAssets = cpatAssets
-          .filter((asset: any) => asset.poamId === poam.poamId)
-          .map((asset: any) => asset.assetName.toUpperCase())
-          .filter(Boolean);
-
-        processedPoam.devicesAffected = poamAssets.join(' ');
+        processedPoam.devicesAffected = PoamExportService.resolveCpatDevices(cpatAssets, poam.poamId);
       }
 
       processedPoams.push(processedPoam);

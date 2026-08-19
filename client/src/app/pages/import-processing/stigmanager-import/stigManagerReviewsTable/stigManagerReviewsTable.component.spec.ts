@@ -697,6 +697,31 @@ describe('STIGManagerReviewsTableComponent', () => {
       component.filterState.filters = { assetName: null };
       expect(component.matchesFilters({ assetName: 'Asset1' })).toBe(true);
     });
+
+    it('should match labels filter when any term matches any label', () => {
+      component.filterState.filters = { labels: 'Web Prod' };
+      expect(component.matchesFilters({ assetLabels: [{ name: 'production' }] })).toBe(true);
+      expect(component.matchesFilters({ assetLabels: [{ name: 'database' }] })).toBe(false);
+    });
+
+    it('should ignore extra whitespace in labels filter instead of matching everything', () => {
+      component.filterState.filters = { labels: 'prod ' };
+      expect(component.matchesFilters({ assetLabels: [{ name: 'database' }] })).toBe(false);
+
+      component.filterState.filters = { labels: 'web  prod' };
+      expect(component.matchesFilters({ assetLabels: [{ name: 'database' }] })).toBe(false);
+      expect(component.matchesFilters({ assetLabels: [{ name: 'webserver' }] })).toBe(true);
+    });
+
+    it('should treat a whitespace-only labels filter as no filter', () => {
+      component.filterState.filters = { labels: '   ' };
+      expect(component.matchesFilters({ assetLabels: [{ name: 'database' }] })).toBe(true);
+    });
+
+    it('should not throw on labels without a name', () => {
+      component.filterState.filters = { labels: 'prod' };
+      expect(component.matchesFilters({ assetLabels: [{ name: undefined }, { name: 'production' }] })).toBe(true);
+    });
   });
 
   describe('countAllNodes', () => {

@@ -9,6 +9,7 @@
 */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { of } from 'rxjs';
 import { PoamExportService } from './poam-export.service';
 import { Poam } from '../models/poam.model';
 
@@ -269,6 +270,186 @@ describe('PoamExportService', () => {
 
       expect(duplicate.isAssociatedVulnerability).toBe(true);
       expect(duplicate.parentVulnerabilityId).toBe('V-12345');
+    });
+  });
+
+  describe('processPoamsWithAssets', () => {
+    const buildCollectionsService = (collections: any[] = [{ collectionId: 1, collectionType: 'C-PAT' }]) => ({ getCollectionBasicList: vi.fn().mockReturnValue(of(collections)) });
+    const buildImportService = (analysis: any = { response: { results: [] } }) => ({ postTenableAnalysis: vi.fn().mockReturnValue(of(analysis)) });
+    const buildPoamService = (assets: any[] | null = []) => ({ getPoamAssetsByCollectionId: vi.fn().mockReturnValue(of(assets)) });
+    const buildSharedService = (findings: any[] | null = []) => ({ getSTIGMANAffectedAssetsByPoam: vi.fn().mockReturnValue(of(findings)) });
+
+    const run = (poams: Poam[], collectionId: number, services: { collections?: any; imports?: any; poams?: any; shared?: any }): Promise<Poam[]> =>
+      (PoamExportService as any).processPoamsWithAssets(poams, collectionId, services.collections ?? buildCollectionsService(), services.imports ?? buildImportService(), services.poams ?? buildPoamService(), services.shared ?? buildSharedService());
+
+    const poam = (overrides: Partial<Poam>): Poam => ({ poamId: 1, vulnerabilityId: 'V-1', devicesAffected: 'ORIGINAL', ...overrides }) as Poam;
+
+    it('throws when the collection is not in the basic list', async () => {
+      await expect(run([poam({})], 99, { collections: buildCollectionsService([{ collectionId: 1, collectionType: 'C-PAT' }]) })).rejects.toThrow('Collection not found');
+    });
+
+    it('returns copies in input order without mutating the source POAMs', async () => {
+      const input = [poam({ poamId: 1 }), poam({ poamId: 2 })];
+      const poamService = buildPoamService([{ poamId: 2, assetName: 'box' }]);
+
+      const result = await run(input, 1, { poams: poamService });
+
+      expect(result.map((p) => p.poamId)).toEqual([1, 2]);
+      expect(result[1].devicesAffected).toBe('BOX');
+      expect(result[1]).not.toBe(input[1]);
+      expect(input[1].devicesAffected).toBe('ORIGINAL');
+    });
+
+    describe('STIG Manager collections', () => {
+      const stigCollection = (originCollectionId: number | null = 77) => buildCollectionsService([{ collectionId: 1, collectionType: 'STIG Manager', originCollectionId }]);
+
+      it('throws when the origin collection id is missing', async () => {
+        await expect(run([poam({ stigBenchmarkId: 'RHEL_9' })], 1, { collections: stigCollection(null) })).rejects.toThrow('Unable to determine the matching STIG Manager collection ID');
+      });
+
+      it('joins the asset names of the finding whose groupId matches the vulnerability id', async () => {
+        const shared = buildSharedService([
+          { groupId: 'V-other', assets: [{ name: 'nope' }] },
+          { groupId: 'V-1', assets: [{ name: 'host-a' }, { name: 'host-b' }] }
+        ]);
+
+        const [result] = await run([poam({ stigBenchmarkId: 'RHEL_9' })], 1, { collections: stigCollection(), shared });
+
+        expect(shared.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledWith(77, 'RHEL_9');
+        expect(result.devicesAffected).toBe('host-a host-b');
+      });
+
+      it('keeps the existing devicesAffected when no finding matches or the response is empty', async () => {
+        const [noMatch] = await run([poam({ stigBenchmarkId: 'RHEL_9' })], 1, { collections: stigCollection(), shared: buildSharedService([{ groupId: 'V-other', assets: [] }]) });
+        const [nullResponse] = await run([poam({ stigBenchmarkId: 'RHEL_9' })], 1, { collections: stigCollection(), shared: buildSharedService(null) });
+
+        expect(noMatch.devicesAffected).toBe('ORIGINAL');
+        expect(nullResponse.devicesAffected).toBe('ORIGINAL');
+      });
+
+      it('fetches findings once per benchmark across the export', async () => {
+        const shared = buildSharedService([
+          { groupId: 'V-1', assets: [{ name: 'a' }] },
+          { groupId: 'V-2', assets: [{ name: 'b' }] }
+        ]);
+        const poams = [poam({ poamId: 1, vulnerabilityId: 'V-1', stigBenchmarkId: 'RHEL_9' }), poam({ poamId: 2, vulnerabilityId: 'V-2', stigBenchmarkId: 'RHEL_9' }), poam({ poamId: 3, vulnerabilityId: 'V-1', stigBenchmarkId: 'WIN_11' })];
+
+        const result = await run(poams, 1, { collections: stigCollection(), shared });
+
+        expect(shared.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledTimes(2);
+        expect(shared.getSTIGMANAffectedAssetsByPoam.mock.calls).toEqual([
+          [77, 'RHEL_9'],
+          [77, 'WIN_11']
+        ]);
+        expect(result.map((p) => p.devicesAffected)).toEqual(['a', 'b', 'a']);
+      });
+
+      it('falls back to C-PAT assets when the POAM has no benchmark id', async () => {
+        const shared = buildSharedService();
+        const poamService = buildPoamService([{ poamId: 1, assetName: 'local' }]);
+
+        const [result] = await run([poam({ stigBenchmarkId: null })], 1, { collections: stigCollection(), shared, poams: poamService });
+
+        expect(shared.getSTIGMANAffectedAssetsByPoam).not.toHaveBeenCalled();
+        expect(result.devicesAffected).toBe('LOCAL');
+      });
+    });
+
+    describe('Tenable collections', () => {
+      const tenableCollection = () => buildCollectionsService([{ collectionId: 1, collectionType: 'Tenable' }]);
+
+      it('queries the plugin id with caching bypassed and derives device names from netbios, then dns', async () => {
+        const imports = buildImportService({
+          response: {
+            results: [
+              { netbiosName: 'DOMAIN\\HOST-A', dnsName: 'ignored.example.com' },
+              { netbiosName: '', dnsName: 'host-b.example.com' },
+              { netbiosName: 'NOBACKSLASH', dnsName: 'host-c.example.com' },
+              { netbiosName: null, dnsName: null },
+              { netbiosName: 'DOMAIN\\' }
+            ]
+          }
+        });
+
+        const [result] = await run([poam({ vulnerabilityId: '12345' })], 1, { collections: tenableCollection(), imports });
+
+        expect(imports.postTenableAnalysis).toHaveBeenCalledTimes(1);
+
+        const [params, useCache] = imports.postTenableAnalysis.mock.calls[0];
+
+        expect(useCache).toBe(false);
+        expect(params.query.filters).toEqual([{ id: 'pluginID', filterName: 'pluginID', operator: '=', type: 'vuln', isPredefined: true, value: '12345' }]);
+        expect(params.query.tool).toBe('listvuln');
+        expect(params.query.endOffset).toBe(10000);
+        expect(result.devicesAffected).toBe('HOST-A HOST-B');
+      });
+
+      it('throws when Tenable reports an error in a 200 response', async () => {
+        await expect(run([poam({})], 1, { collections: tenableCollection(), imports: buildImportService({ error_msg: 'Invalid plugin' }) })).rejects.toThrow('Error in Tenable response: Invalid plugin');
+      });
+
+      it('produces an empty device list when the response has no results', async () => {
+        const [undefinedBody] = await run([poam({})], 1, { collections: tenableCollection(), imports: buildImportService(undefined) });
+        const [missingResults] = await run([poam({})], 1, { collections: tenableCollection(), imports: buildImportService({ response: {} }) });
+
+        expect(undefinedBody.devicesAffected).toBe('');
+        expect(missingResults.devicesAffected).toBe('');
+      });
+
+      it('falls back to C-PAT assets when the POAM has no vulnerability id', async () => {
+        const imports = buildImportService();
+        const poamService = buildPoamService([{ poamId: 1, assetName: 'local' }]);
+
+        const [result] = await run([poam({ vulnerabilityId: null })], 1, { collections: tenableCollection(), imports, poams: poamService });
+
+        expect(imports.postTenableAnalysis).not.toHaveBeenCalled();
+        expect(result.devicesAffected).toBe('LOCAL');
+      });
+    });
+
+    describe('C-PAT collections', () => {
+      it('fetches collection assets once and assigns upper-cased names per POAM', async () => {
+        const poamService = buildPoamService([
+          { poamId: 1, assetName: 'alpha' },
+          { poamId: 2, assetName: 'bravo' },
+          { poamId: 1, assetName: 'charlie' },
+          { poamId: 1, assetName: '' }
+        ]);
+
+        const result = await run([poam({ poamId: 1 }), poam({ poamId: 2 }), poam({ poamId: 3 })], 1, { poams: poamService });
+
+        expect(poamService.getPoamAssetsByCollectionId).toHaveBeenCalledTimes(1);
+        expect(poamService.getPoamAssetsByCollectionId).toHaveBeenCalledWith(1);
+        expect(result.map((p) => p.devicesAffected)).toEqual(['ALPHA CHARLIE', 'BRAVO', '']);
+      });
+
+      it('treats a null asset response as no assets', async () => {
+        const [result] = await run([poam({})], 1, { poams: buildPoamService(null) });
+
+        expect(result.devicesAffected).toBe('');
+      });
+    });
+
+    it('writes the resolved devices into column V through updateEMASSterPoams', async () => {
+      for (const key of Object.keys(xlsxMock.cells)) delete xlsxMock.cells[key];
+      xlsxMock.worksheet.getCell('E8').value = 'V-1';
+
+      const file = new File([''], 'emasster.xlsx');
+      const poamService = buildPoamService([{ poamId: 1, assetName: 'box-one' }]);
+
+      await PoamExportService.updateEMASSterPoams(
+        file,
+        [poam({ poamId: 1, vulnerabilityId: 'V-1', associatedVulnerabilities: [] })],
+        1,
+        ['V'],
+        buildCollectionsService() as any,
+        buildImportService() as any,
+        poamService as any,
+        buildSharedService() as any
+      );
+
+      expect(xlsxMock.cells['V8'].value).toBe('BOX-ONE');
+      for (const key of Object.keys(xlsxMock.cells)) delete xlsxMock.cells[key];
     });
   });
 
