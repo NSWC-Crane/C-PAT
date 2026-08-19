@@ -633,52 +633,57 @@ export class STIGManagerReviewsTableComponent implements OnInit {
   matchesFilters(data: any): boolean {
     if (!data) return false;
 
-    return Object.entries(this.filterState.filters).every(([field, filterValue]) => {
-      if (!filterValue) return true;
+    return Object.entries(this.filterState.filters).every(([field, filterValue]) => this.matchesFieldFilter(data, field, filterValue));
+  }
 
-      const fieldValue = this.getFieldValue(data, field);
+  private matchesFieldFilter(data: any, field: string, filterValue: any): boolean {
+    if (!filterValue) return true;
 
-      if (field === 'labels' && data.assetLabels) {
-        const nodeLabels = data.assetLabels.map((label: any) => label.name.toLowerCase());
+    const fieldValue = this.getFieldValue(data, field);
 
-        return filterValue
-          .toLowerCase()
-          .split(' ')
-          .some((term: string) => nodeLabels.some((label: string) => label.includes(term)));
+    if (field === 'labels' && data.assetLabels) {
+      return this.matchesLabelsFilter(data.assetLabels, filterValue);
+    }
+
+    if (field.includes('Date') && typeof filterValue === 'object' && filterValue.mode === 'range') {
+      return this.matchesDateRangeFilter(fieldValue, filterValue);
+    }
+
+    if (field.includes('Date') && typeof filterValue === 'object' && filterValue.value instanceof Date) {
+      return this.matchesDateComparisonFilter(fieldValue, filterValue);
+    }
+
+    if (field.includes('version') && typeof filterValue === 'object' && filterValue.value) {
+      return this.matchesVersionFilter(fieldValue, filterValue);
+    }
+
+    return this.matchesValueFilter(fieldValue, filterValue);
+  }
+
+  private matchesLabelsFilter(assetLabels: any[], filterValue: any): boolean {
+    const terms = String(filterValue).toLowerCase().split(/\s+/).filter(Boolean);
+
+    if (terms.length === 0) return true;
+
+    const nodeLabels = assetLabels.map((label: any) => String(label.name ?? '').toLowerCase());
+
+    return terms.some((term) => nodeLabels.some((label) => label.includes(term)));
+  }
+
+  private matchesValueFilter(fieldValue: any, filterValue: any): boolean {
+    if (Array.isArray(filterValue)) {
+      if (filterValue.length === 0) return true;
+
+      if (typeof fieldValue === 'string') {
+        return filterValue.some((val) => fieldValue.toLowerCase().includes(String(val).toLowerCase()));
       }
 
-      if (field.includes('Date') && typeof filterValue === 'object' && filterValue.mode === 'range') {
-        return this.matchesDateRangeFilter(fieldValue, filterValue);
-      }
-
-      if (field.includes('Date') && typeof filterValue === 'object' && filterValue.value instanceof Date) {
-        return this.matchesDateComparisonFilter(fieldValue, filterValue);
-      }
-
-      if (filterValue instanceof Date) {
-        const nodeDate = new Date(fieldValue);
-
-        return nodeDate.setHours(0, 0, 0, 0) === filterValue.setHours(0, 0, 0, 0);
-      }
-
-      if (field.includes('version') && typeof filterValue === 'object' && filterValue.value) {
-        return this.matchesVersionFilter(fieldValue, filterValue);
-      }
-
-      if (Array.isArray(filterValue)) {
-        if (filterValue.length === 0) return true;
-
-        if (typeof fieldValue === 'string') {
-          return filterValue.some((val) => fieldValue.toLowerCase().includes(String(val).toLowerCase()));
-        }
-
-        return filterValue.includes(fieldValue);
-      } else if (typeof filterValue === 'string') {
-        return String(fieldValue).toLowerCase().includes(filterValue.toLowerCase());
-      } else {
-        return String(fieldValue).toLowerCase() === String(filterValue).toLowerCase();
-      }
-    });
+      return filterValue.includes(fieldValue);
+    } else if (typeof filterValue === 'string') {
+      return String(fieldValue).toLowerCase().includes(filterValue.toLowerCase());
+    } else {
+      return String(fieldValue).toLowerCase() === String(filterValue).toLowerCase();
+    }
   }
 
   private matchesDateRangeFilter(fieldValue: any, filterValue: any): boolean {
