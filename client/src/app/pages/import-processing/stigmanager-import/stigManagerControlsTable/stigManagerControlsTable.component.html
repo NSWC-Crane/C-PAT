@@ -194,21 +194,23 @@
               } @else {
                 @switch (col.field) {
                   @case ('poam') {
-                    <i
-                      [ngClass]="rowData.hasExistingPoam ? getPoamStatusIcon(rowData.poamStatus, rowData.isAssociated) : 'pi pi-plus-circle'"
-                      [style]="{
-                        color: !rowData.hasExistingPoam ? 'maroon' : getPoamStatusColor(rowData.poamStatus, rowData.parentStatus),
-                        'font-size': '1.5rem',
-                        cursor: 'pointer'
-                      }"
+                    <button
+                      type="button"
+                      class="group cursor-pointer transition-[filter] duration-200 hover:brightness-115"
                       (click)="addPoam(rowData)"
-                      (keyup.enter)="addPoam(rowData)"
                       [pTooltip]="getPoamStatusTooltip(rowData.poamStatus, rowData.hasExistingPoam, rowData.parentStatus)"
                       tooltipPosition="top"
-                      role="button"
                       aria-label="Manage POAM"
-                      tabindex="0"
-                    ></i>
+                    >
+                      <i
+                        class="transition-[-webkit-text-stroke-width] duration-200 group-hover:[-webkit-text-stroke:0.25px]"
+                        [ngClass]="rowData.hasExistingPoam ? getPoamStatusIcon(rowData.poamStatus, rowData.isAssociated) : 'pi pi-plus-circle'"
+                        [style]="{
+                          color: !rowData.hasExistingPoam ? 'maroon' : getPoamStatusColor(rowData.poamStatus, rowData.parentStatus),
+                          'font-size': '1.5rem'
+                        }"
+                      ></i>
+                    </button>
                   }
                   @case ('severity') {
                     <p-tag [value]="rowData.severity" [severity]="getSeverityStyling(rowData.severity)" [rounded]="false" />

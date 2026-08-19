@@ -144,20 +144,23 @@
                 <td>
                   @switch (col.field) {
                     @case ('poam') {
-                      <i
-                        class="pi"
-                        [ngClass]="vulnerability.poam ? getPoamStatusIcon(vulnerability.poamStatus, vulnerability.isAssociated) : 'pi pi-plus-circle'"
-                        [style]="{
-                          color: vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus, vulnerability.parentStatus) : 'maroon',
-                          'font-size': '1.5rem',
-                          cursor: 'pointer'
-                        }"
+                      <button
+                        type="button"
+                        class="group cursor-pointer transition-[filter] duration-200 hover:brightness-115"
                         (click)="onPoamIconClick(vulnerability, $event)"
-                        (keyup.enter)="onPoamIconClick(vulnerability, $event)"
                         [pTooltip]="getPoamStatusTooltip(vulnerability.poamStatus, vulnerability.poam, vulnerability.parentStatus)"
                         tooltipPosition="top"
+                        aria-label="Manage POAM"
                       >
-                      </i>
+                        <i
+                          class="pi transition-[-webkit-text-stroke-width] duration-200 group-hover:[-webkit-text-stroke:0.25px]"
+                          [ngClass]="vulnerability.poam ? getPoamStatusIcon(vulnerability.poamStatus, vulnerability.isAssociated) : 'pi pi-plus-circle'"
+                          [style]="{
+                            color: vulnerability.poam ? getPoamStatusColor(vulnerability.poamStatus, vulnerability.parentStatus) : 'maroon',
+                            'font-size': '1.5rem'
+                          }"
+                        ></i>
+                      </button>
                     }
                     @case ('pluginID') {
                       <span (click)="onPluginIDClick(vulnerability, $event)" (keyup.enter)="onPluginIDClick(vulnerability, $event)" style="cursor: pointer; color: var(--p-primary-color); font-weight: bold; text-decoration: underline">
