@@ -26,6 +26,8 @@ import { Router } from '@angular/router';
 import { createMockMessageService, createMockRouter } from '../../../../../../testing/mocks/service-mocks';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 
+const vulnFilter = (filterName: string, value: any, operator = '='): CustomFilter => ({ id: filterName, filterName, operator, type: 'vuln', isPredefined: true, value });
+
 describe('TenableVulnerabilitiesComponent', () => {
   let component: TenableVulnerabilitiesComponent;
   let fixture: ComponentFixture<TenableVulnerabilitiesComponent>;
@@ -444,11 +446,10 @@ describe('TenableVulnerabilitiesComponent', () => {
 
   describe('clearIndividualFilter', () => {
     const stopProp = { stopPropagation: vi.fn() } as any;
-    let _loadVulnSpy: any;
 
     beforeEach(() => {
       stopProp.stopPropagation = vi.fn();
-      _loadVulnSpy = vi.spyOn(component, 'loadVulnerabilitiesLazy').mockImplementation(() => {});
+      vi.spyOn(component, 'loadVulnerabilitiesLazy').mockImplementation(() => {});
       (component as any).setupColumns();
     });
 
@@ -570,6 +571,50 @@ describe('TenableVulnerabilitiesComponent', () => {
       component.tempFilters['vprScore'] = { value: 'customRange', min: 0, max: 20 };
       component.onRangeValueChange('vprScore');
       expect(component.tempFilters['vprScore'].max).toBe(10);
+    });
+
+    it.each([
+      ['assetCriticalityRating', 1, 10],
+      ['assetExposureScore', 0, 1000],
+      ['baseCVSSScore', 0, 10],
+      ['cvssV3BaseScore', 0, 10],
+      ['cvssV4BaseScore', 0, 10],
+      ['cvssV4ThreatScore', 0, 10],
+      ['vprScore', 0, 10]
+    ])('should coerce non-finite %s bounds to its limits', (identifier, lower, upper) => {
+      component.tempFilters[identifier] = { value: 'customRange', min: NaN, max: null };
+      component.onRangeValueChange(identifier);
+      expect(component.tempFilters[identifier]).toEqual({ value: 'customRange', min: lower, max: upper });
+    });
+
+    it('should treat a cleared max as the upper limit rather than collapsing it onto min', () => {
+      component.tempFilters['vprScore'] = { value: 'customRange', min: 5, max: undefined };
+      component.onRangeValueChange('vprScore');
+      expect(component.tempFilters['vprScore']).toEqual({ value: 'customRange', min: 5, max: 10 });
+    });
+
+    it('should coerce numeric-string bounds instead of resetting them', () => {
+      component.tempFilters['vprScore'] = { value: 'customRange', min: '2', max: '7.5' };
+      component.onRangeValueChange('vprScore');
+      expect(component.tempFilters['vprScore']).toEqual({ value: 'customRange', min: 2, max: 7.5 });
+    });
+
+    it('should treat a whitespace-only string bound as cleared', () => {
+      component.tempFilters['vprScore'] = { value: 'customRange', min: ' ', max: '' };
+      component.onRangeValueChange('vprScore');
+      expect(component.tempFilters['vprScore']).toEqual({ value: 'customRange', min: 0, max: 10 });
+    });
+
+    it('should leave a well-formed range untouched', () => {
+      component.tempFilters['vprScore'] = { value: 'customRange', min: 2, max: 7 };
+      component.onRangeValueChange('vprScore');
+      expect(component.tempFilters['vprScore']).toEqual({ value: 'customRange', min: 2, max: 7 });
+    });
+
+    it('should not touch a non-range identifier', () => {
+      component.tempFilters['ip'] = { value: '10.0.0.1', operator: '=', isValid: true, isDirty: true };
+      component.onRangeValueChange('ip');
+      expect(component.tempFilters['ip']).toEqual({ value: '10.0.0.1', operator: '=', isValid: true, isDirty: true });
     });
   });
 
@@ -722,7 +767,6 @@ describe('TenableVulnerabilitiesComponent', () => {
 
   describe('mapSingleFilter', () => {
     const mapFilter = (filter: any) => (component as any).mapSingleFilter(filter);
-    const vulnFilter = (filterName: string, value: any, operator = '='): CustomFilter => ({ id: filterName, filterName, operator, type: 'vuln', isPredefined: true, value });
 
     beforeEach(() => {
       component.tempFilters = (component as any).initializeTempFilters();
@@ -861,6 +905,22 @@ describe('TenableVulnerabilitiesComponent', () => {
     it('should map a range set to none', () => {
       mapFilter(vulnFilter('vprScore', 'none'));
       expect(component.tempFilters['vprScore']).toEqual({ value: 'none' });
+    });
+
+    it('should map a decimal range', () => {
+      mapFilter(vulnFilter('vprScore', '0.5-3.5'));
+      expect(component.tempFilters['vprScore']).toEqual({ value: 'customRange', min: 0.5, max: 3.5 });
+    });
+
+    it.each(['2-', '-', 'a-b', '1-2-3', 'null-7', '7-2'])('should reject the malformed range %j without touching tempFilters', (value) => {
+      expect(() => mapFilter(vulnFilter('vprScore', value))).toThrow(`Invalid range value "${value}" for vprScore`);
+      expect(component.tempFilters['vprScore']).toEqual({ value: 'all', min: 0, max: 10 });
+    });
+
+    it('should pass a non-string range value through without throwing', () => {
+      mapFilter(vulnFilter('vprScore', 5));
+      expect(component.tempFilters['vprScore']).toEqual({ value: 5 });
+      expect((component as any).convertTempFiltersToAPI().map((f: CustomFilter) => f.filterName)).not.toContain('vprScore');
     });
 
     it('should ignore an unknown filter name', () => {
@@ -1430,6 +1490,40 @@ describe('TenableVulnerabilitiesComponent', () => {
     it('should call loadVulnerabilitiesLazy for valid premade filter', () => {
       component.applyPremadeFilter({ value: 'exploitable' });
       expect(component.loadVulnerabilitiesLazy).toHaveBeenCalled();
+    });
+
+    describe('saved filters', () => {
+      const useSavedFilter = (filters: any[]) => {
+        component.premadeFilterOptions.set([{ label: 'Saved Filters', value: 'saved', items: [{ label: 'Saved', value: 'saved_1', filter: JSON.stringify({ tenableTool: 'sumid', filters }) }] }]);
+      };
+
+      beforeEach(() => {
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+      });
+
+      it('should apply every filter of a well-formed saved filter', () => {
+        useSavedFilter([vulnFilter('vprScore', '2-7'), vulnFilter('exploitAvailable', 'true')]);
+        component.applyPremadeFilter({ value: 'saved_1' });
+        expect(component.tempFilters['vprScore']).toEqual({ value: 'customRange', min: 2, max: 7 });
+        expect(component.tempFilters['exploitAvailable']).toBe('true');
+        expect(mockMessageService.add).not.toHaveBeenCalled();
+        expect(component.loadVulnerabilitiesLazy).toHaveBeenCalled();
+      });
+
+      it('should toast a malformed saved range and keep applying the remaining filters', () => {
+        useSavedFilter([vulnFilter('vprScore', '2-'), vulnFilter('exploitAvailable', 'true')]);
+        component.applyPremadeFilter({ value: 'saved_1' });
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Invalid range value "2-" for vprScore') }));
+        expect(component.tempFilters['vprScore']).toEqual({ value: 'all', min: 0, max: 10 });
+        expect(component.tempFilters['exploitAvailable']).toBe('true');
+        expect(component.loadVulnerabilitiesLazy).toHaveBeenCalled();
+      });
+
+      it('should not let a malformed range reach the encoded activeFilters', () => {
+        useSavedFilter([vulnFilter('vprScore', 'a-b'), vulnFilter('severity', '3,4')]);
+        component.applyPremadeFilter({ value: 'saved_1' });
+        expect(component.activeFilters.map((f) => f.filterName)).toEqual(['severity']);
+      });
     });
   });
 

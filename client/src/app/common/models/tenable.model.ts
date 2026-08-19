@@ -18,13 +18,19 @@ export interface IdAndName {
   name: string;
 }
 
+export interface AssetFilterExpression {
+  operator: string;
+  operand1: any;
+  operand2?: any;
+}
+
 export interface CustomFilter {
   id: string;
   filterName: string;
   operator: string;
   type: string;
   isPredefined: boolean;
-  value: string | string[] | { id: string }[];
+  value: string | string[] | { id: string } | { id: string }[] | AssetFilterExpression;
 }
 
 export interface AssetsFilter {

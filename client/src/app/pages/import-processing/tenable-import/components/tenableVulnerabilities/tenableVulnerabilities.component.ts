@@ -54,7 +54,7 @@ import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { isZoneCorDPackage, validateCVSSv2Vector, validateCVSSv3Vector, validateCVSSv4Vector, validateIAVM, validateIP, validateStigSeverity, validateUUID } from '../../../../../common/utils/validation.utils';
 import { createIAVInfoMap, createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext } from '../../utils/tenable-vulnerability.utils';
-import { API_FILTER_BUILDERS, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, toArray, toIdList } from '../../utils/tenable-filter.utils';
+import { API_FILTER_BUILDERS, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, parseRangeBounds, toArray, toIdList } from '../../utils/tenable-filter.utils';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { ImportService } from '../../../import.service';
@@ -899,14 +899,8 @@ export class TenableVulnerabilitiesComponent implements OnInit {
         return { value: filter.value };
       }
 
-      if (filter.value.includes('-')) {
-        const [min, max] = filter.value.split('-').map(Number);
-
-        return {
-          value: 'customRange',
-          min,
-          max
-        };
+      if (typeof filter.value === 'string' && filter.value.includes('-')) {
+        return { value: 'customRange', ...parseRangeBounds(filter.value, filter.filterName) };
       }
 
       return { value: filter.value };
@@ -2066,22 +2060,33 @@ export class TenableVulnerabilitiesComponent implements OnInit {
 
     switch (identifier) {
       case 'assetCriticalityRating':
-        filter.min = Math.max(1, Math.min(filter.min, 10));
-        filter.max = Math.max(filter.min, Math.min(filter.max, 10));
+        this.clampRange(filter, 1, 10);
         break;
       case 'assetExposureScore':
-        filter.min = Math.max(0, Math.min(filter.min, 1000));
-        filter.max = Math.max(filter.min, Math.min(filter.max, 1000));
+        this.clampRange(filter, 0, 1000);
         break;
       case 'baseCVSSScore':
       case 'cvssV3BaseScore':
       case 'cvssV4BaseScore':
       case 'cvssV4ThreatScore':
       case 'vprScore':
-        filter.min = Math.max(0, Math.min(filter.min, 10));
-        filter.max = Math.max(filter.min, Math.min(filter.max, 10));
+        this.clampRange(filter, 0, 10);
         break;
     }
+  }
+
+  private clampRange(filter: any, lower: number, upper: number): void {
+    const min = this.toFiniteNumber(filter.min, lower);
+    const max = this.toFiniteNumber(filter.max, upper);
+
+    filter.min = Math.max(lower, Math.min(min, upper));
+    filter.max = Math.max(filter.min, Math.min(max, upper));
+  }
+
+  private toFiniteNumber(value: any, fallback: number): number {
+    const num = typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+
+    return Number.isFinite(num) ? num : fallback;
   }
 
   clearFilters(loadVuln: boolean = true) {

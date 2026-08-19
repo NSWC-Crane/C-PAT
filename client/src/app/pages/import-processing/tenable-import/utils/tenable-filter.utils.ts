@@ -41,6 +41,17 @@ export function isIavXrefFilter(filter: any): boolean {
   return filter.filterName === 'xref' && typeof filter.value === 'string' && filter.value.includes(IAV_XREF_VALUE);
 }
 
+export function parseRangeBounds(value: string, filterName: string): { min: number; max: number } {
+  const parts = value.split('-');
+  const [min, max] = parts.map(Number);
+
+  if (parts.length !== 2 || parts.some((part) => part.trim() === '') || !Number.isFinite(min) || !Number.isFinite(max) || min > max) {
+    throw new Error(`Invalid range value "${value}" for ${filterName}`);
+  }
+
+  return { min, max };
+}
+
 export function buildAssetFilterExpression(value: any, operator: string = 'contains'): AssetsFilter | null {
   if (!value || value.length === 0) {
     return null;

@@ -24,6 +24,7 @@ import {
   isActiveFilterValue,
   isIavXrefFilter,
   parseAssetFilterValue,
+  parseRangeBounds,
   toArray,
   toIdList,
   vulnFilter
@@ -87,8 +88,30 @@ describe('tenable-filter.utils', () => {
     });
   });
 
+  describe('parseRangeBounds', () => {
+    it('should parse an integer range', () => {
+      expect(parseRangeBounds('2-7', 'vprScore')).toEqual({ min: 2, max: 7 });
+    });
+
+    it('should parse a decimal range', () => {
+      expect(parseRangeBounds('0.5-3.5', 'vprScore')).toEqual({ min: 0.5, max: 3.5 });
+    });
+
+    it('should tolerate surrounding whitespace', () => {
+      expect(parseRangeBounds(' 2 - 7 ', 'vprScore')).toEqual({ min: 2, max: 7 });
+    });
+
+    it('should allow an empty range where min equals max', () => {
+      expect(parseRangeBounds('5-5', 'vprScore')).toEqual({ min: 5, max: 5 });
+    });
+
+    it.each(['2-', '-7', '-', ' - ', 'a-b', '1-2-3', 'null-7', 'Infinity-5', '2', '7-2'])('should reject %j with a message naming the filter', (value) => {
+      expect(() => parseRangeBounds(value, 'vprScore')).toThrow(`Invalid range value "${value}" for vprScore`);
+    });
+  });
+
   describe('buildAssetFilterExpression', () => {
-    it.each([null, undefined, []])('should return null for %s', (value) => {
+    it.each([[null], [undefined], [[]]])('should return null for %s', (value) => {
       expect(buildAssetFilterExpression(value)).toBeNull();
     });
 
@@ -190,7 +213,7 @@ describe('tenable-filter.utils', () => {
 
   describe('buildAssetApiFilter', () => {
     it('should build a contains asset filter', () => {
-      expect(buildAssetApiFilter({ value: ['a1'], operator: 'contains' })).toEqual(vulnFilter('asset', { id: 'a1' } as any, '='));
+      expect(buildAssetApiFilter({ value: ['a1'], operator: 'contains' })).toEqual(vulnFilter('asset', { id: 'a1' }, '='));
     });
 
     it('should build a notContains asset filter', () => {

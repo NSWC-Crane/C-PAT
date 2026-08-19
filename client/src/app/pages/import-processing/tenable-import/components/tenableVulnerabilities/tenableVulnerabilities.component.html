@@ -168,7 +168,7 @@
                             [min]="getMinValue(item.identifier)"
                             [max]="getMaxValue(item.identifier)"
                             [showButtons]="false"
-                            (onInput)="onRangeValueChange(item.identifier)"
+                            (onBlur)="onRangeValueChange(item.identifier)"
                             [useGrouping]="false"
                           />
                           <span>and</span>
@@ -177,7 +177,7 @@
                             [min]="getMinValue(item.identifier)"
                             [max]="getMaxValue(item.identifier)"
                             [showButtons]="false"
-                            (onInput)="onRangeValueChange(item.identifier)"
+                            (onBlur)="onRangeValueChange(item.identifier)"
                             [useGrouping]="false"
                           />
                         </div>
@@ -329,9 +329,9 @@
                                 @if (tempFilters[field].value === 'customRange') {
                                   <div class="range-input mt-2 flex items-center">
                                     <span class="mr-2">Between</span>
-                                    <p-inputnumber [(ngModel)]="tempFilters[field].min" [min]="getMinValue(field)" [max]="getMaxValue(field)" [showButtons]="false" (onInput)="onRangeValueChange(field)" [useGrouping]="false" />
+                                    <p-inputnumber [(ngModel)]="tempFilters[field].min" [min]="getMinValue(field)" [max]="getMaxValue(field)" [showButtons]="false" (onBlur)="onRangeValueChange(field)" [useGrouping]="false" />
                                     <span class="mx-2">and</span>
-                                    <p-inputnumber [(ngModel)]="tempFilters[field].max" [min]="getMinValue(field)" [max]="getMaxValue(field)" [showButtons]="false" (onInput)="onRangeValueChange(field)" [useGrouping]="false" />
+                                    <p-inputnumber [(ngModel)]="tempFilters[field].max" [min]="getMinValue(field)" [max]="getMaxValue(field)" [showButtons]="false" (onBlur)="onRangeValueChange(field)" [useGrouping]="false" />
                                   </div>
                                 }
                               }
