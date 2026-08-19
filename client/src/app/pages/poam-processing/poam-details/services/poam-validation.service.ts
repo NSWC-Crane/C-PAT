@@ -12,7 +12,7 @@ import { Injectable, inject } from '@angular/core';
 import { format, isAfter, isBefore, parse, startOfDay } from 'date-fns';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';
 
-const IMPACT_LEVELS_REQUIRING_DESCRIPTION = ['Moderate', 'High', 'Very High'];
+const IMPACT_LEVELS_REQUIRING_DESCRIPTION = new Set(['Moderate', 'High', 'Very High']);
 
 interface SubmissionRule {
   key: string;
@@ -53,7 +53,7 @@ export class PoamValidationService {
     {
       key: 'impactDescription',
       message: 'If Local Impact is Moderate or higher, Impact Description becomes a required field.',
-      fails: (poam) => IMPACT_LEVELS_REQUIRING_DESCRIPTION.includes(poam.localImpact) && !poam.impactDescription?.length
+      fails: (poam) => IMPACT_LEVELS_REQUIRING_DESCRIPTION.has(poam.localImpact) && !poam.impactDescription?.length
     }
   ];
 
