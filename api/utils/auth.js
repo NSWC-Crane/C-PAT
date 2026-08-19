@@ -117,46 +117,49 @@ async function handlePointsUpdate(userId, lastAccess, hasPoints) {
     }
 }
 
+function buildUserObject(tokenPayload) {
+    const usernamePrecedence = [config.oauth.claims.username, 'preferred_username', config.oauth.claims.servicename, 'azp', 'client_id', 'clientId'];
+    const userName = tokenPayload[usernamePrecedence.find(element => !!tokenPayload[element])];
+
+    if (userName === undefined) {
+        throw new SmError.AuthorizeError('No token claim mappable to username found');
+    }
+
+    return {
+        email: tokenPayload[config.oauth.claims.email] ?? 'None Provided',
+        firstName: tokenPayload[config.oauth.claims.firstname] ?? '',
+        lastName: tokenPayload[config.oauth.claims.lastname] ?? '',
+        fullName: tokenPayload[config.oauth.claims.fullname] ?? '',
+        userName,
+        displayName: tokenPayload[config.oauth.claims.name] ?? userName,
+        isAdmin: privilegeGetter(tokenPayload).includes('admin'),
+    };
+}
+
+async function persistUserData(userObject, refreshFields, isNewUser) {
+    const result = await UserService.setUserData(userObject, refreshFields, isNewUser);
+    if (result?.insertId && result?.insertId != userObject.userId) {
+        userObject.userId = result?.insertId?.toString();
+    }
+}
+
 const setupUser = async function (req, _res, next) {
     try {
         if (req.access_token) {
             const tokenPayload = req.access_token;
 
-            req.userObject = {
-                email: tokenPayload[config.oauth.claims.email] ?? 'None Provided',
-                firstName: tokenPayload[config.oauth.claims.firstname] ?? '',
-                lastName: tokenPayload[config.oauth.claims.lastname] ?? '',
-                fullName: tokenPayload[config.oauth.claims.fullname] ?? '',
-            };
-
-            const usernamePrecedence = [config.oauth.claims.username, 'preferred_username', config.oauth.claims.servicename, 'azp', 'client_id', 'clientId'];
-            req.userObject.userName = tokenPayload[usernamePrecedence.find(element => !!tokenPayload[element])];
-
-            if (req.userObject.userName === undefined) {
-                throw new SmError.AuthorizeError('No token claim mappable to username found');
-            }
-
-            req.userObject.displayName = tokenPayload[config.oauth.claims.name] ?? req.userObject.userName;
-
-            req.userObject.isAdmin = privilegeGetter(tokenPayload).includes('admin');
+            req.userObject = buildUserObject(tokenPayload);
 
             const currentUserData = await UserService.getUserByUserName(req.userObject.userName);
-            if (currentUserData?.length > 1) req.userObject = currentUserData;
-            req.userObject.userId = currentUserData?.userId || null;
+            req.userObject.userId = currentUserData?.userId ?? null;
 
             const refreshFields = await handleUserDataRefresh(currentUserData, tokenPayload);
 
-            if (req.userObject.userName && (refreshFields.lastAccess || refreshFields.lastClaims)) {
-                if (req.userObject.userId === null) {
-                    const userId = await UserService.setUserData(req.userObject, refreshFields, true);
-                    if (userId?.insertId && userId?.insertId != req.userObject.userId) {
-                        req.userObject.userId = userId?.insertId?.toString();
-                    }
-                } else {
-                    const userId = await UserService.setUserData(req.userObject, refreshFields, false);
-                    if (userId?.insertId && userId?.insertId != req.userObject.userId) {
-                        req.userObject.userId = userId?.insertId?.toString();
-                    }
+            if (refreshFields.lastAccess || refreshFields.lastClaims) {
+                const isNewUser = req.userObject.userId === null;
+                await persistUserData(req.userObject, refreshFields, isNewUser);
+
+                if (!isNewUser) {
                     await handlePointsUpdate(req.userObject.userId, currentUserData?.lastAccess, currentUserData?.points);
                 }
             }

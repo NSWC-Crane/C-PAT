@@ -27,6 +27,164 @@ function normalizeBoolean(value) {
     return value === 1 || value === true;
 }
 
+const CAT_I_SEVERITIES = new Set(['CAT I - Critical', 'CAT I - High']);
+const POINT_AWARDING_STATUSES = new Set(['Approved', 'Rejected', 'False-Positive']);
+const POSITIVE_REVIEW_REQUIREMENTS = {
+    Approved: 'approval',
+    'False-Positive': 'review',
+};
+
+function isPositiveReview(approvalStatus) {
+    return Object.hasOwn(POSITIVE_REVIEW_REQUIREMENTS, approvalStatus);
+}
+
+async function insertNotification(connection, userId, title, message) {
+    const sql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
+    await connection.query(sql, [userId, title, message]);
+}
+
+async function getUserPoints(connection, userId) {
+    const sql = `SELECT points FROM ${config.database.schema}.user WHERE userId = ?`;
+    const [rows] = await connection.query(sql, [userId]);
+    return rows.length > 0 ? rows[0].points : null;
+}
+
+async function getUserFullName(connection, userId) {
+    const sql = `SELECT fullName FROM ${config.database.schema}.user WHERE userId = ?`;
+    const [rows] = await connection.query(sql, [userId]);
+    return rows[0] ? rows[0].fullName : 'Unknown User';
+}
+
+async function awardPoints(connection, userId, currentPoints, amount, title, message) {
+    if (config.client.features.marketplaceDisabled || currentPoints === null) return;
+    const sql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
+    await connection.query(sql, [currentPoints + amount, userId]);
+    await insertNotification(connection, userId, title, message);
+}
+
+async function setPoamStatus(connection, poamId, status) {
+    const sql = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
+    await connection.query(sql, [status, poamId]);
+}
+
+async function setPoamHqs(connection, poamId, hqs) {
+    const sql = `UPDATE ${config.database.schema}.poam SET hqs = ? WHERE poamId = ?`;
+    await connection.query(sql, [hqs, poamId]);
+}
+
+async function isNewOrChangedApproval(connection, poamId, userId, approvalStatus) {
+    const sql = `SELECT * FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId = ?`;
+    const [existingApproval] = await connection.query(sql, [poamId, userId]);
+    if (existingApproval.length === 0) return true;
+    return existingApproval[0].approvalStatus !== approvalStatus && POINT_AWARDING_STATUSES.has(approvalStatus);
+}
+
+async function awardApproverReviewPoints(connection, poamId, userId, isNewOrChanged) {
+    if (!isNewOrChanged || config.client.features.marketplaceDisabled) return;
+    const approverPoints = await getUserPoints(connection, userId);
+    await awardPoints(
+        connection,
+        userId,
+        approverPoints,
+        10,
+        'Points Awarded for POAM Review',
+        `10 points have been added to your points balance for reviewing POAM ${poamId}.`
+    );
+}
+
+async function getPoamForReview(connection, poamId) {
+    const sql = `SELECT submitterId, rawSeverity, hqs, collectionId FROM ${config.database.schema}.poam WHERE poamId = ?`;
+    const [rows] = await connection.query(sql, [poamId]);
+    if (rows.length === 0) {
+        throw new SmError.NotFoundError('POAM not found');
+    }
+    return rows[0];
+}
+
+async function applyHighQualitySubmission(connection, poamId, submitterId, currentHqs, requestedHqs) {
+    const submitterPoints = await getUserPoints(connection, submitterId);
+    const wasHighQuality = normalizeBoolean(currentHqs);
+    const isHighQuality = normalizeBoolean(requestedHqs);
+
+    if (!wasHighQuality && isHighQuality) {
+        await awardPoints(
+            connection,
+            submitterId,
+            submitterPoints,
+            30,
+            'High Quality Submission',
+            `30 points have been added to your points balance for a High Quality submission on POAM ${poamId}.`
+        );
+        await setPoamHqs(connection, poamId, 1);
+        return;
+    }
+
+    if (wasHighQuality && !isHighQuality) {
+        await setPoamHqs(connection, poamId, 0);
+        return;
+    }
+
+    await awardPoints(
+        connection,
+        submitterId,
+        submitterPoints,
+        15,
+        'POAM Review Points',
+        `15 points have been added to your points balance for review of POAM ${poamId}.`
+    );
+}
+
+async function notifySubmitterOfReview(connection, poamId, submitterId, fullName, isHighQuality) {
+    const message = isHighQuality
+        ? `POAM ${poamId} has been reviewed and marked as High Quality by ${fullName}.`
+        : `POAM ${poamId} has been reviewed by ${fullName}.`;
+    await insertNotification(connection, submitterId, `POAM reviewed by ${fullName}`, message);
+}
+
+async function requestCatIApproval(connection, poamId, catIApprovers) {
+    for (const approver of catIApprovers) {
+        await insertNotification(
+            connection,
+            approver.userId,
+            'CAT-I POAM Pending Review',
+            `POAM ${poamId} has been reviewed and is pending CAT-I Approver review.`
+        );
+    }
+    await setPoamStatus(connection, poamId, 'Pending CAT-I Approval');
+}
+
+async function applyPoamStatusChange(connection, poamId, approvalStatus, reviewerId, poam) {
+    if (approvalStatus === 'Rejected') {
+        await setPoamStatus(connection, poamId, 'Rejected');
+        await insertNotification(
+            connection,
+            poam.submitterId,
+            'POAM Rejected',
+            `POAM ${poamId} has been rejected. Please review the comments and make necessary changes.`
+        );
+        return;
+    }
+
+    if (!isPositiveReview(approvalStatus)) return;
+
+    const permissionSql = `SELECT userId FROM ${config.database.schema}.collectionpermissions WHERE collectionId = ? AND accessLevel = 4`;
+    const [catIApprovers] = await connection.query(permissionSql, [poam.collectionId]);
+    const requiresCatIReview = CAT_I_SEVERITIES.has(poam.rawSeverity) && !catIApprovers.some(p => p.userId === reviewerId);
+
+    if (requiresCatIReview) {
+        await requestCatIApproval(connection, poamId, catIApprovers);
+        return;
+    }
+
+    await setPoamStatus(connection, poamId, approvalStatus);
+    await insertNotification(
+        connection,
+        poam.submitterId,
+        `POAM status changed to ${approvalStatus}`,
+        `POAM ${poamId} has met the ${POSITIVE_REVIEW_REQUIREMENTS[approvalStatus]} requirements. POAM Status has changed to ${approvalStatus}.`
+    );
+}
+
 module.exports.getPoamApprovers = async function getPoamApprovers(req) {
     return await withConnection(async connection => {
         let sql = `
@@ -120,164 +278,34 @@ module.exports.putPoamApprover = async function putPoamApprover(req) {
         await connection.beginTransaction();
 
         try {
-            let checkApprovalSql = `SELECT * FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId = ?`;
-            const [existingApproval] = await connection.query(checkApprovalSql, [req.body.poamId, req.body.userId]);
+            const { poamId, userId, approvalStatus } = req.body;
 
-            const isNewOrChangedApproval =
-                existingApproval.length === 0 ||
-                (existingApproval[0].approvalStatus !== req.body.approvalStatus &&
-                    (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'Rejected' || req.body.approvalStatus === 'False-Positive'));
-
-            const getPointsSql = `SELECT points FROM ${config.database.schema}.user WHERE userId = ?`;
-            const setPointsSql = `UPDATE ${config.database.schema}.user SET points = ? WHERE userId = ?`;
-
-            if (isNewOrChangedApproval && !config.client.features.marketplaceDisabled) {
-                const [approverPointsRows] = await connection.query(getPointsSql, [req.body.userId]);
-
-                if (approverPointsRows.length > 0) {
-                    await connection.query(setPointsSql, [approverPointsRows[0].points + 10, req.body.userId]);
-
-                    const approverNotification = {
-                        title: 'Points Awarded for POAM Review',
-                        message: `10 points have been added to your points balance for reviewing POAM ${req.body.poamId}.`,
-                        userId: req.body.userId,
-                    };
-                    const approverNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(approverNotificationSql, [req.body.userId, approverNotification.title, approverNotification.message]);
-                }
-            }
+            const isNewOrChanged = await isNewOrChangedApproval(connection, poamId, userId, approvalStatus);
+            await awardApproverReviewPoints(connection, poamId, userId, isNewOrChanged);
 
             let sql_query = `
                     UPDATE ${config.database.schema}.poamapprovers
                     SET approvalStatus = ?, approvedDate = ?, comments = ?
                     WHERE poamId = ? AND userId = ?;
                 `;
-            await connection.query(sql_query, [req.body.approvalStatus, req.body.approvedDate, req.body.comments, req.body.poamId, req.body.userId]);
+            await connection.query(sql_query, [approvalStatus, req.body.approvedDate, req.body.comments, poamId, userId]);
 
-            let fullName = 'Unknown User';
-            let userSql = `SELECT fullName FROM ${config.database.schema}.user WHERE userId = ?`;
-            const [user] = await connection.query(userSql, [req.body.userId]);
-            if (user[0]) {
-                fullName = user[0].fullName;
+            const fullName = await getUserFullName(connection, userId);
+            const poam = await getPoamForReview(connection, poamId);
+
+            if (isPositiveReview(approvalStatus)) {
+                await applyHighQualitySubmission(connection, poamId, poam.submitterId, poam.hqs, req.body.hqs);
+                await notifySubmitterOfReview(connection, poamId, poam.submitterId, fullName, normalizeBoolean(req.body.hqs));
             }
 
-            const poamSql = `SELECT submitterId, rawSeverity, hqs, collectionId FROM ${config.database.schema}.poam WHERE poamId = ?`;
-            const [poamResult] = await connection.query(poamSql, [req.body.poamId]);
-
-            if (poamResult.length === 0) {
-                throw new SmError.NotFoundError('POAM not found');
-            }
-
-            const submitterId = poamResult[0].submitterId;
-            const rawSeverity = poamResult[0].rawSeverity;
-            const collectionId = poamResult[0].collectionId;
-            const hqs = poamResult[0].hqs;
-
-            if (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'False-Positive') {
-                const [submitterPointsRows] = await connection.query(getPointsSql, [submitterId]);
-                const submitterPoints = submitterPointsRows.length > 0 ? submitterPointsRows[0].points : null;
-
-                if (!normalizeBoolean(hqs) && normalizeBoolean(req.body.hqs)) {
-                    if (!config.client.features.marketplaceDisabled && submitterPoints !== null) {
-                        await connection.query(setPointsSql, [submitterPoints + 30, submitterId]);
-                        const hqsNotification = {
-                            title: `High Quality Submission`,
-                            message: `30 points have been added to your points balance for a High Quality submission on POAM ${req.body.poamId}.`,
-                            userId: submitterId,
-                        };
-                        const hqsNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                        await connection.query(hqsNotificationSql, [submitterId, hqsNotification.title, hqsNotification.message]);
-                    }
-                    const hqsPoamSql = `UPDATE ${config.database.schema}.poam SET hqs = 1 WHERE poamId = ?`;
-                    await connection.query(hqsPoamSql, [req.body.poamId]);
-                } else if (normalizeBoolean(hqs) && !normalizeBoolean(req.body.hqs)) {
-                    const hqsPoamSql = `UPDATE ${config.database.schema}.poam SET hqs = 0 WHERE poamId = ?`;
-                    await connection.query(hqsPoamSql, [req.body.poamId]);
-                } else if (!config.client.features.marketplaceDisabled && submitterPoints !== null) {
-                    await connection.query(setPointsSql, [submitterPoints + 15, submitterId]);
-
-                    const pointsNotification = {
-                        title: `POAM Review Points`,
-                        message: `15 points have been added to your points balance for review of POAM ${req.body.poamId}.`,
-                        userId: submitterId,
-                    };
-                    const pointsNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(pointsNotificationSql, [submitterId, pointsNotification.title, pointsNotification.message]);
-                }
-
-                let notificationMessage = `POAM ${req.body.poamId} has been reviewed by ${fullName}.`;
-                if (normalizeBoolean(req.body.hqs)) {
-                    notificationMessage = `POAM ${req.body.poamId} has been reviewed and marked as High Quality by ${fullName}.`;
-                }
-
-                const notification = {
-                    title: `POAM reviewed by ${fullName}`,
-                    message: notificationMessage,
-                    userId: submitterId,
-                };
-                const notificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                await connection.query(notificationSql, [submitterId, notification.title, notification.message]);
-            }
-
-            let action = `POAM ${req.body.poamId} has been marked as ${req.body.approvalStatus.toLowerCase()} by ${fullName}. Approver Comments: ${req.body.comments}.`;
+            let action = `POAM ${poamId} has been marked as ${approvalStatus.toLowerCase()} by ${fullName}. Approver Comments: ${req.body.comments}.`;
             let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [req.body.poamId, action, req.userObject.userId]);
+            await connection.query(logSql, [poamId, action, req.userObject.userId]);
 
-            const permissionSql = `SELECT userId FROM ${config.database.schema}.collectionpermissions WHERE collectionId = ? AND accessLevel = 4`;
-            const [permissionResult] = await connection.query(permissionSql, [collectionId]);
-            const isApproverInPermissions = permissionResult.some(p => p.userId === req.userObject.userId);
-
-            if (req.body.approvalStatus === 'Approved' || req.body.approvalStatus === 'False-Positive') {
-                if ((rawSeverity === 'CAT I - Critical' || rawSeverity === 'CAT I - High') && !isApproverInPermissions) {
-                    for (const perm of permissionResult) {
-                        const cat1Notification = {
-                            title: 'CAT-I POAM Pending Review',
-                            message: `POAM ${req.body.poamId} has been reviewed and is pending CAT-I Approver review.`,
-                            userId: perm.userId,
-                        };
-                        const cat1NotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                        await connection.query(cat1NotificationSql, [perm.userId, cat1Notification.title, cat1Notification.message]);
-                    }
-                    sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
-                    await connection.query(sql_query, ['Pending CAT-I Approval', req.body.poamId]);
-                } else if (req.body.approvalStatus === 'Approved') {
-                    sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
-                    await connection.query(sql_query, ['Approved', req.body.poamId]);
-
-                    const statusNotification = {
-                        title: `POAM status changed to Approved`,
-                        message: `POAM ${req.body.poamId} has met the approval requirements. POAM Status has changed to Approved.`,
-                        userId: submitterId,
-                    };
-                    const statusNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
-                } else if (req.body.approvalStatus === 'False-Positive') {
-                    sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
-                    await connection.query(sql_query, ['False-Positive', req.body.poamId]);
-
-                    const statusNotification = {
-                        title: `POAM status changed to False-Positive`,
-                        message: `POAM ${req.body.poamId} has met the review requirements. POAM Status has changed to False-Positive.`,
-                        userId: submitterId,
-                    };
-                    const statusNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                    await connection.query(statusNotificationSql, [submitterId, statusNotification.title, statusNotification.message]);
-                }
-            } else if (req.body.approvalStatus === 'Rejected') {
-                sql_query = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
-                await connection.query(sql_query, ['Rejected', req.body.poamId]);
-
-                const rejectionNotification = {
-                    title: `POAM Rejected`,
-                    message: `POAM ${req.body.poamId} has been rejected. Please review the comments and make necessary changes.`,
-                    userId: submitterId,
-                };
-                const rejectionNotificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                await connection.query(rejectionNotificationSql, [submitterId, rejectionNotification.title, rejectionNotification.message]);
-            }
+            await applyPoamStatusChange(connection, poamId, approvalStatus, req.userObject.userId, poam);
 
             let sql = `SELECT * FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId = ?`;
-            let [row] = await connection.query(sql, [req.body.poamId, req.body.userId]);
+            let [row] = await connection.query(sql, [poamId, userId]);
             const poamApprover = row.map(row => ({
                 ...row,
                 approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
@@ -298,9 +326,7 @@ module.exports.deletePoamApprover = async function deletePoamApprover(req) {
         await connection.query(sql, [req.params.poamId, req.params.userId]);
 
         if (req.userObject.userId) {
-            let userSql = `SELECT fullName FROM ${config.database.schema}.user WHERE userId = ?`;
-            const [user] = await connection.query(userSql, [req.params.userId]);
-            const fullName = user[0] ? user[0].fullName : 'Unknown User';
+            const fullName = await getUserFullName(connection, req.params.userId);
             let action = `${fullName} was removed from the Approver List.`;
             let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
             await connection.query(logSql, [req.params.poamId, action, req.userObject.userId]);

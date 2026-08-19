@@ -29,23 +29,6 @@ async function withConnection(callback) {
     }
 }
 
-async function withTransaction(callback) {
-    const connection = await dbUtils.pool.getConnection();
-    try {
-        await connection.beginTransaction();
-        try {
-            const result = await callback(connection);
-            await connection.commit();
-            return result;
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        }
-    } finally {
-        connection.release();
-    }
-}
-
 module.exports.getAssignedTeams = async function getAssignedTeams() {
     return await withConnection(async connection => {
         let sql = `
@@ -167,7 +150,7 @@ module.exports.deleteAssignedTeam = async function deleteAssignedTeam(req) {
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 await connection.query(`SELECT assignedTeamId FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ? FOR UPDATE`, [
                     req.params.assignedTeamId,
                 ]);
@@ -199,7 +182,7 @@ module.exports.postAssignedTeamPermission = async function postAssignedTeamPermi
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 const [teamRows] = await connection.query(
                     `SELECT assignedTeamId FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ? FOR SHARE`,
                     [assignedTeamId]
@@ -285,7 +268,7 @@ module.exports.deleteAssignedTeamPermission = async function deleteAssignedTeamP
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 const [coverage] = await connection.query(
                     `SELECT collectionId FROM ${config.database.schema}.assignedteampermissions WHERE assignedTeamId = ? AND collectionId = ? FOR UPDATE`,
                     [assignedTeamId, collectionId]

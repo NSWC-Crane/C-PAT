@@ -23,23 +23,6 @@ async function withConnection(callback) {
     }
 }
 
-async function withTransaction(callback) {
-    const connection = await dbUtils.pool.getConnection();
-    try {
-        await connection.beginTransaction();
-        try {
-            const result = await callback(connection);
-            await connection.commit();
-            return result;
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        }
-    } finally {
-        connection.release();
-    }
-}
-
 function requireElevation(elevate, req) {
     if (!elevate || req.userObject.isAdmin !== true) {
         throw new SmError.PrivilegeError('Elevate parameter is required');
@@ -120,7 +103,7 @@ module.exports.postTeamAssignment = async function postTeamAssignment(_userId, e
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 const [teamRows] = await connection.query(
                     `SELECT assignedTeamId FROM ${config.database.schema}.assignedteams WHERE assignedTeamId = ? FOR SHARE`,
                     [assignedTeamId]
@@ -192,7 +175,7 @@ module.exports.putTeamAssignment = async function putTeamAssignment(_userId, ele
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 const [result] = await connection.query(
                     `UPDATE ${config.database.schema}.userassignedteams SET accessLevel = COALESCE(?, accessLevel) WHERE userId = ? AND assignedTeamId = ?`,
                     [requestedAccessLevel, userId, assignedTeamId]
@@ -247,7 +230,7 @@ module.exports.deleteTeamAssignment = async function deleteTeamAssignment(_userI
 
     return await dbUtils.retryOnDeadlock(
         async () =>
-            await withTransaction(async connection => {
+            await dbUtils.withTransaction(async connection => {
                 await connection.query(
                     `SELECT accessLevel FROM ${config.database.schema}.userassignedteams WHERE userId = ? AND assignedTeamId = ? FOR UPDATE`,
                     [userId, assignedTeamId]

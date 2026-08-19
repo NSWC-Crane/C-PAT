@@ -49,19 +49,7 @@ const toJSON = from => {
     return json;
 };
 
-const destroyCircular = ({ from, seen, to_, forceEnumerable, maxDepth, depth }) => {
-    const to = to_ || (Array.isArray(from) ? [] : {});
-
-    seen.push(from);
-
-    if (depth >= maxDepth) {
-        return to;
-    }
-
-    if (typeof from.toJSON === 'function' && from[isCalled] !== true) {
-        return toJSON(from);
-    }
-
+const copyEntries = ({ from, to, seen, forceEnumerable, maxDepth, depth }) => {
     for (const [key, value] of Object.entries(from)) {
         if (typeof Buffer === 'function' && Buffer.isBuffer(value)) {
             to[key] = '[object Buffer]';
@@ -78,31 +66,50 @@ const destroyCircular = ({ from, seen, to_, forceEnumerable, maxDepth, depth }) 
         }
 
         if (!seen.includes(from[key])) {
-            depth++;
-
             to[key] = destroyCircular({
                 from: from[key],
                 seen: seen.slice(),
                 forceEnumerable,
                 maxDepth,
-                depth,
+                depth: depth + 1,
             });
             continue;
         }
 
         to[key] = '[Circular]';
     }
+};
 
+const copyCommonProperties = ({ from, to, forceEnumerable }) => {
     for (const { property, enumerable } of commonProperties) {
-        if (typeof from[property] === 'string') {
-            Object.defineProperty(to, property, {
-                value: from[property],
-                enumerable: forceEnumerable ? true : enumerable,
-                configurable: true,
-                writable: true,
-            });
+        if (typeof from[property] !== 'string') {
+            continue;
         }
+
+        Object.defineProperty(to, property, {
+            value: from[property],
+            enumerable: forceEnumerable || enumerable,
+            configurable: true,
+            writable: true,
+        });
     }
+};
+
+const destroyCircular = ({ from, seen, to_, forceEnumerable, maxDepth, depth }) => {
+    const to = to_ || (Array.isArray(from) ? [] : {});
+
+    seen.push(from);
+
+    if (depth >= maxDepth) {
+        return to;
+    }
+
+    if (typeof from.toJSON === 'function' && from[isCalled] !== true) {
+        return toJSON(from);
+    }
+
+    copyEntries({ from, to, seen, forceEnumerable, maxDepth, depth });
+    copyCommonProperties({ from, to, forceEnumerable });
 
     return to;
 };

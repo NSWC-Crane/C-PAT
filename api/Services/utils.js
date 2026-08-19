@@ -363,6 +363,23 @@ module.exports.WRITE_ACTION = {
     UPDATE: 2,
 };
 
+module.exports.withTransaction = async function (callback) {
+    const connection = await module.exports.pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        try {
+            const result = await callback(connection);
+            await connection.commit();
+            return result;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        }
+    } finally {
+        connection.release();
+    }
+};
+
 module.exports.retryOnDeadlock = async function (fn, statusObj = {}) {
     let lockWaitRetries = 0;
     const retryFunction = async function (bail) {
