@@ -181,20 +181,23 @@
               <td>
                 @switch (col.field) {
                   @case ('poam') {
-                    <i
-                      class="pi"
-                      [ngClass]="item.poam ? getPoamStatusIcon(item.poamStatus, item.isAssociated) : 'pi pi-plus-circle'"
-                      [style]="{
-                        color: item.poam ? getPoamStatusColor(item.poamStatus, item.parentStatus) : 'maroon',
-                        'font-size': '1.5rem',
-                        cursor: 'pointer'
-                      }"
+                    <button
+                      type="button"
+                      class="group cursor-pointer transition-[filter] duration-200 hover:brightness-115"
                       (click)="onPoamIconClick(item, $event)"
-                      (keyup.enter)="onPoamIconClick(item, $event)"
                       [pTooltip]="getPoamStatusTooltip(item.poamStatus, item.poam, item.parentStatus)"
                       tooltipPosition="top"
+                      aria-label="Manage POAM"
                     >
-                    </i>
+                      <i
+                        class="pi transition-[-webkit-text-stroke-width] duration-200 group-hover:[-webkit-text-stroke:0.25px]"
+                        [ngClass]="item.poam ? getPoamStatusIcon(item.poamStatus, item.isAssociated) : 'pi pi-plus-circle'"
+                        [style]="{
+                          color: item.poam ? getPoamStatusColor(item.poamStatus, item.parentStatus) : 'maroon',
+                          'font-size': '1.5rem'
+                        }"
+                      ></i>
+                    </button>
                   }
                   @case ('severity') {
                     <p-tag [value]="item[col.field]" [severity]="getSeverityStyling(item[col.field])" [rounded]="false" />

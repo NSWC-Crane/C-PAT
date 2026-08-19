@@ -227,22 +227,25 @@
                         } @else {
                           @switch (col.field) {
                             @case ('poam') {
-                              <i
+                              <button
+                                type="button"
+                                class="group cursor-pointer transition-[filter] duration-200 hover:brightness-115"
                                 [tourAnchor]="rowIndex === 0 ? 'stigmanager-poam-creation' : ''"
-                                [ngClass]="rowData.hasExistingPoam ? getPoamStatusIcon(rowData.poamStatus, rowData.isAssociated) : 'pi pi-plus-circle'"
-                                [style]="{
-                                  color: !rowData.hasExistingPoam ? 'maroon' : getPoamStatusColor(rowData.poamStatus, rowData.parentStatus),
-                                  'font-size': '1.5rem',
-                                  cursor: 'pointer',
-                                  'justify-content': 'center',
-                                  padding: '0.25rem'
-                                }"
                                 (click)="addPoam(rowData)"
-                                (keyup.enter)="addPoam(rowData)"
                                 [pTooltip]="getPoamStatusTooltip(rowData.poamStatus, rowData.hasExistingPoam, rowData.parentStatus)"
                                 tooltipPosition="top"
+                                aria-label="Manage POAM"
                               >
-                              </i>
+                                <i
+                                  class="transition-[-webkit-text-stroke-width] duration-200 group-hover:[-webkit-text-stroke:0.25px]"
+                                  [ngClass]="rowData.hasExistingPoam ? getPoamStatusIcon(rowData.poamStatus, rowData.isAssociated) : 'pi pi-plus-circle'"
+                                  [style]="{
+                                    color: !rowData.hasExistingPoam ? 'maroon' : getPoamStatusColor(rowData.poamStatus, rowData.parentStatus),
+                                    'font-size': '1.5rem',
+                                    padding: '0.25rem'
+                                  }"
+                                ></i>
+                              </button>
                             }
                             @case ('severity') {
                               <p-tag [value]="rowData.severity" [severity]="getSeverityStyling(rowData.severity)" [rounded]="false" />
