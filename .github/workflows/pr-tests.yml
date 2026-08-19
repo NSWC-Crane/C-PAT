@@ -48,12 +48,12 @@ jobs:
           RANGE="origin/${BASE_REF}...HEAD"
 
           INFRA=$(git diff --name-only --relative --diff-filter=ACMR "$RANGE" -- \
-            package.json package-lock.json vitest.config.ts tsconfig.json tsconfig.spec.json \
+            package.json package-lock.json vitest.config.mts tsconfig.json tsconfig.spec.json \
             src/test-setup.ts 'src/testing/**')
 
           GONE=$(git diff --name-only --relative --no-renames --diff-filter=D "$RANGE" -- \
             ':(glob)src/app/**/*.ts' ':(glob)src/app/**/*.html' \
-            package.json package-lock.json vitest.config.ts tsconfig.json tsconfig.spec.json \
+            package.json package-lock.json vitest.config.mts tsconfig.json tsconfig.spec.json \
             src/test-setup.ts 'src/testing/**')
 
           CHANGED=$(git diff --name-only --relative --diff-filter=ACMR "$RANGE" -- \
