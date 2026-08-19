@@ -573,51 +573,6 @@ describe('TenableVulnerabilitiesComponent', () => {
     });
   });
 
-  describe('createAssetsFilter', () => {
-    it('should return null for empty array', () => {
-      expect(component.createAssetsFilter([])).toBeNull();
-    });
-
-    it('should return null for null value', () => {
-      expect(component.createAssetsFilter(null)).toBeNull();
-    });
-
-    it('should return single asset filter with id for one item', () => {
-      const result = component.createAssetsFilter(['asset1']);
-
-      expect(result).toEqual({
-        filterName: 'asset',
-        operator: '=',
-        value: { id: 'asset1' }
-      });
-    });
-
-    it('should return notContains filter with ~ operator for single notContains', () => {
-      const result = component.createAssetsFilter(['asset1'], 'notContains');
-
-      expect(result?.operator).toBe('~');
-    });
-
-    it('should return union structure for multiple assets', () => {
-      const result = component.createAssetsFilter(['a1', 'a2']);
-
-      expect(result?.operator).toBe('~');
-      expect(result?.value?.operator).toBe('union');
-    });
-
-    it('should return complement structure for notContains with multiple assets', () => {
-      const result = component.createAssetsFilter(['a1', 'a2'], 'notContains');
-
-      expect(result?.value?.operator).toBe('complement');
-    });
-
-    it('should use filterName "asset"', () => {
-      const result = component.createAssetsFilter(['a1', 'a2']);
-
-      expect(result?.filterName).toBe('asset');
-    });
-  });
-
   describe('convertTempFiltersToAPI', () => {
     const convert = (): CustomFilter[] => (component as any).convertTempFiltersToAPI();
     const encoded = (filterName: string): CustomFilter | undefined => convert().find((f) => f.filterName === filterName);

@@ -34,7 +34,6 @@ import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, Observable, catchError, finalize, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import {
   AccordionItem,
-  AssetsFilter,
   CustomFilter,
   ExportColumn,
   FilterConfig,
@@ -55,7 +54,7 @@ import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { isZoneCorDPackage, validateCVSSv2Vector, validateCVSSv3Vector, validateCVSSv4Vector, validateIAVM, validateIP, validateStigSeverity, validateUUID } from '../../../../../common/utils/validation.utils';
 import { createIAVInfoMap, createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext } from '../../utils/tenable-vulnerability.utils';
-import { API_FILTER_BUILDERS, buildAssetFilterExpression, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, toArray, toIdList } from '../../utils/tenable-filter.utils';
+import { API_FILTER_BUILDERS, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, toArray, toIdList } from '../../utils/tenable-filter.utils';
 import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { ImportService } from '../../../import.service';
@@ -1838,10 +1837,6 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       max: filterValue.max
     };
     this.onRangeValueChange(uiName);
-  }
-
-  createAssetsFilter(value: any, operator: string = 'contains'): AssetsFilter | null {
-    return buildAssetFilterExpression(value, operator);
   }
 
   private convertTempFiltersToAPI(): CustomFilter[] {
