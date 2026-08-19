@@ -201,33 +201,94 @@ function runningAverage({ currentAvg, counter, newValue }) {
     return currentAvg + (newValue - currentAvg) / counter;
 }
 
+function createOperationStats(acceptsRequestBody) {
+    const stats = {
+        totalRequests: 0,
+        totalDuration: 0,
+        elevatedRequests: 0,
+        minDuration: Infinity,
+        maxDuration: 0,
+        maxDurationUpdates: 0,
+        retried: 0,
+        averageRetries: 0,
+        totalResLength: 0,
+        minResLength: Infinity,
+        maxResLength: 0,
+        clients: {},
+        users: {},
+        errors: {},
+    };
+
+    if (acceptsRequestBody) {
+        stats.totalReqLength = 0;
+        stats.minReqLength = Infinity;
+        stats.maxReqLength = 0;
+    }
+
+    return stats;
+}
+
+function createProjectionStats() {
+    return {
+        totalRequests: 0,
+        minDuration: Infinity,
+        maxDuration: 0,
+        totalDuration: 0,
+        retried: 0,
+        averageRetries: 0,
+        get averageDuration() {
+            return this.totalRequests ? Math.round(this.totalDuration / this.totalRequests) : 0;
+        },
+    };
+}
+
+function trackRequestLengthStats(stats, res) {
+    const requestLength = Number.parseInt(res.req.headers['content-length'] ?? '0');
+
+    stats.totalReqLength += requestLength;
+    stats.minReqLength = Math.min(stats.minReqLength, requestLength);
+    if (requestLength > stats.maxReqLength) {
+        stats.maxReqLength = requestLength;
+    }
+}
+
+function trackProjectionStats(stats, durationMs, res) {
+    const projections = res.req.query?.projection;
+
+    if (!projections?.length) {
+        return;
+    }
+
+    stats.projections ??= {};
+
+    for (const projection of projections) {
+        stats.projections[projection] ??= createProjectionStats();
+
+        const projStats = stats.projections[projection];
+
+        projStats.totalRequests++;
+        projStats.minDuration = Math.min(projStats.minDuration, durationMs);
+        projStats.maxDuration = Math.max(projStats.maxDuration, durationMs);
+        projStats.totalDuration += durationMs;
+
+        if (res.svcStatus?.retries) {
+            projStats.retried++;
+            projStats.averageRetries = runningAverage({
+                currentAvg: projStats.averageRetries,
+                counter: projStats.retried,
+                newValue: res.svcStatus.retries,
+            });
+        }
+    }
+}
+
 function trackOperationStats(operationId, durationMs, res) {
     const acceptsRequestBody = res.req.method === 'POST' || res.req.method === 'PUT' || res.req.method === 'PATCH';
 
     requestStats.totalApiRequests++;
 
     if (!requestStats.operationIds[operationId]) {
-        requestStats.operationIds[operationId] = {
-            totalRequests: 0,
-            totalDuration: 0,
-            elevatedRequests: 0,
-            minDuration: Infinity,
-            maxDuration: 0,
-            maxDurationUpdates: 0,
-            retried: 0,
-            averageRetries: 0,
-            totalResLength: 0,
-            minResLength: Infinity,
-            maxResLength: 0,
-            clients: {},
-            users: {},
-            errors: {},
-        };
-        if (acceptsRequestBody) {
-            requestStats.operationIds[operationId].totalReqLength = 0;
-            requestStats.operationIds[operationId].minReqLength = Infinity;
-            requestStats.operationIds[operationId].maxReqLength = 0;
-        }
+        requestStats.operationIds[operationId] = createOperationStats(acceptsRequestBody);
     }
 
     const stats = requestStats.operationIds[operationId];
@@ -247,18 +308,12 @@ function trackOperationStats(operationId, durationMs, res) {
     stats.totalDuration += durationMs;
     stats.totalResLength += res.sm_responseLength;
     stats.minResLength = Math.min(stats.minResLength, res.sm_responseLength);
-
     if (res.sm_responseLength > stats.maxResLength) {
         stats.maxResLength = res.sm_responseLength;
     }
 
     if (acceptsRequestBody) {
-        const requestLength = Number.parseInt(res.req.headers['content-length'] ?? '0');
-        stats.totalReqLength += requestLength;
-        stats.minReqLength = Math.min(stats.minReqLength, requestLength);
-        if (requestLength > stats.maxReqLength) {
-            stats.maxReqLength = requestLength;
-        }
+        trackRequestLengthStats(stats, res);
     }
 
     if (res.svcStatus?.retries) {
@@ -280,33 +335,7 @@ function trackOperationStats(operationId, durationMs, res) {
         stats.elevatedRequests = (stats.elevatedRequests || 0) + 1;
     }
 
-    if (res.req.query?.projection?.length > 0) {
-        stats.projections = stats.projections || {};
-        for (const projection of res.req.query.projection) {
-            stats.projections[projection] = stats.projections[projection] || {
-                totalRequests: 0,
-                minDuration: Infinity,
-                maxDuration: 0,
-                totalDuration: 0,
-                retried: 0,
-                averageRetries: 0,
-                get averageDuration() {
-                    return this.totalRequests ? Math.round(this.totalDuration / this.totalRequests) : 0;
-                },
-            };
-
-            const projStats = stats.projections[projection];
-            projStats.totalRequests++;
-            projStats.minDuration = Math.min(projStats.minDuration, durationMs);
-            projStats.maxDuration = Math.max(projStats.maxDuration, durationMs);
-            projStats.totalDuration += durationMs;
-
-            if (res.svcStatus?.retries) {
-                projStats.retried++;
-                projStats.averageRetries = projStats.averageRetries + (res.svcStatus.retries - projStats.averageRetries) / projStats.retried;
-            }
-        }
-    }
+    trackProjectionStats(stats, durationMs, res);
 }
 
 module.exports = {
