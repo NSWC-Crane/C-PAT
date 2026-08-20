@@ -159,6 +159,7 @@ export class PoamCreationService {
         aaPackage: collectionInfo.collectionAAPackage || '',
         predisposingConditions: collectionInfo.collectionPredisposingConditions || '',
         iavmNumber: stateData.iavNumber || '',
+        taskOrderNumber: stateData.taskOrderNumber || '',
         iavComplyByDate: stateData.iavComplyByDate ? format(new Date(stateData.iavComplyByDate), 'yyyy-MM-dd') : null,
         submittedDate: null,
         vulnerabilityId: pluginData.id || '',

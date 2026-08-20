@@ -95,7 +95,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   selectedCollection: any;
   tenableRepoId: string | undefined = '';
   readonly selectedSeverities = signal<string[]>([...DEFAULT_SEVERITIES]);
-  readonly taskOrderSource = signal<'poam' | 'iav'>('poam');
+  readonly taskOrderSource = signal<'iav' | 'poam'>('iav');
   private loadGeneration = 0;
 
   ngOnInit() {
@@ -114,7 +114,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
         this.selectedNavyComplyDateFilter = savedState.selectedNavyComplyDateFilter || null;
         this.filterValue = savedState.filterValue || '';
         this.tenableTool = savedState.tenableTool || 'sumid';
-        this.taskOrderSource.set(savedState.taskOrderSource || 'poam');
+        this.taskOrderSource.set(savedState.taskOrderSource || 'iav');
         this.restoredSelectedColumns = savedState.selectedColumns;
       }
     }
@@ -369,7 +369,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       });
   }
 
-  onTaskOrderSourceChange(source: 'poam' | 'iav') {
+  onTaskOrderSourceChange(source: 'iav' | 'poam') {
     if (source === this.taskOrderSource()) {
       return;
     }
@@ -812,7 +812,8 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
           vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData(),
           iavNumber: vulnerability.iav,
-          iavComplyByDate: formattedDate
+          iavComplyByDate: formattedDate,
+          taskOrderNumber: vulnerability.taskOrderNumber || ''
         }
       });
     } catch (error) {

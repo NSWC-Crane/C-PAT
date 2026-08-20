@@ -26,8 +26,8 @@
         <div class="right-buttons">
           @if (currentPreset() === 'taskOrder') {
             <p-buttongroup class="mr-4">
-              <button pButton (click)="onTaskOrderSourceChange('poam')" size="small" severity="secondary" [outlined]="taskOrderSource() !== 'poam'"><span pButtonLabel>POAM Task Orders</span></button>
               <button pButton (click)="onTaskOrderSourceChange('iav')" size="small" severity="secondary" [outlined]="taskOrderSource() !== 'iav'"><span pButtonLabel>IAV Task Orders</span></button>
+              <button pButton (click)="onTaskOrderSourceChange('poam')" size="small" severity="secondary" [outlined]="taskOrderSource() !== 'poam'"><span pButtonLabel>POAM Task Orders</span></button>
             </p-buttongroup>
           }
           <button pButton class="mr-2" (click)="resetColumnSelections()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset column selections"><i class="pi pi-refresh" pButtonIcon></i></button>
