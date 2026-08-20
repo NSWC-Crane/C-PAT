@@ -104,7 +104,7 @@ import { PayloadService } from '../../common/services/setPayload.service';
           </li>
         }
         <li>
-          <p-overlaybadge styleClass="!outline-0 opacity-80 !mr-px !mt-px" badgeSize="small" [value]="notificationCount()! > 0 ? notificationCount()!.toString() : '0'">
+          <p-overlaybadge styleClass="!outline-0 !bg-primary/85 !mr-px !mt-px" badgeSize="small" [value]="notificationCount()! > 0 ? notificationCount()!.toString() : '0'">
             <button pButton class="topbar-item overflow-visible" [text]="true" (click)="op.toggle($event)" (keyup.enter)="op.toggle($event)"><i class="pi pi-bell" pButtonIcon></i></button>
           </p-overlaybadge>
           <p-popover #op class="overlay" [dismissable]="true">
@@ -121,6 +121,16 @@ import { PayloadService } from '../../common/services/setPayload.service';
       </ul>
     </div>
   </div>`,
+  styles: [
+    `
+      :host ::ng-deep .p-badge-sm {
+        font-size: calc(var(--p-badge-sm-font-size) - 0.05rem) !important;
+        min-width: calc(var(--p-badge-sm-min-width) - 0.5rem) !important;
+        width: 16px;
+        height: 14px;
+      }
+    `
+  ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [BadgeModule, OverlayBadgeModule, AppSearchComponent, FormsModule, StyleClass, RouterModule, ButtonModule, AppConfiguratorComponent, Popover, TooltipModule, NotificationsPanelComponent]
