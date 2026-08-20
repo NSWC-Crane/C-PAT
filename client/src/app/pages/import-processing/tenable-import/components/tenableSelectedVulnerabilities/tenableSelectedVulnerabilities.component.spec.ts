@@ -241,8 +241,9 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should call getTaskOrderVulnerabilityIds when preset is taskOrder', () => {
+    it('should call getTaskOrderVulnerabilityIds when preset is taskOrder and taskOrderSource is poam', () => {
       (component as any).currentPreset = () => 'taskOrder';
+      component.taskOrderSource.set('poam');
       const spy = vi.spyOn(component, 'getTaskOrderVulnerabilityIds');
 
       component.ngOnInit();
@@ -581,6 +582,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       fixture.componentRef.setInput('currentPreset', 'taskOrder');
       component.selectedCollection = 1;
       component.tenableRepoId = '42';
+      component.taskOrderSource.set('poam');
       component.initColumnsAndFilters();
     });
 
@@ -808,6 +810,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
 
     it('should add taskOrderNumber to vulnerability when preset is taskOrder', () => {
       (component as any).currentPreset = () => 'taskOrder';
+      component.taskOrderSource.set('poam');
       component.taskOrderMap = { '12345': 'TO-001' };
       component.getApplicableFindings('12345');
       expect(component.applicableVulnerabilities()[0].taskOrderNumber).toBe('TO-001');
