@@ -315,6 +315,18 @@ describe('PoamCreationService', () => {
       expect(result.poam.iavComplyByDate).toBeNull();
     });
 
+    it('should set taskOrderNumber when provided', async () => {
+      const result = await service.createNewACASPoam({ ...mockStateData, taskOrderNumber: 'TASK-001' }, mockCollectionInfo, 1);
+
+      expect(result.poam.taskOrderNumber).toBe('TASK-001');
+    });
+
+    it('should default taskOrderNumber to an empty string when absent', async () => {
+      const result = await service.createNewACASPoam(mockStateData, mockCollectionInfo, 1);
+
+      expect(result.poam.taskOrderNumber).toBe('');
+    });
+
     it('should map severity correctly', async () => {
       const result = await service.createNewACASPoam(mockStateData, mockCollectionInfo, 1);
 

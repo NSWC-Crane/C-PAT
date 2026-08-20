@@ -812,7 +812,8 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
           vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData(),
           iavNumber: vulnerability.iav,
-          iavComplyByDate: formattedDate
+          iavComplyByDate: formattedDate,
+          taskOrderNumber: vulnerability.taskOrderNumber || ''
         }
       });
     } catch (error) {

@@ -1057,6 +1057,20 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       await component.onPoamIconClick({ pluginID: 12345, poam: false, navyComplyDate: null }, event);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ vulnerabilitySource: expect.any(String) }) }));
     });
+
+    it('should forward taskOrderNumber to ADDPOAM when the row carries one', async () => {
+      const event = { stopPropagation: vi.fn() } as any;
+
+      await component.onPoamIconClick({ pluginID: 12345, poam: false, navyComplyDate: null, taskOrderNumber: 'TASK-001' }, event);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ taskOrderNumber: 'TASK-001' }) }));
+    });
+
+    it('should forward an empty taskOrderNumber when the row has none', async () => {
+      const event = { stopPropagation: vi.fn() } as any;
+
+      await component.onPoamIconClick({ pluginID: 12345, poam: false, navyComplyDate: null }, event);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ taskOrderNumber: '' }) }));
+    });
   });
 
   describe('parseVprContext', () => {
