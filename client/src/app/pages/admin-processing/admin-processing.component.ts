@@ -16,7 +16,7 @@ import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
 import { filter } from 'rxjs';
 import { PayloadService } from '../../common/services/setPayload.service';
-import { AAPackageProcessingComponent } from './aaPackage-processing/aaPackage-processing.component';
+import { AAPackagesComponent } from './aa-packages/aa-packages.component';
 import { AppConfigurationComponent } from './app-configuration/app-configuration.component';
 import { AssetDeltaComponent } from './asset-delta/asset-delta.component';
 import { AssignedTeamProcessingComponent } from './assignedTeam-processing/assignedTeam-processing.component';
@@ -31,7 +31,7 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    AAPackageProcessingComponent,
+    AAPackagesComponent,
     AppConfigurationComponent,
     AssignedTeamProcessingComponent,
     ButtonModule,

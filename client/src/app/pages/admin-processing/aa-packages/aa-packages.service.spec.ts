@@ -12,7 +12,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AAPackageService } from './aaPackage-processing.service';
+import { AAPackageService } from './aa-packages.service';
 import { AAPackage } from '../../../common/models/aaPackage.model';
 
 describe('AAPackageService', () => {

@@ -43,8 +43,8 @@ class MockNessusPluginMappingComponent {
   updatePluginIds = vi.fn();
 }
 
-@Component({ selector: 'cpat-aa-package-processing', template: '', standalone: true })
-class MockAAPackageProcessingComponent {}
+@Component({ selector: 'cpat-aa-packages', template: '', standalone: true })
+class MockAAPackagesComponent {}
 
 @Component({ selector: 'cpat-assigned-team-processing', template: '', standalone: true })
 class MockAssignedTeamProcessingComponent {}
@@ -88,7 +88,7 @@ describe('AdminProcessingComponent', () => {
           imports: [
             ButtonModule,
             FormsModule,
-            MockAAPackageProcessingComponent,
+            MockAAPackagesComponent,
             MockAppConfigurationComponent,
             MockAssetDeltaComponent,
             MockAssignedTeamProcessingComponent,
@@ -253,7 +253,7 @@ describe('AdminProcessingComponent', () => {
             imports: [
               ButtonModule,
               FormsModule,
-              MockAAPackageProcessingComponent,
+              MockAAPackagesComponent,
               MockAppConfigurationComponent,
               MockAssetDeltaComponent,
               MockAssignedTeamProcessingComponent,

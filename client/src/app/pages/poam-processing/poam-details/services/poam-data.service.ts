@@ -13,7 +13,7 @@ import { MessageService } from 'primeng/api';
 import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
-import { AAPackageService } from '../../../admin-processing/aaPackage-processing/aaPackage-processing.service';
+import { AAPackageService } from '../../../admin-processing/aa-packages/aa-packages.service';
 import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
 import { AssetService } from '../../../assets/assets.service';

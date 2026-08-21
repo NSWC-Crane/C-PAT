@@ -19,17 +19,17 @@ import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { AAPackage } from '../../../common/models/aaPackage.model';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { AAPackageService } from './aaPackage-processing.service';
+import { AAPackageService } from './aa-packages.service';
 
 @Component({
-  selector: 'cpat-aa-package-processing',
-  templateUrl: './aaPackage-processing.component.html',
-  styleUrls: ['./aaPackage-processing.component.scss'],
+  selector: 'cpat-aa-packages',
+  templateUrl: './aa-packages.component.html',
+  styleUrls: ['./aa-packages.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, TooltipModule]
 })
-export class AAPackageProcessingComponent implements OnInit {
+export class AAPackagesComponent implements OnInit {
   private readonly aaPackageService = inject(AAPackageService);
   private readonly messageService = inject(MessageService);
 

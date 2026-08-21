@@ -21,13 +21,13 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
-import { AAPackageProcessingComponent } from './aaPackage-processing.component';
-import { AAPackageService } from './aaPackage-processing.service';
+import { AAPackagesComponent } from './aa-packages.component';
+import { AAPackageService } from './aa-packages.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 
-describe('AAPackageProcessingComponent', () => {
-  let component: AAPackageProcessingComponent;
-  let fixture: ComponentFixture<AAPackageProcessingComponent>;
+describe('AAPackagesComponent', () => {
+  let component: AAPackagesComponent;
+  let fixture: ComponentFixture<AAPackagesComponent>;
   let mockAAPackageService: any;
   let mockMessageService: any;
 
@@ -58,17 +58,17 @@ describe('AAPackageProcessingComponent', () => {
     mockMessageService = createMockMessageService();
 
     await TestBed.configureTestingModule({
-      imports: [AAPackageProcessingComponent],
+      imports: [AAPackagesComponent],
       providers: [provideHttpClient(), provideHttpClientTesting(), { provide: AAPackageService, useValue: mockAAPackageService }, { provide: MessageService, useValue: mockMessageService }]
     })
-      .overrideComponent(AAPackageProcessingComponent, {
+      .overrideComponent(AAPackagesComponent, {
         set: {
           imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule]
         }
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(AAPackageProcessingComponent);
+    fixture = TestBed.createComponent(AAPackagesComponent);
     component = fixture.componentInstance;
   });
 
