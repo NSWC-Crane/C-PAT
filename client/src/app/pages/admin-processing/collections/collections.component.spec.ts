@@ -15,7 +15,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
-import { CollectionProcessingComponent } from './collection-processing.component';
+import { CollectionsComponent } from './collections.component';
 import { CollectionsService } from './collections.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
@@ -64,9 +64,9 @@ const mockAAPackages = [
   { aaPackage: 'Other Package', aaPackageId: 3 }
 ];
 
-describe('CollectionProcessingComponent', () => {
-  let component: CollectionProcessingComponent;
-  let fixture: ComponentFixture<CollectionProcessingComponent>;
+describe('CollectionsComponent', () => {
+  let component: CollectionsComponent;
+  let fixture: ComponentFixture<CollectionsComponent>;
   let mockCollectionsService: any;
   let mockPayloadService: any;
   let mockMessageService: any;
@@ -118,7 +118,7 @@ describe('CollectionProcessingComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [CollectionProcessingComponent],
+      imports: [CollectionsComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -132,7 +132,7 @@ describe('CollectionProcessingComponent', () => {
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(CollectionProcessingComponent);
+    fixture = TestBed.createComponent(CollectionsComponent);
     component = fixture.componentInstance;
   });
 
@@ -1642,7 +1642,7 @@ describe('CollectionProcessingComponent', () => {
 
       TestBed.resetTestingModule();
       await TestBed.configureTestingModule({
-        imports: [CollectionProcessingComponent],
+        imports: [CollectionsComponent],
         providers: [
           provideHttpClient(),
           provideHttpClientTesting(),
@@ -1656,7 +1656,7 @@ describe('CollectionProcessingComponent', () => {
         ]
       }).compileComponents();
 
-      const newFixture = TestBed.createComponent(CollectionProcessingComponent);
+      const newFixture = TestBed.createComponent(CollectionsComponent);
       const newComponent = newFixture.componentInstance;
 
       expect(newComponent.tenableEnabled).toBe(false);

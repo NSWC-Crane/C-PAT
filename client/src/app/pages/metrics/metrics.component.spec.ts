@@ -15,7 +15,7 @@ import { BehaviorSubject, of } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { MetricsComponent } from './metrics.component';
 import { SharedService } from '../../common/services/shared.service';
-import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../admin-processing/collections/collections.service';
 
 beforeAll(() => {
   (globalThis as any).CPAT = { Env: { apiBase: '/api' } };

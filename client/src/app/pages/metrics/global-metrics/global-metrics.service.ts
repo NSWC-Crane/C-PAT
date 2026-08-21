@@ -14,7 +14,7 @@ import { catchError, map, mergeMap, tap, toArray } from 'rxjs/operators';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { ComplianceCount } from '../../../common/models/metrics.model';
 import { SharedService } from '../../../common/services/shared.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { MTTRData, MetricsService, normalizeMttrSeverity } from '../metrics.service';
 import { STIGManagerAggregatable, calculateCORAScore, computeStigManagerMetrics, getEmptySTIGManagerAggregatable } from '../stigman-metrics/stigman-metrics.compute';
 import { TenableGlobalComponents, TenableMetricsDataService } from '../tenable-metrics/tenable-metrics.data.service';

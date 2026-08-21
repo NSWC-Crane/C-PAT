@@ -30,7 +30,7 @@ import { Permission } from '../../../common/models/permission.model';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AssetDeltaService } from '../asset-delta/asset-delta.service';
-import { CollectionsService } from '../collection-processing/collections.service';
+import { CollectionsService } from '../collections/collections.service';
 import { AssignedTeamService } from './assigned-teams.service';
 
 interface AssignedTeam {

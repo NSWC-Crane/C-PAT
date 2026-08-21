@@ -21,7 +21,7 @@ import { createMockDialogService } from '../../../../testing/mocks/service-mocks
 import { PoamGridComponent } from './poam-grid.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { IntegrationService } from '../../integrations/integration.service';
 import { PoamService } from '../poams.service';
 import { PoamExportService } from '../../../common/utils/poam-export.service';

@@ -30,7 +30,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { AssignedTeamsComponent } from './assigned-teams.component';
 import { AssignedTeamService } from './assigned-teams.service';
-import { CollectionsService } from '../collection-processing/collections.service';
+import { CollectionsService } from '../collections/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { AssetDeltaService } from '../asset-delta/asset-delta.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';

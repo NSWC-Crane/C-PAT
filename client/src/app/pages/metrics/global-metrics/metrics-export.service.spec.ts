@@ -12,7 +12,7 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defer, delay, of, throwError } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { TenableMetricsDataService } from '../tenable-metrics/tenable-metrics.data.service';
 import { MetricsExportResult, MetricsExportService } from './metrics-export.service';
 

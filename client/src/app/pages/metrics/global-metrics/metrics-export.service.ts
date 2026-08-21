@@ -14,7 +14,7 @@ import { catchError, map, mergeMap, retry, switchMap, tap, toArray } from 'rxjs/
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { SharedService } from '../../../common/services/shared.service';
 import { applyClassificationBanner } from '../../../common/utils/classification-export.util';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { computeStigManagerMetrics } from '../stigman-metrics/stigman-metrics.compute';
 import { TenableMetricsDataService } from '../tenable-metrics/tenable-metrics.data.service';
 import { isMetricsCapableCollection } from './global-metrics.service';

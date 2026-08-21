@@ -20,7 +20,7 @@ import { AAPackagesComponent } from './aa-packages/aa-packages.component';
 import { AppConfigurationComponent } from './app-configuration/app-configuration.component';
 import { AssetDeltaComponent } from './asset-delta/asset-delta.component';
 import { AssignedTeamsComponent } from './assigned-teams/assigned-teams.component';
-import { CollectionProcessingComponent } from './collection-processing/collection-processing.component';
+import { CollectionsComponent } from './collections/collections.component';
 import { NessusPluginMappingComponent } from './nessus-plugin-mapping/nessus-plugin-mapping.component';
 import { UsersComponent } from './users/users.component';
 import { VRAMImportComponent } from './vram-import/vram-import.component';
@@ -30,7 +30,7 @@ import { VRAMImportComponent } from './vram-import/vram-import.component';
   templateUrl: './admin-processing.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AAPackagesComponent, AppConfigurationComponent, AssignedTeamsComponent, ButtonModule, CollectionProcessingComponent, FormsModule, NessusPluginMappingComponent, TabsModule, UsersComponent, AssetDeltaComponent, VRAMImportComponent]
+  imports: [AAPackagesComponent, AppConfigurationComponent, AssignedTeamsComponent, ButtonModule, CollectionsComponent, FormsModule, NessusPluginMappingComponent, TabsModule, UsersComponent, AssetDeltaComponent, VRAMImportComponent]
 })
 export class AdminProcessingComponent implements OnInit {
   private readonly payloadService = inject(PayloadService);

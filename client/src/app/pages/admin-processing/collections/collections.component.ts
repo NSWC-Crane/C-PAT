@@ -43,14 +43,14 @@ interface TreeNode<T> {
 }
 
 @Component({
-  selector: 'cpat-collection-processing',
-  templateUrl: './collection-processing.component.html',
-  styleUrls: ['./collection-processing.component.scss'],
+  selector: 'cpat-collections',
+  templateUrl: './collections.component.html',
+  styleUrls: ['./collections.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TagModule, TextareaModule, TooltipModule, TreeTableModule]
 })
-export class CollectionProcessingComponent implements OnInit {
+export class CollectionsComponent implements OnInit {
   private readonly aaPackageService = inject(AAPackageService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly setPayloadService = inject(PayloadService);

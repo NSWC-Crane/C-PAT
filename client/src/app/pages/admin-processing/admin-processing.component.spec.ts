@@ -26,8 +26,8 @@ import { PayloadService } from '../../common/services/setPayload.service';
 @Component({ selector: 'cpat-users', template: '', standalone: true })
 class MockUsersComponent {}
 
-@Component({ selector: 'cpat-collection-processing', template: '', standalone: true })
-class MockCollectionProcessingComponent {}
+@Component({ selector: 'cpat-collections', template: '', standalone: true })
+class MockCollectionsComponent {}
 
 @Component({ selector: 'cpat-asset-delta', template: '', standalone: true })
 class MockAssetDeltaComponent {
@@ -92,7 +92,7 @@ describe('AdminProcessingComponent', () => {
             MockAppConfigurationComponent,
             MockAssetDeltaComponent,
             MockAssignedTeamsComponent,
-            MockCollectionProcessingComponent,
+            MockCollectionsComponent,
             MockNessusPluginMappingComponent,
             MockUsersComponent,
             MockVRAMImportComponent,
@@ -257,7 +257,7 @@ describe('AdminProcessingComponent', () => {
               MockAppConfigurationComponent,
               MockAssetDeltaComponent,
               MockAssignedTeamsComponent,
-              MockCollectionProcessingComponent,
+              MockCollectionsComponent,
               MockNessusPluginMappingComponent,
               MockUsersComponent,
               MockVRAMImportComponent,

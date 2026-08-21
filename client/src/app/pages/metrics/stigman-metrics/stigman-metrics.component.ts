@@ -21,7 +21,7 @@ import { EMPTY, catchError, combineLatest, map, of, tap } from 'rxjs';
 import { RISK_GRADIENT, SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { CpatChartComponent } from '../../../common/components/chart/chart.component';
 import { DividerModule } from 'primeng/divider';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';

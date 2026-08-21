@@ -16,7 +16,7 @@ import { MessageService } from 'primeng/api';
 import { SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { SharedService } from '../../../common/services/shared.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { GlobalMetricsResult, GlobalMetricsService, StigBreakdown, TenableBreakdown } from './global-metrics.service';
 import { MetricsExportService } from './metrics-export.service';
 import { GlobalMetricsComponent } from './global-metrics.component';

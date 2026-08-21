@@ -15,7 +15,7 @@ import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableMetricsComponent } from './tenable-metrics.component';
 import { IntegrationService } from '../../integrations/integration.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 

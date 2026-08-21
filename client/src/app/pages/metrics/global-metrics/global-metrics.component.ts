@@ -27,7 +27,7 @@ import { CollectionsBasicList } from '../../../common/models/collections-basic.m
 import { MetricData } from '../../../common/models/metrics.model';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { GlobalMetricsResult, GlobalMetricsService, isMetricsCapableCollection } from './global-metrics.service';
 import { MetricsExportProgress, MetricsExportService } from './metrics-export.service';
 

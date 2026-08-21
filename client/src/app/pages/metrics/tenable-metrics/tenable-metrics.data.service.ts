@@ -12,7 +12,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, combineLatest, forkJoin, map, of, switchMap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ComplianceCount } from '../../../common/models/metrics.model';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { IntegrationService } from '../../integrations/integration.service';
 
 export interface SeveritySummary {

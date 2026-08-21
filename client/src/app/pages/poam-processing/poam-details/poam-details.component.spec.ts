@@ -22,7 +22,7 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { AppConfigurationService } from '../../admin-processing/app-configuration/app-configuration.service';
 import { AssignedTeamService } from '../../admin-processing/assigned-teams/assigned-teams.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { PoamService } from '../poams.service';
 import { PoamDetailsComponent } from './poam-details.component';
 import { AssetTeamMappingService } from './services/asset-team-mapping.service';

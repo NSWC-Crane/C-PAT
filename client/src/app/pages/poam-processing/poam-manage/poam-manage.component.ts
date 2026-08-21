@@ -20,7 +20,7 @@ import { Poam } from '../../../common/models/poam.model';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { IntegrationService } from '../../integrations/integration.service';
 import { PoamAdvancedPieComponent } from '../poam-advanced-pie/poam-advanced-pie.component';
 import { PoamGridComponent } from '../poam-grid/poam-grid.component';

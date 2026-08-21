@@ -32,7 +32,7 @@ import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { resolveNavyComplyDateRange } from '../../utils/navy-comply-date.utils';
 import { createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext, toNullableNumber } from '../../utils/tenable-vulnerability.utils';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../../../admin-processing/collections/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { IntegrationService } from '../../../integration.service';
 import { MultiSelectDirective } from '../../../../../common/directives/multi-select.directive';

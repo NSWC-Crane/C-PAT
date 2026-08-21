@@ -35,7 +35,7 @@ import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { AssetDeltaComponent } from './asset-delta.component';
 import { AssetDeltaService } from './asset-delta.service';
-import { CollectionsService } from '../collection-processing/collections.service';
+import { CollectionsService } from '../collections/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
 import { IntegrationService } from '../../integrations/integration.service';

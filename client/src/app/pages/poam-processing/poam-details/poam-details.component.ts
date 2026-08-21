@@ -44,7 +44,7 @@ import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AppConfigurationService } from '../../admin-processing/app-configuration/app-configuration.service';
 import { AssignedTeamService } from '../../admin-processing/assigned-teams/assigned-teams.service';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { PoamService } from '../poams.service';
 import { PoamApproversComponent } from './components/poam-approvers/poam-approvers.component';
 import { PoamAssetsComponent } from './components/poam-assets/poam-assets.component';

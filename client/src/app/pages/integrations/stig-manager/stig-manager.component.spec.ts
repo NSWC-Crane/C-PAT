@@ -31,7 +31,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { STIGManagerComponent } from './stig-manager.component';
-import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../admin-processing/collections/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { PoamService } from '../../poam-processing/poams.service';

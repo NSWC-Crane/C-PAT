@@ -22,7 +22,7 @@ import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../../../admin-processing/collections/collections.service';
 import { IntegrationService } from '../../../integration.service';
 
 interface ExportColumn {

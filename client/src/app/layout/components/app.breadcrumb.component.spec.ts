@@ -191,7 +191,6 @@ describe('AppBreadcrumbComponent', () => {
       { path: 'poam-manage', expected: 'Manage POAMs' },
       { path: 'stig-manager', expected: 'STIG Manager' },
       { path: 'tenable', expected: 'Tenable' },
-      { path: 'collection-processing', expected: 'Collection Processing' },
       { path: 'admin-processing', expected: 'Admin Processing' },
       { path: 'integrations', expected: 'Integrations' },
       { path: 'assets', expected: 'Assets' },

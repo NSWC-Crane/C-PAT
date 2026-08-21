@@ -67,7 +67,7 @@ import {
   toNullableNumber
 } from '../../utils/tenable-vulnerability.utils';
 import { API_FILTER_BUILDERS, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, parseRangeBounds, toArray, toIdList } from '../../utils/tenable-filter.utils';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../../../admin-processing/collections/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { IntegrationService } from '../../../integration.service';
 import { TenableFiltersComponent } from '../../components/tenableFilters/tenableFilters.component';

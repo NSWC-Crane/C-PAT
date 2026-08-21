@@ -17,7 +17,7 @@ import { PoamCreationService } from './poam-creation.service';
 import { IntegrationService } from '../../../integrations/integration.service';
 import { SharedService } from '../../../../common/services/shared.service';
 import { AppConfigurationService } from '../../../admin-processing/app-configuration/app-configuration.service';
-import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../../admin-processing/collections/collections.service';
 import { AssignedTeamService } from '../../../admin-processing/assigned-teams/assigned-teams.service';
 import { AssetService } from '../../../assets/assets.service';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';

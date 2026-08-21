@@ -35,7 +35,7 @@ import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
 import { IntegrationService } from '../../integrations/integration.service';
-import { CollectionsService } from '../collection-processing/collections.service';
+import { CollectionsService } from '../collections/collections.service';
 import { AssetDeltaService } from './asset-delta.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 

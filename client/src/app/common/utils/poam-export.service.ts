@@ -10,7 +10,7 @@
 
 import { format } from 'date-fns';
 import { firstValueFrom } from 'rxjs';
-import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../pages/admin-processing/collections/collections.service';
 import { IntegrationService } from '../../pages/integrations/integration.service';
 import { PoamService } from '../../pages/poam-processing/poams.service';
 import { Poam } from '../models/poam.model';
