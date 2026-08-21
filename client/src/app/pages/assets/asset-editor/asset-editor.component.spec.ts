@@ -13,7 +13,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
-import { AssetComponent } from './asset.component';
+import { AssetEditorComponent } from './asset-editor.component';
 import { AssetService } from '../assets.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -45,9 +45,9 @@ const mockAsset = {
 
 const mockPayload = { lastCollectionAccessedId: 1 };
 
-describe('AssetComponent', () => {
-  let component: AssetComponent;
-  let fixture: ComponentFixture<AssetComponent>;
+describe('AssetEditorComponent', () => {
+  let component: AssetEditorComponent;
+  let fixture: ComponentFixture<AssetEditorComponent>;
   let mockAssetService: any;
   let mockSharedService: any;
   let mockPayloadService: any;
@@ -80,7 +80,7 @@ describe('AssetComponent', () => {
     mockMessageService = createMockMessageService();
 
     await TestBed.configureTestingModule({
-      imports: [AssetComponent],
+      imports: [AssetEditorComponent],
       providers: [
         { provide: AssetService, useValue: mockAssetService },
         { provide: SharedService, useValue: mockSharedService },
@@ -90,7 +90,7 @@ describe('AssetComponent', () => {
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AssetComponent);
+    fixture = TestBed.createComponent(AssetEditorComponent);
     component = fixture.componentInstance;
     component.asset.set({ ...mockAsset });
     fixture.componentRef.setInput('assets', [mockAsset]);

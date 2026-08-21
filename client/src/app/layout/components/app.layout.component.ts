@@ -505,9 +505,9 @@ export class AppLayoutComponent implements OnInit {
         visible: this.accessLevel >= 2 && this.manualCreationAllowed()
       },
       {
-        label: 'Asset Processing',
+        label: 'Assets',
         icon: 'pi pi-server',
-        routerLink: ['/asset-processing'],
+        routerLink: ['/assets'],
         visible: this.accessLevel >= 1
       },
       {

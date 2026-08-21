@@ -114,8 +114,6 @@ export class AppBreadcrumbComponent implements OnInit {
         return 'Collection Processing';
       case 'admin-processing':
         return 'Admin Processing';
-      case 'asset-processing':
-        return 'Asset Processing';
       case 'label-processing':
         return 'Label Processing';
       case 'metrics':

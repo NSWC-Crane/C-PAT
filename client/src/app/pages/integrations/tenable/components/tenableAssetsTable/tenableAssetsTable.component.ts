@@ -58,7 +58,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly pluginID = input.required<string>();
-  readonly assetProcessing = input<boolean>(false);
+  readonly assetsPage = input<boolean>(false);
   readonly tenableRepoId = input<number>(undefined);
   readonly associatedVulnerabilities = input<any[]>([]);
   private readonly tables = viewChildren(Table);
@@ -112,7 +112,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
 
     if (this.pluginID() && tenableRepoId) {
       this.getAffectedAssetsForAllPlugins();
-    } else if (this.assetProcessing() && tenableRepoId) {
+    } else if (this.assetsPage() && tenableRepoId) {
       this.getAffectedAssets({ first: 0, rows: 25 } as TableLazyLoadEvent);
     }
   }
@@ -466,7 +466,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   }
 
   lazyOrNot(event: TableLazyLoadEvent) {
-    if (this.assetProcessing()) {
+    if (this.assetsPage()) {
       this.getAffectedAssets(event);
     }
   }
@@ -540,7 +540,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
 
           this.totalRecords.set(data.response.totalRecords);
 
-          if (this.assetProcessing()) {
+          if (this.assetsPage()) {
             this.teamTabs.set([{ teamId: 'all', teamName: 'All Assets', assets: this.affectedAssets }]);
           } else {
             this.matchAssetsWithTeams();
@@ -704,7 +704,7 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
 
     if (this.pluginID() && tenableRepoId) {
       this.getAffectedAssetsForAllPlugins();
-    } else if (this.assetProcessing() && tenableRepoId) {
+    } else if (this.assetsPage() && tenableRepoId) {
       this.getAffectedAssets({ first: 0, rows: 25 } as TableLazyLoadEvent);
     }
   }

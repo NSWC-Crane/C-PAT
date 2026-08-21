@@ -10,9 +10,9 @@
 
 import { Routes } from '@angular/router';
 
-export const assetProcessingRoutes: Routes = [
+export const assetRoutes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./asset-processing.component').then((m) => m.AssetProcessingComponent)
+    loadComponent: () => import('./assets.component').then((m) => m.AssetsComponent)
   }
 ];

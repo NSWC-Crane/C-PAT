@@ -32,7 +32,7 @@ import { CollectionsService } from '../admin-processing/collection-processing/co
 import { STIGManagerAssetsTableComponent } from '../integrations/stig-manager/stigManagerAssetsTable/stigManagerAssetsTable.component';
 import { TenableHighRiskAssetsTableComponent } from '../integrations/tenable/components/tenableHighRiskAssetsTable/tenableHighRiskAssetsTable.component';
 import { TenableHostAssetsTableComponent } from '../integrations/tenable/components/tenableHostAssetsTable/tenableHostAssetsTable.component';
-import { AssetComponent } from './asset/asset.component';
+import { AssetEditorComponent } from './asset-editor/asset-editor.component';
 import { AssetService } from './assets.service';
 
 interface Column {
@@ -49,13 +49,13 @@ interface AssetEntry {
 }
 
 @Component({
-  selector: 'cpat-asset-processing',
-  templateUrl: './asset-processing.component.html',
-  styleUrls: ['./asset-processing.component.scss'],
+  selector: 'cpat-assets',
+  templateUrl: './assets.component.html',
+  styleUrls: ['./assets.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    AssetComponent,
+    AssetEditorComponent,
     ButtonModule,
     CardModule,
     CpatChartComponent,
@@ -73,7 +73,7 @@ interface AssetEntry {
     TooltipModule
   ]
 })
-export class AssetProcessingComponent implements OnInit, OnDestroy {
+export class AssetsComponent implements OnInit, OnDestroy {
   private readonly assetService = inject(AssetService);
   private readonly setPayloadService = inject(PayloadService);
   private readonly sharedService = inject(SharedService);

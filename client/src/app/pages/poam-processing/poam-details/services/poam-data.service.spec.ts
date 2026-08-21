@@ -18,7 +18,7 @@ import { SharedService } from '../../../../common/services/shared.service';
 import { AAPackageService } from '../../../admin-processing/aaPackage-processing/aaPackage-processing.service';
 import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
-import { AssetService } from '../../../asset-processing/assets.service';
+import { AssetService } from '../../../assets/assets.service';
 import { IntegrationService } from '../../../integrations/integration.service';
 import { PoamService } from '../../poams.service';
 

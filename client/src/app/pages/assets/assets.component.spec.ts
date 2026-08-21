@@ -13,7 +13,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
-import { AssetProcessingComponent } from './asset-processing.component';
+import { AssetsComponent } from './assets.component';
 import { AssetService } from './assets.service';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { SharedService } from '../../common/services/shared.service';
@@ -39,9 +39,9 @@ const mockCollections = [
   { collectionId: 2, collectionName: 'Col B', collectionType: 'STIG', originCollectionId: null }
 ];
 
-describe('AssetProcessingComponent', () => {
-  let component: AssetProcessingComponent;
-  let fixture: ComponentFixture<AssetProcessingComponent>;
+describe('AssetsComponent', () => {
+  let component: AssetsComponent;
+  let fixture: ComponentFixture<AssetsComponent>;
   let mockAssetService: any;
   let mockPayloadService: any;
   let mockSharedService: any;
@@ -84,7 +84,7 @@ describe('AssetProcessingComponent', () => {
     mockMessageService = createMockMessageService();
 
     await TestBed.configureTestingModule({
-      imports: [AssetProcessingComponent],
+      imports: [AssetsComponent],
       providers: [
         { provide: AssetService, useValue: mockAssetService },
         { provide: PayloadService, useValue: mockPayloadService },
@@ -95,7 +95,7 @@ describe('AssetProcessingComponent', () => {
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AssetProcessingComponent);
+    fixture = TestBed.createComponent(AssetsComponent);
     component = fixture.componentInstance;
   });
 

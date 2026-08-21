@@ -19,7 +19,7 @@ import { SharedService } from '../../../../common/services/shared.service';
 import { AppConfigurationService } from '../../../admin-processing/app-configuration/app-configuration.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
 import { AssignedTeamService } from '../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
-import { AssetService } from '../../../asset-processing/assets.service';
+import { AssetService } from '../../../assets/assets.service';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';
 
 describe('PoamCreationService', () => {

@@ -25,14 +25,14 @@ import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AssetService } from '../assets.service';
 
 @Component({
-  selector: 'cpat-asset',
-  templateUrl: './asset.component.html',
-  styleUrls: ['./asset.component.scss'],
+  selector: 'cpat-asset-editor',
+  templateUrl: './asset-editor.component.html',
+  styleUrls: ['./asset-editor.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, CardModule, DialogModule, Select, FormsModule, InputTextModule, TableModule]
 })
-export class AssetComponent implements OnInit, OnChanges, OnDestroy {
+export class AssetEditorComponent implements OnInit, OnChanges, OnDestroy {
   private readonly assetService = inject(AssetService);
   private readonly sharedService = inject(SharedService);
   private readonly messageService = inject(MessageService);

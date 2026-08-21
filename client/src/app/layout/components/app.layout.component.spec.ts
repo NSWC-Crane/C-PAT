@@ -535,10 +535,10 @@ describe('AppLayoutComponent', () => {
       expect(logoutItem).toBeDefined();
     });
 
-    it('should include Asset Processing and Label Processing when accessLevel >= 1', () => {
+    it('should include Assets and Label Processing when accessLevel >= 1', () => {
       component.accessLevel = 1;
       (component as any).setMenuItems();
-      expect(component.items().find((i) => i.label === 'Asset Processing')).toBeDefined();
+      expect(component.items().find((i) => i.label === 'Assets')).toBeDefined();
       expect(component.items().find((i) => i.label === 'Label Processing')).toBeDefined();
     });
   });
@@ -626,9 +626,9 @@ describe('AppLayoutComponent', () => {
     });
 
     it('should track url changes across navigations', () => {
-      navigateTo('/asset-processing');
+      navigateTo('/assets');
       expect(component.isItemActive({ label: 'Home', routerLink: ['/home'] })).toBe(false);
-      expect(component.isItemActive({ label: 'Assets', routerLink: ['/asset-processing'] })).toBe(true);
+      expect(component.isItemActive({ label: 'Assets', routerLink: ['/assets'] })).toBe(true);
     });
   });
 

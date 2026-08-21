@@ -13,7 +13,7 @@ import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { consentRoute } from './common/components/dod-consent/dod-consent.routing';
 import { AuthGuard } from './core/auth/guards/auth.guard';
 import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
-import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
+import { assetRoutes } from './pages/assets/assets.routing';
 import { integrationRoutes } from './pages/integrations/integration-routing.module';
 import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
 import { metricsRoutes } from './pages/metrics-processing/metrics.routing';
@@ -48,9 +48,9 @@ export const routes: Routes = [
         children: adminProcessingRoutes
       },
       {
-        path: 'asset-processing',
+        path: 'assets',
         canActivate: [AuthGuard],
-        children: assetProcessingRoutes
+        children: assetRoutes
       },
       {
         path: 'consent',

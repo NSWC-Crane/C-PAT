@@ -20,7 +20,7 @@ import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { AppConfigurationService } from '../../../admin-processing/app-configuration/app-configuration.service';
 import { AssignedTeamService } from '../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
-import { AssetService } from '../../../asset-processing/assets.service';
+import { AssetService } from '../../../assets/assets.service';
 import { IntegrationService } from '../../../integrations/integration.service';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';
 

@@ -13,7 +13,7 @@
     <div class="p-fluid">
       <div class="toolbar mb-4">
         <div class="flex items-center justify-between">
-          @if (!this.assetProcessing()) {
+          @if (!this.assetsPage()) {
             <p-iconfield iconPosition="left">
               <p-inputicon>
                 <i class="pi pi-search"></i>
@@ -59,7 +59,7 @@
       <div class="scrollable-vulnerabilities">
         <p-tabs [(value)]="activeTab" lazy>
           <p-tablist>
-            @if (!assetProcessing()) {
+            @if (!assetsPage()) {
               @for (tab of teamTabs(); track tab.teamId) {
                 <p-tab [value]="tab.teamId">{{ tab.teamName }} ({{ tab.assets.length }})</p-tab>
               }
@@ -76,9 +76,9 @@
                   [columns]="selectedColumns"
                   [paginator]="true"
                   [rows]="100"
-                  [totalRecords]="assetProcessing() ? totalRecords() : tab.assets.length"
-                  [lazy]="assetProcessing()"
-                  (onLazyLoad)="assetProcessing() ? lazyOrNot($event) : null"
+                  [totalRecords]="assetsPage() ? totalRecords() : tab.assets.length"
+                  [lazy]="assetsPage()"
+                  (onLazyLoad)="assetsPage() ? lazyOrNot($event) : null"
                   [loading]="isLoading()"
                   [showCurrentPageReport]="true"
                   [rowsPerPageOptions]="[25, 50, 100]"
@@ -93,7 +93,7 @@
                       @for (col of columns; track col.field) {
                         <th scope="col" [pSortableColumn]="col.field" [style.width]="col.width">
                           {{ col.header }}
-                          @if (!this.assetProcessing()) {
+                          @if (!this.assetsPage()) {
                             <p-columnfilter [type]="col.field === 'vprScore' ? 'numeric' : 'text'" [field]="col.field" [showOperator]="false" display="menu" />
                           }
                         </th>
