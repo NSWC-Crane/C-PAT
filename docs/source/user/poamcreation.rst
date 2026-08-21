@@ -56,14 +56,17 @@ Field Definitions
 
 POAM Status
    * Draft - Initial state
-   * Submitted
-   * Pending CAT-I Approval
-   * Extension Requested
-   * Approved
-   * Rejected
+   * Submitted - Set when the POAM is submitted for review. The POAM's approvers who hold Approver access or higher on the collection are notified. A POAM in ``Extension Requested`` status also returns to this status when its pending extension request is deleted.
+   * Pending CAT-I Approval - Set when an Approver marks a CAT I POAM as approved; the POAM remains in this status until a CAT I Approver issues final approval.
+   * Extension Requested - Set when an extension request is submitted from the POAM extension panel (see :ref:`poam-extensions`).
+   * Approved - Set when final approval is issued, either by approving the POAM directly or by approving its extension request.
+   * Rejected - Set when a POAM or its extension request is rejected. Rejecting an extension request also clears the requested extension days and the extension deadline.
    * Closed
    * False-Positive
-   * Expired
+   * Expired - Set automatically by a scheduled database task once the scheduled completion date (or the extension deadline, when one exists) has passed.
+
+.. note::
+   The statuses a user can apply to a POAM depend on the user's effective access level for the collection - see :ref:`collection-privileges`.
 
 Description
    * Control Vulnerability Description: Describes the vulnerability identified during assessment. This is pulled directly from the assessment procedure entry or technical assessment method (e.g., STIG test case) where applicable. Otherwise it must be manually entered in the NC status for the vulnerability.
@@ -87,10 +90,10 @@ Predisposing Conditions
    * A condition existing within an organization, a mission or business process, enterprise architecture, information system, or environment of operation, which affects (i.e., increases or decreases) the likelihood that threat events, once initiated, result in adverse impacts.
 
 Scheduled Completion Date
-   * Target completion date for resolving the vulnerability. This target completion date can stretch beyond the potential 3-year authorization window and must accurately reflect the resolution timetable. Please note that the initial date entered may not be changed. When a vulnerability severity value is resolved, the agency should note the actual completion date.
+   * Target completion date for resolving the vulnerability. This target completion date can stretch beyond the potential 3-year authorization window and must accurately reflect the resolution timetable. When a vulnerability severity value is resolved, the agency should note the actual completion date.
 
 .. note::
-   POAM Scheduled Completion Date is automated based on the severity of the vulnerability. CAT I - Critical and CAT I - High: 30 days, CAT II - Medium: 180 days, CAT III - Low and CAT III - Informational: 365 days.
+   POAM Scheduled Completion Date is automated based on the severity of the vulnerability. CAT I - Critical and CAT I - High: 30 days, CAT II - Medium: 180 days, CAT III - Low and CAT III - Informational: 365 days. The date can be manually adjusted by the user as needed to align with organizational policy.
 
 Required Resources
    * Estimated funding or manpower resources required to resolve the security vulnerability (i.e., full-time equivalent).
@@ -180,9 +183,13 @@ Every milestone on the POAM must be fully completed before submission:
    A milestone due date may not exceed the POAM Scheduled Completion Date. If the POAM has an approved extension, the milestone due date may not exceed the extended deadline.
 
 
+.. _poam-extensions:
+
 POAM Extension Requirements
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 An extension request documents why additional time is needed and updates the mitigation and milestone information accordingly. As with submission, all milestone edits must be saved before an extension request can be submitted, and any unmet requirement blocks the request with a specific message.
+
+The extension panel is opened with the **Extend** button on the POAM details page, which is available while the POAM status is ``Approved``, ``Expired``, or ``Extension Requested``.
 
 Required for every extension request
 
@@ -200,9 +207,30 @@ Milestone requirements
 When extension days are requested, the following milestone rules are enforced:
 
    * Any milestone that has a milestone change date must also have milestone change comments.
+   * A milestone change date cannot be set to a date in the past.
    * All past-due milestones must have a milestone change date and change comments.
    * At least one milestone must have both change comments and a change date.
    * Each assigned team must have at least one milestone that is **not** in a ``Completed`` status. The request is blocked until each team has an open milestone justifying the extension, and the message identifies any team(s) that do not.
 
 .. note::
    Initial milestones and their completion dates may not be altered. Document any changes to a milestone using the Milestone Change Date and Milestone Change Comments fields within the POAM extension panel.
+
+Saving an extension request
+
+What saving does is controlled by the **Restart extension period from today?** checkbox:
+
+   * **Checked:** saving submits a new extension request. The extension deadline is set to today's date plus the Extension Time Requested, the POAM status changes to ``Extension Requested``, and the POAM's approvers who hold Approver access or higher on the collection are notified for review.
+   * **Unchecked:** saving updates the extension details only - the justification, mitigations, milestone changes, and risk information are saved, but the POAM status and the existing extension deadline are unchanged.
+
+For a POAM with no existing extension, the checkbox is checked automatically, so the first save always submits a request. Once an extension exists, the Extension Time Requested value can only be changed while the checkbox is checked, because restarting the extension period is what re-anchors the deadline. If the current extension deadline has already passed, the panel prompts to check the box to request a new extension period.
+
+Approving or rejecting an extension
+
+Users with Approver access or higher can act on a pending extension request directly from the extension panel:
+
+   * **Approve** sets the POAM status to ``Approved``. Extension requests for CAT I POAMs (Raw Severity of ``CAT I - Critical`` or ``CAT I - High``) can only be approved by a CAT I Approver.
+   * **Reject** sets the POAM status to ``Rejected`` and clears the requested extension days and the extension deadline. The dropdown next to the Reject button opens the approval page to reject with comments instead.
+
+Deleting an extension
+
+The **Delete Extension** button clears the requested extension days, the extension deadline, and the extension justification. If the POAM status was ``Extension Requested``, the POAM returns to ``Submitted`` and its approvers are notified. In either case, with the extension deadline removed the POAM re-enters normal expiry processing, so a POAM whose scheduled completion date has already passed may be marked ``Expired``.

@@ -35,6 +35,8 @@ To pre-onboard a user:
 
 Assuming a correct C-PAT and OIDC configuration, user data *should* be automatically populated from the OIDC provider. If the user data is not automatically populated, the user data can be manually entered by an administrator. Accurate and complete user data is important to the flow of the C-PAT application, particularly when it comes to exporting into the eMASS excel format. User first name, last name, email, phone number, and office/organization are all pre-populated into a C-PAT export when available.
 
+.. _collection-privileges:
+
 C-PAT Collection Privileges
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -49,11 +51,13 @@ C-PAT Collection Privileges
    * - Submitter
      - The Submitter role is the recommended role for users who should not be restricted to readonly access and who do not explicitly need POAM approval access for the collection. Users with Submitter access will have access to add and modify data for POAMs, Assets, Labels, etc.
    * - Approver
-     - The Approver role is the recommended role for users who need to approve POAMs for the collection. Users with the Approver role will have the same access as that of the Submitter role, in addition to access to issue final approval or rejection for CAT II and CAT III POAMs. In the case of CAT I POAMs, an Approver can (and should) review and mark the POAM as approved, but the final approval must be issued by a CAT I Approver.
+     - The Approver role is the recommended role for users who need to approve POAMs for the collection. Users with the Approver role will have the same access as that of the Submitter role, in addition to access to issue final approval or rejection for CAT II and CAT III POAMs. In the case of CAT I POAMs, an Approver can (and should) review and mark the POAM as approved, but the final approval must be issued by a CAT I Approver. The same rule applies to extension requests: an Approver can approve or reject extension requests for CAT II and CAT III POAMs, but extension requests for CAT I POAMs can only be approved by a CAT I Approver.
    * - CAT I Approver
-     - The CAT I Approver role provides the highest level of access to a collection. Users with the CAT I Approver role will have the same access as that of the Approver role, in addition to the ability to issue final approval for CAT I POAMs. CAT I Approvers are the only users who can issue final approval for CAT I POAMs.
+     - The CAT I Approver role provides the highest level of access to a collection. Users with the CAT I Approver role will have the same access as that of the Approver role, in addition to the ability to issue final approval for CAT I POAMs. CAT I Approvers are the only users who can issue final approval for CAT I POAMs or approve their extension requests.
 
 A user's permission to a collection can come from more than one source: it can be granted directly to the user, granted through one or more of the user's team assignments, or both at once. The user's effective access level for a collection is always the highest level any of its sources grants.
+
+POAM status changes are also bounded by the effective access level, and the API enforces these limits in addition to the client: Submitter access is sufficient to set a POAM to ``Draft``, ``Submitted``, ``Closed``, or ``Expired``; any other status change requires Approver access, and setting a POAM to ``Approved`` requires an Approver - or a CAT I Approver when the POAM is CAT I.
 
 Team Assignments
 ^^^^^^^^^^^^^^^^
