@@ -37,7 +37,7 @@ import { approvalLevelForSeverity } from '../../../common/constants/poam-severit
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { AssignedTeamService } from '../../admin-processing/assigned-teams/assigned-teams.service';
+import { AssignedTeamService } from '../../admin/assigned-teams/assigned-teams.service';
 import { LabelService } from '../../labels/labels.service';
 import { PoamMitigationGeneratorComponent } from '../poam-details/components/poam-mitigation-generator/poam-mitigation-generator.component';
 import { PoamMitigationService } from '../poam-details/services/poam-mitigation.service';

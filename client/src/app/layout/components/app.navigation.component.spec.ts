@@ -16,10 +16,10 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { AppNavigationComponent } from './app.navigation.component';
 import { AppConfigService } from '../services/appconfigservice';
 import { PayloadService } from '../../common/services/setPayload.service';
-import { UsersService } from '../../pages/admin-processing/users/users.service';
+import { UsersService } from '../../pages/admin/users/users.service';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { AuthService } from '../../core/auth/services/auth.service';
-import { CollectionsService } from '../../pages/admin-processing/collections/collections.service';
+import { CollectionsService } from '../../pages/admin/collections/collections.service';
 import { SharedService } from '../../common/services/shared.service';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 

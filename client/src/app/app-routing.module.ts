@@ -12,7 +12,7 @@ import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { consentRoute } from './common/components/dod-consent/dod-consent.routing';
 import { AuthGuard } from './core/auth/guards/auth.guard';
-import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
+import { adminRoutes } from './pages/admin/admin-routing.module';
 import { assetRoutes } from './pages/assets/assets.routing';
 import { integrationRoutes } from './pages/integrations/integration-routing.module';
 import { labelRoutes } from './pages/labels/labels.routing';
@@ -36,16 +36,16 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
       {
-        path: 'admin-processing',
+        path: 'admin',
         canActivate: [AuthGuard],
         data: { guardType: 'admin' },
-        children: adminProcessingRoutes
+        children: adminRoutes
       },
       {
         path: 'app-info',
         canActivate: [AuthGuard],
         data: { guardType: 'admin' },
-        children: adminProcessingRoutes
+        children: adminRoutes
       },
       {
         path: 'assets',

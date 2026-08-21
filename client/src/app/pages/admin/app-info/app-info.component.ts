@@ -21,7 +21,7 @@ import { TabsModule } from 'primeng/tabs';
 import { EMPTY, catchError } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
-import { AdminProcessingService } from '../admin-processing.service';
+import { AdminService } from '../admin.service';
 interface OperationInfo {
   totalRequests: number;
   totalDuration: number;
@@ -214,7 +214,7 @@ interface OperationError {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppInfoComponent implements OnInit {
-  private readonly adminProcessingService = inject(AdminProcessingService);
+  private readonly adminService = inject(AdminService);
   private readonly configService = inject(AppConfigService);
   private readonly messageService = inject(MessageService);
 
@@ -281,7 +281,7 @@ export class AppInfoComponent implements OnInit {
 
   getAppInfo(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.adminProcessingService
+      this.adminService
         .getAppInfo()
         .pipe(
           catchError((error) => {

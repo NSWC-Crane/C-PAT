@@ -14,7 +14,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Observable, of } from 'rxjs';
 import { catchError, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { DataCacheService } from '../../../common/services/data-cache.service';
-import { UsersService } from '../../../pages/admin-processing/users/users.service';
+import { UsersService } from '../../../pages/admin/users/users.service';
 import { Router } from '@angular/router';
 
 interface AuthState {

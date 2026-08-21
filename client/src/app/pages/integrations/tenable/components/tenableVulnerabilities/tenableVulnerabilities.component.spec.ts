@@ -18,7 +18,7 @@ import { MessageService } from 'primeng/api';
 import { TenableVulnerabilitiesComponent } from './tenableVulnerabilities.component';
 import { CustomFilter } from '../../../../../common/models/tenable.model';
 import { IntegrationService } from '../../../integration.service';
-import { CollectionsService } from '../../../../admin-processing/collections/collections.service';
+import { CollectionsService } from '../../../../admin/collections/collections.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { SharedService } from '../../../../../common/services/shared.service';

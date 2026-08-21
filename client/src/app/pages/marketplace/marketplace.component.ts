@@ -21,7 +21,7 @@ import { filter, forkJoin, switchMap, take } from 'rxjs';
 import { SubSink } from 'subsink';
 import { getErrorMessage } from '../../common/utils/error-utils';
 import { AppConfigService } from '../../layout/services/appconfigservice';
-import { UsersService } from '../admin-processing/users/users.service';
+import { UsersService } from '../admin/users/users.service';
 import { MarketplaceService } from './marketplace.service';
 import { PayloadService } from '../../common/services/setPayload.service';
 

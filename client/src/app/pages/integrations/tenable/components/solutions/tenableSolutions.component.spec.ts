@@ -15,7 +15,7 @@ import { of, throwError, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableSolutionsComponent } from './tenableSolutions.component';
 import { IntegrationService } from '../../../integration.service';
-import { CollectionsService } from '../../../../admin-processing/collections/collections.service';
+import { CollectionsService } from '../../../../admin/collections/collections.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 

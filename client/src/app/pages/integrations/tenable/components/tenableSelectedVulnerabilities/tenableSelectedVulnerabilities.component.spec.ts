@@ -18,7 +18,7 @@ import { Router } from '@angular/router';
 import { TenableSelectedVulnerabilitiesComponent } from './tenableSelectedVulnerabilities.component';
 import { IntegrationService } from '../../../integration.service';
 import { PoamService } from '../../../../poam-processing/poams.service';
-import { CollectionsService } from '../../../../admin-processing/collections/collections.service';
+import { CollectionsService } from '../../../../admin/collections/collections.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { createMockMessageService, createMockRouter } from '../../../../../../testing/mocks/service-mocks';
 

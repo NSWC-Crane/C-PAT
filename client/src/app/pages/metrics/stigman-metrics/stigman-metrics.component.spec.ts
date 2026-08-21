@@ -16,7 +16,7 @@ import { MessageService } from 'primeng/api';
 import { STIGManagerMetricsComponent } from './stigman-metrics.component';
 import { SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { SharedService } from '../../../common/services/shared.service';
-import { CollectionsService } from '../../admin-processing/collections/collections.service';
+import { CollectionsService } from '../../admin/collections/collections.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 

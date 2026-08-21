@@ -4,9 +4,9 @@ import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from 'vite
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { AppLayoutComponent } from './app.layout.component';
-import { UsersService } from '../../pages/admin-processing/users/users.service';
+import { UsersService } from '../../pages/admin/users/users.service';
 import { AuthService } from '../../core/auth/services/auth.service';
-import { CollectionsService } from '../../pages/admin-processing/collections/collections.service';
+import { CollectionsService } from '../../pages/admin/collections/collections.service';
 import { SharedService } from '../../common/services/shared.service';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 

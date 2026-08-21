@@ -191,7 +191,7 @@ describe('AppBreadcrumbComponent', () => {
       { path: 'poam-manage', expected: 'Manage POAMs' },
       { path: 'stig-manager', expected: 'STIG Manager' },
       { path: 'tenable', expected: 'Tenable' },
-      { path: 'admin-processing', expected: 'Admin Processing' },
+      { path: 'admin', expected: 'Admin' },
       { path: 'integrations', expected: 'Integrations' },
       { path: 'assets', expected: 'Assets' },
       { path: 'labels', expected: 'Labels' },
@@ -246,10 +246,10 @@ describe('AppBreadcrumbComponent', () => {
 
       expect(component.items()).toEqual([{ label: 'Home', routerLink: '/home' }]);
 
-      mockLocation.path.mockReturnValue('/admin-processing');
-      routerEventsSubject.next(new NavigationEnd(2, '/admin-processing', '/admin-processing'));
+      mockLocation.path.mockReturnValue('/admin');
+      routerEventsSubject.next(new NavigationEnd(2, '/admin', '/admin'));
 
-      expect(component.items()).toEqual([{ label: 'Admin Processing', routerLink: '/admin-processing' }]);
+      expect(component.items()).toEqual([{ label: 'Admin', routerLink: '/admin' }]);
     });
 
     it('should handle deep navigation with POAM ID', () => {
@@ -298,10 +298,10 @@ describe('AppBreadcrumbComponent', () => {
       mockLocation.path.mockReturnValue('/assets');
       routerEventsSubject.next(new NavigationEnd(2, '/assets', '/assets'));
 
-      mockLocation.path.mockReturnValue('/admin-processing');
-      routerEventsSubject.next(new NavigationEnd(3, '/admin-processing', '/admin-processing'));
+      mockLocation.path.mockReturnValue('/admin');
+      routerEventsSubject.next(new NavigationEnd(3, '/admin', '/admin'));
 
-      expect(component.items()).toEqual([{ label: 'Admin Processing', routerLink: '/admin-processing' }]);
+      expect(component.items()).toEqual([{ label: 'Admin', routerLink: '/admin' }]);
     });
 
     it('should handle zero as a numeric segment', () => {

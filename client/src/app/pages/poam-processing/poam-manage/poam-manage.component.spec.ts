@@ -20,7 +20,7 @@ import { createMockDialogService, createMockMessageService, createMockRouter } f
 import { PoamManageComponent } from './poam-manage.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
-import { CollectionsService } from '../../admin-processing/collections/collections.service';
+import { CollectionsService } from '../../admin/collections/collections.service';
 import { IntegrationService } from '../../integrations/integration.service';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 

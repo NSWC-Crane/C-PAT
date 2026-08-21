@@ -24,7 +24,7 @@ import { PanelModule } from 'primeng/panel';
 import { TableModule } from 'primeng/table';
 import { TabsModule } from 'primeng/tabs';
 import { AppInfoComponent } from './app-info.component';
-import { AdminProcessingService } from '../admin-processing.service';
+import { AdminService } from '../admin.service';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 
@@ -142,7 +142,7 @@ const buildMockAppInfo = () => ({
 describe('AppInfoComponent', () => {
   let component: AppInfoComponent;
   let fixture: ComponentFixture<AppInfoComponent>;
-  let mockAdminProcessingService: any;
+  let mockAdminService: any;
   let mockAppConfigService: any;
   let mockMessageService: any;
 
@@ -157,7 +157,7 @@ describe('AppInfoComponent', () => {
   });
 
   beforeEach(async () => {
-    mockAdminProcessingService = {
+    mockAdminService = {
       getAppInfo: vi.fn().mockReturnValue(of(buildMockAppInfo()))
     };
 
@@ -170,13 +170,7 @@ describe('AppInfoComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [AppInfoComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        { provide: AdminProcessingService, useValue: mockAdminProcessingService },
-        { provide: AppConfigService, useValue: mockAppConfigService },
-        { provide: MessageService, useValue: mockMessageService }
-      ]
+      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: AdminService, useValue: mockAdminService }, { provide: AppConfigService, useValue: mockAppConfigService }, { provide: MessageService, useValue: mockMessageService }]
     })
       .overrideComponent(AppInfoComponent, {
         set: {
@@ -214,7 +208,7 @@ describe('AppInfoComponent', () => {
   describe('ngOnInit', () => {
     it('should call getAppInfo', async () => {
       await component.ngOnInit();
-      expect(mockAdminProcessingService.getAppInfo).toHaveBeenCalled();
+      expect(mockAdminService.getAppInfo).toHaveBeenCalled();
     });
 
     it('should set appInfo after init', async () => {
@@ -259,7 +253,7 @@ describe('AppInfoComponent', () => {
     });
 
     it('should show error message when getAppInfo fails', async () => {
-      mockAdminProcessingService.getAppInfo.mockReturnValue(throwError(() => new Error('Network error')));
+      mockAdminService.getAppInfo.mockReturnValue(throwError(() => new Error('Network error')));
       await component.ngOnInit();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
     });
@@ -272,7 +266,7 @@ describe('AppInfoComponent', () => {
     });
 
     it('should reject and show error on failure', async () => {
-      mockAdminProcessingService.getAppInfo.mockReturnValue(throwError(() => new Error('Error')));
+      mockAdminService.getAppInfo.mockReturnValue(throwError(() => new Error('Error')));
       await expect(component.getAppInfo()).rejects.toBeDefined();
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
     });

@@ -17,9 +17,9 @@ import { AppConfiguration } from '../../../../common/models/appConfiguration.mod
 import { Permission } from '../../../../common/models/permission.model';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
-import { AppConfigurationService } from '../../../admin-processing/app-configuration/app-configuration.service';
-import { AssignedTeamService } from '../../../admin-processing/assigned-teams/assigned-teams.service';
-import { CollectionsService } from '../../../admin-processing/collections/collections.service';
+import { AppConfigurationService } from '../../../admin/app-configuration/app-configuration.service';
+import { AssignedTeamService } from '../../../admin/assigned-teams/assigned-teams.service';
+import { CollectionsService } from '../../../admin/collections/collections.service';
 import { AssetService } from '../../../assets/assets.service';
 import { IntegrationService } from '../../../integrations/integration.service';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';

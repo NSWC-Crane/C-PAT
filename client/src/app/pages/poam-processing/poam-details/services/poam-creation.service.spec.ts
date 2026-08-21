@@ -16,9 +16,9 @@ import { createMockMessageService } from '../../../../../testing/mocks/service-m
 import { PoamCreationService } from './poam-creation.service';
 import { IntegrationService } from '../../../integrations/integration.service';
 import { SharedService } from '../../../../common/services/shared.service';
-import { AppConfigurationService } from '../../../admin-processing/app-configuration/app-configuration.service';
-import { CollectionsService } from '../../../admin-processing/collections/collections.service';
-import { AssignedTeamService } from '../../../admin-processing/assigned-teams/assigned-teams.service';
+import { AppConfigurationService } from '../../../admin/app-configuration/app-configuration.service';
+import { CollectionsService } from '../../../admin/collections/collections.service';
+import { AssignedTeamService } from '../../../admin/assigned-teams/assigned-teams.service';
 import { AssetService } from '../../../assets/assets.service';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';
 

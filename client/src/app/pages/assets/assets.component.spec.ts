@@ -17,7 +17,7 @@ import { AssetsComponent } from './assets.component';
 import { AssetService } from './assets.service';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { SharedService } from '../../common/services/shared.service';
-import { CollectionsService } from '../admin-processing/collections/collections.service';
+import { CollectionsService } from '../admin/collections/collections.service';
 import { createMockMessageService } from '../../../testing/mocks/service-mocks';
 
 beforeAll(() => {

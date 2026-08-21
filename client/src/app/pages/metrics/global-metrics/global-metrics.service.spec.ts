@@ -12,7 +12,7 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { delay, of, throwError } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
-import { CollectionsService } from '../../admin-processing/collections/collections.service';
+import { CollectionsService } from '../../admin/collections/collections.service';
 import { MetricsService } from '../metrics.service';
 import { calculateCORAScore } from '../stigman-metrics/stigman-metrics.compute';
 import { TenableMetricsDataService } from '../tenable-metrics/tenable-metrics.data.service';

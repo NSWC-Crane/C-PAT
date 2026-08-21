@@ -11,11 +11,11 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
-export const adminProcessingRoutes: Routes = [
+export const adminRoutes: Routes = [
   {
     path: '',
     canActivate: [AuthGuard],
-    loadComponent: () => import('./admin-processing.component').then((m) => m.AdminProcessingComponent),
+    loadComponent: () => import('./admin.component').then((m) => m.AdminComponent),
     data: { guardType: 'admin' }
   },
   {

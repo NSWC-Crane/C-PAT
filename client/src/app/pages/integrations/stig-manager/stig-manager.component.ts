@@ -30,7 +30,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { filter, take } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { CollectionsService } from '../../admin-processing/collections/collections.service';
+import { CollectionsService } from '../../admin/collections/collections.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';

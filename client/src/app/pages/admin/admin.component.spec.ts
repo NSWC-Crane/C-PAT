@@ -20,7 +20,7 @@ import { MessageService } from 'primeng/api';
 import { createMockMessageService, createMockRouter } from '../../../testing/mocks/service-mocks';
 import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
-import { AdminProcessingComponent } from './admin-processing.component';
+import { AdminComponent } from './admin.component';
 import { PayloadService } from '../../common/services/setPayload.service';
 
 @Component({ selector: 'cpat-users', template: '', standalone: true })
@@ -52,9 +52,9 @@ class MockAssignedTeamsComponent {}
 @Component({ selector: 'cpat-app-configuration', template: '', standalone: true })
 class MockAppConfigurationComponent {}
 
-describe('AdminProcessingComponent', () => {
-  let component: AdminProcessingComponent;
-  let fixture: ComponentFixture<AdminProcessingComponent>;
+describe('AdminComponent', () => {
+  let component: AdminComponent;
+  let fixture: ComponentFixture<AdminComponent>;
   let mockRouter: any;
   let mockPayloadService: any;
   let mockMessageService: any;
@@ -80,10 +80,10 @@ describe('AdminProcessingComponent', () => {
     mockMessageService = createMockMessageService();
 
     await TestBed.configureTestingModule({
-      imports: [AdminProcessingComponent],
+      imports: [AdminComponent],
       providers: [provideHttpClient(), provideHttpClientTesting(), { provide: Router, useValue: mockRouter }, { provide: PayloadService, useValue: mockPayloadService }, { provide: MessageService, useValue: mockMessageService }]
     })
-      .overrideComponent(AdminProcessingComponent, {
+      .overrideComponent(AdminComponent, {
         set: {
           imports: [
             ButtonModule,
@@ -102,7 +102,7 @@ describe('AdminProcessingComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(AdminProcessingComponent);
+    fixture = TestBed.createComponent(AdminComponent);
     component = fixture.componentInstance;
   });
 
@@ -170,10 +170,10 @@ describe('AdminProcessingComponent', () => {
   });
 
   describe('navigateToAppInfo', () => {
-    it('should navigate to /admin-processing/app-info', () => {
+    it('should navigate to /admin/app-info', () => {
       component.navigateToAppInfo();
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/admin-processing/app-info']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/admin/app-info']);
     });
   });
 
@@ -245,10 +245,10 @@ describe('AdminProcessingComponent', () => {
 
       await TestBed.resetTestingModule();
       await TestBed.configureTestingModule({
-        imports: [AdminProcessingComponent],
+        imports: [AdminComponent],
         providers: [provideHttpClient(), provideHttpClientTesting(), { provide: Router, useValue: mockRouter }, { provide: PayloadService, useValue: mockPayloadService }, { provide: MessageService, useValue: mockMessageService }]
       })
-        .overrideComponent(AdminProcessingComponent, {
+        .overrideComponent(AdminComponent, {
           set: {
             imports: [
               ButtonModule,
@@ -267,7 +267,7 @@ describe('AdminProcessingComponent', () => {
         })
         .compileComponents();
 
-      const newFixture = TestBed.createComponent(AdminProcessingComponent);
+      const newFixture = TestBed.createComponent(AdminComponent);
       const newComponent = newFixture.componentInstance;
 
       expect(newComponent.tenableEnabled).toBe(false);

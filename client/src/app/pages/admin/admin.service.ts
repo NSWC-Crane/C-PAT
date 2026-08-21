@@ -14,7 +14,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
-export class AdminProcessingService {
+export class AdminService {
   private readonly http = inject(HttpClient);
 
   private readonly cpatApiBase = CPAT.Env.apiBase;

@@ -12,18 +12,18 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AdminProcessingService } from './admin-processing.service';
+import { AdminService } from './admin.service';
 
-describe('AdminProcessingService', () => {
-  let service: AdminProcessingService;
+describe('AdminService', () => {
+  let service: AdminService;
   let httpMock: HttpTestingController;
   const apiBase = CPAT.Env.apiBase;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [AdminProcessingService, provideHttpClient(), provideHttpClientTesting()]
+      providers: [AdminService, provideHttpClient(), provideHttpClientTesting()]
     });
-    service = TestBed.inject(AdminProcessingService);
+    service = TestBed.inject(AdminService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 

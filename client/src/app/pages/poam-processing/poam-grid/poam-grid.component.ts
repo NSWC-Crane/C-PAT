@@ -33,7 +33,7 @@ import { CsvExportService } from '../../../common/utils/csv-export.service';
 import { EMASSOverwriteSelectionComponent } from '../../../common/utils/emasster-overwrite-selection';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
-import { CollectionsService } from '../../admin-processing/collections/collections.service';
+import { CollectionsService } from '../../admin/collections/collections.service';
 import { IntegrationService } from '../../integrations/integration.service';
 import { PoamService } from '../poams.service';
 import { PoamExportStatusSelectionComponent } from '../../../common/utils/poam-export-status-selection.component';

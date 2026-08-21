@@ -28,8 +28,8 @@ import { IStepOption, TourPrimeNg, TourService } from 'ngx-ui-tour-primeng';
 import { StatusMessageComponent } from '../../common/components/status-message/status-message.component';
 import { SharedService } from '../../common/services/shared.service';
 import { AuthService } from '../../core/auth/services/auth.service';
-import { CollectionsService } from '../../pages/admin-processing/collections/collections.service';
-import { UsersService } from '../../pages/admin-processing/users/users.service';
+import { CollectionsService } from '../../pages/admin/collections/collections.service';
+import { UsersService } from '../../pages/admin/users/users.service';
 import { AppBreadcrumbComponent } from './app.breadcrumb.component';
 import { CardModule } from 'primeng/card';
 
@@ -471,7 +471,7 @@ export class AppLayoutComponent implements OnInit {
       {
         label: 'Admin Portal',
         icon: 'pi pi-users',
-        routerLink: ['/admin-processing'],
+        routerLink: ['/admin'],
         visible: this.user()?.isAdmin
       },
       {

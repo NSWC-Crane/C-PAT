@@ -26,13 +26,13 @@ import { UsersComponent } from './users/users.component';
 import { VRAMImportComponent } from './vram-import/vram-import.component';
 
 @Component({
-  selector: 'cpat-admin-processing',
-  templateUrl: './admin-processing.component.html',
+  selector: 'cpat-admin',
+  templateUrl: './admin.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AAPackagesComponent, AppConfigurationComponent, AssignedTeamsComponent, ButtonModule, CollectionsComponent, FormsModule, NessusPluginMappingComponent, TabsModule, UsersComponent, AssetDeltaComponent, VRAMImportComponent]
 })
-export class AdminProcessingComponent implements OnInit {
+export class AdminComponent implements OnInit {
   private readonly payloadService = inject(PayloadService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -56,7 +56,7 @@ export class AdminProcessingComponent implements OnInit {
   }
 
   navigateToAppInfo() {
-    this.router.navigate(['/admin-processing/app-info']);
+    this.router.navigate(['/admin/app-info']);
   }
 
   switchToPluginMapping() {

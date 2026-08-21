@@ -11,7 +11,7 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
-import { CollectionsService } from '../../admin-processing/collections/collections.service';
+import { CollectionsService } from '../../admin/collections/collections.service';
 import { IntegrationService } from '../../integrations/integration.service';
 import { TenableMetricsDataService } from './tenable-metrics.data.service';
 

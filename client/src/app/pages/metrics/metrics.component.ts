@@ -20,7 +20,7 @@ import { map, switchMap, tap, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CAT_SEVERITY_COLORS } from '../../common/constants/severity-colors';
 import { SharedService } from '../../common/services/shared.service';
-import { CollectionsService } from '../admin-processing/collections/collections.service';
+import { CollectionsService } from '../admin/collections/collections.service';
 import { MetricsService, MTTRData } from './metrics.service';
 import { STIGManagerMetricsComponent } from './stigman-metrics/stigman-metrics.component';
 import { TenableMetricsComponent } from './tenable-metrics/tenable-metrics.component';
