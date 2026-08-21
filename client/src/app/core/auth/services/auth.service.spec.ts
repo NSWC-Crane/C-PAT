@@ -5,7 +5,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { of, throwError } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { AuthService } from './auth.service';
-import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
+import { UsersService } from '../../../pages/admin-processing/users/users.service';
 
 describe('AuthService', () => {
   let service: AuthService;

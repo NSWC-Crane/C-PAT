@@ -24,18 +24,18 @@ import { TooltipModule } from 'primeng/tooltip';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { UserComponent } from './user/user.component';
+import { UserEditorComponent } from './user-editor/user-editor.component';
 import { UsersService } from './users.service';
 
 @Component({
-  selector: 'cpat-user-processing',
-  templateUrl: './user-processing.component.html',
-  styleUrls: ['./user-processing.component.scss'],
+  selector: 'cpat-users',
+  templateUrl: './users.component.html',
+  styleUrls: ['./users.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, DialogModule, FormsModule, InputIconModule, InputTextModule, IconFieldModule, SelectModule, TableModule, TooltipModule, UserComponent]
+  imports: [ButtonModule, DialogModule, FormsModule, InputIconModule, InputTextModule, IconFieldModule, SelectModule, TableModule, TooltipModule, UserEditorComponent]
 })
-export class UserProcessingComponent implements OnInit {
+export class UsersComponent implements OnInit {
   private readonly userService = inject(UsersService);
   private readonly router = inject(Router);
   private readonly setPayloadService = inject(PayloadService);

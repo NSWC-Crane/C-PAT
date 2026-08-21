@@ -23,13 +23,13 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
 import { BehaviorSubject, of, throwError } from 'rxjs';
-import { UserProcessingComponent } from './user-processing.component';
+import { UsersComponent } from './users.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { UsersService } from './users.service';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
 
-@Component({ selector: 'cpat-user', template: '', standalone: true })
-class MockUserComponent {
+@Component({ selector: 'cpat-user-editor', template: '', standalone: true })
+class MockUserEditorComponent {
   @Input() userInput: any;
   @Input() users: any;
   @Input() payload: any;
@@ -75,9 +75,9 @@ const mockUsers = [
   }
 ];
 
-describe('UserProcessingComponent', () => {
-  let component: UserProcessingComponent;
-  let fixture: ComponentFixture<UserProcessingComponent>;
+describe('UsersComponent', () => {
+  let component: UsersComponent;
+  let fixture: ComponentFixture<UsersComponent>;
   let mockUsersService: any;
   let mockPayloadService: any;
   let mockRouter: any;
@@ -121,7 +121,7 @@ describe('UserProcessingComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [UserProcessingComponent],
+      imports: [UsersComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -132,14 +132,14 @@ describe('UserProcessingComponent', () => {
         MessageService
       ]
     })
-      .overrideComponent(UserProcessingComponent, {
+      .overrideComponent(UsersComponent, {
         set: {
-          imports: [ButtonModule, CommonModule, DialogModule, FormsModule, SelectModule, TableModule, MockUserComponent]
+          imports: [ButtonModule, CommonModule, DialogModule, FormsModule, SelectModule, TableModule, MockUserEditorComponent]
         }
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(UserProcessingComponent);
+    fixture = TestBed.createComponent(UsersComponent);
     component = fixture.componentInstance;
   });
 

@@ -15,7 +15,7 @@ import { BehaviorSubject, of, throwError } from 'rxjs';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { MarketplaceComponent } from './marketplace.component';
 import { MarketplaceService } from './marketplace.service';
-import { UsersService } from '../admin-processing/user-processing/users.service';
+import { UsersService } from '../admin-processing/users/users.service';
 import { AppConfigService } from '../../layout/services/appconfigservice';
 import { PayloadService } from '../../common/services/setPayload.service';
 

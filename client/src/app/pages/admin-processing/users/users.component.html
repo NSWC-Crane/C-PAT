@@ -62,7 +62,7 @@
 
 @if (!showUserSelect()) {
   <div class="col-span-12">
-    <cpat-user [userInput]="user()" [users]="users" [payload]="payload()" (userChange)="resetData()" />
+    <cpat-user-editor [userInput]="user()" [users]="users" [payload]="payload()" (userChange)="resetData()" />
   </div>
 }
 

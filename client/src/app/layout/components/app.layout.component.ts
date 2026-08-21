@@ -29,7 +29,7 @@ import { StatusMessageComponent } from '../../common/components/status-message/s
 import { SharedService } from '../../common/services/shared.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { UsersService } from '../../pages/admin-processing/users/users.service';
 import { AppBreadcrumbComponent } from './app.breadcrumb.component';
 import { CardModule } from 'primeng/card';
 

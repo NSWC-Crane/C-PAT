@@ -23,7 +23,7 @@ import { NotificationsPanelComponent } from '../../common/components/notificatio
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { AppSearchComponent } from '../../common/components/search/app.search.component';
 import { AuthService } from '../../core/auth/services/auth.service';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { UsersService } from '../../pages/admin-processing/users/users.service';
 import { AppConfiguratorComponent } from '../components/app.configurator.component';
 import { AppConfigService } from '../services/appconfigservice';
 import { PayloadService } from '../../common/services/setPayload.service';

@@ -30,16 +30,16 @@ import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
-import { UserComponent } from './user.component';
+import { UserEditorComponent } from './user-editor.component';
 import { UsersService } from '../users.service';
 import { CollectionsService } from '../../collection-processing/collections.service';
 import { AssignedTeamService } from '../../assigned-teams/assigned-teams.service';
 import { PayloadService } from '../../../../common/services/setPayload.service';
 import { createMockMessageService, createMockConfirmationService } from '../../../../../testing/mocks/service-mocks';
 
-describe('UserComponent', () => {
-  let component: UserComponent;
-  let fixture: ComponentFixture<UserComponent>;
+describe('UserEditorComponent', () => {
+  let component: UserEditorComponent;
+  let fixture: ComponentFixture<UserEditorComponent>;
   let mockUserService: any;
   let mockCollectionsService: any;
   let mockAssignedTeamService: any;
@@ -114,7 +114,7 @@ describe('UserComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [UserComponent],
+      imports: [UserEditorComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -124,7 +124,7 @@ describe('UserComponent', () => {
         { provide: PayloadService, useValue: mockPayloadService }
       ]
     })
-      .overrideComponent(UserComponent, {
+      .overrideComponent(UserEditorComponent, {
         set: {
           imports: [
             AutoCompleteModule,
@@ -152,7 +152,7 @@ describe('UserComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(UserComponent);
+    fixture = TestBed.createComponent(UserEditorComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('userInput', { ...mockUserData });
     fixture.componentRef.setInput('users', []);

@@ -118,15 +118,15 @@ interface RevocationPlan {
 }
 
 @Component({
-  selector: 'cpat-user',
-  templateUrl: './user.component.html',
-  styleUrls: ['./user.component.scss'],
+  selector: 'cpat-user-editor',
+  templateUrl: './user-editor.component.html',
+  styleUrls: ['./user-editor.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AutoCompleteModule, ButtonModule, CardModule, CheckboxModule, ConfirmDialogModule, DialogModule, SelectModule, InputNumberModule, ToggleSwitch, InputTextModule, FormsModule, TableModule, TabsModule, TagModule, TooltipModule, JsonPipe],
   providers: [ConfirmationService]
 })
-export class UserComponent implements OnInit, OnDestroy {
+export class UserEditorComponent implements OnInit, OnDestroy {
   private readonly assignedTeamService = inject(AssignedTeamService);
   private readonly collectionsService = inject(CollectionsService);
   private readonly userService = inject(UsersService);

@@ -23,8 +23,8 @@ import { TabsModule } from 'primeng/tabs';
 import { AdminProcessingComponent } from './admin-processing.component';
 import { PayloadService } from '../../common/services/setPayload.service';
 
-@Component({ selector: 'cpat-user-processing', template: '', standalone: true })
-class MockUserProcessingComponent {}
+@Component({ selector: 'cpat-users', template: '', standalone: true })
+class MockUsersComponent {}
 
 @Component({ selector: 'cpat-collection-processing', template: '', standalone: true })
 class MockCollectionProcessingComponent {}
@@ -94,7 +94,7 @@ describe('AdminProcessingComponent', () => {
             MockAssignedTeamsComponent,
             MockCollectionProcessingComponent,
             MockNessusPluginMappingComponent,
-            MockUserProcessingComponent,
+            MockUsersComponent,
             MockVRAMImportComponent,
             TabsModule
           ]
@@ -259,7 +259,7 @@ describe('AdminProcessingComponent', () => {
               MockAssignedTeamsComponent,
               MockCollectionProcessingComponent,
               MockNessusPluginMappingComponent,
-              MockUserProcessingComponent,
+              MockUsersComponent,
               MockVRAMImportComponent,
               TabsModule
             ]

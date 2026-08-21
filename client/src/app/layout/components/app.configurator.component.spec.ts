@@ -5,7 +5,7 @@ import { BehaviorSubject, of, throwError } from 'rxjs';
 import { AppConfiguratorComponent } from './app.configurator.component';
 import { AppConfigService } from '../services/appconfigservice';
 import { PayloadService } from '../../common/services/setPayload.service';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { UsersService } from '../../pages/admin-processing/users/users.service';
 import { toastTokens } from '../../app-theme';
 
 vi.mock('@primeuix/themes', () => ({

@@ -14,7 +14,7 @@ import { filter, take } from 'rxjs';
 import { SharedService } from '../../common/services/shared.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { UsersService } from '../../pages/admin-processing/users/users.service';
 import { AppClassificationComponent } from './app.classification.component';
 import { AppFooterComponent } from './app.footer.component';
 import { AppLayoutComponent } from './app.layout.component';
