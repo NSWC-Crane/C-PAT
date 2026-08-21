@@ -28,16 +28,16 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { AssignedTeamProcessingComponent } from './assignedTeam-processing.component';
-import { AssignedTeamService } from './assignedTeam-processing.service';
+import { AssignedTeamsComponent } from './assigned-teams.component';
+import { AssignedTeamService } from './assigned-teams.service';
 import { CollectionsService } from '../collection-processing/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { AssetDeltaService } from '../asset-delta/asset-delta.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 
-describe('AssignedTeamProcessingComponent', () => {
-  let component: AssignedTeamProcessingComponent;
-  let fixture: ComponentFixture<AssignedTeamProcessingComponent>;
+describe('AssignedTeamsComponent', () => {
+  let component: AssignedTeamsComponent;
+  let fixture: ComponentFixture<AssignedTeamsComponent>;
   let mockAssignedTeamService: any;
   let mockCollectionsService: any;
   let mockSharedService: any;
@@ -102,7 +102,7 @@ describe('AssignedTeamProcessingComponent', () => {
     mockMessageService = createMockMessageService();
 
     await TestBed.configureTestingModule({
-      imports: [AssignedTeamProcessingComponent],
+      imports: [AssignedTeamsComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -113,14 +113,14 @@ describe('AssignedTeamProcessingComponent', () => {
         { provide: MessageService, useValue: mockMessageService }
       ]
     })
-      .overrideComponent(AssignedTeamProcessingComponent, {
+      .overrideComponent(AssignedTeamsComponent, {
         set: {
           imports: [ButtonModule, CheckboxModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, SelectModule, TableModule, TagModule, TooltipModule]
         }
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(AssignedTeamProcessingComponent);
+    fixture = TestBed.createComponent(AssignedTeamsComponent);
     component = fixture.componentInstance;
   });
 

@@ -18,7 +18,7 @@ import { Permission } from '../../../../common/models/permission.model';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { AppConfigurationService } from '../../../admin-processing/app-configuration/app-configuration.service';
-import { AssignedTeamService } from '../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
+import { AssignedTeamService } from '../../../admin-processing/assigned-teams/assigned-teams.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
 import { AssetService } from '../../../assets/assets.service';
 import { IntegrationService } from '../../../integrations/integration.service';

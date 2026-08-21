@@ -30,7 +30,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SubSink } from 'subsink';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
-import { AssignedTeamService } from '../../assignedTeam-processing/assignedTeam-processing.service';
+import { AssignedTeamService } from '../../assigned-teams/assigned-teams.service';
 import { UsersService } from '../users.service';
 import { PayloadService } from '../../../../common/services/setPayload.service';
 import { filter, firstValueFrom, take } from 'rxjs';

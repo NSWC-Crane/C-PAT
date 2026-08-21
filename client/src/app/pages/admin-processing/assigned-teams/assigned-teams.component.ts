@@ -31,7 +31,7 @@ import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AssetDeltaService } from '../asset-delta/asset-delta.service';
 import { CollectionsService } from '../collection-processing/collections.service';
-import { AssignedTeamService } from './assignedTeam-processing.service';
+import { AssignedTeamService } from './assigned-teams.service';
 
 interface AssignedTeam {
   assignedTeamId: number;
@@ -90,14 +90,14 @@ interface PreviewedMember {
 }
 
 @Component({
-  selector: 'cpat-assigned-team-processing',
-  templateUrl: './assignedTeam-processing.component.html',
-  styleUrls: ['./assignedTeam-processing.component.scss'],
+  selector: 'cpat-assigned-teams',
+  templateUrl: './assigned-teams.component.html',
+  styleUrls: ['./assigned-teams.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ButtonModule, CheckboxModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, SelectModule, MultiSelectDirective, PickListModule, TableModule, TagModule, TooltipModule]
 })
-export class AssignedTeamProcessingComponent implements OnInit {
+export class AssignedTeamsComponent implements OnInit {
   private readonly assetDeltaService = inject(AssetDeltaService);
   private readonly assignedTeamService = inject(AssignedTeamService);
   private readonly collectionsService = inject(CollectionsService);

@@ -20,7 +20,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vite
 import { createMockActivatedRoute, createMockConfirmationService, createMockMessageService, createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
-import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
+import { AssignedTeamService } from '../../admin-processing/assigned-teams/assigned-teams.service';
 import { LabelService } from '../../labels/labels.service';
 import { PoamMitigationService } from '../poam-details/services/poam-mitigation.service';
 import { PoamService } from '../poams.service';

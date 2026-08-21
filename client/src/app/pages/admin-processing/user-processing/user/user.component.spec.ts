@@ -33,7 +33,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { UserComponent } from './user.component';
 import { UsersService } from '../users.service';
 import { CollectionsService } from '../../collection-processing/collections.service';
-import { AssignedTeamService } from '../../assignedTeam-processing/assignedTeam-processing.service';
+import { AssignedTeamService } from '../../assigned-teams/assigned-teams.service';
 import { PayloadService } from '../../../../common/services/setPayload.service';
 import { createMockMessageService, createMockConfirmationService } from '../../../../../testing/mocks/service-mocks';
 

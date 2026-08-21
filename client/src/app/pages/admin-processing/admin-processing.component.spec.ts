@@ -46,8 +46,8 @@ class MockNessusPluginMappingComponent {
 @Component({ selector: 'cpat-aa-packages', template: '', standalone: true })
 class MockAAPackagesComponent {}
 
-@Component({ selector: 'cpat-assigned-team-processing', template: '', standalone: true })
-class MockAssignedTeamProcessingComponent {}
+@Component({ selector: 'cpat-assigned-teams', template: '', standalone: true })
+class MockAssignedTeamsComponent {}
 
 @Component({ selector: 'cpat-app-configuration', template: '', standalone: true })
 class MockAppConfigurationComponent {}
@@ -91,7 +91,7 @@ describe('AdminProcessingComponent', () => {
             MockAAPackagesComponent,
             MockAppConfigurationComponent,
             MockAssetDeltaComponent,
-            MockAssignedTeamProcessingComponent,
+            MockAssignedTeamsComponent,
             MockCollectionProcessingComponent,
             MockNessusPluginMappingComponent,
             MockUserProcessingComponent,
@@ -256,7 +256,7 @@ describe('AdminProcessingComponent', () => {
               MockAAPackagesComponent,
               MockAppConfigurationComponent,
               MockAssetDeltaComponent,
-              MockAssignedTeamProcessingComponent,
+              MockAssignedTeamsComponent,
               MockCollectionProcessingComponent,
               MockNessusPluginMappingComponent,
               MockUserProcessingComponent,
