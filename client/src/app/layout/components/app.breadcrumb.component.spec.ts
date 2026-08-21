@@ -196,7 +196,7 @@ describe('AppBreadcrumbComponent', () => {
       { path: 'admin-processing', expected: 'Admin Processing' },
       { path: 'integrations', expected: 'Integrations' },
       { path: 'assets', expected: 'Assets' },
-      { path: 'label-processing', expected: 'Label Processing' },
+      { path: 'labels', expected: 'Labels' },
       { path: 'metrics', expected: 'Metrics' },
       { path: 'home', expected: 'Home' }
     ];

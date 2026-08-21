@@ -535,11 +535,11 @@ describe('AppLayoutComponent', () => {
       expect(logoutItem).toBeDefined();
     });
 
-    it('should include Assets and Label Processing when accessLevel >= 1', () => {
+    it('should include Assets and Labels when accessLevel >= 1', () => {
       component.accessLevel = 1;
       (component as any).setMenuItems();
       expect(component.items().find((i) => i.label === 'Assets')).toBeDefined();
-      expect(component.items().find((i) => i.label === 'Label Processing')).toBeDefined();
+      expect(component.items().find((i) => i.label === 'Labels')).toBeDefined();
     });
   });
 

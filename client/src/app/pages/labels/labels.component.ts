@@ -29,18 +29,18 @@ import { Label } from '../../common/models/label.model';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { SharedService } from '../../common/services/shared.service';
 import { getErrorMessage } from '../../common/utils/error-utils';
-import { LabelService } from './label.service';
-import { LabelComponent } from './label/label.component';
+import { LabelService } from './labels.service';
+import { LabelEditorComponent } from './label-editor/label-editor.component';
 
 @Component({
-  selector: 'cpat-label-processing',
-  templateUrl: './label-processing.component.html',
-  styleUrls: ['./label-processing.component.scss'],
+  selector: 'cpat-labels',
+  templateUrl: './labels.component.html',
+  styleUrls: ['./labels.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, ButtonModule, CardModule, DialogModule, SelectModule, InputTextModule, InputIconModule, IconFieldModule, TableModule, TooltipModule, LabelComponent]
+  imports: [FormsModule, ButtonModule, CardModule, DialogModule, SelectModule, InputTextModule, InputIconModule, IconFieldModule, TableModule, TooltipModule, LabelEditorComponent]
 })
-export class LabelProcessingComponent implements OnInit, OnDestroy {
+export class LabelsComponent implements OnInit, OnDestroy {
   private readonly labelService = inject(LabelService);
   private readonly dialogService = inject(DialogService);
   private readonly setPayloadService = inject(PayloadService);

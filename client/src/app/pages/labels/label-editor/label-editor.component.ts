@@ -27,18 +27,18 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { splitDelimitedIds } from '../../../common/utils/validation.utils';
-import { LabelService } from '../label.service';
+import { LabelService } from '../labels.service';
 import { PoamService } from '../../poam-processing/poams.service';
 
 @Component({
-  selector: 'cpat-label',
-  templateUrl: './label.component.html',
-  styleUrls: ['./label.component.scss'],
+  selector: 'cpat-label-editor',
+  templateUrl: './label-editor.component.html',
+  styleUrls: ['./label-editor.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonModule, CardModule, DialogModule, InputTextModule, TableModule, TagModule, TooltipModule, AutoCompleteModule]
 })
-export class LabelComponent implements OnInit, OnDestroy, OnChanges {
+export class LabelEditorComponent implements OnInit, OnDestroy, OnChanges {
   private readonly labelService = inject(LabelService);
   private readonly poamService = inject(PoamService);
   private readonly dialogService = inject(DialogService);

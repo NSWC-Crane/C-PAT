@@ -511,9 +511,9 @@ export class AppLayoutComponent implements OnInit {
         visible: this.accessLevel >= 1
       },
       {
-        label: 'Label Processing',
+        label: 'Labels',
         icon: 'pi pi-tags',
-        routerLink: ['/label-processing'],
+        routerLink: ['/labels'],
         visible: this.accessLevel >= 1
       },
       {

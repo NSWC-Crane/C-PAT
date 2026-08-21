@@ -38,7 +38,7 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
-import { LabelService } from '../../label-processing/label.service';
+import { LabelService } from '../../labels/labels.service';
 import { PoamMitigationGeneratorComponent } from '../poam-details/components/poam-mitigation-generator/poam-mitigation-generator.component';
 import { PoamMitigationService } from '../poam-details/services/poam-mitigation.service';
 import { applyTeamSyncChanges } from '../poam-details/services/team-sync-changes';

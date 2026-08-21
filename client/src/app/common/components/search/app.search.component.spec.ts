@@ -77,7 +77,7 @@ describe('AppSearchComponent', () => {
       ['Global Metrics', '/metrics/global'],
       ['Home', '/home'],
       ['Integrations', '/integrations'],
-      ['Label Processing', '/label-processing'],
+      ['Labels', '/labels'],
       ['Manage POAMs', '/poam-processing/poam-manage'],
       ['Metrics', '/metrics'],
       ['Notifications', '/notifications']

@@ -21,7 +21,7 @@ import { createMockActivatedRoute, createMockConfirmationService, createMockMess
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { AssignedTeamService } from '../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
-import { LabelService } from '../../label-processing/label.service';
+import { LabelService } from '../../labels/labels.service';
 import { PoamMitigationService } from '../poam-details/services/poam-mitigation.service';
 import { PoamService } from '../poams.service';
 import { PoamExtendComponent } from './poam-extend.component';

@@ -14,8 +14,8 @@ import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
-import { LabelComponent } from './label.component';
-import { LabelService } from '../label.service';
+import { LabelEditorComponent } from './label-editor.component';
+import { LabelService } from '../labels.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
@@ -31,9 +31,9 @@ const mockPoams = [
   { poamId: 3, vulnerabilityId: 'CVE-003', vulnerabilityTitle: 'Title Three', rawSeverity: 'low' }
 ];
 
-describe('LabelComponent', () => {
-  let component: LabelComponent;
-  let fixture: ComponentFixture<LabelComponent>;
+describe('LabelEditorComponent', () => {
+  let component: LabelEditorComponent;
+  let fixture: ComponentFixture<LabelEditorComponent>;
   let mockLabelService: any;
   let mockPoamService: any;
   let mockPayloadService: any;
@@ -72,7 +72,7 @@ describe('LabelComponent', () => {
     mockDialogService = createMockDialogService();
 
     await TestBed.configureTestingModule({
-      imports: [LabelComponent],
+      imports: [LabelEditorComponent],
       providers: [
         { provide: LabelService, useValue: mockLabelService },
         { provide: PoamService, useValue: mockPoamService },
@@ -84,7 +84,7 @@ describe('LabelComponent', () => {
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(LabelComponent);
+    fixture = TestBed.createComponent(LabelEditorComponent);
     component = fixture.componentInstance;
     component.label.set({ labelId: '', labelName: '', description: '' });
     fixture.componentRef.setInput('labels', []);

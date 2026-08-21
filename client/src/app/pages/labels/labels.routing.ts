@@ -10,9 +10,9 @@
 
 import { Routes } from '@angular/router';
 
-export const labelProcessingRoutes: Routes = [
+export const labelRoutes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./label-processing.component').then((m) => m.LabelProcessingComponent)
+    loadComponent: () => import('./labels.component').then((m) => m.LabelsComponent)
   }
 ];

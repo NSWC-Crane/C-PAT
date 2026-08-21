@@ -14,8 +14,8 @@ import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
-import { LabelProcessingComponent } from './label-processing.component';
-import { LabelService } from './label.service';
+import { LabelsComponent } from './labels.component';
+import { LabelService } from './labels.service';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { SharedService } from '../../common/services/shared.service';
 import { createMockMessageService, createMockDialogService } from '../../../testing/mocks/service-mocks';
@@ -30,9 +30,9 @@ const mockLabels = [
   { labelId: '2', labelName: 'Beta', description: 'Desc B' }
 ];
 
-describe('LabelProcessingComponent', () => {
-  let component: LabelProcessingComponent;
-  let fixture: ComponentFixture<LabelProcessingComponent>;
+describe('LabelsComponent', () => {
+  let component: LabelsComponent;
+  let fixture: ComponentFixture<LabelsComponent>;
   let mockLabelService: any;
   let mockPayloadService: any;
   let mockSharedService: any;
@@ -70,7 +70,7 @@ describe('LabelProcessingComponent', () => {
     mockDialogService = createMockDialogService();
 
     await TestBed.configureTestingModule({
-      imports: [LabelProcessingComponent],
+      imports: [LabelsComponent],
       providers: [
         { provide: LabelService, useValue: mockLabelService },
         { provide: PayloadService, useValue: mockPayloadService },
@@ -81,7 +81,7 @@ describe('LabelProcessingComponent', () => {
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(LabelProcessingComponent);
+    fixture = TestBed.createComponent(LabelsComponent);
     component = fixture.componentInstance;
   });
 

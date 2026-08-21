@@ -87,7 +87,7 @@
 @if (accessLevel() >= 2) {
   <p-dialog [(visible)]="labelDialogVisible" [modal]="true" [closeOnEscape]="false" styleClass="w-[80vw] h-auto max-h-[80vh]">
     <ng-template #content>
-      <cpat-label [label]="label()" [labels]="labels()" [payload]="payload()" (labelchange)="resetData(); closeLabelPopup()" />
+      <cpat-label-editor [label]="label()" [labels]="labels()" [payload]="payload()" (labelchange)="resetData(); closeLabelPopup()" />
     </ng-template>
   </p-dialog>
 }

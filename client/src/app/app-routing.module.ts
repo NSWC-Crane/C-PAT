@@ -15,7 +15,7 @@ import { AuthGuard } from './core/auth/guards/auth.guard';
 import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
 import { assetRoutes } from './pages/assets/assets.routing';
 import { integrationRoutes } from './pages/integrations/integration-routing.module';
-import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
+import { labelRoutes } from './pages/labels/labels.routing';
 import { metricsRoutes } from './pages/metrics-processing/metrics.routing';
 import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
 import { homeRoutes } from './pages/home/home.routing';
@@ -63,9 +63,9 @@ export const routes: Routes = [
         children: integrationRoutes
       },
       {
-        path: 'label-processing',
+        path: 'labels',
         canActivate: [AuthGuard],
-        children: labelProcessingRoutes
+        children: labelRoutes
       },
       {
         path: 'metrics',
