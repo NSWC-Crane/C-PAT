@@ -19,8 +19,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
-import { STIGManagerPoamAssetsTableComponent } from '../../../../import-processing/stigmanager-import/stigManagerPoamAssetsTable/stigManagerPoamAssetsTable.component';
-import { TenableAssetsTableComponent } from '../../../../import-processing/tenable-import/components/tenableAssetsTable/tenableAssetsTable.component';
+import { STIGManagerPoamAssetsTableComponent } from '../../../../integrations/stig-manager/stigManagerPoamAssetsTable/stigManagerPoamAssetsTable.component';
+import { TenableAssetsTableComponent } from '../../../../integrations/tenable/components/tenableAssetsTable/tenableAssetsTable.component';
 import { PoamService } from '../../../poams.service';
 
 @Component({

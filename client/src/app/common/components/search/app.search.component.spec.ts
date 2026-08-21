@@ -76,7 +76,7 @@ describe('AppSearchComponent', () => {
       ['Asset Processing', '/asset-processing'],
       ['Global Metrics', '/metrics/global'],
       ['Home', '/home'],
-      ['Import Processing', '/import-processing'],
+      ['Integrations', '/integrations'],
       ['Label Processing', '/label-processing'],
       ['Manage POAMs', '/poam-processing/poam-manage'],
       ['Metrics', '/metrics'],
@@ -313,12 +313,13 @@ describe('AppSearchComponent', () => {
 
     it('should handle multiple searches before navigation', () => {
       component.search({ query: 'poam' });
-      const poamResults = component.filteredItems().length;
+      const poamResults = component.filteredItems().map((item) => item.title);
 
       component.search({ query: 'processing' });
-      const processingResults = component.filteredItems().length;
+      const processingResults = component.filteredItems().map((item) => item.title);
 
-      expect(poamResults).not.toBe(processingResults);
+      expect(poamResults).toEqual(['Add POAM', 'Manage POAMs']);
+      expect(processingResults).toEqual(['Asset Processing', 'Label Processing']);
 
       component.navigateTo({ value: component.filteredItems()[0] });
       expect(mockRouter.navigate).toHaveBeenCalled();

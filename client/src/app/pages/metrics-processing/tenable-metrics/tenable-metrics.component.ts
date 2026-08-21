@@ -24,7 +24,7 @@ import { EMPTY, catchError, forkJoin, tap } from 'rxjs';
 import { RISK_GRADIENT, SEVERITY_COLOR } from '../../../common/constants/severity-colors';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { MetricData } from '../../../common/models/metrics.model';
-import { TenableHighRiskAssetsTableComponent } from '../../import-processing/tenable-import/components/tenableHighRiskAssetsTable/tenableHighRiskAssetsTable.component';
+import { TenableHighRiskAssetsTableComponent } from '../../integrations/tenable/components/tenableHighRiskAssetsTable/tenableHighRiskAssetsTable.component';
 import { SeveritySummary, TenableMetricsDataService } from './tenable-metrics.data.service';
 
 type TimeRange = '7' | '30' | '90' | 'all';

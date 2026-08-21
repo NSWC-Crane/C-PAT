@@ -21,7 +21,7 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { PoamAdvancedPieComponent } from '../poam-advanced-pie/poam-advanced-pie.component';
 import { PoamGridComponent } from '../poam-grid/poam-grid.component';
 import { PoamMilestoneGridComponent } from '../poam-milestone-grid/poam-milestone-grid.component';
@@ -91,7 +91,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
   private readonly sharedService = inject(SharedService);
   private readonly router = inject(Router);
   private readonly setPayloadService = inject(PayloadService);
-  private readonly importService = inject(ImportService);
+  private readonly integrationService = inject(IntegrationService);
   private readonly messageService = inject(MessageService);
 
   catIPieChartData = signal<any[]>([]);
@@ -293,7 +293,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
         type: 'vuln'
       };
 
-      this.subs.sink = forkJoin([this.importService.postTenableAnalysis(allFindingsQuery), this.importService.postTenableAnalysis(thirtyDaysQuery)])
+      this.subs.sink = forkJoin([this.integrationService.postTenableAnalysis(allFindingsQuery), this.integrationService.postTenableAnalysis(thirtyDaysQuery)])
         .pipe(
           catchError((error) => {
             this.messageService.add({

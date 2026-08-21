@@ -29,9 +29,9 @@ import { PayloadService } from '../../common/services/setPayload.service';
 import { SharedService } from '../../common/services/shared.service';
 import { getErrorMessage } from '../../common/utils/error-utils';
 import { CollectionsService } from '../admin-processing/collection-processing/collections.service';
-import { STIGManagerAssetsTableComponent } from '../import-processing/stigmanager-import/stigManagerAssetsTable/stigManagerAssetsTable.component';
-import { TenableHighRiskAssetsTableComponent } from '../import-processing/tenable-import/components/tenableHighRiskAssetsTable/tenableHighRiskAssetsTable.component';
-import { TenableHostAssetsTableComponent } from '../import-processing/tenable-import/components/tenableHostAssetsTable/tenableHostAssetsTable.component';
+import { STIGManagerAssetsTableComponent } from '../integrations/stig-manager/stigManagerAssetsTable/stigManagerAssetsTable.component';
+import { TenableHighRiskAssetsTableComponent } from '../integrations/tenable/components/tenableHighRiskAssetsTable/tenableHighRiskAssetsTable.component';
+import { TenableHostAssetsTableComponent } from '../integrations/tenable/components/tenableHostAssetsTable/tenableHostAssetsTable.component';
 import { AssetComponent } from './asset/asset.component';
 import { AssetService } from './assets.service';
 

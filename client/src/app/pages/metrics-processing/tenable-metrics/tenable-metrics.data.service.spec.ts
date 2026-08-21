@@ -12,7 +12,7 @@ import { TestBed } from '@angular/core/testing';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { TenableMetricsDataService } from './tenable-metrics.data.service';
 
 beforeAll(() => {
@@ -23,11 +23,11 @@ const analysis = (results: any[], totalRecords = results.length) => of({ respons
 
 describe('TenableMetricsDataService', () => {
   let service: TenableMetricsDataService;
-  let mockImportService: any;
+  let mockIntegrationService: any;
   let mockCollectionsService: any;
 
   beforeEach(() => {
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn().mockReturnValue(analysis([])),
       postTenableHostSearch: vi.fn().mockReturnValue(of({ response: [] })),
       getIAVPluginIds: vi.fn().mockReturnValue(of('')),
@@ -39,7 +39,7 @@ describe('TenableMetricsDataService', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [TenableMetricsDataService, { provide: ImportService, useValue: mockImportService }, { provide: CollectionsService, useValue: mockCollectionsService }]
+      providers: [TenableMetricsDataService, { provide: IntegrationService, useValue: mockIntegrationService }, { provide: CollectionsService, useValue: mockCollectionsService }]
     });
 
     service = TestBed.inject(TenableMetricsDataService);
@@ -95,7 +95,7 @@ describe('TenableMetricsDataService', () => {
 
   describe('getSeveritySummary', () => {
     it('maps Tenable severity buckets by id', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(
         of({
           response: {
             results: [
@@ -117,7 +117,7 @@ describe('TenableMetricsDataService', () => {
     it('includes the lastSeen and 30-day filters when requested', () => {
       service.getSeveritySummary('5', true, '0:30').subscribe();
 
-      const params = mockImportService.postTenableAnalysis.mock.calls[0][0];
+      const params = mockIntegrationService.postTenableAnalysis.mock.calls[0][0];
       const filterNames = params.query.filters.map((f: any) => f.filterName ?? f.id);
 
       expect(filterNames).toContain('lastSeen');
@@ -125,7 +125,7 @@ describe('TenableMetricsDataService', () => {
     });
 
     it('returns zeroed buckets on error', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('boom')));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('boom')));
 
       const summary = await new Promise((resolve) => service.getSeveritySummary('5', false, null).subscribe(resolve));
 
@@ -135,7 +135,7 @@ describe('TenableMetricsDataService', () => {
 
   describe('getTenableVulnerabilities', () => {
     it('falls back to an empty response on error', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('boom')));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('boom')));
 
       const data = await new Promise<any>((resolve) => service.getTenableVulnerabilities('5').subscribe(resolve));
 
@@ -145,7 +145,7 @@ describe('TenableMetricsDataService', () => {
 
   describe('calculatePoamApprovalMetrics', () => {
     it('returns the percentage of vulnerabilities covered by approved POAMs', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(analysis([], 4));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(analysis([], 4));
       mockCollectionsService.getPoamsByCollection.mockReturnValue(
         of([
           { status: 'Approved', vulnerabilityId: 'V-1', associatedVulnerabilities: ['V-2'] },
@@ -159,7 +159,7 @@ describe('TenableMetricsDataService', () => {
     });
 
     it('returns 0 when there are no vulnerabilities', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(analysis([], 0));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(analysis([], 0));
 
       const pct = await new Promise<number>((resolve) => service.calculatePoamApprovalMetrics(1, '5').subscribe(resolve));
 
@@ -169,7 +169,7 @@ describe('TenableMetricsDataService', () => {
 
   describe('calculateComplianceMetrics', () => {
     it('computes per-severity compliance from approved POAM status', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(analysis([{ pluginID: '100' }, { pluginID: '200' }]));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(analysis([{ pluginID: '100' }, { pluginID: '200' }]));
       mockCollectionsService.getPoamsByCollection.mockReturnValue(
         of([
           { vulnerabilityId: '100', status: 'Approved' },
@@ -185,7 +185,7 @@ describe('TenableMetricsDataService', () => {
 
   describe('calculateExploitableFindings / calculateSEOLVulnerabilities', () => {
     it('returns the total record count for exploitable findings', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(analysis([], 7));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(analysis([], 7));
 
       const count = await new Promise<number>((resolve) => service.calculateExploitableFindings('5', null).subscribe(resolve));
 
@@ -193,7 +193,7 @@ describe('TenableMetricsDataService', () => {
     });
 
     it('returns the total record count for SEoL vulnerabilities', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(analysis([], 3));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(analysis([], 3));
 
       const count = await new Promise<number>((resolve) => service.calculateSEOLVulnerabilities('5', '0:30').subscribe(resolve));
 
@@ -201,7 +201,7 @@ describe('TenableMetricsDataService', () => {
     });
 
     it('coerces a string totalRecords to a number so aggregation adds instead of concatenating', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(analysis([], '552' as any));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(analysis([], '552' as any));
 
       const exploitable = await new Promise<number>((resolve) => service.calculateExploitableFindings('5', null).subscribe(resolve));
       const seol = await new Promise<number>((resolve) => service.calculateSEOLVulnerabilities('5', '0:30').subscribe(resolve));
@@ -213,7 +213,7 @@ describe('TenableMetricsDataService', () => {
 
   describe('calculateCredentialScanPercentage', () => {
     it('returns the credentialed share of total findings', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValueOnce(analysis([], 100)).mockReturnValueOnce(analysis([], 10));
+      mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(analysis([], 100)).mockReturnValueOnce(analysis([], 10));
 
       const pct = await new Promise<number>((resolve) => service.calculateCredentialScanPercentage('5').subscribe(resolve));
 
@@ -221,7 +221,7 @@ describe('TenableMetricsDataService', () => {
     });
 
     it('returns 0 when there are no findings', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(analysis([], 0));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(analysis([], 0));
 
       const pct = await new Promise<number>((resolve) => service.calculateCredentialScanPercentage('5').subscribe(resolve));
 
@@ -231,7 +231,7 @@ describe('TenableMetricsDataService', () => {
 
   describe('calculateCredentialScanCounts', () => {
     it('returns the raw credentialed and total counts behind the percentage', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValueOnce(analysis([], 100)).mockReturnValueOnce(analysis([], 10));
+      mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(analysis([], 100)).mockReturnValueOnce(analysis([], 10));
 
       const counts = await new Promise<any>((resolve) => service.calculateCredentialScanCounts('5').subscribe(resolve));
 
@@ -239,7 +239,7 @@ describe('TenableMetricsDataService', () => {
     });
 
     it('returns zeroed counts on error', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('boom')));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('boom')));
 
       const counts = await new Promise<any>((resolve) => service.calculateCredentialScanCounts('5').subscribe(resolve));
 
@@ -249,7 +249,7 @@ describe('TenableMetricsDataService', () => {
 
   describe('calculatePastDueIAVs', () => {
     it('returns 0 when there are no IAV plugin ids', async () => {
-      mockImportService.getIAVPluginIds.mockReturnValue(of(''));
+      mockIntegrationService.getIAVPluginIds.mockReturnValue(of(''));
 
       const count = await new Promise<number>((resolve) => service.calculatePastDueIAVs('5').subscribe(resolve));
 
@@ -260,9 +260,9 @@ describe('TenableMetricsDataService', () => {
       const past = '2000-01-01';
       const future = '2999-01-01';
 
-      mockImportService.getIAVPluginIds.mockReturnValue(of('123'));
-      mockImportService.postTenableAnalysis.mockReturnValue(analysis([{ pluginID: '123' }]));
-      mockImportService.getIAVInfoForPlugins.mockReturnValue(
+      mockIntegrationService.getIAVPluginIds.mockReturnValue(of('123'));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(analysis([{ pluginID: '123' }]));
+      mockIntegrationService.getIAVInfoForPlugins.mockReturnValue(
         of([
           { navyComplyDate: past, supersededBy: null },
           { navyComplyDate: future, supersededBy: null },
@@ -279,7 +279,7 @@ describe('TenableMetricsDataService', () => {
 
   describe('calculateComplianceCounts', () => {
     it('returns per-severity { compliant, total } counts from approved POAM status', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(analysis([{ pluginID: '100' }, { pluginID: '200' }]));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(analysis([{ pluginID: '100' }, { pluginID: '200' }]));
       mockCollectionsService.getPoamsByCollection.mockReturnValue(
         of([
           { vulnerabilityId: '100', status: 'Approved' },
@@ -311,7 +311,7 @@ describe('TenableMetricsDataService', () => {
     it('defaults the pluginPublished window to 30 days for every severity query', () => {
       service.calculateComplianceCounts('5', 1, '0:30').subscribe();
 
-      const windows = mockImportService.postTenableAnalysis.mock.calls.map(([params]: any[]) => params.query.filters.find((f: any) => f.filterName === 'pluginPublished')?.value);
+      const windows = mockIntegrationService.postTenableAnalysis.mock.calls.map(([params]: any[]) => params.query.filters.find((f: any) => f.filterName === 'pluginPublished')?.value);
 
       expect(windows).toEqual(['30:all', '30:all', '30:all']);
     });
@@ -319,7 +319,7 @@ describe('TenableMetricsDataService', () => {
     it('applies the requested pluginPublished window to every severity query', () => {
       service.calculateComplianceCounts('5', 1, '0:30', '90:all').subscribe();
 
-      const windows = mockImportService.postTenableAnalysis.mock.calls.map(([params]: any[]) => params.query.filters.find((f: any) => f.filterName === 'pluginPublished')?.value);
+      const windows = mockIntegrationService.postTenableAnalysis.mock.calls.map(([params]: any[]) => params.query.filters.find((f: any) => f.filterName === 'pluginPublished')?.value);
 
       expect(windows).toEqual(['90:all', '90:all', '90:all']);
     });
@@ -358,7 +358,7 @@ describe('TenableMetricsDataService', () => {
       vi.spyOn(service, 'getSeveritySummary').mockReturnValue(of({ critical: 4, high: 6, medium: 20, low: 30, info: 0 }));
       vi.spyOn(service, 'calculateSEOLVulnerabilities').mockReturnValue(of(9));
       vi.spyOn(service, 'loadAllHosts').mockReturnValue(of([{ lastSeen: now - 60 }, { lastSeen: now - 100 * 24 * 60 * 60 }]));
-      mockImportService.postTenableAnalysis.mockImplementation((params: any) => {
+      mockIntegrationService.postTenableAnalysis.mockImplementation((params: any) => {
         const published = params.query.filters.find((f: any) => f.filterName === 'pluginPublished')?.value;
 
         return published === '90:all' ? analysis([{ pluginID: '100' }]) : analysis([{ pluginID: '100' }, { pluginID: '200' }]);
@@ -385,7 +385,7 @@ describe('TenableMetricsDataService', () => {
     });
 
     it('propagates Tenable analysis failures instead of composing zero-valued metrics', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('tenable down')));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('tenable down')));
 
       const error = await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe({ error: resolve }));
 
@@ -393,7 +393,7 @@ describe('TenableMetricsDataService', () => {
     });
 
     it('propagates host search failures instead of reporting zero assets', async () => {
-      mockImportService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('hosts down')));
+      mockIntegrationService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('hosts down')));
 
       const error = await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe({ error: resolve }));
 

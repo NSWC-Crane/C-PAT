@@ -275,12 +275,19 @@ describe('PoamExportService', () => {
 
   describe('processPoamsWithAssets', () => {
     const buildCollectionsService = (collections: any[] = [{ collectionId: 1, collectionType: 'C-PAT' }]) => ({ getCollectionBasicList: vi.fn().mockReturnValue(of(collections)) });
-    const buildImportService = (analysis: any = { response: { results: [] } }) => ({ postTenableAnalysis: vi.fn().mockReturnValue(of(analysis)) });
+    const buildIntegrationService = (analysis: any = { response: { results: [] } }) => ({ postTenableAnalysis: vi.fn().mockReturnValue(of(analysis)) });
     const buildPoamService = (assets: any[] | null = []) => ({ getPoamAssetsByCollectionId: vi.fn().mockReturnValue(of(assets)) });
     const buildSharedService = (findings: any[] | null = []) => ({ getSTIGMANAffectedAssetsByPoam: vi.fn().mockReturnValue(of(findings)) });
 
     const run = (poams: Poam[], collectionId: number, services: { collections?: any; imports?: any; poams?: any; shared?: any }): Promise<Poam[]> =>
-      (PoamExportService as any).processPoamsWithAssets(poams, collectionId, services.collections ?? buildCollectionsService(), services.imports ?? buildImportService(), services.poams ?? buildPoamService(), services.shared ?? buildSharedService());
+      (PoamExportService as any).processPoamsWithAssets(
+        poams,
+        collectionId,
+        services.collections ?? buildCollectionsService(),
+        services.imports ?? buildIntegrationService(),
+        services.poams ?? buildPoamService(),
+        services.shared ?? buildSharedService()
+      );
 
     const poam = (overrides: Partial<Poam>): Poam => ({ poamId: 1, vulnerabilityId: 'V-1', devicesAffected: 'ORIGINAL', ...overrides }) as Poam;
 
@@ -359,7 +366,7 @@ describe('PoamExportService', () => {
       const tenableCollection = () => buildCollectionsService([{ collectionId: 1, collectionType: 'Tenable' }]);
 
       it('queries the plugin id with caching bypassed and derives device names from netbios, then dns', async () => {
-        const imports = buildImportService({
+        const imports = buildIntegrationService({
           response: {
             results: [
               { netbiosName: 'DOMAIN\\HOST-A', dnsName: 'ignored.example.com' },
@@ -385,19 +392,19 @@ describe('PoamExportService', () => {
       });
 
       it('throws when Tenable reports an error in a 200 response', async () => {
-        await expect(run([poam({})], 1, { collections: tenableCollection(), imports: buildImportService({ error_msg: 'Invalid plugin' }) })).rejects.toThrow('Error in Tenable response: Invalid plugin');
+        await expect(run([poam({})], 1, { collections: tenableCollection(), imports: buildIntegrationService({ error_msg: 'Invalid plugin' }) })).rejects.toThrow('Error in Tenable response: Invalid plugin');
       });
 
       it('produces an empty device list when the response has no results', async () => {
-        const [undefinedBody] = await run([poam({})], 1, { collections: tenableCollection(), imports: buildImportService(undefined) });
-        const [missingResults] = await run([poam({})], 1, { collections: tenableCollection(), imports: buildImportService({ response: {} }) });
+        const [undefinedBody] = await run([poam({})], 1, { collections: tenableCollection(), imports: buildIntegrationService(undefined) });
+        const [missingResults] = await run([poam({})], 1, { collections: tenableCollection(), imports: buildIntegrationService({ response: {} }) });
 
         expect(undefinedBody.devicesAffected).toBe('');
         expect(missingResults.devicesAffected).toBe('');
       });
 
       it('falls back to C-PAT assets when the POAM has no vulnerability id', async () => {
-        const imports = buildImportService();
+        const imports = buildIntegrationService();
         const poamService = buildPoamService([{ poamId: 1, assetName: 'local' }]);
 
         const [result] = await run([poam({ vulnerabilityId: null })], 1, { collections: tenableCollection(), imports, poams: poamService });
@@ -443,7 +450,7 @@ describe('PoamExportService', () => {
         1,
         ['V'],
         buildCollectionsService() as any,
-        buildImportService() as any,
+        buildIntegrationService() as any,
         poamService as any,
         buildSharedService() as any
       );

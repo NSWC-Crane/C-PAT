@@ -19,7 +19,7 @@ import { AAPackageService } from '../../../admin-processing/aaPackage-processing
 import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
 import { AssetService } from '../../../asset-processing/assets.service';
-import { ImportService } from '../../../import-processing/import.service';
+import { IntegrationService } from '../../../integrations/integration.service';
 import { PoamService } from '../../poams.service';
 
 describe('PoamDataService', () => {
@@ -30,7 +30,7 @@ describe('PoamDataService', () => {
   let mockAssetService: any;
   let mockAAPackageService: any;
   let mockMessageService: any;
-  let mockImportService: any;
+  let mockIntegrationService: any;
   let mockSharedService: any;
 
   beforeEach(() => {
@@ -57,7 +57,7 @@ describe('PoamDataService', () => {
 
     mockMessageService = createMockMessageService();
 
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn()
     };
 
@@ -76,7 +76,7 @@ describe('PoamDataService', () => {
         { provide: AssetService, useValue: mockAssetService },
         { provide: AAPackageService, useValue: mockAAPackageService },
         { provide: MessageService, useValue: mockMessageService },
-        { provide: ImportService, useValue: mockImportService },
+        { provide: IntegrationService, useValue: mockIntegrationService },
         { provide: SharedService, useValue: mockSharedService }
       ]
     });
@@ -227,7 +227,7 @@ describe('PoamDataService', () => {
           }
         };
 
-        mockImportService.postTenableAnalysis.mockReturnValue(of(mockTenableResponse));
+        mockIntegrationService.postTenableAnalysis.mockReturnValue(of(mockTenableResponse));
 
         const result = await firstValueFrom(service.loadAssets('Tenable', 50, poam, 100));
 
@@ -249,12 +249,12 @@ describe('PoamDataService', () => {
           }
         };
 
-        mockImportService.postTenableAnalysis.mockReturnValue(of(mockTenableResponse));
+        mockIntegrationService.postTenableAnalysis.mockReturnValue(of(mockTenableResponse));
 
         const result = await firstValueFrom(service.loadAssets('Tenable', 50, poam, 100));
 
         expect(result.externalAssets!).toHaveLength(2);
-        const analysisCall = mockImportService.postTenableAnalysis.mock.calls[0][0];
+        const analysisCall = mockIntegrationService.postTenableAnalysis.mock.calls[0][0];
         const pluginFilter = analysisCall.query.filters.find((f: any) => f.id === 'pluginID');
 
         expect(pluginFilter.value).toBe('12345,67890,11111');
@@ -271,7 +271,7 @@ describe('PoamDataService', () => {
           }
         };
 
-        mockImportService.postTenableAnalysis.mockReturnValue(of(mockTenableResponse));
+        mockIntegrationService.postTenableAnalysis.mockReturnValue(of(mockTenableResponse));
 
         const result = await firstValueFrom(service.loadAssets('Tenable', 50, poam, 100));
 
@@ -283,7 +283,7 @@ describe('PoamDataService', () => {
       it('should show error when Tenable returns no results', async () => {
         const poam = { poamId: 1, vulnerabilityId: '12345' };
 
-        mockImportService.postTenableAnalysis.mockReturnValue(of({ response: {} }));
+        mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: {} }));
 
         const result = await firstValueFrom(service.loadAssets('Tenable', 50, poam, 100));
 
@@ -294,7 +294,7 @@ describe('PoamDataService', () => {
       it('should handle Tenable API errors', async () => {
         const poam = { poamId: 1, vulnerabilityId: '12345' };
 
-        mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Tenable API Error')));
+        mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Tenable API Error')));
 
         const result = await firstValueFrom(service.loadAssets('Tenable', 50, poam, 100));
 

@@ -34,7 +34,7 @@ import { EMASSOverwriteSelectionComponent } from '../../../common/utils/emasster
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { PoamService } from '../poams.service';
 import { PoamExportStatusSelectionComponent } from '../../../common/utils/poam-export-status-selection.component';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
@@ -52,7 +52,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly setPayloadService = inject(PayloadService);
   private readonly collectionsService = inject(CollectionsService);
-  private readonly importService = inject(ImportService);
+  private readonly integrationService = inject(IntegrationService);
   private readonly sharedService = inject(SharedService);
   private readonly poamService = inject(PoamService);
   private readonly messageService = inject(MessageService);
@@ -636,7 +636,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
         type: 'vuln'
       };
 
-      this.importService.postTenableAnalysis(analysisParams, false).subscribe({
+      this.integrationService.postTenableAnalysis(analysisParams, false).subscribe({
         next: (data: any) => {
           this.tenableAffectedAssets.set(
             data.response.results.map((asset: any) => ({
@@ -657,7 +657,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
           }
 
           targetPoams.forEach((poam) => {
-            this.importService.getTenablePlugin(poam.vulnerabilityId, false).subscribe({
+            this.integrationService.getTenablePlugin(poam.vulnerabilityId, false).subscribe({
               next: (plugin: any) => {
                 let controlAPs: string;
                 let cci: string;
@@ -834,7 +834,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
       try {
         const poams = this.poamsData();
 
-        const updatedFile = await PoamExportService.updateEMASSterPoams(file, poams, this.selectedCollectionId(), selectedColumns, this.collectionsService, this.importService, this.poamService, this.sharedService);
+        const updatedFile = await PoamExportService.updateEMASSterPoams(file, poams, this.selectedCollectionId(), selectedColumns, this.collectionsService, this.integrationService, this.poamService, this.sharedService);
 
         const downloadUrl = URL.createObjectURL(updatedFile);
         const link = document.createElement('a');

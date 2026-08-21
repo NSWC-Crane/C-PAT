@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableMetricsComponent } from './tenable-metrics.component';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
@@ -58,12 +58,12 @@ const mockCollection = { collectionId: 1, collectionName: 'Tenable Collection', 
 describe('TenableMetricsComponent', () => {
   let component: TenableMetricsComponent;
   let fixture: ComponentFixture<TenableMetricsComponent>;
-  let mockImportService: any;
+  let mockIntegrationService: any;
   let mockCollectionsService: any;
   let mockMessageService: any;
 
   beforeEach(async () => {
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn().mockReturnValue(of(mockAnalysisResponse)),
       postTenableHostSearch: vi.fn().mockReturnValue(of(mockHostResponse)),
       getIAVPluginIds: vi.fn().mockReturnValue(of('12345,67890')),
@@ -78,7 +78,7 @@ describe('TenableMetricsComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [TenableMetricsComponent],
-      providers: [{ provide: ImportService, useValue: mockImportService }, { provide: CollectionsService, useValue: mockCollectionsService }, { provide: MessageService, useValue: mockMessageService }, provideUiTour()],
+      providers: [{ provide: IntegrationService, useValue: mockIntegrationService }, { provide: CollectionsService, useValue: mockCollectionsService }, { provide: MessageService, useValue: mockMessageService }, provideUiTour()],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
@@ -205,7 +205,7 @@ describe('TenableMetricsComponent', () => {
 
     it('should not call services when no collection', () => {
       component.ngOnInit();
-      expect(mockImportService.postTenableAnalysis).not.toHaveBeenCalled();
+      expect(mockIntegrationService.postTenableAnalysis).not.toHaveBeenCalled();
     });
 
     it('should leave isLoading true when no collection', () => {
@@ -236,7 +236,7 @@ describe('TenableMetricsComponent', () => {
     it('should not call services when no collection', () => {
       (component as any).collection = () => null;
       component.ngOnChanges();
-      expect(mockImportService.postTenableAnalysis).not.toHaveBeenCalled();
+      expect(mockIntegrationService.postTenableAnalysis).not.toHaveBeenCalled();
     });
 
     it('should clear loadedRanges cache on change', () => {
@@ -298,9 +298,9 @@ describe('TenableMetricsComponent', () => {
     });
 
     it('should handle service errors gracefully without showing an error toast', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('fail')));
-      mockImportService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('fail')));
-      mockImportService.getIAVPluginIds.mockReturnValue(throwError(() => new Error('fail')));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('fail')));
+      mockIntegrationService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('fail')));
+      mockIntegrationService.getIAVPluginIds.mockReturnValue(throwError(() => new Error('fail')));
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
@@ -308,7 +308,7 @@ describe('TenableMetricsComponent', () => {
     });
 
     it('should set isLoading to false on error', () => {
-      mockImportService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('fail')));
+      mockIntegrationService.postTenableHostSearch.mockReturnValue(throwError(() => new Error('fail')));
       (component as any).collection = () => mockCollection;
       component.ngOnChanges();
       expect(component.isLoading()).toBe(false);
@@ -327,10 +327,10 @@ describe('TenableMetricsComponent', () => {
       (component as any).collection = () => mockCollection;
       component.originCollectionId.set('42');
       component.ngOnChanges();
-      const callsBefore = mockImportService.postTenableAnalysis.mock.calls.length;
+      const callsBefore = mockIntegrationService.postTenableAnalysis.mock.calls.length;
 
       component.onLastObservedRangeChange('7');
-      expect(mockImportService.postTenableAnalysis.mock.calls.length).toBeGreaterThan(callsBefore);
+      expect(mockIntegrationService.postTenableAnalysis.mock.calls.length).toBeGreaterThan(callsBefore);
     });
   });
 
@@ -462,10 +462,10 @@ describe('TenableMetricsComponent', () => {
       (component as any).collection = () => mockCollection;
       component.originCollectionId.set('42');
       component.ngOnChanges();
-      const callsBefore = mockImportService.postTenableAnalysis.mock.calls.length;
+      const callsBefore = mockIntegrationService.postTenableAnalysis.mock.calls.length;
 
       component.refreshMetrics();
-      expect(mockImportService.postTenableAnalysis.mock.calls.length).toBeGreaterThan(callsBefore);
+      expect(mockIntegrationService.postTenableAnalysis.mock.calls.length).toBeGreaterThan(callsBefore);
     });
   });
 

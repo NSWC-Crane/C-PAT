@@ -14,7 +14,7 @@ import { of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../testing/mocks/service-mocks';
 import { PoamCreationService } from './poam-creation.service';
-import { ImportService } from '../../../import-processing/import.service';
+import { IntegrationService } from '../../../integrations/integration.service';
 import { SharedService } from '../../../../common/services/shared.service';
 import { AppConfigurationService } from '../../../admin-processing/app-configuration/app-configuration.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
@@ -24,7 +24,7 @@ import { PoamVariableMappingService } from './poam-variable-mapping.service';
 
 describe('PoamCreationService', () => {
   let service: PoamCreationService;
-  let mockImportService: any;
+  let mockIntegrationService: any;
   let mockSharedService: any;
   let mockAppConfigurationService: any;
   let mockCollectionsService: any;
@@ -77,7 +77,7 @@ describe('PoamCreationService', () => {
   };
 
   beforeEach(() => {
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn()
     };
 
@@ -112,7 +112,7 @@ describe('PoamCreationService', () => {
     TestBed.configureTestingModule({
       providers: [
         PoamCreationService,
-        { provide: ImportService, useValue: mockImportService },
+        { provide: IntegrationService, useValue: mockIntegrationService },
         { provide: SharedService, useValue: mockSharedService },
         { provide: AppConfigurationService, useValue: mockAppConfigurationService },
         { provide: CollectionsService, useValue: mockCollectionsService },
@@ -177,11 +177,11 @@ describe('PoamCreationService', () => {
     };
 
     it('should load vulnerability data successfully', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(of(mockVulnResponse));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(mockVulnResponse));
 
       const result = await service.loadVulnerability('12345');
 
-      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(
+      expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({
             type: 'vuln',
@@ -199,7 +199,7 @@ describe('PoamCreationService', () => {
     });
 
     it('should reject when error_msg is present', async () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ error_msg: 'Some error' }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ error_msg: 'Some error' }));
 
       await expect(service.loadVulnerability('12345')).rejects.toThrow('Error in vulnerability data');
     });
@@ -207,7 +207,7 @@ describe('PoamCreationService', () => {
     it('should handle API error and show message', async () => {
       const error = new Error('API Error');
 
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => error));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => error));
 
       await expect(service.loadVulnerability('12345')).rejects.toThrow();
       expect(mockMessageService.add).toHaveBeenCalledWith({
@@ -274,7 +274,7 @@ describe('PoamCreationService', () => {
     };
 
     beforeEach(() => {
-      mockImportService.postTenableAnalysis.mockReturnValue(of(mockVulnResponse));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(mockVulnResponse));
     });
 
     it('should create a new ACAS POAM successfully', async () => {
@@ -440,7 +440,7 @@ describe('PoamCreationService', () => {
     it('should handle vulnerability load error', async () => {
       const error = new Error('Vuln load failed');
 
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => error));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => error));
 
       await expect(service.createNewACASPoam(mockStateData, mockCollectionInfo, 1)).rejects.toThrow();
       expect(mockMessageService.add).toHaveBeenCalled();

@@ -19,7 +19,7 @@ import { createMockMessageService } from '../../../../../../testing/mocks/servic
 import { PoamAssociatedVulnerabilitiesComponent } from './poam-associated-vulnerabilities.component';
 import { PoamService } from '../../../poams.service';
 import { SharedService } from '../../../../../common/services/shared.service';
-import { ImportService } from '../../../../import-processing/import.service';
+import { IntegrationService } from '../../../../integrations/integration.service';
 
 describe('PoamAssociatedVulnerabilitiesComponent', () => {
   let component: PoamAssociatedVulnerabilitiesComponent;
@@ -27,7 +27,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
   let mockMessageService: any;
   let mockPoamService: any;
   let mockSharedService: any;
-  let mockImportService: any;
+  let mockIntegrationService: any;
 
   const mockSTIGResponse = [
     {
@@ -70,7 +70,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       getFindingsMetricsAndRulesFromSTIGMAN: vi.fn().mockReturnValue(of(mockSTIGResponse))
     };
 
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn().mockReturnValue(of(mockTenableResponse))
     };
 
@@ -82,7 +82,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
         { provide: MessageService, useValue: mockMessageService },
         { provide: PoamService, useValue: mockPoamService },
         { provide: SharedService, useValue: mockSharedService },
-        { provide: ImportService, useValue: mockImportService }
+        { provide: IntegrationService, useValue: mockIntegrationService }
       ]
     }).compileComponents();
 
@@ -214,7 +214,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
 
       component.getVulnTitles();
 
-      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(
+      expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({
             type: 'vuln',
@@ -230,7 +230,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
       component.getVulnTitles();
 
       expect(mockSharedService.getFindingsMetricsAndRulesFromSTIGMAN).not.toHaveBeenCalled();
-      expect(mockImportService.postTenableAnalysis).not.toHaveBeenCalled();
+      expect(mockIntegrationService.postTenableAnalysis).not.toHaveBeenCalled();
     });
 
     it('should not load data when originCollectionId is falsy', () => {
@@ -322,14 +322,14 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     it('should include repository filter with collection id', () => {
       component.getVulnTitles();
 
-      const callArg = mockImportService.postTenableAnalysis.mock.calls[0][0];
+      const callArg = mockIntegrationService.postTenableAnalysis.mock.calls[0][0];
       const repoFilter = callArg.query.filters.find((f: any) => f.id === 'repository');
 
       expect(repoFilter.value[0].id).toBe('repo-5');
     });
 
     it('should handle error_msg in Tenable response', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ error_msg: 'Invalid repository' }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ error_msg: 'Invalid repository' }));
 
       component.getVulnTitles();
 
@@ -342,7 +342,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should handle empty Tenable results', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
 
       (component as any).poamAssociatedVulnerabilities = () => ['10001'];
       component.ngOnChanges({
@@ -355,7 +355,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should handle missing severity name gracefully', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(
         of({
           response: {
             results: [{ pluginID: '10001', name: 'Test', severity: {} }]
@@ -374,7 +374,7 @@ describe('PoamAssociatedVulnerabilitiesComponent', () => {
     });
 
     it('should show error on Tenable API failure', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => ({ error: { detail: 'API error' } })));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => ({ error: { detail: 'API error' } })));
 
       component.getVulnTitles();
 
