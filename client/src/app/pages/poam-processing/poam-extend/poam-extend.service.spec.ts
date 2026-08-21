@@ -9,9 +9,10 @@
 */
 
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { getErrorMessage } from '../../../common/utils/error-utils';
 import { PoamExtensionService } from './poam-extend.service';
 
 describe('PoamExtensionService', () => {
@@ -116,58 +117,101 @@ describe('PoamExtensionService', () => {
 
     it('should handle server error', () => {
       const poamId = 1;
+      let capturedError: any;
 
       service.getPoamExtension(poamId).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamExtension/${poamId}`);
 
       req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(500);
     });
 
     it('should handle network error', () => {
       const poamId = 1;
+      let capturedError: any;
 
       service.getPoamExtension(poamId).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamExtension/${poamId}`);
 
       req.error(new ProgressEvent('Network error'));
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(0);
     });
 
     it('should handle 404 not found', () => {
       const poamId = 9999;
+      let capturedError: any;
 
       service.getPoamExtension(poamId).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamExtension/${poamId}`);
 
       req.flush('Not found', { status: 404, statusText: 'Not Found' });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(404);
     });
 
     it('should handle 401 unauthorized', () => {
       const poamId = 1;
+      let capturedError: any;
 
       service.getPoamExtension(poamId).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamExtension/${poamId}`);
 
       req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(401);
+    });
+
+    it('should propagate a 403 forbidden response with its status intact', () => {
+      const poamId = 1;
+      let capturedError: any;
+
+      service.getPoamExtension(poamId).subscribe({
+        error: (error) => (capturedError = error)
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/poamExtension/${poamId}`);
+
+      req.flush({ error: 'User has insufficient privilege to complete this request.', detail: 'User does not have permission to view this POAM extension' }, { status: 403, statusText: 'Forbidden' });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(403);
+      expect(getErrorMessage(capturedError)).toBe('User does not have permission to view this POAM extension');
+    });
+
+    it('should propagate a network-level failure so getErrorMessage falls back to the HttpErrorResponse message', () => {
+      const poamId = 1;
+      let capturedError: any;
+
+      service.getPoamExtension(poamId).subscribe({
+        error: (error) => (capturedError = error)
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/poamExtension/${poamId}`);
+
+      req.error(new ProgressEvent('Network error'));
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(0);
+      expect(capturedError.error).toBeInstanceOf(ProgressEvent);
+      expect(getErrorMessage(capturedError)).toBe(capturedError.message);
     });
 
     it('should work with different poamId values', () => {
@@ -310,15 +354,18 @@ describe('PoamExtensionService', () => {
       [403, 'Forbidden', 'Forbidden', { poamId: 1, extensionTimeAllowed: 30, extensionJustification: 'Test' }],
       [404, 'Not Found', 'Not found', { poamId: 9999, extensionTimeAllowed: 30, extensionJustification: 'Test' }]
     ])('should handle %i error on update', (status, statusText, body, extensionData) => {
+      let capturedError: any;
+
       service.putPoamExtension(extensionData).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamExtension`);
 
       req.flush(body, { status, statusText });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(status);
     });
 
     it('should handle network error on update', () => {
@@ -327,16 +374,66 @@ describe('PoamExtensionService', () => {
         extensionTimeAllowed: 30,
         extensionJustification: 'Test'
       };
+      let capturedError: any;
 
       service.putPoamExtension(extensionData).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamExtension`);
 
       req.error(new ProgressEvent('Network error'));
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(0);
+    });
+
+    it('should propagate a 403 approval-permission failure so getErrorMessage returns the API detail', () => {
+      const extensionData = {
+        poamId: 1,
+        extensionTimeAllowed: 30,
+        extensionJustification: 'Test',
+        approvalStatus: 'Approved'
+      };
+      const errorBody = { error: 'User has insufficient privilege to complete this request.', detail: 'User does not have permission to approve or reject this POAM extension' };
+      let capturedError: any;
+
+      service.putPoamExtension(extensionData).subscribe({
+        error: (error) => (capturedError = error)
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/poamExtension`);
+
+      req.flush(errorBody, { status: 403, statusText: 'Forbidden' });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(403);
+      expect(capturedError.error).toEqual(errorBody);
+      expect(getErrorMessage(capturedError)).toBe('User does not have permission to approve or reject this POAM extension');
+    });
+
+    it('should propagate a 400 reanchorDeadline validation failure so getErrorMessage returns the API detail', () => {
+      const extensionData = {
+        poamId: 1,
+        extensionTimeAllowed: 0,
+        extensionJustification: 'Test',
+        reanchorDeadline: true
+      };
+      const errorBody = { error: 'Incorrect request.', detail: 'reanchorDeadline requires extensionDays greater than zero' };
+      let capturedError: any;
+
+      service.putPoamExtension(extensionData).subscribe({
+        error: (error) => (capturedError = error)
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/poamExtension`);
+
+      req.flush(errorBody, { status: 400, statusText: 'Bad Request' });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(400);
+      expect(capturedError.error).toEqual(errorBody);
+      expect(getErrorMessage(capturedError)).toBe('reanchorDeadline requires extensionDays greater than zero');
     });
 
     it('should handle empty justification', () => {
@@ -418,29 +515,34 @@ describe('PoamExtensionService', () => {
       [401, 'Unauthorized', 'Unauthorized', 1],
       [403, 'Forbidden', 'Forbidden', 1]
     ])('should handle %i error on delete', (status, statusText, body, poamId) => {
+      let capturedError: any;
+
       service.deletePoamExtension(poamId).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamExtension/${poamId}`);
 
       req.flush(body, { status, statusText });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(status);
     });
 
     it('should handle network error on delete', () => {
       const poamId = 1;
+      let capturedError: any;
 
       service.deletePoamExtension(poamId).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne(`${apiBase}/poamExtension/${poamId}`);
 
       req.error(new ProgressEvent('Network error'));
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(0);
     });
 
     it('should work with different poamId values', () => {

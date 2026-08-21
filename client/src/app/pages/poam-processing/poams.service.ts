@@ -28,7 +28,7 @@ export class PoamService {
       console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
     }
 
-    return throwError(() => new Error('Something bad happened; please try again later.'));
+    return throwError(() => error);
   }
 
   getCollectionPoamStatus(collectionId: number): Observable<any> {
@@ -160,10 +160,6 @@ export class PoamService {
 
   updatePoam(poam: any): Observable<any> {
     return this.http.put<any>(`${this.cpatApiBase}/poam`, poam);
-  }
-
-  updatePoamStatus(poamId: number, poamStatusUpdate: any): Observable<any> {
-    return this.http.put<any>(`${this.cpatApiBase}/poam/${poamId}/status`, poamStatusUpdate).pipe(catchError(this.handleError));
   }
 
   postPoamAssignedTeam(poamAssignedTeam: any): Observable<any> {

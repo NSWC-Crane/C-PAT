@@ -333,8 +333,9 @@ describe('PoamDetailsComponent', () => {
       expect(options).toEqual(component.statusOptions);
     });
 
-    it('should exclude Approved for accessLevel 3', () => {
+    it('should exclude Approved for accessLevel 3 on a CAT-I POAM', () => {
       component.accessLevel.set(3);
+      component.poam.set({ poamId: 42, rawSeverity: 'CAT I - Critical' });
       const options = component.filteredStatusOptions();
 
       expect(options).not.toContain('Approved');
@@ -343,11 +344,69 @@ describe('PoamDetailsComponent', () => {
       expect(options).toContain('Rejected');
     });
 
+    it('should include Approved for accessLevel 3 on a POAM that is not CAT-I', () => {
+      component.accessLevel.set(3);
+      component.poam.set({ poamId: 42, rawSeverity: 'CAT II - Medium' });
+      const options = component.filteredStatusOptions();
+
+      expect(options).toContain('Approved');
+    });
+
+    it.each(['CAT I - Critical', 'CAT I - High'])('should exclude Approved for accessLevel 3 when severity is %s', (rawSeverity) => {
+      component.accessLevel.set(3);
+      component.poam.set({ poamId: 42, rawSeverity });
+
+      expect(component.filteredStatusOptions()).not.toContain('Approved');
+    });
+
     it.each([2, 1, 0])('should return only Draft, Closed, Expired for accessLevel %i', (accessLevel) => {
       component.accessLevel.set(accessLevel);
       const options = component.filteredStatusOptions();
 
       expect(options).toEqual(['Draft', 'Closed', 'Expired']);
+    });
+
+    it('should exclude Approved for accessLevel 3 when the loaded severity is CAT-I even if the form severity is lower', () => {
+      component.accessLevel.set(3);
+      (component as any).loadedRawSeverity.set('CAT I - High');
+      component.poam.set({ poamId: 42, rawSeverity: 'CAT II - Medium' });
+
+      expect(component.filteredStatusOptions()).not.toContain('Approved');
+    });
+  });
+
+  describe('onRawSeverityChange', () => {
+    it('should revert an unsaved Approved selection when severity is raised to CAT-I', () => {
+      component.accessLevel.set(3);
+      (component as any).loadedRawSeverity.set('CAT III - Low');
+      (component as any).loadedStatus.set('Submitted');
+      component.poam.set({ poamId: 42, rawSeverity: 'CAT III - Low', status: 'Approved' });
+
+      component.onRawSeverityChange('CAT I - High');
+
+      expect(component.poam().rawSeverity).toBe('CAT I - High');
+      expect(component.poam().status).toBe('Submitted');
+    });
+
+    it('should keep a stored Approved status when severity is raised to CAT-I', () => {
+      component.accessLevel.set(3);
+      (component as any).loadedRawSeverity.set('CAT III - Low');
+      (component as any).loadedStatus.set('Approved');
+      component.poam.set({ poamId: 42, rawSeverity: 'CAT III - Low', status: 'Approved' });
+
+      component.onRawSeverityChange('CAT I - High');
+
+      expect(component.poam().status).toBe('Approved');
+    });
+
+    it('should keep an Approved selection when the caller is a CAT-I approver', () => {
+      component.accessLevel.set(4);
+      (component as any).loadedStatus.set('Submitted');
+      component.poam.set({ poamId: 42, rawSeverity: 'CAT III - Low', status: 'Approved' });
+
+      component.onRawSeverityChange('CAT I - High');
+
+      expect(component.poam().status).toBe('Approved');
     });
   });
 

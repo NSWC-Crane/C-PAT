@@ -7,6 +7,7 @@
 ! CONDITIONS OF THE LICENSE.
 !##########################################################################
 -->
+
 @if (poam(); as poam) {
   <div class="row col-span-12">
     <p-card>
@@ -107,7 +108,6 @@
             </div>
           }
 
-          <!-- Created By -->
           @if (poam.submitterName) {
             <div class="form-group">
               <label for="submitterName">Created By: </label>
@@ -115,7 +115,6 @@
             </div>
           }
 
-          <!-- Owned By -->
           <div class="form-group" tourAnchor="poam-owned-by">
             <label for="ownerId">Owned By: </label>
             <p-select
@@ -134,7 +133,6 @@
             />
           </div>
 
-          <!-- Status -->
           <div class="status form-group">
             <label for="status">POAM Status: </label>
             <p-select
@@ -149,7 +147,6 @@
             />
           </div>
 
-          <!-- Description -->
           <div class="form-group">
             <label for="description">
               <i
@@ -174,7 +171,6 @@
             ></textarea>
           </div>
 
-          <!-- AA Package -->
           <div class="form-group" tourAnchor="poam-aapackage">
             <label for="aaPackage">A&A Package: </label>
             <p-select
@@ -194,7 +190,6 @@
             />
           </div>
 
-          <!-- Source -->
           <div class="form-group">
             <label for="vulnerabilitySource">
               <i
@@ -217,7 +212,6 @@
             />
           </div>
 
-          <!-- Task Order # -->
           <div class="form-group">
             <label for="taskOrderNumber">Task Order #: </label>
             <input
@@ -234,7 +228,6 @@
             />
           </div>
 
-          <!-- STIG Title -->
           @if (poam.vulnerabilitySource === 'STIG') {
             <div class="form-group">
               <label for="stigInput">
@@ -261,7 +254,6 @@
             </div>
           }
 
-          <!-- Source Identifying Control Vulnerability - ID # for Non STIGs-->
           @if (poam.vulnerabilitySource !== 'STIG') {
             <div class="form-group">
               @if (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
@@ -291,7 +283,6 @@
             </div>
           }
 
-          <!-- Source Identifying Control Vulnerability - ID # for STIG-->
           @if (poam.vulnerabilitySource === 'STIG') {
             <div class="form-group">
               <label for="vulnerabilityId">
@@ -313,7 +304,6 @@
             </div>
           }
 
-          <!-- IAVM # -->
           @if (poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner') {
             <div class="form-group">
               <label for="iavmNumber">IAVM #: </label>
@@ -326,7 +316,6 @@
             </div>
           }
 
-          <!-- IAV Comply By Date -->
           @if (poam.iavmNumber && isIavmNumberValid(poam.iavmNumber)) {
             <div class="form-group">
               <label for="iavComplyByDate">IAV Comply By Date: </label>
@@ -345,7 +334,6 @@
             </div>
           }
 
-          <!-- Raw Severity -->
           <div class="form-group">
             <label for="rawSeverity">
               <i class="pi pi-info-circle mr-2" style="color: var(--p-text-color)" pTooltip="Raw Severity: The initial or starting severity of the vulnerability prior to implementing mitigations and/or compensating Controls."></i>Raw Severity Value:
@@ -353,7 +341,7 @@
             <p-select
               [options]="severityOptions"
               [ngModel]="poam.rawSeverity"
-              (ngModelChange)="patchPoam({ rawSeverity: $event }); onAdjSeverityChange()"
+              (ngModelChange)="onRawSeverityChange($event)"
               [invalid]="isInvalid('rawSeverity')"
               id="rawSeverity"
               name="rawSeverity"
@@ -365,7 +353,6 @@
             />
           </div>
 
-          <!-- Adj Severity -->
           <div class="form-group">
             <label for="adjSeverity">
               <i
@@ -389,7 +376,6 @@
             />
           </div>
 
-          <!-- Deadline With Extension -->
           @if (completionDateWithExtension()) {
             <div class="form-group">
               <label for="extensionDeadline">Deadline With Extension:</label>
@@ -397,7 +383,6 @@
             </div>
           }
 
-          <!-- Scheduled Completion Date -->
           <div class="form-group" tourAnchor="poam-scd">
             <label for="scheduledCompletionDate">
               <i
@@ -424,7 +409,6 @@
             />
           </div>
 
-          <!-- Submitted Date -->
           @if (dates().submittedDate) {
             <div class="form-group">
               <label for="submittedDate">Submitted Date: </label>
@@ -451,7 +435,6 @@
             }
           </p-step-list>
           <p-step-panels>
-            <!-- Personnel -->
             <p-step-panel [value]="1">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
@@ -493,7 +476,6 @@
               </ng-template>
             </p-step-panel>
 
-            <!-- Assets -->
             <p-step-panel [value]="2">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper" tourAnchor="poam-assets">
@@ -518,7 +500,6 @@
               </ng-template>
             </p-step-panel>
 
-            <!-- Predisposing Conditions -->
             <p-step-panel [value]="3">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
@@ -550,7 +531,6 @@
               </ng-template>
             </p-step-panel>
 
-            <!-- Mitigations -->
             <p-step-panel [value]="4">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
@@ -664,7 +644,6 @@
               </ng-template>
             </p-step-panel>
 
-            <!-- Required Resources -->
             <p-step-panel [value]="5">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
@@ -764,7 +743,6 @@
               </ng-template>
             </p-step-panel>
 
-            <!-- Risk & Impact -->
             <p-step-panel [value]="6">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
@@ -837,7 +815,6 @@
               </ng-template>
             </p-step-panel>
 
-            <!-- Milestones -->
             <p-step-panel [value]="7">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
@@ -852,7 +829,6 @@
               </ng-template>
             </p-step-panel>
 
-            <!-- Labels -->
             <p-step-panel [value]="8">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
@@ -867,7 +843,6 @@
               </ng-template>
             </p-step-panel>
 
-            <!-- Associated Vulnerabilities -->
             <p-step-panel [value]="9">
               <ng-template #content let-activateCallback="activateCallback">
                 <div class="stepper-content-wrapper">
@@ -888,7 +863,6 @@
               </ng-template>
             </p-step-panel>
 
-            <!-- Attachments -->
             @if (poam.poamId !== 'ADDPOAM') {
               <p-step-panel [value]="10">
                 <ng-template #content let-activateCallback="activateCallback">
@@ -906,15 +880,14 @@
           </p-step-panels>
         </p-stepper>
 
-        <!-- Buttons -->
-        <button pButton class="ml-4" (click)="cancelPoam()" variant="outlined" severity="secondary"><span pButtonLabel>Cancel</span></button>
+        <button pButton class="ml-4 mt-4" (click)="cancelPoam()" variant="outlined" severity="secondary"><span pButtonLabel>Cancel</span></button>
 
         <button pButton class="ml-4 mt-4" (click)="savePoam()" variant="outlined" [disabled]="accessLevel() < 2"><span pButtonLabel>Save</span></button>
 
-        @if (poam.status === 'Expired' || poam.status === 'Approved') {
-          <button pButton class="ml-4" (click)="extendPoam()" variant="outlined" severity="warn"><span pButtonLabel>Extend</span></button>
+        @if (poam.status === 'Expired' || poam.status === 'Approved' || poam.status === 'Extension Requested') {
+          <button pButton class="ml-4 mt-4" (click)="extendPoam()" variant="outlined" severity="warn"><span pButtonLabel>Extend</span></button>
         } @else {
-          <button pButton class="ml-4" (click)="verifySubmitPoam()" variant="outlined" severity="success"><span pButtonLabel>Submit</span></button>
+          <button pButton class="ml-4 mt-4" (click)="verifySubmitPoam()" variant="outlined" severity="success" [disabled]="accessLevel() < 2"><span pButtonLabel>Submit</span></button>
         }
       </ng-template>
     </p-card>
@@ -931,7 +904,7 @@
   <ng-template #footer let-dialog>
     <div style="display: flex; justify-content: space-between; width: 100%">
       <button pButton (click)="cancelSubmit()" [text]="true" [raised]="true" severity="danger"><span pButtonLabel>Cancel</span></button>
-      <button pButton (click)="confirmSubmit()" [text]="true" [raised]="true"><span pButtonLabel>Submit</span></button>
+      <button pButton (click)="confirmSubmit()" [text]="true" [raised]="true" [disabled]="accessLevel() < 2"><span pButtonLabel>Submit</span></button>
     </div>
   </ng-template>
 </p-dialog>

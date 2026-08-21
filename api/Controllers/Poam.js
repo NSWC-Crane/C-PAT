@@ -101,16 +101,6 @@ module.exports.putPoam = async function putPoam(req, res) {
     }
 };
 
-module.exports.updatePoamStatus = async function updatePoamStatus(req, res) {
-    try {
-        const poam = await poamService.updatePoamStatus(req);
-
-        res.status(200).json(poam);
-    } catch (error) {
-        sendError(res, error);
-    }
-};
-
 module.exports.deletePoam = async function deletePoam(req, res) {
     try {
         await poamService.deletePoam(req);

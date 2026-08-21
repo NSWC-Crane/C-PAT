@@ -12,6 +12,7 @@
 const config = require('../utils/config');
 const dbUtils = require('./utils');
 const SmError = require('../utils/error');
+const { APPROVAL_ACCESS_LEVEL, CAT_I_SEVERITIES, WRITE_ACCESS_LEVEL, assertPoamAccessLevel, assertActingAsSelf } = require('./poamAccess');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -27,7 +28,6 @@ function normalizeBoolean(value) {
     return value === 1 || value === true;
 }
 
-const CAT_I_SEVERITIES = new Set(['CAT I - Critical', 'CAT I - High']);
 const POINT_AWARDING_STATUSES = new Set(['Approved', 'Rejected', 'False-Positive']);
 const POSITIVE_REVIEW_REQUIREMENTS = {
     Approved: 'approval',
@@ -75,7 +75,7 @@ async function setPoamHqs(connection, poamId, hqs) {
 async function isNewOrChangedApproval(connection, poamId, userId, approvalStatus) {
     const sql = `SELECT * FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId = ?`;
     const [existingApproval] = await connection.query(sql, [poamId, userId]);
-    if (existingApproval.length === 0) return true;
+    if (existingApproval.length === 0) return false;
     return existingApproval[0].approvalStatus !== approvalStatus && POINT_AWARDING_STATUSES.has(approvalStatus);
 }
 
@@ -93,7 +93,7 @@ async function awardApproverReviewPoints(connection, poamId, userId, isNewOrChan
 }
 
 async function getPoamForReview(connection, poamId) {
-    const sql = `SELECT submitterId, rawSeverity, hqs, collectionId FROM ${config.database.schema}.poam WHERE poamId = ?`;
+    const sql = `SELECT submitterId, rawSeverity, hqs, collectionId FROM ${config.database.schema}.poam WHERE poamId = ? FOR UPDATE`;
     const [rows] = await connection.query(sql, [poamId]);
     if (rows.length === 0) {
         throw new SmError.NotFoundError('POAM not found');
@@ -169,7 +169,7 @@ async function applyPoamStatusChange(connection, poamId, approvalStatus, reviewe
 
     const permissionSql = `SELECT userId FROM ${config.database.schema}.collectionpermissions WHERE collectionId = ? AND accessLevel = 4`;
     const [catIApprovers] = await connection.query(permissionSql, [poam.collectionId]);
-    const requiresCatIReview = CAT_I_SEVERITIES.has(poam.rawSeverity) && !catIApprovers.some(p => p.userId === reviewerId);
+    const requiresCatIReview = CAT_I_SEVERITIES.has(poam.rawSeverity) && !catIApprovers.some(p => Number(p.userId) === Number(reviewerId));
 
     if (requiresCatIReview) {
         await requestCatIApproval(connection, poamId, catIApprovers);
@@ -221,9 +221,17 @@ module.exports.getPoamApproversByCollection = async function getPoamApproversByC
 };
 
 module.exports.postPoamApprover = async function postPoamApprover(req) {
+    if (!req.body.poamId) {
+        throw new SmError.ClientError('poamId is required');
+    }
+
     if (!req.body.approvalStatus) req.body.approvalStatus = 'Not Reviewed';
     if (!req.body.approvedDate) req.body.approvedDate = null;
     if (!req.body.comments) req.body.comments = null;
+
+    await withConnection(async connection => {
+        await assertPoamAccessLevel(connection, req, req.body.poamId, WRITE_ACCESS_LEVEL, "User does not have permission to modify this POAM's approvers");
+    });
 
     try {
         return await withConnection(async connection => {
@@ -270,58 +278,65 @@ module.exports.postPoamApprover = async function postPoamApprover(req) {
 };
 
 module.exports.putPoamApprover = async function putPoamApprover(req) {
+    if (!req.body.poamId) {
+        throw new SmError.ClientError('poamId is required');
+    }
+
+    assertActingAsSelf(req, req.body.userId, 'User may only record their own review of this POAM');
+
     if (!req.body.approvalStatus) req.body.approvalStatus = 'Not Reviewed';
     if (!req.body.approvedDate) req.body.approvedDate = null;
     if (!req.body.comments) req.body.comments = null;
 
-    return await withConnection(async connection => {
-        await connection.beginTransaction();
+    await withConnection(async connection => {
+        await assertPoamAccessLevel(connection, req, req.body.poamId, APPROVAL_ACCESS_LEVEL, 'User does not have permission to review this POAM');
+    });
 
-        try {
-            const { poamId, userId, approvalStatus } = req.body;
+    return await dbUtils.retryOnDeadlock(
+        async () =>
+            await dbUtils.withTransaction(async connection => {
+                const { poamId, userId, approvalStatus } = req.body;
 
-            const isNewOrChanged = await isNewOrChangedApproval(connection, poamId, userId, approvalStatus);
-            await awardApproverReviewPoints(connection, poamId, userId, isNewOrChanged);
+                const poam = await getPoamForReview(connection, poamId);
+                const isNewOrChanged = await isNewOrChangedApproval(connection, poamId, userId, approvalStatus);
+                await awardApproverReviewPoints(connection, poamId, userId, isNewOrChanged);
 
-            let sql_query = `
+                let sql_query = `
                     UPDATE ${config.database.schema}.poamapprovers
                     SET approvalStatus = ?, approvedDate = ?, comments = ?
                     WHERE poamId = ? AND userId = ?;
                 `;
-            await connection.query(sql_query, [approvalStatus, req.body.approvedDate, req.body.comments, poamId, userId]);
+                await connection.query(sql_query, [approvalStatus, req.body.approvedDate, req.body.comments, poamId, userId]);
 
-            const fullName = await getUserFullName(connection, userId);
-            const poam = await getPoamForReview(connection, poamId);
+                const fullName = await getUserFullName(connection, userId);
 
-            if (isPositiveReview(approvalStatus)) {
-                await applyHighQualitySubmission(connection, poamId, poam.submitterId, poam.hqs, req.body.hqs);
-                await notifySubmitterOfReview(connection, poamId, poam.submitterId, fullName, normalizeBoolean(req.body.hqs));
-            }
+                if (isPositiveReview(approvalStatus)) {
+                    await applyHighQualitySubmission(connection, poamId, poam.submitterId, poam.hqs, req.body.hqs);
+                    await notifySubmitterOfReview(connection, poamId, poam.submitterId, fullName, normalizeBoolean(req.body.hqs));
+                }
 
-            let action = `POAM ${poamId} has been marked as ${approvalStatus.toLowerCase()} by ${fullName}. Approver Comments: ${req.body.comments}.`;
-            let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-            await connection.query(logSql, [poamId, action, req.userObject.userId]);
+                let action = `POAM ${poamId} has been marked as ${approvalStatus.toLowerCase()} by ${fullName}. Approver Comments: ${req.body.comments}.`;
+                let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
+                await connection.query(logSql, [poamId, action, req.userObject.userId]);
 
-            await applyPoamStatusChange(connection, poamId, approvalStatus, req.userObject.userId, poam);
+                await applyPoamStatusChange(connection, poamId, approvalStatus, req.userObject.userId, poam);
 
-            let sql = `SELECT * FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId = ?`;
-            let [row] = await connection.query(sql, [poamId, userId]);
-            const poamApprover = row.map(row => ({
-                ...row,
-                approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
-            }))[0];
+                let sql = `SELECT * FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId = ?`;
+                let [row] = await connection.query(sql, [poamId, userId]);
+                const poamApprover = row.map(row => ({
+                    ...row,
+                    approvedDate: row.approvedDate ? row.approvedDate.toISOString() : null,
+                }))[0];
 
-            await connection.commit();
-            return poamApprover;
-        } catch (error) {
-            await connection.rollback();
-            throw error;
-        }
-    });
+                return poamApprover;
+            })
+    );
 };
 
 module.exports.deletePoamApprover = async function deletePoamApprover(req) {
     return await withConnection(async connection => {
+        await assertPoamAccessLevel(connection, req, req.params.poamId, WRITE_ACCESS_LEVEL, "User does not have permission to modify this POAM's approvers");
+
         let sql = `DELETE FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId = ?`;
         await connection.query(sql, [req.params.poamId, req.params.userId]);
 

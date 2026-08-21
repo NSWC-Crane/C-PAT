@@ -38,6 +38,7 @@ import { AAPackage } from '../../../common/models/aaPackage.model';
 import { AppConfiguration } from '../../../common/models/appConfiguration.model';
 import { Collections } from '../../../common/models/collections.model';
 import { Permission } from '../../../common/models/permission.model';
+import { approvalLevelForSeverity } from '../../../common/constants/poam-severity';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
@@ -188,6 +189,8 @@ export class PoamDetailsComponent implements OnInit {
   readonly activeResourceTabIndex = signal<number>(0);
   readonly showPoamNotes = signal<boolean>(false);
   private readonly invalidFields = computed(() => this.poamValidationService.getInvalidSubmissionFields(this.poam(), this.teamMitigations(), this.teamResources(), this.poamMilestones(), this.dates()));
+  private readonly loadedRawSeverity = signal<string | null>(null);
+  private readonly loadedStatus = signal<string | null>(null);
 
   vulnerabilitySources: string[] = ['Assured Compliance Assessment Solution (ACAS) Nessus Scanner', 'STIG', 'Other'];
 
@@ -199,7 +202,7 @@ export class PoamDetailsComponent implements OnInit {
     if (accessLevel >= 4) {
       return this.statusOptions;
     } else if (accessLevel === 3) {
-      return this.statusOptions.filter((status) => status !== 'Approved');
+      return accessLevel >= approvalLevelForSeverity(this.loadedRawSeverity(), this.poam()?.rawSeverity) ? this.statusOptions : this.statusOptions.filter((status) => status !== 'Approved');
     } else {
       return ['Draft', 'Closed', 'Expired'];
     }
@@ -352,6 +355,8 @@ export class PoamDetailsComponent implements OnInit {
         this.completionDateWithExtension.set(undefined);
         this.teamMitigations.set([]);
         this.teamResources.set([]);
+        this.loadedRawSeverity.set(null);
+        this.loadedStatus.set(null);
         this.getData();
       }
     });
@@ -491,6 +496,8 @@ export class PoamDetailsComponent implements OnInit {
             }
 
             this.poam.set(poam);
+            this.loadedRawSeverity.set(poam.rawSeverity ?? null);
+            this.loadedStatus.set(poam.status ?? null);
 
             this.dates.set({
               scheduledCompletionDate: poam.scheduledCompletionDate ? parse(poam.scheduledCompletionDate.split('T')[0], 'yyyy-MM-dd', new Date()) : null,
@@ -914,6 +921,8 @@ export class PoamDetailsComponent implements OnInit {
                 resolve(false);
               } else {
                 this.poam.update((poam: any) => ({ ...poam, poamId: res.poamId }));
+                this.loadedRawSeverity.set(res.rawSeverity ?? null);
+                this.loadedStatus.set(res.status ?? null);
                 this.poamId.set(res.poamId);
                 this.location.replaceState(`/poam-processing/poam-details/${res.poamId}`);
                 this.updateLocalReferences(res.poamId);
@@ -954,6 +963,8 @@ export class PoamDetailsComponent implements OnInit {
           .subscribe({
             next: (data) => {
               this.poam.set(data);
+              this.loadedRawSeverity.set(data?.rawSeverity ?? null);
+              this.loadedStatus.set(data?.status ?? null);
 
               if (!saveState) {
                 this.messageService.add({
@@ -1467,6 +1478,17 @@ export class PoamDetailsComponent implements OnInit {
     const mappedRating = this.mappingService.getSeverityRating(this.poam().adjSeverity ?? this.poam().rawSeverity);
 
     this.poam.update((poam: any) => ({ ...poam, likelihood: mappedRating, residualRisk: mappedRating }));
+  }
+
+  onRawSeverityChange(rawSeverity: string) {
+    this.patchPoam({ rawSeverity });
+    this.onAdjSeverityChange();
+
+    const status = this.poam()?.status;
+
+    if (status === 'Approved' && status !== this.loadedStatus() && !this.filteredStatusOptions().includes('Approved')) {
+      this.patchPoam({ status: this.loadedStatus() ?? 'Draft' });
+    }
   }
 
   deletePoam() {

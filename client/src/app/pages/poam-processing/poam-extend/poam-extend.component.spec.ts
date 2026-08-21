@@ -65,6 +65,16 @@ describe('PoamExtendComponent', () => {
   const mockExtension = [
     {
       extensionDays: 30,
+      extensionDeadline: '2025-07-15',
+      extensionJustification: 'Need more time',
+      scheduledCompletionDate: '2025-06-15',
+      serverToday: '2025-06-12'
+    }
+  ];
+
+  const mockLegacyExtension = [
+    {
+      extensionDays: 30,
       extensionDeadline: '2025-07-15T00:00:00Z',
       extensionJustification: 'Need more time',
       scheduledCompletionDate: '2025-06-15T00:00:00Z'
@@ -134,8 +144,7 @@ describe('PoamExtendComponent', () => {
       addPoamMilestone: vi.fn().mockReturnValue(of({ milestoneId: 99 })),
       updatePoamMilestone: vi.fn().mockReturnValue(of({})),
       deletePoamMilestone: vi.fn().mockReturnValue(of({})),
-      postPoamLabel: vi.fn().mockReturnValue(of({})),
-      updatePoamStatus: vi.fn().mockReturnValue(of({}))
+      postPoamLabel: vi.fn().mockReturnValue(of({}))
     };
 
     mockPoamExtensionService = {
@@ -179,11 +188,8 @@ describe('PoamExtendComponent', () => {
       ]
     })
       .overrideComponent(PoamExtendComponent, {
-        set: {
-          providers: [
-            { provide: MessageService, useValue: mockMessageService },
-            { provide: ConfirmationService, useValue: mockConfirmationService }
-          ]
+        add: {
+          providers: [{ provide: ConfirmationService, useValue: mockConfirmationService }]
         }
       })
       .compileComponents();
@@ -191,7 +197,19 @@ describe('PoamExtendComponent', () => {
     fixture = TestBed.createComponent(PoamExtendComponent);
     component = fixture.componentInstance;
 
-    const mockTableRef = { cancelRowEdit: vi.fn() };
+    const mockTableRef: any = {
+      editingRowKeys: {} as Record<string, boolean>,
+      isRowEditing: (rowData: any) => mockTableRef.editingRowKeys[String(rowData?.milestoneId)] === true,
+      initRowEdit: vi.fn((rowData: any) => {
+        mockTableRef.editingRowKeys = { ...mockTableRef.editingRowKeys, [String(rowData?.milestoneId)]: true };
+      }),
+      cancelRowEdit: vi.fn((rowData: any) => {
+        const remaining = { ...mockTableRef.editingRowKeys };
+
+        delete remaining[String(rowData?.milestoneId)];
+        mockTableRef.editingRowKeys = remaining;
+      })
+    };
 
     Object.defineProperty(component, 'table', {
       value: () => mockTableRef,
@@ -331,8 +349,12 @@ describe('PoamExtendComponent', () => {
         expect(component.poamAssignedTeams()).toEqual(mockPoamAssignedTeams);
       });
 
-      it('should compute completionDateWithExtension as extensionDays from the current day, not the stored deadline', () => {
-        expect(component.completionDateWithExtension()).toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
+      it('should compute completionDateWithExtension from the stored extension deadline', () => {
+        expect(component.completionDateWithExtension()).toBe('Tue Jul 15 2025');
+      });
+
+      it('should leave the restart-extension-period box unchecked when an extension exists', () => {
+        expect(component.restartExtensionPeriod()).toBe(false);
       });
 
       it('should call loadTeamMitigations', () => {
@@ -359,8 +381,8 @@ describe('PoamExtendComponent', () => {
         initComponentWithAccess(2);
       });
 
-      it('should compute completionDateWithExtension from addDays', () => {
-        expect(component.completionDateWithExtension()).toBeTruthy();
+      it('should fall back to extensionDays from the current day', () => {
+        expect(component.completionDateWithExtension()).toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
       });
     });
 
@@ -379,8 +401,8 @@ describe('PoamExtendComponent', () => {
         initComponentWithAccess(2);
       });
 
-      it('should set completionDateWithExtension to empty string', () => {
-        expect(component.completionDateWithExtension()).toBe('');
+      it('should compute completionDateWithExtension from the stored deadline', () => {
+        expect(component.completionDateWithExtension()).toBe('Tue Jul 15 2025');
       });
     });
 
@@ -404,9 +426,33 @@ describe('PoamExtendComponent', () => {
         expect(component.completionDateWithExtension()).toBe('');
       });
 
+      it('should check the restart-extension-period box by default for a first-time request', () => {
+        expect(component.restartExtensionPeriod()).toBe(true);
+      });
+
       it('should use fallback values for poam fields', () => {
         expect(component.poam().mitigations).toBe('Test mitigation');
         expect(component.poam().residualRisk).toBe('Low');
+      });
+    });
+
+    describe('with a previously removed extension', () => {
+      beforeEach(() => {
+        mockPoamExtensionService.getPoamExtension.mockReturnValue(
+          of([
+            {
+              extensionDays: 0,
+              extensionDeadline: null,
+              extensionJustification: null,
+              scheduledCompletionDate: '2025-06-15T00:00:00Z'
+            }
+          ])
+        );
+        initComponentWithAccess(2);
+      });
+
+      it('should treat it as a first-time request and check the restart box', () => {
+        expect(component.restartExtensionPeriod()).toBe(true);
       });
     });
 
@@ -541,13 +587,15 @@ describe('PoamExtendComponent', () => {
       it('should send null rather than empty strings in the extension payload', () => {
         component.putPoamExtension('Approved');
         expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(
-          expect.objectContaining({ mitigations: null, requiredResources: null, residualRisk: null, likelihood: null, localImpact: null, impactDescription: null, extensionDays: null, extensionJustification: null })
+          expect.objectContaining({ mitigations: null, requiredResources: null, residualRisk: null, likelihood: null, localImpact: null, impactDescription: null, extensionJustification: null })
         );
       });
     });
 
     describe('footer', () => {
-      const buttonLabels = () => Array.from(fixture.nativeElement.querySelectorAll('button')).map((el: any) => el.textContent.trim());
+      const footerButtons = () => Array.from(fixture.nativeElement.querySelectorAll('.p-dialog-footer button')) as HTMLButtonElement[];
+      const buttonLabels = () => footerButtons().map((el: any) => el.textContent.trim());
+      const footerButton = (label: string) => footerButtons().find((el: any) => el.textContent.trim() === label);
 
       it('should show only Cancel until the poam is loaded', () => {
         const pending = new Subject<any>();
@@ -560,7 +608,7 @@ describe('PoamExtendComponent', () => {
         pending.next(mockPoamData);
         pending.complete();
         fixture.detectChanges();
-        expect(buttonLabels()).toEqual(expect.arrayContaining(['Cancel', 'Approve', 'Reject', 'Save']));
+        expect(buttonLabels()).toEqual(['Delete Extension', 'Cancel', 'Approve', 'Reject', '', 'Save']);
       });
 
       it('should show only Cancel after the load fails', () => {
@@ -568,6 +616,101 @@ describe('PoamExtendComponent', () => {
         initComponentWithAccess(3);
         fixture.detectChanges();
         expect(buttonLabels()).toEqual(['Cancel']);
+      });
+
+      it('should trigger extension deletion from the footer Delete Extension button', () => {
+        initComponentWithAccess(2);
+        fixture.detectChanges();
+
+        const deleteButton = footerButton('Delete Extension');
+
+        expect(deleteButton).toBeTruthy();
+        deleteButton!.click();
+        expect(mockConfirmationService.confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Delete Extension Confirmation' }));
+      });
+
+      it('should hide Delete Extension when the loaded extension has no days', () => {
+        mockPoamExtensionService.getPoamExtension.mockReturnValue(of([{ extensionDays: 0, extensionDeadline: null, extensionJustification: null, scheduledCompletionDate: '2025-06-15T00:00:00Z' }]));
+        initComponentWithAccess(2);
+        fixture.detectChanges();
+        expect(component.hasPersistedExtension()).toBe(false);
+        expect(footerButton('Delete Extension')).toBeUndefined();
+      });
+
+      it('should keep Delete Extension visible when the edited extension days are cleared but a persisted extension remains', () => {
+        initComponentWithAccess(2);
+        fixture.detectChanges();
+        expect(footerButton('Delete Extension')).toBeTruthy();
+
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0 }));
+        fixture.detectChanges();
+        expect(component.poam().extensionDays).toBe(0);
+        expect(component.hasPersistedExtension()).toBe(true);
+        expect(footerButton('Delete Extension')).toBeTruthy();
+      });
+
+      it('should keep Delete Extension reachable for a POAM stuck in Extension Requested with no days', () => {
+        mockPoamService.getPoam.mockReturnValue(of({ ...mockPoamData, status: 'Extension Requested' }));
+        mockPoamExtensionService.getPoamExtension.mockReturnValue(of([{ extensionDays: 0, extensionDeadline: null, extensionJustification: null, scheduledCompletionDate: '2025-06-15T00:00:00Z' }]));
+        initComponentWithAccess(2);
+        fixture.detectChanges();
+
+        expect(component.hasPersistedExtension()).toBe(true);
+        expect(footerButton('Delete Extension')).toBeTruthy();
+      });
+
+      it('should lock the restart checkbox for a POAM stuck in Extension Requested with no days', () => {
+        mockPoamService.getPoam.mockReturnValue(of({ ...mockPoamData, status: 'Extension Requested' }));
+        mockPoamExtensionService.getPoamExtension.mockReturnValue(of([{ extensionDays: 0, extensionDeadline: null, extensionJustification: null, scheduledCompletionDate: '2025-06-15T00:00:00Z' }]));
+        initComponentWithAccess(2);
+        fixture.detectChanges();
+
+        expect(component.hasPersistedExtensionDays()).toBe(false);
+        expect(component.restartExtensionPeriod()).toBe(true);
+
+        const checkbox = fixture.nativeElement.querySelector('#restartExtensionPeriod') as HTMLInputElement;
+
+        expect(checkbox).toBeTruthy();
+        expect(checkbox.disabled).toBe(true);
+      });
+
+      it('should unlock the restart checkbox once a persisted extension has days', () => {
+        initComponentWithAccess(2);
+        fixture.detectChanges();
+
+        expect(component.hasPersistedExtensionDays()).toBe(true);
+
+        const checkbox = fixture.nativeElement.querySelector('#restartExtensionPeriod') as HTMLInputElement;
+
+        expect(checkbox).toBeTruthy();
+        expect(checkbox.disabled).toBe(false);
+      });
+
+      it('should qualify the approver notification the Save tooltip promises', () => {
+        initComponentWithAccess(2);
+        fixture.detectChanges();
+
+        const saveButton = footerButton('Save');
+
+        expect(saveButton).toBeTruthy();
+        expect(saveButton!.getAttribute('pTooltip')).toContain("notifies any of the POAM's approvers who hold approver-level access on this collection");
+      });
+
+      it('should disable Delete Extension below write access', () => {
+        initComponentWithAccess(1);
+        fixture.detectChanges();
+        expect(footerButton('Delete Extension')!.disabled).toBe(true);
+      });
+
+      it('should disable Delete Extension while a reload is in flight', () => {
+        initComponentWithAccess(2);
+        fixture.detectChanges();
+        expect(footerButton('Delete Extension')!.disabled).toBe(false);
+
+        mockPoamService.getPoam.mockReturnValue(new Subject<any>().asObservable());
+        component.getData();
+        fixture.detectChanges();
+        expect(footerButton('Delete Extension')!.disabled).toBe(true);
       });
     });
 
@@ -666,6 +809,11 @@ describe('PoamExtendComponent', () => {
 
         expect(component.clonedMilestones[id]).toBeDefined();
       });
+
+      it('should put the new row into table edit mode', () => {
+        component.onAddNewMilestone();
+        expect((component.table() as any).initRowEdit).toHaveBeenCalledWith(component.poamMilestones()[0]);
+      });
     });
 
     describe('generateTempId', () => {
@@ -673,6 +821,24 @@ describe('PoamExtendComponent', () => {
         const id = component.generateTempId();
 
         expect(id).toMatch(/^temp_\d+$/);
+      });
+
+      it('should return a distinct id for every call within the same millisecond', () => {
+        const ids = [component.generateTempId(), component.generateTempId(), component.generateTempId()];
+
+        expect(new Set(ids).size).toBe(3);
+      });
+
+      it('should keep per-row bookkeeping separate for milestones added within the same millisecond', () => {
+        component.onAddNewMilestone();
+        component.onAddNewMilestone();
+
+        const [first, second] = component.poamMilestones();
+
+        component.onRowEditCancel(first);
+
+        expect(component.clonedMilestones[second.milestoneId]).toBeDefined();
+        expect(component.poamMilestones().filter((m: any) => m.isNew)).toHaveLength(1);
       });
     });
 
@@ -691,6 +857,13 @@ describe('PoamExtendComponent', () => {
         expect(component.clonedMilestones[1]).toBeDefined();
         expect(component.clonedMilestones[1].comments).toBe('test');
       });
+
+      it('should clone the milestone without the editing flag set', () => {
+        const milestone = { milestoneId: 1, editing: false };
+
+        component.onRowEditInit(milestone);
+        expect(component.clonedMilestones[1].editing).toBe(false);
+      });
     });
 
     describe('onRowEditCancel', () => {
@@ -698,8 +871,16 @@ describe('PoamExtendComponent', () => {
         component.onAddNewMilestone();
         const milestone = component.poamMilestones()[0];
 
-        component.onRowEditCancel(milestone, 0);
+        component.onRowEditCancel(milestone);
         expect(component.poamMilestones().find((m: any) => m.milestoneId === milestone.milestoneId)).toBeUndefined();
+      });
+
+      it('should drop the temp clone when a new milestone is cancelled', () => {
+        component.onAddNewMilestone();
+        const milestone = component.poamMilestones()[0];
+
+        component.onRowEditCancel(milestone);
+        expect(component.clonedMilestones[milestone.milestoneId]).toBeUndefined();
       });
 
       it('should restore cloned milestone for existing milestones', () => {
@@ -707,14 +888,56 @@ describe('PoamExtendComponent', () => {
 
         component.onRowEditInit(milestone);
         milestone.milestoneComments = 'Changed';
-        component.onRowEditCancel(milestone, 0);
+        component.onRowEditCancel(milestone);
         expect(component.poamMilestones()[0].milestoneComments).toBe('Milestone 1');
+      });
+
+      it('should restore the correct row regardless of display order', () => {
+        const [first] = component.poamMilestones();
+
+        component.poamMilestones.set([{ milestoneId: 7, milestoneComments: 'other' }, first]);
+        component.onRowEditInit(first);
+        first.milestoneComments = 'dirty';
+        component.onRowEditCancel(first);
+        expect(component.poamMilestones()[0].milestoneComments).toBe('other');
+        expect(component.poamMilestones()[1].milestoneComments).toBe('Milestone 1');
       });
 
       it('should set editing to false', () => {
         const milestone = { milestoneId: 999, editing: true, isNew: false };
 
-        component.onRowEditCancel(milestone, 0);
+        component.onRowEditCancel(milestone);
+        expect(milestone.editing).toBe(false);
+      });
+
+      it('should not leave the restored milestone flagged as editing', () => {
+        const milestone = component.poamMilestones()[0];
+
+        component.onRowEditInit(milestone);
+        component.onRowEditCancel(milestone);
+        expect(component.poamMilestones()[0].editing).toBe(false);
+      });
+
+      it('should not block submission after an edit is cancelled', () => {
+        const milestone = component.poamMilestones()[0];
+
+        component.onRowEditInit(milestone);
+        component.onRowEditCancel(milestone);
+        expect(component.poamMilestones().some((m: any) => m.editing || m.isNew)).toBe(false);
+      });
+
+      it('should close the table editor and clear the component editing flag', () => {
+        const milestone = component.poamMilestones()[0];
+        const table = component.table() as any;
+
+        table.initRowEdit(milestone);
+        component.onRowEditInit(milestone);
+        expect(table.isRowEditing(milestone)).toBe(true);
+        expect(milestone.editing).toBe(true);
+
+        component.onRowEditCancel(milestone);
+        expect(table.cancelRowEdit).toHaveBeenCalledWith(milestone);
+        expect(table.isRowEditing(milestone)).toBe(false);
         expect(milestone.editing).toBe(false);
       });
     });
@@ -772,6 +995,14 @@ describe('PoamExtendComponent', () => {
         expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('past date') }));
       });
 
+      it('should accept the stored deadline day itself when the browser clock is ahead of the server clock', () => {
+        (component as any).serverToday.set('2025-06-12');
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: '2025-06-12' }));
+
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: '2025-06-12' })).toBe(true);
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: '2025-06-11' })).toBe(false);
+      });
+
       it('should fail if milestone date exceeds scheduled completion date with no extension', () => {
         component.poam.update((p: any) => ({ ...p, extensionDays: 0 }));
         component.poam.update((p: any) => ({ ...p, scheduledCompletionDate: '2025-06-10' }));
@@ -781,13 +1012,78 @@ describe('PoamExtendComponent', () => {
         expect(result).toBe(false);
       });
 
-      it('should fail if milestone date exceeds completion date with extension', () => {
-        component.poam.update((p: any) => ({ ...p, extensionDays: 30 }));
-        component.completionDateWithExtension.set('2025-06-20');
+      it('should refuse every change date once the stored extension deadline has passed', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: '2025-05-01' }));
+
+        expect(component.extensionPeriodExpired()).toBe(true);
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: new Date() })).toBe(false);
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: addDays(new Date(), 30) })).toBe(false);
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Extension Period Ended' }));
+      });
+
+      it('should name the lapsed deadline and point at the restart checkbox', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: '2025-05-01' }));
+        (component as any).validateMilestoneDates({ milestoneChangeDate: addDays(new Date(), 5) });
+
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('05/01/2025') }));
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('Restart extension period from today') }));
+      });
+
+      it('should tell the user the restarted deadline only takes effect on save, without prescribing a save before editing milestones', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: '2025-05-01' }));
+        (component as any).validateMilestoneDates({ milestoneChangeDate: addDays(new Date(), 5) });
+
+        const detail = mockMessageService.add.mock.calls.at(-1)[0].detail;
+
+        expect(detail).toContain('to schedule milestones against a new extension period');
+        expect(detail).toContain('The new deadline only takes effect once you save the extension.');
+      });
+
+      it('should accept change dates again once the restart box clears the lapsed deadline', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: '2025-05-01' }));
+        (component as any).onRestartExtensionPeriodChange(true);
+
+        expect(component.extensionPeriodExpired()).toBe(false);
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: addDays(new Date(), 30) })).toBe(true);
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: addDays(new Date(), 31) })).toBe(false);
+      });
+
+      it('should enforce the same bound the deadline field displays', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: '2025-07-15' }));
+        component.computeDeadlineWithExtension();
+
+        expect(component.completionDateWithExtension()).toBe('Tue Jul 15 2025');
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: new Date(2025, 6, 15) })).toBe(true);
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: new Date(2025, 6, 16) })).toBe(false);
+      });
+
+      it('should fail if milestone date exceeds the stored extension deadline', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: '2025-06-20' }));
         const futureDate = new Date(2025, 6, 1);
         const result = (component as any).validateMilestoneDates({ milestoneChangeDate: futureDate });
 
         expect(result).toBe(false);
+      });
+
+      it('should allow a milestone date on the stored extension deadline', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: '2025-06-20' }));
+        const result = (component as any).validateMilestoneDates({ milestoneChangeDate: new Date(2025, 5, 20) });
+
+        expect(result).toBe(true);
+      });
+
+      it('should fall back to extensionDays from today when no deadline is stored', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: null }));
+
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: addDays(new Date(), 30) })).toBe(true);
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: addDays(new Date(), 31) })).toBe(false);
+      });
+
+      it('should fall back to extensionDays when the stored deadline is unparseable', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: 'not-a-date' }));
+
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: addDays(new Date(), 30) })).toBe(true);
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: addDays(new Date(), 31) })).toBe(false);
       });
 
       it('should handle string milestoneChangeDate', () => {
@@ -795,6 +1091,27 @@ describe('PoamExtendComponent', () => {
         const result = (component as any).validateMilestoneDates({ milestoneChangeDate: pastDate });
 
         expect(result).toBe(false);
+      });
+
+      it('should allow a change date equal to the scheduled completion date', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-06-15' }));
+        const result = (component as any).validateMilestoneDates({ milestoneChangeDate: new Date(2025, 5, 15) });
+
+        expect(result).toBe(true);
+      });
+
+      it('should validate string change dates against the scheduled completion date without timezone drift', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-06-15' }));
+
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: '2025-06-15' })).toBe(true);
+        expect((component as any).validateMilestoneDates({ milestoneChangeDate: '2025-06-16' })).toBe(false);
+      });
+
+      it('should not throw when scheduledCompletionDate is empty', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '' }));
+        const result = (component as any).validateMilestoneDates({ milestoneChangeDate: new Date(2025, 6, 1) });
+
+        expect(result).toBe(true);
       });
     });
 
@@ -844,27 +1161,374 @@ describe('PoamExtendComponent', () => {
 
         expect(mockPoamService.addPoamMilestone).not.toHaveBeenCalled();
       });
+
+      it('should refuse to save an existing milestone that still carries a temp id', async () => {
+        const milestone = {
+          isNew: false,
+          milestoneId: 'temp_9',
+          milestoneChangeComments: 'Updated',
+          milestoneChangeDate: new Date(2025, 5, 15),
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [10]
+        };
+
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        await component.onRowEditSave(milestone);
+
+        expect(mockPoamService.updatePoamMilestone).not.toHaveBeenCalled();
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('out of sync with the server') }));
+      });
+
+      it('should surface an error and drop the temp row when the post-save refetch fails', async () => {
+        mockPoamService.addPoamMilestone.mockReturnValue(of({ affectedRows: 1 }));
+        mockPoamService.getPoamMilestones.mockReturnValue(throwError(() => new Error('refetch boom')));
+
+        const milestone = {
+          isNew: true,
+          milestoneId: 'temp_123',
+          milestoneChangeComments: 'New',
+          milestoneChangeDate: new Date(2025, 5, 15),
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [10]
+        };
+
+        component.poamMilestones.set([milestone]);
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        await component.onRowEditSave(milestone);
+
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Failed to refresh the milestone list') }));
+        expect(component.poamMilestones().some((m: any) => String(m.milestoneId).startsWith('temp_'))).toBe(false);
+      });
+
+      it('should preserve an unsaved edit on another row when a refetch reconciles the list', async () => {
+        const editedRow = { milestoneId: 1, milestoneChangeComments: 'UNSAVED TYPING', milestoneChangeDate: '2025-06-10', milestoneStatus: 'In Progress', assignedTeamIds: [10], editing: true };
+        const newRow = {
+          isNew: true,
+          milestoneId: 'temp_500',
+          milestoneChangeComments: 'New',
+          milestoneChangeDate: new Date(2025, 5, 15),
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [10]
+        };
+
+        component.poamMilestones.set([newRow, editedRow]);
+        component.clonedMilestones[1] = { ...editedRow, milestoneChangeComments: 'Updated', editing: false };
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        mockPoamService.addPoamMilestone.mockReturnValue(of({ affectedRows: 1 }));
+        mockPoamService.getPoamMilestones.mockReturnValue(
+          of([
+            { milestoneId: 1, milestoneChangeComments: 'Updated', milestoneChangeDate: '2025-06-10T00:00:00.000Z', milestoneStatus: 'In Progress', assignedTeams: [{ assignedTeamId: 10, assignedTeamName: 'Team Alpha' }] },
+            { milestoneId: 2, milestoneChangeComments: 'Server row', milestoneChangeDate: '2025-06-11T00:00:00.000Z', milestoneStatus: 'In Progress', assignedTeams: [{ assignedTeamId: 10, assignedTeamName: 'Team Alpha' }] }
+          ])
+        );
+
+        await component.onRowEditSave(newRow);
+
+        const reloaded = component.poamMilestones().find((m: any) => m.milestoneId === 1);
+
+        expect(reloaded).toBe(editedRow);
+        expect(reloaded.milestoneChangeComments).toBe('UNSAVED TYPING');
+        expect(component.clonedMilestones[1]).toBeDefined();
+        expect(component.poamMilestones().some((m: any) => m.editing || m.isNew)).toBe(true);
+      });
+
+      it('should reconcile through a refetch when the add response lacks a milestoneId', async () => {
+        mockPoamService.addPoamMilestone.mockReturnValue(of([{ milestoneId: 6333 }]));
+        mockPoamService.getPoamMilestones.mockReturnValue(
+          of([{ milestoneId: 6333, milestoneChangeDate: '2025-06-15T00:00:00', milestoneChangeComments: 'New', milestoneStatus: 'In Progress', assignedTeams: [{ assignedTeamId: 10, assignedTeamName: 'Team Alpha' }] }])
+        );
+
+        const milestone = {
+          isNew: true,
+          milestoneId: 'temp_123',
+          milestoneChangeComments: 'New',
+          milestoneChangeDate: new Date(2025, 5, 15),
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [10],
+          editing: true
+        };
+
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        await component.onRowEditSave(milestone);
+
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn', summary: 'Milestone Saved' }));
+        expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+        expect(milestone.isNew).toBe(false);
+        expect(milestone.editing).toBe(false);
+        expect((component.table() as any).cancelRowEdit).toHaveBeenCalledWith(milestone);
+        expect((component.table() as any).isRowEditing(milestone)).toBe(false);
+        expect(component.poamMilestones()[0].milestoneId).toBe(6333);
+        expect(component.poamMilestones()[0].milestoneChangeDate).toBe('2025-06-15');
+      });
+
+      it('should keep the row editable when the add response reports a failure', async () => {
+        mockPoamService.addPoamMilestone.mockReturnValue(of({ null: true }));
+
+        const milestone = {
+          isNew: true,
+          milestoneId: 'temp_123',
+          milestoneChangeComments: 'New',
+          milestoneChangeDate: new Date(2025, 5, 15),
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [10],
+          editing: true
+        };
+
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        await component.onRowEditSave(milestone);
+
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Unable to insert row') }));
+        expect(milestone.milestoneId).toBe('temp_123');
+        expect(milestone.isNew).toBe(true);
+        expect(milestone.editing).toBe(true);
+      });
+
+      it('should adopt the created milestoneId from the add response', async () => {
+        const milestone = {
+          isNew: true,
+          milestoneId: 'temp_123',
+          milestoneChangeComments: 'New',
+          milestoneChangeDate: new Date(2025, 5, 15),
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [10],
+          editing: true
+        };
+
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        await component.onRowEditSave(milestone);
+
+        expect(milestone.milestoneId).toBe(99);
+        expect(milestone.isNew).toBe(false);
+      });
+
+      it('should show an error toast and keep the row editable when adding a milestone fails', async () => {
+        mockPoamService.addPoamMilestone.mockReturnValue(throwError(() => new Error('fail')));
+
+        const milestone = {
+          isNew: true,
+          milestoneId: 'temp_123',
+          milestoneChangeComments: 'New',
+          milestoneChangeDate: new Date(2025, 5, 15),
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [10],
+          editing: true
+        };
+
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        await component.onRowEditSave(milestone);
+
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Failed to add milestone') }));
+        expect(milestone.editing).toBe(true);
+      });
+
+      it('should not finalize the row when the update fails', async () => {
+        mockPoamService.updatePoamMilestone.mockReturnValue(throwError(() => new Error('fail')));
+
+        const milestone = {
+          isNew: false,
+          milestoneId: 1,
+          milestoneChangeComments: 'Updated',
+          milestoneChangeDate: new Date(2025, 5, 15),
+          milestoneStatus: 'In Progress',
+          assignedTeamIds: [10],
+          editing: true
+        };
+
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        await component.onRowEditSave(milestone);
+
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Failed to update milestone') }));
+        expect(milestone.editing).toBe(true);
+      });
     });
 
-    describe('deleteMilestone', () => {
-      it('should splice milestone if no milestoneId', () => {
-        component.poamMilestones.set([{ milestoneId: null }, { milestoneId: 1 }]);
-        component.deleteMilestone(component.poamMilestones()[0], 0);
-        expect(component.poamMilestones()).toHaveLength(1);
+    describe('row edit ownership split', () => {
+      it('should open the table editor for a newly added row', () => {
+        component.onAddNewMilestone();
+
+        const milestone = component.poamMilestones()[0];
+        const table = component.table() as any;
+
+        expect(table.initRowEdit).toHaveBeenCalledWith(milestone);
+        expect(table.isRowEditing(milestone)).toBe(true);
+        expect(milestone.isNew).toBe(true);
+        expect(milestone.editing).toBe(true);
       });
 
-      it('should call confirmationService.confirm for milestones with id', () => {
-        component.deleteMilestone({ milestoneId: 1 }, 0);
-        expect(mockConfirmationService.confirm).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('delete this milestone') }));
+      it('should close the table editor and clear the editing flag after a successful save', async () => {
+        const milestone = component.poamMilestones()[0];
+        const table = component.table() as any;
+
+        table.initRowEdit(milestone);
+        component.onRowEditInit(milestone);
+        milestone.milestoneChangeDate = new Date(2025, 5, 15);
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        await component.onRowEditSave(milestone);
+        expect(mockPoamService.updatePoamMilestone).toHaveBeenCalled();
+        expect(table.isRowEditing(milestone)).toBe(false);
+        expect(milestone.editing).toBe(false);
+        expect(component.clonedMilestones[milestone.milestoneId]).toBeUndefined();
       });
 
-      it('should delete milestone on accept', () => {
-        component.deleteMilestone({ milestoneId: 1 }, 0);
-        const confirmCall = mockConfirmationService.confirm.mock.calls[0][0];
+      it('should leave both the table editor and the editing flag intact when a save fails', async () => {
+        mockPoamService.updatePoamMilestone.mockReturnValue(throwError(() => new Error('fail')));
 
-        confirmCall.accept();
-        expect(mockPoamService.deletePoamMilestone).toHaveBeenCalledWith(42, 1, false);
+        const milestone = component.poamMilestones()[0];
+        const table = component.table() as any;
+
+        table.initRowEdit(milestone);
+        component.onRowEditInit(milestone);
+        milestone.milestoneChangeDate = new Date(2025, 5, 15);
+        component.poam.update((p: any) => ({ ...p, extensionDays: 0, scheduledCompletionDate: '2025-12-31' }));
+
+        await component.onRowEditSave(milestone);
+        expect(mockPoamService.updatePoamMilestone).toHaveBeenCalled();
+        expect(table.isRowEditing(milestone)).toBe(true);
+        expect(milestone.editing).toBe(true);
       });
+
+      it('should treat a row the table still has open as pending even without the component editing flag', () => {
+        const milestone = component.poamMilestones()[0];
+        const table = component.table() as any;
+
+        table.initRowEdit(milestone);
+        expect(milestone.editing).toBeUndefined();
+        expect((component as any).isMilestonePending(milestone)).toBe(true);
+      });
+
+      it('should replace the table edit map rather than mutating it in place', () => {
+        const milestone = component.poamMilestones()[0];
+        const table = component.table() as any;
+        const before = table.editingRowKeys;
+
+        table.initRowEdit(milestone);
+        expect(table.editingRowKeys).not.toBe(before);
+        expect(before[milestone.milestoneId]).toBeUndefined();
+      });
+    });
+  });
+
+  describe('Real Table Integration', () => {
+    let realFixture: ComponentFixture<PoamExtendComponent>;
+    let realComponent: PoamExtendComponent;
+
+    const realTable = () => realFixture.debugElement.query(By.css('p-table'))?.componentInstance;
+
+    const clickPencil = () => {
+      const pencilIcon = realFixture.nativeElement.querySelector('.pi-pencil');
+
+      expect(pencilIcon).toBeTruthy();
+      pencilIcon.closest('button').click();
+      realFixture.detectChanges();
+    };
+
+    beforeEach(() => {
+      realFixture = TestBed.createComponent(PoamExtendComponent);
+      realComponent = realFixture.componentInstance;
+      realFixture.detectChanges();
+      accessLevelSubject.next(2);
+      realFixture.detectChanges();
+    });
+
+    afterEach(() => {
+      realFixture.destroy();
+    });
+
+    it('should reflect a pencil-initiated row edit in both the component and the rendered table', () => {
+      clickPencil();
+
+      const milestone = realComponent.poamMilestones()[0];
+
+      expect(milestone.editing).toBe(true);
+      expect(realTable().isRowEditing(milestone)).toBe(true);
+    });
+
+    it('should drive the rendered table edit state from the component signal alone', () => {
+      const milestone = realComponent.poamMilestones()[0];
+
+      expect(realTable().isRowEditing(milestone)).toBe(false);
+
+      realComponent.onRowEditInit(milestone);
+      realFixture.detectChanges();
+
+      expect(realComponent.editingRowKeys()).toEqual({ [String(milestone.milestoneId)]: true });
+      expect(realTable().isRowEditing(milestone)).toBe(true);
+      expect(realFixture.nativeElement.querySelector('tbody .pi-check')).toBeTruthy();
+    });
+
+    it('should detach the milestones table from the DOM when the stepper leaves the panel', async () => {
+      clickPencil();
+
+      const milestone = realComponent.poamMilestones()[0];
+      const tableBefore = realTable();
+      const stepper = realFixture.debugElement.query(By.css('p-stepper')).componentInstance;
+
+      stepper.value.set(2);
+      realFixture.detectChanges();
+      await vi.advanceTimersByTimeAsync(1000);
+      realFixture.detectChanges();
+
+      expect(realFixture.debugElement.query(By.css('p-table'))).toBeNull();
+      expect(realFixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(0);
+      expect(tableBefore.isRowEditing(milestone)).toBe(true);
+    });
+
+    it('should re-adopt the same table instance and its open editors on the way back', async () => {
+      clickPencil();
+
+      const milestone = realComponent.poamMilestones()[0];
+      const tableBefore = realTable();
+      const stepper = realFixture.debugElement.query(By.css('p-stepper')).componentInstance;
+
+      stepper.value.set(2);
+      realFixture.detectChanges();
+      await vi.advanceTimersByTimeAsync(1000);
+      realFixture.detectChanges();
+
+      stepper.value.set(1);
+      realFixture.detectChanges();
+      await vi.advanceTimersByTimeAsync(1000);
+      realFixture.detectChanges();
+
+      const tableInstance = realTable();
+
+      expect(tableInstance).toBe(tableBefore);
+      expect(tableInstance.isRowEditing(milestone)).toBe(true);
+      expect(milestone.editing).toBe(true);
+    });
+
+    it('should close the rendered table editors when the row edit is cancelled', () => {
+      clickPencil();
+
+      const milestone = realComponent.poamMilestones()[0];
+
+      realComponent.onRowEditCancel(milestone);
+      realFixture.detectChanges();
+
+      expect(milestone.editing).toBe(false);
+      expect(realTable().isRowEditing(milestone)).toBe(false);
+    });
+
+    it('should never clear the poam signal during a reload so the table is created once', () => {
+      const tableBefore = realTable();
+      const poamValues: any[] = [];
+
+      poamValues.push(realComponent.poam());
+      realComponent.getData();
+      realFixture.detectChanges();
+      poamValues.push(realComponent.poam());
+
+      expect(poamValues.every((value) => value !== undefined)).toBe(true);
+      expect(realTable()).toBe(tableBefore);
     });
   });
 
@@ -1085,6 +1749,112 @@ describe('PoamExtendComponent', () => {
         component.computeDeadlineWithExtension();
         expect(component.completionDateWithExtension()).toBeTruthy();
       });
+
+      it('should anchor on the stored extensionDeadline and ignore extensionDays when a deadline exists', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: '2025-07-15' }));
+        component.computeDeadlineWithExtension();
+        expect(component.completionDateWithExtension()).toBe(format(new Date(2025, 6, 15), 'EEE MMM dd yyyy'));
+        expect(component.completionDateWithExtension()).not.toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
+      });
+
+      it('should anchor on today plus extensionDays only when no deadline is stored', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDays: 30, extensionDeadline: null }));
+        component.computeDeadlineWithExtension();
+        expect(component.completionDateWithExtension()).toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
+        expect(component.completionDateWithExtension()).not.toBe(format(new Date(2025, 6, 15), 'EEE MMM dd yyyy'));
+      });
+    });
+
+    describe('restart extension period toggle', () => {
+      it('should preview today plus extensionDays when checked', () => {
+        (component as any).onRestartExtensionPeriodChange(true);
+        expect(component.restartExtensionPeriod()).toBe(true);
+        expect(component.poam().extensionDeadline).toBeNull();
+        expect(component.completionDateWithExtension()).toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
+      });
+
+      it('should restore the stored deadline and days when unchecked', () => {
+        (component as any).onRestartExtensionPeriodChange(true);
+        (component as any).patchPoam({ extensionDays: 60 });
+        (component as any).onRestartExtensionPeriodChange(false);
+        expect(component.poam().extensionDays).toBe(30);
+        expect(component.poam().extensionDeadline).toBe('2025-07-15');
+        expect(component.completionDateWithExtension()).toBe('Tue Jul 15 2025');
+      });
+
+      it('should toggle from a real click on the rendered checkbox', () => {
+        fixture.detectChanges();
+
+        const checkbox = fixture.nativeElement.querySelector('#restartExtensionPeriod');
+
+        expect(checkbox).toBeTruthy();
+        expect(component.restartExtensionPeriod()).toBe(false);
+
+        checkbox.click();
+        fixture.detectChanges();
+
+        expect(component.restartExtensionPeriod()).toBe(true);
+        expect(component.poam().extensionDeadline).toBeNull();
+        expect(component.completionDateWithExtension()).toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
+      });
+
+      it('should disable the extension time select until the box is checked', () => {
+        fixture.detectChanges();
+
+        const select = fixture.debugElement.query(By.css('.extensionContainer p-select'));
+
+        expect(select.componentInstance.$disabled()).toBe(true);
+
+        (component as any).onRestartExtensionPeriodChange(true);
+        fixture.detectChanges();
+        expect(select.componentInstance.$disabled()).toBe(false);
+      });
+    });
+
+    describe('extensionPeriodExpired', () => {
+      it('should not flag a future stored deadline', () => {
+        expect(component.extensionPeriodExpired()).toBe(false);
+      });
+
+      it('should flag a stored deadline in the past', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDeadline: '2025-06-01' }));
+        expect(component.extensionPeriodExpired()).toBe(true);
+      });
+
+      it('should clear once the restart box empties the deadline', () => {
+        component.poam.update((p: any) => ({ ...p, extensionDeadline: '2025-06-01' }));
+        (component as any).onRestartExtensionPeriodChange(true);
+        expect(component.extensionPeriodExpired()).toBe(false);
+      });
+    });
+
+    describe('serverToday anchoring', () => {
+      it('should anchor a previewed deadline to the server date, not the browser date', () => {
+        mockPoamExtensionService.getPoamExtension.mockReturnValue(of([{ ...mockExtension[0], serverToday: '2025-06-13' }]));
+        initComponentWithAccess(2);
+
+        (component as any).onRestartExtensionPeriodChange(true);
+
+        expect(component.completionDateWithExtension()).toBe(format(addDays(new Date('2025-06-13T00:00:00'), 30), 'EEE MMM dd yyyy'));
+        expect(component.completionDateWithExtension()).not.toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
+      });
+
+      it('should fall back to the browser date when an older API omits serverToday', () => {
+        mockPoamExtensionService.getPoamExtension.mockReturnValue(of(mockLegacyExtension));
+        initComponentWithAccess(2);
+
+        (component as any).onRestartExtensionPeriodChange(true);
+
+        expect(component.completionDateWithExtension()).toBe(format(addDays(new Date(), 30), 'EEE MMM dd yyyy'));
+      });
+
+      it('should read the legacy full-ISO date format identically to the bare date format', () => {
+        mockPoamExtensionService.getPoamExtension.mockReturnValue(of(mockLegacyExtension));
+        initComponentWithAccess(2);
+
+        expect(component.poam().extensionDeadline).toBe('2025-07-15');
+        expect(component.poam().scheduledCompletionDate).toBe('2025-06-15');
+      });
     });
 
     describe('showConfirmation', () => {
@@ -1129,6 +1899,130 @@ describe('PoamExtendComponent', () => {
       it('should call confirmationService.confirm', () => {
         component.deletePoamExtension();
         expect(mockConfirmationService.confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Delete Extension Confirmation' }));
+      });
+
+      it('should warn about the status revert when the POAM awaits extension approval', () => {
+        component.poam.update((p: any) => ({ ...p, status: 'Extension Requested' }));
+        component.deletePoamExtension();
+
+        const message = mockConfirmationService.confirm.mock.calls[0][0].message;
+
+        expect(message).toContain('status returns to Submitted');
+        expect(message).toContain('any of its approvers who hold approver-level access on this collection are notified');
+        expect(message).toContain('may be marked Expired');
+        expect(component.deleteExtensionTooltip()).toContain('status returns to Submitted');
+        expect(component.deleteExtensionTooltip()).toContain('any of its approvers who hold approver-level access on this collection are notified');
+      });
+
+      it('should promise no status change when the POAM is not awaiting extension approval', () => {
+        component.poam.update((p: any) => ({ ...p, status: 'Approved' }));
+        component.deletePoamExtension();
+
+        const message = mockConfirmationService.confirm.mock.calls[0][0].message;
+
+        expect(message).toContain('The POAM status is not changed');
+        expect(message).toContain('may be marked Expired');
+        expect(message).not.toContain('Submitted');
+        expect(component.deleteExtensionTooltip()).toContain('The POAM status is not changed');
+        expect(component.deleteExtensionTooltip()).toContain('may be marked Expired');
+      });
+
+      it('should render the status-aware tooltip on the footer button', () => {
+        component.poam.update((p: any) => ({ ...p, status: 'Extension Requested' }));
+        fixture.detectChanges();
+
+        const deleteButton = Array.from(fixture.nativeElement.querySelectorAll('.p-dialog-footer button')).find((el: any) => el.textContent.trim() === 'Delete Extension') as HTMLElement;
+
+        expect(deleteButton).toBeTruthy();
+        expect(component.deleteExtensionTooltip()).toContain('re-enters normal expiry processing');
+      });
+
+      it('should disable every write action in the footer while a save is in flight', () => {
+        component.accessLevel.set(3);
+        component.saving.set(true);
+        fixture.detectChanges();
+
+        const footerButton = (label: string) => Array.from(fixture.nativeElement.querySelectorAll('.p-dialog-footer button')).find((el: any) => el.textContent.trim().startsWith(label)) as HTMLButtonElement;
+
+        for (const label of ['Save', 'Approve', 'Reject', 'Delete Extension']) {
+          const button = footerButton(label);
+
+          expect(button, label).toBeTruthy();
+          expect(button.disabled, label).toBe(true);
+        }
+      });
+
+      it('should re-enable the footer write actions once the save settles', () => {
+        component.accessLevel.set(3);
+        component.saving.set(false);
+        component.loading.set(false);
+        fixture.detectChanges();
+
+        const footerButton = (label: string) => Array.from(fixture.nativeElement.querySelectorAll('.p-dialog-footer button')).find((el: any) => el.textContent.trim().startsWith(label)) as HTMLButtonElement;
+
+        for (const label of ['Save', 'Approve', 'Reject', 'Delete Extension']) {
+          const button = footerButton(label);
+
+          expect(button, label).toBeTruthy();
+          expect(button.disabled, label).toBe(false);
+        }
+      });
+
+      it('should disable Save while a reload is in flight', () => {
+        component.accessLevel.set(2);
+        component.saving.set(false);
+        component.loading.set(true);
+        fixture.detectChanges();
+
+        const saveButton = Array.from(fixture.nativeElement.querySelectorAll('.p-dialog-footer button')).find((el: any) => el.textContent.trim() === 'Save') as HTMLButtonElement;
+
+        expect(saveButton).toBeTruthy();
+        expect(saveButton.disabled).toBe(true);
+      });
+
+      it('should disable every write action in the footer while a reload is in flight', () => {
+        component.accessLevel.set(3);
+        component.saving.set(false);
+        component.loading.set(true);
+        fixture.detectChanges();
+
+        const footerButton = (label: string) => Array.from(fixture.nativeElement.querySelectorAll('.p-dialog-footer button')).find((el: any) => el.textContent.trim().startsWith(label)) as HTMLButtonElement;
+
+        for (const label of ['Save', 'Approve', 'Reject', 'Delete Extension']) {
+          const button = footerButton(label);
+
+          expect(button, label).toBeTruthy();
+          expect(button.disabled, label).toBe(true);
+        }
+      });
+
+      it('should block deletion while a milestone is being edited', () => {
+        component.poamMilestones.set([{ milestoneId: 1, editing: true }]);
+        component.deletePoamExtension();
+        expect(mockConfirmationService.confirm).not.toHaveBeenCalled();
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Unsaved Changes' }));
+      });
+
+      it('should block deletion while an unsaved new milestone exists', () => {
+        component.poamMilestones.set([{ milestoneId: 'temp_1', isNew: true }]);
+        component.deletePoamExtension();
+        expect(mockConfirmationService.confirm).not.toHaveBeenCalled();
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Unsaved Changes' }));
+      });
+
+      it('should clear stale row edit bookkeeping when the reload lands', () => {
+        const milestone = component.poamMilestones()[0];
+
+        component.clonedMilestones['1'] = { milestoneId: 1 };
+        (component.table() as any).initRowEdit(milestone);
+
+        component.deletePoamExtension();
+        const confirmCall = mockConfirmationService.confirm.mock.calls[0][0];
+
+        confirmCall.accept();
+        expect(component.clonedMilestones).toEqual({});
+        expect((component.table() as any).editingRowKeys).toEqual({});
+        expect((component.table() as any).isRowEditing(milestone)).toBe(false);
       });
 
       it('should delete extension on accept', () => {
@@ -1284,6 +2178,20 @@ describe('PoamExtendComponent', () => {
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('change date must also have change comments') }));
     });
 
+    it('should not flag a milestone due on the server day as past-due when the browser clock is ahead', async () => {
+      (component as any).serverToday.set('2025-06-12');
+      component.poamMilestones.set([
+        {
+          milestoneDate: '2025-06-12',
+          milestoneChangeDate: null,
+          milestoneChangeComments: null,
+          editing: false
+        }
+      ]);
+      await component.submitPoamExtension();
+      expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('past-due milestones') }));
+    });
+
     it('should fail if past-due milestones have no change date', async () => {
       component.poamMilestones.set([
         {
@@ -1310,9 +2218,108 @@ describe('PoamExtendComponent', () => {
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('At least one milestone') }));
     });
 
-    it('should call putPoamExtension with Extension Requested status on success', async () => {
+    it('should call putPoamExtension with Extension Requested status when the restart box is checked', async () => {
+      component.restartExtensionPeriod.set(true);
       await component.submitPoamExtension();
-      expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(expect.objectContaining({ status: 'Extension Requested' }));
+      expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(expect.objectContaining({ status: 'Extension Requested', reanchorDeadline: true }));
+    });
+
+    it('should omit status and extensionDays so the server preserves both, and skip the re-anchor, for a data-only save', async () => {
+      component.restartExtensionPeriod.set(false);
+      await component.submitPoamExtension();
+
+      const body = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect(body).not.toHaveProperty('status');
+      expect(body).not.toHaveProperty('extensionDays');
+      expect(body.reanchorDeadline).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: expect.stringContaining('Extension updated') }));
+    });
+
+    it.each(['Approved', 'Expired', 'Extension Requested', 'Rejected'])('should omit status and extensionDays for a data-only save whatever status the POAM sits in, here %s', async (status) => {
+      component.poam.update((p: any) => ({ ...p, status }));
+      component.restartExtensionPeriod.set(false);
+      await component.submitPoamExtension();
+
+      const body = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect(body).not.toHaveProperty('status');
+      expect(body).not.toHaveProperty('extensionDays');
+      expect(body.reanchorDeadline).toBe(false);
+    });
+
+    it('should omit status and extensionDays for a data-only save rather than sending an explicit null, which an older API would write verbatim', async () => {
+      component.restartExtensionPeriod.set(false);
+      await component.submitPoamExtension();
+
+      const body = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect(body).not.toHaveProperty('status');
+      expect(body).not.toHaveProperty('extensionDays');
+      expect(body.status).not.toBeNull();
+      expect(body.extensionDays).not.toBeNull();
+    });
+
+    it('should send no status for a data-only save on an Approved POAM, the save an accessLevel 2 user would otherwise be refused', async () => {
+      component.poam.update((p: any) => ({ ...p, status: 'Approved' }));
+      component.restartExtensionPeriod.set(false);
+      await component.submitPoamExtension();
+
+      const body = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect(body).not.toHaveProperty('status');
+      expect(body).not.toHaveProperty('extensionDays');
+      expect(Object.values(body)).not.toContain('Approved');
+    });
+
+    it('should send no extensionDays for a data-only save on a Rejected POAM, so the stored days are preserved rather than zeroed', async () => {
+      component.poam.update((p: any) => ({ ...p, status: 'Rejected' }));
+      component.restartExtensionPeriod.set(false);
+      await component.submitPoamExtension();
+
+      const body = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect(body).not.toHaveProperty('extensionDays');
+      expect(body).not.toHaveProperty('status');
+    });
+
+    it('should still send an explicit status and days when the restart box re-anchors the extension period', async () => {
+      component.restartExtensionPeriod.set(true);
+      await component.submitPoamExtension();
+
+      const body = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect(body.status).toBe('Extension Requested');
+      expect(body.extensionDays).toBe(30);
+      expect(body.reanchorDeadline).toBe(true);
+    });
+
+    it('should not touch the Extended label for a data-only save', async () => {
+      const labelSpy = vi.spyOn(component as any, 'findOrCreateExtendedLabel');
+
+      component.restartExtensionPeriod.set(false);
+      await component.submitPoamExtension();
+      expect(labelSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('canApproveExtension', () => {
+    it('should allow an approval-level user on a POAM that is not CAT-I', () => {
+      initComponentWithAccess(3);
+      component.poam.set({ ...component.poam(), rawSeverity: 'CAT II - Medium' });
+      expect(component.canApproveExtension()).toBe(true);
+    });
+
+    it.each(['CAT I - Critical', 'CAT I - High'])('should deny an approval-level user when severity is %s', (rawSeverity) => {
+      initComponentWithAccess(3);
+      component.poam.set({ ...component.poam(), rawSeverity });
+      expect(component.canApproveExtension()).toBe(false);
+    });
+
+    it('should allow a CAT-I approver on a CAT-I POAM', () => {
+      initComponentWithAccess(4);
+      component.poam.set({ ...component.poam(), rawSeverity: 'CAT I - Critical' });
+      expect(component.canApproveExtension()).toBe(true);
     });
   });
 
@@ -1332,6 +2339,24 @@ describe('PoamExtendComponent', () => {
       component.extensionJustification.set('test');
       component.approveExtension();
       expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(expect.objectContaining({ status: 'Approved' }));
+    });
+
+    it('should refuse to approve while the restart extension period box is checked', () => {
+      component.poamMilestones.set([]);
+      component.extensionJustification.set('test');
+      (component as any).onRestartExtensionPeriodChange(true);
+      component.approveExtension();
+      expect(mockPoamExtensionService.putPoamExtension).not.toHaveBeenCalled();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'Restart Extension Period' }));
+    });
+
+    it('should approve once the restart extension period box is cleared again', () => {
+      component.poamMilestones.set([]);
+      component.extensionJustification.set('test');
+      (component as any).onRestartExtensionPeriodChange(true);
+      (component as any).onRestartExtensionPeriodChange(false);
+      component.approveExtension();
+      expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(expect.objectContaining({ status: 'Approved', reanchorDeadline: false }));
     });
   });
 
@@ -1377,6 +2402,68 @@ describe('PoamExtendComponent', () => {
       expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(expect.objectContaining({ extensionDays: 0 }));
     });
 
+    it('should mark reanchorDeadline true for extension requests', () => {
+      (component as any).putPoamExtension('Extension Requested');
+      expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(expect.objectContaining({ reanchorDeadline: true }));
+    });
+
+    it('should mark reanchorDeadline false for approvals', () => {
+      (component as any).putPoamExtension('Approved');
+      expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledWith(expect.objectContaining({ reanchorDeadline: false }));
+    });
+
+    it('should omit status and extensionDays with reanchorDeadline false for a data-only save even when the POAM is pending extension review', () => {
+      component.poam.update((p: any) => ({ ...p, status: 'Extension Requested' }));
+      (component as any).putPoamExtension('Extension Requested', { dataOnly: true });
+
+      const body = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect(body).not.toHaveProperty('status');
+      expect(body).not.toHaveProperty('extensionDays');
+      expect(body.reanchorDeadline).toBe(false);
+    });
+
+    it('should send no status for a data-only save on an Approved POAM, so the server never gates the save on an accessLevel 3 status change', () => {
+      component.poam.update((p: any) => ({ ...p, status: 'Approved' }));
+      (component as any).putPoamExtension('Approved', { dataOnly: true });
+
+      const body = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect(body).not.toHaveProperty('status');
+      expect(body).not.toHaveProperty('extensionDays');
+      expect(Object.values(body)).not.toContain('Approved');
+    });
+
+    it('should not echo a stale cached status a nightly status job may already have superseded', () => {
+      component.poam.update((p: any) => ({ ...p, status: 'Pending CAT-I Approval' }));
+      (component as any).putPoamExtension('Pending CAT-I Approval', { dataOnly: true });
+
+      const body = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect(body).not.toHaveProperty('status');
+      expect(Object.values(body)).not.toContain('Pending CAT-I Approval');
+    });
+
+    it('should still send an explicit status for approve, reject and re-anchor saves', () => {
+      (component as any).putPoamExtension('Approved');
+      (component as any).putPoamExtension('Rejected');
+      (component as any).putPoamExtension('Extension Requested');
+
+      const [approved, rejected, requested] = mockPoamExtensionService.putPoamExtension.mock.calls.map((call: any[]) => call[0]);
+
+      expect(approved).toMatchObject({ status: 'Approved', reanchorDeadline: false });
+      expect(rejected).toMatchObject({ status: 'Rejected', extensionDays: 0, reanchorDeadline: false });
+      expect(requested).toMatchObject({ status: 'Extension Requested', extensionDays: 30, reanchorDeadline: true });
+    });
+
+    it('should omit extensionDays when approving so a stale value cannot be written back', () => {
+      (component as any).putPoamExtension('Approved');
+
+      const approved = mockPoamExtensionService.putPoamExtension.mock.calls[0][0];
+
+      expect('extensionDays' in approved).toBe(false);
+    });
+
     it('should call findOrCreateExtendedLabel for non-rejected with extensionDays > 0', () => {
       const spy = vi.spyOn(component as any, 'findOrCreateExtendedLabel');
 
@@ -1406,20 +2493,42 @@ describe('PoamExtendComponent', () => {
       expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ detail: expect.stringContaining('Extension requested') }));
     });
 
-    it('should call updatePoamStatus for non-rejected with extensionDays > 0', () => {
+    it('should issue exactly one request per save, since putPoamExtension already sets the status server-side', () => {
       (component as any).putPoamExtension('Approved');
-      expect(mockPoamService.updatePoamStatus).toHaveBeenCalled();
-    });
-
-    it('should not call updatePoamStatus for Rejected', () => {
       (component as any).putPoamExtension('Rejected');
-      expect(mockPoamService.updatePoamStatus).not.toHaveBeenCalled();
+      (component as any).putPoamExtension('Extension Requested');
+      expect(mockPoamExtensionService.putPoamExtension).toHaveBeenCalledTimes(3);
     });
 
-    it('should show error when updatePoamStatus fails', () => {
-      mockPoamService.updatePoamStatus.mockReturnValue(throwError(() => new Error('fail')));
+    it('should clear saving once the request resolves', () => {
       (component as any).putPoamExtension('Approved');
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('Failed to update POAM status') }));
+      expect(component.saving()).toBe(false);
+    });
+
+    it('should clear saving when the request fails', () => {
+      mockPoamExtensionService.putPoamExtension.mockReturnValue(throwError(() => new Error('fail')));
+      (component as any).putPoamExtension('Approved');
+      expect(component.saving()).toBe(false);
+    });
+
+    it('should hold saving true while the request is in flight', () => {
+      const pending = new Subject<any>();
+
+      mockPoamExtensionService.putPoamExtension.mockReturnValue(pending.asObservable());
+      (component as any).putPoamExtension('Approved');
+      expect(component.saving()).toBe(true);
+
+      pending.next({ poamId: 42 });
+      pending.complete();
+      expect(component.saving()).toBe(false);
+    });
+
+    it('should not attach the Extended label when the request fails', () => {
+      const labelSpy = vi.spyOn(component as any, 'findOrCreateExtendedLabel');
+
+      mockPoamExtensionService.putPoamExtension.mockReturnValue(throwError(() => new Error('fail')));
+      (component as any).putPoamExtension('Extension Requested');
+      expect(labelSpy).not.toHaveBeenCalled();
     });
 
     it('should save all team mitigations for non-global findings with mitigations', () => {
