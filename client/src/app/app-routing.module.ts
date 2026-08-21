@@ -16,7 +16,7 @@ import { adminProcessingRoutes } from './pages/admin-processing/admin-processing
 import { assetRoutes } from './pages/assets/assets.routing';
 import { integrationRoutes } from './pages/integrations/integration-routing.module';
 import { labelRoutes } from './pages/labels/labels.routing';
-import { metricsRoutes } from './pages/metrics-processing/metrics.routing';
+import { metricsRoutes } from './pages/metrics/metrics.routing';
 import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
 import { homeRoutes } from './pages/home/home.routing';
 import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
