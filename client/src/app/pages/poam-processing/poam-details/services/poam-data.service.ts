@@ -17,7 +17,7 @@ import { AAPackageService } from '../../../admin-processing/aaPackage-processing
 import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
 import { AssetService } from '../../../asset-processing/assets.service';
-import { ImportService } from '../../../import-processing/import.service';
+import { IntegrationService } from '../../../integrations/integration.service';
 import { PoamService } from '../../poams.service';
 
 export interface AssetData {
@@ -47,7 +47,7 @@ export class PoamDataService {
   private readonly assetService = inject(AssetService);
   private readonly aaPackageService = inject(AAPackageService);
   private readonly messageService = inject(MessageService);
-  private readonly importService = inject(ImportService);
+  private readonly integrationService = inject(IntegrationService);
   private readonly sharedService = inject(SharedService);
 
   loadAssets(collectionType: string, originCollectionId: number, poam: any, collectionId: number): Observable<{ externalAssets?: AssetData[]; assetList?: any[]; poamAssets?: any[] }> {
@@ -162,7 +162,7 @@ export class PoamDataService {
         type: 'vuln'
       };
 
-      return this.importService.postTenableAnalysis(analysisParams).pipe(
+      return this.integrationService.postTenableAnalysis(analysisParams).pipe(
         map((data) => {
           if (!data?.response?.results) {
             this.messageService.add({

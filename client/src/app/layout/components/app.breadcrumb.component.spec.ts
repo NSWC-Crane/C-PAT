@@ -189,12 +189,12 @@ describe('AppBreadcrumbComponent', () => {
       { path: 'poam-extend', expected: 'Extend POAM' },
       { path: 'poam-log', expected: 'POAM Log' },
       { path: 'poam-manage', expected: 'Manage POAMs' },
-      { path: 'stigmanager-import', expected: 'STIG Manager' },
-      { path: 'tenable-import', expected: 'Tenable' },
+      { path: 'stig-manager', expected: 'STIG Manager' },
+      { path: 'tenable', expected: 'Tenable' },
       { path: 'user-processing', expected: 'User Processing' },
       { path: 'collection-processing', expected: 'Collection Processing' },
       { path: 'admin-processing', expected: 'Admin Processing' },
-      { path: 'import-processing', expected: 'Import Processing' },
+      { path: 'integrations', expected: 'Integrations' },
       { path: 'asset-processing', expected: 'Asset Processing' },
       { path: 'label-processing', expected: 'Label Processing' },
       { path: 'metrics', expected: 'Metrics' },
@@ -279,12 +279,12 @@ describe('AppBreadcrumbComponent', () => {
     });
 
     it('should handle tenable import path', () => {
-      mockLocation.path.mockReturnValue('/import-processing/tenable-import');
+      mockLocation.path.mockReturnValue('/integrations/tenable');
       fixture.detectChanges();
 
       expect(component.items()).toEqual([
-        { label: 'Import Processing', routerLink: '/import-processing' },
-        { label: 'Tenable', routerLink: '/import-processing/tenable-import' }
+        { label: 'Integrations', routerLink: '/integrations' },
+        { label: 'Tenable', routerLink: '/integrations/tenable' }
       ]);
     });
   });

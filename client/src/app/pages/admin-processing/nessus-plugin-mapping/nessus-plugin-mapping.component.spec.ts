@@ -26,7 +26,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { NessusPluginMappingComponent } from './nessus-plugin-mapping.component';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 
 const buildMockIAVResponse = () => ({
@@ -67,7 +67,7 @@ describe('NessusPluginMappingComponent', () => {
   let component: NessusPluginMappingComponent;
   let fixture: ComponentFixture<NessusPluginMappingComponent>;
   let mockNessusPluginMappingService: any;
-  let mockImportService: any;
+  let mockIntegrationService: any;
   let mockMessageService: any;
 
   beforeAll(() => {
@@ -87,7 +87,7 @@ describe('NessusPluginMappingComponent', () => {
       putIAVTaskOrder: vi.fn().mockReturnValue(of({}))
     };
 
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn().mockReturnValue(
         of({
           response: {
@@ -106,7 +106,7 @@ describe('NessusPluginMappingComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: NessusPluginMappingService, useValue: mockNessusPluginMappingService },
-        { provide: ImportService, useValue: mockImportService },
+        { provide: IntegrationService, useValue: mockIntegrationService },
         { provide: MessageService, useValue: mockMessageService }
       ]
     })
@@ -376,7 +376,7 @@ describe('NessusPluginMappingComponent', () => {
     it('should call postTenableAnalysis with correct query shape', () => {
       component.updatePluginIds();
       vi.runAllTimers();
-      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(
+      expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({ tool: 'vulndetails', type: 'vuln' })
         }),
@@ -419,7 +419,7 @@ describe('NessusPluginMappingComponent', () => {
     it('does not report success when the component is destroyed mid-run', () => {
       const pending = new Subject<any>();
 
-      mockImportService.postTenableAnalysis.mockReturnValue(pending.asObservable());
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(pending.asObservable());
 
       component.updatePluginIds();
       fixture.destroy();
@@ -436,18 +436,18 @@ describe('NessusPluginMappingComponent', () => {
 
       it('bypasses the upstream cache for every batch', () => {
         (component as any).batchSize = 1;
-        mockImportService.postTenableAnalysis.mockReturnValueOnce(of(batch('1', 2))).mockReturnValueOnce(of(batch('2', 2)));
+        mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(of(batch('1', 2))).mockReturnValueOnce(of(batch('2', 2)));
 
         component.updatePluginIds();
         vi.runAllTimers();
 
-        expect(mockImportService.postTenableAnalysis).toHaveBeenCalledTimes(2);
-        mockImportService.postTenableAnalysis.mock.calls.forEach((call: any[]) => expect(call[1]).toBe(false));
+        expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledTimes(2);
+        mockIntegrationService.postTenableAnalysis.mock.calls.forEach((call: any[]) => expect(call[1]).toBe(false));
       });
 
       it('walks a multi-batch run without skipping or repeating an offset', () => {
         (component as any).batchSize = 1;
-        mockImportService.postTenableAnalysis
+        mockIntegrationService.postTenableAnalysis
           .mockReturnValueOnce(of(batch('1', 3)))
           .mockReturnValueOnce(of(batch('2', 3)))
           .mockReturnValueOnce(of(batch('3', 3)));
@@ -455,7 +455,7 @@ describe('NessusPluginMappingComponent', () => {
         component.updatePluginIds();
         vi.runAllTimers();
 
-        const offsets = mockImportService.postTenableAnalysis.mock.calls.map((call: any[]) => call[0].query.startOffset);
+        const offsets = mockIntegrationService.postTenableAnalysis.mock.calls.map((call: any[]) => call[0].query.startOffset);
 
         expect(offsets).toEqual([0, 1, 2]);
         expect(mockNessusPluginMappingService.mapIAVPluginIds).toHaveBeenCalledTimes(1);
@@ -463,7 +463,7 @@ describe('NessusPluginMappingComponent', () => {
 
       it('maps every plugin exactly once across a multi-batch run', () => {
         (component as any).batchSize = 1;
-        mockImportService.postTenableAnalysis.mockReturnValueOnce(of(batch('1', 2))).mockReturnValueOnce(of(batch('2', 2)));
+        mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(of(batch('1', 2))).mockReturnValueOnce(of(batch('2', 2)));
 
         component.updatePluginIds();
         vi.runAllTimers();
@@ -476,7 +476,7 @@ describe('NessusPluginMappingComponent', () => {
     });
 
     it('should show error message when batch processing fails', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Tenable error')));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Tenable error')));
 
       try {
         component.updatePluginIds();

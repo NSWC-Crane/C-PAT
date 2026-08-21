@@ -21,7 +21,7 @@ import { AppConfigurationService } from '../../../admin-processing/app-configura
 import { AssignedTeamService } from '../../../admin-processing/assignedTeam-processing/assignedTeam-processing.service';
 import { CollectionsService } from '../../../admin-processing/collection-processing/collections.service';
 import { AssetService } from '../../../asset-processing/assets.service';
-import { ImportService } from '../../../import-processing/import.service';
+import { IntegrationService } from '../../../integrations/integration.service';
 import { PoamVariableMappingService } from './poam-variable-mapping.service';
 
 interface UserCollectionPermission {
@@ -38,7 +38,7 @@ interface UserCollectionPermission {
   providedIn: 'root'
 })
 export class PoamCreationService {
-  private readonly importService = inject(ImportService);
+  private readonly integrationService = inject(IntegrationService);
   private readonly sharedService = inject(SharedService);
   private readonly appConfigurationService = inject(AppConfigurationService);
   private readonly collectionsService = inject(CollectionsService);
@@ -101,7 +101,7 @@ export class PoamCreationService {
         type: 'vuln'
       };
 
-      this.importService.postTenableAnalysis(analysisParams).subscribe({
+      this.integrationService.postTenableAnalysis(analysisParams).subscribe({
         next: (data) => {
           if (!data.error_msg) {
             resolve(data.response.results[0]);

@@ -31,7 +31,7 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { AAPackageService } from '../aaPackage-processing/aaPackage-processing.service';
 import { CollectionsService } from './collections.service';
@@ -56,7 +56,7 @@ export class CollectionProcessingComponent implements OnInit {
   private readonly setPayloadService = inject(PayloadService);
   private readonly messageService = inject(MessageService);
   private readonly sharedService = inject(SharedService);
-  private readonly importService = inject(ImportService);
+  private readonly integrationService = inject(IntegrationService);
   private readonly poamService = inject(PoamService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -328,7 +328,7 @@ export class CollectionProcessingComponent implements OnInit {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams, false).pipe(
+    return this.integrationService.postTenableAnalysis(analysisParams, false).pipe(
       map((data) => {
         this.tenableAffectedAssets = data.response.results.map((asset: any) => ({
           pluginId: asset.pluginID,
@@ -603,7 +603,7 @@ export class CollectionProcessingComponent implements OnInit {
     const source$ =
       collectionType === 'STIG Manager'
         ? this.sharedService.getCollectionsFromSTIGMAN(false).pipe(map((list: any[]) => (list ?? []).map((c: any) => ({ label: c.name, value: +c.collectionId }))))
-        : this.importService.getTenableRepositories(false).pipe(map((res: any) => (res?.response ?? []).map((r: any) => ({ label: r.name, value: +r.id }))));
+        : this.integrationService.getTenableRepositories(false).pipe(map((res: any) => (res?.response ?? []).map((r: any) => ({ label: r.name, value: +r.id }))));
 
     source$
       .pipe(
@@ -867,7 +867,7 @@ export class CollectionProcessingComponent implements OnInit {
                 }))
             )
           )
-        : this.importService.getTenableRepositories(false).pipe(
+        : this.integrationService.getTenableRepositories(false).pipe(
             map((res: any) =>
               (res?.response ?? [])
                 .filter((r: any) => !usedOriginIds.has(+r.id))

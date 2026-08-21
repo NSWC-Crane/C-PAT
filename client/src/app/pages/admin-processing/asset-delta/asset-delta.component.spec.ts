@@ -38,7 +38,7 @@ import { AssetDeltaService } from './asset-delta.service';
 import { CollectionsService } from '../collection-processing/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
 
@@ -63,7 +63,7 @@ describe('AssetDeltaComponent', () => {
   let mockCollectionsService: any;
   let mockSharedService: any;
   let mockAppConfigService: any;
-  let mockImportService: any;
+  let mockIntegrationService: any;
   let mockPayloadService: any;
   let mockMessageService: any;
 
@@ -97,7 +97,7 @@ describe('AssetDeltaComponent', () => {
       appState: signal({ darkTheme: false })
     };
 
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn().mockReturnValue(of({ response: { results: [{ dnsName: 'asset-001.domain.com' }] } }))
     };
 
@@ -116,7 +116,7 @@ describe('AssetDeltaComponent', () => {
         { provide: CollectionsService, useValue: mockCollectionsService },
         { provide: SharedService, useValue: mockSharedService },
         { provide: AppConfigService, useValue: mockAppConfigService },
-        { provide: ImportService, useValue: mockImportService },
+        { provide: IntegrationService, useValue: mockIntegrationService },
         { provide: PayloadService, useValue: mockPayloadService },
         { provide: MessageService, useValue: mockMessageService }
       ]
@@ -388,7 +388,7 @@ describe('AssetDeltaComponent', () => {
       component.selectedCollection.set(10);
       component.assets.set([{ key: 'ASSET-001', value: 'Team A', eMASS: true, loading: false }]);
       component.checkAllStatuses();
-      expect(mockImportService.postTenableAnalysis).toHaveBeenCalled();
+      expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalled();
       expect(mockSharedService.getCollectionsFromSTIGMAN).toHaveBeenCalled();
     });
 
@@ -637,7 +637,7 @@ describe('AssetDeltaComponent', () => {
   describe('checkTenableStatus', () => {
     it('should call postTenableAnalysis with correct structure', () => {
       component.checkTenableStatus(['ASSET-001', 'ASSET-002']).subscribe();
-      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(
+      expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({
             tool: 'sumdnsname',
@@ -650,7 +650,7 @@ describe('AssetDeltaComponent', () => {
 
     it('should include hostnames in the filter value', () => {
       component.checkTenableStatus(['HOST-A', 'HOST-B']).subscribe();
-      const call = mockImportService.postTenableAnalysis.mock.calls[0][0];
+      const call = mockIntegrationService.postTenableAnalysis.mock.calls[0][0];
 
       expect(call.query.filters[0].value).toBe('HOST-A,HOST-B');
     });

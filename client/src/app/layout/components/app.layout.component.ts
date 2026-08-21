@@ -489,13 +489,13 @@ export class AppLayoutComponent implements OnInit {
       {
         label: 'STIG Manager',
         icon: 'pi pi-shield',
-        routerLink: ['/import-processing/stigmanager-import'],
+        routerLink: ['/integrations/stig-manager'],
         visible: this.accessLevel >= 1 && this.collectionType() === 'STIG Manager'
       },
       {
         label: 'Tenable',
         icon: 'tenable-icon',
-        routerLink: ['/import-processing/tenable-import'],
+        routerLink: ['/integrations/tenable'],
         visible: this.accessLevel >= 1 && this.collectionType() === 'Tenable'
       },
       {
@@ -587,7 +587,7 @@ export class AppLayoutComponent implements OnInit {
         closeOnOutsideClick: true,
         enableBackdrop: true
       },
-      ...this.buildImportSteps(),
+      ...this.buildIntegrationSteps(),
       {
         anchorId: 'poam-global-toggle',
         title: 'Global vs. Team POAM',
@@ -704,7 +704,7 @@ export class AppLayoutComponent implements OnInit {
     this.tourService.start();
   }
 
-  private buildImportSteps(): IStepOption[] {
+  private buildIntegrationSteps(): IStepOption[] {
     if (this.collectionType() === 'STIG Manager') {
       return [
         {
@@ -712,7 +712,7 @@ export class AppLayoutComponent implements OnInit {
           title: 'STIG Manager',
           content:
             'The STIG Manager integration is separated into core functionalities by tabs. STIG Manager Benchmarks for identifying open findings, STIG Manager Reviews for evaluating unique assets, and STIG Manager Controls for viewing findings grouped by control.',
-          route: '/import-processing/stigmanager-import',
+          route: '/integrations/stig-manager',
           closeOnOutsideClick: true,
           isAsync: true,
           enableBackdrop: true
@@ -721,7 +721,7 @@ export class AppLayoutComponent implements OnInit {
           anchorId: 'stigmanager-summary',
           title: 'Summary View',
           content: 'This table provides row entries at the benchmark level. Selecting a benchmark will directly query the STIG Manager API to return any open findings. Select a benchmark to continue.',
-          route: '/import-processing/stigmanager-import',
+          route: '/integrations/stig-manager',
           closeOnOutsideClick: true,
           isAsync: true,
           nextOnAnchorClick: true,
@@ -732,7 +732,7 @@ export class AppLayoutComponent implements OnInit {
           title: 'Creating a POAM',
           content: 'The icons contained within the POAM column directly reflect the status of any coresponding POAMs. If a POAM does not yet exist, a red plus icon will be displayed. Click the POAM status icon to continue.',
           popoverClass: '!mt-7 !ml-3',
-          route: '/import-processing/stigmanager-import',
+          route: '/integrations/stig-manager',
           closeOnOutsideClick: true,
           isAsync: true,
           nextOnAnchorClick: true,
@@ -748,7 +748,7 @@ export class AppLayoutComponent implements OnInit {
           anchorId: 'tenable-vulnerabilities',
           title: 'Tenable Vulnerabilities',
           content: 'This table lists existing findings contained in the current Tenable repository.',
-          route: '/import-processing/tenable-import',
+          route: '/integrations/tenable',
           closeOnOutsideClick: true,
           isAsync: true,
           enableBackdrop: true
@@ -757,7 +757,7 @@ export class AppLayoutComponent implements OnInit {
           anchorId: 'tenable-sumid',
           title: 'Summary View',
           content: `By default, the table lists findings from the Tenable 'Vulnerability Summary' view. This button can toggle between the vulnerability list and the vulnerability summary view.`,
-          route: '/import-processing/tenable-import',
+          route: '/integrations/tenable',
           closeOnOutsideClick: true,
           enableBackdrop: true
         },
@@ -765,7 +765,7 @@ export class AppLayoutComponent implements OnInit {
           anchorId: 'tenable-filters',
           title: 'Tenable Filters',
           content: 'This button will expand a comprehensive filter panel to compile filters and directly query the Tenable API. Click the filter button to continue.',
-          route: '/import-processing/tenable-import',
+          route: '/integrations/tenable',
           closeOnOutsideClick: true,
           isAsync: true,
           nextOnAnchorClick: true,
@@ -777,7 +777,7 @@ export class AppLayoutComponent implements OnInit {
           content:
             'Some pre-made filters are already available to help you quickly filter for the items that you would like to view. Filters can also be saved within the current collection and viewed by other C-PAT users by clicking the highlighted button.',
           popoverClass: 'filter-guide-visible',
-          route: '/import-processing/tenable-import',
+          route: '/integrations/tenable',
           closeOnOutsideClick: true,
           isAsync: true,
           enableBackdrop: true
@@ -786,7 +786,7 @@ export class AppLayoutComponent implements OnInit {
           anchorId: 'tenable-poam-creation',
           title: 'Creating a POAM',
           content: 'The icons contained within vulnerability columns directly reflect the status of any coresponding POAMs. If a POAM does not yet exist, a red plus icon will be displayed. Click the POAM status icon to continue.',
-          route: '/import-processing/tenable-import',
+          route: '/integrations/tenable',
           closeOnOutsideClick: true,
           isAsync: true,
           nextOnAnchorClick: true,
@@ -799,7 +799,7 @@ export class AppLayoutComponent implements OnInit {
     return [
       {
         anchorId: 'current-collection',
-        title: 'Switch to an Import-Enabled Collection',
+        title: 'Switch to an Integration-Enabled Collection',
         content: 'You are currently using a C-PAT collection. To automate POAM creation, switch to a STIG Manager or Tenable collection using this collection selector. Alternatively, click Next to continue the tour with a manually drafted POAM.',
         enableBackdrop: true,
         closeOnOutsideClick: true

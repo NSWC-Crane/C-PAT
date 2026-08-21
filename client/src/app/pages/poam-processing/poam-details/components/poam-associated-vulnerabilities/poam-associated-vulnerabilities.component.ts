@@ -19,7 +19,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
-import { ImportService } from '../../../../import-processing/import.service';
+import { IntegrationService } from '../../../../integrations/integration.service';
 import { PoamService } from '../../../poams.service';
 
 interface DisplayVulnerability {
@@ -62,7 +62,7 @@ interface AutocompleteSuggestion {
   imports: [FormsModule, TableModule, ButtonModule, TagModule, TooltipModule, AutoCompleteModule]
 })
 export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges {
-  private readonly importService = inject(ImportService);
+  private readonly integrationService = inject(IntegrationService);
   private readonly messageService = inject(MessageService);
   poamService = inject(PoamService);
   sharedService = inject(SharedService);
@@ -193,7 +193,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
   private loadTenableData(): void {
     const collectionId = this.currentCollection().originCollectionId;
 
-    this.importService
+    this.integrationService
       .postTenableAnalysis({
         query: {
           description: '',

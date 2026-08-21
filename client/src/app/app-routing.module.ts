@@ -14,7 +14,7 @@ import { consentRoute } from './common/components/dod-consent/dod-consent.routin
 import { AuthGuard } from './core/auth/guards/auth.guard';
 import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
 import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
-import { importProcessingRoutes } from './pages/import-processing/import-processing-routing.module';
+import { integrationRoutes } from './pages/integrations/integration-routing.module';
 import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
 import { metricsRoutes } from './pages/metrics-processing/metrics.routing';
 import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
@@ -58,9 +58,9 @@ export const routes: Routes = [
         children: consentRoute
       },
       {
-        path: 'import-processing',
+        path: 'integrations',
         canActivate: [AuthGuard],
-        children: importProcessingRoutes
+        children: integrationRoutes
       },
       {
         path: 'label-processing',

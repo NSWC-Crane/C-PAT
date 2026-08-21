@@ -1,0 +1,279 @@
+﻿<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<p-card class="stig-manager-card">
+  <p-tabs value="0" scrollable lazy>
+    <p-tablist tourAnchor="stigmanager-tabset">
+      <p-tab value="0">
+        @if (viewMode === 'summary') {
+          <span>STIG Manager Benchmarks ({{ benchmarksCount() }})</span>
+        }
+        @if (viewMode === 'findings') {
+          <span>STIG Manager Findings ({{ findingsCount() }})</span>
+        }
+      </p-tab>
+      <p-tab value="1">STIG Manager Reviews ({{ reviewsCount() }})</p-tab>
+      <p-tab value="2">STIG Manager Controls ({{ controlsCount() }})</p-tab>
+    </p-tablist>
+    <p-tabpanels>
+      <p-tabpanel value="0">
+        @if (viewMode === 'summary') {
+          <div class="benchmark-summary">
+            <div class="toolbar mb-4 mt-4">
+              <div class="flex items-center">
+                <p-iconfield iconPosition="left">
+                  <p-inputicon>
+                    <i class="pi pi-search"></i>
+                  </p-inputicon>
+                  <input pInputText type="text" class="min-w-[300px]" (input)="filterBenchmarkGlobal($event)" id="search" placeholder="Search Benchmarks..." />
+                </p-iconfield>
+                <button pButton class="ml-4" (click)="clearBenchmarkFilter()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
+                <button pButton class="ml-4" (click)="getAllFindings()" [rounded]="true" [text]="true" [raised]="true" pTooltip="Load all findings"><i class="pi pi-search-plus" pButtonIcon></i></button>
+              </div>
+            </div>
+            <p-table
+              #stigBenchmarksTable
+              [value]="loadingTableInfo() ? loadingSkeletonData : benchmarkSummaries()"
+              selectionMode="single"
+              [paginator]="true"
+              [rows]="100"
+              [scrollable]="true"
+              scrollHeight="calc(100vh - 25rem)"
+              [rowsPerPageOptions]="[25, 50, 100]"
+              [globalFilterFields]="['benchmarkId', 'revisionStr']"
+              (onFilter)="onBenchmarkFilter($event)"
+              dataKey="benchmarkId"
+            >
+              <ng-template #header>
+                <tr>
+                  <th scope="col" pSortableColumn="benchmarkId">Benchmark</th>
+                  <th scope="col" pSortableColumn="revisionStr">Revision</th>
+                  <th scope="col" pSortableColumn="assets">Assets</th>
+                  <th scope="col" pSortableColumn="metrics.assessments">Checks</th>
+                  <th scope="col" pSortableColumn="metrics.minTs">Oldest</th>
+                  <th scope="col" pSortableColumn="metrics.maxTs">Newest</th>
+                  <th scope="col" pSortableColumn="metrics.maxTouchTs">Updated</th>
+                  <th scope="col" pSortableColumn="assessedPercentage">Assessed</th>
+                  <th scope="col" pSortableColumn="submittedPercentage">Submitted</th>
+                  <th scope="col" pSortableColumn="acceptedPercentage">Accepted</th>
+                  <th scope="col" pSortableColumn="rejectedPercentage">Rejected</th>
+                  <th scope="col" pSortableColumn="unassessedPercentage">Unassessed</th>
+                  <th scope="col" pSortableColumn="cat1Count">CAT I</th>
+                  <th scope="col" pSortableColumn="cat2Count">CAT II</th>
+                  <th scope="col" pSortableColumn="cat3Count">CAT III</th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-benchmark let-rowIndex="rowIndex">
+                <tr [tourAnchor]="rowIndex === 0 ? 'stigmanager-summary' : ''" (click)="selectBenchmark(benchmark)" [style.cursor]="'pointer'">
+                  <td>{{ benchmark.benchmarkId }}</td>
+                  <td>{{ benchmark.revisionStr }}</td>
+                  <td>{{ benchmark.assets }}</td>
+                  <td>{{ benchmark.metrics?.assessments || 0 }}</td>
+                  <td>{{ benchmark.metrics?.minTs ? (benchmark.metrics.minTs | date: 'shortDate') : '-' }}</td>
+                  <td>{{ benchmark.metrics?.maxTs ? (benchmark.metrics.maxTs | date: 'shortDate') : '-' }}</td>
+                  <td>{{ benchmark.metrics?.maxTouchTs ? (benchmark.metrics.maxTouchTs | date: 'shortDate') : '-' }}</td>
+                  <td>
+                    <p-progressbar
+                      [value]="(benchmark.metrics?.assessed / benchmark.metrics?.assessments) * 100 || 0"
+                      class="assessed-progress h-[20px]"
+                      [pTooltip]="benchmark.metrics?.assessed + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.assessed / benchmark.metrics?.assessments) * 100 || 0 | number: '1.0-0') + '%)'"
+                    >
+                      <ng-template #content let-value> {{ value || 0 | number: '1.0-0' }}% </ng-template>
+                    </p-progressbar>
+                  </td>
+                  <td>
+                    <p-progressbar
+                      [value]="((benchmark.metrics?.statuses?.submitted + benchmark.metrics?.statuses?.accepted + benchmark.metrics?.statuses?.rejected) / benchmark.metrics?.assessments) * 100 || 0"
+                      class="submitted-progress h-[20px]"
+                      [pTooltip]="
+                        benchmark.metrics?.statuses?.submitted +
+                        benchmark.metrics?.statuses?.accepted +
+                        benchmark.metrics?.statuses?.rejected +
+                        ' / ' +
+                        benchmark.metrics?.assessments +
+                        ' (' +
+                        (((benchmark.metrics?.statuses?.submitted + benchmark.metrics?.statuses?.accepted + benchmark.metrics?.statuses?.rejected) / benchmark.metrics?.assessments) * 100 || 0 | number: '1.0-0') +
+                        '%)'
+                      "
+                    >
+                      <ng-template #content let-value> {{ value || 0 | number: '1.0-0' }}% </ng-template>
+                    </p-progressbar>
+                  </td>
+                  <td>
+                    <p-progressbar
+                      [value]="(benchmark.metrics?.statuses?.accepted / benchmark.metrics?.assessments) * 100 || 0"
+                      class="accepted-progress h-[20px]"
+                      [pTooltip]="benchmark.metrics?.statuses?.accepted + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.statuses?.accepted / benchmark.metrics?.assessments) * 100 || 0 | number: '1.0-0') + '%)'"
+                    >
+                      <ng-template #content let-value> {{ value || 0 | number: '1.0-0' }}% </ng-template>
+                    </p-progressbar>
+                  </td>
+                  <td>
+                    <p-progressbar
+                      [value]="(benchmark.metrics?.statuses?.rejected / benchmark.metrics?.assessments) * 100 || 0"
+                      class="rejected-progress h-[20px]"
+                      [pTooltip]="benchmark.metrics?.statuses?.rejected + ' / ' + benchmark.metrics?.assessments + ' (' + ((benchmark.metrics?.statuses?.rejected / benchmark.metrics?.assessments) * 100 || 0 | number: '1.0-0') + '%)'"
+                    >
+                      <ng-template #content let-value> {{ value || 0 | number: '1.0-0' }}% </ng-template>
+                    </p-progressbar>
+                  </td>
+                  <td>
+                    <p-progressbar
+                      [value]="((benchmark.metrics?.assessments - benchmark.metrics?.assessed) / benchmark.metrics?.assessments) * 100 || 0"
+                      class="unassessed-progress h-[20px]"
+                      [pTooltip]="
+                        benchmark.metrics?.assessments -
+                        benchmark.metrics?.assessed +
+                        ' / ' +
+                        benchmark.metrics?.assessments +
+                        ' (' +
+                        (((benchmark.metrics?.assessments - benchmark.metrics?.assessed) / benchmark.metrics?.assessments) * 100 || 0 | number: '1.0-0') +
+                        '%)'
+                      "
+                    >
+                      <ng-template #content let-value> {{ value || 0 | number: '1.0-0' }}% </ng-template>
+                    </p-progressbar>
+                  </td>
+                  <td>{{ benchmark.metrics?.findings?.high || 0 }}</td>
+                  <td>{{ benchmark.metrics?.findings?.medium || 0 }}</td>
+                  <td>{{ benchmark.metrics?.findings?.low || 0 }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        }
+        @if (viewMode === 'findings') {
+          <div>
+            <div class="toolbar mb-4 mt-4">
+              <div class="flex items-center justify-between">
+                <p-iconfield iconPosition="left">
+                  <p-inputicon>
+                    <i class="pi pi-search"></i>
+                  </p-inputicon>
+                  <input pInputText type="text" class="min-w-[300px]" (input)="filterGlobal($event)" id="findingsSearch" placeholder="Search..." />
+                </p-iconfield>
+                <button pButton class="ml-4" (click)="clear()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
+                <button pButton class="ml-4" (click)="backToBenchmarkSummary()" [rounded]="true" [text]="true" [raised]="true" pTooltip="Back to Benchmarks"><i class="pi pi-arrow-left" pButtonIcon></i></button>
+              </div>
+              <div class="right-buttons">
+                <button pButton (click)="exportCSV()" severity="secondary" [rounded]="true" [text]="true"><i class="pi pi-external-link" pButtonIcon></i></button>
+              </div>
+            </div>
+            <div class="table-container">
+              <p-table
+                #stigFindingsTable
+                [value]="loadingTableInfo() ? loadingSkeletonData : displayDataSource()"
+                selectionMode="single"
+                [columns]="allColumns"
+                [globalFilterFields]="['groupId', 'ruleTitle', 'severity']"
+                (onSort)="updateSort($event)"
+                (onFilter)="onFilter($event)"
+                [paginator]="true"
+                [rows]="100"
+                [scrollable]="true"
+                scrollHeight="calc(100vh - 25rem)"
+                [rowsPerPageOptions]="[25, 50, 100]"
+                dataKey="groupId"
+              >
+                <ng-template #header>
+                  <tr>
+                    @for (col of allColumns; track col) {
+                      <th scope="col" [pSortableColumn]="col.field" [style.width]="col.width">
+                        {{ col.header }}
+                        @if (col.field === 'poam') {
+                          <p-columnfilter [field]="col.filterField" type="multi" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
+                            <ng-template #filter let-value let-filter="filterCallback">
+                              <p-select
+                                [multiple]="true"
+                                [filter]="true"
+                                [checkmark]="true"
+                                [ngModel]="value"
+                                [options]="col.filterOptions"
+                                (onChange)="filter($event.value)"
+                                placeholder="Select Status..."
+                                [showClear]="true"
+                                class="w-full swap-button-order"
+                              />
+                            </ng-template>
+                          </p-columnfilter>
+                        }
+                        @if (col.field === 'severity') {
+                          <p-columnfilter type="multi" [field]="col.field" matchMode="in" [showOperator]="false" [showMatchModes]="false" [showAddButton]="false" display="menu">
+                            <ng-template #filter let-value let-filter="filterCallback">
+                              <p-select [multiple]="true" [checkmark]="true" [ngModel]="value" [options]="col.filterOptions" (onChange)="filter($event.value)" placeholder="Select Severity..." [showClear]="true" class="w-full swap-button-order" />
+                            </ng-template>
+                          </p-columnfilter>
+                        }
+                        @if (col.field !== 'poam' && col.field !== 'severity' && col.field !== 'benchmarkId') {
+                          <p-columnfilter [type]="col.filterType" [field]="col.field" [showOperator]="false" display="menu" />
+                        }
+                      </th>
+                    }
+                  </tr>
+                </ng-template>
+                <ng-template #body let-rowData let-rowIndex="rowIndex">
+                  <tr>
+                    @for (col of allColumns; track col) {
+                      <td>
+                        @if (loadingTableInfo()) {
+                          <p-skeleton height="2rem" />
+                        } @else {
+                          @switch (col.field) {
+                            @case ('poam') {
+                              <button
+                                type="button"
+                                class="group cursor-pointer transition-[filter] duration-200 hover:brightness-115"
+                                [tourAnchor]="rowIndex === 0 ? 'stigmanager-poam-creation' : ''"
+                                (click)="addPoam(rowData)"
+                                [pTooltip]="getPoamStatusTooltip(rowData.poamStatus, rowData.hasExistingPoam, rowData.parentStatus)"
+                                tooltipPosition="top"
+                                aria-label="Manage POAM"
+                              >
+                                <i
+                                  class="transition-[-webkit-text-stroke-width] duration-200 group-hover:[-webkit-text-stroke:0.25px]"
+                                  [ngClass]="rowData.hasExistingPoam ? getPoamStatusIcon(rowData.poamStatus, rowData.isAssociated) : 'pi pi-plus-circle'"
+                                  [style]="{
+                                    color: !rowData.hasExistingPoam ? 'maroon' : getPoamStatusColor(rowData.poamStatus, rowData.parentStatus),
+                                    'font-size': '1.5rem',
+                                    padding: '0.25rem'
+                                  }"
+                                ></i>
+                              </button>
+                            }
+                            @case ('severity') {
+                              <p-tag [value]="rowData.severity" [severity]="getSeverityStyling(rowData.severity)" [rounded]="false" />
+                            }
+                            @default {
+                              {{ rowData[col.field] || '-' }}
+                            }
+                          }
+                        }
+                      </td>
+                    }
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </div>
+        }
+      </p-tabpanel>
+      @if (this.stigmanCollection()?.collectionId) {
+        <p-tabpanel value="1">
+          <cpat-stigmanager-reviews-table [stigmanCollectionId]="this.stigmanCollection()?.collectionId" (reviewsCountChange)="onReviewsCountChange($event)" />
+        </p-tabpanel>
+      }
+      @if (this.stigmanCollection()?.collectionId) {
+        <p-tabpanel value="2">
+          <cpat-stigmanager-controls-table [stigmanCollectionId]="this.stigmanCollection()?.collectionId" [selectedCollection]="selectedCollection()" (controlsCountChange)="onControlsCountChange($event)" />
+        </p-tabpanel>
+      }
+    </p-tabpanels>
+  </p-tabs>
+</p-card>

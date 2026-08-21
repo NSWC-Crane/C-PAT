@@ -74,7 +74,7 @@ export class AppSearchComponent {
       { title: 'Asset Processing', path: '/asset-processing' },
       { title: 'Global Metrics', path: '/metrics/global' },
       { title: 'Home', path: '/home' },
-      { title: 'Import Processing', path: '/import-processing' },
+      { title: 'Integrations', path: '/integrations' },
       { title: 'Label Processing', path: '/label-processing' },
       { title: 'Manage POAMs', path: '/poam-processing/poam-manage' },
       { title: 'Metrics', path: '/metrics' },

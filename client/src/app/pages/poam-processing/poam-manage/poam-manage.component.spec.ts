@@ -21,7 +21,7 @@ import { PoamManageComponent } from './poam-manage.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 function createMockPoam(overrides: any = {}) {
@@ -68,7 +68,7 @@ describe('PoamManageComponent', () => {
   let mockPayloadService: any;
   let mockSharedService: any;
   let mockCollectionsService: any;
-  let mockImportService: any;
+  let mockIntegrationService: any;
   let selectedCollectionSubject: BehaviorSubject<number>;
 
   beforeAll(() => {
@@ -113,7 +113,7 @@ describe('PoamManageComponent', () => {
       getCollectionBasicList: vi.fn().mockReturnValue(of([{ collectionId: 1, collectionName: 'Test Collection', originCollectionId: 100, collectionType: 'STIG Manager' }]))
     };
 
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn().mockReturnValue(of({ response: { results: [] } }))
     };
 
@@ -127,7 +127,7 @@ describe('PoamManageComponent', () => {
         { provide: PayloadService, useValue: mockPayloadService },
         { provide: SharedService, useValue: mockSharedService },
         { provide: CollectionsService, useValue: mockCollectionsService },
-        { provide: ImportService, useValue: mockImportService },
+        { provide: IntegrationService, useValue: mockIntegrationService },
         { provide: DialogService, useValue: createMockDialogService() },
         provideUiTour()
       ]
@@ -299,7 +299,7 @@ describe('PoamManageComponent', () => {
 
       component.ngOnInit();
 
-      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledTimes(2);
+      expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledTimes(2);
     });
 
     it('should display error message when POAM data load fails', () => {
@@ -322,7 +322,7 @@ describe('PoamManageComponent', () => {
       component.ngOnInit();
 
       expect(mockSharedService.getFindingsMetricsFromSTIGMAN).not.toHaveBeenCalled();
-      expect(mockImportService.postTenableAnalysis).not.toHaveBeenCalled();
+      expect(mockIntegrationService.postTenableAnalysis).not.toHaveBeenCalled();
     });
   });
 
@@ -874,11 +874,11 @@ describe('PoamManageComponent', () => {
 
   describe('fetchFindingsData - Tenable', () => {
     it('should call postTenableAnalysis twice for Tenable collection type', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
 
       (component as any).fetchFindingsData(100, 'Tenable');
 
-      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledTimes(2);
+      expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledTimes(2);
     });
 
     it('should process Tenable findings and set findingsData', () => {
@@ -892,7 +892,7 @@ describe('PoamManageComponent', () => {
       };
       const thirtyDaysResults = { response: { results: [] } };
 
-      mockImportService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of(thirtyDaysResults));
+      mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of(thirtyDaysResults));
 
       (component as any).fetchFindingsData(100, 'Tenable');
 
@@ -908,7 +908,7 @@ describe('PoamManageComponent', () => {
         }
       };
 
-      mockImportService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of({ response: { results: [] } }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of({ response: { results: [] } }));
 
       (component as any).fetchFindingsData(100, 'Tenable');
 
@@ -927,7 +927,7 @@ describe('PoamManageComponent', () => {
         }
       };
 
-      mockImportService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of(thirtyDaysResults));
+      mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of(thirtyDaysResults));
 
       (component as any).fetchFindingsData(100, 'Tenable');
 
@@ -938,7 +938,7 @@ describe('PoamManageComponent', () => {
     it('should handle Tenable error_msg in response', () => {
       const allResults = { error_msg: 'Access denied', response: { results: [] } };
 
-      mockImportService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of({ response: { results: [] } }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of({ response: { results: [] } }));
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -949,7 +949,7 @@ describe('PoamManageComponent', () => {
     });
 
     it('should handle Tenable network error with catchError', () => {
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Network error')));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('Network error')));
 
       (component as any).fetchFindingsData(100, 'Tenable');
 
@@ -968,7 +968,7 @@ describe('PoamManageComponent', () => {
         }
       };
 
-      mockImportService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of(thirtyDaysResults));
+      mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(of(allResults)).mockReturnValueOnce(of(thirtyDaysResults));
 
       (component as any).fetchFindingsData(100, 'Tenable');
 

@@ -1,0 +1,637 @@
+﻿/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+import { NgClass, DatePipe, DecimalPipe } from '@angular/common';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, signal, inject, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { ProgressBarModule } from 'primeng/progressbar';
+import { SkeletonModule } from 'primeng/skeleton';
+import { Table, TableModule } from 'primeng/table';
+import { TabsModule } from 'primeng/tabs';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { filter, take } from 'rxjs';
+import { SharedService } from '../../../common/services/shared.service';
+import { getErrorMessage } from '../../../common/utils/error-utils';
+import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { PoamService } from '../../poam-processing/poams.service';
+import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
+import { STIGManagerControlsTableComponent } from './stigManagerControlsTable/stigManagerControlsTable.component';
+import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
+
+interface STIGManagerFinding {
+  groupId: string;
+  ruleTitle: string;
+  ruleId: string;
+  benchmarkId: string;
+  severity: string;
+  assetCount: number;
+  hasExistingPoam: boolean;
+  poamStatus?: string;
+  isAssociated?: boolean;
+  parentStatus?: string;
+  parentPoamId?: number;
+}
+
+@Component({
+  selector: 'cpat-stig-manager',
+  templateUrl: './stig-manager.component.html',
+  styleUrls: ['./stig-manager.component.scss'],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ButtonModule,
+    CardModule,
+    FormsModule,
+    InputTextModule,
+    SelectModule,
+    SkeletonModule,
+    TableModule,
+    TabsModule,
+    TooltipModule,
+    STIGManagerControlsTableComponent,
+    STIGManagerReviewsTableComponent,
+    InputIconModule,
+    IconFieldModule,
+    MultiSelectDirective,
+    ProgressBarModule,
+    TagModule,
+    TourPrimeNg,
+    DatePipe,
+    DecimalPipe,
+    NgClass
+  ]
+})
+export class STIGManagerComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly sharedService = inject(SharedService);
+  private readonly payloadService = inject(PayloadService);
+  private readonly messageService = inject(MessageService);
+  private readonly poamService = inject(PoamService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly findingsTable = viewChild.required<Table>('stigFindingsTable');
+  private readonly benchmarksTable = viewChild.required<Table>('stigBenchmarksTable');
+  allColumns = [
+    {
+      field: 'poam',
+      header: 'POAM',
+      width: '8%',
+      filterField: 'poamStatus',
+      filterType: 'multi',
+      filterOptions: [
+        { label: 'No Existing POAM', value: 'No Existing POAM' },
+        { label: 'Approved', value: 'Approved' },
+        { label: 'Associated', value: 'Associated' },
+        { label: 'Closed', value: 'Closed' },
+        { label: 'Draft', value: 'Draft' },
+        { label: 'Expired', value: 'Expired' },
+        { label: 'Extension Requested', value: 'Extension Requested' },
+        { label: 'False-Positive', value: 'False-Positive' },
+        { label: 'Pending CAT-I Approval', value: 'Pending CAT-I Approval' },
+        { label: 'Rejected', value: 'Rejected' },
+        { label: 'Submitted', value: 'Submitted' }
+      ]
+    },
+    { field: 'groupId', header: 'Group ID', width: '12%', filterType: 'text' },
+    { field: 'ruleTitle', header: 'Rule Title', width: '35%', filterType: 'text' },
+    {
+      field: 'benchmarkId',
+      header: 'Benchmark ID',
+      width: '15%',
+      filterType: 'multi',
+      filterOptions: [{ label: 'Any', value: null }]
+    },
+    {
+      field: 'severity',
+      header: 'Severity',
+      width: '15%',
+      filterType: 'text',
+      filterOptions: [
+        { label: 'CAT I - High', value: 'CAT I - High' },
+        { label: 'CAT II - Medium', value: 'CAT II - Medium' },
+        { label: 'CAT III - Low', value: 'CAT III - Low' }
+      ]
+    },
+    { field: 'assetCount', header: 'Asset Count', width: '15%', filterType: 'numeric' }
+  ];
+  private dataSource: STIGManagerFinding[] = [];
+  readonly displayDataSource = signal<STIGManagerFinding[]>([]);
+  public existingPoams: any[] = [];
+  readonly loadingTableInfo = signal<boolean>(true);
+  private summariesGeneration = 0;
+  private findingsGeneration = 0;
+  loadingSkeletonData: any[] = new Array(15).fill({});
+  multiSortMeta: any[] = [];
+  readonly selectedCollection = signal<any>(null);
+  readonly stigmanCollection = signal<any>(null);
+  user: any;
+  readonly benchmarkSummaries = signal<any[]>([]);
+  selectedBenchmark: any = null;
+  viewMode: 'summary' | 'findings' = 'summary';
+  benchmarksCount = signal(0);
+  findingsCount = signal(0);
+  reviewsCount = signal(0);
+  controlsCount = signal(0);
+  private processBenchmarkData(benchmarks: any[]): any[] {
+    return benchmarks.map((benchmark) => {
+      const totalAssessments = benchmark.metrics?.assessments || 0;
+      const assessed = benchmark.metrics?.assessed || 0;
+      const submitted = benchmark.metrics?.statuses?.submitted || 0;
+      const accepted = benchmark.metrics?.statuses?.accepted || 0;
+      const rejected = benchmark.metrics?.statuses?.rejected || 0;
+
+      return {
+        ...benchmark,
+        assessedPercentage: totalAssessments > 0 ? (assessed / totalAssessments) * 100 : 0,
+        submittedPercentage: totalAssessments > 0 ? ((submitted + accepted + rejected) / totalAssessments) * 100 : 0,
+        acceptedPercentage: totalAssessments > 0 ? (accepted / totalAssessments) * 100 : 0,
+        rejectedPercentage: totalAssessments > 0 ? (rejected / totalAssessments) * 100 : 0,
+        unassessedPercentage: totalAssessments > 0 ? ((totalAssessments - assessed) / totalAssessments) * 100 : 0,
+        cat1Count: benchmark.metrics?.findings?.high || 0,
+        cat2Count: benchmark.metrics?.findings?.medium || 0,
+        cat3Count: benchmark.metrics?.findings?.low || 0
+      };
+    });
+  }
+
+  ngOnInit() {
+    this.sharedService.selectedCollection.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((collectionId) => {
+      this.selectedCollection.set(collectionId);
+    });
+    this.initializeComponent();
+  }
+
+  private initializeComponent() {
+    this.payloadService.user$
+      .pipe(
+        filter((user) => user !== null),
+        take(1),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (user) => {
+          if (user?.userId) {
+            this.user = user;
+            this.validateStigManagerCollection();
+          } else {
+            this.showError('Failed to retrieve current user.');
+          }
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `An error occurred while initializing the component: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
+
+  getSeverityStyling(severity: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    switch (severity) {
+      case 'CAT I - High':
+        return 'danger';
+      case 'CAT II - Medium':
+        return 'warn';
+      case 'CAT III - Low':
+        return 'info';
+      default:
+        return 'info';
+    }
+  }
+
+  filterGlobal(event: Event) {
+    const inputValue = (event.target as HTMLInputElement)?.value || '';
+
+    this.findingsTable().filterGlobal(inputValue, 'contains');
+  }
+
+  validateStigManagerCollection() {
+    this.collectionsService
+      .getCollectionBasicList()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (basicListData) => {
+          const selectedCollection = basicListData?.find((collection) => +collection.collectionId === +this.user.lastCollectionAccessedId);
+
+          if (!selectedCollection) {
+            this.showWarn('Unable to find the selected collection. Please try again.');
+
+            return;
+          }
+
+          if (selectedCollection.collectionType !== 'STIG Manager') {
+            this.showWarn('The current collection is not associated with STIG Manager.');
+
+            return;
+          }
+
+          this.stigmanCollection.set({
+            collectionId: selectedCollection.originCollectionId,
+            name: selectedCollection.collectionName
+          });
+
+          if (!this.stigmanCollection().collectionId) {
+            this.showWarn('Unable to determine the matching STIG Manager collection ID. Please try again.');
+
+            return;
+          }
+
+          this.loadBenchmarkSummaries(this.stigmanCollection().collectionId);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to validate STIG Manager collection: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
+
+  private loadBenchmarkSummaries(stigmanCollectionId: number) {
+    this.loadingTableInfo.set(true);
+
+    const gen = ++this.summariesGeneration;
+
+    this.sharedService
+      .getCollectionSTIGSummaryFromSTIGMAN(stigmanCollectionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          if (gen !== this.summariesGeneration) {
+            return;
+          }
+
+          this.loadingTableInfo.set(false);
+
+          if (!data || data.length === 0) {
+            this.showWarn('No benchmark summaries found.');
+
+            return;
+          }
+
+          this.benchmarkSummaries.set(this.processBenchmarkData(data));
+          this.benchmarksCount.set(this.benchmarkSummaries().length);
+        },
+        error: (error) => {
+          if (gen !== this.summariesGeneration) {
+            return;
+          }
+
+          this.loadingTableInfo.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to fetch benchmark summaries: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
+
+  selectBenchmark(benchmark: any) {
+    this.selectedBenchmark = benchmark;
+    this.viewMode = 'findings';
+    this.getSTIGMANFindings(this.stigmanCollection().collectionId, benchmark.benchmarkId);
+  }
+
+  getAllFindings() {
+    this.viewMode = 'findings';
+    this.getSTIGMANFindings(this.stigmanCollection().collectionId);
+  }
+
+  backToBenchmarkSummary() {
+    this.viewMode = 'summary';
+    this.selectedBenchmark = null;
+    this.dataSource = [];
+    this.displayDataSource.set([]);
+    this.findingsCount.set(0);
+    this.benchmarksCount.set(this.benchmarkSummaries().length);
+  }
+
+  getSTIGMANFindings(stigmanCollectionId: number, benchmarkId?: string) {
+    this.loadingTableInfo.set(true);
+
+    const apiCall = benchmarkId ? this.sharedService.getFindingsByBenchmarkFromSTIGMAN(stigmanCollectionId, benchmarkId) : this.sharedService.getFindingsFromSTIGMAN(stigmanCollectionId);
+
+    const gen = ++this.findingsGeneration;
+
+    apiCall.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (data) => {
+        if (gen !== this.findingsGeneration) {
+          return;
+        }
+
+        this.loadingTableInfo.set(false);
+
+        if (!data || data.length === 0) {
+          this.showWarn('No affected assets found' + (benchmarkId ? ' for this benchmark.' : '.'));
+
+          return;
+        }
+
+        this.dataSource = data.map((item) => ({
+          groupId: item.groupId,
+          ruleTitle: item.rules[0].title,
+          ruleId: item.rules[0].ruleId,
+          benchmarkId: item.stigs[0].benchmarkId,
+          severity: this.mapSeverity(item.severity),
+          assetCount: item.assetCount,
+          hasExistingPoam: false
+        }));
+
+        this.displayDataSource.set([...this.dataSource]);
+        this.findingsCount.set(this.displayDataSource().length);
+        this.filterFindings();
+      },
+      error: (error) => {
+        if (gen !== this.findingsGeneration) {
+          return;
+        }
+
+        this.loadingTableInfo.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to fetch affected assets: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  private mapSeverity(severity: string): string {
+    switch (severity) {
+      case 'high':
+        return 'CAT I - High';
+      case 'medium':
+        return 'CAT II - Medium';
+      case 'low':
+        return 'CAT III - Low';
+      default:
+        return severity;
+    }
+  }
+
+  updateSort(event: any) {
+    this.multiSortMeta = event.multiSortMeta;
+  }
+
+  filterFindings() {
+    this.poamService
+      .getVulnerabilityIdsWithPoamByCollection(this.selectedCollection())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          this.existingPoams = response;
+          this.updateExistingPoams();
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching existing POAMs: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
+
+  private updateExistingPoams() {
+    this.dataSource.forEach((item) => {
+      const existingPoam = this.existingPoams.find((poam: any) => poam.vulnerabilityId === item.groupId);
+
+      item.hasExistingPoam = !!existingPoam;
+
+      if (existingPoam) {
+        item.poamStatus = existingPoam.status;
+        item.isAssociated = existingPoam.status === 'Associated';
+        item.parentStatus = existingPoam.parentStatus;
+        item.parentPoamId = existingPoam.parentPoamId;
+      } else {
+        item.poamStatus = 'No Existing POAM';
+        item.isAssociated = false;
+      }
+    });
+
+    this.displayDataSource.set([...this.dataSource]);
+    this.findingsCount.set(this.displayDataSource().length);
+  }
+
+  getPoamStatusColor(status: string, parentStatus?: string): string {
+    const effectiveStatus = status === 'Associated' && parentStatus ? parentStatus : status;
+
+    switch (effectiveStatus?.toLowerCase()) {
+      case 'draft':
+        return 'darkorange';
+      case 'expired':
+      case 'rejected':
+        return 'firebrick';
+      case 'submitted':
+      case 'pending cat-i approval':
+      case 'extension requested':
+        return 'goldenrod';
+      case 'false-positive':
+      case 'closed':
+        return 'black';
+      case 'approved':
+        return 'green';
+      default:
+        return 'gray';
+    }
+  }
+
+  getPoamStatusIcon(status: string, isAssociated?: boolean): string {
+    if (isAssociated) {
+      return 'pi pi-info-circle';
+    }
+
+    switch (status?.toLowerCase()) {
+      case 'no existing poam':
+        return 'pi pi-plus-circle';
+      case 'expired':
+      case 'rejected':
+        return 'pi pi-ban';
+      case 'draft':
+      case 'submitted':
+      case 'pending cat-i approval':
+      case 'extension requested':
+      case 'false-positive':
+      case 'closed':
+      case 'approved':
+        return 'pi pi-check-circle';
+      default:
+        return 'pi pi-question-circle';
+    }
+  }
+
+  getPoamStatusTooltip(status: string | undefined, hasExistingPoam: boolean, parentStatus?: string): string {
+    if (!hasExistingPoam) return 'No Existing POAM. Click to create draft POAM.';
+    if (!status) return 'POAM Status Unknown. Click to view POAM.';
+
+    if (hasExistingPoam && status === 'Associated') {
+      const parentStatusText = parentStatus ? ` (Parent POAM Status: ${parentStatus})` : '';
+
+      return `This vulnerability is associated with an existing POAM${parentStatusText}. Click icon to view POAM.`;
+    }
+
+    return `POAM Status: ${status}. Click to view POAM.`;
+  }
+
+  addPoam(rowData: any): void {
+    if (!rowData?.ruleId || !rowData?.groupId) {
+      this.showError('Invalid data for POAM creation. Please try again.');
+
+      return;
+    }
+
+    this.sharedService
+      .getRuleDataFromSTIGMAN(rowData.ruleId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (ruleData: any) => {
+          const ruleDataString = this.formatRuleData(ruleData);
+          const descriptionString = this.formatDescription(ruleData);
+
+          this.navigateToPoam(rowData, ruleDataString, descriptionString);
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching rule data: ${getErrorMessage(error)}`
+          });
+        }
+      });
+  }
+
+  private formatRuleData(ruleData: any): string {
+    return `# Rule data from STIGMAN
+## Discussion
+${ruleData.detail.vulnDiscussion}
+---
+
+## Check
+${ruleData.check.content}
+---
+
+## Fix
+${ruleData.fix.text}
+---`;
+  }
+
+  private formatDescription(ruleData: any): string {
+    return `Title:
+${ruleData.title}
+
+Description:
+${ruleData.detail.vulnDiscussion}`;
+  }
+
+  private navigateToPoam(rowData: any, ruleDataString: string, descriptionString: string) {
+    let routePath = '/poam-processing/poam-details/';
+    const routeParams = {
+      state: {
+        vulnerabilitySource: 'STIG',
+        vulnerabilityId: rowData.groupId,
+        benchmarkId: rowData.benchmarkId,
+        severity: rowData.severity,
+        ruleData: ruleDataString,
+        description: descriptionString
+      }
+    };
+
+    const existingPoam = this.existingPoams.find((item: any) => item.vulnerabilityId === rowData.groupId);
+
+    routePath += existingPoam ? existingPoam.poamId : 'ADDPOAM';
+    this.router.navigate([routePath], routeParams);
+  }
+
+  onFilter(_event: any) {
+    const findingsTable = this.findingsTable();
+
+    if (findingsTable) {
+      if (findingsTable.filteredValue) {
+        this.findingsCount.set(findingsTable.filteredValue.length);
+      } else {
+        this.findingsCount.set(this.displayDataSource().length);
+      }
+    }
+  }
+
+  onBenchmarkFilter(_event: any) {
+    const benchmarksTable = this.benchmarksTable();
+
+    if (benchmarksTable) {
+      if (benchmarksTable.filteredValue) {
+        this.benchmarksCount.set(benchmarksTable.filteredValue.length);
+      } else {
+        this.benchmarksCount.set(this.benchmarkSummaries().length);
+      }
+    }
+  }
+
+  exportCSV() {
+    this.findingsTable().exportCSV();
+  }
+
+  filterBenchmarkGlobal(event: Event) {
+    const inputValue = (event.target as HTMLInputElement)?.value || '';
+
+    this.benchmarksTable().filterGlobal(inputValue, 'contains');
+  }
+
+  onReviewsCountChange(count: number) {
+    this.reviewsCount.set(count);
+  }
+
+  onControlsCountChange(count: number) {
+    this.controlsCount.set(count);
+  }
+
+  clearBenchmarkFilter() {
+    const benchmarksTable = this.benchmarksTable();
+
+    if (benchmarksTable) {
+      benchmarksTable.clear();
+    }
+  }
+
+  clear() {
+    this.findingsTable().clear();
+  }
+
+  showWarn(message: string) {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Warn',
+      detail: message
+    });
+  }
+
+  showError(message: string) {
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: message
+    });
+  }
+}

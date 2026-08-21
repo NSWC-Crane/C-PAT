@@ -19,7 +19,7 @@ import { CollectionProcessingComponent } from './collection-processing.component
 import { CollectionsService } from './collections.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { PoamService } from '../../poam-processing/poams.service';
 import { AAPackageService } from '../aaPackage-processing/aaPackage-processing.service';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
@@ -71,7 +71,7 @@ describe('CollectionProcessingComponent', () => {
   let mockPayloadService: any;
   let mockMessageService: any;
   let mockSharedService: any;
-  let mockImportService: any;
+  let mockIntegrationService: any;
   let mockPoamService: any;
   let mockAAPackageService: any;
   let userSubject: BehaviorSubject<any>;
@@ -104,7 +104,7 @@ describe('CollectionProcessingComponent', () => {
       getCollectionsFromSTIGMAN: vi.fn().mockReturnValue(of([]))
     };
 
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn().mockReturnValue(of({ response: { results: [] } })),
       getTenableRepositories: vi.fn().mockReturnValue(of({ response: [] }))
     };
@@ -126,7 +126,7 @@ describe('CollectionProcessingComponent', () => {
         { provide: PayloadService, useValue: mockPayloadService },
         { provide: MessageService, useValue: mockMessageService },
         { provide: SharedService, useValue: mockSharedService },
-        { provide: ImportService, useValue: mockImportService },
+        { provide: IntegrationService, useValue: mockIntegrationService },
         { provide: PoamService, useValue: mockPoamService },
         { provide: AAPackageService, useValue: mockAAPackageService }
       ]
@@ -920,11 +920,11 @@ describe('CollectionProcessingComponent', () => {
         predisposingConditions: ''
       };
 
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
       component.exportCollection(rowData);
 
-      expect(mockImportService.postTenableAnalysis).toHaveBeenCalled();
+      expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalled();
     });
 
     it('should route to C-PAT processing for C-PAT origin', () => {
@@ -961,18 +961,18 @@ describe('CollectionProcessingComponent', () => {
 
       it('bypasses the upstream cache for the export analysis', async () => {
         vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
-        mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [{ pluginID: '12345', dnsName: 'fresh.example.com', netbiosName: '' }] } }));
+        mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [{ pluginID: '12345', dnsName: 'fresh.example.com', netbiosName: '' }] } }));
 
         component.exportCollection(tenableRow);
         await Promise.resolve();
 
-        expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
+        expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
       });
 
       it('builds one workbook from the analysis results', async () => {
         const convertSpy = vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
 
-        mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: [{ pluginID: '12345', dnsName: 'fresh.example.com', netbiosName: '' }] } }));
+        mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [{ pluginID: '12345', dnsName: 'fresh.example.com', netbiosName: '' }] } }));
 
         component.exportCollection(tenableRow);
         await Promise.resolve();
@@ -1032,7 +1032,7 @@ describe('CollectionProcessingComponent', () => {
       const poams = [{ poamId: 1, vulnerabilityId: '12345' }];
       const tenableResults = [{ pluginID: '12345', netbiosName: String.raw`DOMAIN\WORKSTATION`, dnsName: '' }];
 
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: tenableResults } }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: tenableResults } }));
 
       let result: any[];
 
@@ -1045,7 +1045,7 @@ describe('CollectionProcessingComponent', () => {
       const poams = [{ poamId: 1, vulnerabilityId: '12345' }];
       const tenableResults = [{ pluginID: '12345', netbiosName: '', dnsName: 'host.domain.com' }];
 
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: tenableResults } }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: tenableResults } }));
 
       let result: any[];
 
@@ -1058,7 +1058,7 @@ describe('CollectionProcessingComponent', () => {
       const poams = [{ poamId: 1, vulnerabilityId: '99999' }];
       const tenableResults = [{ pluginID: '12345', netbiosName: 'HOST', dnsName: '' }];
 
-      mockImportService.postTenableAnalysis.mockReturnValue(of({ response: { results: tenableResults } }));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: tenableResults } }));
 
       let result: any[];
 
@@ -1327,7 +1327,7 @@ describe('CollectionProcessingComponent', () => {
       component.bulkImportSource.set('Tenable');
       component.onBulkImportSourceChange();
 
-      expect(mockImportService.getTenableRepositories).toHaveBeenCalledWith(false);
+      expect(mockIntegrationService.getTenableRepositories).toHaveBeenCalledWith(false);
     });
 
     it('should fetch STIG Manager collections when source is STIG Manager', () => {
@@ -1385,7 +1385,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should populate bulkImportAvailable from Tenable source', () => {
-      mockImportService.getTenableRepositories.mockReturnValue(
+      mockIntegrationService.getTenableRepositories.mockReturnValue(
         of({
           response: [
             { id: 10, name: 'Repo A', description: 'Desc A' },
@@ -1404,7 +1404,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should filter Tenable repositories already imported by originCollectionId', () => {
-      mockImportService.getTenableRepositories.mockReturnValue(
+      mockIntegrationService.getTenableRepositories.mockReturnValue(
         of({
           response: [
             { id: 10, name: 'Imported' },
@@ -1422,7 +1422,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should not filter Tenable when matching originIds belong to STIG Manager type', () => {
-      mockImportService.getTenableRepositories.mockReturnValue(of({ response: [{ id: 10, name: 'Repo A' }] }));
+      mockIntegrationService.getTenableRepositories.mockReturnValue(of({ response: [{ id: 10, name: 'Repo A' }] }));
       component.data = [{ collectionType: 'STIG Manager', originCollectionId: 10 }];
       component.bulkImportSource.set('Tenable');
 
@@ -1459,7 +1459,7 @@ describe('CollectionProcessingComponent', () => {
     });
 
     it('should handle null Tenable response gracefully', () => {
-      mockImportService.getTenableRepositories.mockReturnValue(of({ response: null }));
+      mockIntegrationService.getTenableRepositories.mockReturnValue(of({ response: null }));
       component.bulkImportSource.set('Tenable');
 
       (component as any).loadAvailableImports();
@@ -1584,7 +1584,7 @@ describe('CollectionProcessingComponent', () => {
 
     it('should not load origin options for C-PAT collection type', () => {
       mockSharedService.getCollectionsFromSTIGMAN.mockClear();
-      mockImportService.getTenableRepositories.mockClear();
+      mockIntegrationService.getTenableRepositories.mockClear();
 
       component.showModifyCollectionDialog({
         collectionId: 1,
@@ -1601,12 +1601,12 @@ describe('CollectionProcessingComponent', () => {
       });
 
       expect(mockSharedService.getCollectionsFromSTIGMAN).not.toHaveBeenCalled();
-      expect(mockImportService.getTenableRepositories).not.toHaveBeenCalled();
+      expect(mockIntegrationService.getTenableRepositories).not.toHaveBeenCalled();
     });
 
     it('should filter Tenable origin options the same way', () => {
       component.data = [{ collectionId: 1, collectionType: 'Tenable', originCollectionId: 10 }];
-      mockImportService.getTenableRepositories.mockReturnValue(
+      mockIntegrationService.getTenableRepositories.mockReturnValue(
         of({
           response: [
             { id: 10, name: 'Used' },
@@ -1650,7 +1650,7 @@ describe('CollectionProcessingComponent', () => {
           { provide: PayloadService, useValue: mockPayloadService },
           { provide: MessageService, useValue: mockMessageService },
           { provide: SharedService, useValue: mockSharedService },
-          { provide: ImportService, useValue: mockImportService },
+          { provide: IntegrationService, useValue: mockIntegrationService },
           { provide: PoamService, useValue: mockPoamService },
           { provide: AAPackageService, useValue: mockAAPackageService }
         ]

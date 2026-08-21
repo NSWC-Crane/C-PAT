@@ -22,7 +22,7 @@ import { PoamGridComponent } from './poam-grid.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { PoamService } from '../poams.service';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
 import { CsvExportService } from '../../../common/utils/csv-export.service';
@@ -66,7 +66,7 @@ describe('PoamGridComponent', () => {
   let mockPayloadService: any;
   let mockSharedService: any;
   let mockCollectionsService: any;
-  let mockImportService: any;
+  let mockIntegrationService: any;
   let mockPoamService: any;
   let mockCsvExportService: any;
   let selectedCollectionSubject: BehaviorSubject<number>;
@@ -116,7 +116,7 @@ describe('PoamGridComponent', () => {
       )
     };
 
-    mockImportService = {
+    mockIntegrationService = {
       postTenableAnalysis: vi.fn().mockReturnValue(of({ response: { results: [] } })),
       getTenablePlugin: vi.fn().mockReturnValue(of({ response: {} }))
     };
@@ -140,7 +140,7 @@ describe('PoamGridComponent', () => {
         { provide: PayloadService, useValue: mockPayloadService },
         { provide: SharedService, useValue: mockSharedService },
         { provide: CollectionsService, useValue: mockCollectionsService },
-        { provide: ImportService, useValue: mockImportService },
+        { provide: IntegrationService, useValue: mockIntegrationService },
         { provide: PoamService, useValue: mockPoamService },
         { provide: CsvExportService, useValue: mockCsvExportService },
         provideUiTour()
@@ -903,7 +903,7 @@ describe('PoamGridComponent', () => {
         vulnerabilitySource: tenableSource
       });
 
-      mockImportService.postTenableAnalysis.mockReturnValue(
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(
         of({
           response: {
             results: [{ pluginID: '12345', dnsName: 'server01.example.com', netbiosName: '' }]
@@ -911,7 +911,7 @@ describe('PoamGridComponent', () => {
         })
       );
 
-      mockImportService.getTenablePlugin.mockReturnValue(
+      mockIntegrationService.getTenablePlugin.mockReturnValue(
         of({
           response: { patchPubDate: '2025-01-01' }
         })
@@ -922,8 +922,8 @@ describe('PoamGridComponent', () => {
       expect(result).toHaveLength(1);
       expect(result[0].controlAPs).toBe('SI-2.9');
       expect(result[0].cci).toContain('002605');
-      expect(mockImportService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
-      expect(mockImportService.getTenablePlugin).toHaveBeenCalledWith('12345', false);
+      expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
+      expect(mockIntegrationService.getTenablePlugin).toHaveBeenCalledWith('12345', false);
     });
 
     it('should use CM-6.5 mapping when no patchPubDate', async () => {
@@ -932,13 +932,13 @@ describe('PoamGridComponent', () => {
         vulnerabilitySource: tenableSource
       });
 
-      mockImportService.postTenableAnalysis.mockReturnValue(
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(
         of({
           response: { results: [] }
         })
       );
 
-      mockImportService.getTenablePlugin.mockReturnValue(
+      mockIntegrationService.getTenablePlugin.mockReturnValue(
         of({
           response: { patchPubDate: '' }
         })
@@ -957,7 +957,7 @@ describe('PoamGridComponent', () => {
         vulnerabilitySource: tenableSource
       });
 
-      mockImportService.postTenableAnalysis.mockReturnValue(
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(
         of({
           response: {
             results: [{ pluginID: '12345', dnsName: '', netbiosName: 'DOMAIN\\SERVER01' }]
@@ -965,7 +965,7 @@ describe('PoamGridComponent', () => {
         })
       );
 
-      mockImportService.getTenablePlugin.mockReturnValue(
+      mockIntegrationService.getTenablePlugin.mockReturnValue(
         of({
           response: { patchPubDate: '2025-01-01' }
         })
@@ -982,7 +982,7 @@ describe('PoamGridComponent', () => {
         vulnerabilitySource: tenableSource
       });
 
-      mockImportService.postTenableAnalysis.mockReturnValue(
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(
         of({
           response: {
             results: [{ pluginID: '12345', dnsName: 'server01.example.com', netbiosName: '' }]
@@ -990,7 +990,7 @@ describe('PoamGridComponent', () => {
         })
       );
 
-      mockImportService.getTenablePlugin.mockReturnValue(
+      mockIntegrationService.getTenablePlugin.mockReturnValue(
         of({
           response: { patchPubDate: '2025-01-01' }
         })
@@ -1007,7 +1007,7 @@ describe('PoamGridComponent', () => {
         vulnerabilitySource: tenableSource
       });
 
-      mockImportService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('API Error')));
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(throwError(() => new Error('API Error')));
 
       const result = await component.processPoamsWithTenableFindings([tenablePoam]);
 
@@ -1021,13 +1021,13 @@ describe('PoamGridComponent', () => {
         vulnerabilitySource: tenableSource
       });
 
-      mockImportService.postTenableAnalysis.mockReturnValue(
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(
         of({
           response: { results: [] }
         })
       );
 
-      mockImportService.getTenablePlugin.mockReturnValue(throwError(() => new Error('Plugin Error')));
+      mockIntegrationService.getTenablePlugin.mockReturnValue(throwError(() => new Error('Plugin Error')));
 
       const result = await component.processPoamsWithTenableFindings([tenablePoam]);
 

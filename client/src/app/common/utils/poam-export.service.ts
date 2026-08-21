@@ -11,7 +11,7 @@
 import { format } from 'date-fns';
 import { firstValueFrom } from 'rxjs';
 import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
-import { ImportService } from '../../pages/import-processing/import.service';
+import { IntegrationService } from '../../pages/integrations/integration.service';
 import { PoamService } from '../../pages/poam-processing/poams.service';
 import { Poam } from '../models/poam.model';
 import { SharedService } from '../services/shared.service';
@@ -293,7 +293,7 @@ export class PoamExportService {
     return matchingFinding ? matchingFinding.assets.map((asset: { name: string }) => asset.name).join(' ') : poam.devicesAffected;
   }
 
-  private static async resolveTenableDevices(vulnerabilityId: string, importService: ImportService): Promise<string> {
+  private static async resolveTenableDevices(vulnerabilityId: string, integrationService: IntegrationService): Promise<string> {
     const analysisParams = {
       query: {
         description: '',
@@ -324,7 +324,7 @@ export class PoamExportService {
       type: 'vuln'
     };
 
-    const analysisData = await firstValueFrom(importService.postTenableAnalysis(analysisParams, false));
+    const analysisData = await firstValueFrom(integrationService.postTenableAnalysis(analysisParams, false));
 
     if (analysisData?.error_msg) {
       throw new Error(`Error in Tenable response: ${analysisData.error_msg}`);
@@ -344,7 +344,7 @@ export class PoamExportService {
       .join(' ');
   }
 
-  private static async processPoamsWithAssets(poams: Poam[], collectionId: number, collectionsService: CollectionsService, importService: ImportService, poamService: PoamService, sharedService: SharedService): Promise<Poam[]> {
+  private static async processPoamsWithAssets(poams: Poam[], collectionId: number, collectionsService: CollectionsService, integrationService: IntegrationService, poamService: PoamService, sharedService: SharedService): Promise<Poam[]> {
     const processedPoams: Poam[] = [];
     const collections = await firstValueFrom(collectionsService.getCollectionBasicList());
     const collection = collections.find((c) => c.collectionId === collectionId);
@@ -362,7 +362,7 @@ export class PoamExportService {
       if (collection.collectionType === 'STIG Manager' && poam.vulnerabilityId && poam.stigBenchmarkId) {
         processedPoam.devicesAffected = await PoamExportService.resolveStigManagerDevices(poam, poam.stigBenchmarkId, collection.originCollectionId, findingsCache, sharedService);
       } else if (collection.collectionType === 'Tenable' && poam.vulnerabilityId) {
-        processedPoam.devicesAffected = await PoamExportService.resolveTenableDevices(poam.vulnerabilityId, importService);
+        processedPoam.devicesAffected = await PoamExportService.resolveTenableDevices(poam.vulnerabilityId, integrationService);
       } else {
         cpatAssets ??= (await firstValueFrom(poamService.getPoamAssetsByCollectionId(collection.collectionId))) ?? [];
         processedPoam.devicesAffected = PoamExportService.resolveCpatDevices(cpatAssets, poam.poamId);
@@ -403,12 +403,12 @@ export class PoamExportService {
     collectionId: any,
     selectedColumns: string[],
     collectionsService: CollectionsService,
-    importService: ImportService,
+    integrationService: IntegrationService,
     poamService: PoamService,
     sharedService: SharedService
   ): Promise<Blob> {
     const expandedPoams = this.addAssociatedVulnerabilitiesToExport(poams);
-    const processedPoams = await this.processPoamsWithAssets(expandedPoams, collectionId, collectionsService, importService, poamService, sharedService);
+    const processedPoams = await this.processPoamsWithAssets(expandedPoams, collectionId, collectionsService, integrationService, poamService, sharedService);
     const columnMapping = getEMassBranchConfig().excelColumnToDbColumnMapping;
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.default.Workbook();

@@ -13,7 +13,7 @@ import { Observable, combineLatest, forkJoin, map, of, switchMap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ComplianceCount } from '../../../common/models/metrics.model';
 import { CollectionsService } from '../../admin-processing/collection-processing/collections.service';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 
 export interface SeveritySummary {
   critical: number;
@@ -82,7 +82,7 @@ const DAYS_BY_TIME_RANGE: Record<TenableTimeRange, number> = {
 
 @Injectable({ providedIn: 'root' })
 export class TenableMetricsDataService {
-  private readonly importService = inject(ImportService);
+  private readonly integrationService = inject(IntegrationService);
   private readonly collectionsService = inject(CollectionsService);
 
   loadVulnerabilityDataForTimeRange(repoId: string, collectionId: any, timeRange: TenableTimeRange): Observable<TenableTimeRangeData> {
@@ -120,7 +120,7 @@ export class TenableMetricsDataService {
       }
     };
 
-    const hosts$ = this.importService.postTenableHostSearch(hostParams).pipe(map((response: any) => response?.response || []));
+    const hosts$ = this.integrationService.postTenableHostSearch(hostParams).pipe(map((response: any) => response?.response || []));
 
     return propagateErrors ? hosts$ : hosts$.pipe(catchError(() => of([])));
   }
@@ -315,7 +315,7 @@ export class TenableMetricsDataService {
   }
 
   calculatePastDueIAVs(repoId: string): Observable<number> {
-    return this.importService.getIAVPluginIds().pipe(
+    return this.integrationService.getIAVPluginIds().pipe(
       switchMap((pluginIds) => {
         if (!pluginIds) return of(0);
 
@@ -342,7 +342,7 @@ export class TenableMetricsDataService {
 
             if (pluginIDList.length === 0) return of(0);
 
-            return this.importService.getIAVInfoForPlugins(pluginIDList).pipe(
+            return this.integrationService.getIAVInfoForPlugins(pluginIDList).pipe(
               map((iavData) => {
                 const today = new Date();
 
@@ -492,7 +492,7 @@ export class TenableMetricsDataService {
       type: 'vuln'
     };
 
-    const summary$ = this.importService.postTenableAnalysis(analysisParams).pipe(
+    const summary$ = this.integrationService.postTenableAnalysis(analysisParams).pipe(
       map((response: any) => {
         const results = response?.response?.results || [];
         const summary: SeveritySummary = {
@@ -558,7 +558,7 @@ export class TenableMetricsDataService {
       type: 'vuln'
     };
 
-    const analysis$ = this.importService.postTenableAnalysis(analysisParams);
+    const analysis$ = this.integrationService.postTenableAnalysis(analysisParams);
 
     return propagateErrors
       ? analysis$

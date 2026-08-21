@@ -34,7 +34,7 @@ import { CollectionsBasicList } from '../../../common/models/collections-basic.m
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { CollectionsService } from '../collection-processing/collections.service';
 import { AssetDeltaService } from './asset-delta.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -96,7 +96,7 @@ interface ChartData {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AssetDeltaComponent implements OnInit, AfterViewInit {
-  private readonly importService = inject(ImportService);
+  private readonly integrationService = inject(IntegrationService);
   private readonly messageService = inject(MessageService);
   private readonly assetDeltaService = inject(AssetDeltaService);
   private readonly collectionsService = inject(CollectionsService);
@@ -769,7 +769,7 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams, false);
+    return this.integrationService.postTenableAnalysis(analysisParams, false);
   }
 
   private updateChartData() {

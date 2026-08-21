@@ -24,7 +24,7 @@ import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, Observable, catchError, map, shareReplay, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { ImportService } from '../../import-processing/import.service';
+import { IntegrationService } from '../../integrations/integration.service';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 
 @Component({
@@ -38,7 +38,7 @@ import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 export class NessusPluginMappingComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly nessusPluginMappingService = inject(NessusPluginMappingService);
-  private readonly importService = inject(ImportService);
+  private readonly integrationService = inject(IntegrationService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly dt = viewChild.required<Table>('dt');
@@ -284,7 +284,7 @@ export class NessusPluginMappingComponent implements OnInit {
       type: 'vuln'
     };
 
-    return this.importService.postTenableAnalysis(analysisParams, false).pipe(
+    return this.integrationService.postTenableAnalysis(analysisParams, false).pipe(
       map((data) => ({
         pluginData: data.response.results,
         totalRecords: data.response.totalRecords
