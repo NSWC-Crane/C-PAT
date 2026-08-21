@@ -108,8 +108,6 @@ export class AppBreadcrumbComponent implements OnInit {
         return 'Manage POAMs';
       case 'stig-manager':
         return 'STIG Manager';
-      case 'user-processing':
-        return 'User Processing';
       case 'collection-processing':
         return 'Collection Processing';
       case 'admin-processing':
