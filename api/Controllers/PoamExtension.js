@@ -13,7 +13,7 @@ const { sendError } = require('../utils/respond');
 
 module.exports.getPoamExtension = async function (req, res) {
     try {
-        const poamExtensions = await poamExtensionService.getPoamExtension(req.params.poamId);
+        const poamExtensions = await poamExtensionService.getPoamExtension(req);
 
         res.status(200).json(poamExtensions);
     } catch (error) {
@@ -33,7 +33,7 @@ module.exports.putPoamExtension = async function (req, res) {
 
 module.exports.deletePoamExtension = async function (req, res) {
     try {
-        await poamExtensionService.deletePoamExtension(req.params.poamId);
+        await poamExtensionService.deletePoamExtension(req);
 
         res.status(200).json({ message: 'POAM extension deleted successfully' });
     } catch (error) {

@@ -138,8 +138,8 @@ function buildUserObject(tokenPayload) {
 
 async function persistUserData(userObject, refreshFields, isNewUser) {
     const result = await UserService.setUserData(userObject, refreshFields, isNewUser);
-    if (result?.insertId && result?.insertId != userObject.userId) {
-        userObject.userId = result?.insertId?.toString();
+    if (result?.insertId && result.insertId != userObject.userId) {
+        userObject.userId = Number(result.insertId);
     }
 }
 

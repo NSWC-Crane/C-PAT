@@ -8,13 +8,14 @@
 !##########################################################################
 */
 
-::ng-deep .p-dialog {
+::ng-deep .extension-dialog {
   .p-dialog-header {
     display: none;
   }
   .p-dialog-content {
     flex-direction: column;
     overflow: hidden;
+    padding-bottom: 0rem;
 
     > i {
       font-size: 2rem;
@@ -33,7 +34,7 @@
     display: flex;
     border: none;
     justify-content: space-between;
-    padding: 1rem;
+    padding: 0rem 1rem 1rem 1rem;
   }
 }
 
@@ -49,6 +50,10 @@
 .p-field label {
   display: block;
   margin-bottom: 0.5rem;
+}
+
+.p-field .restart-extension-row label {
+  margin-bottom: 0;
 }
 
 .p-button-outlined {

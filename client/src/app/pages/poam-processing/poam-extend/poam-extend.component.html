@@ -8,7 +8,7 @@
 !##########################################################################
 -->
 
-<p-dialog [(visible)]="displayExtensionDialog" [modal]="true" styleClass="w-[80vw] h-auto max-h-[80vh] overflow-hidden" [draggable]="false" [resizable]="false" [closable]="false" (onHide)="cancelExtension()">
+<p-dialog [(visible)]="displayExtensionDialog" [modal]="true" styleClass="extension-dialog w-[80vw] h-auto max-h-[80vh] overflow-hidden" [draggable]="false" [resizable]="false" [closable]="false" (onHide)="cancelExtension()">
   @if (loading()) {
     <div class="p-4">
       <p-progressbar mode="indeterminate" [style]="{ height: '6px' }" />
@@ -47,28 +47,24 @@
         <div class="p-col-12">
           <div class="p-field">
             <label for="extensionDays">Extension Time Requested:</label>
-            <div class="flex align-items-center gap-2">
-              <p-select
-                [options]="extensionTimeOptions"
-                [ngModel]="poam.extensionDays"
-                (ngModelChange)="patchPoam({ extensionDays: $event }); computeDeadlineWithExtension()"
-                [invalid]="isExtensionInvalid('extensionDays')"
-                placeholder="Extension Time Requested..."
-                [filter]="true"
-                filterBy="label"
-                class="w-full"
-                [disabled]="accessLevel() < 2"
-              />
-              <button
-                pButton
-                (click)="deletePoamExtension()"
-                severity="danger"
-                pTooltip="Remove the current extension: this must be done to request an updated extension with the same duration as an existing extension."
-                [disabled]="accessLevel() < 2"
-              >
-                <i class="pi pi-times" pButtonIcon></i>
-              </button>
+            <p-select
+              [options]="extensionTimeOptions"
+              [ngModel]="poam.extensionDays"
+              (ngModelChange)="patchPoam({ extensionDays: $event, extensionDeadline: null }); computeDeadlineWithExtension()"
+              [invalid]="isExtensionInvalid('extensionDays')"
+              placeholder="Extension Time Requested..."
+              [filter]="true"
+              filterBy="label"
+              class="w-full"
+              [disabled]="accessLevel() < 2 || !restartExtensionPeriod()"
+            />
+            <div class="restart-extension-row mt-1 flex items-center gap-2">
+              <p-checkbox inputId="restartExtensionPeriod" [binary]="true" [ngModel]="restartExtensionPeriod()" (ngModelChange)="onRestartExtensionPeriodChange($event)" [disabled]="accessLevel() < 2 || !hasPersistedExtensionDays()" />
+              <label for="restartExtensionPeriod" class="cursor-pointer">Restart extension period from today?</label>
             </div>
+            @if (accessLevel() >= 3 && restartExtensionPeriod() && poam.extensionDays > 0) {
+              <small class="mt-1 block text-orange-500">A restarted extension period is a new request: submit it with Save. Uncheck this box to approve the request as it was submitted.</small>
+            }
           </div>
         </div>
         <div class="p-col-12">
@@ -86,6 +82,9 @@
                 ></i>
               }
             </div>
+            @if (extensionPeriodExpired()) {
+              <small class="mt-1 block text-orange-500">The extension deadline has passed. Check "Restart extension period from today" to request a new extension period.</small>
+            }
           </div>
         </div>
         <div class="p-col-12">
@@ -117,7 +116,7 @@
             <ng-template #content let-activateCallback="activateCallback">
               <div class="stepper-content-wrapper">
                 <div class="stepper-content">
-                  <p-table [value]="poamMilestones()" dataKey="milestoneId" editMode="row" #dt>
+                  <p-table [value]="poamMilestones()" [editingRowKeys]="editingRowKeys()" dataKey="milestoneId" editMode="row" #dt>
                     <ng-template #header>
                       <tr>
                         <th scope="col">Milestone Comments</th>
@@ -132,7 +131,7 @@
                         </th>
                       </tr>
                     </ng-template>
-                    <ng-template #body let-milestone let-editing="editing" let-ri="rowIndex">
+                    <ng-template #body let-milestone let-editing="editing">
                       <tr [pEditableRow]="milestone" [class.p-highlight]="milestone.editing">
                         <td>
                           <p-celleditor>
@@ -225,7 +224,7 @@
                           @if (editing) {
                             <div class="flex justify-center items-center gap-2">
                               <button pButton (click)="$event.stopPropagation(); onRowEditSave(milestone)" [rounded]="true" variant="text" severity="success" [disabled]="accessLevel() < 2"><i class="pi pi-check" pButtonIcon></i></button>
-                              <button pButton (click)="$event.stopPropagation(); onRowEditCancel(milestone, ri)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-times" pButtonIcon></i></button>
+                              <button pButton (click)="$event.stopPropagation(); onRowEditCancel(milestone)" [rounded]="true" variant="text" severity="danger" [disabled]="accessLevel() < 2"><i class="pi pi-times" pButtonIcon></i></button>
                             </div>
                           } @else {
                             <button pButton (click)="$event.stopPropagation(); onRowEditInit(milestone)" pInitEditableRow [rounded]="true" variant="text" [disabled]="accessLevel() < 2"><i class="pi pi-pencil" pButtonIcon></i></button>
@@ -467,38 +466,52 @@
     </div>
   }
   <ng-template #footer>
-    <div class="m-2 flex w-full items-center justify-between">
-      <button pButton class="ml-4" (click)="cancelExtension()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
-      @if (poam()) {
-        <div>
+    <div class="mr-2 ml-2 mb-2 flex w-full items-center justify-between">
+      <div class="flex items-center">
+        @if (poam() && hasPersistedExtension()) {
+          <button pButton class="ml-4" (click)="deletePoamExtension()" [outlined]="true" severity="danger" [pTooltip]="deleteExtensionTooltip()" [disabled]="accessLevel() < 2 || loading() || saving()">
+            <span pButtonLabel>Delete Extension</span>
+          </button>
+        }
+      </div>
+      <div class="flex items-center">
+        <button pButton class="ml-4" (click)="cancelExtension()" [outlined]="true" severity="secondary"><span pButtonLabel>Cancel</span></button>
+        @if (poam()) {
           @if (accessLevel() >= 3) {
-            <button pButton (click)="approveExtension()" [outlined]="true" severity="success" pTooltip="Approving a POAM extension will automatically update the POAM status to 'Approved'" [disabled]="accessLevel() < 3">
+            <button
+              pButton
+              (click)="approveExtension()"
+              [outlined]="true"
+              severity="success"
+              [pTooltip]="canApproveExtension() ? 'Approving a POAM extension will automatically update the POAM status to \'Approved\'' : 'This POAM is CAT-I. Only a CAT-I Approver may approve its extension.'"
+              [disabled]="!canApproveExtension() || loading() || saving()"
+            >
               <span pButtonLabel>Approve</span>
             </button>
             <p-splitbutton
-              class="rejectSplitButton ml-4"
+              class="rejectSplitButton ml-4 mr-4"
               [model]="rejectButtonItems"
               [outlined]="true"
               severity="danger"
               label="Reject"
-              pTooltip="Rejecting a POAM extension will automatically update the POAM status to 'Rejected'"
+              pTooltip="Clicking Reject sets the POAM status to 'Rejected' and clears the requested extension days and the extension deadline. Use the dropdown to open the approval page and reject with comments instead."
               (onClick)="rejectExtension()"
-              [disabled]="accessLevel() < 3"
+              [disabled]="accessLevel() < 3 || loading() || saving()"
               menuStyleClass="extension-splitbutton-menu"
             />
           }
           <button
             pButton
-            class="ml-4 mr-4"
+            class="mr-4"
             (click)="submitPoamExtension()"
             [outlined]="true"
-            pTooltip="Saving an extension where 'Extension Time Requested' is provided will automatically update the POAM status to 'Extension Requested' and notify an Approver for review."
-            [disabled]="accessLevel() < 2"
+            pTooltip="Saving with 'Restart extension period from today' checked re-anchors the extension deadline to today plus the selected extension time, sets the POAM status to 'Extension Requested', and notifies any of the POAM's approvers who hold approver-level access on this collection. Saving while unchecked updates the extension details only; the POAM status and the extension deadline are unchanged."
+            [disabled]="accessLevel() < 2 || loading() || saving()"
           >
             <span pButtonLabel>Save</span>
           </button>
-        </div>
-      }
+        }
+      </div>
     </div>
   </ng-template>
 </p-dialog>

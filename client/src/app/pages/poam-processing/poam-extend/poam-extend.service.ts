@@ -22,13 +22,9 @@ export class PoamExtensionService {
   private readonly cpatApiBase = CPAT.Env.apiBase;
 
   private handleError(error: HttpErrorResponse) {
-    if (error.error instanceof ErrorEvent) {
-      console.error('An error occurred:', error.error.message);
-    } else {
-      console.error(`Backend returned code ${error.status}, body was: ${error.error}`);
-    }
+    console.error('An error occurred:', error);
 
-    return throwError(() => new Error('Something bad happened; please try again later.'));
+    return throwError(() => error);
   }
 
   getPoamExtension(poamId: number): Observable<any> {

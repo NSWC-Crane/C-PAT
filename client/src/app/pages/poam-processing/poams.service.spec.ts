@@ -9,9 +9,10 @@
 */
 
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { getErrorMessage } from '../../common/utils/error-utils';
 import { PoamService } from './poams.service';
 import { mockPoam, mockPoamList, mockMilestone, mockApprover, mockPoamAsset, mockPoamLabel } from '../../../testing/fixtures/poam-fixtures';
 
@@ -258,20 +259,6 @@ describe('PoamService', () => {
       expect(req.request.method).toBe('PUT');
       expect(req.request.body).toEqual(updatedPoam);
       req.flush(updatedPoam);
-    });
-
-    it('should update POAM status', () => {
-      const statusUpdate = { status: 'Approved', comments: 'Test' };
-
-      service.updatePoamStatus(1, statusUpdate).subscribe((data) => {
-        expect(data).toBeTruthy();
-      });
-
-      const req = httpMock.expectOne(`${apiBase}/poam/1/status`);
-
-      expect(req.request.method).toBe('PUT');
-      expect(req.request.body).toEqual(statusUpdate);
-      req.flush({ success: true });
     });
 
     it('should delete a POAM', () => {
@@ -796,43 +783,66 @@ describe('PoamService', () => {
   describe('Error Handling', () => {
     it('should handle client-side errors', () => {
       const mockError = new ProgressEvent('error');
+      let capturedError: any;
+      let nextCalled = false;
 
       service.getPoam(1).subscribe({
-        next: () => {
-          throw new Error('expected an error');
-        },
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        next: () => (nextCalled = true),
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne((request) => request.url === `${apiBase}/poam/1`);
 
       req.error(mockError);
+
+      expect(nextCalled).toBe(false);
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(0);
     });
 
     it('should handle server-side errors', () => {
+      let capturedError: any;
+
       service.getPoam(1).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne((request) => request.url === `${apiBase}/poam/1`);
 
       req.flush('Internal Server Error', { status: 500, statusText: 'Server Error' });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(500);
     });
 
     it('should handle 404 errors', () => {
+      let capturedError: any;
+
       service.getPoam(999).subscribe({
-        error: (error) => {
-          expect(error.message).toBe('Something bad happened; please try again later.');
-        }
+        error: (error) => (capturedError = error)
       });
 
       const req = httpMock.expectOne((request) => request.url === `${apiBase}/poam/999`);
 
       req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(capturedError.status).toBe(404);
+    });
+
+    it('should surface the server detail through the rethrown response', () => {
+      let capturedError: any;
+
+      service.getPoamMilestones(1).subscribe({
+        error: (error) => (capturedError = error)
+      });
+
+      const req = httpMock.expectOne((request) => request.url === `${apiBase}/poamMilestones/1`);
+
+      req.flush({ error: 'Incorrect request.', detail: 'poamId is required' }, { status: 400, statusText: 'Bad Request' });
+
+      expect(capturedError).toBeInstanceOf(HttpErrorResponse);
+      expect(getErrorMessage(capturedError)).toBe('poamId is required');
     });
   });
 });

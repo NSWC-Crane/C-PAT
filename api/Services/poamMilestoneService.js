@@ -107,10 +107,10 @@ module.exports.postPoamMilestone = async function postPoamMilestone(poamId, req)
             await connection.query(teamSql, [milestoneId, teamId]);
         }
 
-        let sql = `SELECT * FROM ${config.database.schema}.poamMilestones WHERE poamId = ?`;
-        let [rows] = await connection.query(sql, [poamId]);
+        let sql = `SELECT * FROM ${config.database.schema}.poamMilestones WHERE milestoneId = ?`;
+        let [rows] = await connection.query(sql, [milestoneId]);
 
-        const poamMilestone = rows.map(row => ({ ...row }));
+        const poamMilestone = { ...rows[0], assignedTeamIds };
 
         if (req.body.milestoneChangeComments) {
             let userId = req.userObject.userId;

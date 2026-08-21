@@ -12,6 +12,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, PLATFORM_ID, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { $t, updatePreset, updateSurfacePalette } from '@primeuix/themes';
+import { toastTokens } from '../../app-theme';
 import Aura from '@primeuix/themes/aura-compat';
 import { ButtonModule } from 'primeng/button';
 import { PrimeNG } from 'primeng/config';
@@ -590,6 +591,10 @@ export class AppConfiguratorComponent implements OnInit {
   }
 
   getPresetExt() {
+    return { ...this.getPrimaryPresetExt(), components: { toast: toastTokens } };
+  }
+
+  getPrimaryPresetExt() {
     const color: SurfacesType | undefined = this.primaryColors().find((c) => c.name === this.selectedPrimaryColor());
 
     if (!color) return {};

@@ -19,6 +19,8 @@ const poamAssociatedVulnerabilityService = require('./poamAssociatedVulnerabilit
 const poamMilestoneService = require('./poamMilestoneService');
 const poamLabelService = require('./poamLabelService');
 const poamTeamMitigationService = require('./poamTeamMitigationService');
+const { getPoamApproverRecipients } = require('./poamApproverRecipients');
+const { APPROVAL_ACCESS_LEVEL, WRITE_ACCESS_LEVEL, approvalLevelForSeverity, assertCollectionAccessLevel } = require('./poamAccess');
 
 async function withConnection(callback) {
     const connection = await dbUtils.pool.getConnection();
@@ -144,20 +146,26 @@ async function insertPoamAssets(connection, poam, assets) {
 }
 
 async function insertPoamApprovers(connection, poam, approvers) {
-    const insertSql = `INSERT INTO ${config.database.schema}.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments) VALUES (?, ?, ?, ?, ?)`;
-
     for (const approver of approvers) {
         if (!approver.userId) {
             throw new SmError.ClientError('approvers.userId is required');
         }
+    }
 
-        await connection.query(insertSql, [
-            poam.poamId,
-            approver.userId,
-            approver.approvalStatus || 'Not Reviewed',
-            approver.approvedDate || null,
-            approver.comments || null,
-        ]);
+    const retainedUserIds = approvers.map(approver => approver.userId);
+
+    if (retainedUserIds.length > 0) {
+        await connection.query(`DELETE FROM ${config.database.schema}.poamapprovers WHERE poamId = ? AND userId NOT IN (?)`, [poam.poamId, retainedUserIds]);
+    } else {
+        await connection.query(`DELETE FROM ${config.database.schema}.poamapprovers WHERE poamId = ?`, [poam.poamId]);
+    }
+
+    const insertSql = `INSERT INTO ${config.database.schema}.poamapprovers (poamId, userId, approvalStatus, approvedDate, comments)
+                       VALUES (?, ?, ?, ?, ?)
+                       ON DUPLICATE KEY UPDATE comments = VALUES(comments)`;
+
+    for (const approver of approvers) {
+        await connection.query(insertSql, [poam.poamId, approver.userId, 'Not Reviewed', null, approver.comments || null]);
     }
 }
 
@@ -270,7 +278,7 @@ async function insertPoamTeamResources(connection, poam, teamResources) {
 
 const POAM_CHILD_WRITERS = [
     { key: 'assets', table: 'poamassets', write: insertPoamAssets },
-    { key: 'approvers', table: 'poamapprovers', write: insertPoamApprovers },
+    { key: 'approvers', table: 'poamapprovers', write: insertPoamApprovers, reconcile: true },
     { key: 'assignedTeams', table: 'poamassignedteams', write: insertPoamAssignedTeams },
     {
         key: 'associatedVulnerabilities',
@@ -285,13 +293,13 @@ const POAM_CHILD_WRITERS = [
 ];
 
 async function writePoamChildRecords(connection, poam, body, { replaceExisting = false } = {}) {
-    for (const { key, table, write, isPresent } of POAM_CHILD_WRITERS) {
+    for (const { key, table, write, isPresent, reconcile } of POAM_CHILD_WRITERS) {
         const value = body[key];
         const present = isPresent ? isPresent(value) : Boolean(value);
 
         if (!present) continue;
 
-        if (replaceExisting) {
+        if (replaceExisting && !reconcile) {
             await connection.query(`DELETE FROM ${config.database.schema}.${table} WHERE poamId = ?`, [poam.poamId]);
         }
 
@@ -325,13 +333,7 @@ async function logPoamUpdate(connection, req, existingPoam, updatedPoam) {
 }
 
 async function notifyApproversOfSubmission(connection, poamId) {
-    const approverSql = `
-                        SELECT pa.userId
-                        FROM ${config.database.schema}.poamapprovers pa
-                        JOIN ${config.database.schema}.collectionpermissions cp ON pa.userId = cp.userId
-                        WHERE pa.poamId = ? AND cp.accessLevel = 3
-                    `;
-    const [poamApprovers] = await connection.query(approverSql, [poamId]);
+    const poamApprovers = await getPoamApproverRecipients(connection, poamId);
     const notificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
     const title = 'POAM Pending Approval';
     const message = `POAM ${poamId} has been submitted and is pending Approver review.`;
@@ -677,6 +679,16 @@ module.exports.postPoam = async function postPoam(req) {
                     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     return await withConnection(async connection => {
+        await assertCollectionAccessLevel(
+            connection,
+            req,
+            req.body.collectionId,
+            WRITE_ACCESS_LEVEL,
+            'User does not have permission to create a POAM in this collection'
+        );
+
+        await assertPoamApprovalAccess(connection, req, { status: 'Draft', collectionId: req.body.collectionId, rawSeverity: req.body.rawSeverity });
+
         await assertUniqueVulnerabilityId(connection, { collectionId: req.body.collectionId, vulnerabilityId: req.body.vulnerabilityId });
 
         await connection.beginTransaction();
@@ -735,6 +747,38 @@ module.exports.postPoam = async function postPoam(req) {
     });
 };
 
+const SUBMITTER_STATUSES = new Set(['Draft', 'Closed', 'Expired', 'Submitted']);
+
+async function assertPoamApprovalAccess(connection, req, existingPoam) {
+    if (req.userObject.isAdmin || req.body.status === existingPoam.status || SUBMITTER_STATUSES.has(req.body.status)) {
+        return;
+    }
+
+    if (req.body.status === 'Approved') {
+        const requiredAccessLevel = approvalLevelForSeverity(existingPoam.rawSeverity, req.body.rawSeverity);
+
+        await assertCollectionAccessLevel(
+            connection,
+            req,
+            existingPoam.collectionId,
+            requiredAccessLevel,
+            requiredAccessLevel > APPROVAL_ACCESS_LEVEL
+                ? 'A CAT-I POAM may only be approved by a CAT-I Approver'
+                : 'User does not have permission to approve this POAM'
+        );
+
+        return;
+    }
+
+    await assertCollectionAccessLevel(
+        connection,
+        req,
+        existingPoam.collectionId,
+        APPROVAL_ACCESS_LEVEL,
+        'User does not have permission to change this POAM to the requested status'
+    );
+}
+
 module.exports.putPoam = async function putPoam(req) {
     const requiredFields = ['poamId', 'collectionId', 'vulnerabilitySource', 'rawSeverity', 'submitterId'];
     let missingField = requiredFields.find(field => !req.body[field]);
@@ -762,6 +806,26 @@ module.exports.putPoam = async function putPoam(req) {
             if (!existingPoam) {
                 throw new SmError.NotFoundError('POAM not found');
             }
+
+            await assertCollectionAccessLevel(
+                connection,
+                req,
+                existingPoam.collectionId,
+                WRITE_ACCESS_LEVEL,
+                'User does not have permission to modify this POAM'
+            );
+
+            if (Number(req.body.collectionId) !== Number(existingPoam.collectionId)) {
+                await assertCollectionAccessLevel(
+                    connection,
+                    req,
+                    req.body.collectionId,
+                    WRITE_ACCESS_LEVEL,
+                    'User does not have permission to move this POAM to the requested collection'
+                );
+            }
+
+            await assertPoamApprovalAccess(connection, req, existingPoam);
 
             await assertUniqueVulnerabilityId(connection, {
                 collectionId: req.body.collectionId,
@@ -820,59 +884,6 @@ module.exports.putPoam = async function putPoam(req) {
             await connection.rollback();
             throw error;
         }
-    });
-};
-
-module.exports.updatePoamStatus = async function updatePoamStatus(req) {
-    if (!req.params.poamId) {
-        throw new SmError.ClientError('poamId is required');
-    }
-
-    if (!req.body.status) {
-        throw new SmError.ClientError('status is required');
-    }
-
-    return await withConnection(async connection => {
-        const [existingPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.params.poamId]);
-
-        if (existingPoamRow.length === 0) {
-            throw new SmError.NotFoundError('POAM not found');
-        }
-
-        const sqlUpdatePoam = `UPDATE ${config.database.schema}.poam SET status = ? WHERE poamId = ?`;
-        await connection.query(sqlUpdatePoam, [req.body.status, req.params.poamId]);
-
-        const [updatedPoamRow] = await connection.query(`SELECT * FROM ${config.database.schema}.poam WHERE poamId = ?`, [req.params.poamId]);
-
-        const updatedPoam = mapPoamRow(updatedPoamRow[0]);
-
-        let poamId = req.params.poamId;
-        let action = `POAM Status Updated. POAM Status: ${req.body.status}.`;
-        let logSql = `INSERT INTO ${config.database.schema}.poamlogs (poamId, action, userId) VALUES (?, ?, ?)`;
-
-        await connection.query(logSql, [poamId, action, req.userObject.userId]);
-
-        if (req.body.status === 'Submitted') {
-            let sql = `SELECT * FROM ${config.database.schema}.poamapprovers WHERE poamId = ?`;
-            let [rows] = await connection.query(sql, [req.params.poamId]);
-
-            const poamApprovers = rows.map(row => ({ ...row }));
-
-            const notificationPromises = poamApprovers.map(async approver => {
-                const notification = {
-                    title: 'POAM Pending Approval',
-                    message: `POAM ${req.params.poamId} has been submitted and is pending Approver review.`,
-                    userId: approver.userId,
-                };
-
-                const notificationSql = `INSERT INTO ${config.database.schema}.notification (userId, title, message) VALUES (?, ?, ?)`;
-                await connection.query(notificationSql, [approver.userId, notification.title, notification.message]);
-            });
-
-            await Promise.all(notificationPromises);
-        }
-
-        return updatedPoam;
     });
 };
 

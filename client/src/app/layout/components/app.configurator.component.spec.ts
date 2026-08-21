@@ -6,6 +6,7 @@ import { AppConfiguratorComponent } from './app.configurator.component';
 import { AppConfigService } from '../services/appconfigservice';
 import { PayloadService } from '../../common/services/setPayload.service';
 import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { toastTokens } from '../../app-theme';
 
 vi.mock('@primeuix/themes', () => ({
   $t: vi.fn().mockReturnValue({
@@ -17,6 +18,7 @@ vi.mock('@primeuix/themes', () => ({
       })
     })
   }),
+  definePreset: vi.fn((base: any, ext: any) => ({ ...base, ...ext })),
   updatePreset: vi.fn(),
   updateSurfacePalette: vi.fn()
 }));
@@ -560,9 +562,17 @@ describe('AppConfiguratorComponent', () => {
   });
 
   describe('getPresetExt', () => {
-    it('should return empty object when no matching primary color found', () => {
+    it('should return empty semantic extension when no matching primary color found', () => {
       appStateSignal.set(createAppState({ primary: 'nonexistent' }));
-      expect(component.getPresetExt()).toEqual({});
+      expect(component.getPrimaryPresetExt()).toEqual({});
+    });
+
+    it('should always carry the toast token override', () => {
+      appStateSignal.set(createAppState({ primary: 'nonexistent' }));
+      expect(component.getPresetExt().components.toast).toBe(toastTokens);
+
+      appStateSignal.set(createAppState({ primary: 'noir' }));
+      expect(component.getPresetExt().components.toast).toBe(toastTokens);
     });
 
     it('should return noir-specific preset extension for noir primary', () => {

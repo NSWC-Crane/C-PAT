@@ -3273,11 +3273,20 @@ paths:
     delete:
       summary: Delete a poamApprover by userId and poamId
       operationId: deletePoamApprover
+      description: >-
+        Removes a user from a POAM's approver list. Requires accessLevel 2 or higher on the POAM's collection;
+        administrators bypass the check. Deleting an approver row that does not exist succeeds without error.
       responses:
         '204':
           description: Poam Approver deleted
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
           content:
             application/json:
               schema:
@@ -3298,6 +3307,9 @@ paths:
     post:
       summary: Add a poamApprover
       operationId: postPoamApprover
+      description: >-
+        Adds a user to a POAM's approver list. Requires accessLevel 2 or higher on the POAM's collection;
+        administrators bypass the check. Re-adding an existing approver is idempotent.
       requestBody:
         required: true
         content:
@@ -3317,6 +3329,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
           description: Unexpected error
           content:
@@ -3331,6 +3349,10 @@ paths:
     put:
       summary: Updates a poamApprover
       operationId: putPoamApprover
+      description: >-
+        Records an approver's review of a POAM and updates the POAM status to match; a CAT-I POAM approved below
+        accessLevel 4 moves to "Pending CAT-I Approval" instead. Requires accessLevel 3 or higher on the POAM's
+        collection, and non-administrators may only supply their own userId.
       requestBody:
         required: true
         content:
@@ -3346,6 +3368,12 @@ paths:
                 $ref: '#/components/schemas/poamApprover_Object'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges, or a non-administrator supplied a userId other than their own
           content:
             application/json:
               schema:
@@ -4197,7 +4225,10 @@ paths:
           description: The ID of the POAM
       responses:
         '200':
-          description: POAM extension details or empty array if no extensions found
+          description: >-
+            POAM extension details, or an empty array if no extension exists. The array holds at most one element and
+            date properties are returned as "YYYY-MM-DD" strings. Requires accessLevel 1 or higher on the POAM's
+            collection.
           content:
             application/json:
               schema:
@@ -4229,7 +4260,11 @@ paths:
           description: The ID of the POAM
       responses:
         '200':
-          description: Success message
+          description: >-
+            Extension removed. extensionDays is set to 0 and extensionJustification and extensionDeadline are cleared.
+            An "Extension Requested" status reverts to "Submitted" and the POAM's approvers are notified; any other
+            status is left untouched. Deadline reminders reset against the scheduled completion date and extension
+            history is retained. Requires accessLevel 2 or higher on the POAM's collection.
           content:
             application/json:
               schema:
@@ -4240,6 +4275,12 @@ paths:
                     example: 'POAM extension deleted successfully'
         '403':
           $ref: '#/components/responses/forbidden'
+        '404':
+          description: POAM not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         default:
           description: unexpected error
           content:
@@ -4250,6 +4291,13 @@ paths:
   /poamExtension:
     put:
       summary: Add or update POAM extension
+      description: >-
+        Adds or updates the extension attached to a POAM. The body is a presence-based partial update: extensionDays
+        and status are preserved when absent or null, the text fields are PATCH-style (absent preserves, null clears),
+        and deadline movement is controlled by reanchorDeadline. Re-anchoring records a history row and notifies the
+        POAM's approvers unless the request changes nothing. Requires accessLevel 2 or higher on the POAM's
+        collection; changing status to "Approved" or "Rejected" requires accessLevel 3, and "Approved" on a POAM whose
+        rawSeverity is "CAT I - Critical" or "CAT I - High" requires accessLevel 4.
       operationId: putPoamExtension
       tags:
         - PoamExtension
@@ -4269,13 +4317,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/poamExtensionObject'
         '400':
-          description: Bad request
+          description: >-
+            Bad request. Returned when poamId is falsy, when reanchorDeadline is true without a positive extensionDays,
+            when extensionDays changes while reanchorDeadline is false, or when a supplied status is neither the POAM's
+            current status nor one of "Extension Requested", "Approved" and "Rejected".
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
         '403':
-          $ref: '#/components/responses/forbidden'
+          description: Forbidden - insufficient privileges for the collection or the requested status change
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '404':
           description: POAM not found
           content:
@@ -5237,6 +5292,10 @@ paths:
     post:
       summary: Add a POAM
       operationId: postPoam
+      description: >-
+        Creates a POAM. Requires accessLevel 2 or higher on the collection named by collectionId, and the requested
+        status is subject to the same allowlist as PUT /poam, measured against the request body's rawSeverity.
+        Administrators bypass both checks.
       requestBody:
         required: true
         content:
@@ -5252,6 +5311,12 @@ paths:
                 $ref: '#/components/schemas/poam_Object'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges for the collection or the requested status
           content:
             application/json:
               schema:
@@ -5276,6 +5341,12 @@ paths:
     put:
       summary: Update a POAM
       operationId: putPoam
+      description: >-
+        Updates a POAM. Requires accessLevel 2 or higher on the POAM's collection, and on the destination collection
+        when changing collectionId. Status changes are allowlisted: "Draft", "Closed", "Expired" and "Submitted" need
+        accessLevel 2, "Approved" needs accessLevel 3 - or accessLevel 4 when the stored or requested rawSeverity is
+        "CAT I - Critical" or "CAT I - High" - and every other status needs accessLevel 3. A request that leaves
+        status equal to the stored status is not treated as a status change. Administrators bypass all checks.
       requestBody:
         required: true
         content:
@@ -5295,6 +5366,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges for the collection, the destination collection, or the requested status change
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '404':
           description: POAM not found
           content:
@@ -5303,53 +5380,6 @@ paths:
                 $ref: '#/components/schemas/error'
         '409':
           description: A POAM already exists for this vulnerability ID within the collection
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-      tags:
-        - Poam
-      security:
-        - oauth:
-            - 'c-pat:write'
-
-  '/poam/{poamId}/status':
-    parameters:
-      - in: path
-        name: poamId
-        required: true
-        schema:
-          type: integer
-    put:
-      summary: Update a POAMs status
-      operationId: updatePoamStatus
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/poam_status_object'
-      responses:
-        '200':
-          description: POAM updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/poam_Object'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '404':
-          description: Resource not found
           content:
             application/json:
               schema:
@@ -7512,35 +7542,68 @@ components:
 
     poamExtensionObject:
       type: object
+      description: >-
+        The extension attached to a POAM, used as both the PUT /poamExtension request body and the response shape for
+        GET /poamExtension/{poamId} and PUT /poamExtension. On PUT only poamId is required: extensionDays and status
+        are preserved when absent or null, the text fields are PATCH-style (absent preserves, null clears), and
+        extensionDeadline, extensionHistory and serverToday are response-only.
       required:
         - poamId
       additionalProperties: true
       properties:
         poamId:
           type: integer
+          description: The ID of the POAM this extension belongs to. Required on PUT.
         extensionDays:
-          type: integer
+          type: [integer, 'null']
+          description: >-
+            Number of days the POAM deadline is extended by. Absent or null preserves the stored value; 0 clears the
+            extension and forces extensionDeadline to null. Changing it to a different non-zero value requires
+            reanchorDeadline to be true.
         extensionDeadline:
-          type: string
+          type: [string, 'null']
           format: date
+          description: >-
+            Response-only. The date the extension expires as a "YYYY-MM-DD" string; moved only when the request
+            re-anchors and forced to null when the effective extensionDays is 0 or null.
         extensionJustification:
-          type: string
+          type: [string, 'null']
+          description: Justification for the extension request. PATCH-style on PUT - absent preserves, null clears.
         mitigations:
           type: [string, 'null']
+          description: PATCH-style on PUT - absent preserves, null clears.
         requiredResources:
           type: [string, 'null']
+          description: PATCH-style on PUT - absent preserves, null clears.
         residualRisk:
           type: [string, 'null']
+          description: PATCH-style on PUT - absent preserves, null clears.
         likelihood:
           type: [string, 'null']
+          description: PATCH-style on PUT - absent preserves, null clears.
         localImpact:
           type: [string, 'null']
+          description: PATCH-style on PUT - absent preserves, null clears.
         impactDescription:
           type: [string, 'null']
+          description: PATCH-style on PUT - absent preserves, null clears.
         status:
-          type: string
+          type: [string, 'null']
+          description: >-
+            The POAM status to apply alongside the extension. Absent or null preserves the stored status; a supplied
+            value must be the POAM's current status or one of "Extension Requested", "Approved" and "Rejected".
+        reanchorDeadline:
+          type: boolean
+          description: >-
+            Decides whether this request restarts the extension period. When true, extensionDeadline becomes the
+            current date plus the effective extensionDays, a history row is recorded and approvers are notified;
+            requires extensionDays greater than zero. When false, the deadline is never moved forward. When omitted,
+            legacy behavior re-anchors only when status is explicitly set to "Extension Requested"; omitting the field
+            is deprecated. Whenever the deadline moves, the deadline reminders reset; the halfway reminder never
+            resets.
         extensionHistory:
           type: array
+          description: Response-only. One entry per recorded re-anchor of this POAM's extension.
           items:
             type: object
             properties:
@@ -7551,18 +7614,12 @@ components:
                 format: date
               extensionDays:
                 type: integer
-
-    poam_status_object:
-      type: object
-      required:
-        - poamId
-        - status
-      additionalProperties: true
-      properties:
-        poamId:
-          type: integer
-        status:
+        serverToday:
           type: string
+          format: date
+          description: >-
+            Response-only. The database server's current date as a "YYYY-MM-DD" string, so a client can anchor a
+            previewed extension deadline to the server's date rather than the browser's.
 
     poam_Object:
       type: object
@@ -7639,6 +7696,10 @@ components:
           type: [boolean, 'null']
         approvers:
           type: array
+          description: >-
+            The POAM's approver list. Declares membership only: missing approvers are removed, new ones are added as
+            "Not Reviewed", and existing approvers keep their recorded approvalStatus and approvedDate (only comments
+            is updated). Reviews are recorded through PUT /poamApprover.
           items:
             type: object
             properties:
@@ -7647,9 +7708,11 @@ components:
               approvalStatus:
                 type: string
                 default: 'Not Reviewed'
+                description: Ignored on PUT /poam. See the array description.
               approvedDate:
                 type: [string, 'null']
                 format: date
+                description: Ignored on PUT /poam. See the array description.
               comments:
                 type: [string, 'null']
               hqs:

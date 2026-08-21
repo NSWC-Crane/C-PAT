@@ -11,6 +11,28 @@
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura-compat';
 
+export const toastTokens = {
+  root: {
+    blur: 'light-dark(3px, 20px)'
+  },
+  info: {
+    background: 'light-dark(color-mix(in srgb, {blue.50}, transparent 4%), color-mix(in srgb, {blue.500}, transparent 55%))',
+    borderColor: 'light-dark({blue.200}, color-mix(in srgb, {blue.700}, transparent 40%))'
+  },
+  success: {
+    background: 'light-dark(color-mix(in srgb, {green.50}, transparent 4%), color-mix(in srgb, {green.500}, transparent 55%))',
+    borderColor: 'light-dark({green.200}, color-mix(in srgb, {green.700}, transparent 40%))'
+  },
+  warn: {
+    background: 'light-dark(color-mix(in srgb, {yellow.50}, transparent 4%), color-mix(in srgb, {yellow.500}, transparent 55%))',
+    borderColor: 'light-dark({yellow.200}, color-mix(in srgb, {yellow.700}, transparent 40%))'
+  },
+  error: {
+    background: 'light-dark(color-mix(in srgb, {red.50}, transparent 4%), color-mix(in srgb, {red.500}, transparent 55%))',
+    borderColor: 'light-dark({red.200}, color-mix(in srgb, {red.700}, transparent 40%))'
+  }
+};
+
 const Noir = definePreset(Aura, {
   semantic: {
     primary: {
@@ -56,6 +78,9 @@ const Noir = definePreset(Aura, {
         }
       }
     }
+  },
+  components: {
+    toast: toastTokens
   }
 });
 
