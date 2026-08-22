@@ -18,7 +18,7 @@ import { Subject, of, throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { STIGManagerControlsTableComponent } from './stigManagerControlsTable.component';
 import { SharedService } from '../../../../common/services/shared.service';
-import { PoamService } from '../../../poam-processing/poams.service';
+import { PoamService } from '../../../poams/poams.service';
 import { createMockMessageService, createMockRouter } from '../../../../../testing/mocks/service-mocks';
 
 const mockRawFindings = [

@@ -34,7 +34,7 @@ import { STIGManagerComponent } from './stig-manager.component';
 import { CollectionsService } from '../../admin/collections/collections.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
-import { PoamService } from '../../poam-processing/poams.service';
+import { PoamService } from '../../poams/poams.service';
 import { createMockMessageService, createMockRouter } from '../../../../testing/mocks/service-mocks';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 
@@ -804,7 +804,7 @@ describe('STIGManagerComponent', () => {
       const rowData = { groupId: 'V-999', ruleId: 'SV-999_rule', benchmarkId: 'TEST', severity: 'CAT I - High' };
 
       component.addPoam(rowData);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ vulnerabilityId: 'V-999' }) }));
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ vulnerabilityId: 'V-999' }) }));
     });
 
     it('should navigate to existing poamId route when existing POAM found', () => {
@@ -812,7 +812,7 @@ describe('STIGManagerComponent', () => {
       const rowData = { groupId: 'V-230221', ruleId: 'SV-230221r_rule', benchmarkId: 'RHEL_8_STIG', severity: 'CAT I - High' };
 
       component.addPoam(rowData);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/101'], expect.any(Object));
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/101'], expect.any(Object));
     });
 
     it('should show error when getRuleDataFromSTIGMAN fails', () => {

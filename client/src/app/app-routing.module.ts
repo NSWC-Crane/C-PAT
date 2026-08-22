@@ -19,7 +19,7 @@ import { labelRoutes } from './pages/labels/labels.routing';
 import { metricsRoutes } from './pages/metrics/metrics.routing';
 import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
 import { homeRoutes } from './pages/home/home.routing';
-import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
+import { poamRoutes } from './pages/poams/poams-routing.module';
 
 const routerOptions: ExtraOptions = {
   anchorScrolling: 'enabled'
@@ -78,9 +78,9 @@ export const routes: Routes = [
         loadComponent: () => import('./common/components/notifications/notifications.component').then((m) => m.NotificationsComponent)
       },
       {
-        path: 'poam-processing',
+        path: 'poams',
         canActivate: [AuthGuard],
-        children: poamProcessingRoutes
+        children: poamRoutes
       },
       {
         path: 'marketplace',

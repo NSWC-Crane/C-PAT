@@ -20,7 +20,7 @@ import { CollectionsService } from './collections.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { IntegrationService } from '../../integrations/integration.service';
-import { PoamService } from '../../poam-processing/poams.service';
+import { PoamService } from '../../poams/poams.service';
 import { AAPackageService } from '../aa-packages/aa-packages.service';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
 

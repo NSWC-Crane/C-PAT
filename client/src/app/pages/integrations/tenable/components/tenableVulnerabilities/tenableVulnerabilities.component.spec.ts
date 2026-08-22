@@ -19,7 +19,7 @@ import { TenableVulnerabilitiesComponent } from './tenableVulnerabilities.compon
 import { CustomFilter } from '../../../../../common/models/tenable.model';
 import { IntegrationService } from '../../../integration.service';
 import { CollectionsService } from '../../../../admin/collections/collections.service';
-import { PoamService } from '../../../../poam-processing/poams.service';
+import { PoamService } from '../../../../poams/poams.service';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { Router } from '@angular/router';

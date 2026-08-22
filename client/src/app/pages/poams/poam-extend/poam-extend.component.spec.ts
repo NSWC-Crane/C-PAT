@@ -1891,7 +1891,7 @@ describe('PoamExtendComponent', () => {
       it('should navigate to poam details', () => {
         component.poamId = '42';
         component.cancelExtension();
-        expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/42');
+        expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/42');
       });
     });
 
@@ -2054,7 +2054,7 @@ describe('PoamExtendComponent', () => {
     describe('rejectButtonItems command', () => {
       it('should navigate to poam-approve page', () => {
         component.rejectButtonItems[0].command();
-        expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-approve', 42]);
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-approve', 42]);
       });
     });
   });
@@ -2547,7 +2547,7 @@ describe('PoamExtendComponent', () => {
     it('should navigate after timeout on success', () => {
       (component as any).putPoamExtension('Approved');
       vi.advanceTimersByTime(1000);
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/42');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/42');
     });
 
     it('should close dialog after timeout on success', () => {

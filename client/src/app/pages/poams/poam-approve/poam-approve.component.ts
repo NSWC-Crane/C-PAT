@@ -154,7 +154,7 @@ export class PoamApproveComponent implements OnInit {
 
   cancelApproval() {
     this.displayDialog.set(false);
-    this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId()}`);
+    this.router.navigateByUrl(`/poams/poam-details/${this.poamId()}`);
   }
 
   submitApprovalData() {
@@ -179,7 +179,7 @@ export class PoamApproveComponent implements OnInit {
           });
           setTimeout(() => {
             this.displayDialog.set(false);
-            this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId()}`);
+            this.router.navigateByUrl(`/poams/poam-details/${this.poamId()}`);
           }, 1000);
         },
         error: (error) => {

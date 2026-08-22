@@ -17,7 +17,7 @@ import { of, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableHostDialogComponent } from './tenableHostDialog.component';
 import { IntegrationService } from '../../../integration.service';
-import { PoamService } from '../../../../poam-processing/poams.service';
+import { PoamService } from '../../../../poams/poams.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { Router } from '@angular/router';
 import { createMockMessageService, createMockRouter } from '../../../../../../testing/mocks/service-mocks';
@@ -368,7 +368,7 @@ describe('TenableHostDialogComponent', () => {
       const event = { stopPropagation: vi.fn() } as any;
 
       await component.onPoamIconClick({ poam: true, poamId: 5 }, event);
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/5');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/5');
     });
 
     it('should navigate to ADDPOAM when vulnerability has no poam', async () => {
@@ -376,7 +376,7 @@ describe('TenableHostDialogComponent', () => {
       const event = { stopPropagation: vi.fn() } as any;
 
       await component.onPoamIconClick({ poam: false, pluginID: '12345' }, event);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ vulnerabilitySource: expect.any(String) }) }));
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ vulnerabilitySource: expect.any(String) }) }));
     });
   });
 

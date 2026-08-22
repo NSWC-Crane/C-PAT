@@ -574,7 +574,7 @@ describe('PoamGridComponent', () => {
   describe('managePoam', () => {
     it('should navigate to poam details page', () => {
       component.managePoam({ poamId: 42 });
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/42');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/42');
     });
   });
 

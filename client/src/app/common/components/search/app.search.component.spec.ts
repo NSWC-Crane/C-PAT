@@ -72,13 +72,13 @@ describe('AppSearchComponent', () => {
 
   describe('search items initialization', () => {
     it.each([
-      ['Add POAM', '/poam-processing/poam-details/ADDPOAM'],
+      ['Add POAM', '/poams/poam-details/ADDPOAM'],
       ['Assets', '/assets'],
       ['Global Metrics', '/metrics/global'],
       ['Home', '/home'],
       ['Integrations', '/integrations'],
       ['Labels', '/labels'],
-      ['Manage POAMs', '/poam-processing/poam-manage'],
+      ['Manage POAMs', '/poams/poam-manage'],
       ['Metrics', '/metrics'],
       ['Notifications', '/notifications']
     ])('should include %s item pointing at %s', (title, path) => {
@@ -204,10 +204,10 @@ describe('AppSearchComponent', () => {
     });
 
     it('should navigate to Add POAM path', () => {
-      const item = { title: 'Add POAM', path: '/poam-processing/poam-details/ADDPOAM' };
+      const item = { title: 'Add POAM', path: '/poams/poam-details/ADDPOAM' };
 
       component.navigateTo({ value: item });
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/ADDPOAM']);
     });
 
     it('should navigate to Assets path', () => {

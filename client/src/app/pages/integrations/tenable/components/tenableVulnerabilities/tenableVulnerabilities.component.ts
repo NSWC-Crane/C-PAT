@@ -68,7 +68,7 @@ import {
 } from '../../utils/tenable-vulnerability.utils';
 import { API_FILTER_BUILDERS, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, parseRangeBounds, toArray, toIdList } from '../../utils/tenable-filter.utils';
 import { CollectionsService } from '../../../../admin/collections/collections.service';
-import { PoamService } from '../../../../poam-processing/poams.service';
+import { PoamService } from '../../../../poams/poams.service';
 import { IntegrationService } from '../../../integration.service';
 import { TenableFiltersComponent } from '../../components/tenableFilters/tenableFilters.component';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
@@ -2511,7 +2511,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       sessionStorage.setItem('tenableFilterState', JSON.stringify(returnState));
 
       if (poamAssociation?.poamId) {
-        this.router.navigateByUrl(`/poam-processing/poam-details/${poamAssociation.poamId}`);
+        this.router.navigateByUrl(`/poams/poam-details/${poamAssociation.poamId}`);
 
         return;
       }
@@ -2531,7 +2531,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
         formattedIavComplyByDate = format(complyDate, 'yyyy-MM-dd');
       }
 
-      this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
+      this.router.navigate(['/poams/poam-details/ADDPOAM'], {
         state: {
           vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData(),

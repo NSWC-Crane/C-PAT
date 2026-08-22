@@ -28,7 +28,7 @@ import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { splitDelimitedIds } from '../../../common/utils/validation.utils';
 import { LabelService } from '../labels.service';
-import { PoamService } from '../../poam-processing/poams.service';
+import { PoamService } from '../../poams/poams.service';
 
 @Component({
   selector: 'cpat-label-editor',

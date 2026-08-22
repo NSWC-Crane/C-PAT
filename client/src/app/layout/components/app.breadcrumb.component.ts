@@ -94,8 +94,8 @@ export class AppBreadcrumbComponent implements OnInit {
 
   private createLabel(path: string): string {
     switch (path) {
-      case 'poam-processing':
-        return 'POAM Processing';
+      case 'poams':
+        return 'POAMs';
       case 'poam-approve':
         return 'Approve POAM';
       case 'poam-details':

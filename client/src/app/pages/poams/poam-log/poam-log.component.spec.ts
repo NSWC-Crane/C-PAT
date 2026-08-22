@@ -229,19 +229,19 @@ describe('PoamLogComponent', () => {
     it('should navigate to poam-details with the current poamId', () => {
       component.poamId.set(42);
       component.closeModal();
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/42');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/42');
     });
 
     it('should navigate even when poamId is undefined', () => {
       component.poamId.set(undefined);
       component.closeModal();
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/undefined');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/undefined');
     });
 
     it('should navigate with string poamId', () => {
       component.poamId.set('99');
       component.closeModal();
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/99');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/99');
     });
   });
 

@@ -153,7 +153,7 @@ export class PoamExtendComponent implements OnInit {
     {
       label: 'Reject (With comments)',
       command: () => {
-        this.router.navigate(['/poam-processing/poam-approve', this.poam().poamId]);
+        this.router.navigate(['/poams/poam-approve', this.poam().poamId]);
       }
     }
   ];
@@ -985,7 +985,7 @@ export class PoamExtendComponent implements OnInit {
 
   cancelExtension() {
     this.displayExtensionDialog.set(false);
-    this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+    this.router.navigateByUrl(`/poams/poam-details/${this.poamId}`);
   }
 
   deletePoamExtension() {
@@ -1260,7 +1260,7 @@ export class PoamExtendComponent implements OnInit {
 
             setTimeout(() => {
               this.displayExtensionDialog.set(false);
-              this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId}`);
+              this.router.navigateByUrl(`/poams/poam-details/${this.poamId}`);
             }, 1000);
           },
           error: (error) => {

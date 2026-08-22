@@ -32,7 +32,7 @@ import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin/collections/collections.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
-import { PoamService } from '../../poam-processing/poams.service';
+import { PoamService } from '../../poams/poams.service';
 import { STIGManagerReviewsTableComponent } from './stigManagerReviewsTable/stigManagerReviewsTable.component';
 import { STIGManagerControlsTableComponent } from './stigManagerControlsTable/stigManagerControlsTable.component';
 import { MultiSelectDirective } from '../../../common/directives/multi-select.directive';
@@ -547,7 +547,7 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   private navigateToPoam(rowData: any, ruleDataString: string, descriptionString: string) {
-    let routePath = '/poam-processing/poam-details/';
+    let routePath = '/poams/poam-details/';
     const routeParams = {
       state: {
         vulnerabilitySource: 'STIG',

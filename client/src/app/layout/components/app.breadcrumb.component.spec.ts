@@ -184,6 +184,7 @@ describe('AppBreadcrumbComponent', () => {
   describe('createLabel - Known Routes', () => {
     const knownRoutes = [
       { path: 'home', expected: 'Home' },
+      { path: 'poams', expected: 'POAMs' },
       { path: 'poam-approve', expected: 'Approve POAM' },
       { path: 'poam-details', expected: 'POAM Details' },
       { path: 'poam-extend', expected: 'Extend POAM' },

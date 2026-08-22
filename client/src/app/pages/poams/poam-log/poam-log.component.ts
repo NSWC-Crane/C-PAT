@@ -93,7 +93,7 @@ export class PoamLogComponent implements OnInit, OnDestroy {
 
   closeModal() {
     this.displayModal.set(false);
-    this.router.navigateByUrl(`/poam-processing/poam-details/${this.poamId()}`);
+    this.router.navigateByUrl(`/poams/poam-details/${this.poamId()}`);
   }
 
   ngOnDestroy() {

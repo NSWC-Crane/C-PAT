@@ -342,7 +342,7 @@ describe('PoamApproveComponent', () => {
     it('should navigate to poam details page', () => {
       component.poamId.set('42');
       component.cancelApproval();
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/42');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/42');
     });
   });
 
@@ -431,7 +431,7 @@ describe('PoamApproveComponent', () => {
 
       vi.advanceTimersByTime(1000);
 
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/42');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/42');
     });
 
     describe('on error', () => {

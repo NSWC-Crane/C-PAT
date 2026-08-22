@@ -32,7 +32,7 @@ import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
 import { IntegrationService } from '../../integrations/integration.service';
-import { PoamService } from '../../poam-processing/poams.service';
+import { PoamService } from '../../poams/poams.service';
 import { AAPackageService } from '../aa-packages/aa-packages.service';
 import { CollectionsService } from './collections.service';
 

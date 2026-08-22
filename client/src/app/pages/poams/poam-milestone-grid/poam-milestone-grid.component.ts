@@ -159,7 +159,7 @@ export class PoamMilestoneGridComponent {
   }
 
   managePoam(poamId: number) {
-    this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
+    this.router.navigateByUrl(`/poams/poam-details/${poamId}`);
   }
 
   getMilestoneStatusSeverity(status: string | null): TagSeverity {

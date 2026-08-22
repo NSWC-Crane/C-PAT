@@ -11,7 +11,7 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from '../../core/auth/guards/auth.guard';
 
-export const poamProcessingRoutes: Routes = [
+export const poamRoutes: Routes = [
   { path: '', redirectTo: 'poam-manage', pathMatch: 'full' },
   {
     path: 'poam-approve/:poamId',

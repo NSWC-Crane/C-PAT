@@ -461,13 +461,13 @@ describe('PoamManageComponent', () => {
     it('should navigate to poam details page', () => {
       component.managePoam({ data: { poamId: 42 } });
 
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/42');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/42');
     });
 
     it('should use the correct poamId from row data', () => {
       component.managePoam({ data: { poamId: 999 } });
 
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/999');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/999');
     });
   });
 

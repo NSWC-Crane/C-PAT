@@ -641,7 +641,7 @@ describe('AppLayoutComponent', () => {
     it('should navigate to ADDPOAM and close popup on confirm', () => {
       component.confirmPopupVisible.set(true);
       component.onConfirm();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/ADDPOAM']);
       expect(component.confirmPopupVisible()).toBe(false);
     });
 

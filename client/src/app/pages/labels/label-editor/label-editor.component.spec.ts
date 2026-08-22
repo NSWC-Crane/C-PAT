@@ -16,7 +16,7 @@ import { MessageService } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { LabelEditorComponent } from './label-editor.component';
 import { LabelService } from '../labels.service';
-import { PoamService } from '../../poam-processing/poams.service';
+import { PoamService } from '../../poams/poams.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { createMockMessageService, createMockDialogService } from '../../../../testing/mocks/service-mocks';

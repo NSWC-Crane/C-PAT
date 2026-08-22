@@ -2119,7 +2119,7 @@ describe('PoamDetailsComponent', () => {
       it('should call location.replaceState with new poamId', async () => {
         mockPoamService.postPoam.mockReturnValue(of({ poamId: 99 }));
         await component.savePoam();
-        expect(mockLocation.replaceState).toHaveBeenCalledWith('/poam-processing/poam-details/99');
+        expect(mockLocation.replaceState).toHaveBeenCalledWith('/poams/poam-details/99');
       });
 
       it('should call updateLocalReferences with new poamId', async () => {
@@ -2428,7 +2428,7 @@ describe('PoamDetailsComponent', () => {
 
     it('should navigate to poam-manage', async () => {
       await component.confirmSubmit();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-manage']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-manage']);
     });
 
     it('should revert status and submittedDate when savePoam fails', async () => {
@@ -3060,7 +3060,7 @@ describe('PoamDetailsComponent', () => {
     it('should navigate to poam-extend with poamId', () => {
       component.poam.set({ poamId: 42 });
       component.extendPoam();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-extend', 42]);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-extend', 42]);
     });
 
     it('should show warning and not navigate for ADDPOAM', () => {
@@ -3079,7 +3079,7 @@ describe('PoamDetailsComponent', () => {
     it('should navigate to poam-approve with poamId', () => {
       component.poam.set({ poamId: 42, status: 'Submitted' });
       component.poamApproval();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-approve', 42]);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-approve', 42]);
     });
 
     it('should show warning for Draft status', () => {
@@ -3105,7 +3105,7 @@ describe('PoamDetailsComponent', () => {
     it('should navigate to poam-log with poamId', () => {
       component.poam.set({ poamId: 42 });
       component.poamLog();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-log', 42]);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-log', 42]);
     });
 
     it('should show warning and not navigate for ADDPOAM', () => {
@@ -3170,7 +3170,7 @@ describe('PoamDetailsComponent', () => {
         summary: 'Success',
         detail: expect.stringContaining('42')
       });
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-manage']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-manage']);
     });
 
     it('should show error on delete failure', () => {

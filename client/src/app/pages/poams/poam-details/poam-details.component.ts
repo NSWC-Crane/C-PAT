@@ -774,7 +774,7 @@ export class PoamDetailsComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/poam-processing/poam-extend', this.poam().poamId]);
+    this.router.navigate(['/poams/poam-extend', this.poam().poamId]);
   }
 
   poamApproval() {
@@ -788,7 +788,7 @@ export class PoamDetailsComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/poam-processing/poam-approve', this.poam().poamId]);
+    this.router.navigate(['/poams/poam-approve', this.poam().poamId]);
   }
 
   poamLog() {
@@ -802,7 +802,7 @@ export class PoamDetailsComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/poam-processing/poam-log', this.poam().poamId]);
+    this.router.navigate(['/poams/poam-log', this.poam().poamId]);
   }
 
   savePoam(saveState: boolean = false): Promise<boolean> {
@@ -924,7 +924,7 @@ export class PoamDetailsComponent implements OnInit {
                 this.loadedRawSeverity.set(res.rawSeverity ?? null);
                 this.loadedStatus.set(res.status ?? null);
                 this.poamId.set(res.poamId);
-                this.location.replaceState(`/poam-processing/poam-details/${res.poamId}`);
+                this.location.replaceState(`/poams/poam-details/${res.poamId}`);
                 this.updateLocalReferences(res.poamId);
 
                 if (!saveState) {
@@ -1108,7 +1108,7 @@ export class PoamDetailsComponent implements OnInit {
     }
 
     this.submitDialogVisible.set(false);
-    this.router.navigate(['/poam-processing/poam-manage']);
+    this.router.navigate(['/poams/poam-manage']);
   }
 
   cancelSubmit() {
@@ -1521,7 +1521,7 @@ export class PoamDetailsComponent implements OnInit {
                 summary: 'Success',
                 detail: `POAM ${this.poam().poamId} has been successfully deleted.`
               });
-              this.router.navigate(['/poam-processing/poam-manage']);
+              this.router.navigate(['/poams/poam-manage']);
             },
             error: (error) => {
               this.messageService.add({

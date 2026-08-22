@@ -415,7 +415,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
   managePoam(row: any) {
     const poamId = row.data.poamId;
 
-    this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
+    this.router.navigateByUrl(`/poams/poam-details/${poamId}`);
   }
 
   updateGridData() {

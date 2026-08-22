@@ -870,7 +870,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
   managePoam(row: any) {
     const poamId = row.poamId;
 
-    this.router.navigateByUrl(`/poam-processing/poam-details/${poamId}`);
+    this.router.navigateByUrl(`/poams/poam-details/${poamId}`);
   }
 
   clear() {
