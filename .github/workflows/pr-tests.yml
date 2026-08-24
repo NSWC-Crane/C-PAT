@@ -123,5 +123,8 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
+      - name: Lint OpenAPI spec
+        run: npm run lint:spec
+
       - name: Run tests
         run: npm test
