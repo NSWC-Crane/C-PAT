@@ -20,10 +20,7 @@ const configureErrorHandlers = require('./errorHandlers');
 const { requestLogger } = require('../utils/logger');
 const state = require('../utils/state');
 const logger = require('../utils/logger');
-const proxy = require('express-http-proxy');
 const RateLimit = require('express-rate-limit');
-const tenableTls = require('../utils/tenableTls');
-const { stripTrailingSlashes } = require('../utils/url');
 
 function configureMiddleware(app) {
     const middlewareConfigFunctions = [
@@ -35,7 +32,6 @@ function configureMiddleware(app) {
         configureCompression,
         configureServiceCheck,
         configureAuth,
-        configureTenableProxy,
         configureOpenApi,
         configureErrorHandlers,
     ];
@@ -97,71 +93,6 @@ function configureServiceCheck(app) {
             next(e);
         }
     });
-}
-
-function configureTenableProxy(app) {
-    if (config.tenable.enabled) {
-        const tenableBaseUrl = stripTrailingSlashes(config.tenable.url);
-        app.use('/api/tenable', (req, _res, next) => {
-            try {
-                auth.validateOauthSecurity(req, ['c-pat:read']);
-                next();
-            } catch (e) {
-                next(e);
-            }
-        });
-        app.use(
-            '/api/tenable',
-            proxy(tenableBaseUrl, {
-                proxyReqPathResolver: function (req) {
-                    return '/rest' + req.url;
-                },
-                proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
-                    const cleanHeaders = {};
-
-                    Object.keys(srcReq.headers).forEach(key => {
-                        const value = srcReq.headers[key];
-                        if (typeof value === 'string') {
-                            cleanHeaders[key.toLowerCase()] = value;
-                        }
-                    });
-
-                    const headersToRemove = ['host', 'referer', 'origin', 'cookie', 'user-agent', 'authorization', 'accesstoken', 'accept'];
-
-                    headersToRemove.forEach(header => {
-                        delete cleanHeaders[header.toLowerCase()];
-                    });
-
-                    cleanHeaders['x-apikey'] = `accesskey=${config.tenable.accessKey}; secretkey=${config.tenable.secretKey};`;
-                    if (!cleanHeaders['content-type']) {
-                        cleanHeaders['content-type'] = 'application/json';
-                    }
-                    cleanHeaders['user-agent'] = 'Integration/1.4.3 (NAVSEA; CPAT; Build/1.4.3)';
-
-                    proxyReqOpts.headers = cleanHeaders;
-                    proxyReqOpts.rejectUnauthorized = false;
-
-                    if (tenableTls.clientCert) {
-                        proxyReqOpts.cert = tenableTls.clientCert;
-                    }
-                    if (tenableTls.clientKey) {
-                        proxyReqOpts.key = tenableTls.clientKey;
-                    }
-
-                    return proxyReqOpts;
-                },
-                userResDecorator: function (_proxyRes, proxyResData) {
-                    return proxyResData;
-                },
-                proxyErrorHandler: function (err, res) {
-                    res.status(500).json({
-                        error: 'Proxy error',
-                        message: err.message,
-                    });
-                },
-            })
-        );
-    }
 }
 
 function configureAuth(app) {

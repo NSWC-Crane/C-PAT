@@ -72,6 +72,22 @@ class InternalError extends SmError {
     }
 }
 
+class BadGatewayError extends SmError {
+    constructor(detail) {
+        super('Upstream service request failed.');
+        this.status = 502;
+        this.detail = detail;
+    }
+}
+
+class ServiceUnavailableError extends SmError {
+    constructor(detail) {
+        super('Service is not available.');
+        this.status = 503;
+        this.detail = detail;
+    }
+}
+
 class OIDCProviderError extends SmError {
     constructor(detail) {
         super('OIDC Provider is unreachable, unable to validate token.');
@@ -153,6 +169,8 @@ module.exports = {
     ConflictError,
     UnprocessableError,
     OIDCProviderError,
+    BadGatewayError,
+    ServiceUnavailableError,
     SigningKeyNotFoundError,
     NoTokenError,
     OutOfScopeError,

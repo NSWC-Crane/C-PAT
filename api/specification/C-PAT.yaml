@@ -6059,6 +6059,502 @@ paths:
         - oauth:
             - 'c-pat:write'
 
+  '/tenable/analysis':
+    post:
+      summary: Run an analysis query against Tenable
+      operationId: postTenableAnalysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Tenable analysis response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/hosts/search':
+    post:
+      summary: Search Tenable host assets
+      operationId: postTenableHostSearch
+      parameters:
+        - in: query
+          name: sortField
+          schema:
+            type: string
+        - in: query
+          name: sortDirection
+          schema:
+            type: string
+        - in: query
+          name: paginated
+          schema:
+            type: boolean
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Tenable host search response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/plugin/{pluginId}':
+    get:
+      summary: Return a Tenable plugin by pluginId
+      operationId: getTenablePlugin
+      parameters:
+        - in: path
+          name: pluginId
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Tenable plugin response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/asset':
+    get:
+      summary: Return Tenable assets
+      operationId: getTenableAssets
+      parameters:
+        - in: query
+          name: filter
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Tenable asset response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/auditFile':
+    get:
+      summary: Return Tenable audit files
+      operationId: getTenableAuditFiles
+      parameters:
+        - in: query
+          name: filter
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Tenable audit file response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/policy':
+    get:
+      summary: Return Tenable scan policies
+      operationId: getTenableScanPolicies
+      parameters:
+        - in: query
+          name: filter
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Tenable scan policy response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/user':
+    get:
+      summary: Return Tenable users
+      operationId: getTenableUsers
+      parameters:
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Tenable user response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/pluginFamily':
+    get:
+      summary: Return Tenable plugin families
+      operationId: getTenablePluginFamilies
+      parameters:
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Tenable plugin family response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/repository':
+    get:
+      summary: Return Tenable repositories
+      operationId: getTenableRepositories
+      responses:
+        '200':
+          description: Tenable repository response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/solutions':
+    post:
+      summary: Return Tenable solutions
+      operationId: postTenableSolutions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Tenable solutions response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/solutions/{solutionId}/asset':
+    parameters:
+      - in: path
+        name: solutionId
+        required: true
+        schema:
+          type: integer
+    post:
+      summary: Return the assets affected by a Tenable solution
+      operationId: postTenableSolutionAssets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Tenable solution asset response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/tenable/solutions/{solutionId}/vuln':
+    parameters:
+      - in: path
+        name: solutionId
+        required: true
+        schema:
+          type: integer
+    post:
+      summary: Return the vulnerabilities addressed by a Tenable solution
+      operationId: postTenableSolutionVulnerabilities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Tenable solution vulnerability response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/tenableUpstreamError'
+        '503':
+          $ref: '#/components/responses/tenableUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Tenable
+      security:
+        - oauth:
+            - 'c-pat:read'
+
   '/tenableFilters/{collectionId}':
     get:
       summary: Return all Tenable Filters for a collection
@@ -7463,6 +7959,26 @@ components:
           type: string
         createdBy:
           type: [string, 'null']
+
+    tenableResponse:
+      type: object
+      description: >-
+        The Tenable.sc response envelope. C-PAT relays the upstream body unmodified, so response is
+        opaque and its shape depends on the operation. A non-zero error_code with a populated error_msg
+        indicates a Tenable-level failure that is still delivered with HTTP 200.
+      properties:
+        type:
+          type: string
+        response: {}
+        error_code:
+          type: integer
+        error_msg:
+          type: string
+        warnings:
+          type: array
+          items: {}
+        timestamp:
+          type: integer
 
     aaPackage_Object:
       type: object
@@ -9058,6 +9574,25 @@ components:
         exceeded) is text rather than JSON, and 503 (database or identity provider unavailable,
         including during startup) is the service-state object with state, stateDate, mode, and
         dependencies.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+
+    tenableUpstreamError:
+      description: >-
+        C-PAT could not reach Tenable, the request sat idle longer than TENABLE_TIMEOUT allows, or Tenable
+        returned a response C-PAT could not relay. detail carries the underlying error message.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+
+    tenableUnavailable:
+      description: >-
+        The Tenable integration is not configured for this deployment (TENABLE_URL is unset or empty). A
+        503 carrying the service-state object instead of the error object means the database or identity
+        provider is unavailable; see the default response.
       content:
         application/json:
           schema:

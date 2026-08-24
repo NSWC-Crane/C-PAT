@@ -69,6 +69,7 @@ let config = {
         url: process.env.TENABLE_URL || '',
         accessKey: process.env.TENABLE_ACCESS_KEY,
         secretKey: process.env.TENABLE_SECRET_KEY,
+        timeout: (Number.parseInt(process.env.TENABLE_TIMEOUT) || 300) * 1000,
         tls: {
             cert_file: process.env.TENABLE_CERT_FILE,
             key_file: process.env.TENABLE_KEY_FILE,
