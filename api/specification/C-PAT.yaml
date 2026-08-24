@@ -6777,15 +6777,13 @@ components:
             - outage
             - unknown
         uptimePercent:
-          type: number
-          nullable: true
+          type: [number, 'null']
         checks:
           type: array
           items:
             $ref: '#/components/schemas/DailyCheck'
     OptionalServiceUptimeStatus:
       type: object
-      nullable: true
       properties:
         available:
           type: boolean
@@ -6796,8 +6794,7 @@ components:
             - outage
             - unknown
         uptimePercent:
-          type: number
-          nullable: true
+          type: [number, 'null']
         checks:
           type: array
           items:
@@ -6822,8 +6819,7 @@ components:
                 type: string
                 format: date-time
               response_ms:
-                type: integer
-                nullable: true
+                type: [integer, 'null']
     ApiClassification:
       type: string
       enum:
