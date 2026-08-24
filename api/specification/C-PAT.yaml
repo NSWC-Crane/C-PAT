@@ -1245,7 +1245,7 @@ paths:
                 properties:
                   success:
                     type: boolean
-                    example: true
+                    examples: [true]
                   revoked:
                     type: boolean
                   permissionChanges:
@@ -1808,7 +1808,7 @@ paths:
                 collectionIds:
                   type: string
                   description: JSON stringified array of collection IDs
-                  example: "[1, 2, 3]"
+                  examples: ["[1, 2, 3]"]
               required:
                 - file
                 - collectionIds
@@ -4271,7 +4271,7 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: 'POAM extension deleted successfully'
+                    examples: ['POAM extension deleted successfully']
         '403':
           $ref: '#/components/responses/forbidden'
         '404':
