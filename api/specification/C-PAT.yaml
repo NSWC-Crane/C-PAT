@@ -7088,8 +7088,6 @@ components:
         API version string
       pattern: ^\d+\.\d+\.\d+$
       type: string
-    VersionString:
-      $ref: '#/components/schemas/String255'
     AssetResponse:
       type: object
       properties:
