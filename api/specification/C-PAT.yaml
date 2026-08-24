@@ -2612,6 +2612,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UptimeStatus'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '500':
           description: Internal server error
           content:
@@ -2728,6 +2734,12 @@ paths:
       responses:
         '204':
           description: Notification dismissed successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '404':
           description: Notification not found
           content:
@@ -2753,6 +2765,12 @@ paths:
       responses:
         '204':
           description: Notification dismissed successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '404':
           description: Notification not found
           content:
@@ -2790,6 +2808,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/notification'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '404':
           description: Notification not found
           content:
@@ -2815,6 +2839,12 @@ paths:
       responses:
         '204':
           description: Notification dismissed successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '404':
           description: Notification not found
           content:
@@ -4234,6 +4264,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/poamExtensionObject'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '403':
           $ref: '#/components/responses/forbidden'
         default:
@@ -4272,6 +4308,12 @@ paths:
                   message:
                     type: string
                     examples: ['POAM extension deleted successfully']
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '403':
           $ref: '#/components/responses/forbidden'
         '404':
@@ -6047,6 +6089,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/user'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
         '404':
           description: User not found
           content:
