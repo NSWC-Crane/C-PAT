@@ -22,6 +22,7 @@ import { Observable, catchError, debounceTime, distinctUntilChanged, filter, map
 import { NotificationsPanelComponent } from '../../common/components/notifications/notifications-popover/notifications-popover.component';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { AppSearchComponent } from '../../common/components/search/app.search.component';
+import { getBaseHref } from '../../common/utils/base-href';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { UsersService } from '../../pages/admin/users/users.service';
 import { AppConfiguratorComponent } from '../components/app.configurator.component';
@@ -113,7 +114,7 @@ import { PayloadService } from '../../common/services/setPayload.service';
         </li>
         <li>
           @if (docsDisabled === false) {
-            <a [href]="basePath + 'docs/'" pTooltip="C-PAT Documentation" tooltipPosition="top" class="topbar-item">
+            <a [href]="baseHref + 'docs/'" pTooltip="C-PAT Documentation" tooltipPosition="top" class="topbar-item">
               <i class="pi pi-info-circle"></i>
             </a>
           }
@@ -152,9 +153,9 @@ export class AppTopBarComponent implements OnInit, OnDestroy {
   readonly notificationCount = signal<number | null>(null);
   readonly docsDisabled: boolean;
   readonly user$ = inject(AuthService).user$;
-  readonly basePath: string;
+  readonly baseHref: string;
   constructor() {
-    this.basePath = CPAT.Env.basePath ?? '';
+    this.baseHref = getBaseHref();
     this.docsDisabled = CPAT.Env?.features?.docsDisabled ?? false;
     this.window = this.document.defaultView as Window;
 

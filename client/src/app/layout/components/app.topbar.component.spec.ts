@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterEach, afterAll, vi } from 'vitest';
 import { PLATFORM_ID, ElementRef, Renderer2, signal } from '@angular/core';
 import { Router, Event, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
@@ -9,6 +9,15 @@ import { PayloadService } from '../../common/services/setPayload.service';
 import { UsersService } from '../../pages/admin/users/users.service';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { AuthService } from '../../core/auth/services/auth.service';
+
+const setBaseHref = (href: string) => {
+  document.querySelector('base')?.remove();
+
+  const base = document.createElement('base');
+
+  base.setAttribute('href', href);
+  document.head.appendChild(base);
+};
 
 describe('AppTopBarComponent', () => {
   let component: AppTopBarComponent;
@@ -25,6 +34,7 @@ describe('AppTopBarComponent', () => {
   let authUserSubject: BehaviorSubject<any>;
 
   beforeAll(() => {
+    setBaseHref('/test/');
     (globalThis as any).CPAT = {
       Env: {
         basePath: '/test/',
@@ -105,13 +115,17 @@ describe('AppTopBarComponent', () => {
     vi.clearAllMocks();
   });
 
+  afterAll(() => {
+    document.querySelector('base')?.remove();
+  });
+
   describe('Component Creation', () => {
     it('should create', () => {
       expect(component).toBeTruthy();
     });
 
-    it('should set basePath from CPAT.Env', () => {
-      expect(component.basePath).toBe('/test/');
+    it('should set baseHref from the base element', () => {
+      expect(component.baseHref).toBe('/test/');
     });
 
     it('should set docsDisabled from CPAT.Env.features', () => {
@@ -406,8 +420,8 @@ describe('AppTopBarComponent', () => {
       (globalThis as any).CPAT.Env.features.docsDisabled = false;
     });
 
-    it('should use basePath from CPAT.Env', () => {
-      expect(component.basePath).toBe('/test/');
+    it('should use baseHref from the base element', () => {
+      expect(component.baseHref).toBe('/test/');
     });
   });
 

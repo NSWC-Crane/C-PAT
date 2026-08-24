@@ -27,6 +27,7 @@ import { combineLatest, distinctUntilChanged, filter, forkJoin, map, switchMap, 
 import { IStepOption, TourPrimeNg, TourService } from 'ngx-ui-tour-primeng';
 import { StatusMessageComponent } from '../../common/components/status-message/status-message.component';
 import { SharedService } from '../../common/services/shared.service';
+import { getBaseHref } from '../../common/utils/base-href';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin/collections/collections.service';
 import { UsersService } from '../../pages/admin/users/users.service';
@@ -390,7 +391,7 @@ export class AppLayoutComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          globalThis.location.pathname = `${CPAT.Env.basePath ?? ''}home`;
+          globalThis.location.pathname = `${getBaseHref()}home`;
         },
         error: (error) => {
           console.error('Error updating user:', error);

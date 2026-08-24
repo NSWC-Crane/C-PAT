@@ -18,6 +18,7 @@ import { ListboxModule } from 'primeng/listbox';
 import { Popover } from 'primeng/popover';
 import { filter, map } from 'rxjs';
 import { PayloadService } from '../../../../common/services/setPayload.service';
+import { getBaseHref } from '../../../../common/utils/base-href';
 import { NotificationService } from '../notifications.service';
 
 @Component({
@@ -93,7 +94,7 @@ export class NotificationsPanelComponent implements OnInit {
     return {
       before: message.slice(0, match.index),
       poamId,
-      href: `${CPAT.Env.basePath ?? ''}poams/poam-details/${poamId}`,
+      href: `${getBaseHref()}poams/poam-details/${poamId}`,
       after: message.slice(match.index + match[0].length)
     };
   }
@@ -127,7 +128,7 @@ export class NotificationsPanelComponent implements OnInit {
 
   async navigateToPOAM(poamId: number) {
     try {
-      globalThis.location.pathname = `${CPAT.Env.basePath ?? ''}poams/poam-details/${poamId}`;
+      globalThis.location.pathname = `${getBaseHref()}poams/poam-details/${poamId}`;
     } catch (error) {
       console.error('Error navigating to POAM:', error);
     }

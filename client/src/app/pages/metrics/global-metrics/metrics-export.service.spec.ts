@@ -415,4 +415,35 @@ describe('MetricsExportService', () => {
 
     appendSpy.mockRestore();
   });
+
+  describe('template request url', () => {
+    const stigCollection = { collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 };
+
+    afterEach(() => {
+      document.querySelector('base')?.remove();
+    });
+
+    it('requests the template from the origin root when no base element exists', async () => {
+      mockCollectionsService.getCollections.mockReturnValue(of([stigCollection]));
+
+      await runExport();
+
+      expect((globalThis.fetch as any).mock.calls[0][0]).toBe(`${globalThis.location.origin}/assets/CPAT_METRICS_TEMPLATE.xlsx`);
+    });
+
+    it('requests the template beneath the base href without a doubled slash', async () => {
+      const base = document.createElement('base');
+
+      base.setAttribute('href', '/cpat/');
+      document.head.appendChild(base);
+      mockCollectionsService.getCollections.mockReturnValue(of([stigCollection]));
+
+      await runExport();
+
+      const url = (globalThis.fetch as any).mock.calls[0][0] as string;
+
+      expect(url).toBe(`${globalThis.location.origin}/cpat/assets/CPAT_METRICS_TEMPLATE.xlsx`);
+      expect(url).not.toContain('//assets');
+    });
+  });
 });

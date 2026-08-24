@@ -377,6 +377,37 @@ describe('AppLayoutComponent', () => {
       expect(consoleSpy).toHaveBeenCalledWith('Error updating user:', expect.any(Error));
       consoleSpy.mockRestore();
     });
+
+    describe('navigation target', () => {
+      let originalLocation: Location;
+
+      beforeEach(() => {
+        originalLocation = globalThis.location;
+        Object.defineProperty(globalThis, 'location', { value: { ...originalLocation, pathname: '' }, writable: true, configurable: true });
+      });
+
+      afterEach(() => {
+        Object.defineProperty(globalThis, 'location', { value: originalLocation, writable: true, configurable: true });
+        document.querySelector('base')?.remove();
+      });
+
+      it('should navigate to home at the origin root', () => {
+        component.resetWorkspace(2);
+
+        expect(globalThis.location.pathname).toBe('/home');
+      });
+
+      it('should navigate to home beneath the base href', () => {
+        const base = document.createElement('base');
+
+        base.setAttribute('href', '/cpat/');
+        document.head.appendChild(base);
+
+        component.resetWorkspace(2);
+
+        expect(globalThis.location.pathname).toBe('/cpat/home');
+      });
+    });
   });
 
   describe('setUserMenuItems', () => {

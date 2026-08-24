@@ -15,6 +15,7 @@ import { IntegrationService } from '../../pages/integrations/integration.service
 import { PoamService } from '../../pages/poams/poams.service';
 import { Poam } from '../models/poam.model';
 import { SharedService } from '../services/shared.service';
+import { getBaseHref } from './base-href';
 import { applyClassificationBanner } from './classification-export.util';
 import { getEMassBranchConfig } from './emass-branch-config';
 
@@ -164,7 +165,7 @@ export class PoamExportService {
     const branchConfig = getEMassBranchConfig();
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.default.Workbook();
-    const response = await fetch(`${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/assets/${branchConfig.templateFile}`);
+    const response = await fetch(`${globalThis.location.origin}${getBaseHref()}assets/${branchConfig.templateFile}`);
     const arrayBuffer = await response.arrayBuffer();
 
     await workbook.xlsx.load(arrayBuffer, {

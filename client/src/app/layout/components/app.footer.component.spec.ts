@@ -9,11 +9,24 @@
 */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterEach } from 'vitest';
 import { AppFooterComponent } from './app.footer.component';
 import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
+
+const removeBaseHref = () => {
+  document.querySelector('base')?.remove();
+};
+
+const setBaseHref = (href: string) => {
+  removeBaseHref();
+
+  const base = document.createElement('base');
+
+  base.setAttribute('href', href);
+  document.head.appendChild(base);
+};
 
 describe('AppFooterComponent', () => {
   let component: AppFooterComponent;
@@ -32,6 +45,7 @@ describe('AppFooterComponent', () => {
   });
 
   beforeEach(async () => {
+    removeBaseHref();
     await TestBed.configureTestingModule({
       imports: [AppFooterComponent, NoopAnimationsModule],
       providers: [provideRouter([])]
@@ -55,8 +69,8 @@ describe('AppFooterComponent', () => {
       expect(component.swaggerUiEnabled).toBe(true);
     });
 
-    it('should set basePath from CPAT.Env', () => {
-      expect(component.basePath).toBe('/');
+    it('should set baseHref from the base element', () => {
+      expect(component.baseHref).toBe('/');
     });
   });
 
@@ -178,7 +192,12 @@ describe('AppFooterComponent with docs disabled', () => {
   let component: AppFooterComponent;
   let fixture: ComponentFixture<AppFooterComponent>;
 
+  afterEach(() => {
+    removeBaseHref();
+  });
+
   beforeEach(async () => {
+    setBaseHref('/app/');
     (globalThis as any).CPAT = {
       Env: {
         basePath: '/app/',
@@ -216,8 +235,8 @@ describe('AppFooterComponent with docs disabled', () => {
     expect(apiDocsIcon).toBeTruthy();
   });
 
-  it('should use custom basePath', () => {
-    expect(component.basePath).toBe('/app/');
+  it('should use custom baseHref', () => {
+    expect(component.baseHref).toBe('/app/');
   });
 });
 
@@ -226,6 +245,7 @@ describe('AppFooterComponent with swagger disabled', () => {
   let fixture: ComponentFixture<AppFooterComponent>;
 
   beforeEach(async () => {
+    removeBaseHref();
     (globalThis as any).CPAT = {
       Env: {
         basePath: '/',
@@ -268,6 +288,7 @@ describe('AppFooterComponent with all features disabled', () => {
   let fixture: ComponentFixture<AppFooterComponent>;
 
   beforeEach(async () => {
+    removeBaseHref();
     (globalThis as any).CPAT = {
       Env: {
         basePath: '/',
@@ -318,6 +339,7 @@ describe('AppFooterComponent with undefined CPAT.Env values', () => {
   let fixture: ComponentFixture<AppFooterComponent>;
 
   beforeEach(async () => {
+    removeBaseHref();
     (globalThis as any).CPAT = {
       Env: {
         features: {}
@@ -343,7 +365,7 @@ describe('AppFooterComponent with undefined CPAT.Env values', () => {
     expect(component.swaggerUiEnabled).toBe(true);
   });
 
-  it('should default basePath to empty string when undefined', () => {
-    expect(component.basePath).toBe('');
+  it('should default baseHref to root when no base element exists', () => {
+    expect(component.baseHref).toBe('/');
   });
 });

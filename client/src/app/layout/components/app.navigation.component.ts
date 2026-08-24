@@ -12,6 +12,7 @@ import { ChangeDetectionStrategy, Component, DOCUMENT, DestroyRef, ElementRef, O
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, take } from 'rxjs';
 import { SharedService } from '../../common/services/shared.service';
+import { getBaseHref } from '../../common/utils/base-href';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin/collections/collections.service';
 import { UsersService } from '../../pages/admin/users/users.service';
@@ -122,7 +123,7 @@ export class AppNavigationComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (result) => {
             if (result) {
-              globalThis.location.pathname = `${CPAT.Env.basePath ?? ''}home`;
+              globalThis.location.pathname = `${getBaseHref()}home`;
             }
           },
           error: (error) => console.error('Error updating user:', error)

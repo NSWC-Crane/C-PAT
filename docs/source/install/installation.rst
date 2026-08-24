@@ -220,6 +220,7 @@ It is likely you will have to set at least some of these Environment Variables, 
 
     - CPAT_API_ADDRESS
     - CPAT_API_PORT
+    - CPAT_BASE_PATH
     - CPAT_CLASSIFICATION
 
   * Swagger OpenAPI Tool Configuration:
