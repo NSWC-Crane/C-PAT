@@ -8512,7 +8512,7 @@ components:
           items:
             type: object
             required:
-              - userId
+              - assignedTeamId
               - accessLevel
             properties:
               assignedTeamId:
