@@ -7197,7 +7197,11 @@ components:
       properties:
         error:
           type: string
+        code:
+          type: string
         detail:
+          type: string
+        stack:
           type: string
 
     SuccessResponse:
