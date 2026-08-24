@@ -16,7 +16,7 @@ import { of, throwError, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableAssetsTableComponent } from './tenableAssetsTable.component';
 import { IntegrationService } from '../../../integration.service';
-import { AssetDeltaService } from '../../../../admin-processing/asset-delta/asset-delta.service';
+import { AssetDeltaService } from '../../../../admin/asset-delta/asset-delta.service';
 import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
@@ -155,8 +155,8 @@ describe('TenableAssetsTableComponent', () => {
       expect(component.activeTab).toBe('all');
     });
 
-    it('should default assetProcessing to false', () => {
-      expect(component.assetProcessing()).toBe(false);
+    it('should default assetsPage to false', () => {
+      expect(component.assetsPage()).toBe(false);
     });
 
     it('should default associatedVulnerabilities to empty array', () => {
@@ -480,21 +480,21 @@ describe('TenableAssetsTableComponent', () => {
   describe('lazyOrNot', () => {
     const event = { first: 0, rows: 25 } as any;
 
-    it('should not load anything when assetProcessing is false', () => {
+    it('should not load anything when assetsPage is false', () => {
       const spy = vi.spyOn(component, 'getAffectedAssets').mockImplementation(() => {});
 
       (component as any).pluginID = () => '12345';
       (component as any).tenableRepoId = () => 99;
-      (component as any).assetProcessing = () => false;
+      (component as any).assetsPage = () => false;
       component.lazyOrNot(event);
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should call getAffectedAssets when assetProcessing is true', () => {
+    it('should call getAffectedAssets when assetsPage is true', () => {
       const spy = vi.spyOn(component, 'getAffectedAssets').mockImplementation(() => {});
 
       (component as any).pluginID = () => undefined;
-      (component as any).assetProcessing = () => true;
+      (component as any).assetsPage = () => true;
       component.lazyOrNot(event);
       expect(spy).toHaveBeenCalledWith(event);
     });
@@ -640,10 +640,10 @@ describe('TenableAssetsTableComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should call getAffectedAssets when assetProcessing is true', () => {
+    it('should call getAffectedAssets when assetsPage is true', () => {
       const spy = vi.spyOn(component, 'getAffectedAssets').mockImplementation(() => {});
 
-      (component as any).assetProcessing = () => true;
+      (component as any).assetsPage = () => true;
       (component as any).tenableRepoId = () => 99;
       (component as any).pluginID = () => undefined;
       component.filter30Days();
@@ -818,7 +818,7 @@ describe('TenableAssetsTableComponent', () => {
 
       mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
       (component as any).tenableRepoId = () => 99;
-      (component as any).assetProcessing = () => true;
+      (component as any).assetsPage = () => true;
 
       component.getAffectedAssets({ first: 0, rows: 25 } as any);
       component.getAffectedAssets({ first: 25, rows: 25 } as any);
@@ -836,7 +836,7 @@ describe('TenableAssetsTableComponent', () => {
 
       mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(first.asObservable()).mockReturnValueOnce(second.asObservable());
       (component as any).tenableRepoId = () => 99;
-      (component as any).assetProcessing = () => true;
+      (component as any).assetsPage = () => true;
 
       component.getAffectedAssets({ first: 0, rows: 25 } as any);
       component.getAffectedAssets({ first: 25, rows: 25 } as any);

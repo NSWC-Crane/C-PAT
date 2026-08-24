@@ -12,14 +12,14 @@ import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { consentRoute } from './common/components/dod-consent/dod-consent.routing';
 import { AuthGuard } from './core/auth/guards/auth.guard';
-import { adminProcessingRoutes } from './pages/admin-processing/admin-processing-routing.module';
-import { assetProcessingRoutes } from './pages/asset-processing/asset-processing.routing';
+import { adminRoutes } from './pages/admin/admin-routing.module';
+import { assetRoutes } from './pages/assets/assets.routing';
 import { integrationRoutes } from './pages/integrations/integration-routing.module';
-import { labelProcessingRoutes } from './pages/label-processing/label-processing.routing';
-import { metricsRoutes } from './pages/metrics-processing/metrics.routing';
+import { labelRoutes } from './pages/labels/labels.routing';
+import { metricsRoutes } from './pages/metrics/metrics.routing';
 import { marketplaceRoutes } from './pages/marketplace/marketplace.routing';
 import { homeRoutes } from './pages/home/home.routing';
-import { poamProcessingRoutes } from './pages/poam-processing/poam-processing-routing.module';
+import { poamRoutes } from './pages/poams/poams-routing.module';
 
 const routerOptions: ExtraOptions = {
   anchorScrolling: 'enabled'
@@ -36,21 +36,21 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
       {
-        path: 'admin-processing',
+        path: 'admin',
         canActivate: [AuthGuard],
         data: { guardType: 'admin' },
-        children: adminProcessingRoutes
+        children: adminRoutes
       },
       {
         path: 'app-info',
         canActivate: [AuthGuard],
         data: { guardType: 'admin' },
-        children: adminProcessingRoutes
+        children: adminRoutes
       },
       {
-        path: 'asset-processing',
+        path: 'assets',
         canActivate: [AuthGuard],
-        children: assetProcessingRoutes
+        children: assetRoutes
       },
       {
         path: 'consent',
@@ -63,9 +63,9 @@ export const routes: Routes = [
         children: integrationRoutes
       },
       {
-        path: 'label-processing',
+        path: 'labels',
         canActivate: [AuthGuard],
-        children: labelProcessingRoutes
+        children: labelRoutes
       },
       {
         path: 'metrics',
@@ -78,9 +78,9 @@ export const routes: Routes = [
         loadComponent: () => import('./common/components/notifications/notifications.component').then((m) => m.NotificationsComponent)
       },
       {
-        path: 'poam-processing',
+        path: 'poams',
         canActivate: [AuthGuard],
-        children: poamProcessingRoutes
+        children: poamRoutes
       },
       {
         path: 'marketplace',

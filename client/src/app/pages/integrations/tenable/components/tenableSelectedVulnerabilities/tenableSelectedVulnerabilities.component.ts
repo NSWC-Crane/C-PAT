@@ -32,8 +32,8 @@ import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { resolveNavyComplyDateRange } from '../../utils/navy-comply-date.utils';
 import { createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext, toNullableNumber } from '../../utils/tenable-vulnerability.utils';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
-import { PoamService } from '../../../../poam-processing/poams.service';
+import { CollectionsService } from '../../../../admin/collections/collections.service';
+import { PoamService } from '../../../../poams/poams.service';
 import { IntegrationService } from '../../../integration.service';
 import { MultiSelectDirective } from '../../../../../common/directives/multi-select.directive';
 
@@ -794,7 +794,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       sessionStorage.setItem('tenableFilterState', JSON.stringify(returnState));
 
       if (vulnerability.poam && vulnerability.poamId) {
-        this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
+        this.router.navigateByUrl(`/poams/poam-details/${vulnerability.poamId}`);
 
         return;
       }
@@ -807,7 +807,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
 
       const formattedDate = vulnerability.navyComplyDate ? format(vulnerability.navyComplyDate, 'yyyy-MM-dd') : null;
 
-      this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
+      this.router.navigate(['/poams/poam-details/ADDPOAM'], {
         state: {
           vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData(),

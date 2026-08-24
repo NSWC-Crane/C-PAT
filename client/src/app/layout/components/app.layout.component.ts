@@ -28,8 +28,8 @@ import { IStepOption, TourPrimeNg, TourService } from 'ngx-ui-tour-primeng';
 import { StatusMessageComponent } from '../../common/components/status-message/status-message.component';
 import { SharedService } from '../../common/services/shared.service';
 import { AuthService } from '../../core/auth/services/auth.service';
-import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { CollectionsService } from '../../pages/admin/collections/collections.service';
+import { UsersService } from '../../pages/admin/users/users.service';
 import { AppBreadcrumbComponent } from './app.breadcrumb.component';
 import { CardModule } from 'primeng/card';
 
@@ -471,7 +471,7 @@ export class AppLayoutComponent implements OnInit {
       {
         label: 'Admin Portal',
         icon: 'pi pi-users',
-        routerLink: ['/admin-processing'],
+        routerLink: ['/admin'],
         visible: this.user()?.isAdmin
       },
       {
@@ -483,7 +483,7 @@ export class AppLayoutComponent implements OnInit {
       {
         label: 'Manage POAMs',
         icon: 'pi pi-list-check',
-        routerLink: ['/poam-processing/poam-manage'],
+        routerLink: ['/poams/poam-manage'],
         visible: this.accessLevel >= 1
       },
       {
@@ -505,15 +505,15 @@ export class AppLayoutComponent implements OnInit {
         visible: this.accessLevel >= 2 && this.manualCreationAllowed()
       },
       {
-        label: 'Asset Processing',
+        label: 'Assets',
         icon: 'pi pi-server',
-        routerLink: ['/asset-processing'],
+        routerLink: ['/assets'],
         visible: this.accessLevel >= 1
       },
       {
-        label: 'Label Processing',
+        label: 'Labels',
         icon: 'pi pi-tags',
-        routerLink: ['/label-processing'],
+        routerLink: ['/labels'],
         visible: this.accessLevel >= 1
       },
       {
@@ -532,7 +532,7 @@ export class AppLayoutComponent implements OnInit {
   }
 
   onConfirm() {
-    this.router.navigate(['/poam-processing/poam-details/ADDPOAM']);
+    this.router.navigate(['/poams/poam-details/ADDPOAM']);
     this.confirmPopupVisible.set(false);
   }
 
@@ -565,7 +565,7 @@ export class AppLayoutComponent implements OnInit {
         title: 'Your POAMs',
         content: 'This grid displays all POAMs within the collection. Use the tabs to view POAMs requiring attention, or POAMs assigned to you or your team.',
         popoverClass: '!mt-2',
-        route: '/poam-processing/poam-manage',
+        route: '/poams/poam-manage',
         closeOnOutsideClick: true,
         isAsync: true,
         enableBackdrop: true
@@ -575,7 +575,7 @@ export class AppLayoutComponent implements OnInit {
         title: 'POAM Exporting',
         content: 'POAMs can also be exported to the eMASS excel format or to a CSV file.',
         popoverClass: '!mt-2',
-        route: '/poam-processing/poam-manage',
+        route: '/poams/poam-manage',
         closeOnOutsideClick: true,
         enableBackdrop: true
       },
@@ -583,7 +583,7 @@ export class AppLayoutComponent implements OnInit {
         anchorId: 'milestone-grid',
         title: 'Milestone Tracking',
         content: 'This grid displays active milestones for POAMs within the collection that are not in a Draft or Closed status. Use the tabs to view milestones requiring attention or milestones that your team is responsible for.',
-        route: '/poam-processing/poam-manage',
+        route: '/poams/poam-manage',
         closeOnOutsideClick: true,
         enableBackdrop: true
       },

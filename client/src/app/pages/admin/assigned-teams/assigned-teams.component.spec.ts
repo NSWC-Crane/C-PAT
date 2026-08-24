@@ -1,0 +1,958 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Subject, of, throwError } from 'rxjs';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { PickListModule } from 'primeng/picklist';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { AssignedTeamsComponent } from './assigned-teams.component';
+import { AssignedTeamService } from './assigned-teams.service';
+import { CollectionsService } from '../collections/collections.service';
+import { SharedService } from '../../../common/services/shared.service';
+import { AssetDeltaService } from '../asset-delta/asset-delta.service';
+import { createMockMessageService } from '../../../../testing/mocks/service-mocks';
+
+describe('AssignedTeamsComponent', () => {
+  let component: AssignedTeamsComponent;
+  let fixture: ComponentFixture<AssignedTeamsComponent>;
+  let mockAssignedTeamService: any;
+  let mockCollectionsService: any;
+  let mockSharedService: any;
+  let mockAssetDeltaService: any;
+  let mockMessageService: any;
+  let selectedCollectionSubject: Subject<any>;
+
+  const flush = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  };
+
+  const mockTeams = [
+    { assignedTeamId: 1, assignedTeamName: 'Team Alpha', adTeam: 'AD-ALPHA', permissions: [{ collectionId: 1, collectionName: 'Col A' }] },
+    { assignedTeamId: 2, assignedTeamName: 'Team Beta', adTeam: null, permissions: [] }
+  ];
+
+  const mockCollections = [
+    { collectionId: 1, collectionName: 'Col A' },
+    { collectionId: 2, collectionName: 'Col B' },
+    { collectionId: 3, collectionName: 'Col C' }
+  ];
+
+  const mockAdTeams = ['AD-ALPHA', 'AD-BETA', 'AD-GAMMA'];
+
+  beforeAll(() => {
+    (globalThis as any).CPAT = {
+      Env: {
+        apiBase: 'http://localhost:8080/api',
+        features: { marketplaceDisabled: false },
+        oauth: { claims: { username: 'preferred_username' } }
+      }
+    };
+  });
+
+  beforeEach(async () => {
+    selectedCollectionSubject = new Subject<any>();
+
+    mockAssignedTeamService = {
+      getAssignedTeams: vi.fn().mockReturnValue(of(mockTeams)),
+      postAssignedTeam: vi.fn().mockReturnValue(of({ assignedTeamId: 99, assignedTeamName: 'New Team', adTeam: null, permissions: [] })),
+      putAssignedTeam: vi.fn().mockReturnValue(of({})),
+      deleteAssignedTeam: vi.fn().mockReturnValue(of({})),
+      postAssignedTeamPermission: vi.fn().mockReturnValue(of({})),
+      deleteAssignedTeamPermission: vi.fn().mockReturnValue(of({})),
+      getCoverageRevocationPreview: vi.fn().mockReturnValue(of({ removals: [], downgrades: [], unaffected: [] })),
+      getCoverageGrantPreview: vi.fn().mockReturnValue(of({ additions: [], updates: [], unchanged: [] }))
+    };
+
+    mockCollectionsService = {
+      getCollectionBasicList: vi.fn().mockReturnValue(of(mockCollections))
+    };
+
+    mockSharedService = {
+      selectedCollection: selectedCollectionSubject.asObservable()
+    };
+
+    mockAssetDeltaService = {
+      getAssetDeltaTeams: vi.fn().mockReturnValue(of(mockAdTeams))
+    };
+
+    mockMessageService = createMockMessageService();
+
+    await TestBed.configureTestingModule({
+      imports: [AssignedTeamsComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: AssignedTeamService, useValue: mockAssignedTeamService },
+        { provide: CollectionsService, useValue: mockCollectionsService },
+        { provide: SharedService, useValue: mockSharedService },
+        { provide: AssetDeltaService, useValue: mockAssetDeltaService },
+        { provide: MessageService, useValue: mockMessageService }
+      ]
+    })
+      .overrideComponent(AssignedTeamsComponent, {
+        set: {
+          imports: [ButtonModule, CheckboxModule, CommonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, MultiSelectModule, PickListModule, SelectModule, TableModule, TagModule, TooltipModule]
+        }
+      })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(AssignedTeamsComponent);
+    component = fixture.componentInstance;
+  });
+
+  describe('Creation and Defaults', () => {
+    it('should create', () => {
+      expect(component).toBeTruthy();
+    });
+
+    it('should default teamDialog to false', () => {
+      expect(component.teamDialog()).toBe(false);
+    });
+
+    it('should default dialogMode to new', () => {
+      expect(component.dialogMode).toBe('new');
+    });
+
+    it('should default editingAssignedTeam to null', () => {
+      expect(component.editingAssignedTeam()).toBeNull();
+    });
+
+    it('should default assignedTeams to empty array', () => {
+      expect(component.assignedTeams()).toEqual([]);
+    });
+  });
+
+  describe('ngOnInit', () => {
+    it('should call loadAssetDeltaList', () => {
+      component.ngOnInit();
+      expect(mockAssetDeltaService.getAssetDeltaTeams).toHaveBeenCalled();
+    });
+
+    it('should call loadCollections', () => {
+      component.ngOnInit();
+      expect(mockCollectionsService.getCollectionBasicList).toHaveBeenCalled();
+    });
+
+    it('should call loadAssignedTeams when selectedCollection emits', () => {
+      component.ngOnInit();
+      selectedCollectionSubject.next({});
+      expect(mockAssignedTeamService.getAssignedTeams).toHaveBeenCalled();
+    });
+  });
+
+  describe('loadAssignedTeams', () => {
+    it('should set assignedTeams on success', () => {
+      component.loadAssignedTeams();
+      expect(component.assignedTeams()).toEqual(mockTeams);
+    });
+
+    it('should set assignedTeams to empty array when response is null', () => {
+      mockAssignedTeamService.getAssignedTeams.mockReturnValue(of(null));
+      component.loadAssignedTeams();
+      expect(component.assignedTeams()).toEqual([]);
+    });
+
+    it('should show error message on failure', () => {
+      mockAssignedTeamService.getAssignedTeams.mockReturnValue(throwError(() => new Error('Network error')));
+      component.loadAssignedTeams();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
+    });
+  });
+
+  describe('loadAssetDeltaList', () => {
+    it('should set uniqueTeams and filteredTeams on success', () => {
+      component.loadAssetDeltaList();
+      expect(component.uniqueTeams).toEqual(mockAdTeams);
+      expect(component.filteredTeams()).toEqual(mockAdTeams);
+    });
+
+    it('should show error message on failure', () => {
+      mockAssetDeltaService.getAssetDeltaTeams.mockReturnValue(throwError(() => new Error('Error')));
+      component.loadAssetDeltaList();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
+    });
+  });
+
+  describe('filterTeams', () => {
+    beforeEach(() => {
+      component.uniqueTeams = ['AD-ALPHA', 'AD-BETA', 'GAMMA-TEAM'];
+    });
+
+    it('should filter teams by query', () => {
+      component.filterTeams({ filter: 'ad' });
+      expect(component.filteredTeams()).toEqual(['AD-ALPHA', 'AD-BETA']);
+    });
+
+    it('should return all teams on empty query', () => {
+      component.filterTeams({ filter: '' });
+      expect(component.filteredTeams()).toEqual(component.uniqueTeams);
+    });
+
+    it('should return all teams when filter is null', () => {
+      component.filterTeams({ filter: null });
+      expect(component.filteredTeams()).toEqual(component.uniqueTeams);
+    });
+
+    it('should be case-insensitive', () => {
+      component.filterTeams({ filter: 'GAMMA' });
+      expect(component.filteredTeams()).toEqual(['GAMMA-TEAM']);
+    });
+  });
+
+  describe('loadCollections', () => {
+    it('should set allCollections and availableCollections on success', () => {
+      component.loadCollections();
+      expect(component.availableCollections()).toEqual(mockCollections);
+    });
+
+    it('should set allCollections to empty array when response is null', () => {
+      mockCollectionsService.getCollectionBasicList.mockReturnValue(of(null));
+      component.loadCollections();
+      expect(component.availableCollections()).toEqual([]);
+    });
+
+    it('should show error message on failure', () => {
+      mockCollectionsService.getCollectionBasicList.mockReturnValue(throwError(() => new Error('Error')));
+      component.loadCollections();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
+    });
+  });
+
+  describe('editTeam', () => {
+    beforeEach(() => {
+      component.uniqueTeams = [...mockAdTeams];
+      (component as any).allCollections = [...mockCollections];
+    });
+
+    it('should set editingAssignedTeam as a copy', () => {
+      const team = mockTeams[0];
+
+      component.editTeam(team);
+      expect(component.editingAssignedTeam()).toEqual(team);
+      expect(component.editingAssignedTeam()).not.toBe(team);
+    });
+
+    it('should set dialogMode to edit', () => {
+      component.editTeam(mockTeams[0]);
+      expect(component.dialogMode).toBe('edit');
+    });
+
+    it('should set teamDialog to true', () => {
+      component.editTeam(mockTeams[0]);
+      expect(component.teamDialog()).toBe(true);
+    });
+
+    it('should parse adTeam string into selectedAdTeams', () => {
+      const team = { assignedTeamId: 1, assignedTeamName: 'T', adTeam: 'AD-ALPHA, AD-BETA', permissions: [] };
+
+      component.editTeam(team);
+      expect(component.selectedAdTeams()).toEqual(['AD-ALPHA', 'AD-BETA']);
+    });
+
+    it('should set selectedAdTeams to empty when adTeam is null', () => {
+      component.editTeam(mockTeams[1]);
+      expect(component.selectedAdTeams()).toEqual([]);
+    });
+
+    it('should add missing AD teams to filteredTeams', () => {
+      const team = { assignedTeamId: 1, assignedTeamName: 'T', adTeam: 'AD-ALPHA, AD-MISSING', permissions: [] };
+
+      component.editTeam(team);
+      expect(component.filteredTeams()).toContain('AD-MISSING');
+    });
+
+    it('should map assignedCollections from permissions', () => {
+      component.editTeam(mockTeams[0]);
+      expect(component.assignedCollections()).toEqual([{ collectionId: 1, collectionName: 'Col A' }]);
+    });
+
+    it('should filter availableCollections to exclude assigned', () => {
+      component.editTeam(mockTeams[0]);
+      expect(component.availableCollections().some((c: any) => c.collectionId === 1)).toBe(false);
+    });
+
+    it('should include non-assigned collections in availableCollections', () => {
+      component.editTeam(mockTeams[0]);
+      expect(component.availableCollections()).toHaveLength(2);
+    });
+  });
+
+  describe('openNew', () => {
+    beforeEach(() => {
+      (component as any).allCollections = [...mockCollections];
+    });
+
+    it('should set editingAssignedTeam with default values', () => {
+      component.openNew();
+      expect(component.editingAssignedTeam()).toEqual({ assignedTeamId: 0, assignedTeamName: '', adTeam: null, permissions: [] });
+    });
+
+    it('should set dialogMode to new', () => {
+      component.openNew();
+      expect(component.dialogMode).toBe('new');
+    });
+
+    it('should set teamDialog to true', () => {
+      component.openNew();
+      expect(component.teamDialog()).toBe(true);
+    });
+
+    it('should reset selectedAdTeams to empty', () => {
+      component.selectedAdTeams.set(['AD-ALPHA']);
+      component.openNew();
+      expect(component.selectedAdTeams()).toEqual([]);
+    });
+
+    it('should reset assignedCollections to empty', () => {
+      component.assignedCollections.set([{ collectionId: 1 }]);
+      component.openNew();
+      expect(component.assignedCollections()).toEqual([]);
+    });
+
+    it('should set availableCollections to all collections', () => {
+      component.openNew();
+      expect(component.availableCollections()).toEqual(mockCollections);
+    });
+  });
+
+  describe('onMoveToTarget', () => {
+    beforeEach(() => {
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
+      component.assignedCollections.set([]);
+    });
+
+    it('should add collection to assignedCollections in new mode', () => {
+      component.dialogMode = 'new';
+      const col = { collectionId: 2, collectionName: 'Col B' };
+
+      component.onMoveToTarget({ items: [col] });
+      expect(component.assignedCollections()).toContain(col);
+    });
+
+    it('should not duplicate collection in new mode', () => {
+      component.dialogMode = 'new';
+      const col = { collectionId: 2, collectionName: 'Col B' };
+
+      component.assignedCollections.set([col]);
+      component.onMoveToTarget({ items: [col] });
+      expect(component.assignedCollections()).toHaveLength(1);
+    });
+
+    it('should handle single item (non-array) in new mode', () => {
+      component.dialogMode = 'new';
+      const col = { collectionId: 2, collectionName: 'Col B' };
+
+      component.onMoveToTarget({ items: col });
+      expect(component.assignedCollections()).toContain(col);
+    });
+
+    it('should do nothing when editingAssignedTeam is null', () => {
+      component.editingAssignedTeam.set(null);
+      component.dialogMode = 'new';
+      component.onMoveToTarget({ items: [{ collectionId: 2 }] });
+      expect(component.assignedCollections()).toHaveLength(0);
+    });
+
+    it('should preview instead of posting immediately in edit mode', async () => {
+      component.dialogMode = 'edit';
+      component.onMoveToTarget({ items: [{ collectionId: 2, collectionName: 'Col B' }] });
+      await flush();
+
+      expect(mockAssignedTeamService.getCoverageGrantPreview).toHaveBeenCalledWith(1, 2);
+      expect(mockAssignedTeamService.postAssignedTeamPermission).not.toHaveBeenCalled();
+      expect(component.coverageGrantDialogVisible()).toBe(true);
+    });
+
+    it('should keep the collection out of the assigned list while the dialog is open', async () => {
+      component.dialogMode = 'edit';
+      component.assignedCollections.set([{ collectionId: 2, collectionName: 'Col B' }]);
+      component.availableCollections.set([]);
+      component.onMoveToTarget({ items: [{ collectionId: 2, collectionName: 'Col B' }] });
+
+      expect(component.assignedCollections()).not.toContainEqual(expect.objectContaining({ collectionId: 2 }));
+      expect(component.availableCollections()).toContainEqual(expect.objectContaining({ collectionId: 2 }));
+
+      await flush();
+    });
+
+    it('should not open the dialog when the preview fails', async () => {
+      mockAssignedTeamService.getCoverageGrantPreview.mockReturnValue(throwError(() => new Error('Error')));
+      component.dialogMode = 'edit';
+      component.onMoveToTarget({ items: [{ collectionId: 2, collectionName: 'Col B' }] });
+      await flush();
+
+      expect(component.coverageGrantDialogVisible()).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+  });
+
+  describe('onMoveToSource', () => {
+    beforeEach(() => {
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
+      component.assignedCollections.set([{ collectionId: 1, collectionName: 'Col A' }]);
+    });
+
+    it('should remove collection from assignedCollections in new mode', () => {
+      component.dialogMode = 'new';
+      const col = { collectionId: 1, collectionName: 'Col A' };
+
+      component.onMoveToSource({ items: [col] });
+      expect(component.assignedCollections()).toHaveLength(0);
+    });
+
+    it('should do nothing when editingAssignedTeam is null', () => {
+      component.editingAssignedTeam.set(null);
+      component.dialogMode = 'new';
+      component.onMoveToSource({ items: [{ collectionId: 1 }] });
+      expect(component.assignedCollections()).toHaveLength(1);
+    });
+
+    it('should preview instead of deleting immediately in edit mode', async () => {
+      component.dialogMode = 'edit';
+      component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
+      await flush();
+
+      expect(mockAssignedTeamService.getCoverageRevocationPreview).toHaveBeenCalledWith(1, 1);
+      expect(mockAssignedTeamService.deleteAssignedTeamPermission).not.toHaveBeenCalled();
+      expect(component.coverageDialogVisible()).toBe(true);
+    });
+
+    it('should restore the collection to the assigned list while the dialog is open', async () => {
+      component.dialogMode = 'edit';
+      component.assignedCollections.set([]);
+      component.availableCollections.set([{ collectionId: 1, collectionName: 'Col A' }]);
+      component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
+
+      expect(component.assignedCollections()).toContainEqual(expect.objectContaining({ collectionId: 1 }));
+      expect(component.availableCollections()).not.toContainEqual(expect.objectContaining({ collectionId: 1 }));
+
+      await flush();
+    });
+
+    it('should not open the dialog when the preview fails', async () => {
+      mockAssignedTeamService.getCoverageRevocationPreview.mockReturnValue(throwError(() => new Error('Error')));
+      component.dialogMode = 'edit';
+      component.onMoveToSource({ items: [{ collectionId: 1, collectionName: 'Col A' }] });
+      await flush();
+
+      expect(component.coverageDialogVisible()).toBe(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+  });
+
+  describe('coverage removal dialog', () => {
+    const plan = {
+      removals: [{ userId: 7, userName: 'alice', fullName: 'Alice A', collectionId: 1, collectionName: 'Col A', currentAccessLevel: 3 }],
+      downgrades: [],
+      unaffected: []
+    };
+
+    beforeEach(() => {
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [{ collectionId: 1, collectionName: 'Col A' }] });
+      component.dialogMode = 'edit';
+      component.assignedCollections.set([{ collectionId: 1, collectionName: 'Col A' }]);
+      component.availableCollections.set([]);
+      component.coverageRemovalTargets.set([{ collection: { collectionId: 1, collectionName: 'Col A' }, plan }]);
+      component.coverageDialogVisible.set(true);
+    });
+
+    it('should report proposals when a member would lose access', () => {
+      expect(component.coverageHasProposals()).toBe(true);
+    });
+
+    it('should report no proposals when every member is unaffected', () => {
+      component.coverageRemovalTargets.set([{ collection: { collectionId: 1, collectionName: 'Col A' }, plan: { removals: [], downgrades: [], unaffected: [] } }]);
+      expect(component.coverageHasProposals()).toBe(false);
+    });
+
+    it('should issue no delete and keep the collection assigned on cancel', () => {
+      component.cancelCoverageRemoval();
+
+      expect(mockAssignedTeamService.deleteAssignedTeamPermission).not.toHaveBeenCalled();
+      expect(component.coverageDialogVisible()).toBe(false);
+      expect(component.assignedCollections()).toHaveLength(1);
+    });
+
+    it('should delete without revoking when keeping access', () => {
+      component.confirmCoverageRemoval(false);
+
+      expect(mockAssignedTeamService.deleteAssignedTeamPermission).toHaveBeenCalledWith(1, 1, false);
+      expect(component.assignedCollections()).toHaveLength(0);
+      expect(component.availableCollections()).toHaveLength(1);
+    });
+
+    it('should delete with revocation when revoking', () => {
+      component.confirmCoverageRemoval(true);
+
+      expect(mockAssignedTeamService.deleteAssignedTeamPermission).toHaveBeenCalledWith(1, 1, true);
+    });
+
+    it('should clear the targets after confirming', () => {
+      component.confirmCoverageRemoval(false);
+
+      expect(component.coverageRemovalTargets()).toHaveLength(0);
+      expect(component.coverageDialogVisible()).toBe(false);
+    });
+  });
+
+  describe('coverage grant dialog', () => {
+    const grantPlan = {
+      additions: [{ userId: 7, userName: 'alice', fullName: 'Alice A', teamAccessLevel: 3, currentAccessLevel: null, newAccessLevel: 3 }],
+      updates: [{ userId: 8, userName: 'bob', fullName: 'Bob B', teamAccessLevel: 3, currentAccessLevel: 1, newAccessLevel: 3 }],
+      unchanged: [{ userId: 9, userName: 'carol', fullName: 'Carol C', teamAccessLevel: 3, currentAccessLevel: 4, accessLevel: 4 }]
+    };
+
+    const target = { collection: { collectionId: 2, collectionName: 'Col B' }, plan: grantPlan };
+
+    beforeEach(() => {
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', permissions: [] });
+      component.dialogMode = 'edit';
+      component.assignedCollections.set([]);
+      component.availableCollections.set([...mockCollections]);
+      component.coverageGrantTargets.set([target]);
+      component.coverageGrantSelections.set(new Set(['2:7', '2:8']));
+      component.coverageGrantDialogVisible.set(true);
+    });
+
+    it('should report proposals when a member would gain access', () => {
+      expect(component.coverageGrantHasProposals()).toBe(true);
+    });
+
+    it('should report no proposals when every member already has access', () => {
+      component.coverageGrantTargets.set([{ collection: target.collection, plan: { additions: [], updates: [], unchanged: grantPlan.unchanged } }]);
+      expect(component.coverageGrantHasProposals()).toBe(false);
+    });
+
+    it('should preselect every proposed member when the preview opens', async () => {
+      mockAssignedTeamService.getCoverageGrantPreview.mockReturnValue(of(grantPlan));
+      component.coverageGrantDialogVisible.set(false);
+      component.coverageGrantSelections.set(new Set());
+      component.onMoveToTarget({ items: [target.collection] });
+      await flush();
+
+      expect(component.isGrantMemberSelected(2, 7)).toBe(true);
+      expect(component.isGrantMemberSelected(2, 8)).toBe(true);
+      expect(component.isGrantMemberSelected(2, 9)).toBe(false);
+      expect(component.selectedGrantCount()).toBe(2);
+    });
+
+    it('should refuse a second move while a coverage dialog is already open', async () => {
+      mockAssignedTeamService.getCoverageGrantPreview.mockClear();
+      component.onMoveToTarget({ items: [{ collectionId: 3, collectionName: 'Col C' }] });
+      await flush();
+
+      expect(mockAssignedTeamService.getCoverageGrantPreview).not.toHaveBeenCalled();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'info' }));
+      expect(component.coverageGrantTargets()).toEqual([target]);
+    });
+
+    it('should toggle a single member off and back on', () => {
+      component.toggleGrantMember(2, 7);
+      expect(component.isGrantMemberSelected(2, 7)).toBe(false);
+
+      component.toggleGrantMember(2, 7);
+      expect(component.isGrantMemberSelected(2, 7)).toBe(true);
+    });
+
+    it('should clear every proposed member when select-all is toggled off', () => {
+      expect(component.allGrantMembersSelected(target)).toBe(true);
+
+      component.toggleAllGrantMembers(target);
+      expect(component.allGrantMembersSelected(target)).toBe(false);
+      expect(component.selectedGrantCount()).toBe(0);
+
+      component.toggleAllGrantMembers(target);
+      expect(component.selectedGrantCount()).toBe(2);
+    });
+
+    it('should issue no post and leave the collection unassigned on cancel', () => {
+      component.cancelCoverageGrant();
+
+      expect(mockAssignedTeamService.postAssignedTeamPermission).not.toHaveBeenCalled();
+      expect(component.coverageGrantDialogVisible()).toBe(false);
+      expect(component.assignedCollections()).toHaveLength(0);
+    });
+
+    it('should post only the checked members on confirm', () => {
+      component.toggleGrantMember(2, 8);
+      component.confirmCoverageGrant();
+
+      expect(mockAssignedTeamService.postAssignedTeamPermission).toHaveBeenCalledWith({
+        assignedTeamId: 1,
+        collectionId: 2,
+        grantUserIds: [7],
+        previewedMembers: [
+          { userId: 7, bucket: 'additions', teamAccessLevel: 3, newAccessLevel: 3 },
+          { userId: 8, bucket: 'updates', teamAccessLevel: 3, newAccessLevel: 3 },
+          { userId: 9, bucket: 'unchanged', teamAccessLevel: 3 }
+        ]
+      });
+    });
+
+    it('should echo the previewed bucket of every member, including ones with no checkbox', () => {
+      component.confirmCoverageGrant();
+
+      const body = mockAssignedTeamService.postAssignedTeamPermission.mock.calls[0][0];
+
+      expect(body.previewedMembers).toContainEqual({ userId: 9, bucket: 'unchanged', teamAccessLevel: 3 });
+      expect(body.grantUserIds).not.toContain(9);
+    });
+
+    it('should echo the previewed levels for proposals but no promised level for unchanged members', () => {
+      component.confirmCoverageGrant();
+
+      const body = mockAssignedTeamService.postAssignedTeamPermission.mock.calls[0][0];
+      const addition = body.previewedMembers.find((member: any) => member.userId === 7);
+      const unchanged = body.previewedMembers.find((member: any) => member.userId === 9);
+
+      expect(addition).toEqual({ userId: 7, bucket: 'additions', teamAccessLevel: 3, newAccessLevel: 3 });
+      expect(unchanged.newAccessLevel).toBeUndefined();
+    });
+
+    it('should post an empty grant list when every member is unchecked', () => {
+      component.toggleAllGrantMembers(target);
+      component.confirmCoverageGrant();
+
+      expect(mockAssignedTeamService.postAssignedTeamPermission).toHaveBeenCalledWith(expect.objectContaining({ grantUserIds: [] }));
+    });
+
+    it('should assign the collection and record the permission on confirm', () => {
+      component.confirmCoverageGrant();
+
+      expect(component.assignedCollections()).toContainEqual(expect.objectContaining({ collectionId: 2 }));
+      expect(component.editingAssignedTeam()!.permissions).toContainEqual(expect.objectContaining({ collectionId: 2 }));
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('should clear the targets and selections after confirming', () => {
+      component.confirmCoverageGrant();
+
+      expect(component.coverageGrantTargets()).toHaveLength(0);
+      expect(component.selectedGrantCount()).toBe(0);
+      expect(component.coverageGrantDialogVisible()).toBe(false);
+    });
+
+    it('should show error and revert on post failure', () => {
+      mockAssignedTeamService.postAssignedTeamPermission.mockReturnValue(throwError(() => new Error('Error')));
+      component.confirmCoverageGrant();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+      expect(component.assignedCollections()).not.toContainEqual(expect.objectContaining({ collectionId: 2 }));
+    });
+  });
+
+  describe('removePermissionsFromExistingTeam (via the coverage removal dialog)', () => {
+    beforeEach(() => {
+      component.editingAssignedTeam.set({
+        assignedTeamId: 1,
+        assignedTeamName: 'T',
+        permissions: [{ collectionId: 1, collectionName: 'Col A' }]
+      });
+      component.dialogMode = 'edit';
+      component.assignedCollections.set([{ collectionId: 1, collectionName: 'Col A' }]);
+      component.availableCollections.set([]);
+      component.coverageRemovalTargets.set([{ collection: { collectionId: 1, collectionName: 'Col A' }, plan: { removals: [], downgrades: [], unaffected: [] } }]);
+    });
+
+    it('should show success message after removing permission', () => {
+      component.confirmCoverageRemoval(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+    });
+
+    it('should remove permission from editingAssignedTeam.permissions', () => {
+      component.confirmCoverageRemoval(false);
+      expect(component.editingAssignedTeam()!.permissions!).toHaveLength(0);
+    });
+
+    it('should show error and revert on failure', () => {
+      mockAssignedTeamService.deleteAssignedTeamPermission.mockReturnValue(throwError(() => new Error('Error')));
+      component.confirmCoverageRemoval(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+      expect(component.assignedCollections()).toContainEqual(expect.objectContaining({ collectionId: 1 }));
+    });
+
+    it('should treat a 404 as already removed instead of reverting', () => {
+      mockAssignedTeamService.deleteAssignedTeamPermission.mockReturnValue(throwError(() => ({ status: 404 })));
+      component.confirmCoverageRemoval(false);
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'info', summary: 'Already removed' }));
+      expect(component.assignedCollections()).not.toContainEqual(expect.objectContaining({ collectionId: 1 }));
+      expect(component.editingAssignedTeam()!.permissions!).toHaveLength(0);
+      expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+  });
+
+  describe('saveTeam', () => {
+    it('should do nothing when editingAssignedTeam is null', () => {
+      component.editingAssignedTeam.set(null);
+      component.saveTeam();
+      expect(mockAssignedTeamService.postAssignedTeam).not.toHaveBeenCalled();
+      expect(mockAssignedTeamService.putAssignedTeam).not.toHaveBeenCalled();
+    });
+
+    it('should call postAssignedTeam in new mode', () => {
+      component.dialogMode = 'new';
+      component.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
+      component.assignedCollections.set([]);
+      component.saveTeam();
+      expect(mockAssignedTeamService.postAssignedTeam).toHaveBeenCalled();
+    });
+
+    it('should call putAssignedTeam in edit mode', () => {
+      component.dialogMode = 'edit';
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'Updated', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
+      component.saveTeam();
+      expect(mockAssignedTeamService.putAssignedTeam).toHaveBeenCalled();
+    });
+
+    it('should join selectedAdTeams into adTeam string', () => {
+      component.dialogMode = 'edit';
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set(['AD-ALPHA', 'AD-BETA']);
+      component.saveTeam();
+      expect(component.editingAssignedTeam().adTeam).toBe('AD-ALPHA, AD-BETA');
+    });
+
+    it('should set adTeam to null when selectedAdTeams is empty', () => {
+      component.dialogMode = 'edit';
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', adTeam: 'old', permissions: [] });
+      component.selectedAdTeams.set([]);
+      component.saveTeam();
+      expect(component.editingAssignedTeam().adTeam).toBeNull();
+    });
+
+    it('should show error when save fails', () => {
+      mockAssignedTeamService.putAssignedTeam.mockReturnValue(throwError(() => new Error('Error')));
+      component.dialogMode = 'edit';
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'T', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
+      component.saveTeam();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+
+    it('should show success and hide dialog after edit save', () => {
+      component.dialogMode = 'edit';
+      component.assignedTeams.set([{ assignedTeamId: 1, assignedTeamName: 'Old', adTeam: null }]);
+      component.editingAssignedTeam.set({ assignedTeamId: 1, assignedTeamName: 'Updated', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
+      component.saveTeam();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: 'Assigned Team Updated' }));
+      expect(component.teamDialog()).toBe(false);
+    });
+
+    it('should add new team to list and hide dialog when no pending permissions', async () => {
+      component.dialogMode = 'new';
+      component.assignedTeams.set([]);
+      component.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
+      component.assignedCollections.set([]);
+      component.saveTeam();
+      await new Promise((r) => setTimeout(r, 0));
+      expect(component.assignedTeams()).toHaveLength(1);
+      expect(component.teamDialog()).toBe(false);
+    });
+
+    it('should call postAssignedTeamPermission for each pending permission on new team', async () => {
+      component.dialogMode = 'new';
+      component.assignedTeams.set([]);
+      component.editingAssignedTeam.set({ assignedTeamId: 0, assignedTeamName: 'New Team', adTeam: null, permissions: [] });
+      component.selectedAdTeams.set([]);
+      component.assignedCollections.set([
+        { collectionId: 1, collectionName: 'Col A' },
+        { collectionId: 2, collectionName: 'Col B' }
+      ]);
+      component.saveTeam();
+      await new Promise((r) => setTimeout(r, 0));
+      expect(mockAssignedTeamService.postAssignedTeamPermission).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('getAdTeamsArray', () => {
+    it('should return empty array for null', () => {
+      expect(component.getAdTeamsArray(null)).toEqual([]);
+    });
+
+    it('should return empty array for undefined', () => {
+      expect(component.getAdTeamsArray(undefined)).toEqual([]);
+    });
+
+    it('should return empty array for empty string', () => {
+      expect(component.getAdTeamsArray('')).toEqual([]);
+    });
+
+    it('should parse comma-separated string', () => {
+      expect(component.getAdTeamsArray('AD-ALPHA, AD-BETA')).toEqual(['AD-ALPHA', 'AD-BETA']);
+    });
+
+    it('should trim whitespace from entries', () => {
+      expect(component.getAdTeamsArray('  AD-ALPHA  ,  AD-BETA  ')).toEqual(['AD-ALPHA', 'AD-BETA']);
+    });
+
+    it('should filter out empty entries', () => {
+      expect(component.getAdTeamsArray('AD-ALPHA,,AD-BETA')).toEqual(['AD-ALPHA', 'AD-BETA']);
+    });
+
+    it('should return single-item array for single value', () => {
+      expect(component.getAdTeamsArray('AD-ALPHA')).toEqual(['AD-ALPHA']);
+    });
+  });
+
+  describe('onRowDelete', () => {
+    it('should open the confirmation dialog without deleting', () => {
+      component.assignedTeams.set([...mockTeams]);
+      component.onRowDelete(mockTeams[0]);
+
+      expect(component.deleteTeamDialogVisible()).toBe(true);
+      expect(component.deleteTeamTarget()).toEqual(mockTeams[0]);
+      expect(mockAssignedTeamService.deleteAssignedTeam).not.toHaveBeenCalled();
+    });
+
+    it('should call deleteAssignedTeam when confirmed', () => {
+      component.assignedTeams.set([...mockTeams]);
+      component.onRowDelete(mockTeams[0]);
+      component.confirmDeleteTeam();
+
+      expect(mockAssignedTeamService.deleteAssignedTeam).toHaveBeenCalledWith(1);
+    });
+
+    it('should not call deleteAssignedTeam when cancelled', () => {
+      component.onRowDelete(mockTeams[0]);
+      component.cancelDeleteTeam();
+
+      expect(mockAssignedTeamService.deleteAssignedTeam).not.toHaveBeenCalled();
+      expect(component.deleteTeamDialogVisible()).toBe(false);
+      expect(component.deleteTeamTarget()).toBeNull();
+    });
+
+    it('should remove team from assignedTeams on success', () => {
+      component.assignedTeams.set([...mockTeams]);
+      component.onRowDelete(mockTeams[0]);
+      component.confirmDeleteTeam();
+
+      expect(component.assignedTeams().some((t) => t.assignedTeamId === 1)).toBe(false);
+    });
+
+    it('should show success message on delete', () => {
+      component.assignedTeams.set([...mockTeams]);
+      component.onRowDelete(mockTeams[0]);
+      component.confirmDeleteTeam();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'success', detail: 'Assigned Team Deleted' }));
+    });
+
+    it('should show error message when delete fails', () => {
+      mockAssignedTeamService.deleteAssignedTeam.mockReturnValue(throwError(() => new Error('Error')));
+      component.assignedTeams.set([...mockTeams]);
+      component.onRowDelete(mockTeams[0]);
+      component.confirmDeleteTeam();
+
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error' }));
+    });
+  });
+
+  describe('hideDialog', () => {
+    it('should set teamDialog to false', () => {
+      component.teamDialog.set(true);
+      component.hideDialog();
+      expect(component.teamDialog()).toBe(false);
+    });
+  });
+
+  describe('onDialogHide', () => {
+    beforeEach(() => {
+      component.uniqueTeams = [...mockAdTeams];
+      (component as any).allCollections = [...mockCollections];
+    });
+
+    it('should reset editingAssignedTeam to null', () => {
+      component.editingAssignedTeam.set(mockTeams[0]);
+      component.onDialogHide();
+      expect(component.editingAssignedTeam()).toBeNull();
+    });
+
+    it('should reset selectedAdTeams to empty', () => {
+      component.selectedAdTeams.set(['AD-ALPHA']);
+      component.onDialogHide();
+      expect(component.selectedAdTeams()).toEqual([]);
+    });
+
+    it('should reset assignedCollections to empty', () => {
+      component.assignedCollections.set([{ collectionId: 1 }]);
+      component.onDialogHide();
+      expect(component.assignedCollections()).toEqual([]);
+    });
+
+    it('should restore availableCollections from allCollections', () => {
+      component.availableCollections.set([]);
+      component.onDialogHide();
+      expect(component.availableCollections()).toEqual(mockCollections);
+    });
+
+    it('should restore filteredTeams from uniqueTeams', () => {
+      component.filteredTeams.set([]);
+      component.onDialogHide();
+      expect(component.filteredTeams()).toEqual(mockAdTeams);
+    });
+  });
+
+  describe('filterGlobal', () => {
+    it('should call table filterGlobal with contains', () => {
+      const mockTable = { filterGlobal: vi.fn() };
+
+      (component as any).table = vi.fn().mockReturnValue(mockTable);
+      component.filterGlobal({ target: { value: 'alpha' } } as any);
+      expect(mockTable.filterGlobal).toHaveBeenCalledWith('alpha', 'contains');
+    });
+
+    it('should pass empty string when input value is empty', () => {
+      const mockTable = { filterGlobal: vi.fn() };
+
+      (component as any).table = vi.fn().mockReturnValue(mockTable);
+      component.filterGlobal({ target: { value: '' } } as any);
+      expect(mockTable.filterGlobal).toHaveBeenCalledWith('', 'contains');
+    });
+  });
+
+  describe('cleanup', () => {
+    it('should stop reacting to selectedCollection after destroy', () => {
+      component.ngOnInit();
+      mockAssignedTeamService.getAssignedTeams.mockClear();
+
+      fixture.destroy();
+      selectedCollectionSubject.next({});
+
+      expect(mockAssignedTeamService.getAssignedTeams).not.toHaveBeenCalled();
+    });
+
+    it('should not throw when destroyed', () => {
+      fixture.detectChanges();
+
+      expect(() => fixture.destroy()).not.toThrow();
+    });
+  });
+});

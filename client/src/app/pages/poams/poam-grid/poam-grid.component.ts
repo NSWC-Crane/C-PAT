@@ -1,0 +1,890 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+import { NgTemplateOutlet } from '@angular/common';
+import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, linkedSignal, signal, inject, viewChild, input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { format } from 'date-fns';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SelectModule } from 'primeng/select';
+import { Table, TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { Observable, Subscription, firstValueFrom, shareReplay } from 'rxjs';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { SharedService } from '../../../common/services/shared.service';
+import { CsvExportService } from '../../../common/utils/csv-export.service';
+import { EMASSOverwriteSelectionComponent } from '../../../common/utils/emasster-overwrite-selection';
+import { getErrorMessage } from '../../../common/utils/error-utils';
+import { PoamExportService } from '../../../common/utils/poam-export.service';
+import { CollectionsService } from '../../admin/collections/collections.service';
+import { IntegrationService } from '../../integrations/integration.service';
+import { PoamService } from '../poams.service';
+import { PoamExportStatusSelectionComponent } from '../../../common/utils/poam-export-status-selection.component';
+import { TourPrimeNg } from 'ngx-ui-tour-primeng';
+
+@Component({
+  selector: 'cpat-poam-grid',
+  templateUrl: './poam-grid.component.html',
+  styleUrls: ['./poam-grid.component.scss'],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormsModule, ButtonModule, CardModule, SelectModule, FileUploadModule, InputTextModule, InputIconModule, IconFieldModule, ProgressSpinnerModule, NgTemplateOutlet, TableModule, TooltipModule, TagModule, TourPrimeNg]
+})
+export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly dialogService = inject(DialogService);
+  private readonly router = inject(Router);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly integrationService = inject(IntegrationService);
+  private readonly sharedService = inject(SharedService);
+  private readonly poamService = inject(PoamService);
+  private readonly messageService = inject(MessageService);
+  private readonly csvExportService = inject(CsvExportService);
+
+  protected fileUpload = viewChild.required<FileUpload>('fileUpload');
+  table = viewChild.required<Table>('dt');
+
+  readonly userId = input<number>(undefined);
+  readonly variant = input<string>(undefined);
+  readonly showTourAnchor = input(false);
+
+  globalFilterSignal = signal<string>('');
+
+  readonly poamsData = input<any[], any[] | null | undefined>([], { transform: (value) => value ?? [] });
+
+  readonly affectedAssetCounts = input<{ vulnerabilityId: string; assetCount: number }[], { vulnerabilityId: string; assetCount: number }[] | null | undefined>([], { transform: (value) => value ?? [] });
+
+  private readonly _assetCountsLoaded = linkedSignal<{ vulnerabilityId: string; assetCount: number }[], boolean>({
+    source: this.affectedAssetCounts,
+    computation: (counts, previous) => (previous?.value ?? false) || counts.length > 0
+  });
+
+  private readonly statusSortCycle = signal<number>(0);
+  private readonly STATUS_SORT_CYCLES = 4;
+  private readonly statusPriorityGroups = [
+    {
+      groups: []
+    },
+    {
+      name: 'Critical First',
+      icon: 'pi-exclamation-circle',
+      groups: [
+        ['Expired', 'Rejected'],
+        ['Extension Requested', 'Pending CAT-I Approval', 'Submitted'],
+        ['Approved', 'Closed', 'False-Positive'],
+        ['Draft', 'Associated']
+      ]
+    },
+    {
+      name: 'In-Progress First',
+      icon: 'pi-info-circle',
+      groups: [['Draft', 'Submitted', 'Extension Requested'], ['Pending CAT-I Approval', 'Associated'], ['Approved'], ['Expired', 'Rejected', 'Closed', 'False-Positive']]
+    },
+    {
+      name: 'Completed First',
+      icon: 'pi-check-circle',
+      groups: [
+        ['Closed', 'False-Positive', 'Approved'],
+        ['Submitted', 'Pending CAT-I Approval', 'Extension Requested'],
+        ['Rejected', 'Expired'],
+        ['Draft', 'Associated']
+      ]
+    }
+  ];
+
+  protected preparedData = computed(() => {
+    const poams = this.poamsData();
+    const assetCounts = this.affectedAssetCounts();
+    const assetCountsLoaded = this._assetCountsLoaded();
+    const assetCountMap = new Map<string, number>();
+
+    if (assetCounts?.length > 0) {
+      assetCounts.forEach((item) => {
+        assetCountMap.set(item.vulnerabilityId, item.assetCount);
+      });
+    }
+
+    return poams.map((poam) => {
+      const primaryCount = assetCountMap.get(poam.vulnerabilityId) ?? 0;
+      const isAssetsLoading = !assetCountsLoaded;
+
+      let hasAssociatedVulnerabilities = false;
+      let associatedVulnerabilitiesTooltip = 'Associated Vulnerabilities:';
+      let allAssociatedAssetsZero = true;
+
+      if (poam?.associatedVulnerabilities.length > 0) {
+        hasAssociatedVulnerabilities = true;
+        poam.associatedVulnerabilities.forEach((vulnId: string) => {
+          const associatedCount = assetCountMap.get(vulnId) ?? 0;
+
+          if (associatedCount > 0) {
+            allAssociatedAssetsZero = false;
+          }
+
+          if (assetCountMap.has(vulnId)) {
+            associatedVulnerabilitiesTooltip += `\n${vulnId}: ${associatedCount}\n`;
+          } else {
+            associatedVulnerabilitiesTooltip += `\nUnable to load affected assets for Vulnerability ID: ${vulnId}\n`;
+          }
+        });
+      }
+
+      const shouldReviewForClosure = assetCountsLoaded && primaryCount === 0 && allAssociatedAssetsZero;
+
+      const rawScheduled = poam.extensionDeadline ? poam.extensionDeadline.split('T')[0] : poam.scheduledCompletionDate?.split('T')[0];
+
+      return {
+        lastUpdated: poam.lastUpdated ? new Date(poam.lastUpdated).toISOString().split('T')[0] : '',
+        poamId: poam.poamId,
+        status: poam.status,
+        vulnerabilityId: poam.vulnerabilityId,
+        source: poam.vulnerabilitySource,
+        affectedAssets: isAssetsLoading ? 0 : primaryCount,
+        isAffectedAssetsLoading: isAssetsLoading,
+        shouldReviewForClosure,
+        hasAssociatedVulnerabilities,
+        associatedVulnerabilitiesTooltip,
+        iavmNumber: poam.iavmNumber,
+        taskOrderNumber: poam.taskOrderNumber,
+        vulnerabilityTitle: poam.vulnerabilityTitle ?? '',
+        rawSeverity: poam.rawSeverity,
+        adjSeverity: poam.adjSeverity,
+        owner: poam.ownerName ?? poam.submitterName,
+        submittedDate: poam.submittedDate?.split('T')[0],
+        scheduledCompletionDate: rawScheduled,
+        assignedTeams: poam.assignedTeams
+          ? poam.assignedTeams.map((team: any) => ({
+              name: team.assignedTeamName,
+              complete: team.complete,
+              severity: this.getTeamSeverity(team.complete),
+              tooltip: this.getTeamTooltip(team.complete)
+            }))
+          : [],
+        assignedTeamNames: poam.assignedTeams ? poam.assignedTeams.map((team: any) => team.assignedTeamName).join(', ') : '',
+        labels: poam.labels ? poam.labels.map((label: any) => label.labelName) : [],
+        associatedVulnerabilities: poam.associatedVulnerabilities
+      };
+    });
+  });
+
+  displayedData = computed(() => {
+    const filterValue = this.globalFilterSignal();
+    const dataToFilter = this.preparedData();
+
+    if (!filterValue) {
+      return dataToFilter;
+    }
+
+    const query = filterValue.toLowerCase();
+
+    return dataToFilter.filter((poam) => Object.values(poam).some((value) => this.toSearchableText(value).includes(query)));
+  });
+
+  private toSearchableText(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.toSearchableText(item)).join(' ');
+    }
+
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+      return String(value).toLowerCase();
+    }
+
+    return '';
+  }
+
+  protected tableData = computed(() => {
+    const cycle = this.statusSortCycle();
+    const data = [...this.displayedData()];
+
+    if (cycle === 0) return data;
+
+    const priorityConfig = this.statusPriorityGroups[cycle];
+    const statusPriority = new Map<string, number>();
+
+    priorityConfig.groups.forEach((group: string[], groupIndex: number) => {
+      group.forEach((status: string, statusIndex: number) => {
+        statusPriority.set(status, groupIndex * 100 + statusIndex);
+      });
+    });
+
+    return data.sort((a, b) => {
+      const p1 = statusPriority.get(a.status) ?? 9999;
+      const p2 = statusPriority.get(b.status) ?? 9999;
+
+      if (p1 !== p2) return p1 - p2;
+
+      return a.status.localeCompare(b.status);
+    });
+  });
+
+  dialogRef: DynamicDialogRef | undefined;
+  batchSize = 20;
+  user = signal<any>(null);
+  cpatAffectedAssets = signal<any>(null);
+  stigmanAffectedAssets = signal<any>(null);
+  tenableAffectedAssets = signal<any>(null);
+  selectedCollectionId = signal<any>(null);
+  selectedCollection = signal<any>(null);
+
+  private readonly payloadSubscription: Subscription[] = [];
+  private readonly subscriptions = new Subscription();
+
+  protected collectionTypeSignal = signal<string>('');
+  poamStatusOptions = signal([
+    { label: 'Any', value: null },
+    { label: 'Approved', value: 'approved' },
+    { label: 'Associated', value: 'associated' },
+    { label: 'Closed', value: 'closed' },
+    { label: 'Draft', value: 'draft' },
+    { label: 'Expired', value: 'expired' },
+    { label: 'Extension Requested', value: 'extension requested' },
+    { label: 'False-Positive', value: 'false-positive' },
+    { label: 'Pending CAT-I Approval', value: 'pending cat-i approval' },
+    { label: 'Rejected', value: 'rejected' },
+    { label: 'Submitted', value: 'submitted' }
+  ]);
+
+  get globalFilter(): string {
+    return this.globalFilterSignal();
+  }
+
+  set globalFilter(value: string) {
+    this.globalFilterSignal.set(value);
+  }
+
+  filteredByCollectionType = computed(() => {
+    const poams = this.poamsData();
+    const collectionType = this.collectionTypeSignal();
+
+    if (collectionType === 'STIG Manager') {
+      return poams.filter((poam) => poam.vulnerabilitySource === 'STIG');
+    } else if (collectionType === 'Tenable') {
+      return poams.filter((poam) => poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner');
+    }
+
+    return poams;
+  });
+
+  constructor() {
+    effect(() => {
+      const collectionId = this.selectedCollectionId();
+
+      if (collectionId) {
+        this.loadCollectionData(collectionId);
+      }
+    });
+  }
+
+  ngOnInit() {
+    this.setPayload();
+  }
+
+  ngAfterViewInit() {
+    this.resetDefaultFilters();
+  }
+
+  private resetDefaultFilters() {
+    this.table().filters['status'] = [{ value: 'closed', matchMode: 'notEquals' }];
+  }
+
+  private async loadCollectionData(collectionId: any) {
+    try {
+      const basicListData = await firstValueFrom(this.collectionsService.getCollectionBasicList());
+      const collection = basicListData?.find((c: any) => c.collectionId === collectionId);
+
+      if (collection) {
+        this.selectedCollection.set(collection);
+        this.collectionTypeSignal.set(collection.collectionType);
+      }
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error loading collection data: ${getErrorMessage(error)}`
+      });
+    }
+  }
+
+  setPayload() {
+    this.subscriptions.add(
+      this.sharedService.selectedCollection.subscribe((collectionId) => {
+        this.selectedCollectionId.set(collectionId);
+      })
+    );
+
+    this.payloadSubscription.push(
+      this.setPayloadService.user$.subscribe((user) => {
+        this.user.set(user);
+      })
+    );
+  }
+
+  getCurrentStatusSortIcon(): string {
+    const cycle = this.statusSortCycle();
+
+    return this.statusPriorityGroups[cycle].icon ?? '';
+  }
+
+  getStatusSortIconColor(): string {
+    const cycle = this.statusSortCycle();
+    const colors = ['', '#e74c3c', '#3498db', '#27ae60'];
+
+    return colors[cycle];
+  }
+
+  getCurrentStatusSortName(): string {
+    const cycle = this.statusSortCycle();
+
+    return this.statusPriorityGroups[cycle].name ?? '';
+  }
+
+  onStatusHeaderClick(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const nextCycle = (this.statusSortCycle() + 1) % this.STATUS_SORT_CYCLES;
+
+    this.statusSortCycle.set(nextCycle);
+  }
+
+  resetStatusSort(): void {
+    this.statusSortCycle.set(0);
+  }
+
+  getTeamSeverity(complete: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    switch (complete) {
+      case 'true':
+        return 'success';
+      case 'partial':
+        return 'warn';
+      case 'global':
+        return undefined;
+      default:
+        return 'danger';
+    }
+  }
+
+  getTeamTooltip(complete: string): string {
+    switch (complete) {
+      case 'true':
+        return 'Team has fulfilled all POAM requirements';
+      case 'partial':
+        return 'Team has partially fulfilled POAM requirements';
+      case 'global':
+        return 'Global Finding - No Team Requirements';
+      default:
+        return 'Team has not fulfilled any POAM requirements';
+    }
+  }
+
+  exportToCSV() {
+    const data = this.displayedData();
+
+    if (!data || data.length === 0) {
+      console.warn('No data to export');
+
+      return;
+    }
+
+    const processedData = data.map((row) => ({
+      poamId: row.poamId,
+      status: row.status,
+      vulnerabilityId: row.vulnerabilityId,
+      source: row.source,
+      affectedAssets: row.affectedAssets ?? '',
+      vulnerabilityTitle: row.vulnerabilityTitle,
+      taskOrderNumber: row.taskOrderNumber ?? '',
+      iavmNumber: row.iavmNumber ?? '',
+      rawSeverity: row.rawSeverity,
+      adjSeverity: row.adjSeverity,
+      owner: row.owner,
+      submittedDate: row.submittedDate ?? '',
+      scheduledCompletionDate: row.scheduledCompletionDate ?? '',
+      lastUpdated: row.lastUpdated ?? '',
+      associatedVulnerabilities: row.associatedVulnerabilities?.join('; ') || '',
+      assignedTeams: row.assignedTeams.map((t: any) => t.name).join('; '),
+      labels: row.labels.join('; ')
+    }));
+
+    const columns = [
+      { field: 'poamId', header: 'POAM ID' },
+      { field: 'status', header: 'POAM Status' },
+      { field: 'vulnerabilityId', header: 'Vulnerability ID' },
+      { field: 'source', header: 'Vulnerability Source' },
+      { field: 'affectedAssets', header: 'Affected Assets' },
+      { field: 'vulnerabilityTitle', header: 'Vulnerability Name' },
+      { field: 'taskOrderNumber', header: 'Task Order #' },
+      { field: 'iavmNumber', header: 'IAV' },
+      { field: 'rawSeverity', header: 'Raw Severity' },
+      { field: 'adjSeverity', header: 'Adjusted Severity' },
+      { field: 'owner', header: 'Owner' },
+      { field: 'submittedDate', header: 'Submitted Date' },
+      { field: 'scheduledCompletionDate', header: 'Scheduled Completion' },
+      { field: 'lastUpdated', header: 'Last Updated' },
+      { field: 'associatedVulnerabilities', header: 'Associated Vulnerabilities' },
+      { field: 'assignedTeams', header: 'Assigned Teams' },
+      { field: 'labels', header: 'Labels' }
+    ];
+
+    const filename = `${this.variant() ?? 'poams'}-${format(new Date(), 'yyyy-MM-dd')}`;
+
+    this.csvExportService.exportToCsv(processedData, {
+      filename,
+      columns,
+      includeTimestamp: false
+    });
+  }
+
+  exportCollection() {
+    this.dialogRef = this.dialogService.open(PoamExportStatusSelectionComponent, {
+      modal: true,
+      dismissableMask: true
+    });
+
+    this.dialogRef.onClose.subscribe((selectedStatuses: string[] | null) => {
+      if (!selectedStatuses || selectedStatuses.length === 0) {
+        return;
+      }
+
+      this.messageService.add({
+        severity: 'secondary',
+        summary: 'Export Started',
+        detail: 'Download will automatically start momentarily.'
+      });
+
+      const collectionId = this.selectedCollectionId();
+      const collection = this.selectedCollection();
+      const allPoams = this.poamsData();
+      let poams = allPoams.filter((poam) => selectedStatuses.includes(poam.status.toLowerCase()));
+
+      poams = this.addAssociatedVulnerabilitiesToExport(poams);
+
+      if (!collectionId || !poams?.length) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'No Data',
+          detail: 'There are no POAMs with the selected statuses to export for this collection.'
+        });
+
+        return;
+      }
+
+      if (collection.collectionType === 'STIG Manager') {
+        this.processPoamsWithStigFindings(poams, collection.originCollectionId).then((processedPoams) => this.generateExcelFile(processedPoams));
+      } else if (collection.collectionType === 'Tenable') {
+        this.processPoamsWithTenableFindings(poams).then((processedPoams) => this.generateExcelFile(processedPoams));
+      } else {
+        this.processDefaultPoams(poams, collectionId);
+      }
+    });
+  }
+
+  private addAssociatedVulnerabilitiesToExport(poams: any[]): any[] {
+    const expandedPoams: any[] = [];
+
+    poams.forEach((poam) => {
+      expandedPoams.push(poam);
+
+      if (poam?.associatedVulnerabilities.length > 0) {
+        poam.associatedVulnerabilities.forEach((associatedVulnId: string) => {
+          const duplicatePoam = {
+            ...poam,
+            vulnerabilityId: associatedVulnId,
+            isAssociatedVulnerability: true,
+            parentVulnerabilityId: poam.vulnerabilityId
+          };
+
+          expandedPoams.push(duplicatePoam);
+        });
+      }
+    });
+
+    return expandedPoams;
+  }
+
+  private processDefaultPoams(poams: any[], collectionId: any) {
+    this.poamService.getPoamAssetsByCollectionId(collectionId).subscribe((assets) => {
+      this.cpatAffectedAssets.set(assets);
+      const processedPoams = poams.map((poam) => {
+        const affectedDevices = this.cpatAffectedAssets()
+          .filter((asset: any) => asset.poamId === poam.poamId)
+          .map((asset: any) => asset.assetName.toUpperCase())
+          .filter(Boolean);
+
+        return {
+          ...poam,
+          devicesAffected: affectedDevices.join(' ')
+        };
+      });
+
+      this.generateExcelFile(processedPoams);
+    });
+  }
+
+  private async generateExcelFile(processedPoams: any[]) {
+    try {
+      const excelData = await PoamExportService.convertToExcel(processedPoams, this.user(), this.selectedCollection());
+
+      const excelURL = URL.createObjectURL(excelData);
+      const exportName = this.selectedCollection()?.collectionName.replace(' ', '_');
+
+      const link = document.createElement('a');
+
+      link.id = 'download-excel';
+      link.setAttribute('href', excelURL);
+      link.setAttribute('download', `${exportName}_CPAT_Export.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(excelURL);
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Export Failed',
+        detail: `Failed to export POAMs: ${getErrorMessage(error)}`
+      });
+    }
+  }
+
+  private getTenableAffectedDevices(vulnerabilityId: string): string[] {
+    return this.tenableAffectedAssets()
+      .filter((asset: any) => asset.pluginId === vulnerabilityId)
+      .map((asset: any) => this.getTenableDeviceName(asset))
+      .filter(Boolean);
+  }
+
+  private getTenableDeviceName(asset: any): string | null {
+    if (asset.netbiosName) {
+      const parts = asset.netbiosName.split('\\');
+
+      if (parts.length > 1) {
+        return parts.at(-1);
+      }
+    }
+
+    if (asset.dnsName) {
+      const parts = asset.dnsName.split('.');
+
+      if (parts.length > 0) {
+        return parts[0].toUpperCase();
+      }
+    }
+
+    return null;
+  }
+
+  processPoamsWithTenableFindings(poams: any[]): Promise<any[]> {
+    return new Promise((resolve) => {
+      const processedPoams: any[] = [];
+      const vulnerabilityIds = [...new Set(poams.filter((poam) => poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner').map((poam) => poam.vulnerabilityId))];
+
+      if (vulnerabilityIds.length === 0) {
+        resolve(poams.filter((poam) => poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner'));
+
+        return;
+      }
+
+      const analysisParams = {
+        query: {
+          description: '',
+          context: '',
+          status: -1,
+          createdTime: 0,
+          modifiedTime: 0,
+          groups: [],
+          type: 'vuln',
+          tool: 'listvuln',
+          sourceType: 'cumulative',
+          startOffset: 0,
+          endOffset: 10000,
+          filters: [
+            {
+              id: 'pluginID',
+              filterName: 'pluginID',
+              operator: '=',
+              type: 'vuln',
+              isPredefined: true,
+              value: vulnerabilityIds.join(',')
+            }
+          ],
+          vulnTool: 'listvuln'
+        },
+        sourceType: 'cumulative',
+        columns: [],
+        type: 'vuln'
+      };
+
+      this.integrationService.postTenableAnalysis(analysisParams, false).subscribe({
+        next: (data: any) => {
+          this.tenableAffectedAssets.set(
+            data.response.results.map((asset: any) => ({
+              pluginId: asset.pluginID,
+              dnsName: asset.dnsName ?? '',
+              netbiosName: asset.netbiosName ?? ''
+            }))
+          );
+
+          let completedPoams = 0;
+          const targetPoams = poams.filter((poam) => poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner');
+          const otherPoams = poams.filter((poam) => poam.vulnerabilitySource !== 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner');
+
+          if (targetPoams.length === 0) {
+            resolve(otherPoams);
+
+            return;
+          }
+
+          targetPoams.forEach((poam) => {
+            this.integrationService.getTenablePlugin(poam.vulnerabilityId, false).subscribe({
+              next: (plugin: any) => {
+                let controlAPs: string;
+                let cci: string;
+
+                if (plugin.response?.patchPubDate && plugin.response?.patchPubDate != '') {
+                  controlAPs = 'SI-2.9';
+                  cci = '002605\n\nControl mapping is unavailable for this vulnerability so it is being mapped to SI-2.9 CCI-002605 by default.';
+                } else {
+                  controlAPs = 'CM-6.5';
+                  cci = '000366\n\nControl mapping is unavailable for this vulnerability so it is being mapped to CM-6.5 CCI-000366 by default.';
+                }
+
+                processedPoams.push({
+                  ...poam,
+                  controlAPs,
+                  cci,
+                  devicesAffected: this.getTenableAffectedDevices(poam.vulnerabilityId).join(' ')
+                });
+
+                completedPoams++;
+
+                if (completedPoams === targetPoams.length) {
+                  resolve([...processedPoams, ...otherPoams]);
+                }
+              },
+              error: (error) => {
+                this.messageService.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: `Error processing Tenable POAM ${poam.poamId}: ${getErrorMessage(error)}`
+                });
+                processedPoams.push(poam);
+                completedPoams++;
+
+                if (completedPoams === targetPoams.length) {
+                  resolve([...processedPoams, ...otherPoams]);
+                }
+              }
+            });
+          });
+        },
+        error: (error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error fetching Tenable analysis: ${getErrorMessage(error)}`
+          });
+          resolve(poams);
+        }
+      });
+    });
+  }
+
+  processPoamsWithStigFindings(poams: any[], originCollectionId: number): Promise<any[]> {
+    return new Promise((resolve) => {
+      const stigPoams = poams.filter((p) => p.vulnerabilitySource === 'STIG');
+      const otherPoams = poams.filter((p) => p.vulnerabilitySource !== 'STIG');
+      const processedStigPoams: any[] = [];
+
+      if (stigPoams.length === 0) {
+        resolve(otherPoams);
+
+        return;
+      }
+
+      let completedPoams = 0;
+
+      const findingsByBenchmark = new Map<string, Observable<any>>();
+
+      const findingsFor = (benchmarkId: string): Observable<any> => {
+        let findings$ = findingsByBenchmark.get(benchmarkId);
+
+        if (!findings$) {
+          findings$ = this.sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, benchmarkId).pipe(shareReplay({ bufferSize: 1, refCount: false }));
+          findingsByBenchmark.set(benchmarkId, findings$);
+        }
+
+        return findings$;
+      };
+
+      const processPoam = (poam: any) => {
+        if (poam.vulnerabilityId && poam.stigBenchmarkId && poam.vulnerabilitySource === 'STIG') {
+          findingsFor(poam.stigBenchmarkId).subscribe({
+            next: (findings: any) => {
+              processPoamWithFindings(poam, findings);
+            },
+            error: (error) => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: `Error fetching affected assets for POAM ${poam.poamId}: ${getErrorMessage(error)}`
+              });
+              processedStigPoams.push(poam);
+              checkCompletion();
+            }
+          });
+        } else {
+          processedStigPoams.push(poam);
+          checkCompletion();
+        }
+      };
+
+      const processPoamWithFindings = (poam: any, findings: any[]) => {
+        const matchingFinding = findings.find((finding) => finding.groupId === poam.vulnerabilityId);
+
+        if (matchingFinding) {
+          const affectedDevices = matchingFinding.assets.map((asset: { name: any; assetId: any }) => asset.name);
+          const controlAPs = matchingFinding.ccis[0]?.apAcronym;
+          const cci = matchingFinding.ccis[0]?.cci;
+
+          processedStigPoams.push({
+            ...poam,
+            controlAPs,
+            cci,
+            devicesAffected: affectedDevices.join(' ')
+          });
+        } else {
+          processedStigPoams.push(poam);
+        }
+
+        checkCompletion();
+      };
+
+      const checkCompletion = () => {
+        completedPoams++;
+
+        if (completedPoams === stigPoams.length) {
+          resolve([...processedStigPoams, ...otherPoams]);
+        }
+      };
+
+      stigPoams.forEach(processPoam);
+    });
+  }
+
+  async importEMASSter(event: any) {
+    const file = event.files[0];
+
+    if (!file) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'No File Selected',
+        detail: 'Please select an eMASSter file to import.'
+      });
+
+      return;
+    }
+
+    this.dialogRef = this.dialogService.open(EMASSOverwriteSelectionComponent, {
+      header: '',
+      width: '50vw',
+      height: 'auto',
+      modal: true,
+      dismissableMask: true
+    });
+
+    this.dialogRef.onClose.subscribe(async (selectedColumns: string[]) => {
+      if (!selectedColumns || selectedColumns.length === 0) {
+        const fileUpload = this.fileUpload();
+
+        if (fileUpload) {
+          fileUpload.clear();
+        }
+
+        return;
+      }
+
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Processing',
+        detail: 'Updating eMASSter file with CPAT data...'
+      });
+
+      try {
+        const poams = this.poamsData();
+
+        const updatedFile = await PoamExportService.updateEMASSterPoams(file, poams, this.selectedCollectionId(), selectedColumns, this.collectionsService, this.integrationService, this.poamService, this.sharedService);
+
+        const downloadUrl = URL.createObjectURL(updatedFile);
+        const link = document.createElement('a');
+
+        link.href = downloadUrl;
+        link.download = `Updated_${file.name}`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(downloadUrl);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'eMASSter file has been updated with CPAT data.'
+        });
+      } catch (error) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to process eMASSter file: ${getErrorMessage(error)}`
+        });
+      }
+
+      const fileUpload = this.fileUpload();
+
+      if (fileUpload) {
+        fileUpload.clear();
+      }
+    });
+  }
+
+  managePoam(row: any) {
+    const poamId = row.poamId;
+
+    this.router.navigateByUrl(`/poams/poam-details/${poamId}`);
+  }
+
+  clear() {
+    this.table().clear();
+    this.resetDefaultFilters();
+    this.globalFilterSignal.set('');
+  }
+
+  ngOnDestroy(): void {
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    }
+
+    this.subscriptions.unsubscribe();
+    this.payloadSubscription.forEach((subscription) => subscription.unsubscribe());
+  }
+}

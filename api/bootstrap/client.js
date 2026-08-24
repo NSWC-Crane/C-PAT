@@ -120,6 +120,7 @@ function serveStaticFiles(app) {
 
     const expressStatic = express.static(staticPath, {
         index: false,
+        redirect: false,
         setHeaders: (res, path) => {
             if (path.endsWith('.js')) {
                 res.setHeader('Content-Type', 'application/javascript');

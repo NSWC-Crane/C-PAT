@@ -26,7 +26,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
-import { PoamService } from '../../../poam-processing/poams.service';
+import { PoamService } from '../../../poams/poams.service';
 import { MultiSelectDirective } from '../../../../common/directives/multi-select.directive';
 
 interface ControlSummary {
@@ -586,7 +586,7 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   private navigateToPoam(rowData: ControlFinding, ruleDataString: string, descriptionString: string) {
-    let routePath = '/poam-processing/poam-details/';
+    let routePath = '/poams/poam-details/';
     const routeParams = {
       state: {
         vulnerabilitySource: 'STIG',

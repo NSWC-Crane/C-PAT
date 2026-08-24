@@ -1,0 +1,957 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { ListboxModule } from 'primeng/listbox';
+import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
+import { TextareaModule } from 'primeng/textarea';
+import { TooltipModule } from 'primeng/tooltip';
+import { TreeTable, TreeTableModule } from 'primeng/treetable';
+import { EMPTY, Observable, catchError, forkJoin, from, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { AAPackage } from '../../../common/models/aaPackage.model';
+import { Collections } from '../../../common/models/collections.model';
+import { PayloadService } from '../../../common/services/setPayload.service';
+import { SharedService } from '../../../common/services/shared.service';
+import { getErrorMessage } from '../../../common/utils/error-utils';
+import { PoamExportService } from '../../../common/utils/poam-export.service';
+import { IntegrationService } from '../../integrations/integration.service';
+import { PoamService } from '../../poams/poams.service';
+import { AAPackageService } from '../aa-packages/aa-packages.service';
+import { CollectionsService } from './collections.service';
+
+interface TreeNode<T> {
+  data: T;
+  children?: TreeNode<T>[];
+  expanded?: boolean;
+}
+
+@Component({
+  selector: 'cpat-collections',
+  templateUrl: './collections.component.html',
+  styleUrls: ['./collections.component.scss'],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TagModule, TextareaModule, TooltipModule, TreeTableModule]
+})
+export class CollectionsComponent implements OnInit {
+  private readonly aaPackageService = inject(AAPackageService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly setPayloadService = inject(PayloadService);
+  private readonly messageService = inject(MessageService);
+  private readonly sharedService = inject(SharedService);
+  private readonly integrationService = inject(IntegrationService);
+  private readonly poamService = inject(PoamService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  public readonly table = viewChild.required<TreeTable>('dt');
+  readonly cols = signal<any[]>([]);
+  aaPackages: AAPackage[] = [];
+  readonly filteredAAPackages = signal<string[]>([]);
+  readonly collectionTreeData = signal<TreeNode<Collections>[]>([]);
+  poams: any[] = [];
+  collections: any;
+  collection: any = {
+    collectionId: '',
+    collectionName: '',
+    description: '',
+    systemType: '',
+    systemName: '',
+    ccsafa: '',
+    aaPackage: '',
+    manualCreationAllowed: true
+  };
+  data: any = [];
+  readonly displayCollectionDialog = signal(false);
+  dialogMode: 'add' | 'modify' = 'add';
+  editingCollection: any = {};
+  collectionTypeOptions = [
+    { label: 'C-PAT', value: 'C-PAT' },
+    { label: 'STIG Manager', value: 'STIG Manager' },
+    { label: 'Tenable', value: 'Tenable' }
+  ];
+  readonly originCollectionOptions = signal<{ label: string; value: number }[]>([]);
+  readonly loadingOriginCollections = signal(false);
+  previousCollectionType: string | null = null;
+  pendingCollectionType: string | null = null;
+  readonly displayCollectionTypeConfirmDialog = signal(false);
+  previousOriginCollectionId: number | null = null;
+  pendingOriginCollectionId: number | null = null;
+  readonly displayOriginIdConfirmDialog = signal(false);
+  protected accessLevel: any;
+  user: any;
+  payload: any;
+  cpatAffectedAssets: any;
+  tenableAffectedAssets: any;
+  readonly displayDeleteDialog = signal(false);
+  collectionToDelete: any = null;
+  readonly displayExportDialog = signal(false);
+  readonly selectableCollections = signal<any[]>([]);
+  readonly selectedExportCollections = signal<any[]>([]);
+  readonly exporting = signal(false);
+  readonly displayBulkImportDialog = signal(false);
+  readonly bulkImportSource = signal<'STIG Manager' | 'Tenable'>('STIG Manager');
+  bulkImportSourceOptions = CPAT.Env.features.tenableEnabled
+    ? [
+        { label: 'STIG Manager', value: 'STIG Manager' as const },
+        { label: 'Tenable', value: 'Tenable' as const }
+      ]
+    : [{ label: 'STIG Manager', value: 'STIG Manager' as const }];
+  readonly bulkImportAvailable = signal<{ label: string; value: any }[]>([]);
+  readonly selectedBulkImports = signal<any[]>([]);
+  readonly bulkImporting = signal(false);
+  readonly loadingBulkImports = signal(false);
+  tenableEnabled = CPAT.Env.features.tenableEnabled;
+
+  ngOnInit() {
+    this.initColumnsAndFilters();
+    this.setPayload();
+  }
+
+  initColumnsAndFilters() {
+    this.cols.set([
+      { field: 'collectionId', header: 'Collection ID' },
+      { field: 'collectionName', header: 'Name' },
+      { field: 'description', header: 'Description' },
+      { field: 'systemType', header: 'System Type' },
+      { field: 'systemName', header: 'System Name' },
+      { field: 'ccsafa', header: 'CC/S/A/FA' },
+      { field: 'aaPackage', header: 'A&A Package' },
+      { field: 'collectionType', header: 'Collection Type' }
+    ]);
+  }
+
+  setPayload() {
+    this.setPayloadService.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
+      this.user = user;
+    });
+    this.setPayloadService.payload$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((payload) => {
+      this.payload = payload;
+    });
+    this.setPayloadService.accessLevel$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((level) => {
+      this.accessLevel = level;
+    });
+    this.getCollectionData();
+  }
+
+  getTagColor(collectionType: string): 'secondary' | 'success' | 'warn' | 'danger' | 'info' | undefined {
+    switch (collectionType) {
+      case 'C-PAT':
+        return 'secondary';
+      case 'STIG Manager':
+        return 'success';
+      case 'Tenable':
+        return 'danger';
+      default:
+        return 'info';
+    }
+  }
+
+  getCollectionData() {
+    this.collections = null;
+    this.loadAAPackages();
+    this.collectionsService.getAllCollections().subscribe({
+      next: (result) => {
+        this.collections = this.data = result;
+        this.getCollectionsTreeData();
+      }
+    });
+  }
+
+  loadAAPackages() {
+    this.aaPackageService.getAAPackages().subscribe({
+      next: (response) => {
+        this.aaPackages = response || [];
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load A&A Packages: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  filterAAPackages(event: { query: string }) {
+    const query = event.query.toLowerCase();
+
+    this.filteredAAPackages.set(this.aaPackages.filter((aaPackage) => aaPackage.aaPackage.toLowerCase().includes(query)).map((aaPackage) => aaPackage.aaPackage));
+  }
+
+  getCollectionsTreeData() {
+    const collectionData = this.data;
+    const treeViewData: TreeNode<Collections>[] = collectionData.map(
+      (collection: {
+        collectionId: number;
+        collectionName: any;
+        description: any;
+        systemType: any;
+        systemName: any;
+        ccsafa: any;
+        aaPackage: any;
+        predisposingConditions: any;
+        collectionType: any;
+        originCollectionId: number;
+        manualCreationAllowed: boolean;
+      }) => {
+        const myChildren: never[] = [];
+
+        return {
+          data: {
+            collectionId: collection.collectionId,
+            collectionName: collection.collectionName,
+            description: collection.description,
+            systemType: collection.systemType || '',
+            systemName: collection.systemName || '',
+            ccsafa: collection.ccsafa || '',
+            aaPackage: collection.aaPackage || '',
+            predisposingConditions: collection.predisposingConditions || '',
+            collectionType: collection.collectionType || 'C-PAT',
+            originCollectionId: collection.originCollectionId ?? 0,
+            manualCreationAllowed: collection.manualCreationAllowed ?? true
+          },
+          children: myChildren
+        };
+      }
+    );
+
+    this.collectionTreeData.set(treeViewData);
+  }
+
+  exportCollection(rowData: any) {
+    const exportCollection = {
+      collectionId: rowData.collectionId,
+      name: rowData.collectionName,
+      collectionType: rowData.collectionType,
+      originCollectionId: rowData.originCollectionId,
+      systemType: rowData.systemType,
+      systemName: rowData.systemName,
+      ccsafa: rowData.ccsafa,
+      aaPackage: rowData.aaPackage,
+      predisposingConditions: rowData.predisposingConditions
+    };
+
+    if (!exportCollection.collectionId) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Unable to determine export collection, please try again.`
+      });
+
+      return;
+    }
+
+    this.collectionsService
+      .getPoamsByCollection(exportCollection.collectionId)
+      .pipe(
+        switchMap((poams) => {
+          if (!poams?.length) {
+            throw new Error('No POAMs to export for this collection.');
+          }
+
+          return this.processPoamsData(poams, exportCollection);
+        }),
+        switchMap((processedPoams) => from(PoamExportService.convertToExcel(processedPoams, this.user, exportCollection))),
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Export Failed',
+            detail: `Failed to process POAMs: ${getErrorMessage(error)}`
+          });
+
+          return EMPTY;
+        })
+      )
+      .subscribe((excelData) => {
+        this.downloadExcel(excelData, exportCollection.name);
+      });
+  }
+
+  private processPoamsData(poams: any[], exportCollection: any): Observable<any[]> {
+    if (exportCollection.collectionType === 'STIG Manager') {
+      return this.processPoamsWithStigFindings(poams, exportCollection.originCollectionId);
+    }
+
+    if (exportCollection.collectionType === 'Tenable') {
+      return this.processPoamsWithTenableData(poams);
+    }
+
+    return this.processPoamsWithCpatData(poams, exportCollection.collectionId);
+  }
+
+  private processPoamsWithTenableData(poams: any[]): Observable<any[]> {
+    const vulnerabilityIds = [...new Set(poams.map((poam) => poam.vulnerabilityId))];
+    const analysisParams = {
+      query: {
+        description: '',
+        context: '',
+        status: -1,
+        createdTime: 0,
+        modifiedTime: 0,
+        groups: [],
+        type: 'vuln',
+        tool: 'listvuln',
+        sourceType: 'cumulative',
+        startOffset: 0,
+        endOffset: 10000,
+        filters: [
+          {
+            id: 'pluginID',
+            filterName: 'pluginID',
+            operator: '=',
+            type: 'vuln',
+            isPredefined: true,
+            value: vulnerabilityIds.join(',')
+          }
+        ],
+        vulnTool: 'listvuln'
+      },
+      sourceType: 'cumulative',
+      columns: [],
+      type: 'vuln'
+    };
+
+    return this.integrationService.postTenableAnalysis(analysisParams, false).pipe(
+      map((data) => {
+        this.tenableAffectedAssets = data.response.results.map((asset: any) => ({
+          pluginId: asset.pluginID,
+          dnsName: asset.dnsName ?? '',
+          netbiosName: asset.netbiosName ?? ''
+        }));
+
+        return poams.map((poam) => {
+          const affectedDevices = this.tenableAffectedAssets
+            .filter((asset: any) => asset.pluginId === poam.vulnerabilityId)
+            .map((asset: any) => {
+              if (asset.netbiosName) {
+                const parts = asset.netbiosName.split('\\');
+
+                return parts.length > 1 ? parts[parts.length - 1] : null;
+              }
+
+              if (asset.dnsName) {
+                const parts = asset.dnsName.split('.');
+
+                return parts.length > 0 ? parts[0].toUpperCase() : null;
+              }
+
+              return null;
+            })
+            .filter(Boolean);
+
+          return {
+            ...poam,
+            devicesAffected: affectedDevices.join(' ')
+          };
+        });
+      })
+    );
+  }
+
+  private processPoamsWithCpatData(poams: any[], collectionId: number): Observable<any[]> {
+    return this.poamService.getPoamAssetsByCollectionId(collectionId).pipe(
+      map((assets) => {
+        this.cpatAffectedAssets = assets;
+
+        return poams.map((poam) => {
+          const affectedDevices = this.cpatAffectedAssets
+            .filter((asset: any) => asset.poamId === poam.poamId)
+            .map((asset: any) => asset.assetName.toUpperCase())
+            .filter(Boolean);
+
+          return {
+            ...poam,
+            devicesAffected: affectedDevices.join(' ')
+          };
+        });
+      })
+    );
+  }
+
+  private processPoamsWithStigFindings(poams: any[], originCollectionId: number): Observable<any[]> {
+    const findingsByBenchmark = new Map<string, Observable<any>>();
+
+    const findingsFor = (benchmarkId: string): Observable<any> => {
+      let findings$ = findingsByBenchmark.get(benchmarkId);
+
+      if (!findings$) {
+        findings$ = this.sharedService.getSTIGMANAffectedAssetsByPoam(originCollectionId, benchmarkId).pipe(shareReplay({ bufferSize: 1, refCount: false }));
+        findingsByBenchmark.set(benchmarkId, findings$);
+      }
+
+      return findings$;
+    };
+
+    const poamProcessingOperations = poams.map((poam) => {
+      if (!poam.vulnerabilityId || !poam.stigBenchmarkId) {
+        return of(poam);
+      }
+
+      return findingsFor(poam.stigBenchmarkId).pipe(
+        map((findings) => this.processSinglePoamWithFindings(poam, findings)),
+        catchError((error) => {
+          if (error?.message?.includes('403')) {
+            console.warn(`STIG Manager access denied for benchmark ${poam.stigBenchmarkId}, exporting POAM without enriched asset data.`);
+
+            return of(poam);
+          }
+
+          return throwError(() => error);
+        })
+      );
+    });
+
+    return forkJoin(poamProcessingOperations);
+  }
+
+  private processSinglePoamWithFindings(poam: any, findings: any[]): any {
+    const matchingFinding = findings.find((finding) => finding.groupId === poam.vulnerabilityId);
+
+    if (!matchingFinding) {
+      return poam;
+    }
+
+    const affectedDevices = matchingFinding.assets.map((asset: { name: any; assetId: any }) => asset.name);
+    const controlAPs = matchingFinding.ccis[0]?.apAcronym;
+    const cci = matchingFinding.ccis[0]?.cci;
+
+    return {
+      ...poam,
+      controlAPs,
+      cci,
+      devicesAffected: affectedDevices.join(' ')
+    };
+  }
+  private downloadExcel(excelData: Blob, collectionName: string): void {
+    const excelURL = URL.createObjectURL(excelData);
+    const exportName = collectionName.replace(' ', '_');
+    const link = document.createElement('a');
+
+    link.id = 'download-excel';
+    link.href = excelURL;
+    link.download = `${exportName}_CPAT_Export.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(excelURL);
+  }
+
+  saveCollection() {
+    if (!this.editingCollection.collectionName?.trim()) return;
+
+    const collectionType = this.editingCollection.collectionType || 'C-PAT';
+
+    if (collectionType !== 'C-PAT' && (this.editingCollection.originCollectionId === null || this.editingCollection.originCollectionId === undefined)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Origin Collection Required',
+        detail: `Please select a ${collectionType} collection.`
+      });
+
+      return;
+    }
+
+    const collectionToSave = {
+      ...this.editingCollection,
+      collectionType: collectionType,
+      originCollectionId: collectionType === 'C-PAT' ? 0 : this.editingCollection.originCollectionId,
+      collectionId: Number.parseInt(this.dialogMode === 'add' ? '0' : this.editingCollection.collectionId || '0', 10)
+    };
+
+    (this.dialogMode === 'add' ? this.collectionsService.addCollection(collectionToSave) : this.collectionsService.updateCollection(collectionToSave))
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to ${this.dialogMode === 'add' ? 'add' : 'update'} collection: ${getErrorMessage(error)}`,
+            life: 3000
+          });
+
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Successful',
+          detail: `Collection ${this.dialogMode === 'add' ? 'Added' : 'Updated'}`,
+          life: 3000
+        });
+        this.getCollectionData();
+        this.displayCollectionDialog.set(false);
+      });
+  }
+
+  showAddCollectionDialog() {
+    this.dialogMode = 'add';
+    this.editingCollection = {
+      collectionId: '',
+      collectionName: '',
+      description: '',
+      systemType: '',
+      systemName: '',
+      ccsafa: '',
+      aaPackage: '',
+      predisposingConditions: '',
+      manualCreationAllowed: true,
+      collectionType: 'C-PAT',
+      originCollectionId: 0
+    };
+    this.previousCollectionType = 'C-PAT';
+    this.previousOriginCollectionId = 0;
+    this.originCollectionOptions.set([]);
+    this.displayCollectionDialog.set(true);
+  }
+
+  showModifyCollectionDialog(rowData: any) {
+    this.dialogMode = 'modify';
+    const collectionType = rowData.collectionType || 'C-PAT';
+    const originId = rowData.originCollectionId ?? 0;
+
+    this.editingCollection = {
+      collectionId: rowData.collectionId.toString(),
+      collectionName: rowData.collectionName,
+      description: rowData.description,
+      systemType: rowData.systemType,
+      systemName: rowData.systemName,
+      ccsafa: rowData.ccsafa,
+      aaPackage: rowData.aaPackage,
+      predisposingConditions: rowData.predisposingConditions,
+      manualCreationAllowed: rowData.manualCreationAllowed ?? true,
+      collectionType: collectionType,
+      originCollectionId: collectionType === 'C-PAT' ? 0 : originId
+    };
+    this.previousCollectionType = collectionType;
+    this.previousOriginCollectionId = collectionType === 'C-PAT' ? 0 : originId;
+    this.originCollectionOptions.set([]);
+
+    if (collectionType !== 'C-PAT') {
+      this.loadOriginCollections(collectionType);
+    }
+
+    this.displayCollectionDialog.set(true);
+  }
+
+  onCollectionTypeChange(newCollectionType: string) {
+    if (newCollectionType === this.previousCollectionType) return;
+
+    if (this.dialogMode === 'add') {
+      this.applyCollectionTypeChange(newCollectionType);
+
+      return;
+    }
+
+    this.pendingCollectionType = newCollectionType;
+    this.editingCollection.collectionType = this.previousCollectionType;
+    this.displayCollectionTypeConfirmDialog.set(true);
+  }
+
+  confirmCollectionTypeChange() {
+    if (this.pendingCollectionType) {
+      this.applyCollectionTypeChange(this.pendingCollectionType);
+    }
+
+    this.pendingCollectionType = null;
+    this.displayCollectionTypeConfirmDialog.set(false);
+  }
+
+  cancelCollectionTypeChange() {
+    this.pendingCollectionType = null;
+    this.displayCollectionTypeConfirmDialog.set(false);
+  }
+
+  private applyCollectionTypeChange(newCollectionType: string) {
+    this.editingCollection.collectionType = newCollectionType;
+    this.previousCollectionType = newCollectionType;
+
+    if (newCollectionType === 'C-PAT') {
+      this.editingCollection.originCollectionId = 0;
+      this.previousOriginCollectionId = 0;
+      this.originCollectionOptions.set([]);
+
+      return;
+    }
+
+    this.editingCollection.originCollectionId = null;
+    this.previousOriginCollectionId = null;
+    this.originCollectionOptions.set([]);
+    this.editingCollection.manualCreationAllowed = false;
+    this.loadOriginCollections(newCollectionType);
+  }
+
+  private loadOriginCollections(collectionType: string) {
+    this.loadingOriginCollections.set(true);
+
+    const source$ =
+      collectionType === 'STIG Manager'
+        ? this.sharedService.getCollectionsFromSTIGMAN(false).pipe(map((list: any[]) => (list ?? []).map((c: any) => ({ label: c.name, value: +c.collectionId }))))
+        : this.integrationService.getTenableRepositories(false).pipe(map((res: any) => (res?.response ?? []).map((r: any) => ({ label: r.name, value: +r.id }))));
+
+    source$
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load ${collectionType} collections: ${getErrorMessage(error)}`
+          });
+
+          return of([] as { label: string; value: number }[]);
+        })
+      )
+      .subscribe((options) => {
+        this.originCollectionOptions.set(this.filterAvailableOriginOptions(options, collectionType));
+        this.loadingOriginCollections.set(false);
+      });
+  }
+
+  private filterAvailableOriginOptions(options: { label: string; value: number }[], collectionType: string): { label: string; value: number }[] {
+    const currentCollectionId = this.dialogMode === 'modify' && this.editingCollection.collectionId ? Number.parseInt(this.editingCollection.collectionId, 10) : null;
+
+    const usedOriginIds = new Set((this.data ?? []).filter((c: any) => c.collectionType === collectionType && c.collectionId !== currentCollectionId).map((c: any) => +c.originCollectionId));
+
+    return options.filter((opt) => !usedOriginIds.has(+opt.value));
+  }
+
+  onOriginCollectionIdChange(newValue: number) {
+    if (newValue === this.previousOriginCollectionId) return;
+
+    if (this.dialogMode === 'add') {
+      this.editingCollection.originCollectionId = newValue;
+      this.previousOriginCollectionId = newValue;
+
+      return;
+    }
+
+    this.pendingOriginCollectionId = newValue;
+    this.editingCollection.originCollectionId = this.previousOriginCollectionId;
+    this.displayOriginIdConfirmDialog.set(true);
+  }
+
+  confirmOriginCollectionIdChange() {
+    this.editingCollection.originCollectionId = this.pendingOriginCollectionId;
+    this.previousOriginCollectionId = this.pendingOriginCollectionId;
+    this.pendingOriginCollectionId = null;
+    this.displayOriginIdConfirmDialog.set(false);
+  }
+
+  cancelOriginCollectionIdChange() {
+    this.pendingOriginCollectionId = null;
+    this.displayOriginIdConfirmDialog.set(false);
+  }
+
+  confirmDeleteCollection(rowData: any) {
+    this.collectionToDelete = rowData;
+    this.displayDeleteDialog.set(true);
+  }
+
+  deleteCollection() {
+    if (!this.collectionToDelete) return;
+
+    const collectionId = this.collectionToDelete.collectionId;
+
+    this.collectionsService
+      .deleteCollection(collectionId)
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to delete collection: ${error.message}`,
+            life: 3000
+          });
+
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Successful',
+          detail: 'Collection Deleted',
+          life: 3000
+        });
+        this.getCollectionData();
+        this.hideDeleteDialog();
+      });
+  }
+
+  hideDeleteDialog() {
+    this.displayDeleteDialog.set(false);
+    this.collectionToDelete = null;
+  }
+
+  hideCollectionDialog() {
+    this.displayCollectionDialog.set(false);
+  }
+
+  showExportDialog() {
+    this.selectableCollections.set(
+      this.data.map((collection: any) => ({
+        label: collection.collectionName,
+        value: {
+          collectionId: collection.collectionId,
+          name: collection.collectionName,
+          collectionType: collection.collectionType || '',
+          originCollectionId: collection.originCollectionId ?? 0,
+          systemType: collection.systemType || '',
+          systemName: collection.systemName || '',
+          ccsafa: collection.ccsafa || '',
+          aaPackage: collection.aaPackage || '',
+          predisposingConditions: collection.predisposingConditions || ''
+        }
+      }))
+    );
+    this.selectedExportCollections.set([]);
+    this.displayExportDialog.set(true);
+  }
+
+  hideExportDialog() {
+    this.displayExportDialog.set(false);
+    this.selectedExportCollections.set([]);
+  }
+
+  exportMultipleCollections() {
+    if (!this.selectedExportCollections().length) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Selection',
+        detail: 'Please select at least one collection to export.'
+      });
+
+      return;
+    }
+
+    this.exporting.set(true);
+    const skippedCollections: string[] = [];
+    const emptyCollections: string[] = [];
+
+    const collectionExports = this.selectedExportCollections().map((exportCollection) =>
+      this.collectionsService.getPoamsByCollection(exportCollection.collectionId).pipe(
+        switchMap((poams) => {
+          if (!poams?.length) {
+            emptyCollections.push(exportCollection.name);
+
+            return of([]);
+          }
+
+          return this.processPoamsData(poams, exportCollection);
+        }),
+        catchError((error) => {
+          if (error?.message?.includes('403')) {
+            skippedCollections.push(exportCollection.name);
+          } else {
+            skippedCollections.push(`${exportCollection.name} (${getErrorMessage(error)})`);
+          }
+
+          return of([]);
+        })
+      )
+    );
+
+    forkJoin(collectionExports)
+      .pipe(
+        switchMap((results: any[][]) => {
+          const allPoams = results.flat();
+
+          if (!allPoams.length) {
+            throw new Error('No POAMs were available to export from the selected collections.');
+          }
+
+          const primaryCollection = this.selectedExportCollections()[0];
+          const syntheticExportCollection = {
+            ...primaryCollection,
+            name: this.selectedExportCollections().length > 1 ? 'Multi_Collection' : primaryCollection.name
+          };
+
+          return from(PoamExportService.convertToExcel(allPoams, this.user, syntheticExportCollection));
+        }),
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Export Failed',
+            detail: getErrorMessage(error)
+          });
+
+          return EMPTY;
+        })
+      )
+      .subscribe({
+        next: (excelData) => {
+          const exportName = this.selectedExportCollections().length > 1 ? 'Multi_Collection' : this.selectedExportCollections()[0].name;
+
+          this.downloadExcel(excelData, exportName);
+
+          if (skippedCollections.length) {
+            this.messageService.add({
+              severity: 'warn',
+              summary: 'Partial Export',
+              detail: `The following collections were skipped due to permission or processing errors: ${skippedCollections.join(', ')}`,
+              life: 10000
+            });
+          }
+
+          if (emptyCollections.length) {
+            this.messageService.add({
+              severity: 'info',
+              summary: 'Empty Collections',
+              detail: `The following collections had no POAMs to export: ${emptyCollections.join(', ')}`,
+              life: 10000
+            });
+          }
+
+          this.displayExportDialog.set(false);
+        },
+        complete: () => {
+          this.exporting.set(false);
+        }
+      });
+  }
+
+  showBulkImportDialog() {
+    this.bulkImportSource.set('STIG Manager');
+    this.selectedBulkImports.set([]);
+    this.bulkImportAvailable.set([]);
+    this.displayBulkImportDialog.set(true);
+    this.loadAvailableImports();
+  }
+
+  hideBulkImportDialog() {
+    this.displayBulkImportDialog.set(false);
+    this.selectedBulkImports.set([]);
+    this.bulkImportAvailable.set([]);
+  }
+
+  onBulkImportSourceChange() {
+    this.selectedBulkImports.set([]);
+    this.loadAvailableImports();
+  }
+
+  private loadAvailableImports() {
+    this.loadingBulkImports.set(true);
+    const collectionType = this.bulkImportSource();
+    const usedOriginIds = new Set((this.data ?? []).filter((c: any) => c.collectionType === collectionType).map((c: any) => +c.originCollectionId));
+
+    const source$ =
+      collectionType === 'STIG Manager'
+        ? this.sharedService.getCollectionsFromSTIGMAN(false).pipe(
+            map((list: any[]) =>
+              (list ?? [])
+                .filter((c: any) => !usedOriginIds.has(+c.collectionId))
+                .map((c: any) => ({
+                  label: c.name,
+                  value: {
+                    collectionName: c.name,
+                    description: c.description ?? '',
+                    collectionType: 'STIG Manager',
+                    originCollectionId: +c.collectionId
+                  }
+                }))
+            )
+          )
+        : this.integrationService.getTenableRepositories(false).pipe(
+            map((res: any) =>
+              (res?.response ?? [])
+                .filter((r: any) => !usedOriginIds.has(+r.id))
+                .map((r: any) => ({
+                  label: r.name,
+                  value: {
+                    collectionName: r.name,
+                    description: r.description ?? '',
+                    collectionType: 'Tenable',
+                    originCollectionId: +r.id
+                  }
+                }))
+            )
+          );
+
+    source$
+      .pipe(
+        catchError((error) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Failed to load ${collectionType} collections: ${getErrorMessage(error)}`
+          });
+          this.loadingBulkImports.set(false);
+
+          return of([] as { label: string; value: any }[]);
+        })
+      )
+      .subscribe((options) => {
+        this.bulkImportAvailable.set(options);
+        this.loadingBulkImports.set(false);
+      });
+  }
+
+  executeBulkImport() {
+    if (!this.selectedBulkImports().length) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Selection',
+        detail: 'Please select at least one collection to import.'
+      });
+
+      return;
+    }
+
+    this.bulkImporting.set(true);
+    forkJoin(
+      this.selectedBulkImports().map((data) =>
+        this.collectionsService.addCollection(data).pipe(
+          tap(() => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: `Imported "${data.collectionName}"`
+            });
+          }),
+          catchError((error) => {
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Failed to import "${data.collectionName}": ${getErrorMessage(error)}`
+            });
+
+            return of(null);
+          })
+        )
+      )
+    ).subscribe({
+      next: () => {
+        this.bulkImporting.set(false);
+        this.displayBulkImportDialog.set(false);
+        this.selectedBulkImports.set([]);
+        this.bulkImportAvailable.set([]);
+        this.getCollectionData();
+      },
+      error: () => {
+        this.bulkImporting.set(false);
+      }
+    });
+  }
+
+  filterGlobal(event: Event) {
+    const inputValue = (event.target as HTMLInputElement).value;
+
+    this.table().filterGlobal(inputValue, 'contains');
+  }
+}

@@ -28,7 +28,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, first } from 'rxjs/operators';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
-import { PoamService } from '../../../../poam-processing/poams.service';
+import { PoamService } from '../../../../poams/poams.service';
 import { IntegrationService } from '../../../integration.service';
 import { MultiSelectDirective } from '../../../../../common/directives/multi-select.directive';
 
@@ -460,7 +460,7 @@ export class TenableHostDialogComponent implements OnChanges {
 
     try {
       if (vulnerability.poam && vulnerability.poamId) {
-        this.router.navigateByUrl(`/poam-processing/poam-details/${vulnerability.poamId}`);
+        this.router.navigateByUrl(`/poams/poam-details/${vulnerability.poamId}`);
 
         return;
       }
@@ -471,7 +471,7 @@ export class TenableHostDialogComponent implements OnChanges {
         throw new Error('Plugin data not available');
       }
 
-      this.router.navigate(['/poam-processing/poam-details/ADDPOAM'], {
+      this.router.navigate(['/poams/poam-details/ADDPOAM'], {
         state: {
           vulnerabilitySource: 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner',
           pluginData: this.pluginData,

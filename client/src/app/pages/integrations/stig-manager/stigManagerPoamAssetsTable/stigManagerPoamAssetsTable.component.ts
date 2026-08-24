@@ -25,7 +25,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../common/services/shared.service';
 import { CsvExportService } from '../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
-import { AssetDeltaService } from '../../../admin-processing/asset-delta/asset-delta.service';
+import { AssetDeltaService } from '../../../admin/asset-delta/asset-delta.service';
 import { MultiSelectDirective } from '../../../../common/directives/multi-select.directive';
 
 interface ExportColumn {

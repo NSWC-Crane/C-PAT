@@ -17,8 +17,8 @@ import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { TenableSelectedVulnerabilitiesComponent } from './tenableSelectedVulnerabilities.component';
 import { IntegrationService } from '../../../integration.service';
-import { PoamService } from '../../../../poam-processing/poams.service';
-import { CollectionsService } from '../../../../admin-processing/collection-processing/collections.service';
+import { PoamService } from '../../../../poams/poams.service';
+import { CollectionsService } from '../../../../admin/collections/collections.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { createMockMessageService, createMockRouter } from '../../../../../../testing/mocks/service-mocks';
 
@@ -1036,7 +1036,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       const event = { stopPropagation: vi.fn() } as any;
 
       await component.onPoamIconClick({ pluginID: 12345, poam: true, poamId: 5 }, event);
-      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poam-processing/poam-details/5');
+      expect(mockRouter.navigateByUrl).toHaveBeenCalledWith('/poams/poam-details/5');
     });
 
     it('should save state to sessionStorage', async () => {
@@ -1055,21 +1055,21 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       const event = { stopPropagation: vi.fn() } as any;
 
       await component.onPoamIconClick({ pluginID: 12345, poam: false, navyComplyDate: null }, event);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ vulnerabilitySource: expect.any(String) }) }));
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ vulnerabilitySource: expect.any(String) }) }));
     });
 
     it('should forward taskOrderNumber to ADDPOAM when the row carries one', async () => {
       const event = { stopPropagation: vi.fn() } as any;
 
       await component.onPoamIconClick({ pluginID: 12345, poam: false, navyComplyDate: null, taskOrderNumber: 'TASK-001' }, event);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ taskOrderNumber: 'TASK-001' }) }));
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ taskOrderNumber: 'TASK-001' }) }));
     });
 
     it('should forward an empty taskOrderNumber when the row has none', async () => {
       const event = { stopPropagation: vi.fn() } as any;
 
       await component.onPoamIconClick({ pluginID: 12345, poam: false, navyComplyDate: null }, event);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ taskOrderNumber: '' }) }));
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/ADDPOAM'], expect.objectContaining({ state: expect.objectContaining({ taskOrderNumber: '' }) }));
     });
   });
 

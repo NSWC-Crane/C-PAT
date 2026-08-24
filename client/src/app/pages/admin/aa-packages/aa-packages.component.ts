@@ -1,0 +1,143 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { Table, TableModule } from 'primeng/table';
+import { TooltipModule } from 'primeng/tooltip';
+import { AAPackage } from '../../../common/models/aaPackage.model';
+import { getErrorMessage } from '../../../common/utils/error-utils';
+import { AAPackageService } from './aa-packages.service';
+
+@Component({
+  selector: 'cpat-aa-packages',
+  templateUrl: './aa-packages.component.html',
+  styleUrls: ['./aa-packages.component.scss'],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ButtonModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, TableModule, TooltipModule]
+})
+export class AAPackagesComponent implements OnInit {
+  private readonly aaPackageService = inject(AAPackageService);
+  private readonly messageService = inject(MessageService);
+
+  private readonly table = viewChild.required<Table>('dt');
+
+  readonly aaPackages = signal<AAPackage[]>([]);
+  newAAPackage: AAPackage = { aaPackageId: 0, aaPackage: '' };
+  editingAAPackage: AAPackage | null = null;
+
+  ngOnInit() {
+    this.loadAAPackages();
+  }
+
+  loadAAPackages() {
+    this.aaPackageService.getAAPackages().subscribe({
+      next: (response) => {
+        this.aaPackages.set(response || []);
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to load A&A Packages: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  onAddNewClick() {
+    this.newAAPackage = { aaPackageId: 0, aaPackage: '' };
+    this.aaPackages.update((current) => [this.newAAPackage, ...current]);
+
+    const table = this.table();
+
+    if (table) {
+      table.first.set(0);
+    }
+
+    setTimeout(() => {
+      this.table().initRowEdit(this.aaPackages()[0]);
+    });
+  }
+
+  onRowEditInit(aaPackage: AAPackage) {
+    this.editingAAPackage = { ...aaPackage };
+  }
+
+  onRowEditSave(aaPackage: AAPackage) {
+    const operation = aaPackage.aaPackageId === 0 ? this.aaPackageService.postAAPackage(aaPackage) : this.aaPackageService.putAAPackage(aaPackage);
+
+    operation.subscribe({
+      next: (response) => {
+        if (aaPackage.aaPackageId === 0) {
+          this.aaPackages.update((current) => current.map((p) => (p.aaPackageId === 0 ? response : p)));
+        }
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `A&A Package ${aaPackage.aaPackageId === 0 ? 'Added' : 'Updated'}`
+        });
+        this.editingAAPackage = null;
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to save A&A Package: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  onRowEditCancel(aaPackage: AAPackage, index: number) {
+    if (aaPackage.aaPackageId === 0) {
+      this.aaPackages.update((current) => current.filter((p) => p.aaPackageId !== 0));
+    } else {
+      const restored = this.editingAAPackage!;
+
+      this.aaPackages.update((current) => current.map((p, i) => (i === index ? restored : p)));
+    }
+
+    this.editingAAPackage = null;
+  }
+
+  onRowDelete(aaPackage: AAPackage) {
+    this.aaPackageService.deleteAAPackage(aaPackage.aaPackageId).subscribe({
+      next: () => {
+        this.aaPackages.update((current) => current.filter((p) => p.aaPackageId !== aaPackage.aaPackageId));
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'A&A Package Deleted'
+        });
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: `Failed to delete A&A Package: ${getErrorMessage(error)}`
+        });
+      }
+    });
+  }
+
+  filterGlobal(event: Event) {
+    const inputValue = (event.target as HTMLInputElement)?.value || '';
+
+    this.table().filterGlobal(inputValue, 'contains');
+  }
+}

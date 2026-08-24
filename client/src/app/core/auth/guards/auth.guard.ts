@@ -12,8 +12,8 @@ import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, filter, map, switchMap, take } from 'rxjs/operators';
-import { UsersService } from '../../../pages/admin-processing/user-processing/users.service';
-import { PoamService } from '../../../pages/poam-processing/poams.service';
+import { UsersService } from '../../../pages/admin/users/users.service';
+import { PoamService } from '../../../pages/poams/poams.service';
 import { AuthService } from '../services/auth.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
 

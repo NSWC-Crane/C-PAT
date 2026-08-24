@@ -204,7 +204,7 @@ describe('NotificationsPanelComponent', () => {
       const message = 'Check POAM 456';
       const result = component.parseMessage(message);
 
-      expect(result.href).toContain('poam-processing/poam-details/456');
+      expect(result.href).toContain('poams/poam-details/456');
     });
   });
 
@@ -227,7 +227,7 @@ describe('NotificationsPanelComponent', () => {
       const link = fixture.debugElement.query(By.css('.notification-content p a.poam-link'));
 
       expect(link.nativeElement.textContent).toBe('POAM 123');
-      expect(link.nativeElement.getAttribute('href')).toBe('/poam-processing/poam-details/123');
+      expect(link.nativeElement.getAttribute('href')).toBe('/poams/poam-details/123');
     });
   });
 

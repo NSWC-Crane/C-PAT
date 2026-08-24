@@ -10,9 +10,9 @@
 
 import { format } from 'date-fns';
 import { firstValueFrom } from 'rxjs';
-import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../pages/admin/collections/collections.service';
 import { IntegrationService } from '../../pages/integrations/integration.service';
-import { PoamService } from '../../pages/poam-processing/poams.service';
+import { PoamService } from '../../pages/poams/poams.service';
 import { Poam } from '../models/poam.model';
 import { SharedService } from '../services/shared.service';
 import { applyClassificationBanner } from './classification-export.util';

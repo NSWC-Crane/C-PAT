@@ -6,7 +6,7 @@ import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { AppTopBarComponent } from './app.topbar.component';
 import { AppConfigService } from '../services/appconfigservice';
 import { PayloadService } from '../../common/services/setPayload.service';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { UsersService } from '../../pages/admin/users/users.service';
 import { NotificationService } from '../../common/components/notifications/notifications.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 

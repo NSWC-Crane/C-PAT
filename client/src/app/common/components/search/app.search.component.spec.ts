@@ -72,13 +72,13 @@ describe('AppSearchComponent', () => {
 
   describe('search items initialization', () => {
     it.each([
-      ['Add POAM', '/poam-processing/poam-details/ADDPOAM'],
-      ['Asset Processing', '/asset-processing'],
+      ['Add POAM', '/poams/poam-details/ADDPOAM'],
+      ['Assets', '/assets'],
       ['Global Metrics', '/metrics/global'],
       ['Home', '/home'],
       ['Integrations', '/integrations'],
-      ['Label Processing', '/label-processing'],
-      ['Manage POAMs', '/poam-processing/poam-manage'],
+      ['Labels', '/labels'],
+      ['Manage POAMs', '/poams/poam-manage'],
       ['Metrics', '/metrics'],
       ['Notifications', '/notifications']
     ])('should include %s item pointing at %s', (title, path) => {
@@ -159,7 +159,7 @@ describe('AppSearchComponent', () => {
     });
 
     it('should find multiple items with common text', () => {
-      component.search({ query: 'processing' });
+      component.search({ query: 'metrics' });
       expect(component.filteredItems().length).toBeGreaterThan(1);
     });
 
@@ -182,7 +182,7 @@ describe('AppSearchComponent', () => {
       component.search({ query: 'home' });
       expect(component.filteredItems()).toHaveLength(1);
 
-      component.search({ query: 'processing' });
+      component.search({ query: 'metrics' });
       expect(component.filteredItems().length).toBeGreaterThan(1);
     });
   });
@@ -204,17 +204,17 @@ describe('AppSearchComponent', () => {
     });
 
     it('should navigate to Add POAM path', () => {
-      const item = { title: 'Add POAM', path: '/poam-processing/poam-details/ADDPOAM' };
+      const item = { title: 'Add POAM', path: '/poams/poam-details/ADDPOAM' };
 
       component.navigateTo({ value: item });
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/ADDPOAM']);
     });
 
-    it('should navigate to Asset Processing path', () => {
-      const item = { title: 'Asset Processing', path: '/asset-processing' };
+    it('should navigate to Assets path', () => {
+      const item = { title: 'Assets', path: '/assets' };
 
       component.navigateTo({ value: item });
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/asset-processing']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/assets']);
     });
 
     it('should navigate to Metrics path', () => {
@@ -315,11 +315,11 @@ describe('AppSearchComponent', () => {
       component.search({ query: 'poam' });
       const poamResults = component.filteredItems().map((item) => item.title);
 
-      component.search({ query: 'processing' });
-      const processingResults = component.filteredItems().map((item) => item.title);
+      component.search({ query: 'metrics' });
+      const metricsResults = component.filteredItems().map((item) => item.title);
 
       expect(poamResults).toEqual(['Add POAM', 'Manage POAMs']);
-      expect(processingResults).toEqual(['Asset Processing', 'Label Processing']);
+      expect(metricsResults).toEqual(['Global Metrics', 'Metrics']);
 
       component.navigateTo({ value: component.filteredItems()[0] });
       expect(mockRouter.navigate).toHaveBeenCalled();

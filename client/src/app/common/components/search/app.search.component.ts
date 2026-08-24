@@ -70,13 +70,13 @@ export class AppSearchComponent {
 
   private initializeSearchItems(): void {
     this.searchItems = [
-      { title: 'Add POAM', path: '/poam-processing/poam-details/ADDPOAM' },
-      { title: 'Asset Processing', path: '/asset-processing' },
+      { title: 'Add POAM', path: '/poams/poam-details/ADDPOAM' },
+      { title: 'Assets', path: '/assets' },
       { title: 'Global Metrics', path: '/metrics/global' },
       { title: 'Home', path: '/home' },
       { title: 'Integrations', path: '/integrations' },
-      { title: 'Label Processing', path: '/label-processing' },
-      { title: 'Manage POAMs', path: '/poam-processing/poam-manage' },
+      { title: 'Labels', path: '/labels' },
+      { title: 'Manage POAMs', path: '/poams/poam-manage' },
       { title: 'Metrics', path: '/metrics' },
       { title: 'Notifications', path: '/notifications' }
     ];

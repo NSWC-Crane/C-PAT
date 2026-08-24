@@ -4,9 +4,9 @@ import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from 'vite
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
 import { AppLayoutComponent } from './app.layout.component';
-import { UsersService } from '../../pages/admin-processing/user-processing/users.service';
+import { UsersService } from '../../pages/admin/users/users.service';
 import { AuthService } from '../../core/auth/services/auth.service';
-import { CollectionsService } from '../../pages/admin-processing/collection-processing/collections.service';
+import { CollectionsService } from '../../pages/admin/collections/collections.service';
 import { SharedService } from '../../common/services/shared.service';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 
@@ -535,11 +535,11 @@ describe('AppLayoutComponent', () => {
       expect(logoutItem).toBeDefined();
     });
 
-    it('should include Asset Processing and Label Processing when accessLevel >= 1', () => {
+    it('should include Assets and Labels when accessLevel >= 1', () => {
       component.accessLevel = 1;
       (component as any).setMenuItems();
-      expect(component.items().find((i) => i.label === 'Asset Processing')).toBeDefined();
-      expect(component.items().find((i) => i.label === 'Label Processing')).toBeDefined();
+      expect(component.items().find((i) => i.label === 'Assets')).toBeDefined();
+      expect(component.items().find((i) => i.label === 'Labels')).toBeDefined();
     });
   });
 
@@ -626,9 +626,9 @@ describe('AppLayoutComponent', () => {
     });
 
     it('should track url changes across navigations', () => {
-      navigateTo('/asset-processing');
+      navigateTo('/assets');
       expect(component.isItemActive({ label: 'Home', routerLink: ['/home'] })).toBe(false);
-      expect(component.isItemActive({ label: 'Assets', routerLink: ['/asset-processing'] })).toBe(true);
+      expect(component.isItemActive({ label: 'Assets', routerLink: ['/assets'] })).toBe(true);
     });
   });
 
@@ -641,7 +641,7 @@ describe('AppLayoutComponent', () => {
     it('should navigate to ADDPOAM and close popup on confirm', () => {
       component.confirmPopupVisible.set(true);
       component.onConfirm();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poam-processing/poam-details/ADDPOAM']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/poams/poam-details/ADDPOAM']);
       expect(component.confirmPopupVisible()).toBe(false);
     });
 
