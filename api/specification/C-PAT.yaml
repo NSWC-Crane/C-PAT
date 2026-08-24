@@ -47,6 +47,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AAPackage
       security:
@@ -82,6 +84,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AAPackage
       security:
@@ -105,6 +109,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AAPackage
       security:
@@ -140,6 +146,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AAPackage
       security:
@@ -176,6 +184,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AAPackage
       security:
@@ -215,6 +225,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AI
       security:
@@ -246,6 +258,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AppConfiguration
       security:
@@ -281,6 +295,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AppConfiguration
       security:
@@ -313,6 +329,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - ADTeams
       security:
@@ -369,6 +387,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Asset
       security:
@@ -437,6 +457,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Asset
       security:
@@ -474,6 +496,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Asset
       security:
@@ -514,6 +538,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Asset
       security:
@@ -554,6 +580,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Asset
       security:
@@ -577,6 +605,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Asset
       security:
@@ -608,6 +638,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Asset
       security:
@@ -650,6 +682,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Asset
       security:
@@ -691,6 +725,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Asset
       security:
@@ -728,6 +764,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssetLabel
       security:
@@ -765,6 +803,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssetLabel
       security:
@@ -802,6 +842,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssetLabel
       security:
@@ -844,6 +886,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssetLabel
       security:
@@ -871,6 +915,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssetLabel
       security:
@@ -906,6 +952,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssetLabel
       security:
@@ -937,6 +985,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssignedTeams
       security:
@@ -978,6 +1028,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssignedTeams
       security:
@@ -1001,6 +1053,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssignedTeams
       security:
@@ -1036,6 +1090,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssignedTeams
       security:
@@ -1072,6 +1128,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssignedTeams
       security:
@@ -1123,6 +1181,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssignedTeams
       security:
@@ -1169,6 +1229,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssignedTeams
       security:
@@ -1215,6 +1277,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssignedTeams
       security:
@@ -1268,6 +1332,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - AssignedTeams
       security:
@@ -1301,6 +1367,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       security:
         - oauth:
             - 'c-pat:read'
@@ -1334,6 +1402,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       security:
         - oauth:
             - 'c-pat:read'
@@ -1369,6 +1439,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       security:
         - oauth:
             - 'c-pat:write'
@@ -1400,6 +1472,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Collection
       security:
@@ -1450,6 +1524,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Collection
       security:
@@ -1483,6 +1559,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - IAV
       security:
@@ -1521,6 +1599,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - IAV
       security:
@@ -1578,6 +1658,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - IAV
       security:
@@ -1619,6 +1701,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - IAV
       security:
@@ -1676,6 +1760,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - IAV
       security:
@@ -1730,6 +1816,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - IAV
       security:
@@ -1783,6 +1871,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Import
       security:
@@ -1868,6 +1958,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Import
       security:
@@ -1914,6 +2006,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Import
       security:
@@ -1951,6 +2045,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Label
       security:
@@ -1992,6 +2088,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Label
       security:
@@ -2032,6 +2130,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Label
       security:
@@ -2068,6 +2168,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Label
       security:
@@ -2091,6 +2193,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Label
       security:
@@ -2120,6 +2224,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Marketplace
       security:
@@ -2162,6 +2268,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Marketplace
       security:
@@ -2191,6 +2299,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Marketplace
       security:
@@ -2226,6 +2336,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Marketplace
       security:
@@ -2259,6 +2371,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2292,6 +2406,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2325,6 +2441,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2358,6 +2476,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2391,6 +2511,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2422,6 +2544,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2453,6 +2577,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2484,6 +2610,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2515,6 +2643,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2556,6 +2686,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2595,6 +2727,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Metrics
       security:
@@ -2624,6 +2758,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Health
       security:
@@ -2655,6 +2791,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Notification
       security:
@@ -2686,6 +2824,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Notification
       security:
@@ -2715,6 +2855,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Notification
       security:
@@ -2752,6 +2894,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Notification
       security:
@@ -2783,6 +2927,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Notification
       security:
@@ -2826,6 +2972,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Notification
       security:
@@ -2857,6 +3005,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Notification
       security:
@@ -2896,6 +3046,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       security:
         - oauth:
             - 'c-pat:op'
@@ -2923,6 +3075,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Operation
       security: []
@@ -2960,6 +3114,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Operation
       security:
@@ -2999,6 +3155,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Operation
       security:
@@ -3034,6 +3192,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
   '/permissions/{collectionId}':
     parameters:
       - in: path
@@ -3065,6 +3225,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Permissions
       security:
@@ -3116,6 +3278,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Permissions
       security:
@@ -3163,6 +3327,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Permissions
       security:
@@ -3208,6 +3374,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Permissions
       security:
@@ -3240,11 +3408,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamApprover
       security:
@@ -3277,11 +3441,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamApprover
       security:
@@ -3322,11 +3482,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamApprover
       security:
@@ -3366,11 +3522,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamApprover
       security:
@@ -3415,11 +3567,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamApprover
       security:
@@ -3446,11 +3594,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssets
       security:
@@ -3483,11 +3627,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssets
       security:
@@ -3520,11 +3660,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssets
       security:
@@ -3557,11 +3693,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssets
       security:
@@ -3586,11 +3718,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssets
       security:
@@ -3622,11 +3750,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssets
       security:
@@ -3657,11 +3781,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssets
       security:
@@ -3696,6 +3816,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssignedTeam
       security:
@@ -3733,6 +3855,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssignedTeam
       security:
@@ -3769,6 +3893,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssignedTeam
       security:
@@ -3821,6 +3947,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssignedTeam
       security:
@@ -3858,6 +3986,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssociatedVulnerability
       security:
@@ -3893,6 +4023,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssociatedVulnerability
       security:
@@ -3929,6 +4061,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAssociatedVulnerability
       security:
@@ -3961,11 +4095,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAttachments
       security:
@@ -4009,11 +4139,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAttachments
       security:
@@ -4055,11 +4181,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAttachments
       security:
@@ -4091,11 +4213,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamAttachments
       security:
@@ -4135,6 +4253,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamChat
       security:
@@ -4182,6 +4302,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamChat
       security:
@@ -4230,6 +4352,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamChat
       security:
@@ -4273,11 +4397,7 @@ paths:
         '403':
           $ref: '#/components/responses/forbidden'
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
     delete:
       summary: Delete POAM extension by POAM ID
       operationId: deletePoamExtension
@@ -4323,11 +4443,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
 
   /poamExtension:
     put:
@@ -4385,11 +4501,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
         default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
+          $ref: '#/components/responses/unexpectedError'
 
   /poamLabels/{collectionId}:
     get:
@@ -4422,6 +4534,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamLabel
       security:
@@ -4453,6 +4567,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamLabel
       security:
@@ -4490,6 +4606,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamLabel
       security:
@@ -4527,6 +4645,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamLabel
       security:
@@ -4564,6 +4684,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamLabel
       security:
@@ -4610,6 +4732,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamLabel
       security:
@@ -4633,6 +4757,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamLabel
       security:
@@ -4668,6 +4794,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamLabel
       security:
@@ -4705,6 +4833,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamLog
       security:
@@ -4741,6 +4871,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamMilestones
       security:
@@ -4782,6 +4914,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamMilestones
       security:
@@ -4819,6 +4953,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamMilestones
       security:
@@ -4872,6 +5008,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamMilestones
       security:
@@ -4934,6 +5072,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5012,6 +5152,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5041,6 +5183,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5115,6 +5259,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5189,6 +5335,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5227,6 +5375,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5277,6 +5427,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5323,6 +5475,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5374,6 +5528,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5431,6 +5587,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Poam
       security:
@@ -5469,6 +5627,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamMitigation
       security:
@@ -5516,6 +5676,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamMitigation
       security:
@@ -5573,6 +5735,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamMitigation
       security:
@@ -5596,6 +5760,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamMitigation
       security:
@@ -5653,6 +5819,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamMitigation
       security:
@@ -5691,6 +5859,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamResource
       security:
@@ -5738,6 +5908,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamResource
       security:
@@ -5795,6 +5967,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamResource
       security:
@@ -5818,6 +5992,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamResource
       security:
@@ -5875,6 +6051,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - PoamTeamResource
       security:
@@ -5912,6 +6090,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - TenableFilters
       security:
@@ -5958,6 +6138,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - TenableFilters
       security:
@@ -5999,6 +6181,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - TenableFilters
       security:
@@ -6022,6 +6206,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - TenableFilters
       security:
@@ -6070,6 +6256,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - TenableFilters
       security:
@@ -6107,6 +6295,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       security:
         - oauth:
             - 'c-pat:read'
@@ -6157,6 +6347,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
     post:
       tags:
         - User
@@ -6204,6 +6396,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
 
   /user/updateTheme:
     put:
@@ -6234,6 +6428,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - User
       security:
@@ -6277,6 +6473,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - User
       security:
@@ -6312,6 +6510,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - User
       security:
@@ -6354,6 +6554,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - User
       security:
@@ -6398,6 +6600,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
 
   '/user/{userId}':
     parameters:
@@ -6446,6 +6650,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
 
   '/teams/{assignedTeamId}':
     parameters:
@@ -6478,6 +6684,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - UserTeamAssignments
       security:
@@ -6542,6 +6750,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - UserTeamAssignments
       security:
@@ -6598,6 +6808,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - UserTeamAssignments
       security:
@@ -6645,6 +6857,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - UserTeamAssignments
       security:
@@ -6705,6 +6919,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - UserTeamAssignments
       security:
@@ -6757,6 +6973,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - UserTeamAssignments
       security:
@@ -6796,6 +7014,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
       tags:
         - Vulnerability
       security:
@@ -8824,6 +9044,20 @@ components:
   responses:
     forbidden:
       description: The requesting User does not have access rights to the content
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+
+    unexpectedError:
+      description: >-
+        Any status not listed for the operation. The body is the error object for 401 (a required access
+        token is missing, or the presented token is expired or invalid), 403 (the token lacks the required
+        scope), 405 (method not allowed on this path), 413 (request body exceeds the size limit), and 415
+        (unsupported request media type). Two responses do not carry the error object: 429 (rate limit
+        exceeded) is text rather than JSON, and 503 (database or identity provider unavailable,
+        including during startup) is the service-state object with state, stateDate, mode, and
+        dependencies.
       content:
         application/json:
           schema:
