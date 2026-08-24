@@ -509,6 +509,41 @@ describe('PoamExportService', () => {
       expect(xlsxMock.cells['A1'].fill.fgColor.argb).toBe('ffc8102e');
       expect(xlsxMock.cells['A1'].font.color.argb).toBe('FFFFFFFF');
     });
+
+    describe('template request url', () => {
+      const user = { fullName: 'Test User', phoneNumber: '555-1234', email: 'test@test.com' };
+      const collection = { ccsafa: 'TEST', systemName: 'Test System', systemType: 'Type' };
+
+      const captureTemplateUrl = async () => {
+        const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) } as Response);
+
+        await PoamExportService.convertToExcel([], user, collection);
+
+        return fetchSpy.mock.calls[0][0] as string;
+      };
+
+      afterEach(() => {
+        document.querySelector('base')?.remove();
+      });
+
+      it('requests the template from the origin root when no base element exists', async () => {
+        const url = await captureTemplateUrl();
+
+        expect(url).toBe(`${globalThis.location.origin}/assets/NAVY_eMASS_TEMPLATE.xlsx`);
+      });
+
+      it('requests the template beneath the base href without a doubled slash', async () => {
+        const base = document.createElement('base');
+
+        base.setAttribute('href', '/cpat/');
+        document.head.appendChild(base);
+
+        const url = await captureTemplateUrl();
+
+        expect(url).toBe(`${globalThis.location.origin}/cpat/assets/NAVY_eMASS_TEMPLATE.xlsx`);
+        expect(url).not.toContain('//assets');
+      });
+    });
   });
 
   describe('updateEMASSterPoams', () => {

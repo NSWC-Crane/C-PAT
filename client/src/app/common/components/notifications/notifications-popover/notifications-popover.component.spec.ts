@@ -229,6 +229,25 @@ describe('NotificationsPanelComponent', () => {
       expect(link.nativeElement.textContent).toBe('POAM 123');
       expect(link.nativeElement.getAttribute('href')).toBe('/poams/poam-details/123');
     });
+
+    it('should build the POAM link beneath the base href', () => {
+      const base = document.createElement('base');
+
+      base.setAttribute('href', '/cpat/');
+      document.head.appendChild(base);
+
+      try {
+        mockNotificationService.getUnreadNotifications.mockReturnValue(of([{ notificationId: 1, title: 'Test', message: 'Check POAM 123 now', icon: 'pi pi-bell', timestamp: new Date().toISOString() }]));
+
+        fixture.detectChanges();
+
+        const link = fixture.debugElement.query(By.css('.notification-content p a.poam-link'));
+
+        expect(link.nativeElement.getAttribute('href')).toBe('/cpat/poams/poam-details/123');
+      } finally {
+        document.querySelector('base')?.remove();
+      }
+    });
   });
 
   describe('dismissNotification', () => {

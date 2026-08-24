@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { Location } from '@angular/common';
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
@@ -21,9 +22,10 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const oidcSecurityService = inject(OidcSecurityService);
   const messageService = inject(MessageService);
+  const location = inject(Location);
 
   const handleReauthentication = () => {
-    sessionStorage.setItem('auth-redirect-url', globalThis.location.pathname + globalThis.location.search);
+    sessionStorage.setItem('auth-redirect-url', location.path());
 
     if (req.method !== 'GET') {
       messageService.add({

@@ -16,6 +16,7 @@ CPAT_DOD_DEPLOYMENT="true"
 CPAT_DOD_BRANCH="Navy"
 
 #client config
+CPAT_BASE_PATH=""
 CPAT_API_BASE="api"
 CPAT_CLIENT_DISABLED="false"
 CPAT_CLIENT_DIRECTORY="../client/dist/browser"

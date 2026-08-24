@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { InactivityService } from '../../../core/auth/services/inactivity.service';
+import { getBaseHref } from '../../utils/base-href';
 
 @Component({
   selector: 'cpat-inactivity-warning',
@@ -65,6 +66,6 @@ export class InactivityWarningComponent {
 
   logoutNow(): void {
     this.inactivityService.stopMonitoring();
-    globalThis.location.href = '/';
+    globalThis.location.href = getBaseHref();
   }
 }

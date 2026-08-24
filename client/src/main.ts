@@ -24,6 +24,7 @@ import Noir from './app/app-theme';
 import { AppComponent } from './app/app.component';
 import { authErrorInterceptor } from './app/core/auth/interceptor/auth-error.interceptor';
 import { authInterceptor } from './app/core/auth/interceptor/auth.interceptor';
+import { appRootUrl, getBaseHref, silentRenewUrl } from './app/common/utils/base-href';
 import { environment } from './environments/environment';
 import { DialogService } from 'primeng/dynamicdialog';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
@@ -32,9 +33,8 @@ if (environment.production) {
   enableProdMode();
 }
 
-const basePath = CPAT.Env.basePath ?? '';
-
-document.documentElement.style.setProperty('--app-base-path', basePath + '/');
+const rootUrl = appRootUrl();
+const renewUrl = silentRenewUrl();
 
 function parseScopes(scopeValue: string | string[] | undefined): string[] {
   if (typeof scopeValue === 'string') {
@@ -78,7 +78,7 @@ bootstrapApplication(AppComponent, {
   providers: [
     {
       provide: APP_BASE_HREF,
-      useFactory: () => document.querySelector('base')?.getAttribute('href') || '/'
+      useFactory: getBaseHref
     },
     provideZoneChangeDetection(),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
@@ -95,14 +95,14 @@ bootstrapApplication(AppComponent, {
           {
             configId: 'cpat',
             authority: CPAT.Env.client.authority,
-            redirectUrl: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
-            postLogoutRedirectUri: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
+            redirectUrl: rootUrl,
+            postLogoutRedirectUri: rootUrl,
             clientId: CPAT.Env.oauth.clientId,
             scope: getScopeStr('cpat'),
             responseType: 'code',
             useRefreshToken: true,
             silentRenew: true,
-            silentRenewUrl: `${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/silent-renew.html`,
+            silentRenewUrl: renewUrl,
             autoUserInfo: false,
             renewUserInfoAfterTokenRenew: false,
             triggerAuthorizationResultEvent: true,
@@ -120,14 +120,14 @@ bootstrapApplication(AppComponent, {
           {
             configId: 'stigman',
             authority: CPAT.Env.client.authority,
-            redirectUrl: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
-            postLogoutRedirectUri: globalThis.location.origin + (CPAT.Env.basePath ?? ''),
+            redirectUrl: rootUrl,
+            postLogoutRedirectUri: rootUrl,
             clientId: CPAT.Env.stigman.clientId,
             scope: getScopeStr('stigman'),
             responseType: 'code',
             useRefreshToken: true,
             silentRenew: true,
-            silentRenewUrl: `${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/silent-renew.html`,
+            silentRenewUrl: renewUrl,
             autoUserInfo: false,
             renewUserInfoAfterTokenRenew: false,
             triggerAuthorizationResultEvent: true,

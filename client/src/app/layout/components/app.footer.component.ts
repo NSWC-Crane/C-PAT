@@ -12,6 +12,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
+import { getBaseHref } from '../../common/utils/base-href';
 
 @Component({
   selector: 'cpat-footer',
@@ -43,12 +44,12 @@ import { TooltipModule } from 'primeng/tooltip';
           </a>
           <div class="flex items-center gap-2">
             @if (docsDisabled === false) {
-              <a [href]="basePath + 'docs/'" pTooltip="C-PAT Documentation" tooltipPosition="top" target="_blank" rel="noopener noreferrer" class="linkbox linkbox-icon">
+              <a [href]="baseHref + 'docs/'" pTooltip="C-PAT Documentation" tooltipPosition="top" target="_blank" rel="noopener noreferrer" class="linkbox linkbox-icon">
                 <i class="pi pi-info-circle"></i>
               </a>
             }
             @if (swaggerUiEnabled === true) {
-              <a [href]="basePath + 'api-docs/'" pTooltip="API Documentation" tooltipPosition="top" target="_blank" rel="noopener noreferrer" class="linkbox linkbox-icon">
+              <a [href]="baseHref + 'api-docs/'" pTooltip="API Documentation" tooltipPosition="top" target="_blank" rel="noopener noreferrer" class="linkbox linkbox-icon">
                 <i class="pi pi-code"></i>
               </a>
             }
@@ -67,11 +68,11 @@ import { TooltipModule } from 'primeng/tooltip';
 export class AppFooterComponent {
   readonly docsDisabled: boolean;
   readonly swaggerUiEnabled: boolean;
-  readonly basePath: string;
+  readonly baseHref: string;
 
   constructor() {
     this.docsDisabled = CPAT.Env?.features?.docsDisabled ?? false;
     this.swaggerUiEnabled = CPAT.Env?.features?.swaggerUiEnabled ?? true;
-    this.basePath = CPAT.Env.basePath ?? '';
+    this.baseHref = getBaseHref();
   }
 }

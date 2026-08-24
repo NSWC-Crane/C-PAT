@@ -21,6 +21,8 @@
 | Time in minutes that a admin can be inactive before being automatically logged out.","Client"
 "CPAT_INACTIVITY_TIMEOUT","| **Default** ``15``
 | Time in minutes that a user can be inactive before being automatically logged out.","Client"
+"CPAT_BASE_PATH","| **No default**
+| The URL path prefix under which the web client is served, for deployments hosted at a subpath instead of at the server root. The value is normalized to a leading and trailing slash and written into the ``base`` element of the client's ``index.html``, so ``cpat``, ``/cpat``, and ``/cpat/`` all serve the client from the same location. The OIDC redirect URI is the one exception, reproducing the value exactly as it is set, so register a redirect URI whose trailing slash matches. The API is not relocated by this setting and always mounts ``/api``, ``/api-docs``, ``/docs``, and ``/init`` at the root of the port it listens on, so the reverse proxy must strip the prefix before forwarding. Leave unset when C-PAT is served from the root. See :ref:`subpath`.","API, Client"
 "CPAT_API_BASE","| **Default** ``api``
 | The base URL for Client requests to the API relative to the sever root at / ","Client"
 "CPAT_CLIENT_DIRECTORY","| **Default** ``../client/dist/browser``

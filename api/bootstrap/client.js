@@ -41,6 +41,17 @@ function htmlAttr(value) {
         .replaceAll('>', '&gt;');
 }
 
+const baseHrefPattern = /<base\s+href=(["'])[^"']*\1\s*\/?>/i;
+
+function getBaseHref() {
+    const basePath = config.settings.basePath || '';
+    if (!basePath) {
+        return '/';
+    }
+    const withLeadingSlash = basePath.startsWith('/') ? basePath : `/${basePath}`;
+    return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
+}
+
 function getClientEnv() {
     const basePath = config.settings.basePath || '';
     const envJS = `
@@ -149,17 +160,21 @@ function serveIndexWithBaseHref(_req, res) {
             return;
         }
 
-        const basePath = config.settings.basePath || '';
-        let baseHref = '/';
-        if (basePath) {
-            baseHref = basePath.endsWith('/') ? basePath : basePath + '/';
+        const baseHref = getBaseHref();
+
+        if (!baseHrefPattern.test(data)) {
+            logger.writeError('serveIndexWithBaseHref', 'client', {
+                message: 'no base element found in index.html, client base href was not rewritten',
+                indexPath,
+            });
         }
 
         const modifiedHtml = data
-            .replace(/<base\s+href="[^"]*">/i, () => `<base href="${htmlAttr(baseHref)}">`)
+            .replace(baseHrefPattern, () => `<base href="${htmlAttr(baseHref)}">`)
             .replace('</head>', () => `<script>${envJS}</script>\n  </head>`);
 
         res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Cache-Control', 'no-cache');
         res.send(modifiedHtml);
     });
 }
@@ -212,4 +227,6 @@ function serveClientFallback(app) {
 module.exports = {
     serveClient,
     serveClientFallback,
+    getBaseHref,
+    baseHrefPattern,
 };

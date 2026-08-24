@@ -219,6 +219,23 @@ describe('InactivityWarningComponent', () => {
       expect(globalThis.location.href).toBe('/');
     });
 
+    it('should redirect to the base href when deployed at a subpath', () => {
+      const base = document.createElement('base');
+
+      base.setAttribute('href', '/cpat/');
+      document.head.appendChild(base);
+
+      try {
+        fixture.detectChanges();
+
+        component.logoutNow();
+
+        expect(globalThis.location.href).toBe('/cpat/');
+      } finally {
+        document.querySelector('base')?.remove();
+      }
+    });
+
     it('should call stopMonitoring before redirect', () => {
       fixture.detectChanges();
 

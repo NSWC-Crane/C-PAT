@@ -13,6 +13,7 @@ import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { ImageModule } from 'primeng/image';
 import { SharedService } from '../../common/services/shared.service';
+import { getBaseHref } from '../../common/utils/base-href';
 import { UptimeMonitorComponent } from './uptime-monitor/uptime-monitor.component';
 
 @Component({
@@ -27,7 +28,7 @@ export class HomeComponent {
   private readonly sharedService = inject(SharedService);
 
   protected version = CPAT.Env.version ?? '';
-  protected basePath = CPAT.Env.basePath ?? '';
+  protected baseHref = getBaseHref();
 
   startTour(): void {
     this.sharedService.startTour();

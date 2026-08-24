@@ -13,6 +13,7 @@ import { Observable, Subject, forkJoin, from, of } from 'rxjs';
 import { catchError, map, mergeMap, retry, switchMap, tap, toArray } from 'rxjs/operators';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { SharedService } from '../../../common/services/shared.service';
+import { getBaseHref } from '../../../common/utils/base-href';
 import { applyClassificationBanner } from '../../../common/utils/classification-export.util';
 import { CollectionsService } from '../../admin/collections/collections.service';
 import { computeStigManagerMetrics } from '../stigman-metrics/stigman-metrics.compute';
@@ -240,7 +241,7 @@ export class MetricsExportService {
   private async writeWorkbook(rows: MetricsExportRow[]): Promise<void> {
     const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.default.Workbook();
-    const response = await fetch(`${globalThis.location.origin}${CPAT.Env.basePath ?? ''}/assets/CPAT_METRICS_TEMPLATE.xlsx`);
+    const response = await fetch(`${globalThis.location.origin}${getBaseHref()}assets/CPAT_METRICS_TEMPLATE.xlsx`);
     const arrayBuffer = await response.arrayBuffer();
 
     await workbook.xlsx.load(arrayBuffer, { ignoreNodes: ['dataValidations'] });
