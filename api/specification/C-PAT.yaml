@@ -4009,10 +4009,9 @@ paths:
         '200':
           description: Successful response
           content:
-            application/octet-stream:
+            '*/*':
               schema:
                 type: string
-                contentMediaType: application/octet-stream
         '400':
           description: Bad request
           content:
