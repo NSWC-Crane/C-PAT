@@ -1757,7 +1757,7 @@ paths:
               properties:
                 file:
                   type: string
-                  format: binary
+                  contentMediaType: application/octet-stream
                   description: .xls, .xlsx, or .xlsm files
               required:
                 - file
@@ -1803,7 +1803,7 @@ paths:
               properties:
                 file:
                   type: string
-                  format: binary
+                  contentMediaType: application/octet-stream
                   description: .xls, .xlsx, .xlsm, or .csv files
                 collectionIds:
                   type: string
@@ -1888,7 +1888,7 @@ paths:
               properties:
                 file:
                   type: string
-                  format: binary
+                  contentMediaType: application/octet-stream
                   description: .xls, .xlsx, or .xlsm VRAM IAV export files
               required:
                 - file
@@ -3956,7 +3956,7 @@ paths:
               properties:
                 file:
                   type: string
-                  format: binary
+                  contentMediaType: application/octet-stream
                   description: a file
                 poamId:
                   type: string
@@ -4012,7 +4012,7 @@ paths:
             application/octet-stream:
               schema:
                 type: string
-                format: binary
+                contentMediaType: application/octet-stream
         '400':
           description: Bad request
           content:
