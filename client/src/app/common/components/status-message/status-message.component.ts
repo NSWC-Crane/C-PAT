@@ -59,7 +59,8 @@ const DISPLAY_CODE_OVERRIDES: { [key: number]: number } = {
   styleUrls: ['./status-message.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonModule, CardModule, DialogModule, FormsModule, ProgressBarModule]
+  imports: [ButtonModule, CardModule, DialogModule, FormsModule, ProgressBarModule],
+  host: { '[class.full-page]': 'fullPage()' }
 })
 export class StatusMessageComponent {
   private readonly route = inject(ActivatedRoute);
@@ -69,6 +70,8 @@ export class StatusMessageComponent {
 
   private readonly routeData = toSignal(this.route.data);
   private readonly rawCode = computed<number | undefined>(() => this.statusCode() ?? this.routeData()?.['statusCode']);
+
+  readonly fullPage = computed<boolean>(() => this.statusCode() == undefined);
 
   readonly displayCode = computed<number>(() => {
     const code = this.rawCode();

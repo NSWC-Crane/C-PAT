@@ -13,6 +13,19 @@
   padding: 1rem;
 }
 
+:host.full-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  .status_message_card {
+    flex: 1 1 auto;
+    justify-content: center;
+    margin-bottom: 0;
+    border-radius: 0;
+  }
+}
+
 .wrapper {
   max-width: 35rem;
   width: 100%;

@@ -309,6 +309,23 @@ describe('StatusMessageComponent', () => {
     });
   });
 
+  describe('full-page host class', () => {
+    it('should add full-page when the status code comes from route data', () => {
+      fixture.detectChanges();
+
+      expect(component.fullPage()).toBe(true);
+      expect(fixture.nativeElement.classList).toContain('full-page');
+    });
+
+    it('should not add full-page when statusCode is provided as an input', () => {
+      setStatusCode(998);
+      fixture.detectChanges();
+
+      expect(component.fullPage()).toBe(false);
+      expect(fixture.nativeElement.classList).not.toContain('full-page');
+    });
+  });
+
   describe('route data subscription', () => {
     it('should use route data when statusCode is not provided', async () => {
       TestBed.resetTestingModule();
