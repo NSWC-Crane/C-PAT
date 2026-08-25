@@ -168,6 +168,51 @@ describe('CsvExportService', () => {
       await expect(blobs[0].text()).resolves.toBe(`ID,Name\n1,${expectedCell}`);
     });
 
+    it.each([
+      ['an equals sign', '=SUM(A1:A9)', "'=SUM(A1:A9)"],
+      ['a plus sign', '+1', "'+1"],
+      ['a minus sign', '-cmd', "'-cmd"],
+      ['an at sign', '@import', "'@import"],
+      ['a tab', '\tvalue', "'\tvalue"]
+    ])('should neutralize values starting with %s', async (_label, rawValue, expectedCell) => {
+      const blobs: Blob[] = [];
+
+      createObjectURLSpy.mockImplementation((blob: Blob) => {
+        blobs.push(blob);
+
+        return 'blob:test';
+      });
+
+      const data = [{ id: 1, name: rawValue }];
+      const columns: CsvColumn[] = [
+        { field: 'id', header: 'ID' },
+        { field: 'name', header: 'Name' }
+      ];
+
+      service.exportToCsv(data, { filename: 'test', columns });
+
+      await expect(blobs[0].text()).resolves.toBe(`ID,Name\n1,${expectedCell}`);
+    });
+
+    it('should leave negative numbers untouched', async () => {
+      const blobs: Blob[] = [];
+
+      createObjectURLSpy.mockImplementation((blob: Blob) => {
+        blobs.push(blob);
+
+        return 'blob:test';
+      });
+
+      const columns: CsvColumn[] = [
+        { field: 'id', header: 'ID' },
+        { field: 'delta', header: 'Delta' }
+      ];
+
+      service.exportToCsv([{ id: 1, delta: -5 }], { filename: 'test', columns });
+
+      await expect(blobs[0].text()).resolves.toBe('ID,Delta\n1,-5');
+    });
+
     it('should handle null values', () => {
       const data = [{ id: 1, name: null }];
       const columns: CsvColumn[] = [

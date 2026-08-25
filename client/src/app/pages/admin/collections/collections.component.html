@@ -8,73 +8,88 @@
 !##########################################################################
 -->
 
-<div class="scrollable-collections overflow-hidden">
-  <p-treetable
-    #dt
-    [value]="collectionTreeData()"
-    [columns]="cols()"
-    [filterDelay]="0"
-    [rows]="100"
-    [rowsPerPageOptions]="[25, 50, 100]"
-    [paginator]="true"
-    [scrollable]="true"
-    scrollHeight="calc(100vh - 28rem)"
-    selectionMode="single"
-    [globalFilterFields]="['collectionId', 'collectionName', 'description', 'systemType', 'systemName', 'ccsafa', 'aaPackage', 'collectionType']"
-  >
-    <ng-template #caption>
-      <div class="flex items-center justify-between">
-        <p-iconfield iconPosition="left">
-          <p-inputicon>
-            <i class="pi pi-search"></i>
-          </p-inputicon>
-          <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections" name="searchCollections" class="search-input" />
-        </p-iconfield>
-        <div class="flex items-center gap-2">
-          <button pButton (click)="showBulkImportDialog()" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Bulk Import Collections" tooltipPosition="top"><i class="pi pi-cloud-download" pButtonIcon></i></button>
-          <button pButton (click)="showExportDialog()" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Export Multiple Collections" tooltipPosition="top"><i class="pi pi-download" pButtonIcon></i></button>
-          <button pButton (click)="showAddCollectionDialog()" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add Collection" tooltipPosition="top"><i class="pi pi-plus" pButtonIcon></i></button>
-        </div>
+<p-tabs [(value)]="activeTab" lazy>
+  <p-tablist>
+    <p-tab [value]="0">Collections</p-tab>
+    <p-tab [value]="1">Permission Lookup</p-tab>
+  </p-tablist>
+  <p-tabpanels>
+    <p-tabpanel [value]="0">
+      <div class="scrollable-collections overflow-hidden">
+        <p-treetable
+          #dt
+          [value]="collectionTreeData()"
+          [columns]="cols()"
+          [filterDelay]="0"
+          [rows]="100"
+          [rowsPerPageOptions]="[25, 50, 100]"
+          [paginator]="true"
+          [scrollable]="true"
+          scrollHeight="calc(100vh - 31.5rem)"
+          selectionMode="single"
+          [globalFilterFields]="['collectionId', 'collectionName', 'description', 'systemType', 'systemName', 'ccsafa', 'aaPackage', 'collectionType']"
+        >
+          <ng-template #caption>
+            <div class="flex items-center justify-between">
+              <p-iconfield iconPosition="left">
+                <p-inputicon>
+                  <i class="pi pi-search"></i>
+                </p-inputicon>
+                <input pInputText type="text" (input)="filterGlobal($event)" placeholder="Search Collections" name="searchCollections" class="search-input" />
+              </p-iconfield>
+              <div class="flex items-center gap-2">
+                <button pButton (click)="showBulkImportDialog()" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Bulk Import Collections" tooltipPosition="top"><i class="pi pi-cloud-download" pButtonIcon></i></button>
+                <button pButton (click)="showExportDialog()" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Export Multiple Collections" tooltipPosition="top"><i class="pi pi-download" pButtonIcon></i></button>
+                <button pButton (click)="showAddCollectionDialog()" [rounded]="true" variant="text" [raised]="true" severity="primary" pTooltip="Add Collection" tooltipPosition="top"><i class="pi pi-plus" pButtonIcon></i></button>
+              </div>
+            </div>
+          </ng-template>
+          <ng-template #header let-columns>
+            <tr>
+              @for (col of columns; track col.field) {
+                <th scope="col" [ttSortableColumn]="col.field">{{ col.header }}</th>
+              }
+              <th scope="col">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-rowNode let-rowData="rowData" let-columns="columns">
+            <tr (click)="showModifyCollectionDialog(rowData)" class="cursor-pointer hover:surface-200">
+              @for (col of columns; track col.field; let i = $index) {
+                <td class="break-all" [style]="col.field === 'collectionName' ? { 'max-width': '200px' } : {}">
+                  @if (i === 0) {
+                    <p-treetabletoggler [rowNode]="rowNode" />
+                  }
+                  @if (col.field === 'collectionType') {
+                    <p-tag [value]="rowData[col.field]" [severity]="getTagColor(rowData[col.field])" class="text-xs cursor-pointer" />
+                  } @else {
+                    <span [style]="col.field === 'collectionName' ? { 'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', display: 'inline-block', width: '100%' } : {}">
+                      {{ rowData[col.field] }}
+                    </span>
+                  }
+                </td>
+              }
+              <td>
+                <button pButton class="mr-2" (click)="$event.stopPropagation(); showModifyCollectionDialog(rowData)" [rounded]="true" variant="text"><i class="pi pi-pencil" pButtonIcon></i></button>
+                <button pButton class="mr-2" (click)="$event.stopPropagation(); exportCollection(rowData)" [rounded]="true" variant="text"><i class="pi pi-download" pButtonIcon></i></button>
+                <button pButton (click)="$event.stopPropagation(); confirmDeleteCollection(rowData)" [rounded]="true" variant="text" severity="danger"><i class="pi pi-trash" pButtonIcon></i></button>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="9" style="text-align: center">No Data to Display</td>
+            </tr>
+          </ng-template>
+        </p-treetable>
       </div>
-    </ng-template>
-    <ng-template #header let-columns>
-      <tr>
-        @for (col of columns; track col.field) {
-          <th scope="col" [ttSortableColumn]="col.field">{{ col.header }}</th>
-        }
-        <th scope="col">Actions</th>
-      </tr>
-    </ng-template>
-    <ng-template #body let-rowNode let-rowData="rowData" let-columns="columns">
-      <tr (click)="showModifyCollectionDialog(rowData)" class="cursor-pointer hover:surface-200">
-        @for (col of columns; track col.field; let i = $index) {
-          <td class="break-all" [style]="col.field === 'collectionName' ? { 'max-width': '200px' } : {}">
-            @if (i === 0) {
-              <p-treetabletoggler [rowNode]="rowNode" />
-            }
-            @if (col.field === 'collectionType') {
-              <p-tag [value]="rowData[col.field]" [severity]="getTagColor(rowData[col.field])" class="text-xs cursor-pointer" />
-            } @else {
-              <span [style]="col.field === 'collectionName' ? { 'word-wrap': 'break-word', 'word-break': 'break-word', 'white-space': 'normal', display: 'inline-block', width: '100%' } : {}">
-                {{ rowData[col.field] }}
-              </span>
-            }
-          </td>
-        }
-        <td>
-          <button pButton class="mr-2" (click)="$event.stopPropagation(); showModifyCollectionDialog(rowData)" [rounded]="true" variant="text"><i class="pi pi-pencil" pButtonIcon></i></button>
-          <button pButton class="mr-2" (click)="$event.stopPropagation(); exportCollection(rowData)" [rounded]="true" variant="text"><i class="pi pi-download" pButtonIcon></i></button>
-          <button pButton (click)="$event.stopPropagation(); confirmDeleteCollection(rowData)" [rounded]="true" variant="text" severity="danger"><i class="pi pi-trash" pButtonIcon></i></button>
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template #emptymessage>
-      <tr>
-        <td colspan="9" style="text-align: center">No Data to Display</td>
-      </tr>
-    </ng-template>
-  </p-treetable>
-</div>
+    </p-tabpanel>
+    <p-tabpanel [value]="1">
+      <ng-template #content>
+        <cpat-collection-permissions [active]="active() && activeTab() === 1" (viewUser)="viewUser.emit($event)" />
+      </ng-template>
+    </p-tabpanel>
+  </p-tabpanels>
+</p-tabs>
 
 <p-dialog [(visible)]="displayCollectionDialog" styleClass="max-w-[60vw] max-h-[80vh] overflow-hidden" [modal]="true">
   <ng-template #content>

@@ -20,6 +20,15 @@ module.exports.getCollectionPermissions = async function getCollectionPermission
     }
 };
 
+module.exports.getCollectionPermissionDetail = async function getCollectionPermissionDetail(req, res) {
+    try {
+        const permissions = await permissionService.getCollectionPermissionDetail(req.query.elevate, req);
+        res.status(200).json(permissions);
+    } catch (error) {
+        sendError(res, error);
+    }
+};
+
 module.exports.postPermission = async function postPermission(req, res) {
     try {
         const permission = await permissionService.postPermission(req.userObject.userId, req.query.elevate, req);

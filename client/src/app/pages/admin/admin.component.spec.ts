@@ -12,7 +12,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { Component, Input } from '@angular/core';
+import { Component, Input, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
@@ -27,7 +27,9 @@ import { PayloadService } from '../../common/services/setPayload.service';
 class MockUsersComponent {}
 
 @Component({ selector: 'cpat-collections', template: '', standalone: true })
-class MockCollectionsComponent {}
+class MockCollectionsComponent {
+  readonly active = input(true);
+}
 
 @Component({ selector: 'cpat-asset-delta', template: '', standalone: true })
 class MockAssetDeltaComponent {
@@ -214,6 +216,39 @@ describe('AdminComponent', () => {
 
       expect(() => {
         component.switchToPluginMapping();
+        vi.advanceTimersByTime(0);
+      }).not.toThrow();
+      vi.useRealTimers();
+    });
+  });
+
+  describe('openUserInUserManagement', () => {
+    it('should switch to the Users tab', () => {
+      component.value.set(1);
+      component.openUserInUserManagement(7);
+
+      expect(component.value()).toBe(0);
+    });
+
+    it('should call openUserById on the users component after timeout', () => {
+      vi.useFakeTimers();
+      const mockUsersComponent = { openUserById: vi.fn() };
+
+      (component as any).usersComponent = () => mockUsersComponent;
+
+      component.openUserInUserManagement(7);
+      vi.advanceTimersByTime(0);
+
+      expect(mockUsersComponent.openUserById).toHaveBeenCalledWith(7);
+      vi.useRealTimers();
+    });
+
+    it('should not throw when the users component is undefined', () => {
+      vi.useFakeTimers();
+      (component as any).usersComponent = () => undefined;
+
+      expect(() => {
+        component.openUserInUserManagement(7);
         vi.advanceTimersByTime(0);
       }).not.toThrow();
       vi.useRealTimers();

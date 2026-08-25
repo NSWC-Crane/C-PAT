@@ -67,6 +67,7 @@ export class UsersComponent implements OnInit {
     { label: 'Active', value: 'ACTIVE' },
     { label: 'Pending', value: 'PENDING' }
   ];
+  private pendingUserId: number | null = null;
 
   ngOnInit() {
     this.usernameClaimLabel.set(CPAT.Env.oauth.claims.username ?? 'preferred_username');
@@ -143,8 +144,21 @@ export class UsersComponent implements OnInit {
               lastAccessDate: u.lastAccess ? u.lastAccess.split('T')[0] : ''
             }))
         );
+
+        if (this.pendingUserId !== null) {
+          const pendingUser = this.data().find((u) => u.userId === this.pendingUserId);
+
+          this.pendingUserId = null;
+
+          if (pendingUser) {
+            this.setUser(pendingUser);
+          } else {
+            this.warnUserNotFound();
+          }
+        }
       },
       error: (error) => {
+        this.pendingUserId = null;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -163,6 +177,31 @@ export class UsersComponent implements OnInit {
     this.showUserSelect.set(false);
   }
 
+  openUserById(userId: number) {
+    if (!this.showUserSelect()) {
+      this.pendingUserId = userId;
+      this.resetData();
+
+      return;
+    }
+
+    if (!this.data().length) {
+      this.pendingUserId = userId;
+
+      return;
+    }
+
+    this.pendingUserId = null;
+
+    const match = this.data().find((u) => u.userId === userId);
+
+    if (match) {
+      this.setUser(match);
+    } else {
+      this.warnUserNotFound();
+    }
+  }
+
   exportCSV() {
     this.csvExportService.exportToCsv(this.data(), {
       filename: 'users_export',
@@ -175,5 +214,9 @@ export class UsersComponent implements OnInit {
     this.user.set({});
     this.showUserSelect.set(true);
     this.getUserData();
+  }
+
+  private warnUserNotFound() {
+    this.messageService.add({ severity: 'warn', summary: 'User not found', detail: 'This user is no longer present in the user list.' });
   }
 }

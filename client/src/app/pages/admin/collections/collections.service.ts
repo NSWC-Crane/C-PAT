@@ -109,6 +109,10 @@ export class CollectionsService {
     return this.http.get(`${this.cpatApiBase}/permissions/${collectionId}`).pipe(catchError(this.handleError));
   }
 
+  getCollectionPermissionDetail(collectionId: number): Observable<any> {
+    return this.http.get(`${this.cpatApiBase}/permissions/${collectionId}/detail?elevate=true`).pipe(catchError(this.handleError));
+  }
+
   getPoamsByCollection(id: any): Observable<any> {
     return this.http.get(`${this.cpatApiBase}/poams/collection/${id}?milestones=true&labels=true&assignedTeams=true&associatedVulnerabilities=true&teamMitigations=true`).pipe(catchError(this.handleError));
   }

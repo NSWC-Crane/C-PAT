@@ -140,6 +140,19 @@ describe('CollectionsService', () => {
       expect(req.request.method).toBe('GET');
       req.flush(mockPermissions);
     });
+
+    it('should get collection permission detail with elevate', () => {
+      const mockDetail = [{ userId: 1, accessLevel: 4, direct: null, teamGrants: [], exclusions: [] }];
+
+      service.getCollectionPermissionDetail(1).subscribe((data) => {
+        expect(data).toEqual(mockDetail);
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/permissions/1/detail?elevate=true`);
+
+      expect(req.request.method).toBe('GET');
+      req.flush(mockDetail);
+    });
   });
 
   describe('Collection POAMs', () => {

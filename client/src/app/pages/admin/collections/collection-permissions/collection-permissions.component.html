@@ -1,0 +1,200 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<div class="permission-lookup flex min-h-0 flex-col">
+  <div class="card !mb-0 !p-2 flex flex-wrap items-center justify-between gap-2">
+    <div class="flex items-center gap-3">
+      <p-select
+        id="permissionLookupCollection"
+        name="permissionLookupCollection"
+        class="w-80"
+        [options]="collectionOptions()"
+        [(ngModel)]="selectedCollectionId"
+        [filter]="true"
+        filterBy="label"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select a Collection..."
+        appendTo="body"
+        aria-label="Select a collection"
+      />
+      @if (selectedCollectionType(); as collectionType) {
+        <p-tag [value]="collectionType" [severity]="getTagColor(collectionType)" class="text-xs" />
+      }
+    </div>
+    <div class="mr-1 flex items-center gap-2">
+      <button pButton (click)="loadPermissions()" [rounded]="true" variant="text" [raised]="true" severity="primary" [disabled]="isLoading() || selectedCollectionId() === null" pTooltip="Refresh permissions" tooltipPosition="left">
+        <i class="pi pi-refresh" pButtonIcon></i>
+      </button>
+      <button
+        pButton
+        (click)="exportCSV()"
+        [rounded]="true"
+        variant="text"
+        [raised]="true"
+        severity="primary"
+        [disabled]="!filteredRows().length"
+        [pTooltip]="hasActiveFilters() ? 'Export filtered results to CSV' : 'Export table to CSV'"
+        tooltipPosition="left"
+      >
+        <i class="pi pi-external-link" pButtonIcon></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5" [class.opacity-50]="selectedCollectionId() === null">
+    @for (card of levelCards(); track card.label) {
+      <p-card
+        class="metric-card relative flex items-center justify-center overflow-hidden rounded-xl p-3 transition-all duration-300 ease-in-out"
+        [class.warning]="card.warning"
+        [pTooltip]="card.warning ? 'This collection has no CAT-I Approver.' : ''"
+        tooltipPosition="top"
+      >
+        <div class="flex w-full flex-col items-center text-center">
+          <div class="flex min-h-[40px] items-center justify-center">
+            <div class="text-[2.5rem] leading-none font-bold text-[var(--text-secondary-color)]">{{ selectedCollectionId() === null || showSkeleton() ? '-' : card.count }}</div>
+          </div>
+          <div class="mt-1 flex items-center gap-1.5 text-[0.9rem] leading-tight font-semibold text-[var(--text-secondary-color)]">
+            <i [class]="card.icon + ' text-[0.85rem]'" aria-hidden="true"></i>
+            <span>{{ card.label }}</span>
+            @if (card.warning) {
+              <i class="pi pi-exclamation-triangle text-[0.85rem] text-amber-500" aria-hidden="true"></i>
+            }
+          </div>
+        </div>
+      </p-card>
+    }
+  </div>
+
+  <div class="mt-3 min-h-0 flex-1 overflow-hidden">
+    @if (selectedCollectionId() === null) {
+      <div class="no-data-message"><i class="pi pi-shield mr-2 text-2xl" aria-hidden="true"></i>Select a collection to see who has access.</div>
+    } @else {
+      <p-table
+        #permissionsTable
+        class="w-full"
+        [value]="filteredRows()"
+        rowGroupMode="subheader"
+        groupRowsBy="accessLevel"
+        [groupRowsByOrder]="-1"
+        [scrollable]="true"
+        scrollHeight="flex"
+        [paginator]="true"
+        [rows]="100"
+        [rowsPerPageOptions]="[25, 50, 100]"
+        [loading]="showSkeleton()"
+      >
+        <ng-template #caption>
+          <div class="flex flex-wrap items-center justify-between gap-3" [class.opacity-50]="isLoading() && !showSkeleton()">
+            <p-iconfield iconPosition="left">
+              <p-inputicon>
+                <i class="pi pi-search"></i>
+              </p-inputicon>
+              <input pInputText type="text" [value]="searchText()" (input)="onSearchInput($event)" placeholder="Search users" id="searchPermissions" name="searchPermissions" class="search-input" aria-label="Search users" />
+            </p-iconfield>
+            <div class="flex flex-wrap items-center gap-4">
+              <p-selectbutton [options]="accessLevelOptions" [ngModel]="selectedLevel()" (ngModelChange)="selectedLevel.set($event)" optionLabel="label" optionValue="value" size="small" aria-label="Filter by access level" />
+              <div class="flex items-center gap-2">
+                <p-checkbox inputId="includeHigherLevels" [binary]="true" [ngModel]="includeHigherLevels()" (ngModelChange)="includeHigherLevels.set($event)" />
+                <label for="includeHigherLevels" class="cursor-pointer text-sm">Include higher levels</label>
+                <i
+                  class="pi pi-info-circle text-primary cursor-pointer text-sm"
+                  pTooltip="Access levels are cumulative - an Approver can do everything a Submitter can. When checked, the chosen level also shows everyone above it."
+                  tooltipPosition="top"
+                ></i>
+              </div>
+              @if (hasActiveFilters()) {
+                <button pButton variant="text" size="small" (click)="clearFilters()"><i class="pi pi-filter-slash" pButtonIcon></i><span pButtonLabel>Clear filters</span></button>
+              }
+            </div>
+          </div>
+        </ng-template>
+        <ng-template #header>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Access Level</th>
+            <th scope="col">
+              Source
+              <i
+                class="pi pi-info-circle text-primary ml-1 cursor-pointer"
+                pTooltip="A collection permission is the highest level any of its sources grants. 'Direct' is access an administrator gave this user on its own; a team name means that team's coverage grants it. Both can apply at once."
+                tooltipPosition="top"
+              ></i>
+            </th>
+            <th scope="col" class="w-16"><span class="sr-only">Actions</span></th>
+          </tr>
+        </ng-template>
+        <ng-template #groupheader let-row>
+          <tr pRowGroupHeader>
+            <td colspan="5">
+              <div class="flex items-center gap-2">
+                <i [class]="levelIcon(row.accessLevel) + ' text-muted-color'" aria-hidden="true"></i>
+                <span class="font-semibold">{{ row.accessLevelLabel }}</span>
+                <span class="text-muted-color text-sm">({{ groupCounts().get(row.accessLevel) ?? 0 }})</span>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr [class.opacity-50]="isLoading() && !showSkeleton()">
+            <td class="font-medium">{{ row.fullName }}</td>
+            <td class="text-muted-color break-all">{{ row.email }}</td>
+            <td>
+              <p-tag [value]="row.accessLevelLabel" severity="secondary" [rounded]="true" />
+            </td>
+            <td>
+              <div class="flex flex-wrap gap-1">
+                @if (row.direct) {
+                  <p-tag [value]="'Direct: ' + getAccessLevelLabel(row.direct.accessLevel)" severity="secondary" [rounded]="true" [pTooltip]="row.direct.tooltip" tooltipPosition="top" />
+                }
+                @for (grant of row.teamGrants; track grant.assignedTeamId) {
+                  <p-tag [value]="grant.assignedTeamName + ': ' + getAccessLevelLabel(grant.accessLevel)" severity="info" [rounded]="true" [pTooltip]="grant.tooltip" tooltipPosition="top" />
+                }
+                @for (exclusion of row.exclusions; track exclusion.assignedTeamId) {
+                  <p-tag [value]="'Excluded: ' + exclusion.assignedTeamName" [rounded]="true" class="opacity-60" icon="pi pi-ban" pTooltip="This team's coverage is excluded for this user." tooltipPosition="top" />
+                }
+              </div>
+            </td>
+            <td class="w-16">
+              <button pButton (click)="viewUser.emit(row.userId)" [rounded]="true" variant="text" [attr.aria-label]="'Open ' + row.fullName + ' in User Management'" pTooltip="Open in User Management" tooltipPosition="left">
+                <i class="pi pi-user-edit" pButtonIcon></i>
+              </button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #loadingbody>
+          @for (_ of [].constructor(8); track $index) {
+            <tr>
+              @for (__ of [].constructor(5); track $index) {
+                <td><p-skeleton height="2rem" /></td>
+              }
+            </tr>
+          }
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="5" class="text-center">
+              @if (loadFailed()) {
+                <span>Couldn't load permissions for this collection.</span>
+                <button pButton variant="text" size="small" class="ml-2" (click)="loadPermissions()"><span pButtonLabel>Retry</span></button>
+              } @else if (permissions().length && hasActiveFilters()) {
+                <span>No users match the current filters.</span>
+                <button pButton variant="text" size="small" class="ml-2" (click)="clearFilters()"><span pButtonLabel>Clear filters</span></button>
+              } @else if (!isLoading()) {
+                <span>No users have access to this collection. Grant access from User Management, or through team coverage in Assigned Teams.</span>
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </div>
+</div>
