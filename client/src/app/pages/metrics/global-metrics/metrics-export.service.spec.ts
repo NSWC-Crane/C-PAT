@@ -111,11 +111,11 @@ describe('MetricsExportService', () => {
   let mockSharedService: any;
   let mockTenableData: any;
 
-  const runExport = () =>
+  const runExport = (collections: any[] = []) =>
     new Promise<MetricsExportResult>((resolve, reject) => {
       let result: MetricsExportResult | undefined;
 
-      service.exportGlobalMetrics().subscribe({ next: (value) => (result = value), error: reject, complete: () => resolve(result!) });
+      service.exportGlobalMetrics(collections).subscribe({ next: (value) => (result = value), error: reject, complete: () => resolve(result!) });
     });
 
   beforeEach(() => {
@@ -123,7 +123,6 @@ describe('MetricsExportService', () => {
     h.state.writeBufferCalls = 0;
 
     mockCollectionsService = {
-      getCollections: vi.fn().mockReturnValue(of([])),
       getPoamsByCollection: vi.fn().mockReturnValue(of(mockPoams))
     };
     mockSharedService = {
@@ -147,9 +146,9 @@ describe('MetricsExportService', () => {
   });
 
   it('writes the classification banner in A1 and the header row in the template column order', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+    const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
 
-    await runExport();
+    await runExport(collections);
 
     expect(h.cells['A1'].value).toBe('***** UNCLASSIFIED *****');
     expect(h.cells['A2'].value).toBe('Collection');
@@ -166,9 +165,9 @@ describe('MetricsExportService', () => {
   });
 
   it('keeps the white template font on the header row instead of resetting it to black', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+    const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
 
-    await runExport();
+    await runExport(collections);
 
     for (const letter of h.COLS) {
       expect(h.cells[`${letter}2`].font).toEqual({ bold: true, size: 10, color: { theme: 0 }, name: 'Century Gothic', family: 2 });
@@ -176,14 +175,12 @@ describe('MetricsExportService', () => {
   });
 
   it('leaves the template hidden columns hidden and free of metrics data', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(
-      of([
-        { collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 },
-        { collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 }
-      ])
-    );
+    const collections = [
+      { collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 },
+      { collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 }
+    ];
 
-    await runExport();
+    await runExport(collections);
 
     for (const letter of h.HIDDEN_COLUMNS) {
       expect(h.columns[letter].hidden).toBe(true);
@@ -193,9 +190,9 @@ describe('MetricsExportService', () => {
   });
 
   it('maps a STIG Manager collection into the STIG columns and leaves ACAS columns blank', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+    const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
 
-    await runExport();
+    await runExport(collections);
 
     expect(h.cells['A3'].value).toBe('Stig One');
     expect(h.cells['K3'].value).toBe('STIG Manager');
@@ -209,9 +206,9 @@ describe('MetricsExportService', () => {
   });
 
   it('maps the deduplicated STIG open finding counts into the shared open findings columns', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+    const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
 
-    await runExport();
+    await runExport(collections);
 
     expect(h.cells['R3'].value).toBe(1);
     expect(h.cells['S3'].value).toBe(1);
@@ -226,9 +223,9 @@ describe('MetricsExportService', () => {
       ])
     );
     mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(of([{ ...mockStigSummary[0], metrics: { ...mockStigSummary[0].metrics, findings: { high: 40, medium: 0, low: 0 } } }]));
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+    const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
 
-    await runExport();
+    await runExport(collections);
 
     expect(h.cells['R3'].value).toBe(2);
     expect(h.cells['S3'].value).toBe(0);
@@ -236,9 +233,9 @@ describe('MetricsExportService', () => {
   });
 
   it('maps a Tenable collection into the ACAS columns and leaves STIG columns blank', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 }]));
+    const collections = [{ collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 }];
 
-    await runExport();
+    await runExport(collections);
 
     expect(h.cells['A3'].value).toBe('Tenable Two');
     expect(h.cells['K3'].value).toBe('Tenable');
@@ -260,19 +257,30 @@ describe('MetricsExportService', () => {
   });
 
   it('leaves the ACAS 90+ day columns blank for STIG Manager rows', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+    const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
 
-    await runExport();
+    await runExport(collections);
 
     expect(h.cells['X3'].value).toBe('');
     expect(h.cells['Y3'].value).toBe('');
     expect(h.cells['Z3'].value).toBe('');
   });
 
-  it('excludes collections without an originCollectionId from the export', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 3, collectionName: 'No Origin', collectionType: 'STIG Manager' }]));
+  it('exports only the collections it is given', async () => {
+    const collections = [{ collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 }];
 
-    const result = await runExport();
+    const result = await runExport(collections);
+
+    expect(h.cells['A3'].value).toBe('Tenable Two');
+    expect(h.cells['A4']).toBeUndefined();
+    expect(result.exportedCount).toBe(1);
+    expect(mockTenableData.getCollectionExportMetrics).toHaveBeenCalledTimes(1);
+  });
+
+  it('excludes collections without an originCollectionId from the export', async () => {
+    const collections = [{ collectionId: 3, collectionName: 'No Origin', collectionType: 'STIG Manager' }];
+
+    const result = await runExport(collections);
 
     expect(h.cells['A3']).toBeUndefined();
     expect(result.failedCollections).toEqual([]);
@@ -282,14 +290,12 @@ describe('MetricsExportService', () => {
   });
 
   it('excludes non-metrics collection types from the export', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(
-      of([
-        { collectionId: 3, collectionName: 'CPAT Native', collectionType: 'C-PAT', originCollectionId: 9 },
-        { collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }
-      ])
-    );
+    const collections = [
+      { collectionId: 3, collectionName: 'CPAT Native', collectionType: 'C-PAT', originCollectionId: 9 },
+      { collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }
+    ];
 
-    await runExport();
+    await runExport(collections);
 
     expect(h.cells['A3'].value).toBe('Stig One');
     expect(h.cells['A4']).toBeUndefined();
@@ -297,15 +303,14 @@ describe('MetricsExportService', () => {
   });
 
   it('isolates a failing collection without aborting the whole export and reports it in the result', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(
-      of([
-        { collectionId: 1, collectionName: 'Broken Stig', collectionType: 'STIG Manager', originCollectionId: 42 },
-        { collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 }
-      ])
-    );
+    const collections = [
+      { collectionId: 1, collectionName: 'Broken Stig', collectionType: 'STIG Manager', originCollectionId: 42 },
+      { collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 }
+    ];
+
     mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(throwError(() => new Error('stigman down')));
 
-    const result = await runExport();
+    const result = await runExport(collections);
 
     expect(h.cells['A3'].value).toBe('Broken Stig');
     expect(h.cells['AA3'].value).toBe('');
@@ -319,10 +324,11 @@ describe('MetricsExportService', () => {
   });
 
   it('reports a Tenable collection whose metrics fetch fails as failed with a blank metrics row', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 2, collectionName: 'Broken Tenable', collectionType: 'Tenable', originCollectionId: 7 }]));
+    const collections = [{ collectionId: 2, collectionName: 'Broken Tenable', collectionType: 'Tenable', originCollectionId: 7 }];
+
     mockTenableData.getCollectionExportMetrics.mockReturnValue(throwError(() => new Error('tenable down')));
 
-    const result = await runExport();
+    const result = await runExport(collections);
 
     expect(h.cells['A3'].value).toBe('Broken Tenable');
     expect(h.cells['O3'].value).toBe('');
@@ -337,9 +343,9 @@ describe('MetricsExportService', () => {
     let attempts = 0;
 
     mockSharedService.getCollectionSTIGSummaryFromSTIGMAN.mockReturnValue(defer(() => (++attempts === 1 ? throwError(() => new Error('flaky')) : of(mockStigSummary))));
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+    const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
 
-    const result = await runExport();
+    const result = await runExport(collections);
 
     expect(attempts).toBe(2);
     expect(h.cells['AA3'].value).toBe(100);
@@ -350,15 +356,13 @@ describe('MetricsExportService', () => {
     const emissions: { loaded: number; total: number; phase: string }[] = [];
     const subscription = service.progress$.subscribe((progress) => emissions.push(progress));
 
-    mockCollectionsService.getCollections.mockReturnValue(
-      of([
-        { collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 },
-        { collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 },
-        { collectionId: 3, collectionName: 'CPAT Native', collectionType: 'C-PAT' }
-      ])
-    );
+    const collections = [
+      { collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 },
+      { collectionId: 2, collectionName: 'Tenable Two', collectionType: 'Tenable', originCollectionId: 7 },
+      { collectionId: 3, collectionName: 'CPAT Native', collectionType: 'C-PAT' }
+    ];
 
-    await runExport();
+    await runExport(collections);
     subscription.unsubscribe();
 
     expect(emissions).toEqual([
@@ -383,15 +387,14 @@ describe('MetricsExportService', () => {
   });
 
   it('preserves collection order even when fetches resolve out of order', async () => {
-    mockCollectionsService.getCollections.mockReturnValue(
-      of([
-        { collectionId: 1, collectionName: 'Slow Tenable', collectionType: 'Tenable', originCollectionId: 7 },
-        { collectionId: 2, collectionName: 'Fast Tenable', collectionType: 'Tenable', originCollectionId: 8 }
-      ])
-    );
+    const collections = [
+      { collectionId: 1, collectionName: 'Slow Tenable', collectionType: 'Tenable', originCollectionId: 7 },
+      { collectionId: 2, collectionName: 'Fast Tenable', collectionType: 'Tenable', originCollectionId: 8 }
+    ];
+
     mockTenableData.getCollectionExportMetrics.mockImplementation((repoId: string) => (repoId === '7' ? of(tenableExport).pipe(delay(30)) : of(tenableExport)));
 
-    await runExport();
+    await runExport(collections);
 
     expect(h.cells['A3'].value).toBe('Slow Tenable');
     expect(h.cells['A4'].value).toBe('Fast Tenable');
@@ -406,9 +409,9 @@ describe('MetricsExportService', () => {
       return node;
     });
 
-    mockCollectionsService.getCollections.mockReturnValue(of([{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }]));
+    const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
 
-    await runExport();
+    await runExport(collections);
 
     expect(createSpy).toHaveBeenCalled();
     expect(clickSpy).toHaveBeenCalled();
@@ -424,9 +427,9 @@ describe('MetricsExportService', () => {
     });
 
     it('requests the template from the origin root when no base element exists', async () => {
-      mockCollectionsService.getCollections.mockReturnValue(of([stigCollection]));
+      const collections = [stigCollection];
 
-      await runExport();
+      await runExport(collections);
 
       expect((globalThis.fetch as any).mock.calls[0][0]).toBe(`${globalThis.location.origin}/assets/CPAT_METRICS_TEMPLATE.xlsx`);
     });
@@ -436,9 +439,9 @@ describe('MetricsExportService', () => {
 
       base.setAttribute('href', '/cpat/');
       document.head.appendChild(base);
-      mockCollectionsService.getCollections.mockReturnValue(of([stigCollection]));
+      const collections = [stigCollection];
 
-      await runExport();
+      await runExport(collections);
 
       const url = (globalThis.fetch as any).mock.calls[0][0] as string;
 

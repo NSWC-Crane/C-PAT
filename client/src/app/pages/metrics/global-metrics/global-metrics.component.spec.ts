@@ -431,16 +431,18 @@ describe('GlobalMetricsComponent', () => {
       });
       configure(999);
       fixture.detectChanges();
+      component.selectedCollections.set([stigCollection]);
 
       component.exportGlobalMetrics();
 
-      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalled();
+      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalledWith([stigCollection]);
       expect(exportingDuringCall).toBe(true);
     });
 
     it('clears the exporting flag and shows a success toast on completion', () => {
       configure(999);
       fixture.detectChanges();
+      component.selectedCollections.set([stigCollection]);
 
       component.exportGlobalMetrics();
 
@@ -452,6 +454,7 @@ describe('GlobalMetricsComponent', () => {
       mockMetricsExportService.exportGlobalMetrics.mockReturnValue(throwError(() => new Error('export failed')));
       configure(999);
       fixture.detectChanges();
+      component.selectedCollections.set([stigCollection]);
 
       component.exportGlobalMetrics();
 
@@ -463,6 +466,7 @@ describe('GlobalMetricsComponent', () => {
       mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
       configure(999);
       fixture.detectChanges();
+      component.selectedCollections.set([stigCollection]);
 
       component.exportGlobalMetrics();
       component.exportGlobalMetrics();
@@ -474,6 +478,7 @@ describe('GlobalMetricsComponent', () => {
       mockMetricsExportService.exportGlobalMetrics.mockReturnValue(of({ failedCollections: ['Stig A'], exportedCount: 2 }));
       configure(999);
       fixture.detectChanges();
+      component.selectedCollections.set([stigCollection]);
 
       component.exportGlobalMetrics();
 
@@ -481,20 +486,30 @@ describe('GlobalMetricsComponent', () => {
       expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
     });
 
-    it('shows an info toast instead of a success toast when there was nothing to export', () => {
-      mockMetricsExportService.exportGlobalMetrics.mockReturnValue(of({ failedCollections: [], exportedCount: 0 }));
+    it('does not export when no collections are selected', () => {
       configure(999);
       fixture.detectChanges();
 
       component.exportGlobalMetrics();
 
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'info', detail: expect.stringContaining('No metrics-capable collections') }));
-      expect(mockMessageService.add).not.toHaveBeenCalledWith(expect.objectContaining({ severity: 'success' }));
+      expect(mockMetricsExportService.exportGlobalMetrics).not.toHaveBeenCalled();
+      expect(component.isGlobalExporting()).toBe(false);
+    });
+
+    it('exports only the selected collections', () => {
+      configure(999);
+      fixture.detectChanges();
+      component.selectedCollections.set([tenableCollection]);
+
+      component.exportGlobalMetrics();
+
+      expect(mockMetricsExportService.exportGlobalMetrics).toHaveBeenCalledWith([tenableCollection]);
     });
 
     it('tracks export progress from the export service progress stream', () => {
       configure(999);
       fixture.detectChanges();
+      component.selectedCollections.set([stigCollection]);
 
       exportProgress$.next({ loaded: 1, total: 4, phase: 'fetching' });
 
@@ -506,6 +521,7 @@ describe('GlobalMetricsComponent', () => {
       mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
       configure(999);
       fixture.detectChanges();
+      component.selectedCollections.set([stigCollection]);
 
       component.exportGlobalMetrics();
       fixture.detectChanges();
@@ -524,6 +540,7 @@ describe('GlobalMetricsComponent', () => {
       mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
       configure(999);
       fixture.detectChanges();
+      component.selectedCollections.set([stigCollection]);
 
       component.exportGlobalMetrics();
       exportProgress$.next({ loaded: 0, total: 0, phase: 'writing' });
@@ -537,6 +554,7 @@ describe('GlobalMetricsComponent', () => {
       mockMetricsExportService.exportGlobalMetrics.mockReturnValue(new Subject());
       configure(999);
       fixture.detectChanges();
+      component.selectedCollections.set([stigCollection]);
 
       component.exportProgress.set({ loaded: 3, total: 3, phase: 'writing' });
       component.exportGlobalMetrics();

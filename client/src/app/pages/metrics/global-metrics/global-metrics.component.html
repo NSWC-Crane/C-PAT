@@ -37,7 +37,7 @@
         </ng-template>
       </p-select>
       <button pButton (click)="refreshMetrics()" [rounded]="true" [text]="true" severity="secondary" [disabled]="isLoading() || !hasSelection()" pTooltip="Refresh metrics" tooltipPosition="left"><i class="pi pi-refresh" pButtonIcon></i></button>
-      <button pButton (click)="exportGlobalMetrics()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics" tooltipPosition="left" [loading]="isGlobalExporting()" [disabled]="isGlobalExporting()">
+      <button pButton (click)="exportGlobalMetrics()" severity="secondary" [rounded]="true" [text]="true" pTooltip="Export metrics" tooltipPosition="left" [loading]="isGlobalExporting()" [disabled]="isGlobalExporting() || !hasSelection()">
         <i class="pi pi-external-link" pButtonIcon></i>
       </button>
     </div>
