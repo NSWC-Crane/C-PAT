@@ -9,7 +9,7 @@
 */
 
 import { Injectable, inject } from '@angular/core';
-import { Observable, Subject, forkJoin, from, of } from 'rxjs';
+import { Observable, Subject, defer, forkJoin, from, of } from 'rxjs';
 import { catchError, map, mergeMap, retry, switchMap, tap, toArray } from 'rxjs/operators';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { SharedService } from '../../../common/services/shared.service';
@@ -103,39 +103,37 @@ export class MetricsExportService {
 
   readonly progress$ = new Subject<MetricsExportProgress>();
 
-  exportGlobalMetrics(): Observable<MetricsExportResult> {
-    return this.collectionsService.getCollections().pipe(
-      switchMap((collections) => {
-        const indexed = (collections || []).filter(isMetricsCapableCollection).map((collection, index) => ({ collection: { ...collection, collectionId: collection.collectionId!, collectionName: collection.collectionName ?? '' }, index }));
-        const failedCollections: string[] = [];
-        let loaded = 0;
+  exportGlobalMetrics(collections: CollectionsBasicList[]): Observable<MetricsExportResult> {
+    return defer(() => {
+      const indexed = collections.filter(isMetricsCapableCollection).map((collection, index) => ({ collection, index }));
+      const failedCollections: string[] = [];
+      let loaded = 0;
 
-        this.progress$.next({ loaded, total: indexed.length, phase: 'fetching' });
+      this.progress$.next({ loaded, total: indexed.length, phase: 'fetching' });
 
-        return from(indexed).pipe(
-          mergeMap(
-            ({ collection, index }) =>
-              this.buildRow(collection).pipe(
-                tap((result) => {
-                  loaded += 1;
-                  this.progress$.next({ loaded, total: indexed.length, phase: 'fetching' });
+      return from(indexed).pipe(
+        mergeMap(
+          ({ collection, index }) =>
+            this.buildRow(collection).pipe(
+              tap((result) => {
+                loaded += 1;
+                this.progress$.next({ loaded, total: indexed.length, phase: 'fetching' });
 
-                  if (result.failed) {
-                    failedCollections.push(collection.collectionName);
-                  }
-                }),
-                map((result) => ({ row: result.row, index }))
-              ),
-            FETCH_CONCURRENCY
-          ),
-          toArray(),
-          map((results) => results.toSorted((a, b) => a.index - b.index).map((r) => r.row)),
-          tap(() => this.progress$.next({ loaded, total: indexed.length, phase: 'writing' })),
-          switchMap((rows) => from(this.writeWorkbook(rows))),
-          map(() => ({ failedCollections, exportedCount: indexed.length }))
-        );
-      })
-    );
+                if (result.failed) {
+                  failedCollections.push(collection.collectionName);
+                }
+              }),
+              map((result) => ({ row: result.row, index }))
+            ),
+          FETCH_CONCURRENCY
+        ),
+        toArray(),
+        map((results) => results.toSorted((a, b) => a.index - b.index).map((r) => r.row)),
+        tap(() => this.progress$.next({ loaded, total: indexed.length, phase: 'writing' })),
+        switchMap((rows) => from(this.writeWorkbook(rows))),
+        map(() => ({ failedCollections, exportedCount: indexed.length }))
+      );
+    });
   }
 
   private buildRow(collection: CollectionsBasicList): Observable<RowResult> {

@@ -423,16 +423,18 @@ export class GlobalMetricsComponent implements OnInit {
   }
 
   exportGlobalMetrics() {
-    if (this.isGlobalExporting()) return;
+    const selected = this.selectedCollections();
+
+    if (this.isGlobalExporting() || selected.length === 0) return;
 
     this.isGlobalExporting.set(true);
     this.exportProgress.set({ loaded: 0, total: 0, phase: 'fetching' });
 
     this.metricsExportService
-      .exportGlobalMetrics()
+      .exportGlobalMetrics(selected)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ failedCollections, exportedCount }) => {
+        next: ({ failedCollections }) => {
           this.isGlobalExporting.set(false);
 
           if (failedCollections.length > 0) {
@@ -440,12 +442,6 @@ export class GlobalMetricsComponent implements OnInit {
               severity: 'warn',
               summary: 'Partial Export',
               detail: `Could not load metrics for: ${failedCollections.join(', ')}. The export contains blank metrics for ${failedCollections.length === 1 ? 'this collection' : 'these collections'}.`
-            });
-          } else if (exportedCount === 0) {
-            this.messageService.add({
-              severity: 'info',
-              summary: 'Export Complete',
-              detail: 'No metrics-capable collections were found. The exported workbook contains headers only.'
             });
           } else {
             this.messageService.add({
