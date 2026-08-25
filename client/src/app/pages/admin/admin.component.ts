@@ -37,6 +37,7 @@ export class AdminComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   readonly nessusPluginMappingComponent = viewChild(NessusPluginMappingComponent);
+  readonly usersComponent = viewChild(UsersComponent);
   readonly value = signal(0);
   tenableEnabled = CPAT.Env.features.tenableEnabled;
 
@@ -68,6 +69,14 @@ export class AdminComponent implements OnInit {
       if (nessusPluginMappingComponent) {
         nessusPluginMappingComponent.updatePluginIds();
       }
+    }, 0);
+  }
+
+  openUserInUserManagement(userId: number) {
+    this.value.set(0);
+
+    setTimeout(() => {
+      this.usersComponent()?.openUserById(userId);
     }, 0);
   }
 }

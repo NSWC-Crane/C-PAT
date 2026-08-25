@@ -8,7 +8,7 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, output, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -20,6 +20,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { ListboxModule } from 'primeng/listbox';
 import { SelectModule } from 'primeng/select';
+import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
@@ -34,6 +35,7 @@ import { PoamExportService } from '../../../common/utils/poam-export.service';
 import { IntegrationService } from '../../integrations/integration.service';
 import { PoamService } from '../../poams/poams.service';
 import { AAPackageService } from '../aa-packages/aa-packages.service';
+import { CollectionPermissionsComponent } from './collection-permissions/collection-permissions.component';
 import { CollectionsService } from './collections.service';
 
 interface TreeNode<T> {
@@ -48,7 +50,23 @@ interface TreeNode<T> {
   styleUrls: ['./collections.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AutoCompleteModule, ButtonModule, DialogModule, FormsModule, IconFieldModule, InputIconModule, InputTextModule, ListboxModule, SelectModule, TagModule, TextareaModule, TooltipModule, TreeTableModule]
+  imports: [
+    AutoCompleteModule,
+    ButtonModule,
+    CollectionPermissionsComponent,
+    DialogModule,
+    FormsModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    ListboxModule,
+    SelectModule,
+    TabsModule,
+    TagModule,
+    TextareaModule,
+    TooltipModule,
+    TreeTableModule
+  ]
 })
 export class CollectionsComponent implements OnInit {
   private readonly aaPackageService = inject(AAPackageService);
@@ -61,6 +79,9 @@ export class CollectionsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   public readonly table = viewChild.required<TreeTable>('dt');
+  readonly active = input(true);
+  readonly viewUser = output<number>();
+  readonly activeTab = signal(0);
   readonly cols = signal<any[]>([]);
   aaPackages: AAPackage[] = [];
   readonly filteredAAPackages = signal<string[]>([]);

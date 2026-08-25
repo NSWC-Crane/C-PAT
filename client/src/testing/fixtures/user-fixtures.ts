@@ -110,6 +110,68 @@ export const mockAssignedTeam = {
 };
 
 /**
+ * Mock collection permission detail rows, shaped like GET /permissions/{collectionId}/detail.
+ * Deliberately unsorted to exercise level-descending sort logic.
+ */
+export const mockCollectionPermissionDetail = [
+  {
+    userId: 4,
+    accessLevel: 1,
+    firstName: 'Mister',
+    lastName: 'Seapat',
+    fullName: 'Mister Seapat',
+    email: 'mister.seapat@example.com',
+    direct: { accessLevel: 1, grantedAt: '2026-03-01T10:00:00.000Z', grantedBy: 2, grantedByName: 'Admin User' },
+    teamGrants: [],
+    exclusions: [{ collectionId: 1, assignedTeamId: 2, assignedTeamName: 'Team Bravo', excludedAt: '2026-03-02T10:00:00.000Z' }]
+  },
+  {
+    userId: 1,
+    accessLevel: 4,
+    firstName: 'Misses',
+    lastName: 'Seapat',
+    fullName: 'Misses Seapat',
+    email: 'misses.seapat@example.com',
+    direct: { accessLevel: 4, grantedAt: '2026-01-15T10:00:00.000Z', grantedBy: 2, grantedByName: 'Admin User' },
+    teamGrants: [],
+    exclusions: []
+  },
+  {
+    userId: 3,
+    accessLevel: 2,
+    firstName: 'Samuel',
+    lastName: 'Submitter',
+    fullName: 'Samuel Submitter',
+    email: 'samuel.submitter@example.com',
+    direct: { accessLevel: 1, grantedAt: '2026-02-10T10:00:00.000Z', grantedBy: null, grantedByName: null },
+    teamGrants: [{ collectionId: 1, assignedTeamId: 1, assignedTeamName: 'Team Alpha', accessLevel: 2, grantedAt: '2026-02-11T10:00:00.000Z' }],
+    exclusions: []
+  },
+  {
+    userId: 2,
+    accessLevel: 3,
+    firstName: 'Alicent',
+    lastName: 'Approver',
+    fullName: 'Alicent Approver',
+    email: 'alicent.approver@example.com',
+    direct: null,
+    teamGrants: [{ collectionId: 1, assignedTeamId: 1, assignedTeamName: 'Team Alpha', accessLevel: 3, grantedAt: '2026-01-20T10:00:00.000Z' }],
+    exclusions: []
+  },
+  {
+    userId: 5,
+    accessLevel: 1,
+    firstName: 'Tom',
+    lastName: 'Teamer',
+    fullName: 'Tom Teamer',
+    email: 'tom.teamer@example.com',
+    direct: null,
+    teamGrants: [{ collectionId: 1, assignedTeamId: 2, assignedTeamName: 'Team Bravo', accessLevel: 1, grantedAt: '2026-02-15T10:00:00.000Z' }],
+    exclusions: []
+  }
+];
+
+/**
  * Mock asset
  */
 export const mockAsset = {

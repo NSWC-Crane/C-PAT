@@ -3203,6 +3203,9 @@ paths:
           type: integer
     get:
       summary: Get the permission assignments of a collection by collectionId
+      description: >-
+        Returns the effective permission assignments of a collection. The caller must be an administrator or hold a
+        permission on the collection themselves.
       operationId: getCollectionPermissions
       responses:
         '200':
@@ -3215,6 +3218,12 @@ paths:
                   $ref: '#/components/schemas/user_Permissions'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
           content:
             application/json:
               schema:
@@ -3232,6 +3241,56 @@ paths:
       security:
         - oauth:
             - 'c-pat:write'
+
+  '/permissions/{collectionId}/detail':
+    parameters:
+      - $ref: '#/components/parameters/ElevateQuery'
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get the permission assignments of a collection with their provenance
+      description: >-
+        Returns every user holding access to the collection along with why they hold it - the direct grant an
+        administrator set, the grants team coverage justifies, and any exclusions withholding a team's coverage
+        from the user. Administrator only.
+      operationId: getCollectionPermissionDetail
+      responses:
+        '200':
+          description: Collection permission detail retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/collection_permission_detail'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Permissions
+      security:
+        - oauth:
+            - 'c-pat:op'
 
   '/permission/{userId}/{collectionId}':
     parameters:
@@ -9112,6 +9171,56 @@ components:
         grantedAt:
           type: string
           format: date-time
+
+    collection_permission_detail:
+      type: object
+      description: >-
+        One user's effective permission on a collection together with its provenance. The effective level is the
+        highest of the direct grant and every team grant; exclusions list team coverage an administrator withheld
+        from this user.
+      required:
+        - userId
+        - accessLevel
+      additionalProperties: true
+      properties:
+        userId:
+          type: integer
+        accessLevel:
+          type: integer
+          description: The effective level the user holds on this collection.
+        firstName:
+          type: string
+        lastName:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        direct:
+          type: [object, 'null']
+          description: The direct grant an administrator set, or null when access comes entirely from teams.
+          additionalProperties: true
+          properties:
+            accessLevel:
+              type: integer
+            grantedAt:
+              type: string
+              format: date-time
+            grantedBy:
+              type: [integer, 'null']
+              description: The userId of the administrator who set the grant, or null when that account was removed.
+            grantedByName:
+              type: [string, 'null']
+        teamGrants:
+          type: array
+          description: The grants team coverage justifies for this user, one entry per covering team.
+          items:
+            $ref: '#/components/schemas/collection_permission_grant'
+        exclusions:
+          type: array
+          description: Team coverage of this collection an administrator deliberately withheld from this user.
+          items:
+            $ref: '#/components/schemas/collection_grant_exclusion'
 
     permission_write_result:
       type: object

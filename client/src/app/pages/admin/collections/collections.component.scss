@@ -47,3 +47,7 @@
   justify-content: center;
   gap: 8rem;
 }
+
+:host ::ng-deep .p-treetable-paginator-bottom {
+  border-width: 0;
+}

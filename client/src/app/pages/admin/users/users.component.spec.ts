@@ -22,7 +22,7 @@ import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { BehaviorSubject, of, throwError, Subject } from 'rxjs';
 import { UsersComponent } from './users.component';
 import { PayloadService } from '../../../common/services/setPayload.service';
 import { UsersService } from './users.service';
@@ -329,6 +329,84 @@ describe('UsersComponent', () => {
       component.showUserSelect.set(true);
       component.setUser({ userId: 5 });
 
+      expect(component.showUserSelect()).toBe(false);
+    });
+  });
+
+  describe('openUserById', () => {
+    it('should open the matching user when the list is loaded', () => {
+      component.getUserData();
+      component.openUserById(2);
+
+      expect(component.user().userId).toBe(2);
+      expect(component.showUserSelect()).toBe(false);
+    });
+
+    it('should warn when the user is not in the loaded list', () => {
+      const addSpy = vi.spyOn(TestBed.inject(MessageService), 'add');
+
+      component.getUserData();
+      component.openUserById(999);
+
+      expect(component.showUserSelect()).toBe(true);
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn', summary: 'User not found' }));
+    });
+
+    it('should defer opening until the list loads', () => {
+      component.openUserById(3);
+
+      expect(component.showUserSelect()).toBe(true);
+
+      component.getUserData();
+
+      expect(component.user().userId).toBe(3);
+      expect(component.showUserSelect()).toBe(false);
+    });
+
+    it('should reload the list and reopen when the editor is already showing another user', () => {
+      component.getUserData();
+      component.setUser({ userId: 1 });
+      component.openUserById(2);
+
+      expect(component.user().userId).toBe(2);
+      expect(component.showUserSelect()).toBe(false);
+    });
+
+    it('should warn when a deferred user is missing from the loaded list', () => {
+      const addSpy = vi.spyOn(TestBed.inject(MessageService), 'add');
+
+      component.openUserById(999);
+      component.getUserData();
+
+      expect(component.showUserSelect()).toBe(true);
+      expect(addSpy).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn', summary: 'User not found' }));
+    });
+
+    it('should drop a deferred open when the user list fails to load', () => {
+      mockUsersService.getUsers.mockReturnValue(throwError(() => new Error('fail')));
+      component.openUserById(3);
+      component.getUserData();
+      mockUsersService.getUsers.mockReturnValue(of(mockUsers));
+      component.getUserData();
+
+      expect(component.showUserSelect()).toBe(true);
+      expect(component.user()).toEqual({});
+    });
+
+    it('should let a newer direct open win over a pending deferred open', () => {
+      const users$ = new Subject<any>();
+
+      component.getUserData();
+      component.setUser({ userId: 1 });
+      mockUsersService.getUsers.mockReturnValue(users$);
+      component.openUserById(2);
+      component.openUserById(3);
+
+      expect(component.user().userId).toBe(3);
+
+      users$.next(mockUsers);
+
+      expect(component.user().userId).toBe(3);
       expect(component.showUserSelect()).toBe(false);
     });
   });

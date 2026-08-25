@@ -31,7 +31,7 @@
       </p-tabpanel>
 
       <p-tabpanel [value]="1">
-        <cpat-collections />
+        <cpat-collections [active]="value() === 1" (viewUser)="openUserInUserManagement($event)" />
       </p-tabpanel>
 
       <p-tabpanel [value]="2">

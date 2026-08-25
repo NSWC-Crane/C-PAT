@@ -140,6 +140,38 @@ describe('CollectionsComponent', () => {
     vi.restoreAllMocks();
   });
 
+  describe('Permission Lookup sub-tabs', () => {
+    it('should default to the Collections tab', () => {
+      expect(component.activeTab()).toBe(0);
+    });
+
+    it('should render both sub-tab labels', () => {
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+      expect(text).toContain('Collections');
+      expect(text).toContain('Permission Lookup');
+    });
+
+    it('should default the active input to true so the lookup can follow the outer tab', () => {
+      expect(component.active()).toBe(true);
+
+      fixture.componentRef.setInput('active', false);
+
+      expect(component.active()).toBe(false);
+    });
+
+    it('should expose a viewUser output for the lookup deep link', () => {
+      const emitted: number[] = [];
+
+      component.viewUser.subscribe((userId) => emitted.push(userId));
+      component.viewUser.emit(42);
+
+      expect(emitted).toEqual([42]);
+    });
+  });
+
   describe('Creation & Defaults', () => {
     it('should create', () => {
       expect(component).toBeTruthy();

@@ -82,7 +82,7 @@ export class CsvExportService {
       return '';
     }
 
-    const stringValue = String(value);
+    const stringValue = typeof value === 'string' && /^[=+\-@\t\r]/.test(value) ? `'${value}` : String(value);
     const escaped = stringValue.replaceAll('"', '""');
 
     if (/[",\n]/.test(escaped)) {
