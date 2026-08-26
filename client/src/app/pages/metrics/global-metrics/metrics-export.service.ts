@@ -22,7 +22,7 @@ import { isMetricsCapableCollection } from './global-metrics.service';
 
 const FETCH_CONCURRENCY = 3;
 
-const METRICS_HEADERS: string[] = [
+export const METRICS_HEADERS: string[] = [
   'Collection',
   'Year',
   'Month',
@@ -40,21 +40,25 @@ const METRICS_HEADERS: string[] = [
   'ACAS Vulnerability Per Host (VPH) Score',
   'ACAS Security End of Life Software Findings',
   'STIG Compliance CORA Risk Score',
+  'POAM Coverage (STIGs) % CAT I (High/Criticals)',
+  'POAM Coverage (STIGs) % CAT II (Mediums)',
+  'POAM Coverage (STIGs) % CAT III (Lows)',
   'Open Findings CAT I (Total)',
   'Open Findings CAT II (Total)',
   'Open Findings CAT III (Total)',
+  'Open Findings (ACAS) CAT I (Within 30 Days)',
+  'Open Findings (ACAS) CAT II (Within 30 Days)',
+  'Open Findings (ACAS) CAT III (Within 30 Days)',
+  'Open Findings (ACAS) CAT I (Within 90 Days)',
+  'Open Findings (ACAS) CAT II (Within 90 Days)',
+  'Open Findings (ACAS) CAT III (Within 90 Days)',
   'POAM Coverage (ACAS) % CAT I 30+ Days',
   'POAM Coverage (ACAS) % CAT II 30+ Days',
   'POAM Coverage (ACAS) % CAT III 30+ Days',
   'POAM Coverage (ACAS) % CAT I 90+ Days',
   'POAM Coverage (ACAS) % CAT II 90+ Days',
-  'POAM Coverage (ACAS) % CAT III 90+ Days',
-  'POAM Coverage (STIGs) % CAT I (High/Criticals)',
-  'POAM Coverage (STIGs) % CAT II (Mediums)',
-  'POAM Coverage (STIGs) % CAT III (Lows)'
+  'POAM Coverage (ACAS) % CAT III 90+ Days'
 ];
-
-const COLUMN_LETTERS: string[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC'];
 
 interface MetricsExportRow {
   year: number;
@@ -73,6 +77,12 @@ interface MetricsExportRow {
   openFindingsCatI: number | '';
   openFindingsCatII: number | '';
   openFindingsCatIII: number | '';
+  acasOpenCatI30: number | '';
+  acasOpenCatII30: number | '';
+  acasOpenCatIII30: number | '';
+  acasOpenCatI90: number | '';
+  acasOpenCatII90: number | '';
+  acasOpenCatIII90: number | '';
   coraRiskScore: number | '';
   acasSeol: number | '';
   vphScore: number | '';
@@ -198,6 +208,12 @@ export class MetricsExportService {
           openFindingsCatI: metrics.openFindingsCatI,
           openFindingsCatII: metrics.openFindingsCatII,
           openFindingsCatIII: metrics.openFindingsCatIII,
+          acasOpenCatI30: metrics.openFindingsCatI30,
+          acasOpenCatII30: metrics.openFindingsCatII30,
+          acasOpenCatIII30: metrics.openFindingsCatIII30,
+          acasOpenCatI90: metrics.openFindingsCatI90,
+          acasOpenCatII90: metrics.openFindingsCatII90,
+          acasOpenCatIII90: metrics.openFindingsCatIII90,
           acasSeol: metrics.seolVulnerabilities,
           vphScore: metrics.vphScore,
           assetQuantity: metrics.validOnlineAssets
@@ -229,6 +245,12 @@ export class MetricsExportService {
       openFindingsCatI: '',
       openFindingsCatII: '',
       openFindingsCatIII: '',
+      acasOpenCatI30: '',
+      acasOpenCatII30: '',
+      acasOpenCatIII30: '',
+      acasOpenCatI90: '',
+      acasOpenCatII90: '',
+      acasOpenCatIII90: '',
       coraRiskScore: '',
       acasSeol: '',
       vphScore: '',
@@ -293,22 +315,28 @@ export class MetricsExportService {
       this.round(row.vphScore), // O
       row.acasSeol, // P
       this.round(row.coraRiskScore), // Q
-      row.openFindingsCatI, // R
-      row.openFindingsCatII, // S
-      row.openFindingsCatIII, // T
-      this.round(row.acasCatICompliance), // U
-      this.round(row.acasCatIICompliance), // V
-      this.round(row.acasCatIIICompliance), // W
-      this.round(row.acasCatICompliance90), // X
-      this.round(row.acasCatIICompliance90), // Y
-      this.round(row.acasCatIIICompliance90), // Z
-      this.round(row.stigCatICompliance), // AA
-      this.round(row.stigCatIICompliance), // AB
-      this.round(row.stigCatIIICompliance) // AC
+      this.round(row.stigCatICompliance), // R
+      this.round(row.stigCatIICompliance), // S
+      this.round(row.stigCatIIICompliance), // T
+      row.openFindingsCatI, // U
+      row.openFindingsCatII, // V
+      row.openFindingsCatIII, // W
+      row.acasOpenCatI30, // X
+      row.acasOpenCatII30, // Y
+      row.acasOpenCatIII30, // Z
+      row.acasOpenCatI90, // AA
+      row.acasOpenCatII90, // AB
+      row.acasOpenCatIII90, // AC
+      this.round(row.acasCatICompliance), // AD
+      this.round(row.acasCatIICompliance), // AE
+      this.round(row.acasCatIIICompliance), // AF
+      this.round(row.acasCatICompliance90), // AG
+      this.round(row.acasCatIICompliance90), // AH
+      this.round(row.acasCatIIICompliance90) // AI
     ];
 
     values.forEach((value, columnIndex) => {
-      excelRow.getCell(COLUMN_LETTERS[columnIndex]).value = value;
+      excelRow.getCell(columnIndex + 1).value = value;
     });
   }
 

@@ -220,6 +220,53 @@ export function splitDelimitedIds(text: string): string[] {
   return [...seen];
 }
 
+export function validateIPv6(ip: string): boolean {
+  const normalized = normalizeInput(ip);
+
+  if (normalized === null) return false;
+
+  const [address, prefix, ...rest] = normalized.split('/');
+
+  if (rest.length > 0) return false;
+  if (prefix !== undefined && !(/^\d{1,3}$/.test(prefix) && Number(prefix) <= 128)) return false;
+  if (!/^[0-9a-f:]+$/i.test(address) || address.includes(':::')) return false;
+
+  const doubleColons = address.split('::').length - 1;
+
+  if (doubleColons > 1) return false;
+
+  const groups = address.split(':').filter((group) => group !== '');
+
+  if (groups.some((group) => group.length > 4)) return false;
+  if (doubleColons === 1) return groups.length <= 7;
+
+  return groups.length === 8 && !address.startsWith(':') && !address.endsWith(':');
+}
+
+function isIPv4Cidr(token: string): boolean {
+  const [address, prefix, ...rest] = token.split('/');
+
+  return rest.length === 0 && prefix !== undefined && /^\d{1,2}$/.test(prefix) && Number(prefix) <= 32 && validateIP(address);
+}
+
+function isIPv4Range(token: string): boolean {
+  const [start, end, ...rest] = token.split('-');
+
+  return rest.length === 0 && end !== undefined && validateIP(start) && validateIP(end);
+}
+
+export function validateAddressList(value: string): boolean {
+  const tokens = splitDelimitedIds(value);
+
+  return tokens.length > 0 && tokens.every((token) => validateIP(token) || isIPv4Cidr(token) || isIPv4Range(token) || validateIPv6(token));
+}
+
+export function validateIAVMList(value: string): boolean {
+  const tokens = splitDelimitedIds(value);
+
+  return tokens.length > 0 && tokens.every(validateIAVM);
+}
+
 export const DEFAULT_MAX_ATTACHMENT_BYTES = 5242880;
 
 export interface AttachmentValidationResult {

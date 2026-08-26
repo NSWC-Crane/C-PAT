@@ -18,6 +18,9 @@ import { TenableHostAssetsTableComponent } from './tenableHostAssetsTable.compon
 import { IntegrationService } from '../../../integration.service';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 
+const DAY_SECONDS = 86400;
+const daysAgo = (days: number) => String(Math.floor(Date.now() / 1000) - days * DAY_SECONDS);
+
 const mockHostResponse = {
   response: [
     {
@@ -32,7 +35,7 @@ const mockHostResponse = {
       source: [{ type: 'nessus' }],
       acr: { score: '8', lastEvaluatedTime: '1700000000' },
       aes: { score: '450' },
-      lastSeen: '1700000000',
+      lastSeen: daysAgo(5),
       firstSeen: '1690000000',
       systemType: 'general-purpose,router'
     },
@@ -166,6 +169,10 @@ describe('TenableHostAssetsTableComponent', () => {
   });
 
   describe('getAffectedAssets', () => {
+    beforeEach(() => {
+      component.lastSeenRange.set('all');
+    });
+
     it('should return early when tenableRepoId is not set', () => {
       (component as any).tenableRepoId = () => undefined;
       component.getAffectedAssets();
@@ -268,10 +275,78 @@ describe('TenableHostAssetsTableComponent', () => {
       (component as any).tenableRepoId = () => 2;
       component.getAffectedAssets();
 
-      second.next({ response: [{ name: 'repo-2-host', totalRecords: 1 }] });
-      first.next({ response: [{ name: 'repo-1-host', totalRecords: 1 }] });
+      second.next({ response: [{ name: 'repo-2-host', lastSeen: daysAgo(1) }] });
+      first.next({ response: [{ name: 'repo-1-host', lastSeen: daysAgo(1) }] });
 
       expect(component.affectedAssets()[0].name).toBe('repo-2-host');
+    });
+  });
+
+  describe('last seen window', () => {
+    const windowedResponse = {
+      response: [
+        { id: 'recent', name: 'Recent', lastSeen: daysAgo(5) },
+        { id: 'mid', name: 'Mid', lastSeen: daysAgo(45) },
+        { id: 'stale', name: 'Stale', lastSeen: daysAgo(200) },
+        { id: 'never', name: 'Never', lastSeen: '-1' }
+      ]
+    };
+
+    beforeEach(() => {
+      mockIntegrationService.postTenableHostSearch.mockReturnValue(of(windowedResponse));
+      (component as any).tenableRepoId = () => 42;
+      component.getAffectedAssets();
+    });
+
+    it('should default the window to 90 days', () => {
+      expect(component.lastSeenRange()).toBe('90');
+    });
+
+    it('should keep only hosts last seen within 90 days by default', () => {
+      expect(component.affectedAssets().map((host: any) => host.name)).toEqual(['Recent', 'Mid']);
+    });
+
+    it('should narrow to hosts last seen within 30 days', () => {
+      component.onLastSeenRangeChange('30');
+      expect(component.affectedAssets().map((host: any) => host.name)).toEqual(['Recent']);
+    });
+
+    it('should narrow to hosts last seen within 7 days', () => {
+      component.onLastSeenRangeChange('7');
+      expect(component.affectedAssets().map((host: any) => host.name)).toEqual(['Recent']);
+    });
+
+    it('should restore every host under all time', () => {
+      component.onLastSeenRangeChange('all');
+      expect(component.affectedAssets().map((host: any) => host.name)).toEqual(['Recent', 'Mid', 'Stale', 'Never']);
+    });
+
+    it('should exclude hosts that have never been seen from bounded windows', () => {
+      component.onLastSeenRangeChange('7');
+      expect(component.affectedAssets().some((host: any) => host.name === 'Never')).toBe(false);
+    });
+
+    it('should report the windowed count in totalRecords', () => {
+      expect(component.totalRecords()).toBe(2);
+      component.onLastSeenRangeChange('all');
+      expect(component.totalRecords()).toBe(4);
+    });
+
+    it('should not refetch when the window changes', () => {
+      const callCount = mockIntegrationService.postTenableHostSearch.mock.calls.length;
+
+      component.onLastSeenRangeChange('7');
+      component.onLastSeenRangeChange('all');
+      expect(mockIntegrationService.postTenableHostSearch.mock.calls).toHaveLength(callCount);
+    });
+
+    it('should keep the formatted lastSeen for display', () => {
+      expect(component.affectedAssets()[0].lastSeen).toMatch(/\d{2}\/\d{2}\/\d{4}/);
+    });
+
+    it('should not expose lastSeenRaw as a selectable column', () => {
+      component.initColumnsAndFilters();
+      expect(component.cols.map((col: any) => col.field)).not.toContain('lastSeenRaw');
     });
   });
 
@@ -346,6 +421,12 @@ describe('TenableHostAssetsTableComponent', () => {
       component.filterValue = 'some filter';
       component.clear();
       expect(component.filterValue).toBe('');
+    });
+
+    it('should reset the last seen window to all time', () => {
+      component.onLastSeenRangeChange('7');
+      component.clear();
+      expect(component.lastSeenRange()).toBe('all');
     });
   });
 

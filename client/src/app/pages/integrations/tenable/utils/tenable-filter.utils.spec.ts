@@ -14,6 +14,7 @@ import {
   buildArrayFilter,
   buildAssetApiFilter,
   buildAssetFilterExpression,
+  buildDelimitedListFilter,
   buildFamilyFilter,
   buildIdArrayFilter,
   buildOperatorValueFilter,
@@ -325,6 +326,31 @@ describe('tenable-filter.utils', () => {
     });
   });
 
+  describe('buildDelimitedListFilter', () => {
+    it('should join comma, newline and whitespace separated tokens with commas', () => {
+      expect(buildDelimitedListFilter('ip', { value: '10.0.0.1, 10.0.0.2\n10.0.0.0/8', operator: '=' })).toEqual(vulnFilter('ip', '10.0.0.1,10.0.0.2,10.0.0.0/8'));
+    });
+
+    it('should deduplicate tokens', () => {
+      expect(buildDelimitedListFilter('iavmID', { value: '2024-A-0001,2024-A-0001', operator: '=' })?.value).toBe('2024-A-0001');
+    });
+
+    it('should keep the operator and default a missing one to =', () => {
+      expect(buildDelimitedListFilter('ip', { value: '10.0.0.1', operator: '!=' })?.operator).toBe('!=');
+      expect(buildDelimitedListFilter('ip', { value: '10.0.0.1', operator: null })?.operator).toBe('=');
+    });
+
+    it.each([
+      ['an empty value', { value: '', operator: '=' }],
+      ['a delimiter-only value', { value: ' , ', operator: '=' }],
+      ['a null value', { value: null, operator: '=' }],
+      ['a non-string value', { value: 42, operator: '=' }],
+      ['null', null]
+    ])('should return null for %s', (_label, value) => {
+      expect(buildDelimitedListFilter('ip', value)).toBeNull();
+    });
+  });
+
   describe('buildRangeFilter', () => {
     it('should encode none', () => {
       expect(buildRangeFilter('vprScore', { value: 'none', min: 0, max: 10 })).toEqual(vulnFilter('vprScore', 'none'));
@@ -364,7 +390,7 @@ describe('tenable-filter.utils', () => {
 
   describe('API_FILTER_BUILDERS', () => {
     it('should expose a builder for every handler type', () => {
-      expect(Object.keys(API_FILTER_BUILDERS).sort()).toEqual(['array', 'family', 'idArray', 'operatorValue', 'range', 'severity', 'simpleValue']);
+      expect(Object.keys(API_FILTER_BUILDERS).sort()).toEqual(['array', 'delimitedList', 'family', 'idArray', 'operatorValue', 'range', 'severity', 'simpleValue']);
     });
 
     it('should route each handler to its builder', () => {
@@ -373,6 +399,7 @@ describe('tenable-filter.utils', () => {
       expect(API_FILTER_BUILDERS['severity']).toBe(buildSeverityFilter);
       expect(API_FILTER_BUILDERS['array']).toBe(buildArrayFilter);
       expect(API_FILTER_BUILDERS['operatorValue']).toBe(buildOperatorValueFilter);
+      expect(API_FILTER_BUILDERS['delimitedList']).toBe(buildDelimitedListFilter);
       expect(API_FILTER_BUILDERS['range']).toBe(buildRangeFilter);
       expect(API_FILTER_BUILDERS['simpleValue']).toBe(buildSimpleValueFilter);
     });

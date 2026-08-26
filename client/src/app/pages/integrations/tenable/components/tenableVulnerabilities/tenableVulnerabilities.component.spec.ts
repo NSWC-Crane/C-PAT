@@ -183,8 +183,43 @@ describe('TenableVulnerabilitiesComponent', () => {
       expect(component.tempFilters['severity']).toBeDefined();
     });
 
-    it('should have 61 accordion items', () => {
-      expect(component.accordionItems).toHaveLength(61);
+    it('should have 62 accordion items', () => {
+      expect(component.accordionItems).toHaveLength(62);
+    });
+
+    it('should number accordion items contiguously in declaration order', () => {
+      expect(component.accordionItems.map((item) => item.value)).toEqual(component.accordionItems.map((_item, index) => index));
+    });
+
+    it('should expose the EPSS range filter after Exploit Frameworks', () => {
+      const index = component.accordionItems.findIndex((item) => item.identifier === 'epssScore');
+
+      expect(component.accordionItems[index]).toMatchObject({ header: 'Exploit Prediction Scoring System (%)', content: 'rangeFilter', options: component.customRangeOptions });
+      expect(component.accordionItems[index - 1].identifier).toBe('exploitFrameworks');
+      expect((component as any).initializeTempFilters().epssScore).toEqual({ value: 'all', min: 0, max: 100 });
+    });
+
+    it('should render Address as an operator/input filter with = and !=', () => {
+      const item = component.accordionItems.find((entry) => entry.identifier === 'ip');
+
+      expect(item).toMatchObject({ content: 'dropdownAndInput' });
+      expect(item?.options?.map((option: any) => option.value)).toEqual(['=', '!=']);
+    });
+
+    it('should offer None for Patch Published only', () => {
+      expect(component.patchPublishedOptions.map((option) => option.value)).toContain('none');
+      expect(component.patchPublishedOptions[0].value).toBe('All');
+      expect(component.tenableDateOptions.map((option) => option.value)).not.toContain('none');
+    });
+
+    it('should backfill filters missing from a stored session state', () => {
+      const stored = (component as any).initializeTempFilters();
+
+      delete stored.epssScore;
+      sessionStorage.setItem('tenableFilterState', JSON.stringify({ currentPreset: component.currentPreset(), tempFilters: stored, activeFilters: [], filterHistory: [], currentFilterHistoryIndex: -1, tenableTool: 'sumid' }));
+      component.ngOnInit();
+      expect(component.tempFilters['epssScore']).toEqual({ value: 'all', min: 0, max: 100 });
+      expect(component.tempFilters['vprScore']).toEqual(stored.vprScore);
     });
   });
 
@@ -192,10 +227,10 @@ describe('TenableVulnerabilitiesComponent', () => {
     const validatorFor = (identifier: string) => component.accordionItems.find((item) => item.identifier === identifier)?.validator;
 
     it.each([
-      ['ip', '192.168.1.1', '256.1.1.1'],
+      ['ip', '10.0.0.0/8, 10.1.1.1', '10.0.0.1, 256.1.1.1'],
       ['uuid', '550e8400-e29b-41d4-a716-446655440000', '550e8400e29b41d4a716446655440000'],
       ['hostUUID', '550e8400-e29b-41d4-a716-446655440000', '550e8400e29b41d4a716446655440000'],
-      ['iavmID', '2024-A-0123', '2024-0123'],
+      ['iavmID', '2024-A-0123, 2024-B-0001', '2024-A-0123, 2024-0123'],
       ['stigSeverity', 'II', 'IV'],
       ['cvssVector', 'AV:N/AC:L/Au:N/C:P/I:P/A:P', 'AV:N/AC:L/Au:N/C:P/I:P'],
       ['cvssV3Vector', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N'],
@@ -237,6 +272,11 @@ describe('TenableVulnerabilitiesComponent', () => {
 
     it('should return 10 for baseCVSSScore max', () => {
       expect(component.getMaxValue('baseCVSSScore')).toBe(10);
+    });
+
+    it('should return 100 for epssScore max and 0 for its min', () => {
+      expect(component.getMaxValue('epssScore')).toBe(100);
+      expect(component.getMinValue('epssScore')).toBe(0);
     });
 
     it('should return 10000 for unknown identifier max', () => {
@@ -526,6 +566,12 @@ describe('TenableVulnerabilitiesComponent', () => {
       expect(component.tempFilters['assetExposureScore'].max).toBe(1000);
     });
 
+    it('should set default min=0/max=100 for epssScore customRange', () => {
+      component.tempFilters['epssScore'] = { value: 'all', min: 0, max: 100 };
+      component.onRangeChange({ value: 'customRange' }, 'epssScore');
+      expect(component.tempFilters['epssScore']).toEqual({ value: 'customRange', min: 0, max: 100 });
+    });
+
     it('should not set min/max for non-customRange value', () => {
       component.tempFilters['vprScore'] = { value: 'customRange', min: 5, max: 8 };
       component.onRangeChange({ value: 'none' }, 'vprScore');
@@ -577,6 +623,12 @@ describe('TenableVulnerabilitiesComponent', () => {
       expect(component.tempFilters['vprScore'].max).toBe(10);
     });
 
+    it('should clamp epssScore to 0-100', () => {
+      component.tempFilters['epssScore'] = { value: 'customRange', min: -5, max: 150 };
+      component.onRangeValueChange('epssScore');
+      expect(component.tempFilters['epssScore']).toEqual({ value: 'customRange', min: 0, max: 100 });
+    });
+
     it.each([
       ['assetCriticalityRating', 1, 10],
       ['assetExposureScore', 0, 1000],
@@ -584,7 +636,8 @@ describe('TenableVulnerabilitiesComponent', () => {
       ['cvssV3BaseScore', 0, 10],
       ['cvssV4BaseScore', 0, 10],
       ['cvssV4ThreatScore', 0, 10],
-      ['vprScore', 0, 10]
+      ['vprScore', 0, 10],
+      ['epssScore', 0, 100]
     ])('should coerce non-finite %s bounds to its limits', (identifier, lower, upper) => {
       component.tempFilters[identifier] = { value: 'customRange', min: NaN, max: null };
       component.onRangeValueChange(identifier);
@@ -725,6 +778,30 @@ describe('TenableVulnerabilitiesComponent', () => {
     it('should encode a custom range as min-max', () => {
       component.tempFilters['vprScore'] = { value: 'customRange', min: 2, max: 7 };
       expect(encoded('vprScore')).toEqual({ id: 'vprScore', filterName: 'vprScore', operator: '=', type: 'vuln', isPredefined: true, value: '2-7' });
+    });
+
+    it('should encode an EPSS custom range, none, and drop all', () => {
+      component.tempFilters['epssScore'] = { value: 'customRange', min: 5, max: 60 };
+      expect(encoded('epssScore')).toEqual({ id: 'epssScore', filterName: 'epssScore', operator: '=', type: 'vuln', isPredefined: true, value: '5-60' });
+      component.tempFilters['epssScore'] = { value: 'none', min: 0, max: 100 };
+      expect(encoded('epssScore')?.value).toBe('none');
+      component.tempFilters['epssScore'] = { value: 'all', min: 0, max: 100 };
+      expect(encoded('epssScore')).toBeUndefined();
+    });
+
+    it('should normalise an address list to comma form and keep its operator', () => {
+      component.tempFilters['ip'] = { value: '10.0.0.1, 10.0.0.0/8\n2001:db8::1', operator: '!=', isValid: true, isDirty: true };
+      expect(encoded('ip')).toEqual({ id: 'ip', filterName: 'ip', operator: '!=', type: 'vuln', isPredefined: true, value: '10.0.0.1,10.0.0.0/8,2001:db8::1' });
+    });
+
+    it('should normalise an IAVM list to comma form', () => {
+      component.tempFilters['iavmID'] = { value: '2024-A-0001\n2024-B-0002', operator: null, isValid: true, isDirty: true };
+      expect(encoded('iavmID')).toEqual({ id: 'iavmID', filterName: 'iavmID', operator: '=', type: 'vuln', isPredefined: true, value: '2024-A-0001,2024-B-0002' });
+    });
+
+    it('should encode Patch Published none', () => {
+      component.tempFilters['patchPublished'] = 'none';
+      expect(encoded('patchPublished')?.value).toBe('none');
     });
 
     it.each([
@@ -885,6 +962,30 @@ describe('TenableVulnerabilitiesComponent', () => {
       expect(component.tempFilters['ip']).toEqual({ value: '999.1.1.1', operator: '~', isDirty: true, isValid: false });
     });
 
+    it('should accept a saved CIDR address list as valid', () => {
+      mapFilter(vulnFilter('ip', '198.51.100.0/24,10.0.0.1', '!='));
+      expect(component.tempFilters['ip']).toEqual({ value: '198.51.100.0/24,10.0.0.1', operator: '!=', isDirty: true, isValid: true });
+    });
+
+    it('should accept a saved IAVM list as valid', () => {
+      mapFilter(vulnFilter('iavmID', '2024-A-0001,2024-B-0002'));
+      expect(component.tempFilters['iavmID']).toEqual({ value: '2024-A-0001,2024-B-0002', operator: '=', isDirty: true, isValid: true });
+    });
+
+    it('should map an EPSS range onto its 0-100 bounds', () => {
+      mapFilter(vulnFilter('epssScore', '5-60'));
+      expect(component.tempFilters['epssScore']).toEqual({ value: 'customRange', min: 5, max: 60 });
+      mapFilter(vulnFilter('epssScore', '0-250'));
+      expect(component.tempFilters['epssScore']).toEqual({ value: 'customRange', min: 0, max: 100 });
+      mapFilter(vulnFilter('epssScore', 'none'));
+      expect(component.tempFilters['epssScore']).toEqual({ value: 'none' });
+    });
+
+    it('should map Patch Published none directly', () => {
+      mapFilter(vulnFilter('patchPublished', 'none'));
+      expect(component.tempFilters['patchPublished']).toBe('none');
+    });
+
     it('should map an API name onto its UI name', () => {
       mapFilter(vulnFilter('cceID', 'CCE-1'));
       expect(component.tempFilters['cceId']).toMatchObject({ value: 'CCE-1', operator: '=' });
@@ -946,6 +1047,9 @@ describe('TenableVulnerabilitiesComponent', () => {
       component.tempFilters['aesSeverity'] = ['1', '2'];
       component.tempFilters['vprScore'] = { value: 'customRange', min: 2, max: 7 };
       component.tempFilters['baseCVSSScore'] = { value: 'none', min: 0, max: 10 };
+      component.tempFilters['epssScore'] = { value: 'customRange', min: 5, max: 60 };
+      component.tempFilters['iavmID'] = { value: '2024-A-0001, 2024-B-0002', operator: null, isValid: true, isDirty: true };
+      component.tempFilters['patchPublished'] = 'none';
       component.tempFilters['exploitAvailable'] = 'true';
       component.tempFilters['lastSeen'] = '0:30';
 
@@ -965,6 +1069,9 @@ describe('TenableVulnerabilitiesComponent', () => {
       expect(component.tempFilters['aesSeverity']).toEqual(['1', '2']);
       expect(component.tempFilters['vprScore']).toEqual({ value: 'customRange', min: 2, max: 7 });
       expect(component.tempFilters['baseCVSSScore']).toEqual({ value: 'none' });
+      expect(component.tempFilters['epssScore']).toEqual({ value: 'customRange', min: 5, max: 60 });
+      expect(component.tempFilters['iavmID']).toEqual({ value: '2024-A-0001,2024-B-0002', operator: '=', isValid: true, isDirty: true });
+      expect(component.tempFilters['patchPublished']).toBe('none');
       expect(component.tempFilters['exploitAvailable']).toBe('true');
       expect(component.tempFilters['lastSeen']).toBe('0:30');
     });

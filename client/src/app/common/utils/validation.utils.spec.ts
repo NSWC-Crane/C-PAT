@@ -9,7 +9,22 @@
 */
 
 import { describe, expect, it } from 'vitest';
-import { getAllowedExtension, isZoneCorDPackage, splitDelimitedIds, validateAttachment, validateCVSSv2Vector, validateCVSSv3Vector, validateCVSSv4Vector, validateIAVM, validateIP, validateStigSeverity, validateUUID } from './validation.utils';
+import {
+  getAllowedExtension,
+  isZoneCorDPackage,
+  splitDelimitedIds,
+  validateAddressList,
+  validateAttachment,
+  validateCVSSv2Vector,
+  validateCVSSv3Vector,
+  validateCVSSv4Vector,
+  validateIAVM,
+  validateIAVMList,
+  validateIP,
+  validateIPv6,
+  validateStigSeverity,
+  validateUUID
+} from './validation.utils';
 
 const ALLOWED_TYPES = ['.pdf', '.xlsx', '.json', '.tar.gz', '.gz'];
 
@@ -30,6 +45,9 @@ const ALL_VALIDATORS: [string, (value: string) => boolean][] = [
   ['validateIP', validateIP],
   ['validateUUID', validateUUID],
   ['validateIAVM', validateIAVM],
+  ['validateIPv6', validateIPv6],
+  ['validateAddressList', validateAddressList],
+  ['validateIAVMList', validateIAVMList],
   ['validateStigSeverity', validateStigSeverity],
   ['validateCVSSv2Vector', validateCVSSv2Vector],
   ['validateCVSSv3Vector', validateCVSSv3Vector],
@@ -148,6 +166,88 @@ describe('validation.utils', () => {
       expect(validateStigSeverity('IV')).toBe(false);
       expect(validateStigSeverity('CAT I')).toBe(false);
       expect(validateStigSeverity('i')).toBe(false);
+    });
+  });
+
+  describe('validateIPv6', () => {
+    it('should accept full and compressed addresses', () => {
+      expect(validateIPv6('2001:0db8:85a3:0000:0000:8a2e:0370:7334')).toBe(true);
+      expect(validateIPv6('2001:db8::1')).toBe(true);
+      expect(validateIPv6('::1')).toBe(true);
+      expect(validateIPv6('::')).toBe(true);
+      expect(validateIPv6('fe80::')).toBe(true);
+      expect(validateIPv6('  2001:DB8::1  ')).toBe(true);
+    });
+
+    it('should accept a prefix length up to 128', () => {
+      expect(validateIPv6('2001:db8::/32')).toBe(true);
+      expect(validateIPv6('2001:db8::/128')).toBe(true);
+      expect(validateIPv6('2001:db8::/129')).toBe(false);
+      expect(validateIPv6('2001:db8::/x')).toBe(false);
+      expect(validateIPv6('2001:db8::/32/1')).toBe(false);
+    });
+
+    it('should reject malformed addresses', () => {
+      expect(validateIPv6('2001:db8::1::2')).toBe(false);
+      expect(validateIPv6('2001:db8:::1')).toBe(false);
+      expect(validateIPv6('12345::1')).toBe(false);
+      expect(validateIPv6('1:2:3:4:5:6:7')).toBe(false);
+      expect(validateIPv6('1:2:3:4:5:6:7:8:9')).toBe(false);
+      expect(validateIPv6(':1:2:3:4:5:6:7:8')).toBe(false);
+      expect(validateIPv6('1:2:3:4:5:6:7:8:')).toBe(false);
+      expect(validateIPv6('192.168.1.1')).toBe(false);
+      expect(validateIPv6('2001:db8::g')).toBe(false);
+    });
+  });
+
+  describe('validateAddressList', () => {
+    it('should accept a single IPv4 address', () => {
+      expect(validateAddressList('192.168.1.1')).toBe(true);
+    });
+
+    it('should accept CIDR blocks and IPv4 ranges', () => {
+      expect(validateAddressList('198.51.100.0/24')).toBe(true);
+      expect(validateAddressList('10.0.0.0/0')).toBe(true);
+      expect(validateAddressList('10.0.0.1-10.0.0.50')).toBe(true);
+    });
+
+    it('should accept IPv6 addresses', () => {
+      expect(validateAddressList('2001:db8::1')).toBe(true);
+      expect(validateAddressList('2001:db8::/32')).toBe(true);
+    });
+
+    it('should accept comma, newline and whitespace separated lists', () => {
+      expect(validateAddressList('10.0.0.1, 10.0.0.2')).toBe(true);
+      expect(validateAddressList('10.0.0.1\n10.0.0.0/8\n2001:db8::1')).toBe(true);
+      expect(validateAddressList('10.0.0.1 10.0.0.2')).toBe(true);
+      expect(validateAddressList('10.0.0.1,,')).toBe(true);
+    });
+
+    it('should reject a list containing a malformed token', () => {
+      expect(validateAddressList('10.0.0.1, 256.1.1.1')).toBe(false);
+      expect(validateAddressList('10.0.0.0/33')).toBe(false);
+      expect(validateAddressList('10.0.0.0/8/1')).toBe(false);
+      expect(validateAddressList('10.0.0.1-')).toBe(false);
+      expect(validateAddressList('10.0.0.1-10.0.0.2-10.0.0.3')).toBe(false);
+      expect(validateAddressList('host.example.com')).toBe(false);
+    });
+  });
+
+  describe('validateIAVMList', () => {
+    it('should accept a single IAVM number', () => {
+      expect(validateIAVMList('2024-A-0001')).toBe(true);
+    });
+
+    it('should accept comma, newline and whitespace separated lists', () => {
+      expect(validateIAVMList('2024-A-0001,2024-B-0002')).toBe(true);
+      expect(validateIAVMList('2024-A-0001, 2024-B-0002')).toBe(true);
+      expect(validateIAVMList('2024-A-0001\n2024-B-0002')).toBe(true);
+      expect(validateIAVMList('2024-A-0001,,')).toBe(true);
+    });
+
+    it('should reject a list containing a malformed token', () => {
+      expect(validateIAVMList('2024-A-0001, 2024-0002')).toBe(false);
+      expect(validateIAVMList('2024-A-0001;2024-AB-0002')).toBe(false);
     });
   });
 

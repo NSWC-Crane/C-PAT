@@ -52,7 +52,7 @@ import { PayloadService } from '../../../../../common/services/setPayload.servic
 import { SharedService } from '../../../../../common/services/shared.service';
 import { CsvExportService, toCsvColumns } from '../../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
-import { isZoneCorDPackage, validateCVSSv2Vector, validateCVSSv3Vector, validateCVSSv4Vector, validateIAVM, validateIP, validateStigSeverity, validateUUID } from '../../../../../common/utils/validation.utils';
+import { isZoneCorDPackage, validateAddressList, validateCVSSv2Vector, validateCVSSv3Vector, validateCVSSv4Vector, validateIAVMList, validateStigSeverity, validateUUID } from '../../../../../common/utils/validation.utils';
 import {
   createIAVInfoMap,
   createPoamAssociationsMap,
@@ -217,7 +217,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
   lastSeenOptions = this.tenableDateOptions;
   firstSeenOptions = this.tenableDateOptions;
   vulnPublishedOptions = this.tenableDateOptions;
-  patchPublishedOptions = this.tenableDateOptions;
+  patchPublishedOptions = [this.tenableDateOptions[0], { label: 'None', value: 'none' }, ...this.tenableDateOptions.slice(1)];
   pluginPublishedOptions = this.tenableDateOptions;
   pluginModifiedOptions = this.tenableDateOptions;
 
@@ -310,6 +310,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     { label: '=', value: '=' },
     { label: '≠', value: '!=' }
   ];
+  addressOptions = this.xrefOptions;
 
   customRangeOptions = [
     { label: 'All', value: 'all' },
@@ -322,6 +323,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
   cvssV3BaseScoreOptions = this.customRangeOptions;
   cvssV4BaseScoreOptions = this.customRangeOptions;
   cvssV4ThreatScoreOptions = this.customRangeOptions;
+  epssScoreOptions = this.customRangeOptions;
   vprScoreOptions = this.customRangeOptions;
 
   defaultPremadeFilterOptions: PremadeFilterOption[] = [
@@ -373,10 +375,11 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     },
     {
       header: 'Address',
-      content: 'input',
+      content: 'dropdownAndInput',
       identifier: 'ip',
-      placeholder: 'IP Address...',
-      validator: validateIP,
+      options: this.addressOptions,
+      placeholder: 'IP, CIDR, or range (comma-separated)...',
+      validator: validateAddressList,
       value: 4
     },
     {
@@ -524,139 +527,146 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       value: 24
     },
     {
+      header: 'Exploit Prediction Scoring System (%)',
+      content: 'rangeFilter',
+      identifier: 'epssScore',
+      options: this.epssScoreOptions,
+      value: 25
+    },
+    {
       header: 'Host ID',
       content: 'input',
       identifier: 'hostUUID',
       placeholder: 'Enter Host UUID...',
       validator: validateUUID,
-      value: 25
+      value: 26
     },
     {
       header: 'IAVM ID',
       content: 'input',
       identifier: 'iavmID',
-      placeholder: 'Enter IAVM ID...',
-      validator: validateIAVM,
-      value: 26
+      placeholder: 'Enter IAVM IDs (comma-separated)...',
+      validator: validateIAVMList,
+      value: 27
     },
     {
       header: 'Input Name',
       content: 'input',
       identifier: 'wasInputName',
       placeholder: 'Enter input name...',
-      value: 27
+      value: 28
     },
     {
       header: 'Input Type',
       content: 'input',
       identifier: 'wasInputType',
       placeholder: 'Enter input type...',
-      value: 28
+      value: 29
     },
     {
       header: 'MS Bulletin ID',
       content: 'input',
       identifier: 'msbulletinID',
       placeholder: 'Enter MS Bulletin ID...',
-      value: 29
+      value: 30
     },
     {
       header: 'Mitigated',
       content: 'dropdown',
       identifier: 'mitigatedStatus',
       options: this.mitigatedStatusOptions,
-      value: 30
+      value: 31
     },
     {
       header: 'Nessus Web Tests',
       content: 'dropdown',
       identifier: 'cgiScanEnabled',
       options: this.testStatusOptions,
-      value: 31
+      value: 32
     },
     {
       header: 'NetBIOS Name',
       content: 'dropdownAndTextarea',
       identifier: 'netbiosName',
       options: this.netbiosNameOptions,
-      value: 32
+      value: 33
     },
     {
       header: 'Operating System',
       content: 'input',
       identifier: 'operatingSystem',
       placeholder: 'Enter Operating System...',
-      value: 33
+      value: 34
     },
     {
       header: 'Patch Published',
       content: 'dropdown',
       identifier: 'patchPublished',
       options: this.patchPublishedOptions,
-      value: 34
+      value: 35
     },
     {
       header: 'Plugin Family',
       content: 'multiSelect',
       identifier: 'family',
       options: this.familyOptions(),
-      value: 35
+      value: 36
     },
     {
       header: 'Plugin ID',
       content: 'dropdownAndTextarea',
       identifier: 'pluginID',
       options: this.pluginIDOptions,
-      value: 36
+      value: 37
     },
     {
       header: 'Plugin Modified',
       content: 'dropdown',
       identifier: 'pluginModified',
       options: this.pluginModifiedOptions,
-      value: 37
+      value: 38
     },
     {
       header: 'Plugin Name',
       content: 'dropdownAndTextarea',
       identifier: 'pluginName',
       options: this.pluginNameOptions,
-      value: 38
+      value: 39
     },
     {
       header: 'Plugin Published',
       content: 'dropdown',
       identifier: 'pluginPublished',
       options: this.pluginPublishedOptions,
-      value: 39
+      value: 40
     },
     {
       header: 'Plugin Type',
       content: 'dropdown',
       identifier: 'pluginType',
       options: this.pluginTypeOptions,
-      value: 40
+      value: 41
     },
     {
       header: 'Port',
       content: 'dropdownAndTextarea',
       identifier: 'port',
       options: this.portOptions,
-      value: 41
+      value: 42
     },
     {
       header: 'Protocol',
       content: 'multiSelect',
       identifier: 'protocol',
       options: this.protocolOptions,
-      value: 42
+      value: 43
     },
     {
       header: 'Recast Risk',
       content: 'dropdown',
       identifier: 'recastRiskStatus',
       options: this.recastRiskStatusOptions,
-      value: 43
+      value: 44
     },
     {
       header: 'STIG Severity',
@@ -664,119 +674,119 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       identifier: 'stigSeverity',
       options: this.stigSeverityOptions,
       validator: validateStigSeverity,
-      value: 44
+      value: 45
     },
     {
       header: 'Scan Accuracy',
       content: 'dropdown',
       identifier: 'paranoidScanEnabled',
       options: this.paranoidScanOptions,
-      value: 45
+      value: 46
     },
     {
       header: 'Scan Policy Plugins',
       content: 'dropdown',
       identifier: 'policy',
       options: this.scanPolicyPluginOptions,
-      value: 46
+      value: 47
     },
     {
       header: 'Security End of Life Date',
       content: 'dropdown',
       identifier: 'seolDate',
       options: this.seolDateOptions,
-      value: 47
+      value: 48
     },
     {
       header: 'Severity',
       content: 'multiSelect',
       identifier: 'severity',
       options: this.severityOptions,
-      value: 48
+      value: 49
     },
     {
       header: 'Thorough Tests',
       content: 'dropdown',
       identifier: 'thoroughScanEnabled',
       options: this.testStatusOptions,
-      value: 49
+      value: 50
     },
     {
       header: 'Users',
       content: 'multiSelect',
       identifier: 'responsibleUser',
       options: this.userOptions,
-      value: 50
+      value: 51
     },
     {
       header: 'Vulnerability Discovered',
       content: 'dropdown',
       identifier: 'firstSeen',
       options: this.firstSeenOptions,
-      value: 51
+      value: 52
     },
     {
       header: 'Vulnerability ID',
       content: 'input',
       identifier: 'vulnUUID',
       placeholder: 'Enter Vuln UUID...',
-      value: 52
+      value: 53
     },
     {
       header: 'Vulnerability Last Observed',
       content: 'dropdown',
       identifier: 'lastSeen',
       options: this.lastSeenOptions,
-      value: 53
+      value: 54
     },
     {
       header: 'Vulnerability Priority Rating',
       content: 'rangeFilter',
       identifier: 'vprScore',
       options: this.vprScoreOptions,
-      value: 54
+      value: 55
     },
     {
       header: 'Vulnerability Published',
       content: 'dropdown',
       identifier: 'vulnPublished',
       options: this.vulnPublishedOptions,
-      value: 55
+      value: 56
     },
     {
       header: 'Vulnerability Text',
       content: 'dropdownAndTextarea',
       identifier: 'pluginText',
       options: this.pluginTextOptions,
-      value: 56
+      value: 57
     },
     {
       header: 'Vulnerability Type',
       content: 'dropdown',
       identifier: 'vulnerabilityType',
       options: this.vulnerabilityTypeOptions,
-      value: 57
+      value: 58
     },
     {
       header: 'Web App HTTP Method',
       content: 'input',
       identifier: 'wasHttpMethod',
       placeholder: 'Web app HTTP method...',
-      value: 58
+      value: 59
     },
     {
       header: 'Web App Scanning',
       content: 'dropdown',
       identifier: 'wasVuln',
       options: this.webAppScanningOptions,
-      value: 59
+      value: 60
     },
     {
       header: 'Web App URL',
       content: 'input',
       identifier: 'wasURL',
       placeholder: 'Web app URL...',
-      value: 60
+      value: 61
     }
   ];
 
@@ -793,7 +803,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     dataFormat: { uiName: 'dataFormat', handler: 'array' },
     protocol: { uiName: 'protocol', handler: 'array' },
 
-    ip: { uiName: 'ip', handler: 'operatorValue' },
+    ip: { uiName: 'ip', handler: 'delimitedList' },
     uuid: { uiName: 'uuid', handler: 'operatorValue' },
     pluginText: { uiName: 'pluginText', handler: 'operatorValue' },
     pluginID: { uiName: 'pluginID', handler: 'operatorValue' },
@@ -811,7 +821,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     cvssV4ThreatVector: { uiName: 'cvssV4ThreatVector', handler: 'operatorValue' },
     dnsName: { uiName: 'dnsName', handler: 'operatorValue' },
     hostUUID: { uiName: 'hostUUID', handler: 'operatorValue' },
-    iavmID: { uiName: 'iavmID', handler: 'operatorValue' },
+    iavmID: { uiName: 'iavmID', handler: 'delimitedList' },
     wasInputName: { uiName: 'wasInputName', handler: 'operatorValue' },
     wasInputType: { uiName: 'wasInputType', handler: 'operatorValue' },
     msbulletinID: { uiName: 'msbulletinID', handler: 'operatorValue' },
@@ -845,7 +855,8 @@ export class TenableVulnerabilitiesComponent implements OnInit {
     baseCVSSScore: { uiName: 'baseCVSSScore', handler: 'range' },
     cvssV3BaseScore: { uiName: 'cvssV3BaseScore', handler: 'range' },
     cvssV4BaseScore: { uiName: 'cvssV4BaseScore', handler: 'range' },
-    cvssV4ThreatScore: { uiName: 'cvssV4ThreatScore', handler: 'range' }
+    cvssV4ThreatScore: { uiName: 'cvssV4ThreatScore', handler: 'range' },
+    epssScore: { uiName: 'epssScore', handler: 'range' }
   };
 
   private readonly filterHandlers: { [key: string]: FilterHandler } = {
@@ -871,6 +882,8 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       isDirty: true,
       isValid: true
     }),
+
+    delimitedList: (filter: any): FilterValue => this.filterHandlers['operatorValue'](filter),
 
     idArray: (filter: any): FilterValue => {
       if (Array.isArray(filter.value)) {
@@ -934,7 +947,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
 
         this.filterHistory = returnState.filterHistory || [];
         this.currentFilterHistoryIndex = returnState.currentFilterHistoryIndex ?? -1;
-        this.tempFilters = returnState.tempFilters || this.initializeTempFilters();
+        this.tempFilters = { ...this.initializeTempFilters(), ...returnState.tempFilters };
         this.activeFilters = returnState.activeFilters || [];
         this.tenableTool = returnState.tenableTool || 'sumid';
       } else {
@@ -1143,6 +1156,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       cvssV3BaseScore: { value: 'all', min: 0, max: 10 },
       cvssV4BaseScore: { value: 'all', min: 0, max: 10 },
       cvssV4ThreatScore: { value: 'all', min: 0, max: 10 },
+      epssScore: { value: 'all', min: 0, max: 100 },
       cvssV3Vector: {
         value: null,
         operator: null,
@@ -1909,6 +1923,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       case 'cvssV3BaseScore':
       case 'cvssV4BaseScore':
       case 'cvssV4ThreatScore':
+      case 'epssScore':
       case 'vprScore':
         this.tempFilters[identifier] = {
           value: 'all',
@@ -1986,6 +2001,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       case 'cvssV3BaseScore':
       case 'cvssV4BaseScore':
       case 'cvssV4ThreatScore':
+      case 'epssScore':
       case 'vprScore':
         return filter.value !== 'all';
       case 'asset':
@@ -2056,6 +2072,10 @@ export class TenableVulnerabilitiesComponent implements OnInit {
           this.tempFilters[identifier].min = 0;
           this.tempFilters[identifier].max = 10;
           break;
+        case 'epssScore':
+          this.tempFilters[identifier].min = 0;
+          this.tempFilters[identifier].max = 100;
+          break;
       }
     }
   }
@@ -2076,6 +2096,9 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       case 'cvssV4ThreatScore':
       case 'vprScore':
         this.clampRange(filter, 0, 10);
+        break;
+      case 'epssScore':
+        this.clampRange(filter, 0, 100);
         break;
     }
   }
@@ -2156,6 +2179,8 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       case 'cvssV4ThreatScore':
       case 'vprScore':
         return 10;
+      case 'epssScore':
+        return 100;
       default:
         return 10000;
     }
