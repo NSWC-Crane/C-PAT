@@ -43,9 +43,21 @@ export interface TenableExportMetrics {
   openFindingsCatI: number;
   openFindingsCatII: number;
   openFindingsCatIII: number;
+  openFindingsCatI30: number;
+  openFindingsCatII30: number;
+  openFindingsCatIII30: number;
+  openFindingsCatI90: number;
+  openFindingsCatII90: number;
+  openFindingsCatIII90: number;
   seolVulnerabilities: number;
   vphScore: number;
   validOnlineAssets: number;
+}
+
+export interface SeverityCategoryCounts {
+  catI: number;
+  catII: number;
+  catIII: number;
 }
 
 export interface ComplianceCounts {
@@ -582,25 +594,35 @@ export class TenableMetricsDataService {
     };
   }
 
+  toSeverityCategoryCounts(summary: SeveritySummary): SeverityCategoryCounts {
+    return {
+      catI: summary.critical + summary.high,
+      catII: summary.medium,
+      catIII: summary.low
+    };
+  }
+
   getCollectionExportMetrics(repoId: string, collectionId: any): Observable<TenableExportMetrics> {
     const lastSeenValue = LAST_SEEN_BY_TIME_RANGE['30'];
 
     return forkJoin({
-      severitySummary: this.getSeveritySummary(repoId, false, lastSeenValue, true),
+      severitySummaryAll: this.getSeveritySummary(repoId, false, null, true),
+      severitySummary30: this.getSeveritySummary(repoId, false, LAST_SEEN_BY_TIME_RANGE['30'], true),
+      severitySummary90: this.getSeveritySummary(repoId, false, LAST_SEEN_BY_TIME_RANGE['90'], true),
       seolVulnerabilities: this.calculateSEOLVulnerabilities(repoId, lastSeenValue, true),
       vulns30: this.fetchComplianceVulnerabilities(repoId, lastSeenValue, '30:all', true),
       vulns90: this.fetchComplianceVulnerabilities(repoId, lastSeenValue, '90:all', true),
       poams: this.collectionsService.getPoamsByCollection(collectionId),
       hosts: this.loadAllHosts(repoId, true)
     }).pipe(
-      map(({ severitySummary, seolVulnerabilities, vulns30, vulns90, poams, hosts }) => {
+      map(({ severitySummaryAll, severitySummary30, severitySummary90, seolVulnerabilities, vulns30, vulns90, poams, hosts }) => {
         const compliance30 = this.toCompliancePercentages(this.toComplianceCounts(vulns30, poams));
         const compliance90 = this.toCompliancePercentages(this.toComplianceCounts(vulns90, poams));
         const validAssets = this.filterHostCount(hosts, '30');
-        const catICount = severitySummary.critical + severitySummary.high;
-        const catIICount = severitySummary.medium;
-        const catIIICount = severitySummary.low;
-        const vph = this.calculateVPHScore(catICount, catIICount, catIIICount, validAssets);
+        const openAll = this.toSeverityCategoryCounts(severitySummaryAll);
+        const open30 = this.toSeverityCategoryCounts(severitySummary30);
+        const open90 = this.toSeverityCategoryCounts(severitySummary90);
+        const vph = this.calculateVPHScore(open30.catI, open30.catII, open30.catIII, validAssets);
 
         return {
           complianceCatI: compliance30.catI,
@@ -609,9 +631,15 @@ export class TenableMetricsDataService {
           complianceCatI90: compliance90.catI,
           complianceCatII90: compliance90.catII,
           complianceCatIII90: compliance90.catIII,
-          openFindingsCatI: catICount,
-          openFindingsCatII: catIICount,
-          openFindingsCatIII: catIIICount,
+          openFindingsCatI: openAll.catI,
+          openFindingsCatII: openAll.catII,
+          openFindingsCatIII: openAll.catIII,
+          openFindingsCatI30: open30.catI,
+          openFindingsCatII30: open30.catII,
+          openFindingsCatIII30: open30.catIII,
+          openFindingsCatI90: open90.catI,
+          openFindingsCatII90: open90.catII,
+          openFindingsCatIII90: open90.catIII,
           seolVulnerabilities,
           vphScore: vph.score,
           validOnlineAssets: validAssets

@@ -17,7 +17,7 @@ import { TenableMetricsDataService } from '../tenable-metrics/tenable-metrics.da
 import { MetricsExportResult, MetricsExportService } from './metrics-export.service';
 
 const h = vi.hoisted(() => {
-  const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC'];
+  const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI'];
   const HIDDEN_COLUMNS = ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'M', 'N'];
   const TEMPLATE_HEADER_FONT = { bold: true, size: 10, color: { theme: 0 }, name: 'Century Gothic', family: 2 };
   const cells: Record<string, any> = {};
@@ -91,6 +91,12 @@ const tenableExport = {
   openFindingsCatI: 77,
   openFindingsCatII: 88,
   openFindingsCatIII: 99,
+  openFindingsCatI30: 111,
+  openFindingsCatII30: 222,
+  openFindingsCatIII30: 333,
+  openFindingsCatI90: 444,
+  openFindingsCatII90: 555,
+  openFindingsCatIII90: 666,
   seolVulnerabilities: 9,
   vphScore: 1.5,
   validOnlineAssets: 5
@@ -156,11 +162,17 @@ describe('MetricsExportService', () => {
     expect(h.cells['C2'].value).toBe('Month');
     expect(h.cells['K2'].value).toBe('Collection Type');
     expect(h.cells['L2'].value).toBe('Asset Quantity');
-    expect(h.cells['R2'].value).toBe('Open Findings CAT I (Total)');
-    expect(h.cells['S2'].value).toBe('Open Findings CAT II (Total)');
-    expect(h.cells['T2'].value).toBe('Open Findings CAT III (Total)');
-    expect(h.cells['U2'].value).toBe('POAM Coverage (ACAS) % CAT I 30+ Days');
-    expect(h.cells['AC2'].value).toBe('POAM Coverage (STIGs) % CAT III (Lows)');
+    expect(h.cells['R2'].value).toBe('POAM Coverage (STIGs) % CAT I (High/Criticals)');
+    expect(h.cells['T2'].value).toBe('POAM Coverage (STIGs) % CAT III (Lows)');
+    expect(h.cells['U2'].value).toBe('Open Findings CAT I (Total)');
+    expect(h.cells['V2'].value).toBe('Open Findings CAT II (Total)');
+    expect(h.cells['W2'].value).toBe('Open Findings CAT III (Total)');
+    expect(h.cells['X2'].value).toBe('Open Findings (ACAS) CAT I (Within 30 Days)');
+    expect(h.cells['Z2'].value).toBe('Open Findings (ACAS) CAT III (Within 30 Days)');
+    expect(h.cells['AA2'].value).toBe('Open Findings (ACAS) CAT I (Within 90 Days)');
+    expect(h.cells['AC2'].value).toBe('Open Findings (ACAS) CAT III (Within 90 Days)');
+    expect(h.cells['AD2'].value).toBe('POAM Coverage (ACAS) % CAT I 30+ Days');
+    expect(h.cells['AI2'].value).toBe('POAM Coverage (ACAS) % CAT III 90+ Days');
     expect(h.state.writeBufferCalls).toBe(1);
   });
 
@@ -198,10 +210,10 @@ describe('MetricsExportService', () => {
     expect(h.cells['K3'].value).toBe('STIG Manager');
     expect(h.cells['L3'].value).toBe(12);
     expect(h.cells['Q3'].value).toBe(44);
-    expect(h.cells['AA3'].value).toBe(100);
+    expect(h.cells['R3'].value).toBe(100);
     expect(h.cells['O3'].value).toBe('');
     expect(h.cells['P3'].value).toBe('');
-    expect(h.cells['U3'].value).toBe('');
+    expect(h.cells['AD3'].value).toBe('');
     expect(mockTenableData.getCollectionExportMetrics).not.toHaveBeenCalled();
   });
 
@@ -210,9 +222,9 @@ describe('MetricsExportService', () => {
 
     await runExport(collections);
 
-    expect(h.cells['R3'].value).toBe(1);
-    expect(h.cells['S3'].value).toBe(1);
-    expect(h.cells['T3'].value).toBe(1);
+    expect(h.cells['U3'].value).toBe(1);
+    expect(h.cells['V3'].value).toBe(1);
+    expect(h.cells['W3'].value).toBe(1);
   });
 
   it('counts a STIG rule violating several assets once in the open findings columns', async () => {
@@ -227,9 +239,9 @@ describe('MetricsExportService', () => {
 
     await runExport(collections);
 
-    expect(h.cells['R3'].value).toBe(2);
-    expect(h.cells['S3'].value).toBe(0);
-    expect(h.cells['T3'].value).toBe(0);
+    expect(h.cells['U3'].value).toBe(2);
+    expect(h.cells['V3'].value).toBe(0);
+    expect(h.cells['W3'].value).toBe(0);
   });
 
   it('maps a Tenable collection into the ACAS columns and leaves STIG columns blank', async () => {
@@ -242,21 +254,37 @@ describe('MetricsExportService', () => {
     expect(h.cells['L3'].value).toBe(5);
     expect(h.cells['O3'].value).toBe(1.5);
     expect(h.cells['P3'].value).toBe(9);
-    expect(h.cells['R3'].value).toBe(77);
-    expect(h.cells['S3'].value).toBe(88);
-    expect(h.cells['T3'].value).toBe(99);
-    expect(h.cells['U3'].value).toBe(11);
-    expect(h.cells['V3'].value).toBe(22);
-    expect(h.cells['W3'].value).toBe(33);
-    expect(h.cells['X3'].value).toBe(44);
-    expect(h.cells['Y3'].value).toBe(55);
-    expect(h.cells['Z3'].value).toBe(66);
+    expect(h.cells['U3'].value).toBe(77);
+    expect(h.cells['V3'].value).toBe(88);
+    expect(h.cells['W3'].value).toBe(99);
+    expect(h.cells['X3'].value).toBe(111);
+    expect(h.cells['Y3'].value).toBe(222);
+    expect(h.cells['Z3'].value).toBe(333);
+    expect(h.cells['AA3'].value).toBe(444);
+    expect(h.cells['AB3'].value).toBe(555);
+    expect(h.cells['AC3'].value).toBe(666);
+    expect(h.cells['AD3'].value).toBe(11);
+    expect(h.cells['AE3'].value).toBe(22);
+    expect(h.cells['AF3'].value).toBe(33);
+    expect(h.cells['AG3'].value).toBe(44);
+    expect(h.cells['AH3'].value).toBe(55);
+    expect(h.cells['AI3'].value).toBe(66);
     expect(h.cells['Q3'].value).toBe('');
-    expect(h.cells['AA3'].value).toBe('');
+    expect(h.cells['R3'].value).toBe('');
     expect(mockTenableData.getCollectionExportMetrics).toHaveBeenCalledWith('7', 2);
   });
 
-  it('leaves the ACAS 90+ day columns blank for STIG Manager rows', async () => {
+  it('leaves the ACAS 90+ day POAM coverage columns blank for STIG Manager rows', async () => {
+    const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
+
+    await runExport(collections);
+
+    expect(h.cells['AG3'].value).toBe('');
+    expect(h.cells['AH3'].value).toBe('');
+    expect(h.cells['AI3'].value).toBe('');
+  });
+
+  it('leaves the ACAS open findings window columns blank for STIG Manager rows', async () => {
     const collections = [{ collectionId: 1, collectionName: 'Stig One', collectionType: 'STIG Manager', originCollectionId: 42 }];
 
     await runExport(collections);
@@ -264,6 +292,9 @@ describe('MetricsExportService', () => {
     expect(h.cells['X3'].value).toBe('');
     expect(h.cells['Y3'].value).toBe('');
     expect(h.cells['Z3'].value).toBe('');
+    expect(h.cells['AA3'].value).toBe('');
+    expect(h.cells['AB3'].value).toBe('');
+    expect(h.cells['AC3'].value).toBe('');
   });
 
   it('exports only the collections it is given', async () => {
@@ -313,11 +344,12 @@ describe('MetricsExportService', () => {
     const result = await runExport(collections);
 
     expect(h.cells['A3'].value).toBe('Broken Stig');
-    expect(h.cells['AA3'].value).toBe('');
     expect(h.cells['R3'].value).toBe('');
+    expect(h.cells['U3'].value).toBe('');
     expect(h.cells['A4'].value).toBe('Tenable Two');
-    expect(h.cells['R4'].value).toBe(77);
-    expect(h.cells['U4'].value).toBe(11);
+    expect(h.cells['U4'].value).toBe(77);
+    expect(h.cells['X4'].value).toBe(111);
+    expect(h.cells['AD4'].value).toBe(11);
     expect(result.failedCollections).toEqual(['Broken Stig']);
     expect(result.exportedCount).toBe(2);
     expect(h.state.writeBufferCalls).toBe(1);
@@ -332,9 +364,11 @@ describe('MetricsExportService', () => {
 
     expect(h.cells['A3'].value).toBe('Broken Tenable');
     expect(h.cells['O3'].value).toBe('');
-    expect(h.cells['R3'].value).toBe('');
     expect(h.cells['U3'].value).toBe('');
     expect(h.cells['X3'].value).toBe('');
+    expect(h.cells['AA3'].value).toBe('');
+    expect(h.cells['AD3'].value).toBe('');
+    expect(h.cells['AG3'].value).toBe('');
     expect(result.failedCollections).toEqual(['Broken Tenable']);
     expect(h.state.writeBufferCalls).toBe(1);
   });
@@ -348,7 +382,7 @@ describe('MetricsExportService', () => {
     const result = await runExport(collections);
 
     expect(attempts).toBe(2);
-    expect(h.cells['AA3'].value).toBe(100);
+    expect(h.cells['R3'].value).toBe(100);
     expect(result.failedCollections).toEqual([]);
   });
 

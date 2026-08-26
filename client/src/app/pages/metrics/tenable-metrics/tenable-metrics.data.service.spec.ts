@@ -21,6 +21,14 @@ beforeAll(() => {
 
 const analysis = (results: any[], totalRecords = results.length) => of({ response: { results, totalRecords } });
 
+const SEVERITY_BY_WINDOW: Record<string, { critical: number; high: number; medium: number; low: number; info: number }> = {
+  all: { critical: 8, high: 12, medium: 40, low: 60, info: 0 },
+  '0:30': { critical: 4, high: 6, medium: 20, low: 30, info: 0 },
+  '0:90': { critical: 6, high: 9, medium: 30, low: 45, info: 0 }
+};
+
+const severityByWindow = (lastSeenValue: string | null) => SEVERITY_BY_WINDOW[lastSeenValue ?? 'all'];
+
 describe('TenableMetricsDataService', () => {
   let service: TenableMetricsDataService;
   let mockIntegrationService: any;
@@ -122,6 +130,15 @@ describe('TenableMetricsDataService', () => {
 
       expect(filterNames).toContain('lastSeen');
       expect(filterNames).toContain('pluginPublished');
+    });
+
+    it('omits the lastSeen and 30-day filters when neither is requested', () => {
+      service.getSeveritySummary('5', false, null).subscribe();
+
+      const params = mockIntegrationService.postTenableAnalysis.mock.calls[0][0];
+      const filterNames = params.query.filters.map((f: any) => f.filterName ?? f.id);
+
+      expect(filterNames).toEqual(['repository', 'pluginType']);
     });
 
     it('returns zeroed buckets on error', async () => {
@@ -352,10 +369,21 @@ describe('TenableMetricsDataService', () => {
   });
 
   describe('getCollectionExportMetrics', () => {
+    const stubExportDependencies = () => {
+      const now = Date.now() / 1000;
+      const summarySpy = vi.spyOn(service, 'getSeveritySummary').mockImplementation((_repoId: string, _apply30DayFilter: boolean, lastSeenValue: string | null) => of(severityByWindow(lastSeenValue)));
+
+      vi.spyOn(service, 'calculateSEOLVulnerabilities').mockReturnValue(of(9));
+      vi.spyOn(service, 'loadAllHosts').mockReturnValue(of([{ lastSeen: now - 60 }, { lastSeen: now - 100 * 24 * 60 * 60 }]));
+      mockCollectionsService.getPoamsByCollection.mockReturnValue(of([{ vulnerabilityId: '100', status: 'Approved' }]));
+
+      return summarySpy;
+    };
+
     it('composes the export metric set with 30-day and 90-day POAM coverage from a single POAM fetch', async () => {
       const now = Date.now() / 1000;
 
-      vi.spyOn(service, 'getSeveritySummary').mockReturnValue(of({ critical: 4, high: 6, medium: 20, low: 30, info: 0 }));
+      vi.spyOn(service, 'getSeveritySummary').mockImplementation((_repoId: string, _apply30DayFilter: boolean, lastSeenValue: string | null) => of(severityByWindow(lastSeenValue)));
       vi.spyOn(service, 'calculateSEOLVulnerabilities').mockReturnValue(of(9));
       vi.spyOn(service, 'loadAllHosts').mockReturnValue(of([{ lastSeen: now - 60 }, { lastSeen: now - 100 * 24 * 60 * 60 }]));
       mockIntegrationService.postTenableAnalysis.mockImplementation((params: any) => {
@@ -382,6 +410,56 @@ describe('TenableMetricsDataService', () => {
       expect(result.validOnlineAssets).toBe(1);
       expect(result.vphScore).toBeCloseTo(service.calculateVPHScore(10, 20, 30, 1).score, 5);
       expect(mockCollectionsService.getPoamsByCollection).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports the unfiltered open finding counts as the totals', async () => {
+      stubExportDependencies();
+
+      const result = await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe(resolve));
+
+      expect(result.openFindingsCatI).toBe(20);
+      expect(result.openFindingsCatII).toBe(40);
+      expect(result.openFindingsCatIII).toBe(60);
+    });
+
+    it('reports the 30-day and 90-day open finding windows as separate counts', async () => {
+      stubExportDependencies();
+
+      const result = await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe(resolve));
+
+      expect(result.openFindingsCatI30).toBe(10);
+      expect(result.openFindingsCatII30).toBe(20);
+      expect(result.openFindingsCatIII30).toBe(30);
+      expect(result.openFindingsCatI90).toBe(15);
+      expect(result.openFindingsCatII90).toBe(30);
+      expect(result.openFindingsCatIII90).toBe(45);
+    });
+
+    it('requests the open findings summary once per window', async () => {
+      const summarySpy = stubExportDependencies();
+
+      await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe(resolve));
+
+      expect(summarySpy.mock.calls.map((call: any[]) => call[2])).toEqual([null, '0:30', '0:90']);
+    });
+
+    it('issues the open findings summaries as all-time, 30-day, and 90-day lastSeen queries without a published filter', async () => {
+      await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe(resolve));
+
+      const severityQueries = mockIntegrationService.postTenableAnalysis.mock.calls.map((call: any[]) => call[0].query).filter((query: any) => query.tool === 'sumseverity');
+      const lastSeenValues = severityQueries.map((query: any) => query.filters.find((f: any) => f.filterName === 'lastSeen')?.value ?? null);
+
+      expect(lastSeenValues).toEqual([null, '0:30', '0:90']);
+      expect(severityQueries.some((query: any) => query.filters.some((f: any) => f.filterName === 'pluginPublished'))).toBe(false);
+    });
+
+    it('scores VPH from the 30-day counts so it stays aligned with the 30-day asset denominator', async () => {
+      stubExportDependencies();
+
+      const result = await new Promise<any>((resolve) => service.getCollectionExportMetrics('5', 1).subscribe(resolve));
+
+      expect(result.vphScore).toBeCloseTo(service.calculateVPHScore(10, 20, 30, 1).score, 5);
+      expect(result.vphScore).not.toBeCloseTo(service.calculateVPHScore(20, 40, 60, 1).score, 5);
     });
 
     it('propagates Tenable analysis failures instead of composing zero-valued metrics', async () => {
