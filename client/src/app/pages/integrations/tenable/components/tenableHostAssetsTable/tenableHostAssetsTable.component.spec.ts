@@ -337,7 +337,7 @@ describe('TenableHostAssetsTableComponent', () => {
 
       component.onLastSeenRangeChange('7');
       component.onLastSeenRangeChange('all');
-      expect(mockIntegrationService.postTenableHostSearch.mock.calls.length).toBe(callCount);
+      expect(mockIntegrationService.postTenableHostSearch.mock.calls).toHaveLength(callCount);
     });
 
     it('should keep the formatted lastSeen for display', () => {
