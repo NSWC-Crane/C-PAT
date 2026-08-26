@@ -115,15 +115,15 @@ export const mockAssignedTeam = {
  */
 export const mockCollectionPermissionDetail = [
   {
-    userId: 4,
+    userId: 5,
     accessLevel: 1,
-    firstName: 'Mister',
-    lastName: 'Seapat',
-    fullName: 'Mister Seapat',
-    email: 'mister.seapat@example.com',
-    direct: { accessLevel: 1, grantedAt: '2026-03-01T10:00:00.000Z', grantedBy: 2, grantedByName: 'Admin User' },
-    teamGrants: [],
-    exclusions: [{ collectionId: 1, assignedTeamId: 2, assignedTeamName: 'Team Bravo', excludedAt: '2026-03-02T10:00:00.000Z' }]
+    firstName: 'Tom',
+    lastName: 'Teamer',
+    fullName: 'Tom Teamer',
+    email: 'tom.teamer@example.com',
+    direct: null,
+    teamGrants: [{ collectionId: 1, assignedTeamId: 2, assignedTeamName: 'Team Bravo', accessLevel: 1, grantedAt: '2026-02-15T10:00:00.000Z' }],
+    exclusions: []
   },
   {
     userId: 1,
@@ -159,15 +159,15 @@ export const mockCollectionPermissionDetail = [
     exclusions: []
   },
   {
-    userId: 5,
+    userId: 4,
     accessLevel: 1,
-    firstName: 'Tom',
-    lastName: 'Teamer',
-    fullName: 'Tom Teamer',
-    email: 'tom.teamer@example.com',
-    direct: null,
-    teamGrants: [{ collectionId: 1, assignedTeamId: 2, assignedTeamName: 'Team Bravo', accessLevel: 1, grantedAt: '2026-02-15T10:00:00.000Z' }],
-    exclusions: []
+    firstName: 'Mister',
+    lastName: 'Seapat',
+    fullName: 'Mister Seapat',
+    email: 'mister.seapat@example.com',
+    direct: { accessLevel: 1, grantedAt: '2026-03-01T10:00:00.000Z', grantedBy: 2, grantedByName: 'Admin User' },
+    teamGrants: [],
+    exclusions: [{ collectionId: 1, assignedTeamId: 2, assignedTeamName: 'Team Bravo', excludedAt: '2026-03-02T10:00:00.000Z' }]
   }
 ];
 

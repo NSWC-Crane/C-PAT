@@ -236,13 +236,13 @@ describe('CollectionPermissionsComponent', () => {
     });
 
     it('should sort by access level descending then name ascending', () => {
-      expect(component.filteredRows().map((row) => row.userId)).toEqual([1, 2, 3, 5, 4]);
+      expect(component.filteredRows().map((row) => row.userId)).toEqual([1, 2, 3, 4, 5]);
     });
 
     it('should filter by the selected level', () => {
       component.selectedLevel.set(1);
 
-      expect(component.filteredRows().map((row) => row.userId)).toEqual([5, 4]);
+      expect(component.filteredRows().map((row) => row.userId)).toEqual([4, 5]);
     });
 
     it('should expand the selected level upward when include higher levels is on', () => {
@@ -272,7 +272,7 @@ describe('CollectionPermissionsComponent', () => {
       component.searchText.set('alice');
       expect(component.filteredRows().map((row) => row.userId)).toEqual([2]);
 
-      component.searchText.set('vera.viewer@');
+      component.searchText.set('mister.seapat@');
       expect(component.filteredRows().map((row) => row.userId)).toEqual([4]);
     });
 
@@ -378,7 +378,7 @@ describe('CollectionPermissionsComponent', () => {
       expect(text).toContain('CAT-I Approver');
       expect(text).toContain('Viewer');
       expect(text).toContain('(2)');
-      expect(text).toContain('Cat Approver');
+      expect(text).toContain('Misses Seapat');
     });
 
     it('should render groups in descending access level order', () => {
@@ -467,7 +467,7 @@ describe('CollectionPermissionsComponent', () => {
       loadFixtureRows();
       fixture.detectChanges();
 
-      const button = (fixture.nativeElement as HTMLElement).querySelector('button[aria-label="Open Cat Approver in User Management"]') as HTMLButtonElement;
+      const button = (fixture.nativeElement as HTMLElement).querySelector('button[aria-label="Open Misses Seapat in User Management"]') as HTMLButtonElement;
 
       button.click();
 
