@@ -24,6 +24,7 @@ import { PayloadService } from '../../../../../common/services/setPayload.servic
 import { SharedService } from '../../../../../common/services/shared.service';
 import { Router } from '@angular/router';
 import { createMockMessageService, createMockRouter } from '../../../../../../testing/mocks/service-mocks';
+import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 import { provideUiTour } from 'ngx-ui-tour-primeng';
 
 const vulnFilter = (filterName: string, value: any, operator = '='): CustomFilter => ({ id: filterName, filterName, operator, type: 'vuln', isPredefined: true, value });
@@ -39,6 +40,7 @@ describe('TenableVulnerabilitiesComponent', () => {
   let mockMessageService: any;
   let mockRouter: any;
   let mockTable: any;
+  let mockCsvExportService: any;
   let mockMultiSelect: any;
   let mockOverlayPanel: any;
   let selectedCollectionSubject: Subject<any>;
@@ -57,7 +59,8 @@ describe('TenableVulnerabilitiesComponent', () => {
     sessionStorage.clear();
 
     selectedCollectionSubject = new Subject();
-    mockTable = { clear: vi.fn(), exportCSV: vi.fn(), first: signal(0) };
+    mockTable = { clear: vi.fn(), exportCSV: vi.fn(), filteredValue: null, first: signal(0) };
+    mockCsvExportService = { exportToCsv: vi.fn() };
     mockMultiSelect = { overlayVisible: vi.fn().mockReturnValue(false), hide: vi.fn(), show: vi.fn() };
     mockOverlayPanel = { toggle: vi.fn() };
 
@@ -106,6 +109,7 @@ describe('TenableVulnerabilitiesComponent', () => {
         { provide: SharedService, useValue: mockSharedService },
         { provide: MessageService, useValue: mockMessageService },
         { provide: Router, useValue: mockRouter },
+        { provide: CsvExportService, useValue: mockCsvExportService },
         provideUiTour()
       ]
     })
@@ -1602,16 +1606,113 @@ describe('TenableVulnerabilitiesComponent', () => {
   });
 
   describe('exportAllData', () => {
+    const listResult = { pluginID: '123', name: 'Plugin', family: { name: 'Fam' }, severity: { name: 'High' } };
+
+    beforeEach(() => {
+      component.selectedColumns.set([
+        { field: 'poam', header: 'POAM' },
+        { field: 'pluginID', header: 'Plugin ID' }
+      ]);
+    });
+
     it('bypasses the upstream cache for the export analysis', () => {
-      vi.useFakeTimers();
       component.tenableTool = 'listvuln';
       mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [], totalRecords: 0 } }));
 
       component.exportAllData();
-      vi.runAllTimers();
-      vi.useRealTimers();
 
       expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
+    });
+
+    it('exports the POAM status for list-view rows', () => {
+      component.tenableTool = 'listvuln';
+      component.existingPoamPluginIDs = { '123': { poamId: 7, status: 'Approved' } };
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [listResult], totalRecords: 1 } }));
+
+      component.exportAllData();
+
+      expect(mockTable.exportCSV).not.toHaveBeenCalled();
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledTimes(1);
+      const [rows, options] = mockCsvExportService.exportToCsv.mock.calls[0];
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0].poamStatus).toBe('Approved');
+      expect(options.filename).toBe('tenable-vulnerability-list');
+      expect(options.columns).toEqual([
+        { field: 'poamStatus', header: 'POAM Status' },
+        { field: 'pluginID', header: 'Plugin ID' }
+      ]);
+    });
+
+    it('falls back to No Existing POAM for list-view rows without an association', () => {
+      component.tenableTool = 'listvuln';
+      component.existingPoamPluginIDs = {};
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [listResult], totalRecords: 1 } }));
+
+      component.exportAllData();
+
+      expect(mockCsvExportService.exportToCsv.mock.calls[0][0][0].poamStatus).toBe('No Existing POAM');
+    });
+
+    it('leaves the table rows untouched by a list-view export', () => {
+      const current = [{ pluginID: 1, poamStatus: 'Draft' }];
+
+      component.allVulnerabilities.set(current);
+      component.tenableTool = 'listvuln';
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [listResult], totalRecords: 1 } }));
+
+      component.exportAllData();
+
+      expect(component.allVulnerabilities()).toBe(current);
+      expect(component.isLoading()).toBe(false);
+    });
+
+    it('exports all summary rows when no column filter is active', () => {
+      const rows = [
+        { pluginID: 1, poamStatus: 'Approved' },
+        { pluginID: 2, poamStatus: 'No Existing POAM' }
+      ];
+
+      component.tenableTool = 'sumid';
+      component.allVulnerabilities.set(rows);
+      mockTable.filteredValue = null;
+
+      component.exportAllData();
+
+      expect(mockTable.exportCSV).not.toHaveBeenCalled();
+      const [exported, options] = mockCsvExportService.exportToCsv.mock.calls[0];
+
+      expect(exported).toBe(rows);
+      expect(options.filename).toBe('tenable-vulnerability-summary');
+      expect(options.columns[0]).toEqual({ field: 'poamStatus', header: 'POAM Status' });
+    });
+
+    it('exports only the filtered summary rows when a column filter is active', () => {
+      const rows = [
+        { pluginID: 1, poamStatus: 'Approved' },
+        { pluginID: 2, poamStatus: 'No Existing POAM' }
+      ];
+
+      component.tenableTool = 'sumid';
+      component.allVulnerabilities.set(rows);
+      mockTable.filteredValue = [rows[1]];
+
+      component.exportAllData();
+
+      expect(mockCsvExportService.exportToCsv.mock.calls[0][0]).toEqual([rows[1]]);
+    });
+
+    it('follows the selected column order', () => {
+      component.tenableTool = 'sumid';
+      component.allVulnerabilities.set([{ pluginID: 1, poamStatus: 'Approved' }]);
+      component.selectedColumns.set([
+        { field: 'pluginID', header: 'Plugin ID' },
+        { field: 'poam', header: 'POAM' }
+      ]);
+
+      component.exportAllData();
+
+      expect(mockCsvExportService.exportToCsv.mock.calls[0][1].columns.map((col: any) => col.field)).toEqual(['pluginID', 'poamStatus']);
     });
   });
 

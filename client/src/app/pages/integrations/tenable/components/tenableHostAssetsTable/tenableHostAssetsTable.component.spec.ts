@@ -156,10 +156,6 @@ describe('TenableHostAssetsTableComponent', () => {
       expect(fields).toContain('lastSeen');
     });
 
-    it('should set exportColumns matching cols length', () => {
-      expect(component.exportColumns).toHaveLength(13);
-    });
-
     it('should set selectedColumns to include all default fields', () => {
       const fields = component.selectedColumns.map((c: any) => c.field);
 

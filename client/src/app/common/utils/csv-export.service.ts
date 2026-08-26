@@ -21,6 +21,12 @@ export interface CsvExportOptions {
   includeTimestamp?: boolean;
 }
 
+export const POAM_STATUS_CSV_COLUMN: CsvColumn = { field: 'poamStatus', header: 'POAM Status' };
+
+export function toCsvColumns(columns: { field: string; header: string }[]): CsvColumn[] {
+  return columns.map((col) => (col.field === 'poam' ? { ...POAM_STATUS_CSV_COLUMN } : { field: col.field, header: col.header }));
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -85,7 +91,7 @@ export class CsvExportService {
     const stringValue = typeof value === 'string' && /^[=+\-@\t\r]/.test(value) ? `'${value}` : String(value);
     const escaped = stringValue.replaceAll('"', '""');
 
-    if (/[",\n]/.test(escaped)) {
+    if (/[",\n\r]/.test(escaped)) {
       return `"${escaped}"`;
     }
 
@@ -105,7 +111,7 @@ export class CsvExportService {
   }
 
   private downloadCsv(csvContent: string, filename: string): void {
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
 

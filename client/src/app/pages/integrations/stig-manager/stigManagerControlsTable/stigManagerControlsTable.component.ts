@@ -25,6 +25,7 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { SharedService } from '../../../../common/services/shared.service';
+import { CsvExportService, toCsvColumns } from '../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { PoamService } from '../../../poams/poams.service';
 import { MultiSelectDirective } from '../../../../common/directives/multi-select.directive';
@@ -109,6 +110,7 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
   private readonly messageService = inject(MessageService);
   private readonly poamService = inject(PoamService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly csvExportService = inject(CsvExportService);
 
   private readonly controlsTable = viewChild<Table>('controlsTable');
   private readonly findingsTable = viewChild<Table>('controlFindingsTable');
@@ -388,7 +390,8 @@ export class STIGManagerControlsTableComponent implements OnInit, OnChanges {
           assetCount: finding.assetCount || 0,
           apAcronym: finding.apAcronym || finding.ccis?.[0]?.apAcronym || '',
           benchmarkId: stig?.benchmarkId || '',
-          hasExistingPoam: false
+          hasExistingPoam: false,
+          poamStatus: 'No Existing POAM'
         });
       });
     });
@@ -646,7 +649,16 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   exportFindingsCSV() {
-    this.findingsTable()?.exportCSV();
+    if (this.loadingFindings) {
+      this.showWarn('Findings are still loading. Please try the export again once the table has finished loading.');
+
+      return;
+    }
+
+    this.csvExportService.exportToCsv(this.findingsTable()?.filteredValue ?? this.controlFindings(), {
+      filename: `stig-manager-control-findings-${this.selectedControl?.control ?? 'all'}`,
+      columns: toCsvColumns(this.findingColumns)
+    });
   }
 
   private showWarn(message: string) {

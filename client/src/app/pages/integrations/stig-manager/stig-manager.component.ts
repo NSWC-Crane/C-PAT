@@ -29,6 +29,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter, take } from 'rxjs';
 import { SharedService } from '../../../common/services/shared.service';
+import { CsvExportService, toCsvColumns } from '../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { CollectionsService } from '../../admin/collections/collections.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -88,6 +89,7 @@ export class STIGManagerComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly poamService = inject(PoamService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly csvExportService = inject(CsvExportService);
 
   private readonly findingsTable = viewChild.required<Table>('stigFindingsTable');
   private readonly benchmarksTable = viewChild.required<Table>('stigBenchmarksTable');
@@ -357,7 +359,8 @@ export class STIGManagerComponent implements OnInit {
           benchmarkId: item.stigs[0].benchmarkId,
           severity: this.mapSeverity(item.severity),
           assetCount: item.assetCount,
-          hasExistingPoam: false
+          hasExistingPoam: false,
+          poamStatus: 'No Existing POAM'
         }));
 
         this.displayDataSource.set([...this.dataSource]);
@@ -590,7 +593,16 @@ ${ruleData.detail.vulnDiscussion}`;
   }
 
   exportCSV() {
-    this.findingsTable().exportCSV();
+    if (this.loadingTableInfo()) {
+      this.showWarn('Findings are still loading. Please try the export again once the table has finished loading.');
+
+      return;
+    }
+
+    this.csvExportService.exportToCsv(this.findingsTable().filteredValue ?? this.displayDataSource(), {
+      filename: 'stig-manager-findings',
+      columns: toCsvColumns(this.allColumns)
+    });
   }
 
   filterBenchmarkGlobal(event: Event) {

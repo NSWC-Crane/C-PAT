@@ -27,8 +27,9 @@ import { Table, TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, catchError, finalize, map, switchMap } from 'rxjs';
-import { ExportColumn, IAVInfo, ParsedReferences, Reference, SeverityStyle } from '../../../../../common/models/tenable.model';
+import { IAVInfo, ParsedReferences, Reference, SeverityStyle } from '../../../../../common/models/tenable.model';
 import { SharedService } from '../../../../../common/services/shared.service';
+import { CsvExportService, toCsvColumns } from '../../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { resolveNavyComplyDateRange } from '../../utils/navy-comply-date.utils';
 import { createPoamAssociationsMap, getCveUrl, getIavUrl, getPoamStatusColor, getPoamStatusIcon, getPoamStatusTooltip, getSeverityStyling, parseReferences, parseVprContext, toNullableNumber } from '../../utils/tenable-vulnerability.utils';
@@ -60,6 +61,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
   private readonly sharedService = inject(SharedService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly csvExportService = inject(CsvExportService);
 
   readonly totalRecordsChange = output<number>();
   readonly currentPreset = input<string>('iav');
@@ -71,7 +73,6 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
     severity: [{ value: [...DEFAULT_SEVERITIES], matchMode: 'in', operator: 'and' }]
   };
   readonly cols = signal<any[]>([]);
-  exportColumns!: ExportColumn[];
   existingPoamPluginIDs: any;
   readonly selectedColumns = signal<any[]>([]);
   restoredSelectedColumns: any[];
@@ -271,10 +272,6 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
       { field: 'total', header: 'Total', filterType: 'numeric' },
       { field: 'hostTotal', header: 'Host Total', filterType: 'numeric' }
     ]);
-    this.exportColumns = this.cols().map((col) => ({
-      title: col.header,
-      dataKey: col.field
-    }));
     this.deadlineRangeFilters.set([
       { label: 'All', value: null },
       { label: 'All Overdue', value: 'alloverdue' },
@@ -957,6 +954,13 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
     if (table) {
       table.filterGlobal(filterValue, 'contains');
     }
+  }
+
+  exportCSV() {
+    this.csvExportService.exportToCsv(this.table().filteredValue ?? this.applicableVulnerabilities(), {
+      filename: 'tenable-selected-vulnerabilities',
+      columns: toCsvColumns(this.selectedColumns())
+    });
   }
 
   resetColumnSelections() {

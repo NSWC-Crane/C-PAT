@@ -26,11 +26,6 @@ import { IntegrationService } from '../../../integration.service';
 import { TenableHostDialogComponent } from '../tenableHostDialog/tenableHostDialog.component';
 import { MultiSelectDirective } from '../../../../../common/directives/multi-select.directive';
 
-interface ExportColumn {
-  title: string;
-  dataKey: string;
-}
-
 @Component({
   selector: 'cpat-tenable-host-assets-table',
   templateUrl: './tenableHostAssetsTable.component.html',
@@ -49,7 +44,6 @@ export class TenableHostAssetsTableComponent implements OnInit {
   private readonly columnSelect = viewChild.required<Select>('ms');
 
   cols: any[];
-  exportColumns!: ExportColumn[];
   selectedColumns: any[];
   readonly affectedAssets = signal<any[]>([]);
   readonly isLoading = signal<boolean>(true);
@@ -81,10 +75,6 @@ export class TenableHostAssetsTableComponent implements OnInit {
       { field: 'source', header: 'Source', filterType: 'text' }
     ];
 
-    this.exportColumns = this.cols.map((col) => ({
-      title: col.header,
-      dataKey: col.field
-    }));
     this.selectedColumns = this.cols.filter((col) => ['name', 'os', 'macAddress', 'firstSeen', 'lastSeen', 'netBios', 'dns', 'ipAddress', 'systemType', 'uuid', 'source', 'acr', 'acrLastEvaluatedTime', 'aes'].includes(col.field));
   }
 

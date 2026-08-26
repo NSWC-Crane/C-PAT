@@ -21,6 +21,7 @@ import { PoamService } from '../../../../poams/poams.service';
 import { CollectionsService } from '../../../../admin/collections/collections.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { createMockMessageService, createMockRouter } from '../../../../../../testing/mocks/service-mocks';
+import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 
 const mockCollections = [{ collectionId: 1, originCollectionId: 42, collectionName: 'Test Collection' }];
 
@@ -70,6 +71,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
   let mockSharedService: any;
   let mockRouter: any;
   let mockTable: any;
+  let mockCsvExportService: any;
   let mockSelect: any;
   let mockMultiSelect: any;
   let selectedCollectionSubject: BehaviorSubject<any>;
@@ -121,6 +123,7 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     };
 
     mockRouter = createMockRouter();
+    mockCsvExportService = { exportToCsv: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [TenableSelectedVulnerabilitiesComponent],
@@ -132,7 +135,8 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
         { provide: PoamService, useValue: mockPoamService },
         { provide: CollectionsService, useValue: mockCollectionsService },
         { provide: SharedService, useValue: mockSharedService },
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: CsvExportService, useValue: mockCsvExportService }
       ]
     })
       .overrideComponent(TenableSelectedVulnerabilitiesComponent, {
@@ -402,10 +406,6 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
       (component as any).currentPreset = () => 'taskOrder';
       component.initColumnsAndFilters();
       expect(component.cols().map((c: any) => c.field)).toContain('taskOrderNumber');
-    });
-
-    it('should set exportColumns matching cols length', () => {
-      expect(component.exportColumns).toHaveLength(21);
     });
 
     it('should set 14 deadlineRangeFilters', () => {
@@ -1426,6 +1426,48 @@ describe('TenableSelectedVulnerabilitiesComponent', () => {
     it('does not throw on destroy', () => {
       component.ngOnInit();
       expect(() => fixture.destroy()).not.toThrow();
+    });
+  });
+
+  describe('exportCSV', () => {
+    beforeEach(() => {
+      component.selectedColumns.set([
+        { field: 'poam', header: 'POAM' },
+        { field: 'pluginID', header: 'Plugin ID' }
+      ]);
+    });
+
+    it('exports the POAM status column in place of the POAM icon column', () => {
+      const rows = [{ pluginID: 1, poamStatus: 'Approved' }];
+
+      component.applicableVulnerabilities.set(rows);
+      mockTable.filteredValue = null;
+
+      component.exportCSV();
+
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledTimes(1);
+      const [exported, options] = mockCsvExportService.exportToCsv.mock.calls[0];
+
+      expect(exported).toBe(rows);
+      expect(options.filename).toBe('tenable-selected-vulnerabilities');
+      expect(options.columns).toEqual([
+        { field: 'poamStatus', header: 'POAM Status' },
+        { field: 'pluginID', header: 'Plugin ID' }
+      ]);
+    });
+
+    it('exports only the filtered rows when a column filter is active', () => {
+      const rows = [
+        { pluginID: 1, poamStatus: 'Approved' },
+        { pluginID: 2, poamStatus: 'No Existing POAM' }
+      ];
+
+      component.applicableVulnerabilities.set(rows);
+      mockTable.filteredValue = [rows[1]];
+
+      component.exportCSV();
+
+      expect(mockCsvExportService.exportToCsv.mock.calls[0][0]).toEqual([rows[1]]);
     });
   });
 });

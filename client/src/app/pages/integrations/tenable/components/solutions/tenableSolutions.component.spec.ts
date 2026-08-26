@@ -226,13 +226,6 @@ describe('TenableSolutionsComponent', () => {
       expect(headers).toContain('CVSS v3 Base Score');
     });
 
-    it('should map exportColumns from cols', () => {
-      component.ngOnInit();
-      expect(component.exportColumns).toHaveLength(6);
-      expect(component.exportColumns[0]).toEqual({ title: 'Solution', dataKey: 'solution' });
-      expect(component.exportColumns[1]).toEqual({ title: 'Risk Reduction', dataKey: 'scorePctg' });
-    });
-
     it('should subscribe to selectedCollection', () => {
       component.ngOnInit();
       selectedCollectionSubject.next(1);

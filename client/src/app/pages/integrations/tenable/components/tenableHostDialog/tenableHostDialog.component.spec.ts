@@ -21,6 +21,7 @@ import { PoamService } from '../../../../poams/poams.service';
 import { SharedService } from '../../../../../common/services/shared.service';
 import { Router } from '@angular/router';
 import { createMockMessageService, createMockRouter } from '../../../../../../testing/mocks/service-mocks';
+import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 
 const mockFindingsResponse = {
   response: {
@@ -40,6 +41,7 @@ describe('TenableHostDialogComponent', () => {
   let mockMessageService: any;
   let mockRouter: any;
   let mockTable: any;
+  let mockCsvExportService: any;
   let selectedCollectionSubject: BehaviorSubject<any>;
 
   beforeAll(() => {
@@ -54,7 +56,8 @@ describe('TenableHostDialogComponent', () => {
 
   beforeEach(async () => {
     selectedCollectionSubject = new BehaviorSubject<any>(7);
-    mockTable = { clear: vi.fn(), filterGlobal: vi.fn(), exportCSV: vi.fn() };
+    mockTable = { clear: vi.fn(), filterGlobal: vi.fn(), exportCSV: vi.fn(), filteredValue: null };
+    mockCsvExportService = { exportToCsv: vi.fn() };
 
     mockIntegrationService = {
       postTenableAnalysis: vi.fn().mockReturnValue(of({ ...mockFindingsResponse })),
@@ -81,7 +84,8 @@ describe('TenableHostDialogComponent', () => {
         { provide: PoamService, useValue: mockPoamService },
         { provide: SharedService, useValue: mockSharedService },
         { provide: MessageService, useValue: mockMessageService },
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: CsvExportService, useValue: mockCsvExportService }
       ]
     }).compileComponents();
 
@@ -263,9 +267,46 @@ describe('TenableHostDialogComponent', () => {
   });
 
   describe('exportHostFindingsTableCSV', () => {
-    it('should call table.exportCSV()', () => {
+    it('exports the POAM status column in place of the POAM icon column', () => {
+      const rows = [{ pluginID: '12345', poamStatus: 'Approved' }];
+
+      component.hostData.set(rows);
+      mockTable.filteredValue = null;
+
       component.exportHostFindingsTableCSV();
-      expect(mockTable.exportCSV).toHaveBeenCalled();
+
+      expect(mockTable.exportCSV).not.toHaveBeenCalled();
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledTimes(1);
+      const [exported, options] = mockCsvExportService.exportToCsv.mock.calls[0];
+
+      expect(exported).toBe(rows);
+      expect(options.filename).toBe('tenable-host-findings-Alpha');
+      expect(options.columns.map((col: any) => col.field)).toEqual(['poamStatus', 'pluginID', 'pluginName', 'severity', 'port', 'protocol', 'vprScore', 'epssScore', 'lastSeen']);
+      expect(options.columns[0]).toEqual({ field: 'poamStatus', header: 'POAM Status' });
+    });
+
+    it('falls back to a generic filename when the host has no name, dns or ip', () => {
+      fixture.componentRef.setInput('host', { systemType: 'general-purpose' });
+      component.hostData.set([{ pluginID: '12345', poamStatus: 'Approved' }]);
+      mockTable.filteredValue = null;
+
+      component.exportHostFindingsTableCSV();
+
+      expect(mockCsvExportService.exportToCsv.mock.calls[0][1].filename).toBe('tenable-host-findings-host');
+    });
+
+    it('exports only the filtered rows when a column filter is active', () => {
+      const rows = [
+        { pluginID: '12345', poamStatus: 'Approved' },
+        { pluginID: '99999', poamStatus: 'No Existing POAM' }
+      ];
+
+      component.hostData.set(rows);
+      mockTable.filteredValue = [rows[1]];
+
+      component.exportHostFindingsTableCSV();
+
+      expect(mockCsvExportService.exportToCsv.mock.calls[0][0]).toEqual([rows[1]]);
     });
   });
 

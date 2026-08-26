@@ -25,11 +25,6 @@ import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { CollectionsService } from '../../../../admin/collections/collections.service';
 import { IntegrationService } from '../../../integration.service';
 
-interface ExportColumn {
-  title: string;
-  dataKey: string;
-}
-
 @Component({
   selector: 'cpat-tenable-solutions',
   templateUrl: './tenableSolutions.component.html',
@@ -47,7 +42,6 @@ export class TenableSolutionsComponent implements OnInit {
 
   readonly solutions = signal<any[]>([]);
   cols: any[];
-  exportColumns!: ExportColumn[];
   readonly affectedHosts = signal<any[]>([]);
   readonly solutionVulnDetails = signal<any[]>([]);
   displayDialog: boolean = false;
@@ -73,10 +67,6 @@ export class TenableSolutionsComponent implements OnInit {
       { field: 'vprScore', header: 'VPR' },
       { field: 'cvssV3BaseScore', header: 'CVSS v3 Base Score' }
     ];
-    this.exportColumns = this.cols.map((col) => ({
-      title: col.header,
-      dataKey: col.field
-    }));
 
     this.sharedService.selectedCollection.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((collectionId) => {
       this.selectedCollection = collectionId;
