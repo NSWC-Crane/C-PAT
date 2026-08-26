@@ -21,14 +21,20 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { EMPTY, catchError, map, of } from 'rxjs';
+import { formatOsCpe } from '../../../../../common/utils/cpe.utils';
 import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { IntegrationService } from '../../../integration.service';
 import { TenableHostDialogComponent } from '../tenableHostDialog/tenableHostDialog.component';
+import { toNullableNumber } from '../../utils/tenable-vulnerability.utils';
 
 export interface HighRiskAsset {
   ip: string;
   dnsName: string;
+  osCPE: string;
+  operatingSystem: string;
+  acrScore: number | null;
+  assetExposureScore: number | null;
   score: number;
   total: number;
   severityInfo: number;
@@ -152,11 +158,16 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges {
             const high = Number.parseInt(item.severityHigh) || 0;
             const critical = Number.parseInt(item.severityCritical) || 0;
             const totalSeverity = medium + high + critical;
+            const osCPE = typeof item.osCPE === 'string' ? item.osCPE.trim() : '';
 
             return {
               ...item,
               ip: item.ip,
               dnsName: item.dnsName || item.netbiosName?.split('\\').pop() || item.dns || item.ip,
+              acrScore: toNullableNumber(item.acrScore),
+              assetExposureScore: toNullableNumber(item.assetExposureScore),
+              osCPE,
+              operatingSystem: formatOsCpe(osCPE) || osCPE,
               score: Number.parseInt(item.score) || 0,
               total: Number.parseInt(item.total) || 0,
               severityInfo: Number.parseInt(item.severityInfo) || 0,
@@ -236,6 +247,10 @@ export class TenableHighRiskAssetsTableComponent implements OnChanges {
       columns: [
         { field: 'dnsName', header: 'DNS' },
         { field: 'ip', header: 'IP Address' },
+        { field: 'operatingSystem', header: 'Operating System' },
+        { field: 'osCPE', header: 'OS CPE' },
+        { field: 'acrScore', header: 'ACR' },
+        { field: 'assetExposureScore', header: 'AES' },
         { field: 'score', header: 'Score' },
         { field: 'severityCritical', header: 'Critical' },
         { field: 'severityHigh', header: 'High' },

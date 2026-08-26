@@ -15,6 +15,7 @@ import { of, throwError, Subject } from 'rxjs';
 import { MessageService } from 'primeng/api';
 import { TenableHighRiskAssetsTableComponent } from './tenableHighRiskAssetsTable.component';
 import { IntegrationService } from '../../../integration.service';
+import { CsvExportService } from '../../../../../common/utils/csv-export.service';
 import { createMockMessageService } from '../../../../../../testing/mocks/service-mocks';
 
 const makeAnalysisResponse = (results: any[], totalRecords = results.length) => ({
@@ -28,6 +29,9 @@ const mockAssetRaw = {
   ip: '192.168.1.10',
   dnsName: 'host.example.com',
   netbiosName: 'DOMAIN\\HOST',
+  osCPE: 'cpe:/o:redhat:enterprise_linux:9.6::~~~~x86_64~',
+  acrScore: '8.0',
+  assetExposureScore: '450',
   score: '850',
   total: '30',
   severityInfo: '5',
@@ -55,6 +59,7 @@ describe('TenableHighRiskAssetsTableComponent', () => {
   let fixture: ComponentFixture<TenableHighRiskAssetsTableComponent>;
   let mockIntegrationService: any;
   let mockMessageService: any;
+  let mockCsvExportService: any;
 
   const createMockTable = () => ({
     clear: vi.fn(),
@@ -84,12 +89,14 @@ describe('TenableHighRiskAssetsTableComponent', () => {
     };
 
     mockMessageService = createMockMessageService();
+    mockCsvExportService = { exportToCsv: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [TenableHighRiskAssetsTableComponent],
       providers: [
         { provide: IntegrationService, useValue: mockIntegrationService },
-        { provide: MessageService, useValue: mockMessageService }
+        { provide: MessageService, useValue: mockMessageService },
+        { provide: CsvExportService, useValue: mockCsvExportService }
       ],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -325,6 +332,94 @@ describe('TenableHighRiskAssetsTableComponent', () => {
       expect(component.highRiskAssets()[0].dnsName).toBe('host.dns.local');
     });
 
+    it('should keep the raw osCPE and derive a readable operatingSystem', () => {
+      component.loadHighRiskAssets();
+      const asset = component.highRiskAssets()[0];
+
+      expect(asset.osCPE).toBe('cpe:/o:redhat:enterprise_linux:9.6::~~~~x86_64~');
+      expect(asset.operatingSystem).toBe('Red Hat Enterprise Linux 9.6 (x86_64)');
+    });
+
+    it('should leave osCPE and operatingSystem empty when the field is absent', () => {
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([mockAssetRawNoDns])));
+      component.loadHighRiskAssets();
+      const asset = component.highRiskAssets()[0];
+
+      expect(asset.osCPE).toBe('');
+      expect(asset.operatingSystem).toBe('');
+    });
+
+    it.each(['', '   ', null, undefined, 0, false, {}])('should leave osCPE and operatingSystem empty when the field is %j', (osCPE) => {
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([{ ...mockAssetRaw, osCPE }])));
+      component.loadHighRiskAssets();
+      const asset = component.highRiskAssets()[0];
+
+      expect(asset.osCPE).toBe('');
+      expect(asset.operatingSystem).toBe('');
+    });
+
+    it('should fall back to the raw value when osCPE is not a parseable CPE', () => {
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([{ ...mockAssetRaw, osCPE: ' Linux Kernel 3.10 on RHEL 7 ' }])));
+      component.loadHighRiskAssets();
+      const asset = component.highRiskAssets()[0];
+
+      expect(asset.osCPE).toBe('Linux Kernel 3.10 on RHEL 7');
+      expect(asset.operatingSystem).toBe('Linux Kernel 3.10 on RHEL 7');
+    });
+
+    it('should format a partial CPE with omitted components', () => {
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([{ ...mockAssetRaw, osCPE: 'cpe:/o:microsoft:windows_server_2016' }])));
+      component.loadHighRiskAssets();
+      expect(component.highRiskAssets()[0].operatingSystem).toBe('Microsoft Windows Server 2016');
+    });
+
+    it('should format the operating-system entry when osCPE holds several CPEs', () => {
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([{ ...mockAssetRaw, osCPE: 'cpe:/a:openbsd:openssh:9.3\ncpe:/o:microsoft:windows_10:::x64-enterprise' }])));
+      component.loadHighRiskAssets();
+      expect(component.highRiskAssets()[0].operatingSystem).toBe('Microsoft Windows 10 (x64 Enterprise)');
+    });
+
+    it('should convert acrScore and assetExposureScore to numbers', () => {
+      component.loadHighRiskAssets();
+      const asset = component.highRiskAssets()[0];
+
+      expect(asset.acrScore).toBe(8);
+      expect(asset.assetExposureScore).toBe(450);
+    });
+
+    it('should leave acrScore and assetExposureScore null when the fields are absent', () => {
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([mockAssetRawNoDns])));
+      component.loadHighRiskAssets();
+      const asset = component.highRiskAssets()[0];
+
+      expect(asset.acrScore).toBeNull();
+      expect(asset.assetExposureScore).toBeNull();
+    });
+
+    it.each(['', null, undefined])('should leave acrScore and assetExposureScore null when the fields are %j', (value) => {
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([{ ...mockAssetRaw, acrScore: value, assetExposureScore: value }])));
+      component.loadHighRiskAssets();
+      const asset = component.highRiskAssets()[0];
+
+      expect(asset.acrScore).toBeNull();
+      expect(asset.assetExposureScore).toBeNull();
+    });
+
+    it('should keep a zero assetExposureScore as 0 rather than null', () => {
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([{ ...mockAssetRaw, assetExposureScore: '0' }])));
+      component.loadHighRiskAssets();
+      expect(component.highRiskAssets()[0].assetExposureScore).toBe(0);
+    });
+
+    it('should map rows independently when only some carry osCPE', () => {
+      mockIntegrationService.postTenableAnalysis.mockReturnValue(of(makeAnalysisResponse([mockAssetRaw, mockAssetRawNoDns], 2)));
+      component.loadHighRiskAssets();
+      const [withCpe, withoutCpe] = component.highRiskAssets();
+
+      expect(withCpe.operatingSystem).toBe('Red Hat Enterprise Linux 9.6 (x86_64)');
+      expect(withoutCpe.operatingSystem).toBe('');
+    });
+
     it('should parse score as integer', () => {
       component.loadHighRiskAssets();
       expect(component.highRiskAssets()[0].score).toBe(850);
@@ -517,6 +612,39 @@ describe('TenableHighRiskAssetsTableComponent', () => {
       component.clear();
       expect(mockTable.clear).toHaveBeenCalled();
       expect(component.filterValue).toBe('');
+    });
+  });
+
+  describe('exportCSV', () => {
+    it('should export the operating system, OS CPE, ACR, and AES columns', () => {
+      component.loadHighRiskAssets();
+      Object.defineProperty(component, 'highRiskAssetTable', { get: () => () => ({ filteredValue: null }), configurable: true });
+
+      component.exportCSV();
+
+      const [rows, options] = mockCsvExportService.exportToCsv.mock.calls[0];
+
+      expect(rows).toHaveLength(1);
+      expect(options.filename).toBe('tenable_high_risk_assets');
+      expect(options.columns).toEqual(
+        expect.arrayContaining([
+          { field: 'operatingSystem', header: 'Operating System' },
+          { field: 'osCPE', header: 'OS CPE' },
+          { field: 'acrScore', header: 'ACR' },
+          { field: 'assetExposureScore', header: 'AES' }
+        ])
+      );
+    });
+
+    it('should export the filtered rows when a filter is active', () => {
+      component.loadHighRiskAssets();
+      const filtered = [component.highRiskAssets()[0]];
+
+      Object.defineProperty(component, 'highRiskAssetTable', { get: () => () => ({ filteredValue: filtered }), configurable: true });
+
+      component.exportCSV();
+
+      expect(mockCsvExportService.exportToCsv.mock.calls[0][0]).toBe(filtered);
     });
   });
 
