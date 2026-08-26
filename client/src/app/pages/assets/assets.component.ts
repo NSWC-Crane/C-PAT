@@ -85,7 +85,6 @@ export class AssetsComponent implements OnInit, OnDestroy {
   readonly chartData = signal<any>(undefined);
   chartOptions: any;
   cols!: Column[];
-  exportColumns!: Column[];
   readonly data = signal<AssetEntry[]>([]);
   readonly filterValue = signal('');
   readonly assets = signal<AssetEntry[]>([]);

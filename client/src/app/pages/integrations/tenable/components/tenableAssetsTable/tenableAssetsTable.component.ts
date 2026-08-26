@@ -36,10 +36,6 @@ interface Reference {
   type: string;
   value: string;
 }
-interface ExportColumn {
-  title: string;
-  dataKey: string;
-}
 
 @Component({
   selector: 'cpat-tenable-assets-table',
@@ -65,7 +61,6 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
   private readonly columnSelect = viewChild.required<Select>('ms');
 
   cols: any[];
-  exportColumns!: ExportColumn[];
   selectedColumns: any[];
   readonly cveReferences = signal<Reference[]>([]);
   readonly iavReferences = signal<Reference[]>([]);
@@ -205,11 +200,6 @@ export class TenableAssetsTableComponent implements OnInit, AfterViewInit {
     } else {
       this.cols = cols;
     }
-
-    this.exportColumns = this.cols.map((col) => ({
-      title: col.header,
-      dataKey: col.field
-    }));
 
     let selectedFields = ['sourcePluginIDs', 'pluginName', 'family', 'severity', 'ips', 'netbiosName', 'dnsName', 'port', 'protocol', 'teamAssigned'];
 

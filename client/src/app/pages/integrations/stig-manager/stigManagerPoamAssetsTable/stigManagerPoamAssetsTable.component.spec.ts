@@ -201,12 +201,6 @@ describe('STIGManagerPoamAssetsTableComponent', () => {
       expect(component.cols.map((c: any) => c.field)).toContain('ip');
     });
 
-    it('should set exportColumns from cols', () => {
-      expect(component.exportColumns).toHaveLength(7);
-      expect(component.exportColumns[0]).toHaveProperty('title');
-      expect(component.exportColumns[0]).toHaveProperty('dataKey');
-    });
-
     it('should call resetColumnSelections', () => {
       const spy = vi.spyOn(component, 'resetColumnSelections');
 

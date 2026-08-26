@@ -28,11 +28,6 @@ import { getErrorMessage } from '../../../../common/utils/error-utils';
 import { AssetDeltaService } from '../../../admin/asset-delta/asset-delta.service';
 import { MultiSelectDirective } from '../../../../common/directives/multi-select.directive';
 
-interface ExportColumn {
-  title: string;
-  dataKey: string;
-}
-
 @Component({
   selector: 'cpat-stigmanager-poam-assets-table',
   templateUrl: './stigManagerPoamAssetsTable.component.html',
@@ -56,7 +51,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
   private readonly columnSelect = viewChild<Select>('ms');
 
   cols: any[];
-  exportColumns!: ExportColumn[];
   selectedColumns: any[];
   affectedAssets: any[] = [];
   totalRecords: number = 0;
@@ -369,10 +363,6 @@ export class STIGManagerPoamAssetsTableComponent implements OnInit, AfterViewIni
       { field: 'labels', header: 'Labels', width: '200px', filterable: true },
       { field: 'teamAssigned', header: 'Team', width: '120px', filterable: false }
     ];
-    this.exportColumns = this.cols.map((col) => ({
-      title: col.header,
-      dataKey: col.field
-    }));
     this.resetColumnSelections();
   }
 

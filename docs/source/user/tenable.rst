@@ -29,6 +29,11 @@ The POAM column is color coded to reflect the POAM status. The color coding is a
 - Grey Checkmark: The vulnerability is listed as being "Associated" with an existing POAM. This result is often the case when one master POAM is sufficient to cover multiple similar findings.
 - Black Checkmark: POAM exists and is in a status of "Closed" or "False-Positive".
 
+.. note::
+   Every Tenable findings table with a POAM column exports a ``POAM Status`` column in place of the POAM icon, holding the status the icon represents, for example ``Approved`` or ``No Existing POAM``. This covers the **Vulnerabilities**, **30+ Days**, **Exploitable**, **Failed Credential**, and **SEoL** tabs, the **IAV Vulnerabilities** and **Task Orders** tabs, and the host findings dialog. On the tabs that offer a column selector, the export follows the columns currently chosen there; the host findings dialog always exports its full column set.
+
+   In the summary (by-plugin) view, and on the IAV Vulnerabilities, Task Orders, and host findings tables, the export contains the rows currently displayed, that is, the rows left after any active column filters. The by-system Vulnerability List view instead re-queries Tenable and exports up to 10,000 rows matching the filters set in the filter panel, so it is not limited to the page on screen.
+
 Predefined Filters
 """""""""""""""""""
 To access the filter menu, a filter button is available to the top left of the table. At the top of the filter panel, a dropdown has been provided with several pre-made filters:

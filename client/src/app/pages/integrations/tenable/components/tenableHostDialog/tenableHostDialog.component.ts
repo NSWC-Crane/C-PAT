@@ -27,6 +27,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { forkJoin, of } from 'rxjs';
 import { catchError, first } from 'rxjs/operators';
 import { SharedService } from '../../../../../common/services/shared.service';
+import { CsvExportService, toCsvColumns } from '../../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { PoamService } from '../../../../poams/poams.service';
 import { IntegrationService } from '../../../integration.service';
@@ -47,6 +48,7 @@ export class TenableHostDialogComponent implements OnChanges {
   private readonly sharedService = inject(SharedService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly csvExportService = inject(CsvExportService);
 
   readonly host = input<any>(undefined);
   readonly tenableRepoId = input<number>(undefined);
@@ -304,7 +306,10 @@ export class TenableHostDialogComponent implements OnChanges {
   }
 
   exportHostFindingsTableCSV() {
-    this.hostFindingsTable().exportCSV();
+    this.csvExportService.exportToCsv(this.hostFindingsTable().filteredValue ?? this.hostData(), {
+      filename: `tenable-host-findings-${this.hostName || this.hostDns || this.hostIp || 'host'}`,
+      columns: toCsvColumns(this.hostDialogCols)
+    });
   }
 
   onPluginIDClick(plugin: any, event: Event) {

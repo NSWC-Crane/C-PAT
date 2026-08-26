@@ -24,6 +24,8 @@ The POAM column is color coded to reflect the POAM status. The color coding is a
 .. note::
    The buttons in the POAM column are clickable and will also display a tooltip with additional details when hovered over.
 
+The Findings Grid toolbar includes a CSV export, as does the findings table reached by selecting a control in the Controls view. Both exports contain the rows currently displayed, that is, the rows left after any active column filters and after the toolbar search box, and both replace the POAM icon column with a ``POAM Status`` column holding the status the icon represents, for example ``Approved`` or ``No Existing POAM``.
+
 In cases where a POAM exists, clicking the aforementioned icon will direct the user to the POAM details page for further information.
 
 In cases where a POAM does not exist, clicking the aforementioned icon will submit an additional query to STIG Manager ``api/stigs/rules/{ruleId}`` projection(s): ``detail, check, fix`` and a query to ``api/stigs/`` while the user is being directed to the POAM creation page.

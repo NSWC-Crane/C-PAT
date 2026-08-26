@@ -202,13 +202,6 @@ describe('TenableAssetsTableComponent', () => {
       expect(fields).toContain('hasBeenMitigated');
     });
 
-    it('should set exportColumns matching cols', () => {
-      (component as any).pluginID = () => undefined;
-      (component as any).tenableRepoId = () => undefined;
-      component.initColumnsAndFilters();
-      expect(component.exportColumns).toHaveLength(component.cols.length);
-    });
-
     it('should set selectedColumns to default subset', () => {
       (component as any).pluginID = () => undefined;
       (component as any).tenableRepoId = () => undefined;

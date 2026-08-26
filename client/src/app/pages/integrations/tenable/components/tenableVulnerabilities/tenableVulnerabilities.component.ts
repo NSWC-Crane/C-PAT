@@ -35,7 +35,6 @@ import { EMPTY, Observable, catchError, finalize, forkJoin, map, of, switchMap, 
 import {
   AccordionItem,
   CustomFilter,
-  ExportColumn,
   FilterConfig,
   FilterHandler,
   FilterValue,
@@ -51,6 +50,7 @@ import {
 } from '../../../../../common/models/tenable.model';
 import { PayloadService } from '../../../../../common/services/setPayload.service';
 import { SharedService } from '../../../../../common/services/shared.service';
+import { CsvExportService, toCsvColumns } from '../../../../../common/utils/csv-export.service';
 import { getErrorMessage } from '../../../../../common/utils/error-utils';
 import { isZoneCorDPackage, validateCVSSv2Vector, validateCVSSv3Vector, validateCVSSv4Vector, validateIAVM, validateIP, validateStigSeverity, validateUUID } from '../../../../../common/utils/validation.utils';
 import {
@@ -112,6 +112,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
   private readonly setPayloadService = inject(PayloadService);
   private readonly sharedService = inject(SharedService);
   private readonly router = inject(Router);
+  private readonly csvExportService = inject(CsvExportService);
 
   aaPackage: string = '';
   cveReferences = signal<Reference[]>([]);
@@ -137,7 +138,6 @@ export class TenableVulnerabilitiesComponent implements OnInit {
   filterSearch: string = '';
   filteredAccordionItems = signal<AccordionItem[]>([]);
   selectedColumns = signal<any[]>([]);
-  exportColumns!: ExportColumn[];
   sidebarVisible: boolean = false;
   activeFilters: CustomFilter[] = [];
   tempFilters: TempFilters = this.initializeTempFilters();
@@ -1084,10 +1084,6 @@ export class TenableVulnerabilitiesComponent implements OnInit {
       }
     ]);
     this.resetColumnSelections();
-    this.exportColumns = this.cols().map((col) => ({
-      title: col.header,
-      dataKey: col.field
-    }));
   }
 
   private initializeColumnsAndFilters() {
@@ -1540,7 +1536,7 @@ export class TenableVulnerabilitiesComponent implements OnInit {
 
   exportAllData() {
     if (this.tenableTool !== 'listvuln') {
-      this.table().exportCSV();
+      this.downloadCsv(this.table().filteredValue ?? this.allVulnerabilities());
 
       return;
     }
@@ -1599,8 +1595,6 @@ export class TenableVulnerabilitiesComponent implements OnInit {
             return;
           }
 
-          const currentData = this.allVulnerabilities();
-
           const exportData = data.response.results.map((vuln: any) => {
             const defaultVuln = {
               pluginID: '',
@@ -1634,17 +1628,16 @@ export class TenableVulnerabilitiesComponent implements OnInit {
             };
           });
 
-          this.allVulnerabilities.set(exportData);
-
-          setTimeout(() => {
-            this.table().exportCSV();
-
-            setTimeout(() => {
-              this.allVulnerabilities.set(currentData);
-            }, 100);
-          }, 0);
+          this.downloadCsv(exportData);
         }
       });
+  }
+
+  private downloadCsv(rows: any[]) {
+    this.csvExportService.exportToCsv(rows, {
+      filename: this.tenableTool === 'listvuln' ? 'tenable-vulnerability-list' : 'tenable-vulnerability-summary',
+      columns: toCsvColumns(this.selectedColumns())
+    });
   }
 
   private createIAVInfoMap(iavData: any[]): { [key: number]: IAVInfo } {

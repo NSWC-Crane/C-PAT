@@ -20,6 +20,7 @@ import { STIGManagerControlsTableComponent } from './stigManagerControlsTable.co
 import { SharedService } from '../../../../common/services/shared.service';
 import { PoamService } from '../../../poams/poams.service';
 import { createMockMessageService, createMockRouter } from '../../../../../testing/mocks/service-mocks';
+import { CsvExportService } from '../../../../common/utils/csv-export.service';
 
 const mockRawFindings = [
   {
@@ -65,6 +66,7 @@ describe('STIGManagerControlsTableComponent', () => {
   let mockRouter: any;
   let mockControlsTable: any;
   let mockFindingsTable: any;
+  let mockCsvExportService: any;
 
   beforeAll(() => {
     (globalThis as any).CPAT = {
@@ -79,6 +81,7 @@ describe('STIGManagerControlsTableComponent', () => {
   beforeEach(async () => {
     mockControlsTable = { clear: vi.fn(), filterGlobal: vi.fn(), exportCSV: vi.fn(), filteredValue: null };
     mockFindingsTable = { clear: vi.fn(), filterGlobal: vi.fn(), exportCSV: vi.fn(), filteredValue: null };
+    mockCsvExportService = { exportToCsv: vi.fn() };
 
     mockSharedService = {
       getFindingsByCCIFromSTIGMAN: vi.fn().mockReturnValue(of([...mockRawFindings])),
@@ -100,7 +103,8 @@ describe('STIGManagerControlsTableComponent', () => {
         { provide: SharedService, useValue: mockSharedService },
         { provide: PoamService, useValue: mockPoamService },
         { provide: MessageService, useValue: mockMessageService },
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: CsvExportService, useValue: mockCsvExportService }
       ]
     }).compileComponents();
 
@@ -456,6 +460,30 @@ describe('STIGManagerControlsTableComponent', () => {
       expect(finding.severity).toBe('CAT I - High');
     });
 
+    it('defaults poamStatus before the POAM associations resolve', () => {
+      const pendingPoams = new Subject<any>();
+
+      mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(pendingPoams.asObservable());
+      component.selectControl(component.controlSummaries()[0]);
+
+      expect(component.loadingFindings).toBe(false);
+      expect(component.controlFindings().every((finding) => finding.poamStatus === 'No Existing POAM')).toBe(true);
+    });
+
+    it('exports a populated POAM status while the POAM associations are still pending', () => {
+      const pendingPoams = new Subject<any>();
+
+      mockPoamService.getVulnerabilityIdsWithPoamByCollection.mockReturnValue(pendingPoams.asObservable());
+      component.selectControl(component.controlSummaries()[0]);
+      mockFindingsTable.filteredValue = null;
+
+      component.exportFindingsCSV();
+
+      const [exported] = mockCsvExportService.exportToCsv.mock.calls[0];
+
+      expect(exported.every((row: any) => row.poamStatus === 'No Existing POAM')).toBe(true);
+    });
+
     it('should set loadingFindings to false after load', () => {
       component.selectControl(component.controlSummaries()[0]);
       expect(component.loadingFindings).toBe(false);
@@ -782,9 +810,57 @@ describe('STIGManagerControlsTableComponent', () => {
   });
 
   describe('exportFindingsCSV', () => {
-    it('should call findingsTable().exportCSV()', () => {
+    const rows = [
+      { groupId: 'V-1', poamStatus: 'Approved' },
+      { groupId: 'V-2', poamStatus: 'No Existing POAM' }
+    ] as any[];
+
+    it('exports the POAM status column in place of the POAM icon column', () => {
+      component.controlFindings.set(rows);
+      component.loadingFindings = false;
+      component.selectedControl = { control: 'AC-2' } as any;
+      mockFindingsTable.filteredValue = null;
+
       component.exportFindingsCSV();
-      expect(mockFindingsTable.exportCSV).toHaveBeenCalled();
+
+      expect(mockFindingsTable.exportCSV).not.toHaveBeenCalled();
+      expect(mockCsvExportService.exportToCsv).toHaveBeenCalledTimes(1);
+      const [exported, options] = mockCsvExportService.exportToCsv.mock.calls[0];
+
+      expect(exported).toBe(rows);
+      expect(options.filename).toBe('stig-manager-control-findings-AC-2');
+      expect(options.columns[0]).toEqual({ field: 'poamStatus', header: 'POAM Status' });
+      expect(options.columns.map((col: any) => col.field)).toEqual(component.findingColumns.map((col) => (col.field === 'poam' ? 'poamStatus' : col.field)));
+    });
+
+    it('exports only the filtered rows when a column filter is active', () => {
+      component.controlFindings.set(rows);
+      component.loadingFindings = false;
+      mockFindingsTable.filteredValue = [rows[1]];
+
+      component.exportFindingsCSV();
+
+      expect(mockCsvExportService.exportToCsv.mock.calls[0][0]).toEqual([rows[1]]);
+    });
+
+    it('falls back to an all-controls filename when no control is selected', () => {
+      component.controlFindings.set(rows);
+      component.loadingFindings = false;
+      component.selectedControl = null;
+
+      component.exportFindingsCSV();
+
+      expect(mockCsvExportService.exportToCsv.mock.calls[0][1].filename).toBe('stig-manager-control-findings-all');
+    });
+
+    it('does not export while the findings are still loading', () => {
+      component.controlFindings.set(rows);
+      component.loadingFindings = true;
+
+      component.exportFindingsCSV();
+
+      expect(mockCsvExportService.exportToCsv).not.toHaveBeenCalled();
+      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn' }));
     });
   });
 

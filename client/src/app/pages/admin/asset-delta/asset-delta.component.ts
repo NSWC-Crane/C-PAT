@@ -109,7 +109,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
   private readonly fileUpload = viewChild.required<FileUpload>('fileUpload');
   readonly navigateToPluginMapping = output<void>();
   readonly cols = signal<Column[]>([]);
-  exportColumns!: Column[];
   readonly availableCollections = signal<CollectionsBasicList[]>([]);
   selectedCollection = signal<number | null>(null);
   selectedUploadCollections = signal<number[]>([]);
@@ -291,11 +290,6 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       { field: 'existsInTenable', header: 'Tenable', customExportHeader: 'Tenable' },
       { field: 'existsInStigManager', header: 'STIG Manager', customExportHeader: 'STIG Manager' }
     ]);
-
-    this.exportColumns = this.cols().map((col) => ({
-      field: col.field,
-      header: col.customExportHeader || col.header
-    }));
   }
 
   loadCollections() {

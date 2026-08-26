@@ -10,7 +10,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { CsvExportService, CsvColumn, CsvExportOptions } from './csv-export.service';
+import { CsvExportService, CsvColumn, CsvExportOptions, POAM_STATUS_CSV_COLUMN, toCsvColumns } from './csv-export.service';
 
 describe('CsvExportService', () => {
   let service: CsvExportService;
@@ -82,6 +82,22 @@ describe('CsvExportService', () => {
       expect(revokeObjectURLSpy).toHaveBeenCalled();
     });
 
+    it('should prefix the file with a UTF-8 byte order mark', async () => {
+      const blobs: Blob[] = [];
+
+      createObjectURLSpy.mockImplementation((blob: Blob) => {
+        blobs.push(blob);
+
+        return 'blob:test';
+      });
+
+      service.exportToCsv([{ id: 1, name: 'Tëst' }], { filename: 'test', columns });
+
+      const text = await blobs[0].text();
+
+      expect(text).toBe('\uFEFFID,Name\n1,Tëst');
+    });
+
     it('should include timestamp in filename by default', () => {
       const data = [{ id: 1, name: 'Test' }];
       const options: CsvExportOptions = { filename: 'export', columns };
@@ -146,7 +162,9 @@ describe('CsvExportService', () => {
     it.each([
       ['commas', 'Test, Value', '"Test, Value"'],
       ['quotes', 'Test "Value"', '"Test ""Value"""'],
-      ['newlines', 'Test\nValue', '"Test\nValue"']
+      ['newlines', 'Test\nValue', '"Test\nValue"'],
+      ['carriage returns', 'Test\rValue', '"Test\rValue"'],
+      ['CRLF pairs', 'Test\r\nValue', '"Test\r\nValue"']
     ])('should escape values with %s', async (_label, rawValue, expectedCell) => {
       const blobs: Blob[] = [];
 
@@ -165,7 +183,7 @@ describe('CsvExportService', () => {
       service.exportToCsv(data, { filename: 'test', columns });
 
       expect(blobs).toHaveLength(1);
-      await expect(blobs[0].text()).resolves.toBe(`ID,Name\n1,${expectedCell}`);
+      await expect(blobs[0].text()).resolves.toBe(`\uFEFFID,Name\n1,${expectedCell}`);
     });
 
     it.each([
@@ -191,7 +209,7 @@ describe('CsvExportService', () => {
 
       service.exportToCsv(data, { filename: 'test', columns });
 
-      await expect(blobs[0].text()).resolves.toBe(`ID,Name\n1,${expectedCell}`);
+      await expect(blobs[0].text()).resolves.toBe(`\uFEFFID,Name\n1,${expectedCell}`);
     });
 
     it('should leave negative numbers untouched', async () => {
@@ -210,7 +228,7 @@ describe('CsvExportService', () => {
 
       service.exportToCsv([{ id: 1, delta: -5 }], { filename: 'test', columns });
 
-      await expect(blobs[0].text()).resolves.toBe('ID,Delta\n1,-5');
+      await expect(blobs[0].text()).resolves.toBe('\uFEFFID,Delta\n1,-5');
     });
 
     it('should handle null values', () => {
@@ -411,6 +429,44 @@ describe('CsvExportService', () => {
       const result = service.flattenTreeNodes(nodes);
 
       expect(result).toHaveLength(2);
+    });
+  });
+
+  describe('toCsvColumns', () => {
+    it('swaps the poam icon column for the POAM Status column and keeps the order', () => {
+      const result = toCsvColumns([{ field: 'pluginID', header: 'Plugin ID' }, { field: 'poam', header: 'POAM', filterField: 'poamStatus' } as any, { field: 'severity', header: 'Severity' }]);
+
+      expect(result).toEqual([{ field: 'pluginID', header: 'Plugin ID' }, POAM_STATUS_CSV_COLUMN, { field: 'severity', header: 'Severity' }]);
+    });
+
+    it('drops table-only column metadata', () => {
+      expect(toCsvColumns([{ field: 'a', header: 'A', width: '10%' } as any])).toEqual([{ field: 'a', header: 'A' }]);
+    });
+
+    it('returns an empty list for no columns', () => {
+      expect(toCsvColumns([])).toEqual([]);
+    });
+
+    it('writes the POAM status under the POAM Status header end to end', async () => {
+      const blobs: Blob[] = [];
+
+      createObjectURLSpy.mockImplementation((blob: Blob) => {
+        blobs.push(blob);
+
+        return 'blob:test';
+      });
+
+      service.exportToCsv([{ pluginID: 1, poamStatus: 'Approved', poam: true }], {
+        filename: 'test',
+        columns: toCsvColumns([
+          { field: 'poam', header: 'POAM' },
+          { field: 'pluginID', header: 'Plugin ID' }
+        ])
+      });
+
+      const text = await blobs[0].text();
+
+      expect(text).toBe('\uFEFFPOAM Status,Plugin ID\nApproved,1');
     });
   });
 });

@@ -61,11 +61,6 @@ export interface TempFilters {
   [key: string]: any;
 }
 
-export interface ExportColumn {
-  title: string;
-  dataKey: string;
-}
-
 export interface PoamAssociation {
   poamId: number;
   status: string;
