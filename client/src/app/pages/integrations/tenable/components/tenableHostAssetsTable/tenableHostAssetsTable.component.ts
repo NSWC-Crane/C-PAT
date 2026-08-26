@@ -8,12 +8,13 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, input, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { format } from 'date-fns';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { ButtonGroupModule } from 'primeng/buttongroup';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
@@ -26,13 +27,24 @@ import { IntegrationService } from '../../../integration.service';
 import { TenableHostDialogComponent } from '../tenableHostDialog/tenableHostDialog.component';
 import { MultiSelectDirective } from '../../../../../common/directives/multi-select.directive';
 
+export type HostLastSeenRange = '7' | '30' | '90' | 'all';
+
+const SECONDS_PER_DAY = 86400;
+
+const DAYS_BY_LAST_SEEN_RANGE: Record<HostLastSeenRange, number> = {
+  '7': 7,
+  '30': 30,
+  '90': 90,
+  all: 0
+};
+
 @Component({
   selector: 'cpat-tenable-host-assets-table',
   templateUrl: './tenableHostAssetsTable.component.html',
   styleUrls: ['./tenableHostAssetsTable.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TableModule, ButtonModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, TooltipModule, TagModule, TenableHostDialogComponent]
+  imports: [FormsModule, TableModule, ButtonModule, ButtonGroupModule, InputTextModule, InputIconModule, IconFieldModule, MultiSelectDirective, SelectModule, TooltipModule, TagModule, TenableHostDialogComponent]
 })
 export class TenableHostAssetsTableComponent implements OnInit {
   private readonly integrationService = inject(IntegrationService);
@@ -45,10 +57,23 @@ export class TenableHostAssetsTableComponent implements OnInit {
 
   cols: any[];
   selectedColumns: any[];
-  readonly affectedAssets = signal<any[]>([]);
+  private readonly allHosts = signal<any[]>([]);
+  readonly lastSeenRange = signal<HostLastSeenRange>('90');
+  readonly affectedAssets = computed<any[]>(() => {
+    const hosts = this.allHosts();
+    const range = this.lastSeenRange();
+
+    if (range === 'all') {
+      return hosts;
+    }
+
+    const cutoff = Date.now() / 1000 - DAYS_BY_LAST_SEEN_RANGE[range] * SECONDS_PER_DAY;
+
+    return hosts.filter((host: any) => host.lastSeenRaw >= cutoff);
+  });
   readonly isLoading = signal<boolean>(true);
   private loadGeneration = 0;
-  readonly totalRecords = signal<number>(0);
+  readonly totalRecords = computed<number>(() => this.affectedAssets().length);
   filterValue: string = '';
   selectedHost = signal<any>(null);
   displayDialog = signal<boolean>(false);
@@ -117,7 +142,7 @@ export class TenableHostAssetsTableComponent implements OnInit {
             return;
           }
 
-          this.affectedAssets.set(
+          this.allHosts.set(
             data.response.map((asset: any) => {
               const formattedSystemType = asset.systemType
                 ? asset.systemType
@@ -145,6 +170,7 @@ export class TenableHostAssetsTableComponent implements OnInit {
                 acr: asset.acr?.score || '',
                 acrLastEvaluatedTime: this.formatTimestamp(asset.acr?.lastEvaluatedTime),
                 aes: asset.aes?.score || '',
+                lastSeenRaw: Number(asset.lastSeen) || 0,
                 lastSeen: this.formatTimestamp(asset.lastSeen),
                 firstSeen: this.formatTimestamp(asset.firstSeen),
                 systemType: formattedSystemType || ''
@@ -152,7 +178,6 @@ export class TenableHostAssetsTableComponent implements OnInit {
             })
           );
 
-          this.totalRecords.set(data.response.totalRecords);
           this.isLoading.set(false);
         },
         error: (error) => {
@@ -217,9 +242,14 @@ export class TenableHostAssetsTableComponent implements OnInit {
     });
   }
 
+  onLastSeenRangeChange(range: HostLastSeenRange) {
+    this.lastSeenRange.set(range);
+  }
+
   clear() {
     this.hostAssetTable().clear();
     this.filterValue = '';
+    this.lastSeenRange.set('all');
   }
 
   onGlobalFilter(event: Event) {

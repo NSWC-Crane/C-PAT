@@ -22,6 +22,13 @@
           <button pButton class="ml-2" (click)="clear()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Clear all filters"><i class="pi pi-filter-slash" pButtonIcon></i></button>
         </div>
         <div class="right-buttons">
+          <span class="text-xs text-gray-400">Last Seen:</span>
+          <p-buttongroup>
+            <button pButton (click)="onLastSeenRangeChange('7')" size="small" severity="secondary" [outlined]="lastSeenRange() !== '7'" [disabled]="isLoading()"><span pButtonLabel>7 Days</span></button>
+            <button pButton (click)="onLastSeenRangeChange('30')" size="small" severity="secondary" [outlined]="lastSeenRange() !== '30'" [disabled]="isLoading()"><span pButtonLabel>30 Days</span></button>
+            <button pButton (click)="onLastSeenRangeChange('90')" size="small" severity="secondary" [outlined]="lastSeenRange() !== '90'" [disabled]="isLoading()"><span pButtonLabel>90 Days</span></button>
+            <button pButton (click)="onLastSeenRangeChange('all')" size="small" severity="secondary" [outlined]="lastSeenRange() !== 'all'" [disabled]="isLoading()"><span pButtonLabel>All</span></button>
+          </p-buttongroup>
           <button pButton class="mr-2" (click)="resetColumnSelections()" [rounded]="true" [text]="true" [raised]="true" severity="secondary" pTooltip="Reset column selections"><i class="pi pi-refresh" pButtonIcon></i></button>
           <button pButton (click)="toggleAddColumnOverlay()" [rounded]="true" [text]="true" [raised]="true" severity="primary"><i class="pi pi-plus" pButtonIcon></i></button>
           <button pButton (click)="exportCSV()" severity="secondary" [rounded]="true" [text]="true"><i class="pi pi-external-link" pButtonIcon></i></button>
