@@ -9,6 +9,7 @@
 */
 
 import { AssetsFilter, CustomFilter } from '../../../../common/models/tenable.model';
+import { splitDelimitedIds } from '../../../../common/utils/validation.utils';
 
 export type AssetFilterOperator = 'contains' | 'notContains';
 
@@ -201,6 +202,12 @@ export function buildOperatorValueFilter(apiName: string, value: any): CustomFil
   return value?.value ? vulnFilter(apiName, value.value, value.operator || '=') : null;
 }
 
+export function buildDelimitedListFilter(apiName: string, value: any): CustomFilter | null {
+  const tokens = typeof value?.value === 'string' ? splitDelimitedIds(value.value) : [];
+
+  return tokens.length > 0 ? vulnFilter(apiName, tokens.join(','), value.operator || '=') : null;
+}
+
 export function buildRangeFilter(apiName: string, value: any): CustomFilter | null {
   if (value?.value === 'none') {
     return vulnFilter(apiName, 'none');
@@ -223,6 +230,7 @@ export const API_FILTER_BUILDERS: Record<string, ApiFilterBuilder> = {
   severity: buildSeverityFilter,
   array: buildArrayFilter,
   operatorValue: buildOperatorValueFilter,
+  delimitedList: buildDelimitedListFilter,
   range: buildRangeFilter,
   simpleValue: buildSimpleValueFilter
 };
