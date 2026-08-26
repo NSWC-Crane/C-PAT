@@ -1289,7 +1289,7 @@ describe('PoamExtendComponent', () => {
       });
 
       it('should adopt the created milestoneId from the add response', async () => {
-        const milestone = {
+        const milestone: { milestoneId: string | number; isNew: boolean; [key: string]: any } = {
           isNew: true,
           milestoneId: 'temp_123',
           milestoneChangeComments: 'New',
