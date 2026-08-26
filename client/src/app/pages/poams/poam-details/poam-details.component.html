@@ -376,10 +376,23 @@
             />
           </div>
 
-          @if (completionDateWithExtension()) {
+          @if (patchPublicationDate()) {
             <div class="form-group">
-              <label for="extensionDeadline">Deadline With Extension:</label>
-              <input type="text" pInputText [value]="completionDateWithExtension()" id="extensionDeadline" name="extensionDeadline" disabled class="w-[25rem]" />
+              <label for="patchPublicationDate">
+                <i class="pi pi-info-circle mr-2" style="color: var(--p-text-color)" pTooltip="Patch Publication Date: The date the vendor released a patch for this vulnerability, as reported by ACAS."></i>
+                Patch Publication Date:
+              </label>
+              <input type="text" pInputText [value]="patchPublicationDate()" id="patchPublicationDate" name="patchPublicationDate" disabled class="w-[25rem]" />
+            </div>
+          }
+
+          @if (exploitAvailable()) {
+            <div class="form-group">
+              <label for="exploitAvailable">
+                <i class="pi pi-info-circle mr-2" style="color: var(--p-text-color)" pTooltip="Exploit Available: Indicates whether a public exploit is known to exist for this vulnerability, as reported by ACAS."></i>
+                Exploit Available:
+              </label>
+              <input type="text" pInputText [value]="exploitAvailable()" id="exploitAvailable" name="exploitAvailable" disabled class="w-[25rem]" />
             </div>
           }
 
@@ -408,6 +421,13 @@
               [disabled]="accessLevel() < 2 || (poam.status !== 'Draft' && poam.status !== 'Rejected' && poam.status !== 'Submitted' && accessLevel() < 3)"
             />
           </div>
+
+          @if (completionDateWithExtension()) {
+            <div class="form-group">
+              <label for="extensionDeadline">Deadline With Extension:</label>
+              <input type="text" pInputText [value]="completionDateWithExtension()" id="extensionDeadline" name="extensionDeadline" disabled class="w-[25rem]" />
+            </div>
+          }
 
           @if (dates().submittedDate) {
             <div class="form-group">

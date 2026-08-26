@@ -174,6 +174,9 @@ export class PoamDetailsComponent implements OnInit {
   readonly showTenablePluginData = signal<boolean>(false);
   stigmanSTIGs: any;
   readonly tenablePluginData = signal<string>('');
+  private readonly tenablePluginDetails = signal<any>(null);
+  readonly patchPublicationDate = computed<string | null>(() => this.formatPluginTimestamp(this.tenablePluginDetails()?.patchPubDate));
+  readonly exploitAvailable = computed<string | null>(() => this.formatExploitAvailable(this.tenablePluginDetails()?.exploitAvailable));
   filteredStigmanSTIGs: string[] = [];
   readonly originCollectionId = signal<number | undefined>(undefined);
   readonly collectionData = signal<Collections | undefined>(undefined);
@@ -353,6 +356,7 @@ export class PoamDetailsComponent implements OnInit {
         this.activeTabIndex.set(0);
         this.activeResourceTabIndex.set(0);
         this.completionDateWithExtension.set(undefined);
+        this.tenablePluginDetails.set(null);
         this.teamMitigations.set([]);
         this.teamResources.set([]);
         this.loadedRawSeverity.set(null);
@@ -537,7 +541,9 @@ export class PoamDetailsComponent implements OnInit {
 
             if (poam.tenablePluginData) {
               this.tenablePluginData.set(this.poamCreationService.parsePluginData(poam.tenablePluginData));
+              this.tenablePluginDetails.set(this.parseTenablePluginDetails(poam.tenablePluginData));
             } else {
+              this.tenablePluginDetails.set(null);
               this.poamDataService
                 .loadSTIGsFromSTIGMAN()
                 .pipe(takeUntilDestroyed(this.destroyRef))
@@ -665,6 +671,7 @@ export class PoamDetailsComponent implements OnInit {
 
       this.dates.set(result.dates);
       this.tenablePluginData.set(result.tenablePluginData);
+      this.tenablePluginDetails.set(this.parseTenablePluginDetails(result.poam?.tenablePluginData));
       this.assignedTeamOptions.set(result.assignedTeamOptions);
       this.collectionUsers.set(result.collectionUsers);
       this.collectionApprovers.set(result.collectionApprovers);
@@ -1628,6 +1635,43 @@ export class PoamDetailsComponent implements OnInit {
       this.teamResources.set(this.teamResources().filter((resource, index, self) => index === self.findIndex((r) => r.assignedTeamId === resource.assignedTeamId)));
     } else {
       this.teamResources.set([]);
+    }
+  }
+
+  private parseTenablePluginDetails(pluginData: any): any {
+    if (!pluginData) return null;
+
+    try {
+      return typeof pluginData === 'string' ? JSON.parse(pluginData) : pluginData;
+    } catch {
+      return null;
+    }
+  }
+
+  private formatPluginTimestamp(timestamp: any): string | null {
+    if (timestamp === null || timestamp === undefined || timestamp === '') return null;
+
+    const seconds = Number(timestamp);
+
+    if (!Number.isFinite(seconds) || seconds <= 0) return null;
+
+    const date = new Date(seconds * 1000);
+
+    return Number.isNaN(date.getTime()) ? null : format(date, 'yyyy-MM-dd');
+  }
+
+  private formatExploitAvailable(exploitAvailable: any): string | null {
+    if (typeof exploitAvailable === 'boolean') return exploitAvailable ? 'Yes' : 'No';
+
+    switch (String(exploitAvailable).trim().toLowerCase()) {
+      case 'true':
+      case 'yes':
+        return 'Yes';
+      case 'false':
+      case 'no':
+        return 'No';
+      default:
+        return null;
     }
   }
 }
