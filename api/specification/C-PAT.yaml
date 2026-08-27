@@ -1532,6 +1532,112 @@ paths:
         - oauth:
             - 'c-pat:op'
 
+  /collection/{collectionId}/teamSync:
+    parameters:
+      - $ref: '#/components/parameters/ElevateQuery'
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get the team sync snapshot of a collection
+      description: >-
+        Returns every POAM in the collection with the fields the asset-to-team mapping needs - vulnerability ids,
+        status, the currently assigned teams with their automated flag, and C-PAT asset rows - in one response.
+        Administrator only.
+      operationId: getCollectionTeamSyncSnapshot
+      responses:
+        '200':
+          description: Team sync snapshot retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/collection_team_sync_snapshot'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Collection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Collection
+      security:
+        - oauth:
+            - 'c-pat:op'
+    post:
+      summary: Apply asset-mapping team changes to the POAMs of a collection
+      description: >-
+        Applies assigned-team additions and removals computed from the collection's asset delta rules, at most 100
+        POAMs per request. Each POAM is applied in its own transaction. Closed POAMs, POAMs outside the collection,
+        and teams that were assigned manually are never changed; the outcome for every POAM is reported in the
+        response. Administrator only.
+      operationId: postCollectionTeamSync
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/collection_team_sync_request'
+      responses:
+        '200':
+          description: Team sync changes processed; see results for the outcome of each POAM
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/collection_team_sync_result'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Forbidden - insufficient privileges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Collection not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Collection
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   /iav/vramUpdatedDate:
     get:
       summary: Get VRAM data updated date
@@ -9222,6 +9328,142 @@ components:
           items:
             $ref: '#/components/schemas/collection_grant_exclusion'
 
+    collection_team_sync_snapshot:
+      type: object
+      description: >-
+        Every POAM in a collection with the fields the asset-to-team mapping needs, read in one consistent snapshot.
+      required:
+        - collectionId
+        - collectionType
+        - poams
+      additionalProperties: true
+      properties:
+        collectionId:
+          type: integer
+        collectionType:
+          type: [string, 'null']
+        originCollectionId:
+          type: [integer, 'null']
+        poams:
+          type: array
+          items:
+            type: object
+            required:
+              - poamId
+              - status
+              - associatedVulnerabilities
+              - assignedTeams
+              - assets
+            additionalProperties: true
+            properties:
+              poamId:
+                type: integer
+              vulnerabilityId:
+                type: [string, 'null']
+              vulnerabilitySource:
+                type: [string, 'null']
+              stigBenchmarkId:
+                type: [string, 'null']
+              status:
+                type: [string, 'null']
+              isGlobalFinding:
+                type: boolean
+              associatedVulnerabilities:
+                type: array
+                items:
+                  type: string
+              assignedTeams:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  properties:
+                    assignedTeamId:
+                      type: integer
+                    assignedTeamName:
+                      type: string
+                    automated:
+                      type: boolean
+              assets:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  properties:
+                    assetId:
+                      type: integer
+                    assetName:
+                      type: [string, 'null']
+    collection_team_sync_request:
+      type: object
+      required:
+        - changes
+      additionalProperties: false
+      properties:
+        changes:
+          type: array
+          maxItems: 100
+          description: The assigned-team additions and removals to apply, one entry per POAM.
+          items:
+            type: object
+            required:
+              - poamId
+              - add
+              - remove
+            additionalProperties: false
+            properties:
+              poamId:
+                type: integer
+                minimum: 1
+              add:
+                type: array
+                description: Team ids to assign with automated set; teams already assigned are left unchanged.
+                items:
+                  type: integer
+                  minimum: 1
+              remove:
+                type: array
+                description: Team ids to unassign; only teams whose assignment is automated are removed.
+                items:
+                  type: integer
+                  minimum: 1
+    collection_team_sync_result:
+      type: object
+      required:
+        - results
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required:
+              - poamId
+              - added
+              - removed
+            additionalProperties: true
+            properties:
+              poamId:
+                type: [integer, 'null']
+              added:
+                type: array
+                items:
+                  type: integer
+              removed:
+                type: array
+                items:
+                  type: integer
+              unknown:
+                type: array
+                description: Team ids that were requested but no longer exist; they were skipped.
+                items:
+                  type: integer
+              skipped:
+                type: string
+                enum:
+                  - closed
+                  - not in collection
+              error:
+                type: string
     permission_write_result:
       type: object
       description: >-

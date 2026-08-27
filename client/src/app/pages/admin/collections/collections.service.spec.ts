@@ -155,6 +155,36 @@ describe('CollectionsService', () => {
     });
   });
 
+  describe('Collection team sync', () => {
+    it('should get the team sync snapshot with elevate parameter', () => {
+      const mockSnapshot = { collectionId: 1, collectionType: 'STIG Manager', originCollectionId: 21, poams: [] };
+
+      service.getTeamSyncSnapshot(1).subscribe((data) => {
+        expect(data).toEqual(mockSnapshot);
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/collection/1/teamSync?elevate=true`);
+
+      expect(req.request.method).toBe('GET');
+      req.flush(mockSnapshot);
+    });
+
+    it('should post team sync changes with elevate parameter', () => {
+      const changes = [{ poamId: 10, add: [1], remove: [2] }];
+      const mockResponse = { results: [{ poamId: 10, added: [1], removed: [2] }] };
+
+      service.applyTeamSync(1, changes).subscribe((data) => {
+        expect(data).toEqual(mockResponse);
+      });
+
+      const req = httpMock.expectOne(`${apiBase}/collection/1/teamSync?elevate=true`);
+
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ changes });
+      req.flush(mockResponse);
+    });
+  });
+
   describe('Collection POAMs', () => {
     it('should get POAMs by collection with all related data', () => {
       service.getPoamsByCollection(1).subscribe((data) => {

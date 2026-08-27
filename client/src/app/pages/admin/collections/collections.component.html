@@ -70,7 +70,9 @@
               }
               <td>
                 <button pButton class="mr-2" (click)="$event.stopPropagation(); showModifyCollectionDialog(rowData)" [rounded]="true" variant="text"><i class="pi pi-pencil" pButtonIcon></i></button>
-                <button pButton class="mr-2" (click)="$event.stopPropagation(); exportCollection(rowData)" [rounded]="true" variant="text"><i class="pi pi-download" pButtonIcon></i></button>
+                <button pButton class="mr-2" (click)="$event.stopPropagation(); syncCollectionTeams(rowData)" [rounded]="true" variant="text" aria-label="Sync Teams" pTooltip="Sync Teams" tooltipPosition="top">
+                  <i class="pi pi-sync" pButtonIcon></i>
+                </button>
                 <button pButton (click)="$event.stopPropagation(); confirmDeleteCollection(rowData)" [rounded]="true" variant="text" severity="danger"><i class="pi pi-trash" pButtonIcon></i></button>
               </td>
             </tr>
@@ -90,6 +92,8 @@
     </p-tabpanel>
   </p-tabpanels>
 </p-tabs>
+
+<cpat-collection-team-sync [collection]="teamSyncCollection()" [(visible)]="displayTeamSyncDialog" />
 
 <p-dialog [(visible)]="displayCollectionDialog" styleClass="max-w-[60vw] max-h-[80vh] overflow-hidden" [modal]="true">
   <ng-template #content>

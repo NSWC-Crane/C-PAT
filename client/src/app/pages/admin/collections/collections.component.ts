@@ -36,6 +36,7 @@ import { IntegrationService } from '../../integrations/integration.service';
 import { PoamService } from '../../poams/poams.service';
 import { AAPackageService } from '../aa-packages/aa-packages.service';
 import { CollectionPermissionsComponent } from './collection-permissions/collection-permissions.component';
+import { CollectionTeamSyncComponent } from './collection-team-sync/collection-team-sync.component';
 import { CollectionsService } from './collections.service';
 
 interface TreeNode<T> {
@@ -54,6 +55,7 @@ interface TreeNode<T> {
     AutoCompleteModule,
     ButtonModule,
     CollectionPermissionsComponent,
+    CollectionTeamSyncComponent,
     DialogModule,
     FormsModule,
     IconFieldModule,
@@ -122,6 +124,8 @@ export class CollectionsComponent implements OnInit {
   tenableAffectedAssets: any;
   readonly displayDeleteDialog = signal(false);
   collectionToDelete: any = null;
+  readonly displayTeamSyncDialog = signal(false);
+  readonly teamSyncCollection = signal<Collections | null>(null);
   readonly displayExportDialog = signal(false);
   readonly selectableCollections = signal<any[]>([]);
   readonly selectedExportCollections = signal<any[]>([]);
@@ -254,55 +258,6 @@ export class CollectionsComponent implements OnInit {
     );
 
     this.collectionTreeData.set(treeViewData);
-  }
-
-  exportCollection(rowData: any) {
-    const exportCollection = {
-      collectionId: rowData.collectionId,
-      name: rowData.collectionName,
-      collectionType: rowData.collectionType,
-      originCollectionId: rowData.originCollectionId,
-      systemType: rowData.systemType,
-      systemName: rowData.systemName,
-      ccsafa: rowData.ccsafa,
-      aaPackage: rowData.aaPackage,
-      predisposingConditions: rowData.predisposingConditions
-    };
-
-    if (!exportCollection.collectionId) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: `Unable to determine export collection, please try again.`
-      });
-
-      return;
-    }
-
-    this.collectionsService
-      .getPoamsByCollection(exportCollection.collectionId)
-      .pipe(
-        switchMap((poams) => {
-          if (!poams?.length) {
-            throw new Error('No POAMs to export for this collection.');
-          }
-
-          return this.processPoamsData(poams, exportCollection);
-        }),
-        switchMap((processedPoams) => from(PoamExportService.convertToExcel(processedPoams, this.user, exportCollection))),
-        catchError((error) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Export Failed',
-            detail: `Failed to process POAMs: ${getErrorMessage(error)}`
-          });
-
-          return EMPTY;
-        })
-      )
-      .subscribe((excelData) => {
-        this.downloadExcel(excelData, exportCollection.name);
-      });
   }
 
   private processPoamsData(poams: any[], exportCollection: any): Observable<any[]> {
@@ -718,6 +673,13 @@ export class CollectionsComponent implements OnInit {
   hideDeleteDialog() {
     this.displayDeleteDialog.set(false);
     this.collectionToDelete = null;
+  }
+
+  syncCollectionTeams(rowData: Collections) {
+    if (this.displayTeamSyncDialog()) return;
+
+    this.teamSyncCollection.set(rowData);
+    this.displayTeamSyncDialog.set(true);
   }
 
   hideCollectionDialog() {

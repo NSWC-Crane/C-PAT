@@ -854,76 +854,38 @@ describe('CollectionsComponent', () => {
     });
   });
 
-  describe('exportCollection', () => {
-    it('should show error when collectionId is missing', () => {
-      const rowData = {
-        collectionId: null,
-        collectionName: 'Test',
-        collectionType: 'C-PAT',
-        originCollectionId: 0,
-        systemType: '',
-        systemName: '',
-        ccsafa: '',
-        aaPackage: '',
-        predisposingConditions: ''
-      };
+  describe('syncCollectionTeams', () => {
+    const rowData = { collectionId: 7, collectionName: 'Sync Me', collectionType: 'STIG Manager', originCollectionId: 21 };
 
-      component.exportCollection(rowData);
+    it('should open the team sync dialog for the selected collection', () => {
+      component.syncCollectionTeams(rowData);
 
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Error' }));
+      expect(component.teamSyncCollection()).toEqual(rowData);
+      expect(component.displayTeamSyncDialog()).toBe(true);
     });
 
-    it('should call getPoamsByCollection with correct id', () => {
-      const rowData = {
-        collectionId: 1,
-        collectionName: 'Col A',
-        collectionType: 'C-PAT',
-        originCollectionId: 0,
-        systemType: '',
-        systemName: '',
-        ccsafa: '',
-        aaPackage: '',
-        predisposingConditions: ''
-      };
+    it('should ignore a second request while the dialog is open', () => {
+      component.syncCollectionTeams(rowData);
+      component.syncCollectionTeams({ ...rowData, collectionId: 8 });
 
-      vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
-      component.exportCollection(rowData);
-
-      expect(mockCollectionsService.getPoamsByCollection).toHaveBeenCalledWith(1);
+      expect(component.teamSyncCollection()?.collectionId).toBe(7);
     });
 
-    it('should show error when no POAMs found', () => {
-      mockCollectionsService.getPoamsByCollection.mockReturnValue(of([]));
-      const rowData = {
-        collectionId: 1,
-        collectionName: 'Col A',
-        collectionType: 'C-PAT',
-        originCollectionId: 0,
-        systemType: '',
-        systemName: '',
-        ccsafa: '',
-        aaPackage: '',
-        predisposingConditions: ''
-      };
+    it('should render a sync button in place of the row export button', () => {
+      component.collectionTreeData.set([{ data: rowData as any }]);
+      fixture.detectChanges();
 
-      component.exportCollection(rowData);
+      const actions = Array.from(fixture.nativeElement.querySelectorAll('tbody button i')).map((icon: any) => icon.className);
 
-      expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', summary: 'Export Failed' }));
+      expect(actions.some((className) => className.includes('pi-sync'))).toBe(true);
+      expect(actions.some((className) => className.includes('pi-download'))).toBe(false);
     });
+  });
+
+  describe('processPoamsData routing (via exportMultipleCollections)', () => {
+    const exportRow = (overrides: any = {}) => ({ collectionId: 1, name: 'Col A', collectionType: 'C-PAT', originCollectionId: 0, ...overrides });
 
     it('should route to STIG Manager processing for STIG Manager origin', () => {
-      const rowData = {
-        collectionId: 2,
-        collectionName: 'STIG Col',
-        collectionType: 'STIG Manager',
-        originCollectionId: 42,
-        systemType: '',
-        systemName: '',
-        ccsafa: '',
-        aaPackage: '',
-        predisposingConditions: ''
-      };
-
       const findings = [
         {
           groupId: '12345',
@@ -934,68 +896,38 @@ describe('CollectionsComponent', () => {
 
       mockSharedService.getSTIGMANAffectedAssetsByPoam.mockReturnValue(of(findings));
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
-      component.exportCollection(rowData);
+      component.selectedExportCollections.set([exportRow({ collectionId: 2, name: 'STIG Col', collectionType: 'STIG Manager', originCollectionId: 42 })]);
+      component.exportMultipleCollections();
 
       expect(mockSharedService.getSTIGMANAffectedAssetsByPoam).toHaveBeenCalledWith(42, 'BENCH-1');
     });
 
     it('should route to Tenable processing for Tenable origin', () => {
-      const rowData = {
-        collectionId: 3,
-        collectionName: 'Tenable Col',
-        collectionType: 'Tenable',
-        originCollectionId: 0,
-        systemType: '',
-        systemName: '',
-        ccsafa: '',
-        aaPackage: '',
-        predisposingConditions: ''
-      };
-
       mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [] } }));
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
-      component.exportCollection(rowData);
+      component.selectedExportCollections.set([exportRow({ collectionId: 3, name: 'Tenable Col', collectionType: 'Tenable' })]);
+      component.exportMultipleCollections();
 
       expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalled();
     });
 
     it('should route to C-PAT processing for C-PAT origin', () => {
-      const rowData = {
-        collectionId: 1,
-        collectionName: 'CPAT Col',
-        collectionType: 'C-PAT',
-        originCollectionId: 0,
-        systemType: '',
-        systemName: '',
-        ccsafa: '',
-        aaPackage: '',
-        predisposingConditions: ''
-      };
-
       vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
-      component.exportCollection(rowData);
+      component.selectedExportCollections.set([exportRow({ name: 'CPAT Col' })]);
+      component.exportMultipleCollections();
 
       expect(mockPoamService.getPoamAssetsByCollectionId).toHaveBeenCalledWith(1);
     });
 
     describe('cache opt-out', () => {
-      const tenableRow = {
-        collectionId: 3,
-        collectionName: 'Tenable Col',
-        collectionType: 'Tenable',
-        originCollectionId: 0,
-        systemType: '',
-        systemName: '',
-        ccsafa: '',
-        aaPackage: '',
-        predisposingConditions: ''
-      };
+      const tenableRow = exportRow({ collectionId: 3, name: 'Tenable Col', collectionType: 'Tenable' });
 
       it('bypasses the upstream cache for the export analysis', async () => {
         vi.spyOn(PoamExportService, 'convertToExcel').mockResolvedValue(new Blob());
         mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [{ pluginID: '12345', dnsName: 'fresh.example.com', netbiosName: '' }] } }));
 
-        component.exportCollection(tenableRow);
+        component.selectedExportCollections.set([tenableRow]);
+        component.exportMultipleCollections();
         await Promise.resolve();
 
         expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
@@ -1006,7 +938,8 @@ describe('CollectionsComponent', () => {
 
         mockIntegrationService.postTenableAnalysis.mockReturnValue(of({ response: { results: [{ pluginID: '12345', dnsName: 'fresh.example.com', netbiosName: '' }] } }));
 
-        component.exportCollection(tenableRow);
+        component.selectedExportCollections.set([tenableRow]);
+        component.exportMultipleCollections();
         await Promise.resolve();
 
         expect(convertSpy).toHaveBeenCalledTimes(1);

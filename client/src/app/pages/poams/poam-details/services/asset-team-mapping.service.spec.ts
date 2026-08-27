@@ -12,7 +12,7 @@ import { TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MessageService } from 'primeng/api';
 import { createMockMessageService } from '../../../../../testing/mocks/service-mocks';
-import { AssetTeamMappingService, AssetData } from './asset-team-mapping.service';
+import { AssetTeamMappingService, AssetData, computeTeamAssignments, getAssetName } from './asset-team-mapping.service';
 
 describe('AssetTeamMappingService', () => {
   let service: AssetTeamMappingService;
@@ -338,6 +338,52 @@ describe('AssetTeamMappingService', () => {
         expect(result).toHaveLength(1);
         expect(result[0].assignedTeamId).toBe(1);
         expect(mockMessageService.add).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('computeTeamAssignments', () => {
+      it('should return the same team array reference and no changes on early return', () => {
+        const existingTeams = [{ assignedTeamId: 99, assignedTeamName: 'Existing Team' }];
+
+        const result = computeTeamAssignments(mockPoam, null, 'C-PAT', [], [], [], existingTeams);
+
+        expect(result.updatedTeams).toBe(existingTeams);
+        expect(result.added).toEqual([]);
+        expect(result.removed).toEqual([]);
+      });
+
+      it('should describe added and removed teams without emitting toasts', () => {
+        const externalAssets: AssetData[] = [{ assetName: 'workstation-07', source: 'Tenable' }];
+        const existingTeams = [
+          { assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: true },
+          { assignedTeamId: 5, assignedTeamName: 'Manual Team', automated: false }
+        ];
+
+        const result = computeTeamAssignments(mockPoam, mockAssetDeltaList, 'Tenable', [], externalAssets, mockAssetList, existingTeams);
+
+        expect(result.added).toEqual([{ poamId: 123, assignedTeamId: 2, assignedTeamName: 'Team Beta', isNew: false, automated: true }]);
+        expect(result.removed).toEqual([{ assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: true }]);
+        expect(result.updatedTeams.map((team) => team.assignedTeamId)).toEqual([5, 2]);
+        expect(existingTeams).toHaveLength(2);
+        expect(mockMessageService.add).not.toHaveBeenCalled();
+      });
+
+      it('should never remove teams from an unsaved POAM', () => {
+        const externalAssets: AssetData[] = [{ assetName: 'workstation-07', source: 'Tenable' }];
+        const existingTeams = [{ assignedTeamId: 1, assignedTeamName: 'Team Alpha', automated: true }];
+
+        const result = computeTeamAssignments(mockNewPoam, mockAssetDeltaList, 'Tenable', [], externalAssets, mockAssetList, existingTeams);
+
+        expect(result.removed).toEqual([]);
+        expect(result.updatedTeams.map((team) => team.assignedTeamId)).toEqual([1, 2]);
+        expect(result.added[0].poamId).toBe('ADDPOAM');
+      });
+
+      it('should resolve C-PAT asset names through getAssetName', () => {
+        const assetList = [{ assetId: 1, assetName: 'server-01' }];
+
+        expect(getAssetName(1, assetList)).toBe('server-01');
+        expect(getAssetName(2, assetList)).toBe('Asset ID: 2');
       });
     });
   });
