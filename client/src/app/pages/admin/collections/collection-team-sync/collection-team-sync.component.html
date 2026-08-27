@@ -1,0 +1,239 @@
+<!--
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+-->
+
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [closable]="closable()"
+  [closeOnEscape]="false"
+  [dismissableMask]="false"
+  [showHeader]="false"
+  [pt]="dialogPt"
+  styleClass="team-sync-dialog w-[75vw] max-w-6xl overflow-hidden"
+  (onShow)="focusContent()"
+  (onHide)="reset()"
+>
+  <div #teamSyncContent class="team-sync flex flex-col gap-4 outline-none" tabindex="-1">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h3 class="m-0 text-lg font-semibold">Sync Teams</h3>
+        <p class="m-0 text-sm text-muted-color">
+          {{ collectionName() }}
+          @if (collectionType()) {
+            <span aria-hidden="true">·</span> {{ collectionType() }}
+          }
+        </p>
+      </div>
+      @if (phaseLabel()) {
+        <p-tag [value]="phaseLabel()" severity="secondary" />
+      }
+    </div>
+
+    @switch (phase()) {
+      @case ('loading') {
+        <div class="flex flex-col gap-2" data-testid="team-sync-loading">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-muted-color">{{ progress()?.label ?? 'Preparing' }}…</span>
+            <span class="text-sm text-muted-color">{{ progressPercent() }}%</span>
+          </div>
+          <p-progressbar [value]="progressPercent()" [showValue]="false" />
+        </div>
+      }
+      @case ('failed') {
+        <p-message severity="error" class="w-full" data-testid="team-sync-error">{{ errorMessage() }}</p-message>
+      }
+      @case ('preview') {
+        @if (preview(); as data) {
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-testid="team-sync-tiles">
+            <div class="summary-tile">
+              <span class="value">{{ data.counts.scanned }}</span
+              ><span class="label">POAMs scanned</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value">{{ data.counts.changing }}</span
+              ><span class="label">Changing</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value text-green-500">+{{ data.counts.added }}</span
+              ><span class="label">Teams to add</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value text-red-400">-{{ data.counts.removed }}</span
+              ><span class="label">Teams to remove</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value">{{ data.counts.skipped }}</span
+              ><span class="label">Skipped (Closed)</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value">{{ data.counts.unresolved }}</span
+              ><span class="label">Unresolved</span>
+            </div>
+          </div>
+
+          @if (!data.hasRules) {
+            <p-message severity="warn" class="w-full" data-testid="team-sync-no-rules">No asset mappings are defined for this collection. Review and update the collection within the Asset Deltas component before syncing teams.</p-message>
+          }
+
+          @if (data.changes.length === 0) {
+            <p-message severity="info" class="w-full" data-testid="team-sync-no-changes">All POAMs already match their asset-to-team mappings. Nothing to apply.</p-message>
+          } @else {
+            <p-table [value]="changes()" [paginator]="changes().length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" [scrollable]="true" scrollHeight="40vh" styleClass="p-datatable-sm" dataKey="poamId" data-testid="team-sync-changes">
+              <ng-template #header>
+                <tr>
+                  <th scope="col" class="w-28">POAM ID</th>
+                  <th scope="col">Vulnerability</th>
+                  <th scope="col" class="w-40">Status</th>
+                  <th scope="col">Teams to add</th>
+                  <th scope="col">Teams to remove</th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-row>
+                <tr>
+                  <td class="tabular-nums">{{ row.poamId }}</td>
+                  <td class="break-all">{{ row.vulnerabilityId }}</td>
+                  <td>{{ row.status }}</td>
+                  <td>
+                    <div class="flex flex-wrap gap-1">
+                      @for (team of row.add; track team.assignedTeamId) {
+                        <p-tag [value]="team.assignedTeamName" severity="success" />
+                      }
+                      @if (row.add.length === 0) {
+                        <span class="text-muted-color">—</span>
+                      }
+                    </div>
+                  </td>
+                  <td>
+                    <div class="flex flex-wrap gap-1">
+                      @for (team of row.remove; track team.assignedTeamId) {
+                        <p-tag [value]="team.assignedTeamName" severity="danger" />
+                      }
+                      @if (row.remove.length === 0) {
+                        <span class="text-muted-color">—</span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          }
+
+          @if (unresolved().length > 0) {
+            <div class="flex flex-col gap-2">
+              <button pButton type="button" variant="text" size="small" class="self-start" (click)="toggleUnresolved()" data-testid="team-sync-toggle-unresolved">
+                <i [class]="showUnresolved() ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" pButtonIcon></i>
+                <span pButtonLabel>{{ unresolved().length }} POAM(s) could not be evaluated</span>
+              </button>
+              @if (showUnresolved()) {
+                <p-table [value]="unresolved()" [paginator]="unresolved().length > 5" [rows]="5" styleClass="p-datatable-sm" dataKey="poamId" data-testid="team-sync-unresolved">
+                  <ng-template #header>
+                    <tr>
+                      <th scope="col" class="w-28">POAM ID</th>
+                      <th scope="col">Vulnerability</th>
+                      <th scope="col">Reason</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template #body let-row>
+                    <tr>
+                      <td class="tabular-nums">{{ row.poamId }}</td>
+                      <td class="break-all">{{ row.vulnerabilityId }}</td>
+                      <td>{{ row.reason }}</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              }
+            </div>
+          }
+        }
+      }
+      @case ('applying') {
+        <div class="flex flex-col gap-3" data-testid="team-sync-applying">
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-muted-color">Applying {{ progress()?.done ?? 0 }} of {{ progress()?.total ?? 0 }} POAMs…</span>
+            <span class="text-sm text-muted-color">{{ progressPercent() }}%</span>
+          </div>
+          <p-progressbar [value]="progressPercent()" [showValue]="false" />
+          <p-message severity="warn" class="w-full">Please do not close or reload the page while teams are being updated.</p-message>
+        </div>
+      }
+      @case ('done') {
+        @if (result(); as summary) {
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-testid="team-sync-result">
+            <div class="summary-tile">
+              <span class="value">{{ summary.applied }}</span
+              ><span class="label">POAMs updated</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value text-green-500">+{{ summary.teamsAdded }}</span
+              ><span class="label">Teams added</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value text-red-400">-{{ summary.teamsRemoved }}</span
+              ><span class="label">Teams removed</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value">{{ summary.partial }}</span
+              ><span class="label">Partially applied</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value">{{ summary.skipped }}</span
+              ><span class="label">Skipped</span>
+            </div>
+            <div class="summary-tile">
+              <span class="value" [class.text-red-400]="summary.failed > 0">{{ summary.failed }}</span
+              ><span class="label">Failed</span>
+            </div>
+          </div>
+          @if (summary.failures.length > 0) {
+            <p-table [value]="summary.failures" [paginator]="summary.failures.length > 10" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" [scrollable]="true" scrollHeight="30vh" styleClass="p-datatable-sm" data-testid="team-sync-failures">
+              <ng-template #header>
+                <tr>
+                  <th scope="col" class="w-28">POAM ID</th>
+                  <th scope="col">Outcome</th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-row>
+                <tr>
+                  <td class="tabular-nums">{{ row.poamId ?? '—' }}</td>
+                  <td>{{ row.reason }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          } @else {
+            <p-message severity="success" class="w-full">All previewed changes were applied.</p-message>
+          }
+        }
+      }
+    }
+  </div>
+  <ng-template #footer>
+    <div class="flex w-full items-center justify-between gap-2">
+      <div>
+        @if (phase() === 'preview' && changes().length > 0) {
+          <button pButton type="button" variant="outlined" severity="secondary" (click)="exportPreview()" data-testid="team-sync-export">
+            <i class="pi pi-file-export" pButtonIcon></i>
+            <span pButtonLabel>Export CSV</span>
+          </button>
+        }
+      </div>
+      <div class="flex items-center gap-2">
+        <button pButton type="button" variant="outlined" severity="secondary" [disabled]="busy()" (click)="close()" data-testid="team-sync-close">
+          <span pButtonLabel>{{ phase() === 'done' || phase() === 'failed' ? 'Close' : 'Cancel' }}</span>
+        </button>
+        @if (phase() === 'preview') {
+          <button pButton type="button" variant="outlined" [disabled]="!canApply()" (click)="apply()" data-testid="team-sync-apply">
+            <i class="pi pi-sync" pButtonIcon></i>
+            <span pButtonLabel>Apply {{ changes().length }} change{{ changes().length === 1 ? '' : 's' }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

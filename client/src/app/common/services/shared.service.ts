@@ -102,8 +102,10 @@ export class SharedService {
     return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/stigs/${benchmarkId}/assets`);
   }
 
-  getPOAMAssetsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets`);
+  getPOAMAssetsFromSTIGMAN(collectionId: number, useCache: boolean = true): Observable<any[]> {
+    const url = `${this.STIGMANAGER_URL}/collections/${collectionId}/findings?aggregator=groupId&projection=assets`;
+
+    return useCache ? this.cached<any[]>(collectionId, url) : this.request<any[]>(url);
   }
 
   getFindingsFromSTIGMAN(collectionId: number): Observable<any[]> {
@@ -142,8 +144,8 @@ export class SharedService {
     return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/collections/${collectionId}?elevate=false&projection=assets`);
   }
 
-  getAssetDetailsFromSTIGMAN(collectionId: number): Observable<any[]> {
-    return this.cached<any[]>(collectionId, `${this.STIGMANAGER_URL}/assets?collectionId=${collectionId}`);
+  getAssetDetailsFromSTIGMAN(collectionId: number, useCache: boolean = true): Observable<any[]> {
+    return this.getAssetsFromSTIGMAN(collectionId, useCache);
   }
 
   getRuleDataFromSTIGMAN(ruleId: string): Observable<any[]> {

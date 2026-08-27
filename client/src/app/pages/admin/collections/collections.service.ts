@@ -14,6 +14,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { CollectionsBasicList } from '../../../common/models/collections-basic.model';
 import { Collections } from '../../../common/models/collections.model';
+import { TeamSyncApplyResponse, TeamSyncChange, TeamSyncSnapshot } from './collection-team-sync/collection-team-sync.model';
 
 @Injectable({
   providedIn: 'root'
@@ -111,6 +112,14 @@ export class CollectionsService {
 
   getCollectionPermissionDetail(collectionId: number): Observable<any> {
     return this.http.get(`${this.cpatApiBase}/permissions/${collectionId}/detail?elevate=true`).pipe(catchError(this.handleError));
+  }
+
+  getTeamSyncSnapshot(collectionId: number): Observable<TeamSyncSnapshot> {
+    return this.http.get<TeamSyncSnapshot>(`${this.cpatApiBase}/collection/${collectionId}/teamSync?elevate=true`).pipe(catchError(this.handleError));
+  }
+
+  applyTeamSync(collectionId: number, changes: TeamSyncChange[]): Observable<TeamSyncApplyResponse> {
+    return this.http.post<TeamSyncApplyResponse>(`${this.cpatApiBase}/collection/${collectionId}/teamSync?elevate=true`, { changes }).pipe(catchError(this.handleError));
   }
 
   getPoamsByCollection(id: any): Observable<any> {

@@ -259,6 +259,22 @@ describe('SharedService', () => {
         expect(req.request.method).toBe('GET');
         req.flush(mockFindings);
       });
+
+      it('should bypass the cache when useCache is false', () => {
+        const collectionId = 1;
+        const url = `${stigmanUrl}/collections/${collectionId}/findings?aggregator=groupId&projection=assets`;
+
+        service.getPOAMAssetsFromSTIGMAN(collectionId).subscribe();
+        httpMock.expectOne(url).flush([{ groupId: 'V-1', assets: [] }]);
+
+        service.getPOAMAssetsFromSTIGMAN(collectionId).subscribe();
+        httpMock.expectNone(url);
+
+        service.getPOAMAssetsFromSTIGMAN(collectionId, false).subscribe((findings) => {
+          expect(findings).toEqual([{ groupId: 'V-2', assets: [] }]);
+        });
+        httpMock.expectOne(url).flush([{ groupId: 'V-2', assets: [] }]);
+      });
     });
 
     describe('getFindingsFromSTIGMAN', () => {
@@ -422,6 +438,22 @@ describe('SharedService', () => {
 
         expect(req.request.method).toBe('GET');
         req.flush(mockAssets);
+      });
+
+      it('should bypass the cache when useCache is false', () => {
+        const collectionId = 1;
+        const url = `${stigmanUrl}/assets?collectionId=${collectionId}`;
+
+        service.getAssetDetailsFromSTIGMAN(collectionId).subscribe();
+        httpMock.expectOne(url).flush([{ assetId: 1 }]);
+
+        service.getAssetDetailsFromSTIGMAN(collectionId).subscribe();
+        httpMock.expectNone(url);
+
+        service.getAssetDetailsFromSTIGMAN(collectionId, false).subscribe((assets) => {
+          expect(assets).toEqual([{ assetId: 2 }]);
+        });
+        httpMock.expectOne(url).flush([{ assetId: 2 }]);
       });
     });
 

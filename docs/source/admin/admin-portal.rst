@@ -103,8 +103,38 @@ The toolbar above the collection table contains three actions:
 - **Export Multiple Collections** (download icon): Opens the export dialog to combine POAMs from one or more collections into a single eMASS excel file.
 - **Add Collection** (plus icon): Opens the Add Collection dialog to manually create a collection or to import a single collection from STIG Manager or Tenable.sc.
 
+Each row in the collection table has three actions:
+
+- **Edit** (pencil icon): Opens the collection for modification.
+- **Sync Teams** (sync icon): Re-runs the asset-to-team mapping defined under Asset Delta for every POAM in the collection. See :ref:`sync-teams` below.
+- **Delete** (trash icon): Deletes the collection after confirmation.
+
 .. note::
    While the Collection Name is the only required field for a collection, it is strongly recommended that all Collection fields are entered to ensure proper data flow within C-PAT.
+
+.. _sync-teams:
+
+Sync Teams
+^^^^^^^^^^
+
+When a POAM is opened, C-PAT compares its affected assets against the collection's Asset Delta rules and automatically assigns the matching teams. **Sync Teams** applies that same comparison to every POAM in a collection at once, which is useful after Asset Delta rules change or after a large import.
+
+The sync runs in four steps and writes nothing until the administrator confirms:
+
+1. **Loading** - C-PAT reads the collection's POAMs, its Asset Delta rules, and the affected assets from the collection's source (STIG Manager findings, Tenable.sc hosts, or C-PAT asset records). Source data is always read fresh; cached data is never used. The dialog cannot be closed while data is loading.
+2. **Preview** - A summary shows how many POAMs were scanned, how many would change, and how many teams would be added or removed. A table lists each changing POAM with the teams to add and the automated teams to remove. The preview can be exported to CSV. A collection with no Asset Delta rules is evaluated exactly as opening each POAM would evaluate it: no teams are added, and automatically assigned teams on POAMs that still have assets are listed for removal, with a warning shown above the preview.
+3. **Applying** - Changes are sent to the server in batches. The dialog cannot be closed while changes are being applied.
+4. **Complete** - A summary reports the POAMs updated and any POAMs that were skipped or failed, with the reason.
+
+The following rules apply:
+
+- POAMs with a status of ``Closed`` are never changed.
+- Only teams that were assigned automatically are ever removed; teams added manually on a POAM are never removed.
+- Added teams receive a blank Team Mitigation and Team Resources entry; removed teams have their entries deactivated, not deleted.
+- Every change is recorded in the POAM log, attributed to the administrator who ran the sync.
+- POAMs that cannot be evaluated (no vulnerability ID, or no assets found in the source) are reported as unresolved and left unchanged.
+- On a Tenable collection, a POAM whose vulnerability ID is not a numeric plugin ID is reported as unresolved and left unchanged; it does not prevent the rest of the collection from being evaluated.
+- The preview reflects the collection at the moment it was loaded. If Asset Delta rules or POAMs change before the changes are applied, close the dialog and run **Sync Teams** again to preview against current data.
 
 Collection Field Mappings
 ^^^^^^^^^^^^^^^^^^^^^^^^^
