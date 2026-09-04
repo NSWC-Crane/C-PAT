@@ -1,0 +1,108 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+.sidebar-drawer,
+.toc-drawer,
+.back-to-top,
+.skip-to-content,
+.theme-toggle-container,
+.sidebar-toggle,
+.overlay {
+  display: none !important;
+}
+
+.page {
+  display: block;
+  background: none;
+}
+
+.main {
+  display: block;
+}
+
+.content {
+  max-width: none;
+  padding: 0;
+  width: 100%;
+}
+
+.content>.article-container>article {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.content>.article-container {
+  padding-top: 0;
+}
+
+body,
+article,
+article p,
+article li,
+article dd,
+article td,
+article th {
+  color: var(--color-foreground-primary);
+}
+
+article code.literal,
+article .highlight,
+article .highlight pre,
+article .highlight span {
+  color: var(--color-code-foreground);
+}
+
+article code.literal {
+  border: var(--cpat-hairline) solid var(--color-background-border);
+}
+
+.admonition,
+.topic {
+  border: var(--cpat-hairline) solid var(--color-background-border);
+  border-left-width: 3px;
+  background: none;
+}
+
+.admonition>p.admonition-title,
+.topic>p.topic-title {
+  color: var(--cpat-heading-color);
+}
+
+article table.docutils th,
+article table.docutils td {
+  border-bottom: var(--cpat-hairline) solid var(--color-table-border);
+}
+
+article table.docutils tbody tr:hover {
+  background: none;
+}
+
+body[data-theme] .sphinx-tabs-panel[hidden] {
+  display: block !important;
+}
+
+body[data-theme] .sphinx-tabs-tab {
+  border-bottom-color: transparent;
+  color: var(--color-foreground-primary);
+}
+
+body[data-theme] [role="tablist"] {
+  border-bottom: 0;
+}
+
+article a.reference {
+  color: var(--color-foreground-primary);
+}
+
+a {
+  page-break-inside: avoid;
+}

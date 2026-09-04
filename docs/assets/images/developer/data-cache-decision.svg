@@ -1,85 +1,96 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="780" viewBox="0 0 1000 780" font-family="Lato, Helvetica, Arial, sans-serif" font-size="14">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="780" viewBox="0 0 1000 780" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <style>
+    @media screen and (prefers-color-scheme: dark) {
+      [fill="#ececec"] { fill: #3f4046; }
+      [fill="#dedfdf"] { fill: #16161d; }
+      [fill="#2c2c34"] { fill: #ffffff; }
+      [fill="#55565b"] { fill: #c4c4c6; }
+      [fill="#6a6b70"] { fill: #97979b; }
+      [fill="#feedde"] { fill: #4d3b34; }
+      [stroke="#adaeb0"] { stroke: #7f8084; }
+      [stroke="#6a6b70"] { stroke: #97979b; }
+    }
+  </style>
   <title>C-PAT upstream data cache decision flow</title>
   <desc>A service method is cached only when its URL targets STIG Manager or the Tenable proxy and the caller did not opt out; a cached entry is emitted once and refreshed in the background when old; otherwise the response is fetched, shared with concurrent callers, and stored when cacheable.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c9cdd1"/>
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6a6b70"/>
     </marker>
   </defs>
-  <rect x="0" y="0" width="1000" height="780" rx="8" fill="#252525"/>
 
-  <rect x="330" y="20" width="340" height="44" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="500" y="47" text-anchor="middle" fill="#e0e0e0" font-weight="bold">SharedService or IntegrationService called</text>
-  <line x1="500" y1="64" x2="500" y2="84" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="330" y="20" width="340" height="44" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="500" y="47" text-anchor="middle" fill="#2c2c34" font-weight="bold">SharedService or IntegrationService called</text>
+  <line x1="500" y1="64" x2="500" y2="84" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <polygon points="500,86 640,132 500,178 360,132" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="500" y="128" text-anchor="middle" fill="#e0e0e0" font-size="12">URL starts with STIG Manager URL</text>
-  <text x="500" y="146" text-anchor="middle" fill="#e0e0e0" font-size="12">or with apiBase/tenable/ ?</text>
-  <line x1="640" y1="132" x2="718" y2="132" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="679" y="124" text-anchor="middle" fill="#c9cdd1" font-size="12">no</text>
-  <rect x="720" y="106" width="250" height="52" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="845" y="128" text-anchor="middle" fill="#e0e0e0" font-size="12">plain HTTP request</text>
-  <text x="845" y="146" text-anchor="middle" fill="#a7aeb5" font-size="12">C-PAT's own API is never cached</text>
-  <line x1="500" y1="178" x2="500" y2="200" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="512" y="194" fill="#c9cdd1" font-size="12">yes</text>
+  <polygon points="500,86 640,132 500,178 360,132" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="500" y="128" text-anchor="middle" fill="#2c2c34" font-size="12">URL starts with STIG Manager URL</text>
+  <text x="500" y="146" text-anchor="middle" fill="#2c2c34" font-size="12">or with apiBase/tenable/ ?</text>
+  <line x1="640" y1="132" x2="718" y2="132" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="679" y="124" text-anchor="middle" fill="#6a6b70" font-size="12">no</text>
+  <rect x="720" y="106" width="250" height="52" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="845" y="128" text-anchor="middle" fill="#2c2c34" font-size="12">plain HTTP request</text>
+  <text x="845" y="146" text-anchor="middle" fill="#55565b" font-size="12">C-PAT's own API is never cached</text>
+  <line x1="500" y1="178" x2="500" y2="200" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="512" y="194" fill="#6a6b70" font-size="12">yes</text>
 
-  <polygon points="500,202 640,248 500,294 360,248" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="500" y="244" text-anchor="middle" fill="#e0e0e0" font-size="12">caller passed</text>
-  <text x="500" y="262" text-anchor="middle" fill="#e0e0e0" font-size="12">useCache = false ?</text>
-  <line x1="640" y1="248" x2="718" y2="248" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="679" y="240" text-anchor="middle" fill="#c9cdd1" font-size="12">yes</text>
-  <rect x="720" y="222" width="250" height="52" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="845" y="244" text-anchor="middle" fill="#e0e0e0" font-size="12">plain HTTP request</text>
-  <text x="845" y="262" text-anchor="middle" fill="#a7aeb5" font-size="12">exports and verification actions</text>
-  <line x1="500" y1="294" x2="500" y2="316" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="512" y="310" fill="#c9cdd1" font-size="12">no</text>
+  <polygon points="500,202 640,248 500,294 360,248" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="500" y="244" text-anchor="middle" fill="#2c2c34" font-size="12">caller passed</text>
+  <text x="500" y="262" text-anchor="middle" fill="#2c2c34" font-size="12">useCache = false ?</text>
+  <line x1="640" y1="248" x2="718" y2="248" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="679" y="240" text-anchor="middle" fill="#6a6b70" font-size="12">yes</text>
+  <rect x="720" y="222" width="250" height="52" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="845" y="244" text-anchor="middle" fill="#2c2c34" font-size="12">plain HTTP request</text>
+  <text x="845" y="262" text-anchor="middle" fill="#55565b" font-size="12">exports and verification actions</text>
+  <line x1="500" y1="294" x2="500" y2="316" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="512" y="310" fill="#6a6b70" font-size="12">no</text>
 
-  <polygon points="500,318 640,364 500,410 360,364" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="500" y="369" text-anchor="middle" fill="#e0e0e0" font-size="12">entry in the cache ?</text>
-  <line x1="360" y1="364" x2="282" y2="364" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="321" y="356" text-anchor="middle" fill="#c9cdd1" font-size="12">yes</text>
-  <rect x="30" y="338" width="250" height="52" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="155" y="360" text-anchor="middle" fill="#e0e0e0" font-size="12">emit the cached value once</text>
-  <text x="155" y="378" text-anchor="middle" fill="#a7aeb5" font-size="12">the observable completes</text>
-  <line x1="155" y1="390" x2="155" y2="412" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <rect x="30" y="414" width="250" height="68" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="155" y="436" text-anchor="middle" fill="#e0e0e0" font-size="12">entry older than one minute?</text>
-  <text x="155" y="454" text-anchor="middle" fill="#a7aeb5" font-size="12">refresh in the background</text>
-  <text x="155" y="472" text-anchor="middle" fill="#a7aeb5" font-size="12">for the next subscriber</text>
-  <line x1="500" y1="410" x2="500" y2="432" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="512" y="426" fill="#c9cdd1" font-size="12">no</text>
+  <polygon points="500,318 640,364 500,410 360,364" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="500" y="369" text-anchor="middle" fill="#2c2c34" font-size="12">entry in the cache ?</text>
+  <line x1="360" y1="364" x2="282" y2="364" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="321" y="356" text-anchor="middle" fill="#6a6b70" font-size="12">yes</text>
+  <rect x="30" y="338" width="250" height="52" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="155" y="360" text-anchor="middle" fill="#2c2c34" font-size="12">emit the cached value once</text>
+  <text x="155" y="378" text-anchor="middle" fill="#55565b" font-size="12">the observable completes</text>
+  <line x1="155" y1="390" x2="155" y2="412" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="30" y="414" width="250" height="68" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="155" y="436" text-anchor="middle" fill="#2c2c34" font-size="12">entry older than one minute?</text>
+  <text x="155" y="454" text-anchor="middle" fill="#55565b" font-size="12">refresh in the background</text>
+  <text x="155" y="472" text-anchor="middle" fill="#55565b" font-size="12">for the next subscriber</text>
+  <line x1="500" y1="410" x2="500" y2="432" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="512" y="426" fill="#6a6b70" font-size="12">no</text>
 
-  <polygon points="500,434 640,480 500,526 360,480" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="500" y="476" text-anchor="middle" fill="#e0e0e0" font-size="12">request already in flight</text>
-  <text x="500" y="494" text-anchor="middle" fill="#e0e0e0" font-size="12">for this key ?</text>
-  <line x1="640" y1="480" x2="718" y2="480" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="679" y="472" text-anchor="middle" fill="#c9cdd1" font-size="12">yes</text>
-  <rect x="720" y="454" width="250" height="52" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="845" y="476" text-anchor="middle" fill="#e0e0e0" font-size="12">share the pending response</text>
-  <text x="845" y="494" text-anchor="middle" fill="#a7aeb5" font-size="12">one HTTP call for concurrent callers</text>
-  <line x1="500" y1="526" x2="500" y2="548" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="512" y="542" fill="#c9cdd1" font-size="12">no</text>
+  <polygon points="500,434 640,480 500,526 360,480" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="500" y="476" text-anchor="middle" fill="#2c2c34" font-size="12">request already in flight</text>
+  <text x="500" y="494" text-anchor="middle" fill="#2c2c34" font-size="12">for this key ?</text>
+  <line x1="640" y1="480" x2="718" y2="480" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="679" y="472" text-anchor="middle" fill="#6a6b70" font-size="12">yes</text>
+  <rect x="720" y="454" width="250" height="52" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="845" y="476" text-anchor="middle" fill="#2c2c34" font-size="12">share the pending response</text>
+  <text x="845" y="494" text-anchor="middle" fill="#55565b" font-size="12">one HTTP call for concurrent callers</text>
+  <line x1="500" y1="526" x2="500" y2="548" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="512" y="542" fill="#6a6b70" font-size="12">no</text>
 
-  <rect x="400" y="550" width="200" height="44" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="500" y="577" text-anchor="middle" fill="#e0e0e0" font-weight="bold">HTTP request</text>
-  <line x1="500" y1="594" x2="500" y2="616" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="400" y="550" width="200" height="44" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="500" y="577" text-anchor="middle" fill="#2c2c34" font-weight="bold">HTTP request</text>
+  <line x1="500" y1="594" x2="500" y2="616" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <polygon points="500,618 640,664 500,710 360,664" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="500" y="660" text-anchor="middle" fill="#e0e0e0" font-size="12">cacheable(response) and</text>
-  <text x="500" y="678" text-anchor="middle" fill="#e0e0e0" font-size="12">size within the budget ?</text>
-  <line x1="640" y1="664" x2="718" y2="664" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="679" y="656" text-anchor="middle" fill="#c9cdd1" font-size="12">yes</text>
-  <rect x="720" y="630" width="250" height="68" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="845" y="652" text-anchor="middle" fill="#e0e0e0" font-size="12">store, then emit</text>
-  <text x="845" y="670" text-anchor="middle" fill="#a7aeb5" font-size="12">LRU: 40 entries, 64 MB serialized,</text>
-  <text x="845" y="688" text-anchor="middle" fill="#a7aeb5" font-size="12">30 minutes maximum age</text>
-  <line x1="360" y1="664" x2="282" y2="664" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="321" y="656" text-anchor="middle" fill="#c9cdd1" font-size="12">no</text>
-  <rect x="30" y="638" width="250" height="52" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="155" y="660" text-anchor="middle" fill="#e0e0e0" font-size="12">emit without storing</text>
-  <text x="155" y="678" text-anchor="middle" fill="#a7aeb5" font-size="12">Tenable error_msg / error_code, or too large</text>
+  <polygon points="500,618 640,664 500,710 360,664" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="500" y="660" text-anchor="middle" fill="#2c2c34" font-size="12">cacheable(response) and</text>
+  <text x="500" y="678" text-anchor="middle" fill="#2c2c34" font-size="12">size within the budget ?</text>
+  <line x1="640" y1="664" x2="718" y2="664" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="679" y="656" text-anchor="middle" fill="#6a6b70" font-size="12">yes</text>
+  <rect x="720" y="630" width="250" height="68" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="845" y="652" text-anchor="middle" fill="#2c2c34" font-size="12">store, then emit</text>
+  <text x="845" y="670" text-anchor="middle" fill="#55565b" font-size="12">LRU: 40 entries, 64 MB serialized,</text>
+  <text x="845" y="688" text-anchor="middle" fill="#55565b" font-size="12">30 minutes maximum age</text>
+  <line x1="360" y1="664" x2="282" y2="664" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="321" y="656" text-anchor="middle" fill="#6a6b70" font-size="12">no</text>
+  <rect x="30" y="638" width="250" height="52" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="155" y="660" text-anchor="middle" fill="#2c2c34" font-size="12">emit without storing</text>
+  <text x="155" y="678" text-anchor="middle" fill="#55565b" font-size="12">Tenable error_msg / error_code, or too large</text>
 
-  <rect x="30" y="726" width="940" height="40" rx="8" fill="#3a2d05" stroke="#f9bf26" stroke-width="1.5"/>
-  <text x="500" y="751" text-anchor="middle" fill="#e0e0e0" font-size="12">The cache is cleared on logout. A view that reloads on input change keeps a generation counter, because a cached response can arrive before an older network response.</text>
+  <rect x="30" y="726" width="940" height="40" rx="8" fill="#feedde" stroke="#fa8c32" stroke-width="1.5"/>
+  <text x="500" y="751" text-anchor="middle" fill="#2c2c34" font-size="12">The cache is cleared on logout. A view that reloads on input change keeps a generation counter, because a cached response can arrive before an older network response.</text>
 </svg>

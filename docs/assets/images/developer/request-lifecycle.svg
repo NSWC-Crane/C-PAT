@@ -1,101 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" font-family="Lato, Helvetica, Arial, sans-serif" font-size="14">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <style>
+    @media screen and (prefers-color-scheme: dark) {
+      [fill="#ececec"] { fill: #3f4046; }
+      [fill="#dedfdf"] { fill: #16161d; }
+      [fill="#2c2c34"] { fill: #ffffff; }
+      [fill="#55565b"] { fill: #c4c4c6; }
+      [fill="#6a6b70"] { fill: #97979b; }
+      [fill="#feedde"] { fill: #4d3b34; }
+      [stroke="#adaeb0"] { stroke: #7f8084; }
+      [stroke="#6a6b70"] { stroke: #97979b; }
+    }
+  </style>
   <title>C-PAT API request lifecycle</title>
   <desc>Middleware runs in registration order; the OpenAPI validator resolves the handler from the contract; the controller calls a service, which runs SQL through the pool; errors reach the terminal error handler.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c9cdd1"/>
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6a6b70"/>
     </marker>
   </defs>
-  <rect x="0" y="0" width="1000" height="560" rx="8" fill="#252525"/>
 
-  <text x="30" y="30" fill="#a7aeb5" font-size="12">Middleware, in the order registered by configureMiddleware()</text>
+  <text x="30" y="30" fill="#55565b" font-size="12">Middleware, in the order registered by configureMiddleware()</text>
 
-  <rect x="30" y="44" width="170" height="56" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="115" y="67" text-anchor="middle" fill="#e0e0e0" font-size="13">trust proxy</text>
-  <text x="115" y="86" text-anchor="middle" fill="#a7aeb5" font-size="11">CPAT_API_TRUST_PROXY</text>
-  <line x1="200" y1="72" x2="218" y2="72" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="30" y="44" width="170" height="56" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="115" y="67" text-anchor="middle" fill="#2c2c34" font-size="13">trust proxy</text>
+  <text x="115" y="86" text-anchor="middle" fill="#55565b" font-size="11">CPAT_API_TRUST_PROXY</text>
+  <line x1="200" y1="72" x2="218" y2="72" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="220" y="44" width="170" height="56" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="305" y="67" text-anchor="middle" fill="#e0e0e0" font-size="13">body parsers</text>
-  <text x="305" y="86" text-anchor="middle" fill="#a7aeb5" font-size="11">JSON limit from config</text>
-  <line x1="390" y1="72" x2="408" y2="72" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="220" y="44" width="170" height="56" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="305" y="67" text-anchor="middle" fill="#2c2c34" font-size="13">body parsers</text>
+  <text x="305" y="86" text-anchor="middle" fill="#55565b" font-size="11">JSON limit from config</text>
+  <line x1="390" y1="72" x2="408" y2="72" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="410" y="44" width="170" height="56" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="495" y="67" text-anchor="middle" fill="#e0e0e0" font-size="13">cors()</text>
-  <text x="495" y="86" text-anchor="middle" fill="#a7aeb5" font-size="11">defaults</text>
-  <line x1="580" y1="72" x2="598" y2="72" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="410" y="44" width="170" height="56" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="495" y="67" text-anchor="middle" fill="#2c2c34" font-size="13">cors()</text>
+  <text x="495" y="86" text-anchor="middle" fill="#55565b" font-size="11">defaults</text>
+  <line x1="580" y1="72" x2="598" y2="72" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="600" y="44" width="170" height="56" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="685" y="67" text-anchor="middle" fill="#e0e0e0" font-size="13">rate limit</text>
-  <text x="685" y="86" text-anchor="middle" fill="#a7aeb5" font-size="11">global, per 15 minutes</text>
-  <line x1="770" y1="72" x2="788" y2="72" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="600" y="44" width="170" height="56" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="685" y="67" text-anchor="middle" fill="#2c2c34" font-size="13">rate limit</text>
+  <text x="685" y="86" text-anchor="middle" fill="#55565b" font-size="11">global, per 15 minutes</text>
+  <line x1="770" y1="72" x2="788" y2="72" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="790" y="44" width="180" height="56" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="880" y="67" text-anchor="middle" fill="#e0e0e0" font-size="13">request logger</text>
-  <text x="880" y="86" text-anchor="middle" fill="#a7aeb5" font-size="11">one record per request</text>
+  <rect x="790" y="44" width="180" height="56" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="880" y="67" text-anchor="middle" fill="#2c2c34" font-size="13">request logger</text>
+  <text x="880" y="86" text-anchor="middle" fill="#55565b" font-size="11">one record per request</text>
 
-  <path d="M 880 100 L 880 118 L 115 118 L 115 136" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 880 100 L 880 118 L 115 118 L 115 136" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="30" y="138" width="170" height="56" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="115" y="161" text-anchor="middle" fill="#e0e0e0" font-size="13">compression</text>
-  <line x1="200" y1="166" x2="218" y2="166" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="30" y="138" width="170" height="56" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="115" y="161" text-anchor="middle" fill="#2c2c34" font-size="13">compression</text>
+  <line x1="200" y1="166" x2="218" y2="166" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="220" y="138" width="170" height="56" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="305" y="161" text-anchor="middle" fill="#e0e0e0" font-size="13">availability check</text>
-  <text x="305" y="180" text-anchor="middle" fill="#a7aeb5" font-size="11">503 until dependencies ready</text>
-  <line x1="390" y1="166" x2="408" y2="166" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="220" y="138" width="170" height="56" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="305" y="161" text-anchor="middle" fill="#2c2c34" font-size="13">availability check</text>
+  <text x="305" y="180" text-anchor="middle" fill="#55565b" font-size="11">503 until dependencies ready</text>
+  <line x1="390" y1="166" x2="408" y2="166" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="410" y="138" width="170" height="56" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="495" y="161" text-anchor="middle" fill="#e0e0e0" font-size="13">validateToken</text>
-  <text x="495" y="180" text-anchor="middle" fill="#a7aeb5" font-size="11">/api only, JWKS signature</text>
-  <line x1="580" y1="166" x2="598" y2="166" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="410" y="138" width="170" height="56" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="495" y="161" text-anchor="middle" fill="#2c2c34" font-size="13">validateToken</text>
+  <text x="495" y="180" text-anchor="middle" fill="#55565b" font-size="11">/api only, JWKS signature</text>
+  <line x1="580" y1="166" x2="598" y2="166" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="600" y="138" width="170" height="56" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="685" y="161" text-anchor="middle" fill="#e0e0e0" font-size="13">setupUser</text>
-  <text x="685" y="180" text-anchor="middle" fill="#a7aeb5" font-size="11">/api only, req.userObject</text>
-  <line x1="770" y1="166" x2="788" y2="166" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="600" y="138" width="170" height="56" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="685" y="161" text-anchor="middle" fill="#2c2c34" font-size="13">setupUser</text>
+  <text x="685" y="180" text-anchor="middle" fill="#55565b" font-size="11">/api only, req.userObject</text>
+  <line x1="770" y1="166" x2="788" y2="166" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="790" y="138" width="180" height="76" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="880" y="160" text-anchor="middle" fill="#e0e0e0" font-size="13">OpenAPI validator</text>
-  <text x="880" y="178" text-anchor="middle" fill="#a7aeb5" font-size="11">/api only: validate request,</text>
-  <text x="880" y="194" text-anchor="middle" fill="#a7aeb5" font-size="11">check scopes, resolve handler</text>
+  <rect x="790" y="138" width="180" height="76" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="880" y="160" text-anchor="middle" fill="#2c2c34" font-size="13">OpenAPI validator</text>
+  <text x="880" y="178" text-anchor="middle" fill="#55565b" font-size="11">/api only: validate request,</text>
+  <text x="880" y="194" text-anchor="middle" fill="#55565b" font-size="11">check scopes, resolve handler</text>
 
-  <path d="M 880 214 L 880 240 L 145 240 L 145 262" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="520" y="234" text-anchor="middle" fill="#c9cdd1" font-size="12">tags[0] selects Controllers/&lt;Tag&gt;.js; operationId selects the export</text>
+  <path d="M 880 214 L 880 240 L 145 240 L 145 262" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="520" y="234" text-anchor="middle" fill="#6a6b70" font-size="12">tags[0] selects Controllers/&lt;Tag&gt;.js; operationId selects the export</text>
 
-  <rect x="30" y="264" width="230" height="64" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="145" y="288" text-anchor="middle" fill="#e0e0e0" font-size="13">Controllers/&lt;Tag&gt;.js</text>
-  <text x="145" y="308" text-anchor="middle" fill="#a7aeb5" font-size="11">try: call service; catch: sendError</text>
-  <line x1="260" y1="296" x2="288" y2="296" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="30" y="264" width="230" height="64" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="145" y="288" text-anchor="middle" fill="#2c2c34" font-size="13">Controllers/&lt;Tag&gt;.js</text>
+  <text x="145" y="308" text-anchor="middle" fill="#55565b" font-size="11">try: call service; catch: sendError</text>
+  <line x1="260" y1="296" x2="288" y2="296" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="290" y="264" width="230" height="64" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="405" y="288" text-anchor="middle" fill="#e0e0e0" font-size="13">Services/*Service.js</text>
-  <text x="405" y="308" text-anchor="middle" fill="#a7aeb5" font-size="11">access level check, parameterized SQL</text>
-  <line x1="520" y1="296" x2="548" y2="296" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="290" y="264" width="230" height="64" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="405" y="288" text-anchor="middle" fill="#2c2c34" font-size="13">Services/*Service.js</text>
+  <text x="405" y="308" text-anchor="middle" fill="#55565b" font-size="11">access level check, parameterized SQL</text>
+  <line x1="520" y1="296" x2="548" y2="296" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="550" y="264" width="180" height="64" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="640" y="288" text-anchor="middle" fill="#e0e0e0" font-size="13">mysql2 pool</text>
-  <text x="640" y="308" text-anchor="middle" fill="#a7aeb5" font-size="11">withConnection, withTransaction</text>
-  <line x1="730" y1="296" x2="788" y2="296" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <rect x="550" y="264" width="180" height="64" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="640" y="288" text-anchor="middle" fill="#2c2c34" font-size="13">mysql2 pool</text>
+  <text x="640" y="308" text-anchor="middle" fill="#55565b" font-size="11">withConnection, withTransaction</text>
+  <line x1="730" y1="296" x2="788" y2="296" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
 
-  <rect x="790" y="264" width="180" height="64" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="880" y="300" text-anchor="middle" fill="#e0e0e0" font-size="13">MySQL</text>
+  <rect x="790" y="264" width="180" height="64" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="880" y="300" text-anchor="middle" fill="#2c2c34" font-size="13">MySQL</text>
 
-  <path d="M 145 328 L 145 372" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <rect x="30" y="374" width="300" height="56" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="180" y="397" text-anchor="middle" fill="#e0e0e0" font-size="13">res.status(200).json(result)</text>
-  <text x="180" y="416" text-anchor="middle" fill="#a7aeb5" font-size="11">logged by the request logger on finish</text>
+  <path d="M 145 328 L 145 372" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="30" y="374" width="300" height="56" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="180" y="397" text-anchor="middle" fill="#2c2c34" font-size="13">res.status(200).json(result)</text>
+  <text x="180" y="416" text-anchor="middle" fill="#55565b" font-size="11">logged by the request logger on finish</text>
 
-  <path d="M 405 328 L 405 350 L 640 350 L 640 372" fill="none" stroke="#c9cdd1" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
-  <path d="M 880 214 L 950 214 L 950 350 L 640 350" fill="none" stroke="#c9cdd1" stroke-width="1.5" stroke-dasharray="6 4"/>
-  <text x="700" y="344" fill="#c9cdd1" font-size="12">any throw</text>
+  <path d="M 405 328 L 405 350 L 640 350 L 640 372" fill="none" stroke="#6a6b70" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <path d="M 880 214 L 950 214 L 950 350 L 640 350" fill="none" stroke="#6a6b70" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="700" y="344" fill="#6a6b70" font-size="12">any throw</text>
 
-  <rect x="460" y="374" width="360" height="56" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="640" y="397" text-anchor="middle" fill="#e0e0e0" font-size="13">errorHandlers.js (terminal error middleware)</text>
-  <text x="640" y="416" text-anchor="middle" fill="#a7aeb5" font-size="11">{ error, code, detail } and stack on 500; SmError keeps its status</text>
+  <rect x="460" y="374" width="360" height="56" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="640" y="397" text-anchor="middle" fill="#2c2c34" font-size="13">errorHandlers.js (terminal error middleware)</text>
+  <text x="640" y="416" text-anchor="middle" fill="#55565b" font-size="11">{ error, code, detail } and stack on 500; SmError keeps its status</text>
 
-  <rect x="30" y="470" width="940" height="60" rx="8" fill="#3a2d05" stroke="#f9bf26" stroke-width="1.5"/>
-  <text x="500" y="494" text-anchor="middle" fill="#e0e0e0" font-size="12">The error handler is registered inside configureMiddleware(), before the static client, /docs, and Swagger UI routes are mounted.</text>
-  <text x="500" y="514" text-anchor="middle" fill="#e0e0e0" font-size="12">Grey boxes apply to every path; blue boxes are mounted on /api only.</text>
+  <rect x="30" y="470" width="940" height="60" rx="8" fill="#feedde" stroke="#fa8c32" stroke-width="1.5"/>
+  <text x="500" y="494" text-anchor="middle" fill="#2c2c34" font-size="12">The error handler is registered inside configureMiddleware(), before the static client, /docs, and Swagger UI routes are mounted.</text>
+  <text x="500" y="514" text-anchor="middle" fill="#2c2c34" font-size="12">Grey boxes apply to every path; blue boxes are mounted on /api only.</text>
 </svg>

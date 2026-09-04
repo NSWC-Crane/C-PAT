@@ -61,8 +61,11 @@ Versions as of 1.4.4, as declared in the manifests. The manifests are the source
   * - angular-auth-oidc-client
     - ``^22.0.0``
     - ``client/package.json``
-  * - Sphinx and sphinx-rtd-theme
-    - ``9.1.0`` and ``3.1.0`` (exact)
+  * - Sphinx
+    - ``9.1.0``
+    - ``docs/requirements.txt``
+  * - furo
+    - ``2025.12.19``
     - ``docs/requirements.txt``
 
 The API also depends on the Vercel AI SDK and its provider packages for the mitigation feature, and the client on Chart.js, ngx-charts, ECharts, ExcelJS, and ``date-fns``. Read the manifests for the rest.

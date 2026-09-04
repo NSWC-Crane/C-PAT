@@ -1,80 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" font-family="Lato, Helvetica, Arial, sans-serif" font-size="14">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <style>
+    @media screen and (prefers-color-scheme: dark) {
+      [fill="#ececec"] { fill: #3f4046; }
+      [fill="#dedfdf"] { fill: #16161d; }
+      [fill="#2c2c34"] { fill: #ffffff; }
+      [fill="#55565b"] { fill: #c4c4c6; }
+      [fill="#6a6b70"] { fill: #97979b; }
+      [fill="#feedde"] { fill: #4d3b34; }
+      [stroke="#adaeb0"] { stroke: #7f8084; }
+      [stroke="#6a6b70"] { stroke: #97979b; }
+    }
+  </style>
   <title>C-PAT identity and access flow</title>
   <desc>The browser obtains two tokens with PKCE, sends the c-pat token to the API, which validates it, sets up the user, checks scopes, and then checks the collection access level; the stig-manager token goes directly to STIG Manager.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c9cdd1"/>
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6a6b70"/>
     </marker>
   </defs>
-  <rect x="0" y="0" width="1000" height="620" rx="8" fill="#252525"/>
 
-  <rect x="40" y="24" width="260" height="60" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="170" y="49" text-anchor="middle" fill="#e0e0e0" font-weight="bold">OIDC provider</text>
-  <text x="170" y="69" text-anchor="middle" fill="#a7aeb5" font-size="12">realm with clients c-pat and stig-manager</text>
+  <rect x="40" y="24" width="260" height="60" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="170" y="49" text-anchor="middle" fill="#2c2c34" font-weight="bold">OIDC provider</text>
+  <text x="170" y="69" text-anchor="middle" fill="#55565b" font-size="12">realm with clients c-pat and stig-manager</text>
 
-  <line x1="170" y1="150" x2="170" y2="86" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
-  <text x="182" y="122" fill="#c9cdd1" font-size="12">Authorization Code + PKCE, twice</text>
+  <line x1="170" y1="150" x2="170" y2="86" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="182" y="122" fill="#6a6b70" font-size="12">Authorization Code + PKCE, twice</text>
 
-  <rect x="40" y="152" width="260" height="120" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="170" y="176" text-anchor="middle" fill="#e0e0e0" font-weight="bold">Browser (Angular client)</text>
-  <text x="170" y="198" text-anchor="middle" fill="#a7aeb5" font-size="12">holds two access tokens:</text>
-  <text x="170" y="216" text-anchor="middle" fill="#a7aeb5" font-size="12">c-pat (c-pat:read, c-pat:write, c-pat:op)</text>
-  <text x="170" y="234" text-anchor="middle" fill="#a7aeb5" font-size="12">stig-manager (stig-manager:* scopes)</text>
-  <text x="170" y="256" text-anchor="middle" fill="#a7aeb5" font-size="12">both must authenticate before a page renders</text>
+  <rect x="40" y="152" width="260" height="120" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="170" y="176" text-anchor="middle" fill="#2c2c34" font-weight="bold">Browser (Angular client)</text>
+  <text x="170" y="198" text-anchor="middle" fill="#55565b" font-size="12">holds two access tokens:</text>
+  <text x="170" y="216" text-anchor="middle" fill="#55565b" font-size="12">c-pat (c-pat:read, c-pat:write, c-pat:op)</text>
+  <text x="170" y="234" text-anchor="middle" fill="#55565b" font-size="12">stig-manager (stig-manager:* scopes)</text>
+  <text x="170" y="256" text-anchor="middle" fill="#55565b" font-size="12">both must authenticate before a page renders</text>
 
-  <line x1="300" y1="200" x2="368" y2="200" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="334" y="190" text-anchor="middle" fill="#c9cdd1" font-size="12">Bearer c-pat token</text>
+  <line x1="300" y1="200" x2="368" y2="200" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="334" y="190" text-anchor="middle" fill="#6a6b70" font-size="12">Bearer c-pat token</text>
 
-  <line x1="170" y1="272" x2="170" y2="450" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="182" y="366" fill="#c9cdd1" font-size="12">Bearer stig-manager token</text>
+  <line x1="170" y1="272" x2="170" y2="450" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="182" y="366" fill="#6a6b70" font-size="12">Bearer stig-manager token</text>
 
-  <rect x="40" y="452" width="260" height="76" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="170" y="476" text-anchor="middle" fill="#e0e0e0" font-weight="bold">STIG Manager API</text>
-  <text x="170" y="496" text-anchor="middle" fill="#a7aeb5" font-size="12">called directly from the browser;</text>
-  <text x="170" y="514" text-anchor="middle" fill="#a7aeb5" font-size="12">the C-PAT API is not involved</text>
+  <rect x="40" y="452" width="260" height="76" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="170" y="476" text-anchor="middle" fill="#2c2c34" font-weight="bold">STIG Manager API</text>
+  <text x="170" y="496" text-anchor="middle" fill="#55565b" font-size="12">called directly from the browser;</text>
+  <text x="170" y="514" text-anchor="middle" fill="#55565b" font-size="12">the C-PAT API is not involved</text>
 
-  <text x="520" y="132" text-anchor="middle" fill="#a7aeb5" font-size="12">C-PAT API, /api requests, in order</text>
+  <text x="520" y="132" text-anchor="middle" fill="#55565b" font-size="12">C-PAT API, /api requests, in order</text>
 
-  <rect x="370" y="152" width="300" height="70" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="520" y="176" text-anchor="middle" fill="#e0e0e0" font-weight="bold">validateToken</text>
-  <text x="520" y="196" text-anchor="middle" fill="#a7aeb5" font-size="12">signature against the JWKS cache; insecure</text>
-  <text x="520" y="212" text-anchor="middle" fill="#a7aeb5" font-size="12">key refused; audience when configured</text>
-  <line x1="520" y1="222" x2="520" y2="244" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="370" y="152" width="300" height="70" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="520" y="176" text-anchor="middle" fill="#2c2c34" font-weight="bold">validateToken</text>
+  <text x="520" y="196" text-anchor="middle" fill="#55565b" font-size="12">signature against the JWKS cache; insecure</text>
+  <text x="520" y="212" text-anchor="middle" fill="#55565b" font-size="12">key refused; audience when configured</text>
+  <line x1="520" y1="222" x2="520" y2="244" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="370" y="246" width="300" height="70" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="520" y="270" text-anchor="middle" fill="#e0e0e0" font-weight="bold">setupUser</text>
-  <text x="520" y="290" text-anchor="middle" fill="#a7aeb5" font-size="12">req.userObject from the configured claims;</text>
-  <text x="520" y="306" text-anchor="middle" fill="#a7aeb5" font-size="12">first visit inserts a PENDING user record</text>
-  <line x1="520" y1="316" x2="520" y2="338" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="370" y="246" width="300" height="70" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="520" y="270" text-anchor="middle" fill="#2c2c34" font-weight="bold">setupUser</text>
+  <text x="520" y="290" text-anchor="middle" fill="#55565b" font-size="12">req.userObject from the configured claims;</text>
+  <text x="520" y="306" text-anchor="middle" fill="#55565b" font-size="12">first visit inserts a PENDING user record</text>
+  <line x1="520" y1="316" x2="520" y2="338" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="370" y="340" width="300" height="70" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="520" y="364" text-anchor="middle" fill="#e0e0e0" font-weight="bold">validateOauthSecurity</text>
-  <text x="520" y="384" text-anchor="middle" fill="#a7aeb5" font-size="12">required scope matched by prefix;</text>
-  <text x="520" y="400" text-anchor="middle" fill="#a7aeb5" font-size="12">401 without a token, 403 without the scope</text>
-  <line x1="520" y1="410" x2="520" y2="432" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="370" y="340" width="300" height="70" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="520" y="364" text-anchor="middle" fill="#2c2c34" font-weight="bold">validateOauthSecurity</text>
+  <text x="520" y="384" text-anchor="middle" fill="#55565b" font-size="12">required scope matched by prefix;</text>
+  <text x="520" y="400" text-anchor="middle" fill="#55565b" font-size="12">401 without a token, 403 without the scope</text>
+  <line x1="520" y1="410" x2="520" y2="432" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="370" y="434" width="300" height="44" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="520" y="461" text-anchor="middle" fill="#e0e0e0" font-weight="bold">controller, then service</text>
-  <line x1="520" y1="478" x2="520" y2="500" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="370" y="434" width="300" height="44" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="520" y="461" text-anchor="middle" fill="#2c2c34" font-weight="bold">controller, then service</text>
+  <line x1="520" y1="478" x2="520" y2="500" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="370" y="502" width="300" height="90" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="520" y="526" text-anchor="middle" fill="#e0e0e0" font-weight="bold">poamAccess.js</text>
-  <text x="520" y="546" text-anchor="middle" fill="#a7aeb5" font-size="12">collection access level 1 to 4;</text>
-  <text x="520" y="562" text-anchor="middle" fill="#a7aeb5" font-size="12">administrators short-circuit to the maximum;</text>
-  <text x="520" y="578" text-anchor="middle" fill="#a7aeb5" font-size="12">admin operations also require elevate=true</text>
+  <rect x="370" y="502" width="300" height="90" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="520" y="526" text-anchor="middle" fill="#2c2c34" font-weight="bold">poamAccess.js</text>
+  <text x="520" y="546" text-anchor="middle" fill="#55565b" font-size="12">collection access level 1 to 4;</text>
+  <text x="520" y="562" text-anchor="middle" fill="#55565b" font-size="12">administrators short-circuit to the maximum;</text>
+  <text x="520" y="578" text-anchor="middle" fill="#55565b" font-size="12">admin operations also require elevate=true</text>
 
-  <line x1="670" y1="547" x2="748" y2="547" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <rect x="750" y="502" width="220" height="90" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="860" y="530" text-anchor="middle" fill="#e0e0e0" font-weight="bold">MySQL</text>
-  <text x="860" y="552" text-anchor="middle" fill="#a7aeb5" font-size="12">collectionpermissions</text>
-  <text x="860" y="570" text-anchor="middle" fill="#a7aeb5" font-size="12">(derived effective levels)</text>
+  <line x1="670" y1="547" x2="748" y2="547" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="750" y="502" width="220" height="90" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="860" y="530" text-anchor="middle" fill="#2c2c34" font-weight="bold">MySQL</text>
+  <text x="860" y="552" text-anchor="middle" fill="#55565b" font-size="12">collectionpermissions</text>
+  <text x="860" y="570" text-anchor="middle" fill="#55565b" font-size="12">(derived effective levels)</text>
 
-  <rect x="750" y="152" width="220" height="140" rx="8" fill="#3a2d05" stroke="#f9bf26" stroke-width="1.5"/>
-  <text x="860" y="178" text-anchor="middle" fill="#f9bf26" font-weight="bold" font-size="13">Two layers</text>
-  <text x="860" y="202" text-anchor="middle" fill="#e0e0e0" font-size="12">Scopes gate operations:</text>
-  <text x="860" y="220" text-anchor="middle" fill="#e0e0e0" font-size="12">declared per operation in the contract.</text>
-  <text x="860" y="244" text-anchor="middle" fill="#e0e0e0" font-size="12">Access levels gate data:</text>
-  <text x="860" y="262" text-anchor="middle" fill="#e0e0e0" font-size="12">checked per collection in the service.</text>
-  <text x="860" y="280" text-anchor="middle" fill="#e0e0e0" font-size="12">Nothing from the client is trusted.</text>
+  <rect x="750" y="152" width="220" height="140" rx="8" fill="#feedde" stroke="#fa8c32" stroke-width="1.5"/>
+  <text x="860" y="178" text-anchor="middle" fill="#2c2c34" font-weight="bold" font-size="13">Two layers</text>
+  <text x="860" y="202" text-anchor="middle" fill="#2c2c34" font-size="12">Scopes gate operations:</text>
+  <text x="860" y="220" text-anchor="middle" fill="#2c2c34" font-size="12">declared per operation in the contract.</text>
+  <text x="860" y="244" text-anchor="middle" fill="#2c2c34" font-size="12">Access levels gate data:</text>
+  <text x="860" y="262" text-anchor="middle" fill="#2c2c34" font-size="12">checked per collection in the service.</text>
+  <text x="860" y="280" text-anchor="middle" fill="#2c2c34" font-size="12">Nothing from the client is trusted.</text>
 </svg>

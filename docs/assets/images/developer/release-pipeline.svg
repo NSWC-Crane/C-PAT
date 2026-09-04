@@ -1,99 +1,110 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" font-family="Lato, Helvetica, Arial, sans-serif" font-size="14">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <style>
+    @media screen and (prefers-color-scheme: dark) {
+      [fill="#ececec"] { fill: #3f4046; }
+      [fill="#dedfdf"] { fill: #16161d; }
+      [fill="#2c2c34"] { fill: #ffffff; }
+      [fill="#55565b"] { fill: #c4c4c6; }
+      [fill="#6a6b70"] { fill: #97979b; }
+      [fill="#feedde"] { fill: #4d3b34; }
+      [stroke="#adaeb0"] { stroke: #7f8084; }
+      [stroke="#6a6b70"] { stroke: #97979b; }
+    }
+  </style>
   <title>C-PAT release pipeline</title>
   <desc>The Release New Version workflow bumps the version, gates on lockfiles, updates metadata and the changelog, commits and tags, publishes a GitHub release, builds the documentation, verifies the license secret, and pushes the container image; Read the Docs rebuilds main.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c9cdd1"/>
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6a6b70"/>
     </marker>
   </defs>
-  <rect x="0" y="0" width="1000" height="560" rx="8" fill="#252525"/>
 
-  <text x="30" y="34" fill="#a7aeb5" font-size="12">.github/workflows/release.yml, steps in order. A maintainer performs the first step; the workflow does the rest.</text>
+  <text x="30" y="34" fill="#55565b" font-size="12">.github/workflows/release.yml, steps in order. A maintainer performs the first step; the workflow does the rest.</text>
 
-  <rect x="30" y="50" width="176" height="96" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="118" y="72" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">1. Dispatch on main</text>
-  <text x="118" y="92" text-anchor="middle" fill="#a7aeb5" font-size="12">patch, minor, major,</text>
-  <text x="118" y="110" text-anchor="middle" fill="#a7aeb5" font-size="12">or custom_version</text>
-  <text x="118" y="128" text-anchor="middle" fill="#a7aeb5" font-size="12">(validated as X.Y.Z)</text>
-  <line x1="206" y1="98" x2="220" y2="98" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="30" y="50" width="176" height="96" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="118" y="72" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">1. Dispatch on main</text>
+  <text x="118" y="92" text-anchor="middle" fill="#55565b" font-size="12">patch, minor, major,</text>
+  <text x="118" y="110" text-anchor="middle" fill="#55565b" font-size="12">or custom_version</text>
+  <text x="118" y="128" text-anchor="middle" fill="#55565b" font-size="12">(validated as X.Y.Z)</text>
+  <line x1="206" y1="98" x2="220" y2="98" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="222" y="50" width="176" height="96" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="310" y="72" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">2. Bump the version</text>
-  <text x="310" y="92" text-anchor="middle" fill="#a7aeb5" font-size="12">api and client package.json,</text>
-  <text x="310" y="110" text-anchor="middle" fill="#a7aeb5" font-size="12">docs/conf.py, C-PAT.json,</text>
-  <text x="310" y="128" text-anchor="middle" fill="#a7aeb5" font-size="12">C-PAT.yaml info.version</text>
-  <line x1="398" y1="98" x2="412" y2="98" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="222" y="50" width="176" height="96" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="310" y="72" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">2. Bump the version</text>
+  <text x="310" y="92" text-anchor="middle" fill="#55565b" font-size="12">api and client package.json,</text>
+  <text x="310" y="110" text-anchor="middle" fill="#55565b" font-size="12">docs/conf.py, C-PAT.json,</text>
+  <text x="310" y="128" text-anchor="middle" fill="#55565b" font-size="12">C-PAT.yaml info.version</text>
+  <line x1="398" y1="98" x2="412" y2="98" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="414" y="50" width="176" height="96" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="502" y="72" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">3. Lockfile gate</text>
-  <text x="502" y="92" text-anchor="middle" fill="#a7aeb5" font-size="12">npm ci --dry-run in api</text>
-  <text x="502" y="110" text-anchor="middle" fill="#a7aeb5" font-size="12">and client (--force);</text>
-  <text x="502" y="128" text-anchor="middle" fill="#a7aeb5" font-size="12">a mismatch stops here</text>
-  <line x1="590" y1="98" x2="604" y2="98" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="414" y="50" width="176" height="96" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="502" y="72" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">3. Lockfile gate</text>
+  <text x="502" y="92" text-anchor="middle" fill="#55565b" font-size="12">npm ci --dry-run in api</text>
+  <text x="502" y="110" text-anchor="middle" fill="#55565b" font-size="12">and client (--force);</text>
+  <text x="502" y="128" text-anchor="middle" fill="#55565b" font-size="12">a mismatch stops here</text>
+  <line x1="590" y1="98" x2="604" y2="98" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="606" y="50" width="176" height="96" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="694" y="72" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">4. code.json metadata</text>
-  <text x="694" y="92" text-anchor="middle" fill="#a7aeb5" font-size="12">C-PAT/C-PAT.json:</text>
-  <text x="694" y="110" text-anchor="middle" fill="#a7aeb5" font-size="12">labor hours by business day,</text>
-  <text x="694" y="128" text-anchor="middle" fill="#a7aeb5" font-size="12">dates set to today</text>
-  <line x1="782" y1="98" x2="796" y2="98" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="606" y="50" width="176" height="96" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="694" y="72" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">4. code.json metadata</text>
+  <text x="694" y="92" text-anchor="middle" fill="#55565b" font-size="12">C-PAT/C-PAT.json:</text>
+  <text x="694" y="110" text-anchor="middle" fill="#55565b" font-size="12">labor hours by business day,</text>
+  <text x="694" y="128" text-anchor="middle" fill="#55565b" font-size="12">dates set to today</text>
+  <line x1="782" y1="98" x2="796" y2="98" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="798" y="50" width="176" height="96" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="886" y="72" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">5. CHANGELOG.md</text>
-  <text x="886" y="92" text-anchor="middle" fill="#a7aeb5" font-size="12">regenerated from commit</text>
-  <text x="886" y="110" text-anchor="middle" fill="#a7aeb5" font-size="12">subjects since the last tag:</text>
-  <text x="886" y="128" text-anchor="middle" fill="#a7aeb5" font-size="12">feat, fix, other</text>
+  <rect x="798" y="50" width="176" height="96" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="886" y="72" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">5. CHANGELOG.md</text>
+  <text x="886" y="92" text-anchor="middle" fill="#55565b" font-size="12">regenerated from commit</text>
+  <text x="886" y="110" text-anchor="middle" fill="#55565b" font-size="12">subjects since the last tag:</text>
+  <text x="886" y="128" text-anchor="middle" fill="#55565b" font-size="12">feat, fix, other</text>
 
-  <path d="M 886 146 L 886 170 L 118 170 L 118 194" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 886 146 L 886 170 L 118 170 L 118 194" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="30" y="196" width="176" height="96" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="118" y="218" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">6. Commit, tag, push</text>
-  <text x="118" y="238" text-anchor="middle" fill="#a7aeb5" font-size="12">chore: bump version to X.Y.Z;</text>
-  <text x="118" y="256" text-anchor="middle" fill="#a7aeb5" font-size="12">annotated tag X.Y.Z;</text>
-  <text x="118" y="274" text-anchor="middle" fill="#a7aeb5" font-size="12">stops if the tag exists</text>
-  <line x1="206" y1="244" x2="220" y2="244" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="30" y="196" width="176" height="96" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="118" y="218" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">6. Commit, tag, push</text>
+  <text x="118" y="238" text-anchor="middle" fill="#55565b" font-size="12">chore: bump version to X.Y.Z;</text>
+  <text x="118" y="256" text-anchor="middle" fill="#55565b" font-size="12">annotated tag X.Y.Z;</text>
+  <text x="118" y="274" text-anchor="middle" fill="#55565b" font-size="12">stops if the tag exists</text>
+  <line x1="206" y1="244" x2="220" y2="244" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="222" y="196" width="176" height="96" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="310" y="218" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">7. GitHub Release</text>
-  <text x="310" y="238" text-anchor="middle" fill="#a7aeb5" font-size="12">for the tag, with the</text>
-  <text x="310" y="256" text-anchor="middle" fill="#a7aeb5" font-size="12">changelog as its body</text>
-  <line x1="398" y1="244" x2="412" y2="244" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="222" y="196" width="176" height="96" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="310" y="218" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">7. GitHub Release</text>
+  <text x="310" y="238" text-anchor="middle" fill="#55565b" font-size="12">for the tag, with the</text>
+  <text x="310" y="256" text-anchor="middle" fill="#55565b" font-size="12">changelog as its body</text>
+  <line x1="398" y1="244" x2="412" y2="244" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="414" y="196" width="176" height="96" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="502" y="218" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">8. Build the docs</text>
-  <text x="502" y="238" text-anchor="middle" fill="#a7aeb5" font-size="12">sphinx-build in the</text>
-  <text x="502" y="256" text-anchor="middle" fill="#a7aeb5" font-size="12">docs/Dockerfile image</text>
-  <text x="502" y="274" text-anchor="middle" fill="#a7aeb5" font-size="12">into docs/_build/html</text>
-  <line x1="590" y1="244" x2="604" y2="244" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="414" y="196" width="176" height="96" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="502" y="218" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">8. Build the docs</text>
+  <text x="502" y="238" text-anchor="middle" fill="#55565b" font-size="12">sphinx-build in the</text>
+  <text x="502" y="256" text-anchor="middle" fill="#55565b" font-size="12">docs/Dockerfile image</text>
+  <text x="502" y="274" text-anchor="middle" fill="#55565b" font-size="12">into docs/_build/html</text>
+  <line x1="590" y1="244" x2="604" y2="244" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="606" y="196" width="176" height="96" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="694" y="218" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">9. License secret</text>
-  <text x="694" y="238" text-anchor="middle" fill="#a7aeb5" font-size="12">CPAT_PRIMENG_LICENSE</text>
-  <text x="694" y="256" text-anchor="middle" fill="#a7aeb5" font-size="12">must be non-empty;</text>
-  <text x="694" y="274" text-anchor="middle" fill="#a7aeb5" font-size="12">otherwise the job fails</text>
-  <line x1="782" y1="244" x2="796" y2="244" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="606" y="196" width="176" height="96" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="694" y="218" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">9. License secret</text>
+  <text x="694" y="238" text-anchor="middle" fill="#55565b" font-size="12">CPAT_PRIMENG_LICENSE</text>
+  <text x="694" y="256" text-anchor="middle" fill="#55565b" font-size="12">must be non-empty;</text>
+  <text x="694" y="274" text-anchor="middle" fill="#55565b" font-size="12">otherwise the job fails</text>
+  <line x1="782" y1="244" x2="796" y2="244" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="798" y="196" width="176" height="96" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="886" y="218" text-anchor="middle" fill="#e0e0e0" font-size="13" font-weight="bold">10. Build and push</text>
-  <text x="886" y="238" text-anchor="middle" fill="#a7aeb5" font-size="12">root Dockerfile, license as</text>
-  <text x="886" y="256" text-anchor="middle" fill="#a7aeb5" font-size="12">a build secret; tags X.Y.Z</text>
-  <text x="886" y="274" text-anchor="middle" fill="#a7aeb5" font-size="12">and latest</text>
+  <rect x="798" y="196" width="176" height="96" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="886" y="218" text-anchor="middle" fill="#2c2c34" font-size="13" font-weight="bold">10. Build and push</text>
+  <text x="886" y="238" text-anchor="middle" fill="#55565b" font-size="12">root Dockerfile, license as</text>
+  <text x="886" y="256" text-anchor="middle" fill="#55565b" font-size="12">a build secret; tags X.Y.Z</text>
+  <text x="886" y="274" text-anchor="middle" fill="#55565b" font-size="12">and latest</text>
 
-  <line x1="118" y1="292" x2="118" y2="378" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="130" y="340" fill="#c9cdd1" font-size="12">push to main</text>
-  <line x1="886" y1="292" x2="886" y2="378" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="780" y="340" fill="#c9cdd1" font-size="12">docker push</text>
+  <line x1="118" y1="292" x2="118" y2="378" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="130" y="340" fill="#6a6b70" font-size="12">push to main</text>
+  <line x1="886" y1="292" x2="886" y2="378" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="780" y="340" fill="#6a6b70" font-size="12">docker push</text>
 
-  <rect x="30" y="380" width="450" height="70" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="255" y="404" text-anchor="middle" fill="#e0e0e0" font-weight="bold">Read the Docs</text>
-  <text x="255" y="426" text-anchor="middle" fill="#a7aeb5" font-size="12">rebuilds the main branch: c-pat.readthedocs.io/en/main/</text>
+  <rect x="30" y="380" width="450" height="70" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="255" y="404" text-anchor="middle" fill="#2c2c34" font-weight="bold">Read the Docs</text>
+  <text x="255" y="426" text-anchor="middle" fill="#55565b" font-size="12">rebuilds the main branch: c-pat.readthedocs.io/en/main/</text>
 
-  <rect x="520" y="380" width="454" height="70" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="747" y="404" text-anchor="middle" fill="#e0e0e0" font-weight="bold">Docker Hub</text>
-  <text x="747" y="426" text-anchor="middle" fill="#a7aeb5" font-size="12">nswccrane/c-pat:X.Y.Z and nswccrane/c-pat:latest, with the docs inside</text>
+  <rect x="520" y="380" width="454" height="70" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="747" y="404" text-anchor="middle" fill="#2c2c34" font-weight="bold">Docker Hub</text>
+  <text x="747" y="426" text-anchor="middle" fill="#55565b" font-size="12">nswccrane/c-pat:X.Y.Z and nswccrane/c-pat:latest, with the docs inside</text>
 
-  <rect x="30" y="476" width="944" height="60" rx="8" fill="#3a2d05" stroke="#f9bf26" stroke-width="1.5"/>
-  <text x="502" y="500" text-anchor="middle" fill="#e0e0e0" font-size="12">Steps 1 to 6 change nothing on GitHub until the push in step 6. A failure in steps 8 to 10 leaves the tag and release published without an image;</text>
-  <text x="502" y="520" text-anchor="middle" fill="#e0e0e0" font-size="12">fix the cause and re-run the job. Database migrations are noted on the GitHub release by hand.</text>
+  <rect x="30" y="476" width="944" height="60" rx="8" fill="#feedde" stroke="#fa8c32" stroke-width="1.5"/>
+  <text x="502" y="500" text-anchor="middle" fill="#2c2c34" font-size="12">Steps 1 to 6 change nothing on GitHub until the push in step 6. A failure in steps 8 to 10 leaves the tag and release published without an image;</text>
+  <text x="502" y="520" text-anchor="middle" fill="#2c2c34" font-size="12">fix the cause and re-run the job. Database migrations are noted on the GitHub release by hand.</text>
 </svg>

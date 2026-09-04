@@ -70,7 +70,7 @@ Handlers answer errors through ``sendError`` with ``{ "error": <message>, "detai
 Version policy
 ==========================
 
-The contract stays on OpenAPI 3.1.x. ``express-openapi-validator`` does not accept 3.2 documents, and the API validates the contract at startup, so a bump to 3.2 stops the API from starting. The decision and its date are in :ref:`adr-0008`.
+The contract stays on OpenAPI 3.1.x. ``express-openapi-validator`` does not accept 3.2 documents, and the API validates the contract at startup, so a bump to 3.2 stops the API from starting.
 
 Tenable proxy operations
 ==========================

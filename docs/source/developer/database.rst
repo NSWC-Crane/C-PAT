@@ -153,4 +153,4 @@ Sequelize
 
 ``api/utils/sequelize.js`` initializes Sequelize at require time and registers ten models from ``api/Models/``. One service uses it: ``api/Services/importService.js``, which runs the :term:`VRAM` spreadsheet import inside a Sequelize transaction. Every other read and write in the API uses the pool directly. ``api/Models/poamMilestoneTeams.model.js`` exists but is not registered.
 
-Do not introduce Sequelize into new code. Use the pool, parameterized SQL, and ``withTransaction``. The decision is recorded in :ref:`adr-0002`.
+Do not introduce Sequelize into new code. Use the pool, parameterized SQL, and ``withTransaction``.
