@@ -80,18 +80,27 @@ Dependencies are upgraded by hand, one package directory at a time, with ``npm-c
 #. After an Angular major, expect the ``--force`` requirement to persist until ngx-charts publishes a matching peer range.
 #. Use the commit subject ``chore(api): Update dependencies``, ``chore(client): Update dependencies``, or ``chore(docs): Update dependencies``.
 
-The documentation requirements in ``docs/requirements.txt`` are exact pins and are upgraded the same way, by editing the file and rebuilding the documentation image. ``docs/Dockerfile`` starts from ``sphinxdoc/sphinx:8.2.3`` and ``pip`` upgrades Sphinx to the pinned version at image build time.
+The documentation requirements are split into a source file and a lock file. ``docs/requirements.in`` lists the five packages Sphinx is configured to use as minimum versions, plus ``colorama``, which Sphinx requires only on Windows; listing it unconditionally keeps the lock installable on Windows however the lock is regenerated. ``docs/requirements.txt`` is generated from it and pins every package, direct and transitive, to an exact version with the SHA-256 hashes of every artifact published for that version, wheels and source distributions alike. Do not edit ``requirements.txt`` by hand. Regenerate it from the repository root with `uv <https://docs.astral.sh/uv/>`_:
+
+.. code-block:: bash
+
+   uv pip compile docs/requirements.in --generate-hashes --only-binary :all: --python-version 3.12 --universal -o docs/requirements.txt
+
+Without further flags the command keeps the versions already in the lock, so it is the way to add a package or raise a floor. To see what is behind, add ``--upgrade`` and read ``git diff docs/requirements.txt``; that diff is the report, and ``git checkout docs/requirements.txt`` discards it. ``--upgrade-package sphinx`` moves one package. ``--only-binary :all:`` restricts resolution to versions that publish a wheel. The command above is the canonical one; Dependabot rewrites the lock's header comment with its own invocation.
+
+The lock is installed with ``pip install --require-hashes --only-binary :all:`` by the PR Tests workflow and ``docs/Dockerfile``, so neither can install a package that is missing from the lock, an artifact whose hash differs from the recorded one, or a source distribution. Read the Docs passes no flags. It enters hash-checking mode on its own because the file carries hashes, but it could build a source distribution whose hash is in the lock if no wheel matched its platform. ``docs/Dockerfile`` starts from ``sphinxdoc/sphinx:8.2.3`` and ``pip`` upgrades Sphinx to the locked version at image build time. Rebuild the documentation image after regenerating the lock.
 
 Automation
 ==========================
 
-Dependabot is configured for GitHub Actions only (``.github/dependabot.yml``): weekly, grouped into one pull request, with a ``ci`` commit prefix. Actions are referenced by commit SHA with a version comment, and Dependabot keeps the SHAs current. Security updates for npm packages arrive as Dependabot pull requests without configuration. There is no Renovate.
+Dependabot is configured for GitHub Actions and for the documentation's Python packages (``.github/dependabot.yml``), each weekly and grouped into one pull request: Actions with a ``ci`` commit prefix, ``docs/`` with ``chore(docs)``. Actions are referenced by commit SHA with a version comment, and Dependabot keeps the SHAs current. The ``docs/`` entry uses the ``uv`` ecosystem, which regenerates ``requirements.txt`` with ``uv pip compile`` and keeps the hashes, the ``--universal`` marker set, and the Python floor recorded in the lock's header; because ``requirements.in`` holds floors, a bump normally changes the lock alone. Dependabot does not pass ``--only-binary``, so the PR Tests docs job, which does, is the check that a new version still publishes a wheel. Security updates for npm packages arrive as Dependabot pull requests without configuration. There is no Renovate.
 
 Rules that keep installs reproducible
 =====================================
 
 * Both ``.npmrc`` files set ``engine-strict = true``, ``legacy-peer-deps = false``, ``audit = true``, and ``fund = false``.
 * Both manifests carry ``"overrides": { "uuid": "^14.0.2" }``, which pins the transitive ``uuid`` version.
+* ``docs/requirements.txt`` pins every Python package, direct and transitive, with the hashes of every published artifact, and the PR Tests workflow and ``docs/Dockerfile`` install it with ``--require-hashes --only-binary :all:``.
 * The client manifest lists ``typescript`` and ``typescript-eslint`` under ``dependencies`` rather than ``devDependencies``; a production install of the client package is never performed, so this has no runtime effect.
 * Node is pinned by the ``engines`` range, by ``node-version: "22"`` in the workflows, and by the ``node:lts-alpine`` base image. There is no ``.nvmrc``.
 * Lockfile integrity is checked by the release workflow's dry-run installs before anything is pushed. See :ref:`developer-release-process`.

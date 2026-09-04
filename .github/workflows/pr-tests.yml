@@ -164,7 +164,7 @@ jobs:
 
       - name: Install documentation requirements
         if: steps.docs.outputs.changed == 'true'
-        run: pip install -r docs/requirements.txt
+        run: 'pip install --require-hashes --only-binary :all: -r docs/requirements.txt'
 
       - name: Build documentation
         if: steps.docs.outputs.changed == 'true'

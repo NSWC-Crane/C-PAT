@@ -20,7 +20,7 @@ Where the documentation lives and how it is published
 Build the documentation
 ==========================
 
-The build runs in a container so that nobody needs a local Python installation. The image is built from ``docs/Dockerfile`` and installs the exact package versions in ``docs/requirements.txt``.
+The build runs in a container so that nobody needs a local Python installation. The image is built from ``docs/Dockerfile`` and installs the hash-locked package versions in ``docs/requirements.txt``. See :ref:`developer-dependencies` for how that file is regenerated.
 
 .. tabs::
 
@@ -40,14 +40,23 @@ The build runs in a container so that nobody needs a local Python installation. 
 .. warning::
   On Windows, run the Docker commands from PowerShell. Git Bash rewrites the ``/docs`` volume path, the container sees an empty directory, and Sphinx stops with ``config directory doesn't contain a conf.py file (/docs)``. If you must use Git Bash, set ``MSYS_NO_PATHCONV=1`` first.
 
-To build with a local Python instead, create a virtual environment, install the requirements, and run Sphinx directly:
+To build with a local Python instead, create a virtual environment with Python 3.12 or newer, install the requirements, and run Sphinx directly:
 
-.. code-block:: bash
+.. tabs::
 
-   cd docs
-   python -m venv .venv
-   .venv/bin/pip install -r requirements.txt
-   .venv/bin/sphinx-build -W --keep-going -b html . _build/html
+  .. code-tab:: powershell
+
+    cd docs
+    python -m venv .venv
+    .venv\Scripts\pip install --require-hashes --only-binary :all: -r requirements.txt
+    .venv\Scripts\sphinx-build -W --keep-going -b html . _build/html
+
+  .. code-tab:: bash
+
+    cd docs
+    python -m venv .venv
+    .venv/bin/pip install --require-hashes --only-binary :all: -r requirements.txt
+    .venv/bin/sphinx-build -W --keep-going -b html . _build/html
 
 The ``-W`` flag turns warnings into errors and ``--keep-going`` reports all of them. The PR Tests workflow builds with those flags whenever a pull request changes files under ``docs/``, so a warning that passes locally still fails the check. The current tree builds without warnings; keep it that way.
 
