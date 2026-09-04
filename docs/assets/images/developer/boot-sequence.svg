@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700" font-family="Lato, Helvetica, Arial, sans-serif" font-size="14">
+  <title>C-PAT API boot sequence</title>
+  <desc>The API loads and patches the contract, registers middleware and static routes, opens the port, then initializes the identity provider and the database in parallel before starting scheduled tasks and becoming available.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c9cdd1"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1000" height="700" rx="8" fill="#252525"/>
+
+  <rect x="200" y="24" width="300" height="40" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
+  <text x="350" y="49" text-anchor="middle" fill="#e0e0e0" font-weight="bold">index.js starts</text>
+  <line x1="350" y1="64" x2="350" y2="86" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="200" y="88" width="300" height="56" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
+  <text x="350" y="110" text-anchor="middle" fill="#e0e0e0">initializeApiSpec()</text>
+  <text x="350" y="130" text-anchor="middle" fill="#a7aeb5" font-size="12">read C-PAT.yaml; version, servers, openIdConnectUrl</text>
+  <line x1="350" y1="144" x2="350" y2="166" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="200" y="168" width="300" height="56" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
+  <text x="350" y="190" text-anchor="middle" fill="#e0e0e0">configureMiddleware()</text>
+  <text x="350" y="210" text-anchor="middle" fill="#a7aeb5" font-size="12">full chain, including the terminal error handler</text>
+  <line x1="350" y1="224" x2="350" y2="246" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="200" y="248" width="300" height="56" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
+  <text x="350" y="270" text-anchor="middle" fill="#e0e0e0">serveClient(), serveDocs(), serveApiDocs()</text>
+  <text x="350" y="290" text-anchor="middle" fill="#a7aeb5" font-size="12">then serveClientFallback()</text>
+  <line x1="350" y1="304" x2="350" y2="326" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="200" y="328" width="300" height="40" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
+  <text x="350" y="353" text-anchor="middle" fill="#e0e0e0" font-weight="bold">listen(8086): the port opens</text>
+
+  <path d="M 350 368 L 350 388 L 200 388 L 200 406" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 350 368 L 350 388 L 500 388 L 500 406" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="360" y="382" fill="#c9cdd1" font-size="12">in parallel</text>
+
+  <rect x="60" y="408" width="280" height="76" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
+  <text x="200" y="430" text-anchor="middle" fill="#e0e0e0">initializeAuth()</text>
+  <text x="200" y="450" text-anchor="middle" fill="#a7aeb5" font-size="12">OIDC discovery, JWKS cache,</text>
+  <text x="200" y="468" text-anchor="middle" fill="#a7aeb5" font-size="12">insecure signing key refused</text>
+
+  <rect x="360" y="408" width="280" height="76" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
+  <text x="500" y="430" text-anchor="middle" fill="#e0e0e0">initializeDatabase()</text>
+  <text x="500" y="450" text-anchor="middle" fill="#a7aeb5" font-size="12">pool, preflight, MySQL 8.0.24 or later,</text>
+  <text x="500" y="468" text-anchor="middle" fill="#a7aeb5" font-size="12">import sql/current if empty, Umzug migrations</text>
+
+  <path d="M 200 484 L 200 504 L 350 504 L 350 522" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 500 484 L 500 504 L 350 504" fill="none" stroke="#c9cdd1" stroke-width="1.5"/>
+  <text x="360" y="518" fill="#c9cdd1" font-size="12">both ready</text>
+
+  <rect x="200" y="524" width="300" height="40" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
+  <text x="350" y="549" text-anchor="middle" fill="#e0e0e0">initializeScheduledTasks()</text>
+  <line x1="350" y1="564" x2="350" y2="586" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="200" y="588" width="300" height="56" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
+  <text x="350" y="610" text-anchor="middle" fill="#e0e0e0">applyConfigurationSettings()</text>
+  <text x="350" y="630" text-anchor="middle" fill="#a7aeb5" font-size="12">classification and version written to the config table</text>
+  <line x1="350" y1="644" x2="350" y2="662" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="350" y="684" text-anchor="middle" fill="#e0e0e0" font-weight="bold">state: available</text>
+
+  <rect x="680" y="328" width="290" height="60" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
+  <text x="825" y="352" text-anchor="middle" fill="#e0e0e0" font-size="12">Requests are accepted from here on,</text>
+  <text x="825" y="370" text-anchor="middle" fill="#e0e0e0" font-size="12">but the availability gate answers them.</text>
+
+  <rect x="680" y="408" width="290" height="120" rx="8" fill="#3a2d05" stroke="#f9bf26" stroke-width="1.5"/>
+  <text x="825" y="432" text-anchor="middle" fill="#f9bf26" font-weight="bold" font-size="13">Availability gate</text>
+  <text x="825" y="454" text-anchor="middle" fill="#e0e0e0" font-size="12">Until both dependencies report ready,</text>
+  <text x="825" y="472" text-anchor="middle" fill="#e0e0e0" font-size="12">every request receives 503 with state.apiState.</text>
+  <text x="825" y="494" text-anchor="middle" fill="#e0e0e0" font-size="12">Exception: /api/op/definition,</text>
+  <text x="825" y="512" text-anchor="middle" fill="#e0e0e0" font-size="12">which healthcheck.js probes.</text>
+
+  <rect x="680" y="588" width="290" height="56" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
+  <text x="825" y="610" text-anchor="middle" fill="#e0e0e0" font-size="12">Failure of either dependency after its retries</text>
+  <text x="825" y="628" text-anchor="middle" fill="#e0e0e0" font-size="12">enters state fail and exits the process.</text>
+</svg>

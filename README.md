@@ -7,3 +7,6 @@
   [NIST](https://csrc.nist.gov/glossary/term/POAM) defines a POAM as "a document for a system that identifies tasks needing to be accomplished.  It details resources required to accomplish the elements of the plan, any milestones in meetings the tasks, and scheduled completion dates for the milestones".   
 
   The POAM document is an output of the "Assess" step of the Risk Management Framework.
+
+  ## Documentation
+  Setup, user, administrator, and developer documentation is published at [c-pat.readthedocs.io](https://c-pat.readthedocs.io/). Contributors should start with the [Developer Guide](https://c-pat.readthedocs.io/en/main/source/developer/index.html).
