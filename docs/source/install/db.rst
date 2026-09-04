@@ -22,11 +22,11 @@ Specify the User and Schema with these environment variables:
 .. _mySQL:
 
 
-Database - MySQL 8.0.21+
+Database - MySQL 8.0.24+
 -----------------------------
 
 The C-PAT API is tested with the latest 3 minor versions of the MySQL 8.0.x series and 9.0.1 Innovation.
-While C-PAT will bootstrap when provided with an 8.0.21+ MySQL database, it is strongly recommended you use the latest version of MySQL 8.0.x available.
+While C-PAT will bootstrap when provided with an 8.0.24+ MySQL database, it is strongly recommended you use the latest version of MySQL 8.0.x available.
 
 The API requires knowledge of 1) the DB address/port, 2) which schema (database) is used for C-PAT, and 3) User credentials with necessary privileges on that schema. `More information about MySQL. <https://dev.mysql.com/doc/>`_
 
