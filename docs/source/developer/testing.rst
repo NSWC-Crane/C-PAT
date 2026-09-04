@@ -54,7 +54,7 @@ Run tests
   * - ``npm run test:coverage``
     - One run with coverage; fails when a threshold is missed.
   * - ``npm run test:ui``
-    - The Vitest browser UI.
+    - The Vitest browser UI. Open the tokenized URL it prints; the UI rejects requests without the token.
   * - ``npx vitest run src/app/pages/labels/labels.component.spec.ts``
     - One spec file.
   * - ``npx vitest related --run src/app/pages/labels/labels.component.ts``

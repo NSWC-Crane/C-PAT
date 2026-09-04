@@ -35,7 +35,7 @@ The build runs in a container so that nobody needs a local Python installation. 
     cd docs
     ./build.sh
 
-``build.sh`` and ``make.bat`` wrap the same two commands and clean ``_build`` first. The output is in ``docs/_build/html``; open ``index.html`` there.
+``build.sh`` and ``make.bat`` wrap the same two commands and clean ``_build`` first. The output is in ``docs/_build/html``; open ``index.html`` there. Both scripts also accept ``outdated``, which lists the documentation packages with a newer release; see :ref:`developer-dependencies`.
 
 .. warning::
   On Windows, run the Docker commands from PowerShell. Git Bash rewrites the ``/docs`` volume path, the container sees an empty directory, and Sphinx stops with ``config directory doesn't contain a conf.py file (/docs)``. If you must use Git Bash, set ``MSYS_NO_PATHCONV=1`` first.
@@ -101,7 +101,7 @@ Follow the existing pages. The rules below are the ones that matter for consiste
 * **Glossary.** Link a term with ``:term:`` on its first use in a page; the entries are in :ref:`developer-glossary`.
 * **Line endings and wrapping.** Files use one paragraph per line, as the existing pages do.
 
-The custom stylesheet ``docs/_static/css/custom.css`` restyles code, tables, admonitions, tabs, and definition lists for the dark theme. When you introduce a directive the site has not used before, build and look at the result; a directive the stylesheet does not cover renders with the theme's light defaults.
+The custom stylesheet ``docs/_static/css/custom.css`` restyles code, tables, admonitions, tabs, and definition lists for the dark theme. A second stylesheet, ``docs/_static/css/overrides.css``, loads after it and holds small corrections to the theme's own rules, such as the search box radius and the inset shadow the theme puts on form inputs. Both are listed in ``html_css_files`` in ``docs/conf.py``, in load order. When you introduce a directive the site has not used before, build and look at the result; a directive the stylesheet does not cover renders with the theme's light defaults.
 
 Writing style
 ==========================

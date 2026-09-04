@@ -1,14 +1,13 @@
 import eslint from '@eslint/js';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 import angular from '@angular-eslint/eslint-plugin';
 import angularTemplate from '@angular-eslint/eslint-plugin-template';
 import angularTemplateParser from '@angular-eslint/template-parser';
 import prettier from 'eslint-config-prettier';
 
-export default tseslint.config(
-  {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/.angular/**', '**/.env', '**/.env.*', '**/package-lock.json', '**/.DS_Store', '**/Thumbs.db']
-  },
+export default defineConfig(
+  globalIgnores(['**/dist/**', '**/node_modules/**', '**/.angular/**', '**/coverage/**', '**/.vitest/**', '**/.env', '**/.env.*', '**/package-lock.json', '**/.DS_Store', '**/Thumbs.db']),
   {
     files: ['**/*.js', '**/*.mjs', '**/*.ts', '**/*.mts'],
     ...eslint.configs.recommended

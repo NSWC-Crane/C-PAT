@@ -6,7 +6,7 @@
     "types": ["vitest/globals", "node"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": ["node_modules/@types", "src"]
+    "typeRoots": ["node_modules/@types", "node_modules", "src"]
   },
   "files": ["src/test-setup.ts"],
   "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
