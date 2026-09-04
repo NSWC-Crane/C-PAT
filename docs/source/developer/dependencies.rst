@@ -56,7 +56,7 @@ Versions as of 1.4.4, as declared in the manifests. The manifests are the source
     - ``^6.0.3``
     - ``client/package.json``
   * - Vitest and Vite
-    - ``^4.1.11`` and ``^8.2.2``
+    - ``^5.0.0`` and ``^8.2.2``
     - ``client/package.json``
   * - angular-auth-oidc-client
     - ``^22.0.0``

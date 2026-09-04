@@ -16,6 +16,8 @@ node_modules/
 client/.angular
 client/.nx
 /client/src/development.html
+/client/coverage/
+/client/.vitest
 /api/.env
 /api/.primeng-license
 
