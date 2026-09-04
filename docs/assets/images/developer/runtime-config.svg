@@ -1,59 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="440" viewBox="0 0 1000 440" font-family="Lato, Helvetica, Arial, sans-serif" font-size="14">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="440" viewBox="0 0 1000 440" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <style>
+    @media screen and (prefers-color-scheme: dark) {
+      [fill="#ececec"] { fill: #3f4046; }
+      [fill="#dedfdf"] { fill: #16161d; }
+      [fill="#2c2c34"] { fill: #ffffff; }
+      [fill="#55565b"] { fill: #c4c4c6; }
+      [fill="#6a6b70"] { fill: #97979b; }
+      [fill="#feedde"] { fill: #4d3b34; }
+      [stroke="#adaeb0"] { stroke: #7f8084; }
+      [stroke="#6a6b70"] { stroke: #97979b; }
+    }
+  </style>
   <title>C-PAT runtime configuration flow</title>
   <desc>Environment variables are read once by the API, rendered as the CPAT.Env object, inlined into index.html and served at /init/Env.js, and read by the client at startup.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c9cdd1"/>
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6a6b70"/>
     </marker>
   </defs>
-  <rect x="0" y="0" width="1000" height="440" rx="8" fill="#252525"/>
 
-  <rect x="30" y="150" width="190" height="80" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="125" y="180" text-anchor="middle" fill="#e0e0e0" font-weight="bold">Environment</text>
-  <text x="125" y="200" text-anchor="middle" fill="#a7aeb5" font-size="12">variables, or api/.env</text>
-  <text x="125" y="218" text-anchor="middle" fill="#a7aeb5" font-size="12">in development</text>
-  <line x1="220" y1="190" x2="258" y2="190" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="30" y="150" width="190" height="80" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="125" y="180" text-anchor="middle" fill="#2c2c34" font-weight="bold">Environment</text>
+  <text x="125" y="200" text-anchor="middle" fill="#55565b" font-size="12">variables, or api/.env</text>
+  <text x="125" y="218" text-anchor="middle" fill="#55565b" font-size="12">in development</text>
+  <line x1="220" y1="190" x2="258" y2="190" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="260" y="150" width="200" height="80" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="360" y="180" text-anchor="middle" fill="#e0e0e0" font-weight="bold">api/utils/config.js</text>
-  <text x="360" y="200" text-anchor="middle" fill="#a7aeb5" font-size="12">read once at require time,</text>
-  <text x="360" y="218" text-anchor="middle" fill="#a7aeb5" font-size="12">defaults and parsing</text>
-  <line x1="460" y1="190" x2="498" y2="190" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="260" y="150" width="200" height="80" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="360" y="180" text-anchor="middle" fill="#2c2c34" font-weight="bold">api/utils/config.js</text>
+  <text x="360" y="200" text-anchor="middle" fill="#55565b" font-size="12">read once at require time,</text>
+  <text x="360" y="218" text-anchor="middle" fill="#55565b" font-size="12">defaults and parsing</text>
+  <line x1="460" y1="190" x2="498" y2="190" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="500" y="150" width="200" height="80" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="600" y="180" text-anchor="middle" fill="#e0e0e0" font-weight="bold">getClientEnv()</text>
-  <text x="600" y="200" text-anchor="middle" fill="#a7aeb5" font-size="12">api/bootstrap/client.js</text>
-  <text x="600" y="218" text-anchor="middle" fill="#a7aeb5" font-size="12">renders const CPAT = { Env: ... }</text>
+  <rect x="500" y="150" width="200" height="80" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="600" y="180" text-anchor="middle" fill="#2c2c34" font-weight="bold">getClientEnv()</text>
+  <text x="600" y="200" text-anchor="middle" fill="#55565b" font-size="12">api/bootstrap/client.js</text>
+  <text x="600" y="218" text-anchor="middle" fill="#55565b" font-size="12">renders const CPAT = { Env: ... }</text>
 
-  <path d="M 700 175 L 720 175 L 720 100 L 748 100" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 700 205 L 720 205 L 720 240 L 748 240" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 700 175 L 720 175 L 720 100 L 748 100" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 700 205 L 720 205 L 720 240 L 748 240" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="750" y="50" width="220" height="100" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="860" y="74" text-anchor="middle" fill="#e0e0e0" font-weight="bold">index.html</text>
-  <text x="860" y="94" text-anchor="middle" fill="#a7aeb5" font-size="12">script inlined on every navigation;</text>
-  <text x="860" y="112" text-anchor="middle" fill="#a7aeb5" font-size="12">base href rewritten from</text>
-  <text x="860" y="130" text-anchor="middle" fill="#a7aeb5" font-size="12">CPAT_BASE_PATH; no-cache</text>
+  <rect x="750" y="50" width="220" height="100" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="860" y="74" text-anchor="middle" fill="#2c2c34" font-weight="bold">index.html</text>
+  <text x="860" y="94" text-anchor="middle" fill="#55565b" font-size="12">script inlined on every navigation;</text>
+  <text x="860" y="112" text-anchor="middle" fill="#55565b" font-size="12">base href rewritten from</text>
+  <text x="860" y="130" text-anchor="middle" fill="#55565b" font-size="12">CPAT_BASE_PATH; no-cache</text>
 
-  <rect x="750" y="210" width="220" height="60" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="860" y="234" text-anchor="middle" fill="#e0e0e0" font-weight="bold">GET /init/Env.js</text>
-  <text x="860" y="254" text-anchor="middle" fill="#a7aeb5" font-size="12">same script, cached one hour</text>
+  <rect x="750" y="210" width="220" height="60" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="860" y="234" text-anchor="middle" fill="#2c2c34" font-weight="bold">GET /init/Env.js</text>
+  <text x="860" y="254" text-anchor="middle" fill="#55565b" font-size="12">same script, cached one hour</text>
 
-  <line x1="860" y1="150" x2="860" y2="208" stroke="#c9cdd1" stroke-width="1.5"/>
-  <line x1="860" y1="270" x2="860" y2="308" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="860" y1="150" x2="860" y2="208" stroke="#6a6b70" stroke-width="1.5"/>
+  <line x1="860" y1="270" x2="860" y2="308" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <rect x="700" y="310" width="270" height="100" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="835" y="334" text-anchor="middle" fill="#e0e0e0" font-weight="bold">Browser</text>
-  <text x="835" y="354" text-anchor="middle" fill="#a7aeb5" font-size="12">main.ts and services read CPAT.Env.*</text>
-  <text x="835" y="372" text-anchor="middle" fill="#a7aeb5" font-size="12">at field initialization;</text>
-  <text x="835" y="390" text-anchor="middle" fill="#a7aeb5" font-size="12">APP_BASE_HREF comes from the base element</text>
+  <rect x="700" y="310" width="270" height="100" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="835" y="334" text-anchor="middle" fill="#2c2c34" font-weight="bold">Browser</text>
+  <text x="835" y="354" text-anchor="middle" fill="#55565b" font-size="12">main.ts and services read CPAT.Env.*</text>
+  <text x="835" y="372" text-anchor="middle" fill="#55565b" font-size="12">at field initialization;</text>
+  <text x="835" y="390" text-anchor="middle" fill="#55565b" font-size="12">APP_BASE_HREF comes from the base element</text>
 
-  <rect x="30" y="290" width="560" height="120" rx="8" fill="#3a2d05" stroke="#f9bf26" stroke-width="1.5"/>
-  <text x="310" y="316" text-anchor="middle" fill="#f9bf26" font-weight="bold" font-size="13">Not part of the flow</text>
-  <text x="310" y="340" text-anchor="middle" fill="#e0e0e0" font-size="12">client/src/environments/environment.ts holds one boolean, production, and nothing else.</text>
-  <text x="310" y="362" text-anchor="middle" fill="#e0e0e0" font-size="12">In development, src/development.html (git-ignored, copied from development.example.html)</text>
-  <text x="310" y="380" text-anchor="middle" fill="#e0e0e0" font-size="12">carries a hand-edited CPAT.Env, and angular.json uses it as the dev server index.</text>
-  <text x="310" y="398" text-anchor="middle" fill="#e0e0e0" font-size="12">Specs get the stub from src/test-setup.ts.</text>
+  <rect x="30" y="290" width="560" height="120" rx="8" fill="#feedde" stroke="#fa8c32" stroke-width="1.5"/>
+  <text x="310" y="316" text-anchor="middle" fill="#2c2c34" font-weight="bold" font-size="13">Not part of the flow</text>
+  <text x="310" y="340" text-anchor="middle" fill="#2c2c34" font-size="12">client/src/environments/environment.ts holds one boolean, production, and nothing else.</text>
+  <text x="310" y="362" text-anchor="middle" fill="#2c2c34" font-size="12">In development, src/development.html (git-ignored, copied from development.example.html)</text>
+  <text x="310" y="380" text-anchor="middle" fill="#2c2c34" font-size="12">carries a hand-edited CPAT.Env, and angular.json uses it as the dev server index.</text>
+  <text x="310" y="398" text-anchor="middle" fill="#2c2c34" font-size="12">Specs get the stub from src/test-setup.ts.</text>
 
-  <text x="30" y="60" fill="#a7aeb5" font-size="12">One container image serves every deployment: the client is configured at request time, never at build time.</text>
+  <text x="30" y="60" fill="#55565b" font-size="12">One container image serves every deployment: the client is configured at request time, never at build time.</text>
 </svg>

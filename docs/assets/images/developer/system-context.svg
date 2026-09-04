@@ -1,89 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520" viewBox="0 0 1000 520" font-family="Lato, Helvetica, Arial, sans-serif" font-size="14">
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520" viewBox="0 0 1000 520" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <style>
+    @media screen and (prefers-color-scheme: dark) {
+      [fill="#ececec"] { fill: #3f4046; }
+      [fill="#dedfdf"] { fill: #16161d; }
+      [fill="#2c2c34"] { fill: #ffffff; }
+      [fill="#55565b"] { fill: #c4c4c6; }
+      [fill="#6a6b70"] { fill: #97979b; }
+      [fill="#feedde"] { fill: #4d3b34; }
+      [stroke="#adaeb0"] { stroke: #7f8084; }
+      [stroke="#6a6b70"] { stroke: #97979b; }
+    }
+  </style>
   <title>C-PAT system context</title>
   <desc>The browser runs the Angular client and talks to the C-PAT API, the OIDC provider, and STIG Manager directly. The API talks to MySQL, proxies Tenable.sc, calls AI providers, and serves the client, the documentation, and Swagger UI.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#c9cdd1"/>
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6a6b70"/>
     </marker>
   </defs>
-  <rect x="0" y="0" width="1000" height="520" rx="8" fill="#252525"/>
 
   <!-- Browser -->
-  <rect x="40" y="150" width="220" height="150" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="150" y="180" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">Browser</text>
-  <text x="150" y="205" text-anchor="middle" fill="#e0e0e0">Angular client (SPA)</text>
-  <text x="150" y="228" text-anchor="middle" fill="#a7aeb5" font-size="12">two OIDC client configurations:</text>
-  <text x="150" y="246" text-anchor="middle" fill="#a7aeb5" font-size="12">c-pat and stig-manager</text>
-  <text x="150" y="272" text-anchor="middle" fill="#a7aeb5" font-size="12">reads CPAT.Env at startup</text>
+  <rect x="40" y="150" width="220" height="150" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="150" y="180" text-anchor="middle" fill="#2c2c34" font-size="16" font-weight="bold">Browser</text>
+  <text x="150" y="205" text-anchor="middle" fill="#2c2c34">Angular client (SPA)</text>
+  <text x="150" y="228" text-anchor="middle" fill="#55565b" font-size="12">two OIDC client configurations:</text>
+  <text x="150" y="246" text-anchor="middle" fill="#55565b" font-size="12">c-pat and stig-manager</text>
+  <text x="150" y="272" text-anchor="middle" fill="#55565b" font-size="12">reads CPAT.Env at startup</text>
 
   <!-- API -->
-  <rect x="400" y="130" width="240" height="190" rx="8" fill="#14304a" stroke="#249ee8" stroke-width="1.5"/>
-  <text x="520" y="160" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">C-PAT API</text>
-  <text x="520" y="183" text-anchor="middle" fill="#e0e0e0">Node.js, Express 5, port 8086</text>
-  <text x="520" y="208" text-anchor="middle" fill="#a7aeb5" font-size="12">/api  OpenAPI-routed operations</text>
-  <text x="520" y="226" text-anchor="middle" fill="#a7aeb5" font-size="12">/  client bundle and CPAT.Env</text>
-  <text x="520" y="244" text-anchor="middle" fill="#a7aeb5" font-size="12">/docs  this documentation</text>
-  <text x="520" y="262" text-anchor="middle" fill="#a7aeb5" font-size="12">/api-docs  Swagger UI (optional)</text>
-  <text x="520" y="286" text-anchor="middle" fill="#a7aeb5" font-size="12">stateless; migrations run at start</text>
+  <rect x="400" y="130" width="240" height="190" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
+  <text x="520" y="160" text-anchor="middle" fill="#2c2c34" font-size="16" font-weight="bold">C-PAT API</text>
+  <text x="520" y="183" text-anchor="middle" fill="#2c2c34">Node.js, Express 5, port 8086</text>
+  <text x="520" y="208" text-anchor="middle" fill="#55565b" font-size="12">/api  OpenAPI-routed operations</text>
+  <text x="520" y="226" text-anchor="middle" fill="#55565b" font-size="12">/  client bundle and CPAT.Env</text>
+  <text x="520" y="244" text-anchor="middle" fill="#55565b" font-size="12">/docs  this documentation</text>
+  <text x="520" y="262" text-anchor="middle" fill="#55565b" font-size="12">/api-docs  Swagger UI (optional)</text>
+  <text x="520" y="286" text-anchor="middle" fill="#55565b" font-size="12">stateless; migrations run at start</text>
 
   <!-- MySQL -->
-  <rect x="780" y="150" width="180" height="90" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="870" y="180" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">MySQL</text>
-  <text x="870" y="203" text-anchor="middle" fill="#a7aeb5" font-size="12">8.0.24 or later</text>
-  <text x="870" y="221" text-anchor="middle" fill="#a7aeb5" font-size="12">system of record</text>
+  <rect x="780" y="150" width="180" height="90" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="870" y="180" text-anchor="middle" fill="#2c2c34" font-size="16" font-weight="bold">MySQL</text>
+  <text x="870" y="203" text-anchor="middle" fill="#55565b" font-size="12">8.0.24 or later</text>
+  <text x="870" y="221" text-anchor="middle" fill="#55565b" font-size="12">system of record</text>
 
   <!-- OIDC provider -->
-  <rect x="40" y="20" width="220" height="80" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="150" y="48" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">OIDC provider</text>
-  <text x="150" y="70" text-anchor="middle" fill="#a7aeb5" font-size="12">Keycloak, Okta, or similar</text>
-  <text x="150" y="88" text-anchor="middle" fill="#a7aeb5" font-size="12">issues JWT access tokens</text>
+  <rect x="40" y="20" width="220" height="80" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="150" y="48" text-anchor="middle" fill="#2c2c34" font-size="16" font-weight="bold">OIDC provider</text>
+  <text x="150" y="70" text-anchor="middle" fill="#55565b" font-size="12">Keycloak, Okta, or similar</text>
+  <text x="150" y="88" text-anchor="middle" fill="#55565b" font-size="12">issues JWT access tokens</text>
 
   <!-- STIG Manager -->
-  <rect x="40" y="400" width="220" height="80" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="150" y="428" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">STIG Manager API</text>
-  <text x="150" y="450" text-anchor="middle" fill="#a7aeb5" font-size="12">called directly from the browser</text>
-  <text x="150" y="468" text-anchor="middle" fill="#a7aeb5" font-size="12">with the stig-manager token</text>
+  <rect x="40" y="400" width="220" height="80" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="150" y="428" text-anchor="middle" fill="#2c2c34" font-size="16" font-weight="bold">STIG Manager API</text>
+  <text x="150" y="450" text-anchor="middle" fill="#55565b" font-size="12">called directly from the browser</text>
+  <text x="150" y="468" text-anchor="middle" fill="#55565b" font-size="12">with the stig-manager token</text>
 
   <!-- Tenable -->
-  <rect x="780" y="300" width="180" height="90" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="870" y="330" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">Tenable.sc</text>
-  <text x="870" y="353" text-anchor="middle" fill="#a7aeb5" font-size="12">reached only through the API</text>
-  <text x="870" y="371" text-anchor="middle" fill="#a7aeb5" font-size="12">API keys injected server-side</text>
+  <rect x="780" y="300" width="180" height="90" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="870" y="330" text-anchor="middle" fill="#2c2c34" font-size="16" font-weight="bold">Tenable.sc</text>
+  <text x="870" y="353" text-anchor="middle" fill="#55565b" font-size="12">reached only through the API</text>
+  <text x="870" y="371" text-anchor="middle" fill="#55565b" font-size="12">API keys injected server-side</text>
 
   <!-- AI providers -->
-  <rect x="780" y="420" width="180" height="70" rx="8" fill="#2f2f2f" stroke="#8a8f95" stroke-width="1.5"/>
-  <text x="870" y="448" text-anchor="middle" fill="#e0e0e0" font-size="16" font-weight="bold">AI provider</text>
-  <text x="870" y="470" text-anchor="middle" fill="#a7aeb5" font-size="12">optional, mitigation text</text>
+  <rect x="780" y="420" width="180" height="70" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
+  <text x="870" y="448" text-anchor="middle" fill="#2c2c34" font-size="16" font-weight="bold">AI provider</text>
+  <text x="870" y="470" text-anchor="middle" fill="#55565b" font-size="12">optional, mitigation text</text>
 
   <!-- Arrows: browser <-> API -->
-  <line x1="260" y1="215" x2="398" y2="215" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
-  <text x="330" y="205" text-anchor="middle" fill="#c9cdd1" font-size="12">HTTPS, Bearer c-pat token</text>
+  <line x1="260" y1="215" x2="398" y2="215" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="330" y="205" text-anchor="middle" fill="#6a6b70" font-size="12">HTTPS, Bearer c-pat token</text>
 
   <!-- Browser -> OIDC -->
-  <line x1="150" y1="148" x2="150" y2="102" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="162" y="130" fill="#c9cdd1" font-size="12">Authorization Code + PKCE</text>
+  <line x1="150" y1="148" x2="150" y2="102" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="162" y="130" fill="#6a6b70" font-size="12">Authorization Code + PKCE</text>
 
   <!-- API -> OIDC (discovery, JWKS) -->
-  <path d="M 400 150 L 330 150 L 330 60 L 262 60" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="345" y="90" fill="#c9cdd1" font-size="12">discovery + JWKS</text>
-  <text x="345" y="106" fill="#c9cdd1" font-size="12">at startup</text>
+  <path d="M 400 150 L 330 150 L 330 60 L 262 60" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="345" y="90" fill="#6a6b70" font-size="12">discovery + JWKS</text>
+  <text x="345" y="106" fill="#6a6b70" font-size="12">at startup</text>
 
   <!-- Browser -> STIG Manager -->
-  <line x1="150" y1="302" x2="150" y2="398" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="162" y="345" fill="#c9cdd1" font-size="12">Bearer stig-manager token</text>
+  <line x1="150" y1="302" x2="150" y2="398" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="162" y="345" fill="#6a6b70" font-size="12">Bearer stig-manager token</text>
 
   <!-- API -> MySQL -->
-  <line x1="642" y1="195" x2="778" y2="195" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="710" y="185" text-anchor="middle" fill="#c9cdd1" font-size="12">mysql2 pool, SQL</text>
+  <line x1="642" y1="195" x2="778" y2="195" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="710" y="185" text-anchor="middle" fill="#6a6b70" font-size="12">mysql2 pool, SQL</text>
 
   <!-- API -> Tenable -->
-  <path d="M 642 260 L 700 260 L 700 345 L 778 345" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="708" y="300" fill="#c9cdd1" font-size="12">/api/tenable/* proxy</text>
+  <path d="M 642 260 L 700 260 L 700 345 L 778 345" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="708" y="300" fill="#6a6b70" font-size="12">/api/tenable/* proxy</text>
 
   <!-- API -> AI -->
-  <path d="M 642 300 L 680 300 L 680 455 L 778 455" fill="none" stroke="#c9cdd1" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="688" y="420" fill="#c9cdd1" font-size="12">/api/ai/mitigation</text>
+  <path d="M 642 300 L 680 300 L 680 455 L 778 455" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="688" y="420" fill="#6a6b70" font-size="12">/api/ai/mitigation</text>
 
-  <text x="40" y="508" fill="#a7aeb5" font-size="11">Blue boxes are C-PAT components. Grey boxes are deployer-provided or external services.</text>
+  <text x="40" y="508" fill="#55565b" font-size="11">Blue boxes are C-PAT components. Grey boxes are deployer-provided or external services.</text>
 </svg>

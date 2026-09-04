@@ -92,7 +92,7 @@ Procedure
 
 #. Check the logs by running ``docker logs`` to verify successful startup.  Sample log entries showing the end of a successful startup are shown below.  Check the :ref:`logging` reference for more detailed information.
 
-  .. code-block :: bash
+   .. code-block:: bash
 
       [START] Checking classification...
       [START] Server is listening on port 8086

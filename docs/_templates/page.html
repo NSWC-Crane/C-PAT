@@ -1,0 +1,32 @@
+{% extends "!page.html" %}
+
+{% block content %}
+  {% set breadcrumb_include_index_as = "Home" %}
+  {% set breadcrumb_include_page = true %}
+  {% include "components/breadcrumbs.html" %}
+
+  {% if prev or next %}
+  <nav class="related-pages related-pages--top" aria-label="{{ _('Related pages') }}">
+    {% if prev %}
+    <a class="prev-page" href="{{ prev.link }}">
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+      <div class="page-info">
+        <div class="context"><span>{{ _("Previous") }}</span></div>
+        <div class="title">{% if prev.link == pathto(master_doc) %}{{ _("Home") }}{% else %}{{ prev.title }}{% endif %}</div>
+      </div>
+    </a>
+    {% endif %}
+    {% if next %}
+    <a class="next-page" href="{{ next.link }}">
+      <div class="page-info">
+        <div class="context"><span>{{ _("Next") }}</span></div>
+        <div class="title">{{ next.title }}</div>
+      </div>
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+    </a>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {{ super() }}
+{% endblock content %}

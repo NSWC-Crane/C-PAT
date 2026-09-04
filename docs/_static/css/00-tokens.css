@@ -1,0 +1,58 @@
+/*
+!##########################################################################
+! CRANE PLAN OF ACTION AND MILESTONE AUTOMATION TOOL (C-PAT) SOFTWARE
+! Use is governed by the Open Source Academic Research License Agreement
+! contained in the LICENSE.MD file, which is part of this software package.
+! BY USING OR MODIFYING THIS SOFTWARE, YOU ARE AGREEING TO THE TERMS AND
+! CONDITIONS OF THE LICENSE.
+!##########################################################################
+*/
+
+:root {
+  --cpat-surface-0: #ffffff;
+  --cpat-surface-50: #ececec;
+  --cpat-surface-100: #dedfdf;
+  --cpat-surface-200: #c4c4c6;
+  --cpat-surface-300: #adaeb0;
+  --cpat-surface-400: #97979b;
+  --cpat-surface-500: #7f8084;
+  --cpat-surface-600: #6a6b70;
+  --cpat-surface-700: #55565b;
+  --cpat-surface-800: #3f4046;
+  --cpat-surface-900: #2c2c34;
+  --cpat-surface-950: #16161d;
+
+  --cpat-surface-100-a0: #dedfdf00;
+  --cpat-surface-800-a0: #3f404600;
+  --cpat-glow-falloff: #000000;
+
+  --cpat-pattern-image: url(../img/pattern.png);
+
+  --cpat-severity-critical: #eb4664;
+  --cpat-severity-high: #f57d46;
+  --cpat-severity-medium: #fa8c32;
+  --cpat-severity-low: #e6c82d;
+  --cpat-severity-very-low: #0fb982;
+  --cpat-severity-unknown: #969696;
+
+  --cpat-radius-card: 10px;
+  --cpat-radius-control: 6px;
+  --cpat-card-padding: 2rem;
+  --cpat-hairline: 1px;
+  --cpat-rail-width: 1px;
+  --cpat-focus-ring-width: 1px;
+  --cpat-focus-ring-offset: 2px;
+
+  --cpat-transition: 0.2s;
+  --cpat-transition-slow: 0.4s;
+  --cpat-ease: cubic-bezier(0.05, 0.74, 0.2, 0.99);
+
+  --cpat-font-sans: "Inter Variable", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --cpat-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --cpat-root-font-size: 14px;
+  --cpat-line-height-prose: 1.625;
+  --cpat-line-height-heading: 1.2;
+  --cpat-weight-heading: 600;
+  --cpat-weight-nav-child: 450;
+  --cpat-weight-nav-top: 600;
+}
