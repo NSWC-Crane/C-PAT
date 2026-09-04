@@ -4,6 +4,12 @@ set SPHINX_IMAGE_W_REQUIREMENTS=sphinx-w-requirements
 REM Change to this script directory
 cd /d "%~dp0"
 
+if "%~1"=="outdated" (
+    if not exist .venv uv venv .venv --python 3.12
+    uv pip sync -q requirements.txt --python .venv && uv pip list --outdated --python .venv
+    exit /b
+)
+
 REM Clean up _build directory
 if exist _build (
     for /d %%i in (_build\*) do rmdir /s /q "%%i"

@@ -5,6 +5,12 @@ SPHINX_IMAGE_W_REQUIREMENTS=sphinx-w-requirements
 # Change to this script directory
 cd "$(dirname "$(realpath "$0")")"
 
+if [ "$1" = "outdated" ]; then
+    [ -d .venv ] || uv venv .venv --python 3.12
+    uv pip sync -q requirements.txt --python .venv && uv pip list --outdated --python .venv
+    exit $?
+fi
+
 # Create _build if it doesn't exist
 mkdir -p _build
 

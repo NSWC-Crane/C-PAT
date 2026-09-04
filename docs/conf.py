@@ -28,7 +28,7 @@ images_config = {
 
 # Path configuration
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '.venv']
 github_doc_root = 'https://github.com/NSWC-Crane/C-PAT/tree/main/docs'
 html_static_path = ['_static']
 html_output_dir = '_build/html'
