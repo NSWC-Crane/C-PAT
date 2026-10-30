@@ -35,12 +35,12 @@
     "usageType": "openSource",
     "exemptionText": null
   },
-  "laborHours": 6404,
-  "version": "1.4.5",
+  "laborHours": 6724,
+  "version": "1.4.6",
   "date": {
     "created": "2023-06-01",
-    "lastModified": "2026-09-04",
-    "metadataLastUpdated": "2026-09-04"
+    "lastModified": "2026-10-30",
+    "metadataLastUpdated": "2026-10-30"
   },
   "disclaimerText": "",
   "disclaimerURL": ""

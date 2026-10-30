@@ -2,8 +2,8 @@
 project = 'C-PAT'
 copyright = '2026 U.S. Federal Government (in countries where recognized)'
 author = 'Christian Rodriguez'
-release = '1.4.5'
-version = '1.4.5'
+release = '1.4.6'
+version = '1.4.6'
 
 # Extensions
 extensions = [

@@ -1,18 +1,12 @@
 ## What's Changed
 
-### New Features
-* feat(docs): Add support for outdated dependencies check in build scripts (2e5ff737)
-* feat: Add documentation build step to PR tests workflow (8bd490ee)
-* feat: Add developer documentation (7ecf8ade)
-
-### Bug Fixes
-* fix(build): Use double brackets for conditional check in build script (9a68d65a)
-
 ### Other Changes
-* style(docs): restyle documentation to match the C-PAT client (2fa260d4)
-* build(client): upgrade Vitest to 5.0.0 (a9fbf1d7)
-* chore(client): Update dependencies (a5bd6428)
-* chore(api): Update dependencies (148c3cb0)
-* ci: bump softprops/action-gh-release (e334ded9)
-* chore(docs): Lock documentation requirements with hashes (3c9ecd68)
+* chore: update MySQL version requirement to 8.4.0 (17b079d3)
+* build(security): drop npm from the runtime image (e2f5aad9)
+* ci(release): pass dispatch inputs via env and send error to stderr (b34850d5)
+* chore(workflows): Update dependencies (1b25a9c5)
+* chore(client): Update dependencies (66b91c49)
+* chore(api): Update dependencies (dce10770)
+* chore(docs): Update dependencies (978df844)
+* chore: update Python version to 3.13 (3f321841)
 
