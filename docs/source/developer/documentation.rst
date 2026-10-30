@@ -13,7 +13,7 @@ Where the documentation lives and how it is published
 =====================================================
 
 * The sources are reStructuredText files under ``docs/source/``, one folder per section, plus ``docs/index.rst`` as the root.
-* Read the Docs builds the ``main`` branch and publishes it at ``https://c-pat.readthedocs.io/en/main/``. The build configuration is ``.readthedocs.yaml`` at the repository root: Ubuntu 22.04, Python 3.12, and ``docs/requirements.txt``.
+* Read the Docs builds the ``main`` branch and publishes it at ``https://c-pat.readthedocs.io/en/main/``. The build configuration is ``.readthedocs.yaml`` at the repository root: Ubuntu 22.04, Python 3.13, and ``docs/requirements.txt``.
 * The release workflow builds the documentation in a container immediately before it builds the application image, and the ``Dockerfile`` copies ``docs/_build/html`` into the image. The API serves that directory at ``/docs``. Every deployment therefore carries the documentation that matches its version, and a change to these pages reaches deployed users with the next release. See :ref:`developer-release-process`.
 * ``docs/index.html`` redirects to ``_build/html/index.html`` for browsing a local build without a server.
 
@@ -40,7 +40,7 @@ The build runs in a container so that nobody needs a local Python installation. 
 .. warning::
   On Windows, run the Docker commands from PowerShell. Git Bash rewrites the ``/docs`` volume path, the container sees an empty directory, and Sphinx stops with ``config directory doesn't contain a conf.py file (/docs)``. If you must use Git Bash, set ``MSYS_NO_PATHCONV=1`` first.
 
-To build with a local Python instead, create a virtual environment with Python 3.12 or newer, install the requirements, and run Sphinx directly:
+To build with a local Python instead, create a virtual environment with Python 3.13 or newer, install the requirements, and run Sphinx directly:
 
 .. tabs::
 
