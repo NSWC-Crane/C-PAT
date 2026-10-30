@@ -20,8 +20,8 @@ Versions as of 1.4.4, as declared in the manifests. The manifests are the source
     - Version
     - Declared in
   * - Node.js
-    - 22.12 or later
-    - ``api/package.json`` (``engines``)
+    - ``^22.22.3 || ^24.15.0 || >=26.0.0``
+    - Angular 22.2 (``engines``); ``api/package.json`` alone declares ``>=22.12.0``
   * - Express
     - ``^5.2.1``
     - ``api/package.json``
@@ -87,7 +87,7 @@ The documentation requirements are split into a source file and a lock file. ``d
 
 .. code-block:: bash
 
-   uv pip compile docs/requirements.in --generate-hashes --only-binary :all: --python-version 3.12 --universal -o docs/requirements.txt
+   uv pip compile docs/requirements.in --generate-hashes --only-binary :all: --python-version 3.13 --universal -o docs/requirements.txt
 
 Without further flags the command keeps the versions already in the lock, so it is the way to add a package or raise a floor. To see what is behind, add ``--upgrade`` and read ``git diff docs/requirements.txt``; that diff is the report, and ``git checkout docs/requirements.txt`` discards it. ``--upgrade-package sphinx`` moves one package. ``docs/make.bat outdated`` (``docs/build.sh outdated`` from bash) shows what is behind without touching the lock: it creates ``docs/.venv`` on first use, syncs it to the lock, and lists every package with a newer release on PyPI. A row that survives a regeneration is capped by another package's requirement, as ``docutils`` is by Sphinx. ``--only-binary :all:`` restricts resolution to versions that publish a wheel. The command above is the canonical one; Dependabot rewrites the lock's header comment with its own invocation.
 

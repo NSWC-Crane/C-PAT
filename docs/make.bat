@@ -5,7 +5,7 @@ REM Change to this script directory
 cd /d "%~dp0"
 
 if "%~1"=="outdated" (
-    if not exist .venv uv venv .venv --python 3.12
+    if not exist .venv uv venv .venv --python 3.13
     uv pip sync -q requirements.txt --python .venv && uv pip list --outdated --python .venv
     exit /b
 )

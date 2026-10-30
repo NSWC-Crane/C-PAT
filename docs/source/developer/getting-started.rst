@@ -13,7 +13,7 @@ Prerequisites
 
 Install the following before you begin:
 
-* **Node.js 22.12 or later.** The API declares ``"node": ">=22.12.0"`` in ``api/package.json``, and both packages set ``engine-strict = true`` in their ``.npmrc``, so an older Node refuses to install dependencies. CI runs on Node 22.
+* **Node.js 22 (22.22.3 or later), 24 (24.15.0 or later), or 26 and later.** That is the ``engines`` range of Angular 22.2, and the Angular CLI exits on an older Node. The API alone declares ``"node": ">=22.12.0"`` in ``api/package.json``. Both packages set ``engine-strict = true`` in their ``.npmrc``, so npm refuses to install on an unsupported Node; the client is always installed with ``--force``, which overrides that check, so for the client the Angular CLI's check is what stops you. CI runs on Node 22.
 * **Git.**
 * **Docker.** You use it for the identity provider, the database, and the documentation build. Docker Desktop on Windows works with the commands below.
 * **MySQL 8.0.24 or later**, in a container or installed locally. The API checks the server version at startup (``minMySqlVersion`` in ``api/Services/utils.js``) and refuses anything older. The MySQL event scheduler must be on; it is on by default in MySQL 8.0, and a migration creates a scheduled event that updates :term:`POAM` statuses.
