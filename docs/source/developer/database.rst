@@ -11,7 +11,7 @@ MySQL is the only database C-PAT supports, and it is the only place application 
 Engine and requirements
 ==========================
 
-The API checks the server version at startup against ``minMySqlVersion`` in ``api/Services/utils.js``, which is ``8.0.24`` as of 1.4.4, and refuses to start against anything older. The pool connects with the ``utf8mb4_0900_ai_ci`` charset and collation, and every table in the baseline schema uses the same, so all text columns hold full Unicode.
+The API checks the server version at startup against ``minMySqlVersion`` in ``api/Services/utils.js``, which is ``8.4.0``, and refuses to start against anything older. The pool connects with the ``utf8mb4_0900_ai_ci`` charset and collation, and every table in the baseline schema uses the same, so all text columns hold full Unicode.
 
 The pool sets ``timezone: 'Z'``. Date and time values travel as UTC between the API and the server, and the baseline schema sets ``TIME_ZONE='+00:00'`` while it runs. Treat every ``DATETIME`` column as UTC.
 

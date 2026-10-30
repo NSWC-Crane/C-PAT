@@ -53,7 +53,7 @@
 
   <rect x="360" y="408" width="280" height="76" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
   <text x="500" y="430" text-anchor="middle" fill="#2c2c34">initializeDatabase()</text>
-  <text x="500" y="450" text-anchor="middle" fill="#55565b" font-size="12">pool, preflight, MySQL 8.0.24 or later,</text>
+  <text x="500" y="450" text-anchor="middle" fill="#55565b" font-size="12">pool, preflight, MySQL 8.4.0 or later,</text>
   <text x="500" y="468" text-anchor="middle" fill="#55565b" font-size="12">import sql/current if empty, Umzug migrations</text>
 
   <path d="M 200 484 L 200 504 L 350 504 L 350 522" fill="none" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>

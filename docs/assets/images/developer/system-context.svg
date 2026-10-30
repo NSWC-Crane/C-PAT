@@ -41,7 +41,7 @@
   <!-- MySQL -->
   <rect x="780" y="150" width="180" height="90" rx="8" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
   <text x="870" y="180" text-anchor="middle" fill="#2c2c34" font-size="16" font-weight="bold">MySQL</text>
-  <text x="870" y="203" text-anchor="middle" fill="#55565b" font-size="12">8.0.24 or later</text>
+  <text x="870" y="203" text-anchor="middle" fill="#55565b" font-size="12">8.4.0 or later</text>
   <text x="870" y="221" text-anchor="middle" fill="#55565b" font-size="12">system of record</text>
 
   <!-- OIDC provider -->
