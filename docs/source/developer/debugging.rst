@@ -59,7 +59,7 @@ Failure signatures
     - On a development machine using the demonstration realm only, set ``CPAT_DEV_ALLOW_INSECURE_TOKENS=true``.
   * - API startup fails with ``MySQL release is too old``
     - The server is below the minimum in ``api/Services/utils.js``.
-    - Upgrade MySQL to 8.0.24 or later.
+    - Upgrade MySQL to 8.4.0 or later.
   * - The client loops back to the sign-in page, or shows a blank page after sign-in
     - One of the two OIDC clients did not authenticate. Both the ``c-pat`` and the ``stig-manager`` client must exist in the realm and accept the redirect URL.
     - Check the realm's clients and their valid redirect URIs, and the ``authority`` and client ids in ``CPAT.Env``. See :ref:`authentication`.

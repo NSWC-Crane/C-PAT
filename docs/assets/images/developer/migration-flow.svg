@@ -26,7 +26,7 @@
 
   <rect x="300" y="88" width="400" height="56" rx="8" fill="#dedfdf" stroke="#6a6b70" stroke-width="1.5"/>
   <text x="500" y="110" text-anchor="middle" fill="#2c2c34">pool, preflight connection, version gate</text>
-  <text x="500" y="130" text-anchor="middle" fill="#55565b" font-size="12">MySQL 8.0.24 or later, else the process fails</text>
+  <text x="500" y="130" text-anchor="middle" fill="#55565b" font-size="12">MySQL 8.4.0 or later, else the process fails</text>
   <line x1="500" y1="144" x2="500" y2="166" stroke="#6a6b70" stroke-width="1.5" marker-end="url(#arrow)"/>
 
   <polygon points="500,168 660,208 500,248 340,208" fill="#ececec" stroke="#adaeb0" stroke-width="1.5"/>
