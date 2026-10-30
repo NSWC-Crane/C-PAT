@@ -61,7 +61,7 @@ Repository layout
   * - ``docs/``
     - This documentation, built with Sphinx.
   * - ``Dockerfile``
-    - The multi-stage production image: builds the client, installs the API, copies the built docs.
+    - The multi-stage production image: builds the client, installs the API's production dependencies in their own stage, copies the built docs. The runtime stage deletes the base image's npm and npx for hardening.
   * - ``.github/``
     - The PR test workflow, the release workflow, Dependabot, and the issue and pull request templates.
   * - ``C-PAT/C-PAT.json``

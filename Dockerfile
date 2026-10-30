@@ -7,14 +7,20 @@ RUN npm ci --force --ignore-scripts
 COPY client/. .
 RUN npm run build
 
+FROM ${BASE_IMAGE} AS api-deps
+WORKDIR /app/api
+COPY api/package*.json ./
+RUN npm ci --omit=dev --ignore-scripts
+
 FROM ${BASE_IMAGE}
+USER root
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /home/node
 RUN mkdir -p /home/node/app/api && chown -R node:node /home/node
 USER node
 WORKDIR /home/node/app/api
 
-COPY --chown=node:node api/package*.json ./
-RUN npm ci --omit=dev --ignore-scripts
+COPY --chown=node:node --from=api-deps /app/api/node_modules ./node_modules
 
 COPY --chown=node:node api/. .
 
