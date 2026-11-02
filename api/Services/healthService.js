@@ -17,6 +17,7 @@ const logger = require('../utils/logger');
 const { serializeError } = require('../utils/serializeError');
 const state = require('../utils/state');
 const tenableTls = require('../utils/tenableTls');
+const nessusTls = require('../utils/nessusTls');
 const { stripTrailingSlashes } = require('../utils/url');
 
 async function withConnection(callback) {
@@ -123,22 +124,35 @@ async function checkStigManager(url, timeoutMs = 30_000) {
 }
 
 function checkTenable(url, timeoutMs = 30_000) {
+    return checkHttpEndpoint(url, { label: 'tenable', tls: { cert: tenableTls.clientCert, key: tenableTls.clientKey, insecure: true } }, timeoutMs);
+}
+
+function checkNessus(url, timeoutMs = 30_000) {
+    return checkHttpEndpoint(url, { label: 'nessus', tls: { ...nessusTls, insecure: config.nessus.tls.insecure } }, timeoutMs);
+}
+
+function checkHttpEndpoint(url, { label, tls }, timeoutMs) {
     return new Promise(resolve => {
         const isHttps = new URL(url).protocol === 'https:';
         const client = isHttps ? https : http;
         const requestOptions = { timeout: timeoutMs };
         if (isHttps) {
-            requestOptions.rejectUnauthorized = false;
-            if (tenableTls.clientCert) {
-                requestOptions.cert = tenableTls.clientCert;
+            if (tls.insecure) {
+                requestOptions.rejectUnauthorized = false;
             }
-            if (tenableTls.clientKey) {
-                requestOptions.key = tenableTls.clientKey;
+            if (tls.cert) {
+                requestOptions.cert = tls.cert;
+            }
+            if (tls.key) {
+                requestOptions.key = tls.key;
+            }
+            if (tls.ca) {
+                requestOptions.ca = tls.ca;
             }
         }
 
         const handleFailure = err => {
-            logger.writeError('healthcheck', 'tenableHealthCheckFailed', {
+            logger.writeError('healthcheck', `${label}HealthCheckFailed`, {
                 url,
                 timeoutMs,
                 error: serializeError(err),
@@ -189,11 +203,14 @@ module.exports.recordHealthCheck = async function recordHealthCheck() {
 
     const tenableStatus = config.tenable.enabled ? await checkTenable(`${tenableBaseUrl}/rest/system`) : null;
 
+    const nessusBaseUrl = stripTrailingSlashes(config.nessus.url);
+    const nessusStatus = config.nessus.enabled ? await checkNessus(`${nessusBaseUrl}/server/status`) : null;
+
     try {
         await withConnection(async connection => {
             await connection.query(
-                `INSERT INTO ${config.database.schema}.healthcheck (checked_at, status, response_ms, db_status, oidc_status, stigman_status, tenable_status) VALUES (UTC_TIMESTAMP(3), ?, ?, ?, ?, ?, ?)`,
-                [systemUp, response_ms, dbUp ? 1 : 0, oidcUp, stigmanStatus, tenableStatus]
+                `INSERT INTO ${config.database.schema}.healthcheck (checked_at, status, response_ms, db_status, oidc_status, stigman_status, tenable_status, nessus_status) VALUES (UTC_TIMESTAMP(3), ?, ?, ?, ?, ?, ?, ?)`,
+                [systemUp, response_ms, dbUp ? 1 : 0, oidcUp, stigmanStatus, tenableStatus, nessusStatus]
             );
         });
     } catch (err) {
@@ -230,10 +247,10 @@ module.exports.backfillDowntime = async function backfillDowntime() {
 
             if (!timestamps.length) return;
 
-            const values = timestamps.map(ts => [ts, 0, null, 0, 0, null, null]);
+            const values = timestamps.map(ts => [ts, 0, null, 0, 0, null, null, null]);
             await connection.query(
                 `INSERT INTO ${config.database.schema}.healthcheck
-                 (checked_at, status, response_ms, db_status, oidc_status, stigman_status, tenable_status)
+                 (checked_at, status, response_ms, db_status, oidc_status, stigman_status, tenable_status, nessus_status)
                  VALUES ?`,
                 [values]
             );
@@ -318,7 +335,7 @@ module.exports.getUptimeStatus = async function getUptimeStatus() {
         `);
 
         const [latestRows] = await connection.query(`
-            SELECT status, oidc_status, stigman_status, tenable_status, response_ms
+            SELECT status, oidc_status, stigman_status, tenable_status, nessus_status, response_ms
             FROM ${config.database.schema}.healthcheck
             ORDER BY checked_at DESC
             LIMIT 1
@@ -361,6 +378,15 @@ module.exports.getUptimeStatus = async function getUptimeStatus() {
             result.tenable = await buildOptionalService(connection, {
                 column: 'tenable_status',
                 latestValue: latest?.tenable_status,
+                latestIsBackfill,
+                unknowns,
+            });
+        }
+
+        if (config.nessus.enabled) {
+            result.nessus = await buildOptionalService(connection, {
+                column: 'nessus_status',
+                latestValue: latest?.nessus_status,
                 latestIsBackfill,
                 unknowns,
             });
