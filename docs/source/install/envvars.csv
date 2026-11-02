@@ -117,6 +117,26 @@
 | A file/path relative to the API /tls directory that contains the PEM encoded Client private key used when connecting to Tenable. Additionally requires setting a value for ``TENABLE_CERT_FILE``. ","API"
 "TENABLE_TIMEOUT","| **Default** ``300``
 | Time in seconds a request to Tenable.sc may sit idle before C-PAT abandons it and responds with 502. ","API"
+"NESSUS_URL","| **No default**
+| The URL to your Nessus Professional scanner, including the port. The integration is enabled when this and both API keys are set. Example: ``https://nessus.something.com:8834`` ","API"
+"NESSUS_ACCESS_KEY","| **No default**
+| Access key generated in Nessus under Settings > My Account > API Keys. ","API"
+"NESSUS_SECRET_KEY","| **No default**
+| Secret key generated together with ``NESSUS_ACCESS_KEY``. ","API"
+"NESSUS_CA_FILE","| **No default**
+| A file/path relative to the API /tls directory that contains the PEM encoded CA certificate used to verify the scanner's certificate. ","API"
+"NESSUS_TLS_INSECURE","| **Default** ``false``
+| Set to ``true`` to skip TLS certificate verification for the scanner. Prefer ``NESSUS_CA_FILE``. ","API"
+"NESSUS_CERT_FILE","| **No default**
+| A file/path relative to the API /tls directory that contains the PEM encoded Client certificate used when connecting to Nessus. Additionally requires setting a value for ``NESSUS_KEY_FILE``. ","API"
+"NESSUS_KEY_FILE","| **No default**
+| A file/path relative to the API /tls directory that contains the PEM encoded Client private key used when connecting to Nessus. Additionally requires setting a value for ``NESSUS_CERT_FILE``. ","API"
+"NESSUS_TIMEOUT","| **Default** ``300``
+| Time in seconds a request to Nessus, including waiting for a scan export, may take before C-PAT abandons it and responds with 502. ","API"
+"NESSUS_CACHE_TTL","| **Default** ``900``
+| Seconds a loaded Nessus scan stays in memory before it is exported again. ","API"
+"NESSUS_CACHE_MAX_SCANS","| **Default** ``10``
+| Maximum number of Nessus scans kept in memory at once. ","API"
 "CPAT_MARKETPLACE_DISABLED","| **Default** ``false``
 | Disabled C-PAT theme marketplace feature. ","Client"
 "CPAT_AI_ENABLED","| **Default** ``false``

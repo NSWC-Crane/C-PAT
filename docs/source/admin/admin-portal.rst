@@ -141,24 +141,24 @@ Collection Field Mappings
 
 - **Collection Name**: The name of the collection. For collections that are imported from STIG Manager or Tenable, the collection name should match the collection name from the respective system. The collection name will be displayed in navigation across C-PAT and be contained in the file name of POAM exports.
 - **Collection Description**: A brief description of the collection.
-- **Collection Type**: ``C-PAT`` for manually created collections, or ``STIG Manager`` / ``Tenable`` to associate the C-PAT collection with an origin in the corresponding system.
+- **Collection Type**: ``C-PAT`` for manually created collections, or ``STIG Manager`` / ``Tenable`` / ``Nessus`` to associate the C-PAT collection with an origin in the corresponding system. For ``Nessus`` the origin is a single scan on the Nessus Professional scanner, and the option is only offered when ``NESSUS_URL`` is configured.
 - **System Type**: This field will map to Cell ``L2`` in the eMASS format excel export.
 - **System Name**: This field will map to Cell ``D5`` in the eMASS format excel export.
 - **CC/S/A/FA**: This field will map to Cell ``D4`` in the eMASS format excel export.
 - **A&A Package**: C-PAT provides the ability to associate an A&A package with a collection. When a collection has an A&A package set, this field will be automatically populated for any POAM created within the collection.
 
-Importing a Single Collection from STIG Manager or Tenable.sc
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Importing a Single Collection from STIG Manager, Tenable.sc, or Nessus
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Add Collection dialog handles both manual creation and single-collection imports. To import a single collection:
 
 1. Click the **Add Collection** button (plus icon) in the toolbar above the collection table.
-2. In the **Collection Type** dropdown, select ``STIG Manager`` or ``Tenable``.
+2. In the **Collection Type** dropdown, select ``STIG Manager``, ``Tenable``, or ``Nessus``.
 3. The collection dropdown will populate with available origins. Collections that have already been imported are filtered out automatically, leaving only origins that have not yet been associated with a C-PAT collection.
-4. Choose the desired STIG Manager collection or Tenable repository.
+4. Choose the desired STIG Manager collection, Tenable repository, or Nessus scan. Nessus scans are listed with their folder name so scans with the same name in different folders can be told apart.
 5. Fill in any additional fields as desired, then click **Save**.
 
-When a collection is imported, the C-PAT collection becomes a shell that interfaces with the selected STIG Manager collection or Tenable repository.
+When a collection is imported, the C-PAT collection becomes a shell that interfaces with the selected STIG Manager collection, Tenable repository, or Nessus scan.
 
 .. note::
    To convert an existing manually created collection into an integrated one (or vice versa), click the row to open the modify dialog, change the **Collection Type**, and confirm the prompt before selecting the new origin.
@@ -169,7 +169,7 @@ Bulk Importing Collections
 To import multiple collections at once:
 
 1. Click the **Bulk Import** button (cloud download icon) in the toolbar above the collection table.
-2. If more than one source is available, choose the **Source** (``STIG Manager`` or ``Tenable``). The Tenable option is only displayed when the Tenable feature is enabled in App Configuration.
+2. If more than one source is available, choose the **Source** (``STIG Manager``, ``Tenable``, or ``Nessus``). The Tenable and Nessus options are only displayed when the corresponding integration is configured.
 3. The list will populate with collections that have not yet been imported.
 4. Use the search box to filter, then check one or more entries.
 5. Click **Import**. Each selected entry is imported as a new C-PAT collection and the table refreshes when the operation completes.

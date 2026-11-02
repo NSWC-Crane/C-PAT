@@ -5,7 +5,7 @@ Integrations Configuration
 ########################################
 
 
-C-PAT offers integrations with `STIG Manager <https://github.com/NUWCDIVNPT/stig-manager>`_ and `Tenable.sc <https://www.tenable.com/products/security-center>`_.
+C-PAT offers integrations with `STIG Manager <https://github.com/NUWCDIVNPT/stig-manager>`_, `Tenable.sc <https://www.tenable.com/products/security-center>`_, and `Nessus Professional <https://www.tenable.com/products/nessus>`_.
 While it is possible to run C-PAT independently, to fully realize the benefits of C-PAT it is **strongly** recommended that C-PAT be configured to run in conjunction with these tools.
 
 
@@ -63,6 +63,50 @@ Tenable
    * - ``TENABLE_KEY_FILE``
      - **No default**
      - A file/path relative to the API /tls directory that contains the PEM encoded Client private key used when connecting to Tenable. Additionally requires setting a value for ``TENABLE_CERT_FILE``.
+
+Nessus Professional
+--------------------
+
+Nessus Professional has no cumulative repository, so C-PAT associates each ``Nessus`` collection with one scan and reads that scan's most recent completed run. The API exports the run as a ``.nessus`` file, normalizes it into the same shapes the Tenable pages use, and keeps it in memory for ``NESSUS_CACHE_TTL`` seconds so the tabs and metrics do not re-export the scan on every query. First Seen dates are derived from the ``nessus_sighting`` table, which C-PAT fills in as new runs are loaded.
+
+  .. list-table:: Nessus Professional Environment Variables:
+   :widths: 20 25 55
+   :header-rows: 1
+   :class: tight-table
+
+   * - Variable
+     - Default
+     - Description
+   * - ``NESSUS_URL``
+     - **No default**
+     - The URL to your Nessus Professional scanner, no trailing slashes or additional paths are necessary. Example: ``https://nessus.something.com:8834``
+   * - ``NESSUS_ACCESS_KEY``
+     - **No default**
+     - Generate API keys in Nessus under **Settings > My Account > API Keys**. The keys inherit the user's permissions, so the user must be able to read the scans that will be mapped to collections.
+   * - ``NESSUS_SECRET_KEY``
+     - **No default**
+     - The secret half of the API key pair generated with ``NESSUS_ACCESS_KEY``.
+   * - ``NESSUS_CA_FILE``
+     - **No default**
+     - A file/path relative to the API /tls directory that contains the PEM encoded CA certificate that signed the scanner's certificate. Use this for scanners with a self-signed or private-CA certificate instead of disabling verification.
+   * - ``NESSUS_TLS_INSECURE``
+     - ``false``
+     - Set to ``true`` to skip TLS certificate verification for the scanner. Not recommended; prefer ``NESSUS_CA_FILE``.
+   * - ``NESSUS_CERT_FILE``
+     - **No default**
+     - A file/path relative to the API /tls directory that contains the PEM encoded Client certificate used when connecting to Nessus. Additionally requires setting a value for ``NESSUS_KEY_FILE``.
+   * - ``NESSUS_KEY_FILE``
+     - **No default**
+     - A file/path relative to the API /tls directory that contains the PEM encoded Client private key used when connecting to Nessus. Additionally requires setting a value for ``NESSUS_CERT_FILE``.
+   * - ``NESSUS_TIMEOUT``
+     - ``300``
+     - Time in seconds a request to Nessus, including waiting for a scan export to finish, may take before C-PAT abandons it and responds with 502.
+   * - ``NESSUS_CACHE_TTL``
+     - ``900``
+     - Seconds a loaded scan stays in memory before C-PAT exports it again.
+   * - ``NESSUS_CACHE_MAX_SCANS``
+     - ``10``
+     - Maximum number of scans kept in memory at once. The least recently used scan is dropped when the limit is reached.
 
 AI
 --------

@@ -306,6 +306,35 @@ The proxy forwards only the ``content-type`` and ``accept-encoding`` headers fro
 
 An upstream failure is logged as ``('tenable', 'upstream')`` and answered with ``BadGatewayError`` (502) through the ``tenableUpstreamError`` response in the contract. When ``TENABLE_URL`` is not configured, every Tenable operation answers ``ServiceUnavailableError`` (503) through ``tenableUnavailable``. The proxy handler is built on first use, so a deployment without Tenable pays nothing for it. See :ref:`integrations` for the deployer's view.
 
+Nessus service
+==========================
+
+The Nessus Professional integration is not a proxy. Nessus has no cumulative analysis engine, so the API loads a scan itself and answers the ``/nessus`` operations from an in-memory snapshot in the shapes the Tenable client code already consumes. ``api/Controllers/Nessus.js`` maps each operation to ``api/Services/nessusService.js``; the helpers live under ``api/utils/nessus/``:
+
+.. list-table::
+  :widths: 30 70
+  :header-rows: 1
+  :class: tight-table
+
+  * - Module
+    - Responsibility
+  * - ``api/utils/nessusClient.js``
+    - HTTP client for the Nessus REST API. Sends the ``X-ApiKeys`` header built from ``NESSUS_ACCESS_KEY`` and ``NESSUS_SECRET_KEY``, the C-PAT ``User-Agent``, and the TLS material from ``NESSUS_CA_FILE``, ``NESSUS_CERT_FILE`` and ``NESSUS_KEY_FILE``. Certificate verification stays on unless ``NESSUS_TLS_INSECURE=true``. ``exportScanFile`` requests a ``.nessus`` export, polls its status, and downloads it, all bounded by ``NESSUS_TIMEOUT``.
+  * - ``nessusXml.js``
+    - Parses the ``.nessus`` document with ``fast-xml-parser`` into host property maps and report items. Values stay strings.
+  * - ``nessusNormalizer.js``
+    - Builds the snapshot (hosts, findings, plugin index) and the row shapes for each analysis tool: ``sumid``, ``listvuln``, ``vulndetails``, ``sumip``, ``sumseverity``, ``sumdnsname``, ``sumremediation``, the ``hosts/search`` rows, and the ``plugin`` object. The Tenable field names and formats are preserved, including unix-second date strings, ``TYPE#value`` cross references on rows and ``TYPE:value`` on plugins, and ``-1`` for missing dates.
+  * - ``nessusFilterEngine.js``
+    - Compiles Tenable-style ``filters`` into one predicate over findings, including the day-window date grammar (``0:30``, ``30:all``, named periods), IP lists, CIDR and ranges, wildcard cross reference patterns, score ranges, and ``pcre`` operators. Filters that have no Nessus equivalent are skipped and listed in the response ``warnings``.
+  * - ``nessusQuery.js``
+    - Sorts by ``sortField``/``sortDir`` (or ``query.sortColumn``/``sortDirection``) and slices by ``startOffset``/``endOffset``, returning ``totalRecords`` as a string like Tenable.sc.
+  * - ``nessusCache.js``
+    - TTL and LRU cache with single-flight loading so concurrent queries for the same scan share one export. Sized by ``NESSUS_CACHE_TTL`` and ``NESSUS_CACHE_MAX_SCANS``.
+  * - ``api/Services/nessusSightingService.js``
+    - Records when each host and plugin pair was first and last observed per scan in ``nessus_sighting``, guarded by ``nessus_scan_snapshot`` so a scan history is only recorded once. The snapshot's ``firstSeen`` values come from this table; ``lastSeen`` is the scan end time.
+
+The ``repository`` filter carries the scan id. When a query omits it, the service queries every scan attached to a ``Nessus`` collection, which keeps callers that never set a repository (POAM exports, plugin mapping) working. Unknown tools answer ``ClientError`` (400). Upstream failures are logged as ``('nessus', 'upstream')`` and answered with ``BadGatewayError`` (502) through ``nessusUpstreamError``; a deployment without ``NESSUS_URL`` and both API keys answers ``ServiceUnavailableError`` (503) through ``nessusUnavailable``. Caller-supplied ``pcre`` patterns are refused when they are longer than 256 characters or contain quantified groups, since they run in-process. ``DELETE /nessus/cache/{scanId}`` drops a cached scan so the next query re-exports it. The health check probes ``GET /server/status`` and records ``nessus_status``.
+
 :term:`STIG Manager` has no server-side counterpart. The API passes ``STIGMAN_API_URL`` and the client id through to the browser in ``api/bootstrap/client.js`` and probes the STIG Manager API in the health check (``checkStigManager`` in ``api/Services/healthService.js``); the client does the rest.
 
 AI layer
