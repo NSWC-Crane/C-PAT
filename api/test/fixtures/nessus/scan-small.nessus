@@ -1,0 +1,133 @@
+<?xml version="1.0" ?>
+<NessusClientData_v2>
+<Policy><policyName>Basic Network Scan</policyName></Policy>
+<Report name="Fixture Scan" xmlns:cm="http://www.nessus.org/cm">
+<ReportHost name="10.0.0.5"><HostProperties>
+<tag name="HOST_END">Mon Oct 27 10:05:00 2025</tag>
+<tag name="HOST_END_TIMESTAMP">1761559500</tag>
+<tag name="HOST_START">Mon Oct 27 10:00:00 2025</tag>
+<tag name="HOST_START_TIMESTAMP">1761559200</tag>
+<tag name="host-ip">10.0.0.5</tag>
+<tag name="host-fqdn">web01.example.mil</tag>
+<tag name="netbios-name">WEB01</tag>
+<tag name="mac-address">00:11:22:33:44:55
+00:11:22:33:44:56</tag>
+<tag name="operating-system">Microsoft Windows Server 2019</tag>
+<tag name="system-type">general-purpose</tag>
+<tag name="host-uuid">11111111-2222-3333-4444-555555555555</tag>
+<tag name="Credentialed_Scan">true</tag>
+<tag name="cpe-0">cpe:/o:microsoft:windows_server_2019</tag>
+</HostProperties>
+<ReportItem port="445" svc_name="cifs" protocol="tcp" severity="4" pluginID="57608" pluginName="SMB Signing not required" pluginFamily="Misc.">
+<description>Signing is not required on the remote SMB server.</description>
+<fname>smb_signing_not_required.nasl</fname>
+<plugin_modification_date>2024/02/01</plugin_modification_date>
+<plugin_name>SMB Signing not required</plugin_name>
+<plugin_publication_date>2012/01/19</plugin_publication_date>
+<plugin_type>remote</plugin_type>
+<risk_factor>Critical</risk_factor>
+<script_version>$Revision: 1.21 $</script_version>
+<see_also>http://support.microsoft.com/kb/887429</see_also>
+<solution>Enforce message signing in the host's configuration.</solution>
+<synopsis>Signing is not required on the remote SMB server.</synopsis>
+<cvss_base_score>5.0</cvss_base_score>
+<cvss_vector>CVSS2#AV:N/AC:L/Au:N/C:N/I:P/A:N</cvss_vector>
+<cvss3_base_score>9.8</cvss3_base_score>
+<cvss3_vector>CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</cvss3_vector>
+<exploit_available>true</exploit_available>
+<exploitability_ease>Exploits are available</exploitability_ease>
+<exploit_framework_metasploit>true</exploit_framework_metasploit>
+<vpr_score>9.1</vpr_score>
+<epss_score>0.9412</epss_score>
+<cve>CVE-2020-0001</cve>
+<cve>CVE-2020-0002</cve>
+<xref>IAVA:2020-A-0001</xref>
+<xref>MSFT:MS20-001</xref>
+<iava>2020-A-0001</iava>
+<stig_severity>I</stig_severity>
+<plugin_output>Signing is not required on the remote SMB server.</plugin_output>
+</ReportItem>
+<ReportItem port="0" svc_name="general" protocol="tcp" severity="0" pluginID="19506" pluginName="Nessus Scan Information" pluginFamily="Settings">
+<description>This plugin displays information about the scan.</description>
+<fname>nessus_scan_info.nasl</fname>
+<plugin_publication_date>2005/08/26</plugin_publication_date>
+<plugin_type>summary</plugin_type>
+<risk_factor>None</risk_factor>
+<solution>n/a</solution>
+<synopsis>Scan information.</synopsis>
+<plugin_output>Information about this scan :
+
+Nessus version : 10.8.3
+Credentialed checks : yes
+</plugin_output>
+</ReportItem>
+<ReportItem port="443" svc_name="www" protocol="tcp" severity="2" pluginID="104743" pluginName="TLS Version 1.0 Protocol Detection" pluginFamily="Service detection">
+<description>The remote service accepts connections encrypted using TLS 1.0.</description>
+<fname>ssl_tls1_0_detection.nasl</fname>
+<plugin_publication_date>2017/11/22</plugin_publication_date>
+<patch_publication_date>2017/11/22</patch_publication_date>
+<plugin_type>remote</plugin_type>
+<risk_factor>Medium</risk_factor>
+<solution>Enable support for TLS 1.2 and 1.3, and disable support for TLS 1.0.</solution>
+<synopsis>The remote service encrypts traffic using an older version of TLS.</synopsis>
+<cvss_base_score>6.5</cvss_base_score>
+<cvss3_base_score>6.5</cvss3_base_score>
+<exploit_available>false</exploit_available>
+<vpr_score>3.6</vpr_score>
+<plugin_output>TLSv1 is enabled.</plugin_output>
+</ReportItem>
+</ReportHost>
+<ReportHost name="10.0.0.6"><HostProperties>
+<tag name="HOST_END_TIMESTAMP">1761559600</tag>
+<tag name="HOST_START_TIMESTAMP">1761559300</tag>
+<tag name="host-ip">10.0.0.6</tag>
+<tag name="host-rdns">db01.example.mil</tag>
+<tag name="operating-system">Linux Kernel 5.15 on Ubuntu 22.04</tag>
+<tag name="Credentialed_Scan">false</tag>
+</HostProperties>
+<ReportItem port="443" svc_name="www" protocol="tcp" severity="2" pluginID="104743" pluginName="TLS Version 1.0 Protocol Detection" pluginFamily="Service detection">
+<description>The remote service accepts connections encrypted using TLS 1.0.</description>
+<plugin_publication_date>2017/11/22</plugin_publication_date>
+<patch_publication_date>2017/11/22</patch_publication_date>
+<plugin_type>remote</plugin_type>
+<risk_factor>Medium</risk_factor>
+<solution>Enable support for TLS 1.2 and 1.3, and disable support for TLS 1.0.</solution>
+<synopsis>The remote service encrypts traffic using an older version of TLS.</synopsis>
+<cvss3_base_score>6.5</cvss3_base_score>
+<exploit_available>false</exploit_available>
+<vpr_score>3.6</vpr_score>
+</ReportItem>
+<ReportItem port="0" svc_name="general" protocol="tcp" severity="4" pluginID="201408" pluginName="Ubuntu 18.04 SEoL" pluginFamily="Ubuntu Local Security Checks">
+<description>The Ubuntu release is no longer supported.</description>
+<plugin_publication_date>2024/06/05</plugin_publication_date>
+<plugin_type>local</plugin_type>
+<risk_factor>Critical</risk_factor>
+<solution>Upgrade to a supported release.</solution>
+<synopsis>An unsupported Ubuntu release was detected.</synopsis>
+<cvss3_base_score>10.0</cvss3_base_score>
+<seol_date>2023/05/31</seol_date>
+<exploit_available>false</exploit_available>
+</ReportItem>
+<ReportItem port="0" svc_name="general" protocol="tcp" severity="0" pluginID="19506" pluginName="Nessus Scan Information" pluginFamily="Settings">
+<description>This plugin displays information about the scan.</description>
+<plugin_publication_date>2005/08/26</plugin_publication_date>
+<plugin_type>summary</plugin_type>
+<risk_factor>None</risk_factor>
+<solution>n/a</solution>
+<synopsis>Scan information.</synopsis>
+<plugin_output>Information about this scan :
+
+Credentialed checks : no
+</plugin_output>
+</ReportItem>
+<ReportItem port="0" svc_name="general" protocol="tcp" severity="3" pluginID="21157" pluginName="Unix Compliance Checks" pluginFamily="Policy Compliance">
+<description>Compliance check.</description>
+<plugin_type>local</plugin_type>
+<risk_factor>High</risk_factor>
+<solution>Remediate the failed compliance items.</solution>
+<synopsis>Compliance check failed.</synopsis>
+<cm:compliance-result>FAILED</cm:compliance-result>
+</ReportItem>
+</ReportHost>
+</Report>
+</NessusClientData_v2>

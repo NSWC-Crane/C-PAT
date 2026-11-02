@@ -6720,6 +6720,531 @@ paths:
         - oauth:
             - 'c-pat:read'
 
+  '/nessus/analysis':
+    post:
+      summary: Run a Tenable-style analysis query against a Nessus Professional scan
+      description: >-
+        Accepts the same request body as /tenable/analysis. The repository filter names the Nessus scan id;
+        when it is omitted every scan attached to a Nessus collection is queried. Results are normalized to the
+        Tenable.sc response shape for the requested tool (sumid, listvuln, vulndetails, sumip, sumseverity,
+        sumdnsname, sumremediation).
+      operationId: postNessusAnalysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Normalized analysis response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/nessusUpstreamError'
+        '503':
+          $ref: '#/components/responses/nessusUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/hosts/search':
+    post:
+      summary: Return the hosts in a Nessus Professional scan
+      operationId: postNessusHostSearch
+      parameters:
+        - in: query
+          name: sortField
+          schema:
+            type: string
+        - in: query
+          name: sortDirection
+          schema:
+            type: string
+        - in: query
+          name: paginated
+          schema:
+            type: boolean
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Normalized host search response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/nessusUpstreamError'
+        '503':
+          $ref: '#/components/responses/nessusUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/plugin/{pluginId}':
+    get:
+      summary: Return a Nessus plugin by pluginId in the Tenable plugin shape
+      operationId: getNessusPlugin
+      parameters:
+        - in: path
+          name: pluginId
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        '200':
+          description: Normalized plugin response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/nessusUpstreamError'
+        '503':
+          $ref: '#/components/responses/nessusUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/asset':
+    get:
+      summary: Return an empty asset list (Nessus Professional has no asset lists)
+      operationId: getNessusAssets
+      parameters:
+        - in: query
+          name: filter
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Empty usable list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/auditFile':
+    get:
+      summary: Return an empty audit file list (Nessus Professional has no audit file lists)
+      operationId: getNessusAuditFiles
+      parameters:
+        - in: query
+          name: filter
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Empty usable list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/policy':
+    get:
+      summary: Return an empty scan policy list (not exposed for Nessus Professional)
+      operationId: getNessusScanPolicies
+      parameters:
+        - in: query
+          name: filter
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Empty usable list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/user':
+    get:
+      summary: Return an empty user list (not exposed for Nessus Professional)
+      operationId: getNessusUsers
+      parameters:
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Empty list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/pluginFamily':
+    get:
+      summary: Return Nessus plugin families
+      operationId: getNessusPluginFamilies
+      parameters:
+        - in: query
+          name: fields
+          style: form
+          explode: false
+          allowReserved: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Plugin family response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/nessusUpstreamError'
+        '503':
+          $ref: '#/components/responses/nessusUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/repository':
+    get:
+      summary: Return Nessus scans in the Tenable repository shape
+      description: Each scan is listed as a repository whose id is the scan id and whose description is the folder name.
+      operationId: getNessusScans
+      responses:
+        '200':
+          description: Scan list response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/nessusUpstreamError'
+        '503':
+          $ref: '#/components/responses/nessusUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/solutions':
+    post:
+      summary: Return remediation solutions derived from plugin solution text
+      operationId: postNessusSolutions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Solutions response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/nessusUpstreamError'
+        '503':
+          $ref: '#/components/responses/nessusUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/solutions/{solutionId}/asset':
+    parameters:
+      - in: path
+        name: solutionId
+        required: true
+        schema:
+          type: integer
+    post:
+      summary: Return the hosts affected by a derived Nessus solution
+      operationId: postNessusSolutionAssets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Solution asset response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Solution not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/nessusUpstreamError'
+        '503':
+          $ref: '#/components/responses/nessusUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/solutions/{solutionId}/vuln':
+    parameters:
+      - in: path
+        name: solutionId
+        required: true
+        schema:
+          type: integer
+    post:
+      summary: Return the vulnerabilities addressed by a derived Nessus solution
+      operationId: postNessusSolutionVulnerabilities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Solution vulnerability response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tenableResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Solution not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '502':
+          $ref: '#/components/responses/nessusUpstreamError'
+        '503':
+          $ref: '#/components/responses/nessusUnavailable'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:read'
+
+  '/nessus/cache/{scanId}':
+    delete:
+      summary: Drop the cached snapshot of a Nessus scan so the next query re-exports it
+      operationId: deleteNessusScanCache
+      parameters:
+        - in: path
+          name: scanId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Cache cleared
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        default:
+          $ref: '#/components/responses/unexpectedError'
+      tags:
+        - Nessus
+      security:
+        - oauth:
+            - 'c-pat:op'
+
   '/tenableFilters/{collectionId}':
     get:
       summary: Return all Tenable Filters for a collection
@@ -7737,6 +8262,8 @@ components:
         stigman:
           $ref: '#/components/schemas/OptionalServiceUptimeStatus'
         tenable:
+          $ref: '#/components/schemas/OptionalServiceUptimeStatus'
+        nessus:
           $ref: '#/components/schemas/OptionalServiceUptimeStatus'
         responseTimeSeries:
           type: array
@@ -9944,6 +10471,24 @@ components:
         The Tenable integration is not configured for this deployment (TENABLE_URL is unset or empty). A
         503 carrying the service-state object instead of the error object means the database or identity
         provider is unavailable; see the default response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+
+    nessusUpstreamError:
+      description: >-
+        C-PAT could not reach Nessus Professional, the request or scan export took longer than NESSUS_TIMEOUT allows,
+        or Nessus returned a response C-PAT could not parse. detail carries the underlying error message.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+
+    nessusUnavailable:
+      description: >-
+        The Nessus Professional integration is not configured for this deployment (NESSUS_URL, NESSUS_ACCESS_KEY or
+        NESSUS_SECRET_KEY is unset or empty).
       content:
         application/json:
           schema:
