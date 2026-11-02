@@ -247,9 +247,13 @@ describe('CollectionsComponent', () => {
       expect(component.tenableEnabled).toBe(true);
     });
 
-    it('should include both sources in bulkImportSourceOptions when tenableEnabled', () => {
-      expect(component.bulkImportSourceOptions).toHaveLength(2);
-      expect(component.bulkImportSourceOptions.map((o) => o.value)).toEqual(['STIG Manager', 'Tenable']);
+    it('should include every enabled scanner in bulkImportSourceOptions', () => {
+      expect(component.bulkImportSourceOptions).toHaveLength(3);
+      expect(component.bulkImportSourceOptions.map((o) => o.value)).toEqual(['STIG Manager', 'Tenable', 'Nessus']);
+    });
+
+    it('should offer the Nessus collection type only when nessusEnabled', () => {
+      expect(component.collectionTypeOptions.map((o) => o.value)).toEqual(['C-PAT', 'STIG Manager', 'Tenable', 'Nessus']);
     });
   });
 
@@ -930,7 +934,7 @@ describe('CollectionsComponent', () => {
         component.exportMultipleCollections();
         await Promise.resolve();
 
-        expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false);
+        expect(mockIntegrationService.postTenableAnalysis).toHaveBeenCalledWith(expect.anything(), false, 'tenable');
       });
 
       it('builds one workbook from the analysis results', async () => {
@@ -1292,7 +1296,7 @@ describe('CollectionsComponent', () => {
       component.bulkImportSource.set('Tenable');
       component.onBulkImportSourceChange();
 
-      expect(mockIntegrationService.getTenableRepositories).toHaveBeenCalledWith(false);
+      expect(mockIntegrationService.getTenableRepositories).toHaveBeenCalledWith(false, 'tenable');
     });
 
     it('should fetch STIG Manager collections when source is STIG Manager', () => {
@@ -1602,8 +1606,9 @@ describe('CollectionsComponent', () => {
   });
 
   describe('Bulk Import - Tenable Disabled', () => {
-    it('should only include STIG Manager source when tenableEnabled is false', async () => {
+    it('should only include STIG Manager source when no scanner is enabled', async () => {
       (globalThis as any).CPAT.Env.features.tenableEnabled = false;
+      (globalThis as any).CPAT.Env.features.nessusEnabled = false;
 
       TestBed.resetTestingModule();
       await TestBed.configureTestingModule({
@@ -1627,8 +1632,32 @@ describe('CollectionsComponent', () => {
       expect(newComponent.tenableEnabled).toBe(false);
       expect(newComponent.bulkImportSourceOptions).toHaveLength(1);
       expect(newComponent.bulkImportSourceOptions[0].value).toBe('STIG Manager');
+      expect(newComponent.collectionTypeOptions.map((o) => o.value)).toEqual(['C-PAT', 'STIG Manager', 'Tenable']);
 
       (globalThis as any).CPAT.Env.features.tenableEnabled = true;
+      (globalThis as any).CPAT.Env.features.nessusEnabled = true;
+    });
+  });
+
+  describe('Nessus collections', () => {
+    it('should fetch Nessus scans as origin collections for a Nessus collection type', () => {
+      mockIntegrationService.getTenableRepositories.mockReturnValue(of({ response: [{ id: '7', name: 'Weekly Scan', description: 'My Scans' }] }));
+
+      (component as any).loadOriginCollections('Nessus');
+
+      expect(mockIntegrationService.getTenableRepositories).toHaveBeenCalledWith(false, 'nessus');
+      expect(component.originCollectionOptions()).toEqual([{ label: 'Weekly Scan', value: 7 }]);
+    });
+
+    it('should build Nessus-typed collections when bulk importing from Nessus', () => {
+      mockIntegrationService.getTenableRepositories.mockReturnValue(of({ response: [{ id: '7', name: 'Weekly Scan', description: 'My Scans' }] }));
+      component.data = [];
+      component.bulkImportSource.set('Nessus');
+
+      component.onBulkImportSourceChange();
+
+      expect(mockIntegrationService.getTenableRepositories).toHaveBeenCalledWith(false, 'nessus');
+      expect(component.bulkImportAvailable()[0].value).toEqual({ collectionName: 'Weekly Scan', description: 'My Scans', collectionType: 'Nessus', originCollectionId: 7 });
     });
   });
 });

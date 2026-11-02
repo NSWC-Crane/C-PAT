@@ -8,6 +8,8 @@
 !##########################################################################
 */
 
+import { isTenableLike } from '../../../common/utils/collection-type.utils';
+import { repositoryRef } from '../../integrations/integration.service';
 import { Injectable, inject } from '@angular/core';
 import { Observable, Subject, defer, forkJoin, from, of } from 'rxjs';
 import { catchError, map, mergeMap, retry, switchMap, tap, toArray } from 'rxjs/operators';
@@ -153,7 +155,7 @@ export class MetricsExportService {
       return this.buildStigRow(collection, base);
     }
 
-    if (collection.collectionType === 'Tenable') {
+    if (isTenableLike(collection.collectionType)) {
       return this.buildTenableRow(collection, base);
     }
 
@@ -193,7 +195,7 @@ export class MetricsExportService {
   }
 
   private buildTenableRow(collection: CollectionsBasicList, base: MetricsExportRow): Observable<RowResult> {
-    const repoId = String(collection.originCollectionId);
+    const repoId = repositoryRef(collection);
 
     return this.tenableData.getCollectionExportMetrics(repoId, collection.collectionId).pipe(
       map((metrics) => ({

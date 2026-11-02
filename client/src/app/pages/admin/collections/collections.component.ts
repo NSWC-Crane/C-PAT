@@ -32,7 +32,8 @@ import { PayloadService } from '../../../common/services/setPayload.service';
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { PoamExportService } from '../../../common/utils/poam-export.service';
-import { IntegrationService } from '../../integrations/integration.service';
+import { IntegrationService, IntegrationSource, integrationSourceFor } from '../../integrations/integration.service';
+import { isTenableLike } from '../../../common/utils/collection-type.utils';
 import { PoamService } from '../../poams/poams.service';
 import { AAPackageService } from '../aa-packages/aa-packages.service';
 import { CollectionPermissionsComponent } from './collection-permissions/collection-permissions.component';
@@ -104,11 +105,7 @@ export class CollectionsComponent implements OnInit {
   readonly displayCollectionDialog = signal(false);
   dialogMode: 'add' | 'modify' = 'add';
   editingCollection: any = {};
-  collectionTypeOptions = [
-    { label: 'C-PAT', value: 'C-PAT' },
-    { label: 'STIG Manager', value: 'STIG Manager' },
-    { label: 'Tenable', value: 'Tenable' }
-  ];
+  collectionTypeOptions = [{ label: 'C-PAT', value: 'C-PAT' }, { label: 'STIG Manager', value: 'STIG Manager' }, { label: 'Tenable', value: 'Tenable' }, ...(CPAT.Env.features.nessusEnabled ? [{ label: 'Nessus', value: 'Nessus' }] : [])];
   readonly originCollectionOptions = signal<{ label: string; value: number }[]>([]);
   readonly loadingOriginCollections = signal(false);
   previousCollectionType: string | null = null;
@@ -131,13 +128,12 @@ export class CollectionsComponent implements OnInit {
   readonly selectedExportCollections = signal<any[]>([]);
   readonly exporting = signal(false);
   readonly displayBulkImportDialog = signal(false);
-  readonly bulkImportSource = signal<'STIG Manager' | 'Tenable'>('STIG Manager');
-  bulkImportSourceOptions = CPAT.Env.features.tenableEnabled
-    ? [
-        { label: 'STIG Manager', value: 'STIG Manager' as const },
-        { label: 'Tenable', value: 'Tenable' as const }
-      ]
-    : [{ label: 'STIG Manager', value: 'STIG Manager' as const }];
+  readonly bulkImportSource = signal<'STIG Manager' | 'Tenable' | 'Nessus'>('STIG Manager');
+  bulkImportSourceOptions = [
+    { label: 'STIG Manager', value: 'STIG Manager' as const },
+    ...(CPAT.Env.features.tenableEnabled ? [{ label: 'Tenable', value: 'Tenable' as const }] : []),
+    ...(CPAT.Env.features.nessusEnabled ? [{ label: 'Nessus', value: 'Nessus' as const }] : [])
+  ];
   readonly bulkImportAvailable = signal<{ label: string; value: any }[]>([]);
   readonly selectedBulkImports = signal<any[]>([]);
   readonly bulkImporting = signal(false);
@@ -183,6 +179,8 @@ export class CollectionsComponent implements OnInit {
         return 'success';
       case 'Tenable':
         return 'danger';
+      case 'Nessus':
+        return 'warn';
       default:
         return 'info';
     }
@@ -265,14 +263,14 @@ export class CollectionsComponent implements OnInit {
       return this.processPoamsWithStigFindings(poams, exportCollection.originCollectionId);
     }
 
-    if (exportCollection.collectionType === 'Tenable') {
-      return this.processPoamsWithTenableData(poams);
+    if (isTenableLike(exportCollection.collectionType)) {
+      return this.processPoamsWithTenableData(poams, integrationSourceFor(exportCollection.collectionType));
     }
 
     return this.processPoamsWithCpatData(poams, exportCollection.collectionId);
   }
 
-  private processPoamsWithTenableData(poams: any[]): Observable<any[]> {
+  private processPoamsWithTenableData(poams: any[], source: IntegrationSource): Observable<any[]> {
     const vulnerabilityIds = [...new Set(poams.map((poam) => poam.vulnerabilityId))];
     const analysisParams = {
       query: {
@@ -304,7 +302,7 @@ export class CollectionsComponent implements OnInit {
       type: 'vuln'
     };
 
-    return this.integrationService.postTenableAnalysis(analysisParams, false).pipe(
+    return this.integrationService.postTenableAnalysis(analysisParams, false, source).pipe(
       map((data) => {
         this.tenableAffectedAssets = data.response.results.map((asset: any) => ({
           pluginId: asset.pluginID,
@@ -579,7 +577,7 @@ export class CollectionsComponent implements OnInit {
     const source$ =
       collectionType === 'STIG Manager'
         ? this.sharedService.getCollectionsFromSTIGMAN(false).pipe(map((list: any[]) => (list ?? []).map((c: any) => ({ label: c.name, value: +c.collectionId }))))
-        : this.integrationService.getTenableRepositories(false).pipe(map((res: any) => (res?.response ?? []).map((r: any) => ({ label: r.name, value: +r.id }))));
+        : this.integrationService.getTenableRepositories(false, integrationSourceFor(collectionType)).pipe(map((res: any) => (res?.response ?? []).map((r: any) => ({ label: r.name, value: +r.id }))));
 
     source$
       .pipe(
@@ -850,7 +848,7 @@ export class CollectionsComponent implements OnInit {
                 }))
             )
           )
-        : this.integrationService.getTenableRepositories(false).pipe(
+        : this.integrationService.getTenableRepositories(false, integrationSourceFor(collectionType)).pipe(
             map((res: any) =>
               (res?.response ?? [])
                 .filter((r: any) => !usedOriginIds.has(+r.id))
@@ -859,7 +857,7 @@ export class CollectionsComponent implements OnInit {
                   value: {
                     collectionName: r.name,
                     description: r.description ?? '',
-                    collectionType: 'Tenable',
+                    collectionType,
                     originCollectionId: +r.id
                   }
                 }))

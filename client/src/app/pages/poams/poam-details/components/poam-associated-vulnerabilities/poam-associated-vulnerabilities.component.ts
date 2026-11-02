@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { isTenableLike } from '../../../../../common/utils/collection-type.utils';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, OnInit, SimpleChanges, inject, output, signal, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -156,7 +157,7 @@ export class PoamAssociatedVulnerabilitiesComponent implements OnInit, OnChanges
 
     if (currentCollection?.collectionType === 'STIG Manager' && currentCollection.originCollectionId) {
       this.loadSTIGManagerData();
-    } else if (currentCollection?.collectionType === 'Tenable' && currentCollection.originCollectionId) {
+    } else if (isTenableLike(currentCollection?.collectionType) && currentCollection.originCollectionId) {
       this.loadTenableData();
     }
   }

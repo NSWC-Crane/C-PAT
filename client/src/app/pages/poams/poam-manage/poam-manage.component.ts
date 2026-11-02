@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { isTenableLike } from '../../../common/utils/collection-type.utils';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -108,6 +109,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
   poams = signal<Poam[]>([]);
   selectedPoamId = signal<any>(null);
   selectedCollection = signal<any>(null);
+  readonly tenableLike = computed(() => isTenableLike(this.selectedCollection()?.collectionType));
   selectedCollectionId = signal<any>(null);
   allPoams = signal<any[]>([]);
   poamsNeedingAttention = signal<any[]>([]);
@@ -207,7 +209,7 @@ export class PoamManageComponent implements OnInit, OnDestroy {
           });
         }
       });
-    } else if (collectionType === 'Tenable') {
+    } else if (isTenableLike(collectionType)) {
       const baseQuery = {
         description: '',
         context: '',

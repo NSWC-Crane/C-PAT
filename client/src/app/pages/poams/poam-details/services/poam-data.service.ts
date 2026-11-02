@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { isTenableLike } from '../../../../common/utils/collection-type.utils';
 import { Injectable, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
@@ -121,7 +122,7 @@ export class PoamDataService {
           return of({ externalAssets: [] });
         })
       );
-    } else if (collectionType === 'Tenable' && originCollectionId && poam.vulnerabilityId) {
+    } else if (isTenableLike(collectionType) && originCollectionId && poam.vulnerabilityId) {
       const allPluginIds = this.getAllVulnerabilityIds(poam);
 
       const analysisParams = {
@@ -375,7 +376,7 @@ export class PoamDataService {
           collectionType: currentCollection.collectionType ? currentCollection.collectionType : 'C-PAT'
         };
 
-        if (currentCollection.collectionType === 'STIG Manager' || currentCollection.collectionType === 'Tenable') {
+        if (currentCollection.collectionType === 'STIG Manager' || isTenableLike(currentCollection.collectionType)) {
           collectionInfo.originCollectionId = currentCollection.originCollectionId;
         }
 

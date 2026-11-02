@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { isTenableLike } from '../../../common/utils/collection-type.utils';
 import { NgTemplateOutlet } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, effect, linkedSignal, signal, inject, viewChild, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -279,7 +280,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (collectionType === 'STIG Manager') {
       return poams.filter((poam) => poam.vulnerabilitySource === 'STIG');
-    } else if (collectionType === 'Tenable') {
+    } else if (isTenableLike(collectionType)) {
       return poams.filter((poam) => poam.vulnerabilitySource === 'Assured Compliance Assessment Solution (ACAS) Nessus Scanner');
     }
 
@@ -493,7 +494,7 @@ export class PoamGridComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (collection.collectionType === 'STIG Manager') {
         this.processPoamsWithStigFindings(poams, collection.originCollectionId).then((processedPoams) => this.generateExcelFile(processedPoams));
-      } else if (collection.collectionType === 'Tenable') {
+      } else if (isTenableLike(collection.collectionType)) {
         this.processPoamsWithTenableFindings(poams).then((processedPoams) => this.generateExcelFile(processedPoams));
       } else {
         this.processDefaultPoams(poams, collectionId);

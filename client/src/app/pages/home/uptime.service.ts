@@ -46,6 +46,7 @@ export interface UptimeStatus {
   oidc: ServiceUptimeStatus;
   stigman?: OptionalServiceUptimeStatus;
   tenable?: OptionalServiceUptimeStatus;
+  nessus?: OptionalServiceUptimeStatus;
   responseTimeSeries: ResponseSample[];
 }
 

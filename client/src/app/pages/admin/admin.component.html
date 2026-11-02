@@ -15,10 +15,10 @@
       <p-tab [value]="0">User Management</p-tab>
       <p-tab [value]="1">Collection Management</p-tab>
       <p-tab [value]="2">Asset Deltas</p-tab>
-      @if (tenableEnabled) {
+      @if (scannerEnabled) {
         <p-tab [value]="3">VRAM IAV Import</p-tab>
       }
-      @if (tenableEnabled) {
+      @if (scannerEnabled) {
         <p-tab [value]="4">Nessus Plugin Mapping</p-tab>
       }
       <p-tab [value]="5">A&A Packages</p-tab>
@@ -38,13 +38,13 @@
         <cpat-asset-delta />
       </p-tabpanel>
 
-      @if (tenableEnabled) {
+      @if (scannerEnabled) {
         <p-tabpanel [value]="3">
           <cpat-vram-import (navigateToPluginMapping)="switchToPluginMapping()" />
         </p-tabpanel>
       }
 
-      @if (tenableEnabled) {
+      @if (scannerEnabled) {
         <p-tabpanel [value]="4">
           <cpat-nessus-plugin-mapping />
         </p-tabpanel>

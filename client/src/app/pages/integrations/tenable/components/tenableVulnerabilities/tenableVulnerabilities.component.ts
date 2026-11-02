@@ -66,10 +66,10 @@ import {
   parseVprContext,
   toNullableNumber
 } from '../../utils/tenable-vulnerability.utils';
-import { API_FILTER_BUILDERS, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, parseRangeBounds, toArray, toIdList } from '../../utils/tenable-filter.utils';
+import { API_FILTER_BUILDERS, NESSUS_UNSUPPORTED_FILTERS, isActiveFilterValue, isIavXrefFilter, parseAssetFilterValue, parseRangeBounds, toArray, toIdList } from '../../utils/tenable-filter.utils';
 import { CollectionsService } from '../../../../admin/collections/collections.service';
 import { PoamService } from '../../../../poams/poams.service';
-import { IntegrationService } from '../../../integration.service';
+import { IntegrationService, integrationSourceFor } from '../../../integration.service';
 import { TenableFiltersComponent } from '../../components/tenableFilters/tenableFilters.component';
 import { TourPrimeNg } from 'ngx-ui-tour-primeng';
 import { MultiSelectDirective } from '../../../../../common/directives/multi-select.directive';
@@ -973,6 +973,10 @@ export class TenableVulnerabilitiesComponent implements OnInit {
             if (selectedCollectionData) {
               this.tenableRepoId = selectedCollectionData.originCollectionId?.toString();
               this.aaPackage = selectedCollectionData.aaPackage;
+
+              if (integrationSourceFor(selectedCollectionData.collectionType) === 'nessus') {
+                this.accordionItems = this.accordionItems.filter((item) => !NESSUS_UNSUPPORTED_FILTERS.has(item.identifier));
+              }
             } else {
               this.tenableRepoId = '';
             }

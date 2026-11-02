@@ -2,7 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { IntegrationService } from './integration.service';
+import { IntegrationService, integrationSourceFor, parseRepositoryRef, repositoryRef } from './integration.service';
+import { SharedService } from '../../common/services/shared.service';
+import { CollectionsService } from '../admin/collections/collections.service';
+import { MessageService } from 'primeng/api';
 
 describe('IntegrationService', () => {
   let service: IntegrationService;
@@ -11,7 +14,7 @@ describe('IntegrationService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [IntegrationService, provideHttpClient(), provideHttpClientTesting()]
+      providers: [IntegrationService, MessageService, provideHttpClient(), provideHttpClientTesting()]
     });
     service = TestBed.inject(IntegrationService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -163,6 +166,65 @@ describe('IntegrationService', () => {
 
       expect(req.request.method).toBe('GET');
       req.flush(mockFamilies);
+    });
+  });
+
+  describe('scanner source routing', () => {
+    const selectCollection = (collectionId: number, collectionType: string) => {
+      TestBed.inject(SharedService).setSelectedCollection(collectionId);
+      TestBed.inject(CollectionsService).getCollectionBasicList().subscribe();
+      httpMock.expectOne(`${apiBase}/collections/basiclist`).flush([{ collectionId, collectionName: 'c', collectionType, originCollectionId: 7 }]);
+    };
+
+    it('routes to /nessus when the selected collection is a Nessus collection', () => {
+      selectCollection(3, 'Nessus');
+
+      service.postTenableAnalysis({ query: { tool: 'sumid' } }).subscribe();
+      service.getTenablePlugin(19506).subscribe();
+
+      httpMock.expectOne(`${apiBase}/nessus/analysis`).flush({});
+      httpMock.expectOne(`${apiBase}/nessus/plugin/19506`).flush({});
+    });
+
+    it('keeps /tenable for Tenable and C-PAT collections', () => {
+      selectCollection(4, 'C-PAT');
+
+      service.getTenableRepositories().subscribe();
+
+      httpMock.expectOne(`${apiBase}/tenable/repository`).flush({});
+    });
+
+    it('honors an explicit source over the selected collection', () => {
+      selectCollection(5, 'Tenable');
+
+      service.getTenableRepositories(false, 'nessus').subscribe();
+      service.postTenableHostSearch({}, 'nessus').subscribe();
+
+      httpMock.expectOne(`${apiBase}/nessus/repository`).flush({});
+      httpMock.expectOne((req) => req.url.startsWith(`${apiBase}/nessus/hosts/search`)).flush({});
+    });
+
+    it('shows each scanner warning once as a toast', () => {
+      const messageService = TestBed.inject(MessageService);
+      const add = vi.spyOn(messageService, 'add');
+
+      service.postTenableAnalysis({ query: { tool: 'sumid' } }).subscribe();
+      httpMock.expectOne(`${apiBase}/tenable/analysis`).flush({ response: { results: [] }, warnings: ['Scan 7 is stale'] });
+
+      service.postTenableAnalysis({ query: { tool: 'listvuln' } }).subscribe();
+      httpMock.expectOne(`${apiBase}/tenable/analysis`).flush({ response: { results: [] }, warnings: ['Scan 7 is stale'] });
+
+      expect(add).toHaveBeenCalledTimes(1);
+      expect(add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'warn', detail: 'Scan 7 is stale' }));
+    });
+
+    it('encodes and parses repository references', () => {
+      expect(integrationSourceFor('Nessus')).toBe('nessus');
+      expect(integrationSourceFor('Tenable')).toBe('tenable');
+      expect(repositoryRef({ collectionType: 'Nessus', originCollectionId: 7 })).toBe('nessus:7');
+      expect(repositoryRef({ collectionType: 'Tenable', originCollectionId: 7 })).toBe('7');
+      expect(parseRepositoryRef('nessus:7')).toEqual({ id: '7', source: 'nessus' });
+      expect(parseRepositoryRef('7')).toEqual({ id: '7' });
     });
   });
 

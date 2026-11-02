@@ -163,6 +163,41 @@
         </div>
       </div>
     }
+
+    @if (showNessus()) {
+      <div class="uptime-service uptime-service-bordered">
+        <div class="uptime-row-header">
+          <div class="flex items-center gap-2 min-w-0 grow mr-2">
+            <i [class]="getStatusIcon(uptimeData()!.nessus!.currentStatus) + ' ' + getStatusColorClass(uptimeData()!.nessus!.currentStatus)"></i>
+            <span class="uptime-label truncate">Nessus</span>
+          </div>
+          <span [class]="'uptime-pct ' + getStatusColorClass(uptimeData()!.nessus!.currentStatus)">
+            @if (uptimeData()!.nessus!.uptimePercent !== null) {
+              {{ uptimeData()!.nessus!.uptimePercent }}% uptime
+            } @else {
+              Monitoring started
+            }
+          </span>
+        </div>
+        <div class="uptime-bar">
+          @for (check of uptimeData()!.nessus!.checks; track check.date) {
+            <div
+              class="uptime-segment"
+              [class.segment-first]="$first"
+              [class.segment-last]="$last"
+              [style.background]="getSegmentBackground(check)"
+              (mouseenter)="onSegmentMouseEnter($event, check)"
+              [pTooltip]="segmentTooltip"
+              tooltipPosition="top"
+              [appendTo]="'body'"
+            ></div>
+          }
+          @if (!uptimeData()!.nessus!.checks.length) {
+            <span class="text-xs uptime-muted">No data yet — check back in 24 hours.</span>
+          }
+        </div>
+      </div>
+    }
     <div class="uptime-service">
       <div class="flex items-center gap-2 min-w-0 grow mr-2 mt-2">
         <i [class]="getStatusIcon(uptimeData()!.cpat.currentStatus) + ' ' + getStatusColorClass(uptimeData()!.cpat.currentStatus)"></i>

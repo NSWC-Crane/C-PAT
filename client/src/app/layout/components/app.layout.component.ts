@@ -28,6 +28,7 @@ import { IStepOption, TourPrimeNg, TourService } from 'ngx-ui-tour-primeng';
 import { StatusMessageComponent } from '../../common/components/status-message/status-message.component';
 import { SharedService } from '../../common/services/shared.service';
 import { getBaseHref } from '../../common/utils/base-href';
+import { isTenableLike } from '../../common/utils/collection-type.utils';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CollectionsService } from '../../pages/admin/collections/collections.service';
 import { UsersService } from '../../pages/admin/users/users.service';
@@ -357,6 +358,8 @@ export class AppLayoutComponent implements OnInit {
         return 'success';
       case 'Tenable':
         return 'danger';
+      case 'Nessus':
+        return 'warn';
       default:
         return 'info';
     }
@@ -498,6 +501,12 @@ export class AppLayoutComponent implements OnInit {
         icon: 'tenable-icon',
         routerLink: ['/integrations/tenable'],
         visible: this.accessLevel >= 1 && this.collectionType() === 'Tenable'
+      },
+      {
+        label: 'Nessus',
+        icon: 'tenable-icon',
+        routerLink: ['/integrations/nessus'],
+        visible: this.accessLevel >= 1 && this.collectionType() === 'Nessus'
       },
       {
         label: 'Manual POAM Entry',
@@ -743,13 +752,15 @@ export class AppLayoutComponent implements OnInit {
       ];
     }
 
-    if (this.collectionType() === 'Tenable') {
+    if (isTenableLike(this.collectionType())) {
+      const tenableRoute = this.collectionType() === 'Nessus' ? '/integrations/nessus' : '/integrations/tenable';
+
       return [
         {
           anchorId: 'tenable-vulnerabilities',
           title: 'Tenable Vulnerabilities',
           content: 'This table lists existing findings contained in the current Tenable repository.',
-          route: '/integrations/tenable',
+          route: tenableRoute,
           closeOnOutsideClick: true,
           isAsync: true,
           enableBackdrop: true
@@ -758,7 +769,7 @@ export class AppLayoutComponent implements OnInit {
           anchorId: 'tenable-sumid',
           title: 'Summary View',
           content: `By default, the table lists findings from the Tenable 'Vulnerability Summary' view. This button can toggle between the vulnerability list and the vulnerability summary view.`,
-          route: '/integrations/tenable',
+          route: tenableRoute,
           closeOnOutsideClick: true,
           enableBackdrop: true
         },
@@ -766,7 +777,7 @@ export class AppLayoutComponent implements OnInit {
           anchorId: 'tenable-filters',
           title: 'Tenable Filters',
           content: 'This button will expand a comprehensive filter panel to compile filters and directly query the Tenable API. Click the filter button to continue.',
-          route: '/integrations/tenable',
+          route: tenableRoute,
           closeOnOutsideClick: true,
           isAsync: true,
           nextOnAnchorClick: true,
@@ -778,7 +789,7 @@ export class AppLayoutComponent implements OnInit {
           content:
             'Some pre-made filters are already available to help you quickly filter for the items that you would like to view. Filters can also be saved within the current collection and viewed by other C-PAT users by clicking the highlighted button.',
           popoverClass: 'filter-guide-visible',
-          route: '/integrations/tenable',
+          route: tenableRoute,
           closeOnOutsideClick: true,
           isAsync: true,
           enableBackdrop: true
@@ -787,7 +798,7 @@ export class AppLayoutComponent implements OnInit {
           anchorId: 'tenable-poam-creation',
           title: 'Creating a POAM',
           content: 'The icons contained within vulnerability columns directly reflect the status of any coresponding POAMs. If a POAM does not yet exist, a red plus icon will be displayed. Click the POAM status icon to continue.',
-          route: '/integrations/tenable',
+          route: tenableRoute,
           closeOnOutsideClick: true,
           isAsync: true,
           nextOnAnchorClick: true,

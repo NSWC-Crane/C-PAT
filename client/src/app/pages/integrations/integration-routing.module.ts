@@ -26,5 +26,10 @@ export const integrationRoutes: Routes = [
     path: 'tenable',
     canActivate: [AuthGuard],
     loadComponent: () => import('./tenable/tenable.component').then((m) => m.TenableComponent)
+  },
+  {
+    path: 'nessus',
+    canActivate: [AuthGuard],
+    loadComponent: () => import('./tenable/tenable.component').then((m) => m.TenableComponent)
   }
 ];

@@ -45,6 +45,7 @@
            stigman.apiUrl     - URL of your local STIG Manager API
            stigman.clientId   - OIDC client used by STIG Manager
            tenable.url        - Tenable/ACAS requests are made server-side and will use value set in .env
+           nessus.url         - Nessus Professional requests are made server-side and will use value set in .env
            features.*         - toggle marketplace, docs, Swagger UI, AI, STIG Manager and Tenable
       Everything else mirrors what the API injects in production (api/bootstrap/client.js, getClientEnv).
     -->
@@ -90,6 +91,9 @@
           tenable: {
             url: ''
           },
+          nessus: {
+            url: ''
+          },
           primeng: {
             license: 'YOUR_PRIMENG_LICENSE_KEY'
           },
@@ -99,7 +103,8 @@
             swaggerUiEnabled: true,
             aiEnabled: true,
             stigmanEnabled: true,
-            tenableEnabled: true
+            tenableEnabled: true,
+            nessusEnabled: true
           }
         }
       };
