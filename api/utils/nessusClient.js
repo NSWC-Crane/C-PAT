@@ -189,25 +189,29 @@ class NessusClient {
     /** Requests a .nessus export, waits for Nessus to build it, then downloads it. */
     async exportScanFile(scanId, historyId, { pollIntervalMs = EXPORT_POLL_INTERVAL_MS } = {}) {
         const { file } = await this.exportScan(scanId, historyId);
-        const deadline = Date.now() + this.settings.timeout;
 
-        while (true) {
-            const { status } = await this.exportStatus(scanId, file);
-
-            if (status === 'ready') break;
-
-            if (status === 'error') {
-                throw new SmError.BadGatewayError(`Nessus could not export scan ${scanId}.`);
-            }
-
-            if (Date.now() > deadline) {
-                throw new SmError.BadGatewayError(`Nessus did not finish exporting scan ${scanId} within ${this.settings.timeout}ms.`);
-            }
-
-            await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
-        }
+        await this.waitForExport(scanId, file, Date.now() + this.settings.timeout, pollIntervalMs);
 
         return this.downloadExport(scanId, file);
+    }
+
+    /** Polls the export status until Nessus reports it ready, failing on an export error or past the deadline. */
+    async waitForExport(scanId, fileId, deadline, pollIntervalMs) {
+        const { status } = await this.exportStatus(scanId, fileId);
+
+        if (status === 'ready') return;
+
+        if (status === 'error') {
+            throw new SmError.BadGatewayError(`Nessus could not export scan ${scanId}.`);
+        }
+
+        if (Date.now() > deadline) {
+            throw new SmError.BadGatewayError(`Nessus did not finish exporting scan ${scanId} within ${this.settings.timeout}ms.`);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+
+        return this.waitForExport(scanId, fileId, deadline, pollIntervalMs);
     }
 }
 

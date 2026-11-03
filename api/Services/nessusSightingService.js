@@ -29,6 +29,10 @@ function toDate(unixSeconds) {
     return new Date(Number(unixSeconds) * 1000);
 }
 
+function chunk(items, size) {
+    return Array.from({ length: Math.ceil(items.length / size) }, (_, i) => items.slice(i * size, (i + 1) * size));
+}
+
 function sightingKey(finding) {
     return `${finding.host.hostKey}|${finding.pluginID}|${finding.port}|${finding.protocol}`;
 }
@@ -65,14 +69,17 @@ async function recordSightings(snapshot) {
         await connection.beginTransaction();
 
         try {
-            for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
-                await connection.query(
-                    `INSERT INTO ${config.database.schema}.nessus_sighting (scanId, hostKey, pluginID, port, protocol, firstSeen, lastSeen)
-                     VALUES ? AS incoming
-                     ON DUPLICATE KEY UPDATE firstSeen = LEAST(firstSeen, incoming.firstSeen), lastSeen = GREATEST(lastSeen, incoming.lastSeen)`,
-                    [rows.slice(i, i + CHUNK_SIZE)]
-                );
-            }
+            // A single connection runs its queries in order, so the chunks stay sequential inside the transaction.
+            await Promise.all(
+                chunk(rows, CHUNK_SIZE).map(batch =>
+                    connection.query(
+                        `INSERT INTO ${config.database.schema}.nessus_sighting (scanId, hostKey, pluginID, port, protocol, firstSeen, lastSeen)
+                         VALUES ? AS incoming
+                         ON DUPLICATE KEY UPDATE firstSeen = LEAST(firstSeen, incoming.firstSeen), lastSeen = GREATEST(lastSeen, incoming.lastSeen)`,
+                        [batch]
+                    )
+                )
+            );
 
             await connection.query(
                 `INSERT INTO ${config.database.schema}.nessus_scan_snapshot (scanId, historyId, scanEnd, recordedAt) VALUES (?, ?, ?, UTC_TIMESTAMP(3))`,

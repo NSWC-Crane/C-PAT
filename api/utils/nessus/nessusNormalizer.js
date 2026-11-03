@@ -71,9 +71,9 @@ function yesNo(value) {
 }
 
 function stripRevision(version) {
-    const match = /\$Revision:\s*([^$]+?)\s*\$/.exec(version || '');
+    const match = /\$Revision:([^$]*)\$/.exec(version || '');
 
-    return match ? match[1] : version || '';
+    return match ? match[1].trim() : version || '';
 }
 
 function familyType(familyName, pluginType) {
@@ -133,7 +133,7 @@ function toHost(reportHost, scan) {
     const ip = p['host-ip'] || (isIp(reportHost.name) ? reportHost.name : '');
     const dnsName = p['host-fqdn'] || p['host-rdns'] || (isIp(reportHost.name) ? '' : reportHost.name);
     const macAddress = (p['mac-address'] || '').split(/\r?\n/)[0].trim();
-    const hostUUID = p['host-uuid'] || crypto.createHash('sha1').update(`${scan.scanId}:${ip}:${dnsName}:${macAddress}`).digest('hex');
+    const hostUUID = p['host-uuid'] || crypto.createHash('sha256').update(`${scan.scanId}:${ip}:${dnsName}:${macAddress}`).digest('hex').slice(0, 40);
 
     return {
         hostKey: hostUUID,
@@ -198,8 +198,9 @@ function pluginFromAttributes(nessusPlugin) {
     const item = { pluginID: String(nessusPlugin.id), pluginName: nessusPlugin.name || '', pluginFamily: nessusPlugin.family_name || '' };
 
     for (const { attribute_name: name, attribute_value: value } of nessusPlugin.attributes || []) {
-        if (name in XREF_TAGS || name === 'xref' || name === 'see_also' || name === 'cpe') {
-            (item[name] ??= []).push(value);
+        if (Object.hasOwn(XREF_TAGS, name) || name === 'xref' || name === 'see_also' || name === 'cpe') {
+            item[name] ??= [];
+            item[name].push(value);
         } else {
             item[name] = value;
         }
@@ -311,19 +312,22 @@ function toListVulnRow(finding, snapshot) {
     };
 }
 
+/** Plugin fields that vulndetails rows rename or format instead of copying through. */
+const VULN_ROW_RENAMED_FIELDS = new Set(['xrefs', 'name', 'id', 'family', 'type', 'seeAlso']);
+
 function toVulnDetailsRow(finding, snapshot) {
     const { plugin } = finding;
-    const { xrefs, name, id, family: _family, type: _type, seeAlso, ...attributes } = plugin;
+    const attributes = Object.fromEntries(Object.entries(plugin).filter(([key]) => !VULN_ROW_RENAMED_FIELDS.has(key)));
 
     return {
         ...toListVulnRow(finding, snapshot),
         ...attributes,
-        pluginName: name,
-        pluginInfo: `${id} (${finding.port}/${finding.protocol}) ${name}`,
+        pluginName: plugin.name,
+        pluginInfo: `${plugin.id} (${finding.port}/${finding.protocol}) ${plugin.name}`,
         pluginText: finding.pluginOutput ? `<plugin_output>${finding.pluginOutput}</plugin_output>` : '',
         exploitAvailable: yesNo(plugin.exploitAvailable),
-        xref: formatXrefs(xrefs, '#'),
-        seeAlso,
+        xref: formatXrefs(plugin.xrefs, '#'),
+        seeAlso: plugin.seeAlso,
         acceptRisk: '0',
         recastRisk: '0',
         acceptRiskRuleComment: '',
@@ -451,8 +455,8 @@ function toSumDnsNameRows(findings, snapshot) {
 function solutionIndex(solution) {
     let hash = 0x811c9dc5;
 
-    for (let i = 0; i < solution.length; i++) {
-        hash = Math.imul(hash ^ solution.charCodeAt(i), 0x01000193);
+    for (const char of solution) {
+        hash = Math.imul(hash ^ char.codePointAt(0), 0x01000193);
     }
 
     return hash >>> 1 || 1;

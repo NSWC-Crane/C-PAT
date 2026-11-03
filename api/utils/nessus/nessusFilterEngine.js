@@ -276,9 +276,16 @@ function pluginTypeMatcher(value) {
 }
 
 function protocolMatcher(value) {
-    const wanted = tokens(value).map(t => (PROTOCOL_NUMBERS[t] || t).toUpperCase());
+    const wanted = new Set(tokens(value).map(t => (PROTOCOL_NUMBERS[t] || t).toUpperCase()));
 
-    return f => wanted.includes(f.protocol);
+    return f => wanted.has(f.protocol);
+}
+
+/** Host name filters accept exact, contains (~ or ~=), pcre and negated matches. */
+function nameMatcher(operator, value, getter) {
+    if (operator === '~' || operator === '~=') return containsMatcher('=', value, getter);
+
+    return textMatcher(operator, value, getter);
 }
 
 const PLUGIN_DATE_FIELDS = {
@@ -313,79 +320,60 @@ const XREF_FIELDS = {
     cceID: ['CCE'],
 };
 
+/** Builders for filters that need their own matching rules; each receives (operator, value, nowSeconds). */
+const FILTER_BUILDERS = {
+    pluginID: (operator, value) => {
+        const ids = new Set(tokens(value));
+
+        return negate(operator, f => ids.has(f.pluginID));
+    },
+    pluginName: (operator, value) =>
+        operator === 'pcre' || operator === '!=' ? textMatcher(operator, value, f => f.plugin.name) : containsMatcher(operator, value, f => f.plugin.name),
+    pluginText: (operator, value) =>
+        operator === 'pcre' ? textMatcher(operator, value, f => f.pluginOutput) : containsMatcher(operator, value, f => f.pluginOutput),
+    family: (_operator, value) => {
+        const wanted = new Set(tokens(value));
+
+        return f => wanted.has(f.plugin.family.id) || wanted.has(f.plugin.family.name);
+    },
+    severity: (operator, value) => numberMatcher(operator, value, f => f.severity),
+    exploitAvailable: (_operator, value) => {
+        const wanted = ['true', 'yes'].includes(String(value).toLowerCase());
+
+        return f => (f.plugin.exploitAvailable === 'true') === wanted;
+    },
+    ip: ipMatcher,
+    dnsName: (operator, value) => nameMatcher(operator, value, f => f.host.dnsName),
+    netbiosName: (operator, value) => nameMatcher(operator, value, f => f.host.netbiosName),
+    operatingSystem: (operator, value) => containsMatcher(operator, value, f => f.host.operatingSystem),
+    hostUUID: (operator, value) => textMatcher(operator, value, f => f.host.hostUUID),
+    uuid: (operator, value) => textMatcher(operator, value, f => f.host.uuid),
+    port: (operator, value) => numberMatcher(operator, value, f => f.port),
+    protocol: (_operator, value) => protocolMatcher(value),
+    stigSeverity: (operator, value) => textMatcher(operator, value, f => f.plugin.stigSeverity),
+    pluginType: (_operator, value) => pluginTypeMatcher(value),
+    lastSeen: (_operator, value, nowSeconds) => dateMatcher(value, f => f.lastSeen, nowSeconds),
+    firstSeen: (_operator, value, nowSeconds) => dateMatcher(value, f => f.firstSeen, nowSeconds),
+    mitigatedStatus: (_operator, value) => (String(value) === 'previously' ? () => false : () => true),
+};
+
 function buildPredicate(filter, nowSeconds) {
     const { filterName, operator = '=', value } = filter;
 
-    if (filterName in PLUGIN_DATE_FIELDS) {
+    if (Object.hasOwn(PLUGIN_DATE_FIELDS, filterName)) {
         return dateMatcher(value, f => f.plugin[PLUGIN_DATE_FIELDS[filterName]], nowSeconds);
     }
-    if (filterName in PLUGIN_RANGE_FIELDS) {
+    if (Object.hasOwn(PLUGIN_RANGE_FIELDS, filterName)) {
         return rangeMatcher(value, f => f.plugin[PLUGIN_RANGE_FIELDS[filterName]]);
     }
-    if (filterName in PLUGIN_TEXT_FIELDS) {
+    if (Object.hasOwn(PLUGIN_TEXT_FIELDS, filterName)) {
         return containsMatcher(operator, value, f => f.plugin[PLUGIN_TEXT_FIELDS[filterName]]);
     }
-    if (filterName in XREF_FIELDS) {
+    if (Object.hasOwn(XREF_FIELDS, filterName)) {
         return xrefMatcher(operator, value, XREF_FIELDS[filterName]);
     }
 
-    switch (filterName) {
-        case 'pluginID':
-            return negate(
-                operator,
-                (
-                    ids => f =>
-                        ids.has(f.pluginID)
-                )(new Set(tokens(value)))
-            );
-        case 'pluginName':
-            return operator === 'pcre' || operator === '!='
-                ? textMatcher(operator, value, f => f.plugin.name)
-                : containsMatcher(operator, value, f => f.plugin.name);
-        case 'pluginText':
-            return operator === 'pcre' ? textMatcher(operator, value, f => f.pluginOutput) : containsMatcher(operator, value, f => f.pluginOutput);
-        case 'family':
-            return (
-                wanted => f =>
-                    wanted.has(f.plugin.family.id) || wanted.has(f.plugin.family.name)
-            )(new Set(tokens(value)));
-        case 'severity':
-            return numberMatcher(operator, value, f => f.severity);
-        case 'exploitAvailable':
-            return f => (f.plugin.exploitAvailable === 'true') === ['true', 'yes'].includes(String(value).toLowerCase());
-        case 'ip':
-            return ipMatcher(operator, value);
-        case 'dnsName':
-            return operator === '~' || operator === 'pcre'
-                ? operator === 'pcre'
-                    ? textMatcher(operator, value, f => f.host.dnsName)
-                    : containsMatcher('=', value, f => f.host.dnsName)
-                : textMatcher(operator, value, f => f.host.dnsName);
-        case 'netbiosName':
-            return operator === '~=' ? containsMatcher('=', value, f => f.host.netbiosName) : textMatcher(operator, value, f => f.host.netbiosName);
-        case 'operatingSystem':
-            return containsMatcher(operator, value, f => f.host.operatingSystem);
-        case 'hostUUID':
-            return textMatcher(operator, value, f => f.host.hostUUID);
-        case 'uuid':
-            return textMatcher(operator, value, f => f.host.uuid);
-        case 'port':
-            return numberMatcher(operator, value, f => f.port);
-        case 'protocol':
-            return protocolMatcher(value);
-        case 'stigSeverity':
-            return textMatcher(operator, value, f => f.plugin.stigSeverity);
-        case 'pluginType':
-            return pluginTypeMatcher(value);
-        case 'lastSeen':
-            return dateMatcher(value, f => f.lastSeen, nowSeconds);
-        case 'firstSeen':
-            return dateMatcher(value, f => f.firstSeen, nowSeconds);
-        case 'mitigatedStatus':
-            return String(value) === 'previously' ? () => false : () => true;
-        default:
-            return null;
-    }
+    return Object.hasOwn(FILTER_BUILDERS, filterName) ? FILTER_BUILDERS[filterName](operator, value, nowSeconds) : null;
 }
 
 /**

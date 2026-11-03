@@ -53,7 +53,7 @@ class NessusCache {
     }
 
     deleteWhere(predicate) {
-        for (const key of [...this.entries.keys()]) {
+        for (const key of this.entries.keys()) {
             if (predicate(key)) this.entries.delete(key);
         }
     }
