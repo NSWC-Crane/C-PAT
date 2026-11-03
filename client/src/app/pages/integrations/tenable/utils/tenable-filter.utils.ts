@@ -22,6 +22,32 @@ export type ApiFilterBuilder = (apiName: string, value: any) => CustomFilter | n
 
 const IAV_XREF_VALUE = 'IAVA|20*,IAVB|20*';
 
+/** Tenable.sc-only filters that have no Nessus Professional equivalent and are hidden for Nessus collections. */
+export const NESSUS_UNSUPPORTED_FILTERS = new Set([
+  'asset',
+  'auditFile',
+  'policy',
+  'responsibleUser',
+  'assetCriticalityRating',
+  'assetExposureScore',
+  'aesSeverity',
+  'acceptRiskStatus',
+  'recastRiskStatus',
+  'dataFormat',
+  'cgiScanEnabled',
+  'paranoidScanEnabled',
+  'thoroughScanEnabled',
+  'wasVuln',
+  'wasInputName',
+  'wasInputType',
+  'wasHttpMethod',
+  'wasURL',
+  'vulnUUID',
+  'cvssV4ThreatScore',
+  'cvssV4ThreatVector',
+  'cvssV4Supplemental'
+]);
+
 export function toIdList(values: any[]): string[] {
   return values.map((v) => v.id || v);
 }

@@ -8,7 +8,8 @@
 !##########################################################################
 */
 
-import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
+import { isTenableLike } from '../../common/utils/collection-type.utils';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -99,6 +100,7 @@ export class AssetsComponent implements OnInit, OnDestroy {
   readonly assetDialogVisible = signal(false);
   readonly selectedAssets = signal<AssetEntry[]>([]);
   readonly collectionType = signal<string>('');
+  readonly tenableLike = computed(() => isTenableLike(this.collectionType()));
   readonly originCollectionId = signal<number | undefined>(undefined);
   protected readonly accessLevel = signal<number>(0);
   readonly user = this.setPayloadService.user;

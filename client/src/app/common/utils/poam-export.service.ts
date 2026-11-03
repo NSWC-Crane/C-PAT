@@ -11,7 +11,8 @@
 import { format } from 'date-fns';
 import { firstValueFrom } from 'rxjs';
 import { CollectionsService } from '../../pages/admin/collections/collections.service';
-import { IntegrationService } from '../../pages/integrations/integration.service';
+import { IntegrationService, IntegrationSource, integrationSourceFor } from '../../pages/integrations/integration.service';
+import { isTenableLike } from './collection-type.utils';
 import { PoamService } from '../../pages/poams/poams.service';
 import { Poam } from '../models/poam.model';
 import { SharedService } from '../services/shared.service';
@@ -294,7 +295,7 @@ export class PoamExportService {
     return matchingFinding ? matchingFinding.assets.map((asset: { name: string }) => asset.name).join(' ') : poam.devicesAffected;
   }
 
-  private static async resolveTenableDevices(vulnerabilityId: string, integrationService: IntegrationService): Promise<string> {
+  private static async resolveTenableDevices(vulnerabilityId: string, integrationService: IntegrationService, source: IntegrationSource): Promise<string> {
     const analysisParams = {
       query: {
         description: '',
@@ -325,7 +326,7 @@ export class PoamExportService {
       type: 'vuln'
     };
 
-    const analysisData = await firstValueFrom(integrationService.postTenableAnalysis(analysisParams, false));
+    const analysisData = await firstValueFrom(integrationService.postTenableAnalysis(analysisParams, false, source));
 
     if (analysisData?.error_msg) {
       throw new Error(`Error in Tenable response: ${analysisData.error_msg}`);
@@ -362,8 +363,8 @@ export class PoamExportService {
 
       if (collection.collectionType === 'STIG Manager' && poam.vulnerabilityId && poam.stigBenchmarkId) {
         processedPoam.devicesAffected = await PoamExportService.resolveStigManagerDevices(poam, poam.stigBenchmarkId, collection.originCollectionId, findingsCache, sharedService);
-      } else if (collection.collectionType === 'Tenable' && poam.vulnerabilityId) {
-        processedPoam.devicesAffected = await PoamExportService.resolveTenableDevices(poam.vulnerabilityId, integrationService);
+      } else if (isTenableLike(collection.collectionType) && poam.vulnerabilityId) {
+        processedPoam.devicesAffected = await PoamExportService.resolveTenableDevices(poam.vulnerabilityId, integrationService, integrationSourceFor(collection.collectionType));
       } else {
         cpatAssets ??= (await firstValueFrom(poamService.getPoamAssetsByCollectionId(collection.collectionId))) ?? [];
         processedPoam.devicesAffected = PoamExportService.resolveCpatDevices(cpatAssets, poam.poamId);

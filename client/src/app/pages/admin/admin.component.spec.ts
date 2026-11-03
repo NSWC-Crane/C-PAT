@@ -121,8 +121,8 @@ describe('AdminComponent', () => {
       expect(component.value()).toBe(0);
     });
 
-    it('should set tenableEnabled from CPAT.Env', () => {
-      expect(component.tenableEnabled).toBe(true);
+    it('should enable scanner tabs when a scanner integration is configured', () => {
+      expect(component.scannerEnabled).toBe(true);
     });
   });
 
@@ -275,8 +275,9 @@ describe('AdminComponent', () => {
   });
 
   describe('Tenable Disabled', () => {
-    it('should set tenableEnabled to false when CPAT.Env.features.tenableEnabled is false', async () => {
+    it('should disable scanner tabs when neither Tenable nor Nessus is configured', async () => {
       (globalThis as any).CPAT.Env.features.tenableEnabled = false;
+      (globalThis as any).CPAT.Env.features.nessusEnabled = false;
 
       await TestBed.resetTestingModule();
       await TestBed.configureTestingModule({
@@ -305,7 +306,7 @@ describe('AdminComponent', () => {
       const newFixture = TestBed.createComponent(AdminComponent);
       const newComponent = newFixture.componentInstance;
 
-      expect(newComponent.tenableEnabled).toBe(false);
+      expect(newComponent.scannerEnabled).toBe(false);
     });
   });
 });

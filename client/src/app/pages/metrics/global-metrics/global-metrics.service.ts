@@ -8,6 +8,8 @@
 !##########################################################################
 */
 
+import { isTenableLike } from '../../../common/utils/collection-type.utils';
+import { repositoryRef } from '../../integrations/integration.service';
 import { Injectable, inject } from '@angular/core';
 import { Observable, Subject, combineLatest, from, of } from 'rxjs';
 import { catchError, map, mergeMap, tap, toArray } from 'rxjs/operators';
@@ -117,7 +119,7 @@ interface ComplianceAccumulator {
 }
 
 export function isMetricsCapableCollection(collection: { collectionId?: number; originCollectionId?: number; collectionType?: string }): boolean {
-  return !!collection.collectionId && !!collection.originCollectionId && (collection.collectionType === 'STIG Manager' || collection.collectionType === 'Tenable');
+  return !!collection.collectionId && !!collection.originCollectionId && (collection.collectionType === 'STIG Manager' || isTenableLike(collection.collectionType));
 }
 
 @Injectable({ providedIn: 'root' })
@@ -166,7 +168,7 @@ export class GlobalMetricsService {
       return this.buildStigContribution(collection, collectionName);
     }
 
-    if (collection.collectionType === 'Tenable') {
+    if (isTenableLike(collection.collectionType)) {
       return this.buildTenableContribution(collection, collectionName);
     }
 
@@ -193,7 +195,7 @@ export class GlobalMetricsService {
   }
 
   private buildTenableContribution(collection: CollectionsBasicList, collectionName: string): Observable<CollectionContribution> {
-    const repoId = String(collection.originCollectionId);
+    const repoId = repositoryRef(collection);
 
     return combineLatest([this.tenableData.getCollectionGlobalComponents(repoId, collection.collectionId), this.loadMttr(collection.collectionId)]).pipe(
       map(([tenable, mttr]) => ({ collectionName, type: 'Tenable', failed: false, tenable, mttr: { source: 'Tenable', data: mttr } }) as CollectionContribution),

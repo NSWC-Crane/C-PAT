@@ -58,6 +58,9 @@ Terms that appear across the code, the API contract, and this documentation. Oth
    milestone
       A dated step in a POAM's remediation plan with a status, comments, and optional :term:`assigned team` owners. See :ref:`manage-poams`.
 
+   Nessus Professional
+      Tenable's single-scanner product. It has no cumulative repository, so the API associates a ``Nessus`` :term:`collection` with one scan, exports that scan's latest run, and serves it through the same page and response shapes as :term:`Tenable.sc`. See :ref:`nessus`.
+
    OIDC
       OpenID Connect, the identity layer on OAuth 2.0 that C-PAT uses for authentication. The provider issues the JWT access tokens the API validates. See :ref:`authentication`.
 
@@ -95,4 +98,4 @@ Terms that appear across the code, the API contract, and this documentation. Oth
       The Vulnerability Remediation Asset Manager. Administrators import its spreadsheet export to refresh :term:`IAV` records and plugin mappings. See :ref:`admin-portal`.
 
    vulnerability source
-      The origin of a POAM's finding, stored on the POAM as ``vulnerabilitySource``: ``STIG`` for findings that came from :term:`STIG Manager`, or the ACAS Nessus scanner name for findings that came from :term:`Tenable.sc`. A :term:`collection` likewise has a type (STIG Manager, Tenable, or created in C-PAT itself) that selects which integration pages the client shows for it.
+      The origin of a POAM's finding, stored on the POAM as ``vulnerabilitySource``: ``STIG`` for findings that came from :term:`STIG Manager`, or the ACAS Nessus scanner name for findings that came from :term:`Tenable.sc` or :term:`Nessus Professional`. A :term:`collection` likewise has a type (STIG Manager, Tenable, Nessus, or created in C-PAT itself) that selects which integration pages the client shows for it.

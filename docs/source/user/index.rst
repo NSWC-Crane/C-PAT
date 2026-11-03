@@ -20,6 +20,7 @@ These pages describe the features contained in C-PAT.
 	manage-poams
 	stigman
 	tenable
+	nessus
 	assets
 	labels
 

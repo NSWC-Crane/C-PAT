@@ -39,7 +39,7 @@ export class AdminComponent implements OnInit {
   readonly nessusPluginMappingComponent = viewChild(NessusPluginMappingComponent);
   readonly usersComponent = viewChild(UsersComponent);
   readonly value = signal(0);
-  tenableEnabled = CPAT.Env.features.tenableEnabled;
+  scannerEnabled = CPAT.Env.features.tenableEnabled || CPAT.Env.features.nessusEnabled;
 
   ngOnInit() {
     this.payloadService.isAdmin$

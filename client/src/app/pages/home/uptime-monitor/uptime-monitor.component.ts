@@ -68,8 +68,9 @@ export class UptimeMonitorComponent implements OnInit, OnDestroy {
 
   readonly showStigman = computed(() => this.uptimeData()?.stigman?.available === true);
   readonly showTenable = computed(() => this.uptimeData()?.tenable?.available === true);
-  readonly oidcHasBorder = computed(() => this.showStigman() || this.showTenable());
-  readonly stigmanHasBorder = computed(() => this.showTenable());
+  readonly showNessus = computed(() => this.uptimeData()?.nessus?.available === true);
+  readonly oidcHasBorder = computed(() => this.showStigman() || this.showTenable() || this.showNessus());
+  readonly stigmanHasBorder = computed(() => this.showTenable() || this.showNessus());
 
   chartContainer = viewChild<ElementRef<HTMLDivElement>>('chart');
 

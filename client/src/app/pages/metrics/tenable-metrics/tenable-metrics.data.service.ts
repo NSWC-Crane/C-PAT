@@ -13,7 +13,7 @@ import { Observable, combineLatest, forkJoin, map, of, switchMap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ComplianceCount } from '../../../common/models/metrics.model';
 import { CollectionsService } from '../../admin/collections/collections.service';
-import { IntegrationService } from '../../integrations/integration.service';
+import { IntegrationService, parseRepositoryRef } from '../../integrations/integration.service';
 
 export interface SeveritySummary {
   critical: number;
@@ -116,7 +116,7 @@ export class TenableMetricsDataService {
           {
             property: 'repositoryHost',
             operator: 'eq',
-            value: repoId.toString()
+            value: parseRepositoryRef(repoId).id
           },
           {
             property: 'assetCriticalityRating',
@@ -132,7 +132,7 @@ export class TenableMetricsDataService {
       }
     };
 
-    const hosts$ = this.integrationService.postTenableHostSearch(hostParams).pipe(map((response: any) => response?.response || []));
+    const hosts$ = this.integrationService.postTenableHostSearch(hostParams, parseRepositoryRef(repoId).source).pipe(map((response: any) => response?.response || []));
 
     return propagateErrors ? hosts$ : hosts$.pipe(catchError(() => of([])));
   }
@@ -504,7 +504,7 @@ export class TenableMetricsDataService {
       type: 'vuln'
     };
 
-    const summary$ = this.integrationService.postTenableAnalysis(analysisParams).pipe(
+    const summary$ = this.integrationService.postTenableAnalysis(analysisParams, true, parseRepositoryRef(repoId).source).pipe(
       map((response: any) => {
         const results = response?.response?.results || [];
         const summary: SeveritySummary = {
@@ -570,7 +570,7 @@ export class TenableMetricsDataService {
       type: 'vuln'
     };
 
-    const analysis$ = this.integrationService.postTenableAnalysis(analysisParams);
+    const analysis$ = this.integrationService.postTenableAnalysis(analysisParams, true, parseRepositoryRef(repoId).source);
 
     return propagateErrors
       ? analysis$
@@ -590,7 +590,7 @@ export class TenableMetricsDataService {
       operator: '=',
       type: 'vuln',
       isPredefined: true,
-      value: [{ id: repoId }]
+      value: [{ id: parseRepositoryRef(repoId).id }]
     };
   }
 

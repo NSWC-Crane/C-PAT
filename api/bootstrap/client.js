@@ -96,6 +96,9 @@ const CPAT = {
     tenable: {
         url: ${jsString(config.tenable.url)}
     },
+    nessus: {
+        url: ${jsString(config.nessus.url)}
+    },
     primeng: {
         license: ${jsString(config.primeng.license)}
     },
@@ -105,7 +108,8 @@ const CPAT = {
         swaggerUiEnabled: ${config.swaggerUi.enabled},
         aiEnabled: ${config.ai.enabled},
         stigmanEnabled: ${config.stigman.enabled},
-        tenableEnabled: ${config.tenable.enabled}
+        tenableEnabled: ${config.tenable.enabled},
+        nessusEnabled: ${config.nessus.enabled}
     }
   }
 }`;

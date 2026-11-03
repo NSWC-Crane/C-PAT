@@ -298,6 +298,8 @@ export class CollectionPermissionsComponent {
         return 'success';
       case 'Tenable':
         return 'danger';
+      case 'Nessus':
+        return 'warn';
       default:
         return 'info';
     }

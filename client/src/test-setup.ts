@@ -29,6 +29,7 @@ getTestBed().initTestEnvironment(BrowserTestingModule, platformBrowserTesting())
     dodDeployment: false,
     features: {
       tenableEnabled: true,
+      nessusEnabled: true,
       aiEnabled: false,
       marketplaceDisabled: false,
       docsDisabled: false,

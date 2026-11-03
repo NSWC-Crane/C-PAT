@@ -75,6 +75,21 @@ let config = {
             key_file: process.env.TENABLE_KEY_FILE,
         },
     },
+    nessus: {
+        enabled: !!(process.env.NESSUS_URL && process.env.NESSUS_ACCESS_KEY && process.env.NESSUS_SECRET_KEY),
+        url: process.env.NESSUS_URL || '',
+        accessKey: process.env.NESSUS_ACCESS_KEY,
+        secretKey: process.env.NESSUS_SECRET_KEY,
+        timeout: (Number.parseInt(process.env.NESSUS_TIMEOUT) || 300) * 1000,
+        cacheTtl: (Number.parseInt(process.env.NESSUS_CACHE_TTL) || 900) * 1000,
+        cacheMaxScans: Number.parseInt(process.env.NESSUS_CACHE_MAX_SCANS) || 10,
+        tls: {
+            cert_file: process.env.NESSUS_CERT_FILE,
+            key_file: process.env.NESSUS_KEY_FILE,
+            ca_file: process.env.NESSUS_CA_FILE,
+            insecure: process.env.NESSUS_TLS_INSECURE === 'true',
+        },
+    },
     docs: {
         disabled: process.env.CPAT_DOCS_DISABLED ? process.env.CPAT_DOCS_DISABLED === 'true' : false,
         docsDirectory: process.env.CPAT_DOCS_DIRECTORY || '../docs/_build/html',

@@ -158,7 +158,7 @@
           [pTooltip]="'Percentage of Critical and High severity findings that were published 30+ days ago' + (getLastObservedText() ? ', last observed ' + getLastObservedText() : '') + ', and have an existing POAM in an Approved status.'"
           tooltipPosition="top"
         >
-          <div class="metric-type">Tenable</div>
+          <div class="metric-type">{{ scannerLabel() }}</div>
           <div class="metric-description pr-[7.5px]">CAT-I POAM Compliance %</div>
         </div>
       </div>
@@ -182,7 +182,7 @@
           [pTooltip]="'Percentage of Medium severity findings that were published 30+ days ago' + (getLastObservedText() ? ', last observed ' + getLastObservedText() : '') + ', and have an existing POAM in an Approved status.'"
           tooltipPosition="top"
         >
-          <div class="metric-type">Tenable</div>
+          <div class="metric-type">{{ scannerLabel() }}</div>
           <div class="metric-description pr-[3.75px]">CAT-II POAM Compliance %</div>
         </div>
       </div>
@@ -206,7 +206,7 @@
           [pTooltip]="'Percentage of Low severity findings that were published 30+ days ago' + (getLastObservedText() ? ', last observed ' + getLastObservedText() : '') + ', and have an existing POAM in an Approved status.'"
           tooltipPosition="top"
         >
-          <div class="metric-type">Tenable</div>
+          <div class="metric-type">{{ scannerLabel() }}</div>
           <div class="metric-description">CAT-III POAM Compliance %</div>
         </div>
       </div>

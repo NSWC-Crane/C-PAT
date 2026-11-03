@@ -22,9 +22,9 @@ import { MessageModule } from 'primeng/message';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { Table, TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
-import { EMPTY, Observable, catchError, map, shareReplay, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { EMPTY, Observable, catchError, concatMap, from, map, of, shareReplay, defer, switchMap, takeUntil, tap, throwError, timer, toArray } from 'rxjs';
 import { getErrorMessage } from '../../../common/utils/error-utils';
-import { IntegrationService } from '../../integrations/integration.service';
+import { IntegrationService, IntegrationSource } from '../../integrations/integration.service';
 import { NessusPluginMappingService } from './nessus-plugin-mapping.service';
 
 @Component({
@@ -225,26 +225,58 @@ export class NessusPluginMappingComponent implements OnInit {
   }
 
   private processBatches(): Observable<any> {
-    let startOffset = 0;
-    let allPluginData: any[] = [];
+    return defer(() => this.processScanners());
+  }
 
-    const processBatch = (): Observable<any> =>
-      this.getPluginBatch(startOffset, this.batchSize).pipe(
-        tap(({ pluginData, totalRecords }) => {
-          allPluginData = allPluginData.concat(pluginData);
-          this.expectedTotalRecords = totalRecords;
-          startOffset += this.batchSize;
-        }),
-        switchMap(({ totalRecords }) => {
-          if (startOffset >= totalRecords) {
-            return this.finalizeBatchProcessing(allPluginData);
-          } else {
-            return processBatch();
-          }
+  /** Runs the batch loop for every configured scanner with state that is fresh per subscription. All scanners must succeed before the mapping is committed. */
+  private processScanners(): Observable<any> {
+    const sources: IntegrationSource[] = [...(CPAT.Env.features.tenableEnabled ? ['tenable' as const] : []), ...(CPAT.Env.features.nessusEnabled ? ['nessus' as const] : [])];
+    let allPluginData: any[] = [];
+    let completedRecords = 0;
+    const failures: string[] = [];
+
+    const processSource = (source: IntegrationSource): Observable<void> => {
+      let startOffset = 0;
+
+      const processBatch = (): Observable<void> =>
+        this.getPluginBatch(startOffset, this.batchSize, source).pipe(
+          tap(({ pluginData, totalRecords }) => {
+            allPluginData = allPluginData.concat(pluginData);
+            this.expectedTotalRecords = completedRecords + totalRecords;
+            startOffset += this.batchSize;
+          }),
+          switchMap(({ totalRecords }) => {
+            if (startOffset < totalRecords) {
+              return processBatch();
+            }
+
+            completedRecords += totalRecords;
+
+            return of(undefined);
+          })
+        );
+
+      return processBatch().pipe(
+        catchError((error) => {
+          failures.push(`${source}: ${getErrorMessage(error)}`);
+
+          return of(undefined);
         })
       );
+    };
 
-    return processBatch();
+    return from(sources).pipe(
+      concatMap(processSource),
+      toArray(),
+      switchMap(() => {
+        // The server replaces each IAV's plugin list, so a partial scanner set must never be committed.
+        if (failures.length) {
+          return throwError(() => new Error(`mappings were left unchanged because a scanner could not be queried (${failures.join('; ')})`));
+        }
+
+        return this.finalizeBatchProcessing(allPluginData);
+      })
+    );
   }
 
   private finalizeBatchProcessing(allPluginData: any[]): Observable<any> {
@@ -253,7 +285,7 @@ export class NessusPluginMappingComponent implements OnInit {
     return this.nessusPluginMappingService.mapIAVPluginIds(mappedData);
   }
 
-  private getPluginBatch(startOffset: number, batchSize: number): Observable<{ pluginData: any[]; totalRecords: number }> {
+  private getPluginBatch(startOffset: number, batchSize: number, source: IntegrationSource): Observable<{ pluginData: any[]; totalRecords: number }> {
     const analysisParams = {
       query: {
         description: '',
@@ -284,7 +316,7 @@ export class NessusPluginMappingComponent implements OnInit {
       type: 'vuln'
     };
 
-    return this.integrationService.postTenableAnalysis(analysisParams, false).pipe(
+    return this.integrationService.postTenableAnalysis(analysisParams, false, source).pipe(
       map((data) => ({
         pluginData: data.response.results,
         totalRecords: data.response.totalRecords

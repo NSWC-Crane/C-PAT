@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { isTenableLike } from '../../../../../common/utils/collection-type.utils';
 import { ChangeDetectionStrategy, Component, DestroyRef, OnChanges, SimpleChanges, computed, inject, output, signal, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -34,6 +35,7 @@ export class PoamAssetsComponent implements OnChanges {
   readonly poam = input<any>(undefined);
   readonly accessLevel = input<number>(undefined);
   readonly collectionType = input<string>(undefined);
+  readonly tenableLike = computed(() => isTenableLike(this.collectionType()));
   readonly poamAssets = input<any[]>([]);
   readonly assetList = input<any[]>([]);
   readonly originCollectionId = input<any>(undefined);
@@ -197,7 +199,7 @@ export class PoamAssetsComponent implements OnChanges {
 
     if (collectionType === 'C-PAT') {
       this.fetchAssets();
-    } else if (collectionType === 'STIG Manager' || collectionType === 'Tenable') {
+    } else if (collectionType === 'STIG Manager' || isTenableLike(collectionType)) {
       this.assetsChanged.emit([...this.poamAssetsSignal()]);
     }
   }

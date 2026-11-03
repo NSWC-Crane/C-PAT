@@ -94,6 +94,7 @@ export class TenableMetricsComponent implements OnInit, OnChanges {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly collection = input<any>(undefined);
+  readonly scannerLabel = computed(() => (this.collection()?.collectionType === 'Nessus' ? 'Nessus' : 'Tenable'));
   readonly componentInit = output<TenableMetricsComponent>();
 
   private readonly cachedVulnerabilityData = signal<CachedVulnerabilityData | null>(null);

@@ -10,10 +10,31 @@
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { MessageService } from 'primeng/api';
 import { DataCacheService } from '../../common/services/data-cache.service';
+import { SharedService } from '../../common/services/shared.service';
 import { TenableFilter } from '../../common/models/tenable.model';
+import { CollectionsService } from '../admin/collections/collections.service';
+
+/** Which scanner backend a Tenable-shaped request is routed to. */
+export type IntegrationSource = 'tenable' | 'nessus';
+
+export function integrationSourceFor(collectionType?: string | null): IntegrationSource {
+  return collectionType === 'Nessus' ? 'nessus' : 'tenable';
+}
+
+/** Encodes a collection's origin id with its source so repository-scoped helpers can route it. */
+export function repositoryRef(collection: { collectionType?: string | null; originCollectionId?: number | string | null }): string {
+  const id = String(collection.originCollectionId ?? '');
+
+  return integrationSourceFor(collection.collectionType) === 'nessus' ? `nessus:${id}` : id;
+}
+
+export function parseRepositoryRef(ref: string): { id: string; source?: IntegrationSource } {
+  return ref.startsWith('nessus:') ? { id: ref.slice('nessus:'.length), source: 'nessus' } : { id: ref };
+}
 
 @Injectable({
   providedIn: 'root'
@@ -23,8 +44,47 @@ export class IntegrationService {
 
   private readonly http = inject(HttpClient);
   private readonly cache = inject(DataCacheService);
+  private readonly sharedService = inject(SharedService);
+  private readonly collectionsService = inject(CollectionsService);
+  private readonly messageService = inject(MessageService);
+  private readonly shownWarnings = new Set<string>();
 
   private readonly cpatApiBase = CPAT.Env.apiBase;
+
+  /** Resolves the scanner for the selected collection from the cached collection list, unless a caller names one. */
+  private resolveSource(source?: IntegrationSource): Observable<IntegrationSource> {
+    if (source) {
+      return of(source);
+    }
+
+    const collectionId = Number(this.sharedService.selectedCollectionSig());
+
+    if (!collectionId) {
+      return of('tenable');
+    }
+
+    return this.collectionsService.getCollectionBasicList().pipe(
+      map((collections) => integrationSourceFor(collections.find((collection) => collection.collectionId === collectionId)?.collectionType)),
+      catchError(() => of('tenable' as IntegrationSource))
+    );
+  }
+
+  /** Surfaces scanner warnings (skipped scans, ignored filters, stale scans) once per session. */
+  private surfaceWarnings(response: any): void {
+    for (const warning of Array.isArray(response?.warnings) ? response.warnings : []) {
+      const text = typeof warning === 'string' ? warning : warning?.message;
+
+      if (text && !this.shownWarnings.has(text)) {
+        this.shownWarnings.add(text);
+        this.messageService.add({ severity: 'warn', summary: 'Scanner', detail: text, life: 10000 });
+      }
+    }
+  }
+
+  /** Builds a request against the resolved scanner's base path. */
+  private scannerRequest<T>(source: IntegrationSource | undefined, build: (base: string) => Observable<T>): Observable<T> {
+    return this.resolveSource(source).pipe(switchMap((resolved) => build(`${this.cpatApiBase}/${resolved}`)));
+  }
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -37,7 +97,7 @@ export class IntegrationService {
   }
 
   private isTenableProxy(url: string): boolean {
-    return url.startsWith(`${this.cpatApiBase}/tenable/`);
+    return url.startsWith(`${this.cpatApiBase}/tenable/`) || url.startsWith(`${this.cpatApiBase}/nessus/`);
   }
 
   private isTenableSuccess(response: any): boolean {
@@ -56,58 +116,56 @@ export class IntegrationService {
     return this.isTenableProxy(url) ? this.cache.observe<T>(`${IntegrationService.TENABLE_CACHE_PREFIX}${this.cache.keyForBody(url, body)}`, request, this.isTenableSuccess) : request();
   }
 
-  postTenableAnalysis(analysisParams: any, useCache: boolean = true): Observable<any> {
-    const url = `${this.cpatApiBase}/tenable/analysis`;
-
-    return useCache ? this.cachedPost(url, analysisParams) : this.http.post(url, analysisParams).pipe(catchError(this.handleError));
+  postTenableAnalysis(analysisParams: any, useCache: boolean = true, source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => (useCache ? this.cachedPost(`${base}/analysis`, analysisParams) : this.http.post(`${base}/analysis`, analysisParams).pipe(catchError(this.handleError)))).pipe(
+      tap((response) => this.surfaceWarnings(response))
+    );
   }
 
-  postTenableHostSearch(hostParams: any): Observable<any> {
-    return this.cachedPost(`${this.cpatApiBase}/tenable/hosts/search?sortField=acr&sortDirection=DESC&paginated=false&fields=assetID,name,ipAddress,os,systemType,macAddress,firstSeen,lastSeen,source,netBios,dns,acr,aes`, hostParams);
+  postTenableHostSearch(hostParams: any, source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) =>
+      this.cachedPost(`${base}/hosts/search?sortField=acr&sortDirection=DESC&paginated=false&fields=assetID,name,ipAddress,os,systemType,macAddress,firstSeen,lastSeen,source,netBios,dns,acr,aes`, hostParams)
+    );
   }
 
-  getTenablePlugin(pluginId: any, useCache: boolean = true): Observable<any> {
-    const url = `${this.cpatApiBase}/tenable/plugin/${pluginId}`;
-
-    return useCache ? this.cachedGet(url) : this.http.get(url).pipe(catchError(this.handleError));
+  getTenablePlugin(pluginId: any, useCache: boolean = true, source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => (useCache ? this.cachedGet(`${base}/plugin/${pluginId}`) : this.http.get(`${base}/plugin/${pluginId}`).pipe(catchError(this.handleError))));
   }
 
-  getTenableAssetsFilter(): Observable<any> {
-    return this.cachedGet(`${this.cpatApiBase}/tenable/asset?filter=excludeWatchlists,excludeAllDefined,usable&fields=name`);
+  getTenableAssetsFilter(source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => this.cachedGet(`${base}/asset?filter=excludeWatchlists,excludeAllDefined,usable&fields=name`));
   }
 
-  getTenableAuditFileFilter(): Observable<any> {
-    return this.cachedGet(`${this.cpatApiBase}/tenable/auditFile?filter=usable&fields=name`);
+  getTenableAuditFileFilter(source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => this.cachedGet(`${base}/auditFile?filter=usable&fields=name`));
   }
 
-  getTenableScanPolicyPluginsFilter(): Observable<any> {
-    return this.cachedGet(`${this.cpatApiBase}/tenable/policy?filter=usable&fields=name`);
+  getTenableScanPolicyPluginsFilter(source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => this.cachedGet(`${base}/policy?filter=usable&fields=name`));
   }
 
-  getTenableUsersFilter(): Observable<any> {
-    return this.cachedGet(`${this.cpatApiBase}/tenable/user?fields=name,username,firstname,lastname`);
+  getTenableUsersFilter(source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => this.cachedGet(`${base}/user?fields=name,username,firstname,lastname`));
   }
 
-  getTenablePluginFamily(): Observable<any> {
-    return this.cachedGet(`${this.cpatApiBase}/tenable/pluginFamily?fields=name`);
+  getTenablePluginFamily(source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => this.cachedGet(`${base}/pluginFamily?fields=name`));
   }
 
-  getTenableRepositories(useCache: boolean = true): Observable<any> {
-    const url = `${this.cpatApiBase}/tenable/repository`;
-
-    return useCache ? this.cachedGet(url) : this.http.get(url).pipe(catchError(this.handleError));
+  getTenableRepositories(useCache: boolean = true, source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => (useCache ? this.cachedGet(`${base}/repository`) : this.http.get(`${base}/repository`).pipe(catchError(this.handleError))));
   }
 
-  postTenableSolutions(solutionParams: any): Observable<any> {
-    return this.cachedPost(`${this.cpatApiBase}/tenable/solutions`, solutionParams);
+  postTenableSolutions(solutionParams: any, source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => this.cachedPost(`${base}/solutions`, solutionParams));
   }
 
-  postTenableSolutionAssets(solutionParams: any, solutionId: number): Observable<any> {
-    return this.cachedPost(`${this.cpatApiBase}/tenable/solutions/${solutionId}/asset`, solutionParams);
+  postTenableSolutionAssets(solutionParams: any, solutionId: number, source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => this.cachedPost(`${base}/solutions/${solutionId}/asset`, solutionParams));
   }
 
-  postTenableSolutionVuln(solutionParams: any, solutionId: number): Observable<any> {
-    return this.cachedPost(`${this.cpatApiBase}/tenable/solutions/${solutionId}/vuln`, solutionParams);
+  postTenableSolutionVuln(solutionParams: any, solutionId: number, source?: IntegrationSource): Observable<any> {
+    return this.scannerRequest(source, (base) => this.cachedPost(`${base}/solutions/${solutionId}/vuln`, solutionParams));
   }
 
   getIAVInfoForPlugins(pluginIDs: number[]): Observable<any> {

@@ -71,7 +71,7 @@ describe('AssetDeltaComponent', () => {
     (globalThis as any).CPAT = {
       Env: {
         apiBase: 'http://localhost:8080/api',
-        features: { marketplaceDisabled: false },
+        features: { marketplaceDisabled: false, tenableEnabled: true, nessusEnabled: false },
         oauth: { claims: { username: 'preferred_username' } }
       }
     };
@@ -644,8 +644,49 @@ describe('AssetDeltaComponent', () => {
             type: 'vuln'
           })
         }),
-        false
+        false,
+        'tenable'
       );
+    });
+
+    it('should query every configured scanner and merge the results', () => {
+      (globalThis as any).CPAT.Env.features.nessusEnabled = true;
+      mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(of({ response: { results: [{ dnsName: 'a.domain.com' }] } })).mockReturnValueOnce(of({ response: { results: [{ dnsName: 'b.domain.com' }] } }));
+
+      let merged: any;
+
+      component.checkTenableStatus(['A', 'B']).subscribe((result) => (merged = result));
+
+      expect(mockIntegrationService.postTenableAnalysis.mock.calls.map((call: any[]) => call[2])).toEqual(['tenable', 'nessus']);
+      expect(merged.response.results.map((r: any) => r.dnsName)).toEqual(['a.domain.com', 'b.domain.com']);
+
+      (globalThis as any).CPAT.Env.features.nessusEnabled = false;
+    });
+
+    it('should keep the scanners that answered when one scanner fails', () => {
+      (globalThis as any).CPAT.Env.features.nessusEnabled = true;
+      mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(throwError(() => new Error('down'))).mockReturnValueOnce(of({ response: { results: [{ dnsName: 'b.domain.com' }] } }));
+
+      let merged: any;
+
+      component.checkTenableStatus(['A']).subscribe((result) => (merged = result));
+
+      expect(merged.response.results.map((r: any) => r.dnsName)).toEqual(['b.domain.com']);
+
+      (globalThis as any).CPAT.Env.features.nessusEnabled = false;
+    });
+
+    it('should resolve to null when no scanner is configured', () => {
+      (globalThis as any).CPAT.Env.features.tenableEnabled = false;
+
+      let result: any = 'unset';
+
+      component.checkTenableStatus(['A']).subscribe((value) => (result = value));
+
+      expect(result).toBeNull();
+      expect(mockIntegrationService.postTenableAnalysis).not.toHaveBeenCalled();
+
+      (globalThis as any).CPAT.Env.features.tenableEnabled = true;
     });
 
     it('should include hostnames in the filter value', () => {

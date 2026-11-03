@@ -51,7 +51,7 @@ Check each item when you add or change an operation. The resolver and the valida
 * Schemas provide ``examples`` as an array rather than a single ``example``.
 * Binary request bodies use ``contentMediaType`` in the schema rather than ``format: binary``.
 * Multipart upload operations carry ``x-eov-file-handler: true``. The marker documents that the handler reads ``req.files``; the validator does not act on it.
-* Tenable proxy operations reuse ``components.responses.tenableUpstreamError`` (502) and ``components.responses.tenableUnavailable`` (503).
+* Tenable proxy operations reuse ``components.responses.tenableUpstreamError`` (502) and ``components.responses.tenableUnavailable`` (503); Nessus operations reuse ``nessusUpstreamError`` and ``nessusUnavailable`` the same way.
 
 Validation behaviour
 ==========================
@@ -107,4 +107,9 @@ Tenable proxy operations
   * - ``POST /tenable/solutions/{solutionId}/vuln``
     - ``postTenableSolutionVulnerabilities``
 
-Each forwards to the corresponding path under ``/rest`` on the configured :term:`Tenable.sc` server with the deployment's API keys. The saved-filter operations under ``/tenableFilters`` and ``/tenableFilter`` are ordinary C-PAT operations, not proxies. See :ref:`developer-backend` for the proxy's behaviour.
+Each forwards to the corresponding path under ``/rest`` on the configured :term:`Tenable.sc` server with the deployment's API keys. The saved-filter operations under ``/tenableFilters`` and ``/tenableFilter`` are ordinary C-PAT operations, not proxies, and are shared by Tenable and Nessus collections. See :ref:`developer-backend` for the proxy's behaviour.
+
+Nessus operations
+==========================
+
+The ``/nessus`` operations mirror the Tenable proxy operations one for one (``postNessusAnalysis``, ``postNessusHostSearch``, ``getNessusPlugin``, ``getNessusAssets``, ``getNessusAuditFiles``, ``getNessusScanPolicies``, ``getNessusUsers``, ``getNessusPluginFamilies``, ``getNessusScans`` for ``GET /nessus/repository``, ``postNessusSolutions``, ``postNessusSolutionAssets``, ``postNessusSolutionVulnerabilities``) and accept the same request bodies and query parameters, so the client can switch between them by path alone. They are served from a normalized scan snapshot rather than proxied; the asset, audit file, policy, and user lists answer empty results because :term:`Nessus Professional` has no such objects. ``DELETE /nessus/cache/{scanId}`` (``deleteNessusScanCache``, scope ``c-pat:op``) clears a cached scan. See :ref:`developer-backend` for the service.

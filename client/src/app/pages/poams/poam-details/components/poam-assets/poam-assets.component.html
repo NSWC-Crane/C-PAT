@@ -61,7 +61,7 @@
     </div>
   }
 
-  @if (collectionType() === 'Tenable') {
+  @if (tenableLike()) {
     <div class="stepper-content">
       <cpat-tenable-assets-table [pluginID]="poam().vulnerabilityId" [tenableRepoId]="originCollectionId()" [associatedVulnerabilities]="poamAssociatedVulnerabilities()" />
     </div>

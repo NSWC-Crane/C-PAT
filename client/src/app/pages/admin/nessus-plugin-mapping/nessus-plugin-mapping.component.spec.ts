@@ -74,7 +74,7 @@ describe('NessusPluginMappingComponent', () => {
     (globalThis as any).CPAT = {
       Env: {
         apiBase: 'http://localhost:8080/api',
-        features: { marketplaceDisabled: false },
+        features: { marketplaceDisabled: false, tenableEnabled: true, nessusEnabled: false },
         oauth: { claims: { username: 'preferred_username' } }
       }
     };
@@ -380,7 +380,8 @@ describe('NessusPluginMappingComponent', () => {
         expect.objectContaining({
           query: expect.objectContaining({ tool: 'vulndetails', type: 'vuln' })
         }),
-        false
+        false,
+        'tenable'
       );
     });
 
@@ -459,6 +460,41 @@ describe('NessusPluginMappingComponent', () => {
 
         expect(offsets).toEqual([0, 1, 2]);
         expect(mockNessusPluginMappingService.mapIAVPluginIds).toHaveBeenCalledTimes(1);
+      });
+
+      it('walks each configured scanner in turn and maps once', () => {
+        (globalThis as any).CPAT.Env.features.nessusEnabled = true;
+        (component as any).batchSize = 1;
+        mockIntegrationService.postTenableAnalysis.mockReturnValueOnce(of(batch('1', 1))).mockReturnValueOnce(of(batch('2', 1)));
+
+        component.updatePluginIds();
+        vi.runAllTimers();
+
+        expect(mockIntegrationService.postTenableAnalysis.mock.calls.map((call: any[]) => [call[0].query.startOffset, call[2]])).toEqual([
+          [0, 'tenable'],
+          [0, 'nessus']
+        ]);
+        expect(mockNessusPluginMappingService.mapIAVPluginIds).toHaveBeenCalledTimes(1);
+
+        (globalThis as any).CPAT.Env.features.nessusEnabled = false;
+      });
+
+      it('leaves mappings unchanged when any scanner fails', () => {
+        (globalThis as any).CPAT.Env.features.nessusEnabled = true;
+        (component as any).batchSize = 1;
+        mockIntegrationService.postTenableAnalysis.mockImplementation((_params: any, _useCache: boolean, source: string) => (source === 'tenable' ? throwError(() => new Error('down')) : of(batch('2', 1))));
+
+        try {
+          component.updatePluginIds();
+          vi.runAllTimers();
+        } catch {
+          /* the progress stream rethrows the batch error */
+        }
+
+        expect(mockNessusPluginMappingService.mapIAVPluginIds).not.toHaveBeenCalled();
+        expect(mockMessageService.add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: expect.stringContaining('tenable: down') }));
+
+        (globalThis as any).CPAT.Env.features.nessusEnabled = false;
       });
 
       it('maps every plugin exactly once across a multi-batch run', () => {

@@ -34,7 +34,7 @@ import { CollectionsBasicList } from '../../../common/models/collections-basic.m
 import { SharedService } from '../../../common/services/shared.service';
 import { getErrorMessage } from '../../../common/utils/error-utils';
 import { AppConfigService } from '../../../layout/services/appconfigservice';
-import { IntegrationService } from '../../integrations/integration.service';
+import { IntegrationService, IntegrationSource } from '../../integrations/integration.service';
 import { CollectionsService } from '../collections/collections.service';
 import { AssetDeltaService } from './asset-delta.service';
 import { PayloadService } from '../../../common/services/setPayload.service';
@@ -763,7 +763,19 @@ export class AssetDeltaComponent implements OnInit, AfterViewInit {
       type: 'vuln'
     };
 
-    return this.integrationService.postTenableAnalysis(analysisParams, false);
+    const sources: IntegrationSource[] = [...(CPAT.Env.features.tenableEnabled ? ['tenable' as const] : []), ...(CPAT.Env.features.nessusEnabled ? ['nessus' as const] : [])];
+
+    if (sources.length === 0) {
+      return of(null);
+    }
+
+    return forkJoin(sources.map((source) => this.integrationService.postTenableAnalysis(analysisParams, false, source).pipe(catchError(() => of(null))))).pipe(
+      map((responses) => {
+        const answered = responses.filter(Boolean);
+
+        return answered.length ? { response: { results: answered.flatMap((response: any) => response?.response?.results ?? []) } } : null;
+      })
+    );
   }
 
   private updateChartData() {

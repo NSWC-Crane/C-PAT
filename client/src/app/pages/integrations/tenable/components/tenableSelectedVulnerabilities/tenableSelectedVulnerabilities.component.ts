@@ -184,7 +184,7 @@ export class TenableSelectedVulnerabilitiesComponent implements OnInit {
     this.messageService.add({
       severity: 'error',
       summary: 'Error',
-      detail: 'Unable to load Tenable repository information. Some features may be unavailable.'
+      detail: 'Unable to load Tenable or Nessus repository information. Some features may be unavailable.'
     });
   }
 

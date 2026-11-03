@@ -8,6 +8,7 @@
 !##########################################################################
 */
 
+import { isTenableLike } from '../../../../common/utils/collection-type.utils';
 import { Injectable, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 
@@ -35,7 +36,7 @@ export function computeTeamAssignments(poam: any, assetDeltaList: any, collectio
 
   if (!assetDeltaList?.assets) return unchanged;
   if (collectionType === 'C-PAT' && (!poamAssets || poamAssets.length === 0)) return unchanged;
-  if ((collectionType === 'STIG Manager' || collectionType === 'Tenable') && (!externalAssets || externalAssets.length === 0)) return unchanged;
+  if ((collectionType === 'STIG Manager' || isTenableLike(collectionType)) && (!externalAssets || externalAssets.length === 0)) return unchanged;
 
   const newTeamsToAdd = new Set<any>();
   const assetsToCheck =

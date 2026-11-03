@@ -14,7 +14,8 @@ import { catchError, concatMap, map, mergeMap, switchMap, tap, toArray } from 'r
 import { Collections } from '../../../../common/models/collections.model';
 import { SharedService } from '../../../../common/services/shared.service';
 import { getErrorMessage } from '../../../../common/utils/error-utils';
-import { IntegrationService } from '../../../integrations/integration.service';
+import { IntegrationService, IntegrationSource, integrationSourceFor } from '../../../integrations/integration.service';
+import { isTenableLike } from '../../../../common/utils/collection-type.utils';
 import { computeTeamAssignments } from '../../../poams/poam-details/services/asset-team-mapping.service';
 import { AssetDeltaService } from '../../asset-delta/asset-delta.service';
 import { CollectionsService } from '../collections.service';
@@ -66,7 +67,7 @@ function isTenablePluginId(vulnerabilityId: string): boolean {
 function vulnerabilityIdsFor(poam: Pick<TeamSyncSnapshotPoam, 'vulnerabilityId' | 'associatedVulnerabilities'>, collectionType: string): string[] {
   const ids = getAllVulnerabilityIds(poam);
 
-  return collectionType === 'Tenable' ? ids.filter(isTenablePluginId) : ids;
+  return isTenableLike(collectionType) ? ids.filter(isTenablePluginId) : ids;
 }
 
 @Injectable({
@@ -173,8 +174,10 @@ export class CollectionTeamSyncService {
       );
     }
 
-    if (collectionType === 'Tenable') {
+    if (isTenableLike(collectionType)) {
       if (!origin) return of(new Map());
+
+      const source = integrationSourceFor(collectionType);
 
       const pluginIds = [...new Set(snapshot.poams.filter((poam) => poam.status !== 'Closed').flatMap((poam) => vulnerabilityIdsFor(poam, collectionType)))];
       const pluginChunks = chunk(pluginIds, TENABLE_PLUGIN_CHUNK_SIZE);
@@ -189,7 +192,7 @@ export class CollectionTeamSyncService {
       return from(pluginChunks).pipe(
         mergeMap(
           (ids) =>
-            this.fetchTenableHosts(origin, ids, 0).pipe(
+            this.fetchTenableHosts(origin, ids, 0, source).pipe(
               tap(() => {
                 done += 1;
                 this.report('loading', 2 + done, total, `Reading Tenable hosts ${done}/${pluginChunks.length}`);
@@ -205,8 +208,8 @@ export class CollectionTeamSyncService {
     return of(null);
   }
 
-  private fetchTenableHosts(origin: number, pluginIds: string[], startOffset: number): Observable<any[]> {
-    return this.integrationService.postTenableAnalysis(this.tenableAnalysisParams(origin, pluginIds, startOffset), false).pipe(
+  private fetchTenableHosts(origin: number, pluginIds: string[], startOffset: number, source: IntegrationSource): Observable<any[]> {
+    return this.integrationService.postTenableAnalysis(this.tenableAnalysisParams(origin, pluginIds, startOffset), false, source).pipe(
       switchMap((data) => {
         if (data?.error_msg || data?.error_code) {
           return throwError(() => new Error(data.error_msg || `Tenable returned error code ${data.error_code}`));
@@ -218,7 +221,7 @@ export class CollectionTeamSyncService {
         const nextOffset = startOffset + returned;
 
         if (results.length > 0 && Number.isFinite(total) && nextOffset < total) {
-          return this.fetchTenableHosts(origin, pluginIds, nextOffset).pipe(map((rest) => [...results, ...rest]));
+          return this.fetchTenableHosts(origin, pluginIds, nextOffset, source).pipe(map((rest) => [...results, ...rest]));
         }
 
         return of(results);
@@ -321,7 +324,7 @@ export class CollectionTeamSyncService {
       return { ...base, outcome: 'unresolved', reason: 'No vulnerability ID' };
     }
 
-    if (collectionType === 'Tenable' && matchIds.length === 0) {
+    if (isTenableLike(collectionType) && matchIds.length === 0) {
       return { ...base, outcome: 'unresolved', reason: 'Not a Tenable plugin ID' };
     }
 
